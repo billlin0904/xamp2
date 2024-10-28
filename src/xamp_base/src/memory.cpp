@@ -38,8 +38,8 @@ bool PrefetchMemory(void* adddr, size_t length) noexcept {
 #endif
 
 bool PrefetchFile(MemoryMappedFile &file, size_t prefech_size) {
-    const auto preread_file_size = (std::min)(prefech_size, file.GetLength());
-    return PrefetchMemory(const_cast<void*>(file.GetData()), preread_file_size);
+    const auto prefetch_file_size = (std::min)(prefech_size, file.GetLength());
+    return PrefetchMemory(const_cast<void*>(file.GetData()), prefetch_file_size);
 }
 
 bool PrefetchFile(std::wstring const & file_path) {

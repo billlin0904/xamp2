@@ -23,7 +23,7 @@ namespace QWK {
 
 class IXFrame;
 
-class IXMainWindow : public QMainWindow {
+class XAMP_WIDGET_SHARED_EXPORT IXMainWindow : public QMainWindow {
 public:
     virtual ~IXMainWindow() override = default;
 
@@ -57,10 +57,11 @@ protected:
     IXMainWindow();
 
     void installWindowAgent();
+
     QWK::WidgetWindowAgent *window_agent_;
 };
 
-class IXFrame : public QFrame {
+class XAMP_WIDGET_SHARED_EXPORT IXFrame : public QFrame {
 public:
     virtual ~IXFrame() override = default;
 
@@ -84,8 +85,6 @@ public:
 
     virtual QString translateText(const std::string_view& text) = 0;
 protected:
-    explicit IXFrame(QWidget* parent = nullptr)
-	    : QFrame(parent) {
-    }
+    explicit IXFrame(QWidget* parent = nullptr);
 };
 

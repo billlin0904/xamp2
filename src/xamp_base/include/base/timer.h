@@ -28,7 +28,7 @@ public:
 
 private:
 	class TimerImpl;
-	AlignPtr<TimerImpl> impl_;
+	ScopedPtr<TimerImpl> impl_;
 };
 
 XAMP_BASE_NAMESPACE_END

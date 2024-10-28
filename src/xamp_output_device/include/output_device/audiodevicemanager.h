@@ -45,7 +45,7 @@ public:
     *
     * @param id: device type id
     */
-    void RegisterDevice(Uuid const& id, std::function<AlignPtr<IDeviceType>()> func) override;
+    void RegisterDevice(Uuid const& id, std::function<ScopedPtr<IDeviceType>()> func) override;
 
     /*
     * Clear all device type
@@ -58,14 +58,14 @@ public:
     *
     * @return default device type
     */
-    XAMP_NO_DISCARD AlignPtr<IDeviceType> CreateDefaultDeviceType() const override;
+    XAMP_NO_DISCARD ScopedPtr<IDeviceType> CreateDefaultDeviceType() const override;
 
     /*
     * Create device type
     *
     * @param id: device type id
     */
-    XAMP_NO_DISCARD AlignPtr<IDeviceType> Create(Uuid const& id) const override;
+    XAMP_NO_DISCARD ScopedPtr<IDeviceType> Create(Uuid const& id) const override;
 
     /*
     * Begin iterator
@@ -116,7 +116,7 @@ public:
     void Shutdown() override;
 private:
     class DeviceStateNotificationImpl;
-    AlignPtr<DeviceStateNotificationImpl> impl_;    
+    ScopedPtr<DeviceStateNotificationImpl> impl_;    
     DeviceTypeFactoryMap factory_;
 };
 

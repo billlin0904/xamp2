@@ -39,7 +39,7 @@ public:
     using DeviceStateNotificationPtr = CComPtr<DeviceStateNotification>;
 #else
     using DeviceStateNotification = osx::CoreAudioDeviceStateNotification;
-    using DeviceStateNotificationPtr = AlignPtr<DeviceStateNotification>;
+    using DeviceStateNotificationPtr = ScopedPtr<DeviceStateNotification>;
 #endif
 
     DeviceStateNotificationImpl() = default;
@@ -94,7 +94,7 @@ void AudioDeviceManager::Clear() {
     factory_.clear();
 }
 
-AlignPtr<IDeviceType> AudioDeviceManager::CreateDefaultDeviceType() const {
+ScopedPtr<IDeviceType> AudioDeviceManager::CreateDefaultDeviceType() const {
 #ifdef XAMP_OS_WIN
     return Create(XAMP_UUID_OF(win32::SharedWasapiDeviceType));
 #else
@@ -102,7 +102,7 @@ AlignPtr<IDeviceType> AudioDeviceManager::CreateDefaultDeviceType() const {
 #endif
 }
 
-AlignPtr<IDeviceType> AudioDeviceManager::Create(const Uuid & id) const {
+ScopedPtr<IDeviceType> AudioDeviceManager::Create(const Uuid & id) const {
     auto itr = factory_.find(id);
     if (itr == factory_.end()) {
         throw DeviceNotFoundException();
@@ -171,7 +171,7 @@ void AudioDeviceManager::RegisterDeviceListener(std::weak_ptr<IDeviceStateListen
     impl_->Run();
 }
 
-void AudioDeviceManager::RegisterDevice(Uuid const& id, std::function<AlignPtr<IDeviceType>()> func) {
+void AudioDeviceManager::RegisterDevice(Uuid const& id, std::function<ScopedPtr<IDeviceType>()> func) {
     factory_.emplace(std::make_pair(id, std::move(func)));
 }
 

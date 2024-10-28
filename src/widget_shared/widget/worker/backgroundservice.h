@@ -61,5 +61,5 @@ private:
 	QNetworkAccessManager nam_;
 	http::HttpClient http_client_;
 	std::shared_ptr<ObjectPool<QByteArray>> buffer_pool_;
-	AlignPtr<IThreadPoolExecutor> thread_pool_;
+	ScopedPtr<IThreadPoolExecutor> thread_pool_;
 };

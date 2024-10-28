@@ -179,10 +179,10 @@ public:
 
     HashSet<std::string> GetSupportFileExtensions() const;
      
-    AlignPtr<AvFormatLib> Format;
-    AlignPtr<AvCodecLib>  Codec;
-    AlignPtr<AvSwLib>     Swr;
-    AlignPtr<AvUtilLib>   Util;
+    ScopedPtr<AvFormatLib> Format;
+    ScopedPtr<AvCodecLib>  Codec;
+    ScopedPtr<AvSwLib>     Swr;
+    ScopedPtr<AvUtilLib>   Util;
 
     LoggerPtr logger;
 };

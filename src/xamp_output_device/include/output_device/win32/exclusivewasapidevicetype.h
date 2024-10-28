@@ -86,13 +86,13 @@ public:
 	* Make device
 	* 
 	* @param device_id: device id
-	* @return AlignPtr<IOutputDevice>
+	* @return ScopedPtr<IOutputDevice>
 	*/
-	AlignPtr<IOutputDevice> MakeDevice(const std::string & device_id) override;
+	ScopedPtr<IOutputDevice> MakeDevice(const std::string & device_id) override;
 
 private:
 	class ExclusiveWasapiDeviceTypeImpl;	
-	AlignPtr<ExclusiveWasapiDeviceTypeImpl> impl_;
+	ScopedPtr<ExclusiveWasapiDeviceTypeImpl> impl_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

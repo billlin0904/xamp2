@@ -54,7 +54,7 @@ public:
 
 private:    
     class BassParametricEqImpl;
-    AlignPtr<BassParametricEqImpl> impl_;
+    ScopedPtr<BassParametricEqImpl> impl_;
 };
 
 XAMP_STREAM_NAMESPACE_END

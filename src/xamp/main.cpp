@@ -139,8 +139,12 @@ namespace {
         auto prefetch_dll = prefetchDll();
         XAMP_LOG_DEBUG("Prefetch dll success.");
 #endif
-        QApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+        //QApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 
+    	qputenv("QT_WIN_DEBUG_CONSOLE", "attach");
+        qputenv("QSG_INFO", "1");
+
+        QApplication::setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
         QApplication::setApplicationName(kApplicationName);
         QApplication::setApplicationVersion(kApplicationVersion);
         QApplication::setOrganizationName(kApplicationName);
@@ -191,10 +195,10 @@ namespace {
         XAMP_LOG_DEBUG("Start XAMP window...");
 
         XMainWindow main_window;
+        //main_window.setContentWidget(nullptr);
         Xamp win(&main_window, MakeAudioPlayer());
         win.setMainWindow(&main_window);
         main_window.setContentWidget(&win);
-        //main_window.setContentWidget(nullptr);
         main_window.setTheme();
         win.adjustSize();
         main_window.restoreAppGeometry();

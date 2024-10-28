@@ -102,7 +102,13 @@ namespace dao {
         return std::nullopt;
 	}
 
-    int32_t AlbumDao::addOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, uint32_t year, StoreType store_type, const QString& disc_id, bool is_hires) {
+    int32_t AlbumDao::addOrUpdateAlbum(const QString& album,
+        int32_t artist_id,
+        int64_t album_time,
+        uint32_t year,
+        StoreType store_type,
+        const QString& disc_id,
+        bool is_hires) {
         XAMP_ENSURES(!album.isEmpty());
         XAMP_ENSURES(year != UINT32_MAX);
 
@@ -611,10 +617,10 @@ LIMIT
         return selected_albums;
     }
 
-    void AlbumDao::forEachAlbumCover(std::function<void(const QString&)>&& fun) {
+    void AlbumDao::forEachAlbumCover(std::function<void(const QString&)>&& fun, int32_t limit) {
         SqlQuery query(db_);
 
-        query.prepare("SELECT coverId FROM albums LIMIT 255"_str);
+        query.prepare(qFormat("SELECT coverId FROM albums LIMIT %1").arg(limit));
         DbIfFailedThrow1(query);
         while (query.next()) {
             fun(query.value("coverId"_str).toString());

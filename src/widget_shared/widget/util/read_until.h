@@ -29,7 +29,7 @@ double readAll(Path const& file_path,
     uint64_t max_duration = (std::numeric_limits<uint64_t>::max)());
 
 XAMP_WIDGET_SHARED_EXPORT void encodeFile(AnyMap const &config,
-    AlignPtr<IFileEncoder>& encoder,
+    ScopedPtr<IFileEncoder>& encoder,
     std::function<bool(uint32_t)> const& progress,
     TrackInfo const& track_info);
 

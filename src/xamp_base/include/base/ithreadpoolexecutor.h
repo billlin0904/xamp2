@@ -28,6 +28,8 @@ public:
 
     virtual size_t GetThreadSize() const = 0;
 
+    virtual void SetBulkSize(size_t max_size) = 0;
+
     virtual void Destroy() noexcept = 0;
 protected:
     ITaskScheduler() = default;
@@ -38,6 +40,8 @@ public:
     XAMP_BASE_DISABLE_COPY_AND_MOVE(IThreadPoolExecutor)
 
     virtual size_t GetThreadSize() const = 0;
+
+    virtual void SetBulkSize(size_t max_size) = 0;
 
     virtual void Stop() = 0;
 

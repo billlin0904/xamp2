@@ -21,7 +21,7 @@ public:
 	std::vector<TrackInfo> Load(const Path& file_path);
 private:
 	class CueLoaderImpl;
-	AlignPtr<CueLoaderImpl> impl_;
+	ScopedPtr<CueLoaderImpl> impl_;
 };
 
 XAMP_METADATA_NAMESPACE_END

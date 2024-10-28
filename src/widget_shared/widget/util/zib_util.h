@@ -23,6 +23,6 @@ public:
 
 private:
 	class ZipFileReaderImpl;
-	AlignPtr<ZipFileReaderImpl> impl_;
+	ScopedPtr<ZipFileReaderImpl> impl_;
 };
 #endif

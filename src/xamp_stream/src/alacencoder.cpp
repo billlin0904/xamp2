@@ -238,7 +238,7 @@ private:
     AvPtr<AVCodecContext> codec_context_;
     AvPtr<AVIOContext> output_io_context_;
     AvPtr<AVFormatContext> format_context_;
-    AlignPtr<FileStream> input_file_;
+    ScopedPtr<FileStream> input_file_;
     std::vector<float> buffer_;
     std::string file_name_;
 };

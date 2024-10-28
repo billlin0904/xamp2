@@ -217,14 +217,14 @@ public:
     *
     * @return The audio device manager.
     */
-    virtual const AlignPtr<IAudioDeviceManager>& GetAudioDeviceManager() = 0;
+    virtual const ScopedPtr<IAudioDeviceManager>& GetAudioDeviceManager() = 0;
 
     /*
     * Get dsp manager.
     *
     * @return The dsp manager.
     */
-    virtual AlignPtr<IDSPManager>& GetDspManager() = 0;
+    virtual ScopedPtr<IDSPManager>& GetDspManager() = 0;
 
     /*
     * Get dsp config.

@@ -35,11 +35,19 @@ public:
         XTooltip::popup(QCursor::pos(), text);
     }
 
+    void setTextAlignment(Qt::Alignment alignment);
+
+	void setTextFont(const QFont& font);
+
     void setText(const QString& text);
 
     QString text() const;
 
-    void showAndStart();
+    void showAndStart(bool start_timer = true);
+
+    void setImageSize(const QSize& size);
+
+    void setImage(const QPixmap& pixmap);
 
     void onThemeChangedFinished(ThemeColor theme_color);
 protected:
@@ -49,6 +57,7 @@ protected:
 
 private:
     QLabel* text_;
+    QLabel* image_;
 	QTimer timer_;
 	int32_t max_width_ = 0;
 };

@@ -21,16 +21,16 @@ public:
 
 	std::optional<ReplayGain> GetReplayGain(const Path& path) override;
     
-    TrackInfo Extract(Path const &path) override;
+    TrackInfo Extract(const Path& path) override;
 
-    const Vector<uint8_t>& ReadEmbeddedCover(Path const &path) override;
+    const Vector<uint8_t>& ReadEmbeddedCover(const Path& path) override;
 
     static HashSet<std::string> const & GetSupportFileExtensions();
 
-    XAMP_NO_DISCARD bool IsSupported(Path const & path) const override;
+    XAMP_NO_DISCARD bool IsSupported(const Path& path) const override;
 private:
     class TaglibMetadataReaderImpl;
-    AlignPtr<TaglibMetadataReaderImpl> reader_;
+    ScopedPtr<TaglibMetadataReaderImpl> reader_;
 };
 
 XAMP_METADATA_NAMESPACE_END

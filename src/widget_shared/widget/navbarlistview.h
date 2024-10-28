@@ -10,9 +10,7 @@
 #include <QStandardItemModel>
 #include <QElapsedTimer>
 
-#include <widget/xtooltip.h>
 #include <widget/themecolor.h>
-#include <widget/xtooltip.h>
 #include <widget/widget_shared_global.h>
 
 enum TabIndex {
@@ -25,6 +23,8 @@ enum TabIndex {
     TAB_YT_MUSIC_PLAYLIST,
     TAB_AI,
 };
+
+class XTooltip;
 
 class XAMP_WIDGET_SHARED_EXPORT NavBarListView final : public QListView {
     Q_OBJECT
@@ -61,7 +61,7 @@ private:
     QStandardItemModel model_;
     QMap<int, QString> names_;
     QMap<QString, int> ids_;
-    XTooltip tooltip_;
+    XTooltip* tooltip_;
 	QElapsedTimer elapsed_timer_;
 };
 

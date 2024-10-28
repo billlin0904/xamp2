@@ -23,7 +23,7 @@ public:
 	}
 private:
 	class CharsetDetectorImpl;
-	AlignPtr<CharsetDetectorImpl> impl_;
+	ScopedPtr<CharsetDetectorImpl> impl_;
 };
 
 

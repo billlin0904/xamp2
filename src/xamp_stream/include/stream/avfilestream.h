@@ -50,7 +50,7 @@ public:
 	XAMP_NO_DISCARD Uuid GetTypeId() const override;
 private:
 	class AvFileStreamImpl;
-	AlignPtr<AvFileStreamImpl> impl_;
+	ScopedPtr<AvFileStreamImpl> impl_;
 };
 
 XAMP_STREAM_NAMESPACE_END

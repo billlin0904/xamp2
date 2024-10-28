@@ -10,14 +10,14 @@
 
 IXMainWindow::IXMainWindow()
 	: QMainWindow() {
-	installWindowAgent();
+    setAttribute(Qt::WA_DontCreateNativeAncestors);
 }
 
 void IXMainWindow::installWindowAgent() {
     window_agent_ = new QWK::WidgetWindowAgent(this);
     window_agent_->setup(this);
 
-    auto* title_label = new QLabel();
+    auto* title_label = new QLabel(this);
     title_label->setAlignment(Qt::AlignCenter);
     title_label->setObjectName("win-title-label"_str);
 
@@ -40,15 +40,32 @@ void IXMainWindow::installWindowAgent() {
                                          )").arg(name).arg(colorToString(color_hover_color)));
         };
 
-    auto* icon_button = new QWK::WindowButton();
+    auto set_icon_button_style = [](auto* button) {
+        const QColor color_hover_color("#dc3545"_str);
+
+        auto name = button->objectName();
+        button->setStyleSheet(qFormat(R"(
+                                         QPushButton#%1 {
+                                         border: none;
+                                         background-color: transparent;
+										 border-radius: 0px;
+                                         }
+
+										 QPushButton#%1:hover {
+										 border-radius: 0px;
+                                         }
+                                         )").arg(name));
+        };
+
+    auto* icon_button = new QWK::WindowButton(this);
     icon_button->setObjectName(QStringLiteral("icon-button"));
     icon_button->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     icon_button->setMinimumSize(QSize(32, 32));
     icon_button->setIconSize(QSize(16, 16));
 	icon_button->setIconNormal(qTheme.applicationIcon());
-    set_button_style(icon_button);
+    set_icon_button_style(icon_button);
 
-    auto* min_button = new QWK::WindowButton();
+    auto* min_button = new QWK::WindowButton(this);
     min_button->setObjectName("min-button"_str);
     min_button->setProperty("system-button", true);
     min_button->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -57,7 +74,7 @@ void IXMainWindow::installWindowAgent() {
     min_button->setMinimumSize(QSize(32, 32));
     set_button_style(min_button);
 
-    auto* max_button = new QWK::WindowButton();
+    auto* max_button = new QWK::WindowButton(this);
     max_button->setCheckable(true);
     max_button->setObjectName("max-button"_str);
     max_button->setProperty("system-button", true);
@@ -67,7 +84,7 @@ void IXMainWindow::installWindowAgent() {
     max_button->setMinimumSize(QSize(32, 32));
     set_button_style(max_button);
 
-    auto* close_button = new QWK::WindowButton();
+    auto* close_button = new QWK::WindowButton(this);
     close_button->setObjectName("close-button"_str);
     close_button->setProperty("system-button", true);
     close_button->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -78,7 +95,7 @@ void IXMainWindow::installWindowAgent() {
 
 #endif
 
-    auto* window_bar = new QWK::WindowBar();
+    auto* window_bar = new QWK::WindowBar(this);
 #ifndef Q_OS_MAC
     window_bar->setIconButton(icon_button);
     window_bar->setMinButton(min_button);
@@ -105,7 +122,6 @@ void IXMainWindow::installWindowAgent() {
 
     setMenuWidget(window_bar);
 
-
 #ifndef Q_OS_MAC
     QObject::connect(window_bar, &QWK::WindowBar::minimizeRequested, this, &QWidget::showMinimized);
     QObject::connect(window_bar, &QWK::WindowBar::maximizeRequested, this, [this, max_button](bool max) {
@@ -124,5 +140,13 @@ void IXMainWindow::installWindowAgent() {
     QObject::connect(window_bar, &QWK::WindowBar::closeRequested, this, &QWidget::close);
 #endif
 
-    window_agent_->setWindowAttribute("blur-effect"_str, "dark"_str);
+    //setObjectName("IXMainWindow"_str);
+    //setStyleSheet("background-color: transparent;"_str);
+    //window_agent_->setWindowAttribute("mica"_str, true);
+    //window_agent_->setWindowAttribute("mica-alt"_str, true);
+}
+
+IXFrame::IXFrame(QWidget* parent)
+    : QFrame(parent) {
+    setAttribute(Qt::WA_DontCreateNativeAncestors);
 }

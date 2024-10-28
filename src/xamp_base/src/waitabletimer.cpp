@@ -129,7 +129,7 @@ public:
 #ifdef XAMP_OS_WIN
 	static TimePeriod time_period_;
 #endif
-	AlignPtr<IWaitableTimer> impl_;
+	ScopedPtr<IWaitableTimer> impl_;
 };
 #ifdef XAMP_OS_WIN
 TimePeriod WaitableTimer::WaitableTimerImpl::time_period_;

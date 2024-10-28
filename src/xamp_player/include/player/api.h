@@ -26,7 +26,7 @@ XAMP_PLAYER_API std::shared_ptr<IAudioPlayer> MakeAudioPlayer();
 /*
 * Create cd device instance.
 */
-XAMP_PLAYER_API AlignPtr<ICDDevice> OpenCD(int32_t driver_letter);
+XAMP_PLAYER_API ScopedPtr<ICDDevice> OpenCD(int32_t driver_letter);
 #endif
 
 XAMP_AUDIO_PLAYER_NAMESPACE_END

@@ -8,7 +8,6 @@
 #include <QFormLayout>
 #include <QLineEdit>
 #include <QApplication>
-#include <QCheckBox>
 #include <qevent.h>
 #include <QPainter>
 #include <QSqlError>
@@ -22,7 +21,6 @@
 #include <widget/processindicator.h>
 #include <widget/widget_shared.h>
 
-#include <xampplayer.h>
 #include <thememanager.h>
 
 #include <widget/playlisttablemodel.h>

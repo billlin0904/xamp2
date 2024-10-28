@@ -47,7 +47,7 @@ public:
 
 private:
 	class BassAACFileEncoderImpl;
-	AlignPtr<BassAACFileEncoderImpl> impl_;
+	ScopedPtr<BassAACFileEncoderImpl> impl_;
 };
 
 XAMP_STREAM_NAMESPACE_END

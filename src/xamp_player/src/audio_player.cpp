@@ -64,7 +64,7 @@ namespace {
     }
 
 #if defined(XAMP_OS_WIN)
-    IDsdDevice* AsDsdDevice(AlignPtr<IOutputDevice> const& device) noexcept {
+    IDsdDevice* AsDsdDevice(ScopedPtr<IOutputDevice> const& device) noexcept {
         return dynamic_cast<IDsdDevice*>(device.get());
     }
 #endif
@@ -93,8 +93,7 @@ AudioPlayer::AudioPlayer()
     , device_manager_(MakeAudioDeviceManager())
     , logger_(XampLoggerFactory.GetLogger(kAudioPlayerLoggerName))
     , action_queue_(kActionQueueSize)
-	, fifo_(AlignUp(kPreallocateBufferSize, GetPageSize()))
-    , thread_pool_(ThreadPoolBuilder::MakePlaybackThreadPool()) {
+	, fifo_(AlignUp(kPreallocateBufferSize, GetPageSize())) {
     PreventSleep(true);
 }
 
@@ -158,7 +157,7 @@ void AudioPlayer::SetStateAdapter(const std::weak_ptr<IPlaybackStateAdapter>& ad
 }
 
 void AudioPlayer::Open(const Path& file_path, const Uuid& device_id) {
-    AlignPtr<IDeviceType> device_type;
+    ScopedPtr<IDeviceType> device_type;
     if (device_id.IsValid()) {
         device_type = device_manager_->CreateDefaultDeviceType();
     } else {
@@ -206,7 +205,7 @@ bool AudioPlayer::IsDsdFile() const {
     return is_dsd_file_;
 }
 
-void AudioPlayer::ReadStreamInfo(DsdModes dsd_mode, AlignPtr<FileStream>& stream) {
+void AudioPlayer::ReadStreamInfo(DsdModes dsd_mode, ScopedPtr<FileStream>& stream) {
     dsd_mode_ = dsd_mode;
 
     stream_duration_ = stream->GetDurationAsSeconds();
@@ -275,9 +274,9 @@ void AudioPlayer::SetState(const PlayerState play_state) {
 }
 
 void AudioPlayer::ReadPlayerAction() {
-    while (!action_queue_.IsEmpty()) {
+    while (!action_queue_.is_empty()) {
         PlayerAction msg;
-        if (action_queue_.TryDequeue(msg)) {
+        if (action_queue_.try_dequeue(msg)) {
             try {
                 switch (msg.id) {
                 case PlayerActionId::PLAYER_SEEK:
@@ -699,7 +698,7 @@ void AudioPlayer::Seek(double stream_time) {
             PlayerActionId::PLAYER_SEEK,
             stream_time
         };
-        action_queue_.TryEnqueue(std::move(action));
+        action_queue_.try_enqueue(std::move(action));
     }
 }
 
@@ -733,7 +732,7 @@ bool AudioPlayer::IsPcmAudio() const noexcept {
     return (dsd_mode_ == DsdModes::DSD_MODE_PCM || dsd_mode_ == DsdModes::DSD_MODE_DSD2PCM);
 }
 
-void AudioPlayer::BufferSamples(const AlignPtr<FileStream>& stream, int32_t buffer_count) {
+void AudioPlayer::BufferSamples(const ScopedPtr<FileStream>& stream, int32_t buffer_count) {
     auto* const sample_buffer = read_buffer_.Get();
 
     for (auto i = 0; i < buffer_count && stream_->IsActive(); ++i) {
@@ -754,11 +753,11 @@ void AudioPlayer::BufferSamples(const AlignPtr<FileStream>& stream, int32_t buff
     }
 }
 
-const AlignPtr<IAudioDeviceManager>& AudioPlayer::GetAudioDeviceManager() {
+const ScopedPtr<IAudioDeviceManager>& AudioPlayer::GetAudioDeviceManager() {
     return device_manager_;
 }
 
-AlignPtr<IDSPManager>& AudioPlayer::GetDspManager() {
+ScopedPtr<IDSPManager>& AudioPlayer::GetDspManager() {
     return dsp_manager_;
 }
 
@@ -831,6 +830,10 @@ void AudioPlayer::Play() {
 
     if (stream_task_.valid()) {
         return;
+    }
+
+    if (!thread_pool_) {
+        thread_pool_ = ThreadPoolBuilder::MakePlaybackThreadPool();
     }
 
     stream_task_ = Executor::Spawn(*thread_pool_, [player = shared_from_this()](const StopToken& stop_token) {

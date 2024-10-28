@@ -29,10 +29,9 @@ enum TaskbarProgressState {
 
 constexpr auto kWinThumbbarButtonSize = 3;
 
-class XAMP_WIDGET_SHARED_EXPORT WinTaskbar : public QObject, public QAbstractNativeEventFilter {
-    Q_OBJECT
+class WinTaskbar : public QObject, public QAbstractNativeEventFilter {
 public:
-    explicit WinTaskbar(XMainWindow* window);
+    WinTaskbar(XMainWindow* window, IXFrame *frame);
 
     virtual ~WinTaskbar() override;
 
@@ -67,15 +66,6 @@ public:
     QIcon seek_backward_icon;
     std::array<THUMBBUTTON, kWinThumbbarButtonSize> buttons;
 
-signals:
-    void playClicked();
-
-    void pauseClicked();
-
-    void forwardClicked();
-
-    void backwardClicked();
-
 private:
     void createToolbarImages();
 
@@ -88,10 +78,18 @@ private:
     int32_t process_min_{ 0 };
     int32_t process_value_{ 0 };
     QWidget* window_{ nullptr };
+    IXFrame* frame_{ nullptr };
     QIcon overlay_icon_;
     QString overlay_accessible_description_;
     QPixmap thumbnail_;
     CComPtr<ITaskbarList4> taskbar_list_;
+};
+
+#else
+
+class WinTaskbar : public QObject {
+public:
+    WinTaskbar(XMainWindow* window, IXFrame* frame);
 };
 
 #endif

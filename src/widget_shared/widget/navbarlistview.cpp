@@ -1,6 +1,6 @@
 #include <widget/navbarlistview.h>
 #include <widget/util/str_util.h>
-
+#include <widget/xtooltip.h>
 #include <widget/appsettings.h>
 #include <widget/appsettingnames.h>
 #include <thememanager.h>
@@ -32,7 +32,8 @@ NavBarListView::NavBarListView(QWidget *parent)
     });
 
     setStyleSheet("border: none"_str);
-    tooltip_.hide();
+	tooltip_ = new XTooltip();
+    tooltip_->hide();
 }
 
 QString NavBarListView::tabName(int table_id) const {
@@ -59,7 +60,7 @@ int32_t NavBarListView::currentTabId() const {
 }
 
 void NavBarListView::onRetranslateUi() {
-    tooltip_.setText(kEmptyString);
+    tooltip_->setText(kEmptyString);
 }
 
 void NavBarListView::toolTipMove(const QPoint& pos) {
@@ -68,12 +69,12 @@ void NavBarListView::toolTipMove(const QPoint& pos) {
         auto* item = model_.item(index.row(), index.column());
         auto tooltip_text = item->text();
         if (!tooltip_text.isEmpty() && qAppSettings.valueAsBool(kAppSettingHideNaviBar)) {
-            if (tooltip_text != tooltip_.text() || elapsed_timer_.elapsed() > 500) {
+            if (tooltip_text != tooltip_->text() || elapsed_timer_.elapsed() > 500) {
                 const auto item_rect = visualRect(index);
                 const auto global_pos = viewport()->mapToGlobal(item_rect.topRight());
-                tooltip_.setText(tooltip_text);
-                tooltip_.move(global_pos + QPoint(5, -5));
-                tooltip_.showAndStart();
+                tooltip_->setText(tooltip_text);
+                tooltip_->move(global_pos + QPoint(5, -5));
+                tooltip_->showAndStart();
                 elapsed_timer_.restart();
             }
         }
@@ -115,7 +116,7 @@ void NavBarListView::onThemeChangedFinished(ThemeColor theme_color) {
             break;
         }
     }
-	tooltip_.onThemeChangedFinished(theme_color);
+    tooltip_->onThemeChangedFinished(theme_color);
 }
 
 void NavBarListView::setTabText(const QString& name, int table_id) {
@@ -129,7 +130,7 @@ void NavBarListView::setTabText(const QString& name, int table_id) {
 
     names_[table_id] = name;
     ids_[name] = table_id;
-    tooltip_.setText(name);
+    tooltip_->setText(name);
 }
 
 void NavBarListView::addTab(const QString& name, int table_id, const QIcon& icon) {
@@ -145,7 +146,7 @@ void NavBarListView::addTab(const QString& name, int table_id, const QIcon& icon
     names_[table_id] = name;
     ids_[name] = table_id;	
 	// Prepare tooltip text width
-    tooltip_.setText(name);
+    tooltip_->setText(name);
 }
 
 void NavBarListView::addSeparator() {

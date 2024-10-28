@@ -167,12 +167,6 @@ XAMP_BASE_NAMESPACE_BEGIN
 inline constexpr size_t kCacheAlignSize{ 64 };
 
 /*
-* Avoid 64k Alias conflicts.
-*/
-inline constexpr size_t kInitL1CacheLineSize{ 64 * 1024 };
-inline constexpr size_t kMaxL1CacheLineSize{ 2 * 1024 * 1024 };
-
-/*
 * Memory allocate aligned size
 * Assume we need 32-byte alignment for AVX2 instructions.
 */

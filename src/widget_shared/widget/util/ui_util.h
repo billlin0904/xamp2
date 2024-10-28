@@ -52,13 +52,13 @@ XAMP_WIDGET_SHARED_EXPORT QSharedPointer<XProgressDialog> makeProgressDialog(QSt
 
 XAMP_WIDGET_SHARED_EXPORT PlayerOrder getNextOrder(PlayerOrder cur) noexcept;
 
-XAMP_WIDGET_SHARED_EXPORT AlignPtr<IAudioProcessor> makeR8BrainSampleRateConverter();
+XAMP_WIDGET_SHARED_EXPORT ScopedPtr<IAudioProcessor> makeR8BrainSampleRateConverter();
 
-XAMP_WIDGET_SHARED_EXPORT AlignPtr<IAudioProcessor> makeSrcSampleRateConverter();
+XAMP_WIDGET_SHARED_EXPORT ScopedPtr<IAudioProcessor> makeSrcSampleRateConverter();
 
-XAMP_WIDGET_SHARED_EXPORT AlignPtr<IAudioProcessor> makeSoxrSampleRateConverter(const QVariantMap& settings);
+XAMP_WIDGET_SHARED_EXPORT ScopedPtr<IAudioProcessor> makeSoxrSampleRateConverter(const QVariantMap& settings);
 
-XAMP_WIDGET_SHARED_EXPORT AlignPtr<IAudioProcessor> makeSampleRateConverter(uint32_t sample_rate);
+XAMP_WIDGET_SHARED_EXPORT ScopedPtr<IAudioProcessor> makeSampleRateConverter(uint32_t sample_rate);
 
 XAMP_WIDGET_SHARED_EXPORT PlaybackFormat getPlaybackFormat(IAudioPlayer* player);
 

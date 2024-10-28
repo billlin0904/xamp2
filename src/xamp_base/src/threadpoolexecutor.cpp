@@ -22,8 +22,11 @@ namespace {
 	constexpr auto kMaxWorkQueueSize = 65536;
 	constexpr size_t kMinThreadPoolSize = 1;
 	constexpr size_t kMaxBulkSize = 64;
+
+	// TLB size is 4K on most CPUs.
 	constexpr size_t kInitL1CacheLineSize{ 4 * 1024 };
-	constexpr size_t kMaxL1CacheLineSize{ 32 * 1024 };
+	// Most CPUs have a L1 cache line size of 64 bytes.
+	constexpr size_t kMaxL1CacheLineSize{ 48 * 1024 };
 
 	bool IsCPUSupportHT() {
 		int32_t reg[4]{ 0 };
@@ -37,16 +40,17 @@ namespace {
 	}
 }
 
-TaskScheduler::TaskScheduler(const std::string_view& pool_name, size_t max_thread, const CpuAffinity &affinity, ThreadPriority priority)
+TaskScheduler::TaskScheduler(const std::string_view& name, size_t max_thread, const CpuAffinity &affinity, ThreadPriority priority)
 	: is_stopped_(false)
 	, running_thread_(0)
 	, max_thread_(std::max(max_thread, kMinThreadPoolSize))
-	, pool_name_(pool_name)
+	, bulk_size_(kMaxBulkSize)
+	, name_(name)
 	, task_execute_flags_(max_thread_)
 	, work_done_(static_cast<ptrdiff_t>(max_thread_))
 	, start_clean_up_(1)
 	, cpu_affinity_(affinity) {
-	logger_ = XampLoggerFactory.GetLogger(pool_name);
+	logger_ = XampLoggerFactory.GetLogger(name);
 
 	try {
 		task_pool_ = MakeAlign<SharedTaskQueue>(kSharedTaskQueueSize);
@@ -86,6 +90,11 @@ size_t TaskScheduler::GetThreadSize() const {
 	return max_thread_;
 }
 
+void TaskScheduler::SetBulkSize(size_t max_size) {
+	XAMP_EXPECTS(max_size > 0);
+	bulk_size_ = max_size;
+}
+
 void TaskScheduler::Destroy() noexcept {
 	if (!task_pool_ || threads_.empty()) {
 		return;
@@ -121,39 +130,40 @@ void TaskScheduler::Destroy() noexcept {
 	XAMP_LOG_D(logger_, "Thread pool was destroy.");
 }
 
-MoveOnlyFunction TaskScheduler::TryDequeueSharedQueue(const StopToken& stop_token, std::chrono::milliseconds timeout) {
+size_t TaskScheduler::TryDequeueSharedQueue(Vector<MoveOnlyFunction>& tasks, const StopToken& stop_token, std::chrono::milliseconds timeout) {
 	if (!stop_token.stop_requested()) {
 		MoveOnlyFunction func;
 		if (task_pool_->dequeue(func, timeout)) {
-			return func;
+			tasks.emplace_back(func);
+			return 1;
 		}
 	}
 	return {};
 }
 
-MoveOnlyFunction TaskScheduler::TryDequeueSharedQueue(const StopToken& stop_token) {
+size_t TaskScheduler::TryDequeueSharedQueue(Vector<MoveOnlyFunction>& tasks, const StopToken& stop_token) {
 	if (!stop_token.stop_requested()) {
 		MoveOnlyFunction func;
 		if (task_pool_->try_dequeue(func)) {
-			return func;
+			tasks.emplace_back(func);
+			return 1;
 		}
 	}
-	return {};
+	return 0;
 }
 
-Vector<MoveOnlyFunction> TaskScheduler::TryLocalPop(const StopToken& stop_token, WorkStealingTaskQueue* local_queue) const {
+size_t TaskScheduler::TryLocalPop(Vector<MoveOnlyFunction>& tasks, const StopToken& stop_token, WorkStealingTaskQueue* local_queue) const {
 	if (!stop_token.stop_requested()) {
-		Vector<MoveOnlyFunction> func(kMaxBulkSize);
-		if (local_queue->try_dequeue_bulk(func.begin(), func.size())) {
-			return func;
+		auto size = local_queue->try_dequeue_bulk(tasks.begin(), tasks.size());
+		if (size > 0) {
+			return size;
 		}
 	}	
-	return {};
+	return 0;
 }
 
-Vector<MoveOnlyFunction> TaskScheduler::TrySteal(const StopToken& stop_token, size_t random_start, size_t current_thread_index) {
+size_t TaskScheduler::TrySteal(Vector<MoveOnlyFunction>& tasks, const StopToken& stop_token, size_t random_start, size_t current_thread_index) {
 	if (!stop_token.stop_requested()) {
-		Vector<MoveOnlyFunction> func(kMaxBulkSize);
 		for (size_t attempts = 0; attempts < kMaxAttempts; ++attempts) {
 			size_t random_index = (random_start + attempts) % max_thread_;
 			if (random_index == current_thread_index) {
@@ -161,13 +171,14 @@ Vector<MoveOnlyFunction> TaskScheduler::TrySteal(const StopToken& stop_token, si
 			}
 
 			if (task_execute_flags_[random_index].load(std::memory_order_acquire) != ExecuteFlags::EXECUTE_LONG_RUNNING) {
-				if (task_work_queues_.at(random_index)->try_dequeue_bulk(func.begin(), func.size())) {
-					return func;
+				auto size = task_work_queues_.at(random_index)->try_dequeue_bulk(tasks.begin(), 4);
+				if (size > 0) {
+					return size;
 				}
 			}
 		}
 	}
-	return {};
+	return 0;
 }
 
 void TaskScheduler::SubmitJob(MoveOnlyFunction&& task, ExecuteFlags flags) {
@@ -190,12 +201,21 @@ void TaskScheduler::SubmitJob(MoveOnlyFunction&& task, ExecuteFlags flags) {
 
 void TaskScheduler::SetWorkerThreadName(size_t i) {
 	std::wostringstream stream;
-	stream << String::ToStdWString(pool_name_) << L" Worker Thread(" << i << ")";
+	stream << String::ToStdWString(name_) << L" Worker Thread(" << i << ")";
 	SetThreadName(stream.str());
 }
 
+void TaskScheduler::Execute(Vector<MoveOnlyFunction>& tasks, size_t task_size, size_t current_index, const StopToken& stop_token) {
+	for (size_t i = 0; i < task_size; ++i) {
+		auto running_thread = ++running_thread_;
+		std::invoke(tasks[i], stop_token);
+		--running_thread_;
+	}
+	task_execute_flags_[current_index] = ExecuteFlags::EXECUTE_NORMAL;
+}
+
 void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {	
-    threads_.emplace_back([i, this, priority](const StopToken& stop_token) mutable {
+    threads_.emplace_back([i, this, priority](const auto& stop_token) mutable {
 		StackBuffer<std::byte> L1_padding_buffer;
 
 		if (IsCPUSupportHT()) {
@@ -209,10 +229,9 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 		XAMP_NO_TLS_GUARDS thread_local WorkStealingTaskQueue task_local_queue(kMaxWorkQueueSize);
 		auto local_queue = &task_local_queue;
 		task_work_queues_[i] = local_queue;
+
 		Stopwatch spinning_watch;
-
 		XampCrashHandler.SetThreadExceptionHandlers();
-
 		SetWorkerThreadName(i);
 
 		XAMP_LOG_D(logger_, "Worker Thread {} priority:{}.", i, priority);
@@ -233,27 +252,28 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) start.", thread_id, i);
 
 		while (!is_stopped_ && !stop_token.stop_requested()) {
-			auto tasks = TryLocalPop(stop_token, local_queue);
+			Vector<MoveOnlyFunction> tasks(bulk_size_);
 
-			if (tasks.empty()) {
+			auto task_size = TryLocalPop(tasks, stop_token, local_queue);
+
+			if (!task_size) {
 				size_t random_start = prng() % max_thread_;
-				tasks = TrySteal(stop_token, random_start, i);
+				task_size = TrySteal(tasks, stop_token, random_start, i);
 
-				if (tasks.empty() && spinning_watch.Elapsed() >= kSpinningTimeout) {
-					MoveOnlyFunction task;
+				if (!task_size && spinning_watch.Elapsed() >= kSpinningTimeout) {
 					// Implement backoff by adjusting how frequently we check the shared queue
 					static int backoff_attempts = 1;
 
 					for (int attempt = 0; attempt < backoff_attempts; ++attempt) {
-						task = TryDequeueSharedQueue(stop_token, kDequeueTimeout);
-						if (task) {
+						task_size = TryDequeueSharedQueue(tasks, stop_token, kDequeueTimeout);
+						if (task_size) {
 							break; // Exit early if a task is found
 						}
 						CpuRelax(); // Small CPU relaxation between attempts
 					}
 
 					// Gradually increase the number of attempts if no task was found
-					if (!task) {
+					if (!task_size) {
 						backoff_attempts = std::min(backoff_attempts * 2, 32); // Max backoff attempts
 						CpuRelax();
 						continue;
@@ -261,41 +281,25 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 
 					backoff_attempts = 1; // Reset backoff when a task is found
 					spinning_watch.Reset();
-					auto running_thread = ++running_thread_;
-					std::invoke(task, stop_token);
-					--running_thread_;
-					task_execute_flags_[i] = ExecuteFlags::EXECUTE_NORMAL;
+					Execute(tasks, task_size, i, stop_token);
 				}
 			}
 
-			if (tasks.empty()) {
+			if (!task_size) {
 				CpuRelax();
 				continue;
 			}
 
 			spinning_watch.Reset();
-
-			auto running_thread = ++running_thread_;
-			for (auto& task : tasks) {
-				if (stop_token.stop_requested()) {
-					break;
-				}
-				if (!task) {
-					continue;
-				}
-				std::invoke(task, stop_token);
-			}
-			--running_thread_;
-
-			task_execute_flags_[i] = ExecuteFlags::EXECUTE_NORMAL;
+			Execute(tasks, task_size, i, stop_token);
 		}
 
 		XAMP_LOG_D(logger_, "Worker Thread {} is existed.", i);
         });
 }
 
-ThreadPoolExecutor::ThreadPoolExecutor(const std::string_view& pool_name, uint32_t max_thread, const CpuAffinity &affinity, ThreadPriority priority)
-	: IThreadPoolExecutor(MakeAlign<ITaskScheduler, TaskScheduler>(pool_name,max_thread, affinity, priority)) {
+ThreadPoolExecutor::ThreadPoolExecutor(const std::string_view& name, uint32_t max_thread, const CpuAffinity &affinity, ThreadPriority priority)
+	: IThreadPoolExecutor(MakeAlign<ITaskScheduler, TaskScheduler>(name,max_thread, affinity, priority)) {
 }
 
 ThreadPoolExecutor::~ThreadPoolExecutor() {
@@ -304,6 +308,10 @@ ThreadPoolExecutor::~ThreadPoolExecutor() {
 
 size_t ThreadPoolExecutor::GetThreadSize() const {
 	return scheduler_->GetThreadSize();
+}
+
+void ThreadPoolExecutor::SetBulkSize(size_t max_size) {
+	scheduler_->SetBulkSize(max_size);
 }
 
 void ThreadPoolExecutor::Stop() {

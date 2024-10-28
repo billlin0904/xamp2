@@ -178,73 +178,76 @@ template <typename Type>
 using StackBuffer = std::unique_ptr<Type[], StackBufferDeleter<Type>>;
 
 template <typename Type>
-using AlignPtr = std::unique_ptr<Type, AlignedClassDeleter<Type>>;
+using ScopedPtr = std::unique_ptr<Type, AlignedClassDeleter<Type>>;
 
 using CharPtr = std::unique_ptr<char, FreeDeleter<char>>;
 
 template <typename Type>
-using AlignArray = std::unique_ptr<Type[], AlignedDeleter<Type>>;
+using ScopedArray = std::unique_ptr<Type[], AlignedDeleter<Type>>;
 
 /*
 * Make aligned pointer.
 *
 * @param[in] args
-* @return AlignPtr<Type>
+* @return ScopedPtr<Type>
 * @note Type must be default constructor.
 */
 template <typename BaseType, typename ImplType, typename... Args, size_t AlignSize = kMallocAlignSize>
-XAMP_BASE_API_ONLY_EXPORT AlignPtr<BaseType> MakeAlign(Args&& ... args) {
-    auto* ptr = AlignedMallocObject<ImplType>(AlignSize);
+XAMP_BASE_API_ONLY_EXPORT ScopedPtr<BaseType> MakeAlign(Args&& ... args) {
+    auto ptr = ScopedPtr<BaseType>(AlignedMallocObject<ImplType>(AlignSize));
     if (!ptr) {
         throw std::bad_alloc();
     }
 
+    BaseType* obj = nullptr;
     try {
-        BaseType* base = ::new(ptr) ImplType(std::forward<Args>(args)...);
-        return AlignPtr<BaseType>(base);
+        obj = ::new(ptr.get()) ImplType(std::forward<Args>(args)...);
     }
     catch (...) {
-        AlignedFree(ptr);
         throw;
     }
+	ptr.release();
+    return ScopedPtr<BaseType>(obj);
 }
 
 /*
 * Make aligned pointer.
 *
 * @param[in] args
-* @return AlignPtr<Type>
+* @return ScopedPtr<Type>
 * @note Type must be default constructor.
 */
 template <typename Type, typename... Args, size_t AlignSize = kMallocAlignSize>
-XAMP_BASE_API_ONLY_EXPORT AlignPtr<Type> MakeAlign(Args&& ... args) {
-    auto* ptr = AlignedMallocObject<Type>(AlignSize);
+XAMP_BASE_API_ONLY_EXPORT ScopedPtr<Type> MakeAlign(Args&& ... args) {
+    auto ptr = ScopedPtr<Type>(AlignedMallocObject<Type>(AlignSize));
     if (!ptr) {
         throw std::bad_alloc();
     }
 
+    Type* obj = nullptr;
     try {
-        return AlignPtr<Type>(::new(ptr) Type(std::forward<Args>(args)...));
+        obj = ::new(ptr.get()) Type(std::forward<Args>(args)...);
     }
     catch (...) {
-        AlignedFree(ptr);
         throw;
     }
+    ptr.release();
+    return ScopedPtr<Type>(obj);
 }
 
 /*
 * Make aligned array.
 *
 * @param[in] n
-* @return AlignArray<Type>
+* @return ScopedArray<Type>
 */
 template <typename Type>
-XAMP_BASE_API_ONLY_EXPORT AlignArray<Type> MakeAlignedArray(size_t n) {
+XAMP_BASE_API_ONLY_EXPORT ScopedArray<Type> MakeAlignedArray(size_t n) {
     auto ptr = AlignedMallocArray<Type>(n, kMallocAlignSize);
     if (!ptr) {
         throw std::bad_alloc();
     }
-    return AlignArray<Type>(static_cast<Type*>(ptr));
+    return ScopedArray<Type>(static_cast<Type*>(ptr));
 }
 
 /*

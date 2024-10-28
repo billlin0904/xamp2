@@ -479,7 +479,7 @@ std::optional<ReplayGain> TaglibMetadataReader::GetReplayGain(const Path& path) 
     return reader_->GetReplayGain(path);
 }
 
-const Vector<uint8_t>& TaglibMetadataReader::ReadEmbeddedCover(Path const & path) {
+const Vector<uint8_t>& TaglibMetadataReader::ReadEmbeddedCover(const Path& path) {
     return reader_->ReadEmbeddedCover(path);
 }
 
@@ -487,7 +487,7 @@ const HashSet<std::string>& TaglibMetadataReader::GetSupportFileExtensions() {
     return Singleton<TaglibHelper>::GetInstance().GetSupportFileExtensions();
 }
 
-bool TaglibMetadataReader::IsSupported(Path const & path) const {
+bool TaglibMetadataReader::IsSupported(const Path& path) const {
     return reader_->IsSupported(path);
 }
 

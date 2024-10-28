@@ -15,7 +15,7 @@
 
 XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN
 
-using DeviceTypeFactoryMap = OrderedMap<Uuid, std::function<AlignPtr<IDeviceType>()>>;
+using DeviceTypeFactoryMap = OrderedMap<Uuid, std::function<ScopedPtr<IDeviceType>()>>;
 
 /*
 * IAudioDeviceManager is the audio device manager interface.
@@ -37,21 +37,21 @@ public:
 	* 
 	* @param id: device type id.
 	*/
-	virtual void RegisterDevice(const Uuid& id, std::function<AlignPtr<IDeviceType>()> func) = 0;
+	virtual void RegisterDevice(const Uuid& id, std::function<ScopedPtr<IDeviceType>()> func) = 0;
 
 	/*
 	* Create default device type.
 	* 
 	* @return default device type.
 	*/
-	XAMP_NO_DISCARD virtual AlignPtr<IDeviceType> CreateDefaultDeviceType() const = 0;
+	XAMP_NO_DISCARD virtual ScopedPtr<IDeviceType> CreateDefaultDeviceType() const = 0;
 
 	/*
 	* Create device type.
 	* 
 	* @param id: device type id.
 	*/
-	XAMP_NO_DISCARD virtual AlignPtr<IDeviceType> Create(const Uuid& id) const = 0;
+	XAMP_NO_DISCARD virtual ScopedPtr<IDeviceType> Create(const Uuid& id) const = 0;
 
 	/*
 	* Get available device type.

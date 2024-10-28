@@ -30,7 +30,7 @@ public:
     void operator()(float* buffer, size_t size) const noexcept;
 private:
     class WindowImpl;
-    AlignPtr<WindowImpl> impl_;
+    ScopedPtr<WindowImpl> impl_;
 };
 
 class XAMP_STREAM_API FFT final {
@@ -45,7 +45,7 @@ public:
 
 private:
     class FFTImpl;
-    AlignPtr<FFTImpl> impl_;
+    ScopedPtr<FFTImpl> impl_;
 };
 
 XAMP_STREAM_NAMESPACE_END

@@ -57,7 +57,7 @@ public:
 
 private:
     class SoxrSampleRateConverterImpl;
-    AlignPtr<SoxrSampleRateConverterImpl> impl_;
+    ScopedPtr<SoxrSampleRateConverterImpl> impl_;
 };
 
 XAMP_STREAM_NAMESPACE_END

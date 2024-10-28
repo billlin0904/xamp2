@@ -216,18 +216,18 @@ public:
 
 	LoggerPtr logger;
 
-    AlignPtr<BassDSDLib> DSDLib;
-    AlignPtr<BassMixLib> MixLib;
-    AlignPtr<BassFxLib> FxLib;
-    AlignPtr<BassEncLib> EncLib;
-    AlignPtr<BassFLACEncLib> FLACEncLib;
+    ScopedPtr<BassDSDLib> DSDLib;
+    ScopedPtr<BassMixLib> MixLib;
+    ScopedPtr<BassFxLib> FxLib;
+    ScopedPtr<BassEncLib> EncLib;
+    ScopedPtr<BassFLACEncLib> FLACEncLib;
 
 #ifdef XAMP_OS_MAC
-    AlignPtr<BassCAEncLib> CAEncLib;
+    ScopedPtr<BassCAEncLib> CAEncLib;
 #endif
 
 #ifdef XAMP_OS_WIN
-    AlignPtr<BassCDLib> CDLib;
+    ScopedPtr<BassCDLib> CDLib;
 #endif
     void LoadVersionInfo();
     OrderedMap<std::string, std::string> GetPluginVersion() const;

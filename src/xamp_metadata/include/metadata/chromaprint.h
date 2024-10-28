@@ -27,7 +27,7 @@ public:
     std::vector<uint8_t> GetFingerprint() const;
 private:
     class ChromaprintImpl;
-    AlignPtr<ChromaprintImpl> impl_;
+    ScopedPtr<ChromaprintImpl> impl_;
 };
 
 XAMP_METADATA_NAMESPACE_END

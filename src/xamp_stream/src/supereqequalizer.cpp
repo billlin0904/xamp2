@@ -133,7 +133,7 @@ private:
     uint32_t sample_rate_{ 0 };
     paramlist paramlist_;
     std::vector<float> buffer_;
-    Vector<AlignPtr<supereq<float>>> eqs_;
+    Vector<ScopedPtr<supereq<float>>> eqs_;
     LoggerPtr logger_;
 };
 

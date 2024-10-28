@@ -39,7 +39,7 @@ public:
 
 private:
     class SrcSampleRateConverterImpl;
-    AlignPtr<SrcSampleRateConverterImpl> impl_;
+    ScopedPtr<SrcSampleRateConverterImpl> impl_;
 };
 
 XAMP_STREAM_NAMESPACE_END

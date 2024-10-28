@@ -19,9 +19,9 @@ enum MpmcState : uint8_t {
 	MPMC_Q_LOADING
 };
 
-namespace LockFree {
+namespace internal_lock_free {
 	template <typename T, T TValue>
-	T Dequeue(std::atomic<T>& queue) noexcept {
+	T dequeue(std::atomic<T>& queue) noexcept {
 		for (;;) {
 			auto element = queue.exchange(TValue, std::memory_order_acquire);
 
@@ -36,7 +36,7 @@ namespace LockFree {
 	}
 
 	template <typename T>
-	T DequeueWait(std::atomic<uint8_t>& state, T& queue) noexcept {
+	T dequeue_wait(std::atomic<uint8_t>& state, T& queue) noexcept {
 		for (;;) {
 			uint8_t expected = MPMC_Q_STORED;
 
@@ -54,7 +54,7 @@ namespace LockFree {
 	}
 
 	template <typename T, T TValue>
-	void Enqueue(T element, std::atomic<T>& queue) noexcept {
+	void enqueue(T element, std::atomic<T>& queue) noexcept {
 		for (T expected = TValue;; expected = TValue) {
 			XAMP_LIKELY(queue.compare_exchange_weak(expected, element, std::memory_order_release, std::memory_order_relaxed)) {
 				break;
@@ -67,7 +67,7 @@ namespace LockFree {
 	}
 	
 	template <typename U, typename T>
-	void EnqueueWait(U&& element, std::atomic<uint8_t>& state, T& queue) noexcept {
+	void enqueue_wait(U&& element, std::atomic<uint8_t>& state, T& queue) noexcept {
 		for (;;) {
 			uint8_t expected = MPMC_Q_EMPTY;
 
@@ -124,13 +124,13 @@ public:
 	}
 
 	void clear() {
-		while (!IsEmpty()) {
-			Dequeue();
+		while (!is_empty()) {
+			dequeue();
 		}
 	}
 
 	template <typename T>
-	bool TryEnqueue(T&& element) noexcept {
+	bool try_enqueue(T&& element) noexcept {
 		auto head = head_.load(std::memory_order_relaxed);
 
 		do {
@@ -142,12 +142,12 @@ public:
 			}
 		} while (true);
 		
-		DoEnqueue(std::forward<T>(element), head);
+		internal_enqueue(std::forward<T>(element), head);
 		return true;
 	}
 
 	template <typename T>
-	bool TryDequeue(T& element) noexcept {
+	bool try_dequeue(T& element) noexcept {
 		auto tail = tail_.load(std::memory_order_relaxed);
 
 		do {
@@ -159,24 +159,24 @@ public:
 			}
 		} while (true); // This loop is not FIFO.
 
-		element = DoDequeue(tail);
+		element = internal_dequeue(tail);
 		return true;
 	}
 
 	template <typename T>
-	void Enqueue(T&& element) noexcept {
+	void enqueue(T&& element) noexcept {
 		//const auto head = head_.fetch_add(1, std::memory_order_seq_cst);
 		const auto head = head_.fetch_add(1, std::memory_order_relaxed);
-		DoEnqueue(element, head);
+		internal_enqueue(element, head);
 	}
 
-	Type Dequeue() noexcept {
+	Type dequeue() noexcept {
 		//const auto tail = tail_.fetch_add(1, std::memory_order_seq_cst);
 		const auto tail = tail_.fetch_add(1, std::memory_order_relaxed);
-		return DoDequeue(tail);
+		return internal_dequeue(tail);
 	}
 
-	XAMP_NO_DISCARD bool IsEmpty() const noexcept {
+	XAMP_NO_DISCARD bool is_empty() const noexcept {
 		return size() == 0;
 	}
 
@@ -191,14 +191,14 @@ public:
 
 private:
     template <typename E>
-    void DoEnqueue(E&& element, size_t head) noexcept {
+    void internal_enqueue(E&& element, size_t head) noexcept {
 		const auto index = head % capacity_;
-        LockFree::EnqueueWait(std::forward<E>(element), states_[index], queue_[index]);
+        internal_lock_free::enqueue_wait(std::forward<E>(element), states_[index], queue_[index]);
 	}
 
-	Type DoDequeue(size_t tail) noexcept {
+	Type internal_dequeue(size_t tail) noexcept {
 		const auto index = tail % capacity_;
-		auto temp = LockFree::DequeueWait(states_[index], queue_[index]);
+		auto temp = internal_lock_free::dequeue_wait(states_[index], queue_[index]);
 
 		if constexpr (!std::is_trivially_destructible_v<Type>) {
 			queue_[index].~Type();

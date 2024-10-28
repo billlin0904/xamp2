@@ -98,10 +98,10 @@ namespace {
 		return format->wBitsPerSample == 16;
 	}
 
-	constexpr IID kAudioRenderClientID = __uuidof(IAudioRenderClient);
-	constexpr IID kAudioEndpointVolumeID = __uuidof(IAudioEndpointVolume);
-	constexpr IID kAudioClient3ID = __uuidof(IAudioClient3);
-	constexpr IID kAudioClockID = __uuidof(IAudioClock);
+	constexpr auto kAudioRenderClientID = __uuidof(IAudioRenderClient);
+	constexpr auto kAudioEndpointVolumeID = __uuidof(IAudioEndpointVolume);
+	constexpr auto kAudioClient3ID = __uuidof(IAudioClient3);
+	constexpr auto kAudioClockID = __uuidof(IAudioClock);
 
 	// A total typical delay of 35 ms contains three parts:
 	// 1. Audio endpoint device period (~10 ms).

@@ -36,7 +36,7 @@ public:
 
 private:
     class BassFaderImpl;
-    AlignPtr<BassFaderImpl> impl_;
+    ScopedPtr<BassFaderImpl> impl_;
 };
 
 XAMP_STREAM_NAMESPACE_END

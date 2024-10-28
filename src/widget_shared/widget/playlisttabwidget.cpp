@@ -8,13 +8,16 @@
 #include <widget/xmessagebox.h>
 #include <widget/dao/playlistdao.h>
 #include <widget/dao/musicdao.h>
-
+#include <widget/xtooltip.h>
 #include <widget/util/str_util.h>
 #include <widget/playlisttabbar.h>
 #include <widget/playlistpage.h>
 #include <widget/playlisttableview.h>
 #include <widget/actionmap.h>
 #include <widget/playlisttabwidget.h>
+
+#include "imagecache.h"
+#include "util/image_util.h"
 
 PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     : QTabWidget(parent) {
@@ -29,7 +32,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     add_tab_button_->setMinimumSize(32, 32);
     add_tab_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_ADD));
 #ifdef Q_OS_WIN
-    add_tab_button_->setIconSize(QSize(24, 24));
+    add_tab_button_->setIconSize(QSize(18, 18));
 #else
     add_tab_button_->setIconSize(QSize(18, 18));
 #endif
@@ -176,6 +179,9 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
         }
         });
 
+	tooltip_ = new XTooltip();
+    tooltip_->hide();
+    elapsed_timer_.restart();
     onThemeChangedFinished(qTheme.themeColor());     
 }
 
@@ -222,6 +228,10 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
     )"));
 
     add_tab_button_->setStyleSheet(qFormat(R"(
+	QPushButton#plusButton {
+        background-color: transparent;
+    }
+
     QPushButton#plusButton:hover {
         background-color: #455364;
     }
@@ -256,6 +266,10 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
     )"));
 
     add_tab_button_->setStyleSheet(qFormat(R"(
+	QPushButton#plusButton {
+        background-color: transparent;
+    }
+
     QPushButton#plusButton:hover {
         background-color: #e1e3e5;
     }
@@ -278,6 +292,9 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
             break;
         }
     }
+    if (tabBar()->count() > 0) {
+        tabBar()->setTabButton(0, QTabBar::RightSide, nullptr);
+    }
 }
 
 bool PlaylistTabWidget::removePlaylist(int32_t playlist_id) {
@@ -288,6 +305,74 @@ bool PlaylistTabWidget::removePlaylist(int32_t playlist_id) {
         playlist_dao.removePlaylistAllMusic(playlist_id);
         playlist_dao.removePlaylist(playlist_id);
         });
+}
+
+void PlaylistTabWidget::toolTipMove(const QPoint& pos) {
+    auto index = tab_bar_->tabAt(pos);
+	if (index < 0) {
+		tooltip_->hide();
+        return;
+	}
+
+    constexpr QSize kImageSize(150, 185);
+    constexpr QSize kCoverSize(150, 150);
+
+	auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(index));
+    dao::PlaylistDao playlist_dao(qGuiDb.getDatabase());
+
+    auto rect = tab_bar_->tabRect(index);
+    auto global_pos = mapToGlobal(rect.center());
+    global_pos.setY(global_pos.y() + 24);
+
+    auto stats = playlist_dao.getAlbumStats(playlist_page->playlist()->playlistId());
+
+    auto tooltip_text = qFormat(tr("%1, %2 Tracks, %3"))
+		.arg(stats.album_count)
+		.arg(stats.music_count)
+		.arg(formatDuration(stats.total_duration));
+
+    tooltip_->setText(tooltip_text);
+	tooltip_->setTextFont(QFont("FormatFont"_str, 10));
+	tooltip_->setTextAlignment(Qt::AlignCenter);
+    tooltip_->move(global_pos - QPoint(rect.size().width() / 4, 0));
+    tooltip_->setImageSize(kImageSize);
+
+    if (index == tab_bar_->currentIndex()) {
+        tooltip_->setImage(QPixmap());
+        tooltip_->hide();
+        return;
+    }
+
+    auto cover_ids = playlist_dao.getAlbumCoverIds(playlist_page->playlist()->playlistId());
+
+    QList<QPixmap> images;
+    Q_FOREACH(auto cover_id, cover_ids) {
+        auto cover = qImageCache.getOrDefault(kAlbumCacheTag, cover_id);
+        auto image = image_util::resizeImage(cover, kCoverSize);
+        images.push_back(image);
+    }
+
+    if (!images.empty() && images.size() < 4) {
+        auto image_size = images.size();
+        for (auto i = 0; i < 4 - image_size; ++i) {
+            images.push_back(image_util::resizeImage(qTheme.defaultSizeUnknownCover(), kImageSize));
+            tooltip_->setImage(image_util::mergeImage(images));
+        }
+    } else {
+        tooltip_->setImage(qTheme.defaultSizeUnknownCover());
+    }
+   
+    tooltip_->showAndStart(false);
+}
+
+void PlaylistTabWidget::mouseMoveEvent(QMouseEvent* event) {
+    toolTipMove(event->pos());
+	QTabWidget::mouseMoveEvent(event);
+}
+
+void PlaylistTabWidget::leaveEvent(QEvent* event) {
+	tooltip_->hide();
+	QTabWidget::leaveEvent(event);
 }
 
 void PlaylistTabWidget::closeTab(int32_t tab_index) {

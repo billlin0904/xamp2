@@ -43,12 +43,12 @@ namespace {
 		format.SubFormat = KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
 	}
 
-	constexpr IID kSimpleAudioVolumeID = __uuidof(ISimpleAudioVolume);
-	constexpr IID kAudioEndpointVolumeCallbackID = __uuidof(IAudioEndpointVolumeCallback);
-	constexpr IID kAudioEndpointVolumeID = __uuidof(IAudioEndpointVolume);
-	constexpr IID kAudioRenderClientID = __uuidof(IAudioRenderClient);
-	constexpr IID kAudioClient3ID = __uuidof(IAudioClient3);
-	constexpr IID kAudioClockID = __uuidof(IAudioClock);
+	constexpr auto kSimpleAudioVolumeID = __uuidof(ISimpleAudioVolume);
+	constexpr auto kAudioEndpointVolumeCallbackID = __uuidof(IAudioEndpointVolumeCallback);
+	constexpr auto kAudioEndpointVolumeID = __uuidof(IAudioEndpointVolume);
+	constexpr auto kAudioRenderClientID = __uuidof(IAudioRenderClient);
+	constexpr auto kAudioClient3ID = __uuidof(IAudioClient3);
+	constexpr auto kAudioClockID = __uuidof(IAudioClock);
 }
 
 /*

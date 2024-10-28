@@ -14,7 +14,7 @@ XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN
 /*
 * Make audio device manager.
 */
-XAMP_OUTPUT_DEVICE_API AlignPtr<IAudioDeviceManager> MakeAudioDeviceManager();
+XAMP_OUTPUT_DEVICE_API ScopedPtr<IAudioDeviceManager> MakeAudioDeviceManager();
 
 /*
 * Is exclusive device.

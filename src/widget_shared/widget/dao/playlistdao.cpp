@@ -207,4 +207,48 @@ namespace dao {
                 record.value("name"_str).toString());
         }
     }
+
+    QList<QString> PlaylistDao::getAlbumCoverIds(int32_t playlist_id) {
+		SqlQuery query(db_);
+		query.prepare(R"(SELECT DISTINCT a.coverId
+            FROM playlistMusics pm
+            JOIN albumMusic am ON pm.musicId = am.musicId
+            JOIN albums a ON am.albumId = a.albumId
+            WHERE pm.playlistId = :playlistId
+            LIMIT 4;)"_str);
+        query.bindValue(":playlistId"_str, playlist_id);
+        DbIfFailedThrow1(query);
+
+        QList<QString> covers;
+        while (query.next()) {
+            covers.push_back(query.value("coverId"_str).toString());
+        }
+        return covers;
+    }
+
+    PlaylistAlbumStats PlaylistDao::getAlbumStats(int32_t playlist_id) {
+        SqlQuery query(db_);
+        query.prepare(R"(
+		SELECT
+			COUNT( DISTINCT am.albumId ) AS album_count,
+			COUNT( pm.musicId ) AS music_count,
+			COALESCE( SUM( m.duration ), 0 ) AS total_duration 
+		FROM
+			playlistMusics pm
+			JOIN musics m ON pm.musicId = m.musicId
+			JOIN albumMusic am ON m.musicId = am.musicId 
+		WHERE
+			pm.playlistId = :playlistId;
+		)"_str);
+        query.bindValue(":playlistId"_str, playlist_id);
+        DbIfFailedThrow1(query);
+
+        PlaylistAlbumStats stats;
+        if (query.next()) {
+            stats.album_count = query.value("album_count"_str).toInt();
+            stats.music_count = query.value("music_count"_str).toInt();
+            stats.total_duration = query.value("total_duration"_str).toDouble();
+        }
+        return stats;
+    }
 }

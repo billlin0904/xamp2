@@ -225,6 +225,7 @@ void LrcPage::initial() {
 	format_label_->setMinimumHeight(40);
 	format_label_->setMaximumHeight(40);
 	format_label_->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	format_label_->setStyleSheet("background-color: transparent"_str);
 	QFont format_font("FormatFont"_str);
 	format_font.setPointSize(qTheme.fontSize(12));
 	format_label_->setFont(format_font);
@@ -379,5 +380,5 @@ void LrcPage::initial() {
 	album_->hide();
 	artist_->hide();
 
-	setStyleSheet("background-color: transparent; border: none;"_str);
+	//setStyleSheet("background-color: transparent; border: none;"_str);
 }

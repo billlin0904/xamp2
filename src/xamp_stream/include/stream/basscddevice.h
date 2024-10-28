@@ -43,7 +43,7 @@ public:
 	XAMP_NO_DISCARD std::string GetISRC(uint32_t track) const override;
 private:
 	class BassCDDeviceImpl;
-	AlignPtr<BassCDDeviceImpl> impl_;
+	ScopedPtr<BassCDDeviceImpl> impl_;
 };
 
 XAMP_STREAM_NAMESPACE_END

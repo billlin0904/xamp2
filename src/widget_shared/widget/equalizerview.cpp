@@ -10,6 +10,7 @@
 
 EqualizerView::EqualizerView(QWidget* parent)
     : QFrame(parent) {
+    setAttribute(Qt::WA_DontCreateNativeAncestors);
     ui_ = new Ui::EqualizerView();
     ui_->setupUi(this);
 
@@ -56,6 +57,7 @@ EqualizerView::EqualizerView(QWidget* parent)
     f.setPointSize(qTheme.fontSize(8));
 
     ui_->preampLabel->setFont(f);
+    ui_->preampDbLabel->setFont(f);
 
     ui_->presetLabel->setStyleSheet("background-color: transparent;"_str);
 

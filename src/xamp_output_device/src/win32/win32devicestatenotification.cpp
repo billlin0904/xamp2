@@ -8,7 +8,7 @@
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
-constexpr IID kMMNotificationClientID = __uuidof(IMMNotificationClient);
+constexpr auto kMMNotificationClientID = __uuidof(IMMNotificationClient);
 
 Win32DeviceStateNotification::Win32DeviceStateNotification(const std::weak_ptr<IDeviceStateListener> &callback)
 	: callback_(callback) {

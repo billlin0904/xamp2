@@ -17,9 +17,11 @@ XAMP_BASE_NAMESPACE_BEGIN
 * @tparam T Type of buffer.
 * @tparam U Enable if T is trivially copyable.
 */
-template <typename T, typename U = std::enable_if_t<std::is_trivially_copyable_v<T>>>
+template <typename T>
 class XAMP_BASE_API_ONLY_EXPORT Buffer {
 public:
+    static_assert(std::is_trivially_copyable_v<T>, "Buffer only supports trivially copyable types.");
+
     Buffer() = default;
 
     explicit Buffer(const size_t size)
@@ -30,11 +32,11 @@ public:
 
 	XAMP_DISABLE_COPY(Buffer)
 
-    Buffer(Buffer<T, U>&& other) noexcept {
+    Buffer(Buffer<T>&& other) noexcept {
         *this = std::move(other);
     }
 
-    Buffer<T, U>& operator=(Buffer<T, U>&& other) noexcept {
+    Buffer<T>& operator=(Buffer<T>&& other) noexcept {
         if (this != &other) {
             ptr_ = std::move(other.ptr_);
             lock_ = std::move(other.lock_);
@@ -65,7 +67,7 @@ public:
     }
 
     void Fill(T value) {
-        MemorySet(get(), value, GetByteSize());
+        std::fill(ptr_.get(), ptr_.get() + size_, value);
     }
 
     // 兼容STL容器相關函數.
@@ -91,9 +93,15 @@ public:
     }
 
     void resize(size_t new_size) {
-        if (new_size != size_) {
+        if (new_size == size_) {
+            return;
+        }
+        else if (new_size < size_) {
+            size_ = new_size;
+        }
+        else {
             Buffer<T> new_buf(new_size);
-            MemoryCopy(new_buf.data(), ptr_.get(), (std::min)(new_size, size_));
+            MemoryCopy(new_buf.data(), ptr_.get(), size_ * sizeof(T));
             *this = std::move(new_buf);
         }
     }
@@ -106,7 +114,7 @@ public:
 
 private:
     size_t size_ = 0;
-    AlignArray<T> ptr_;
+    ScopedArray<T> ptr_;
     VmMemLock lock_;
 };
 

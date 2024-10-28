@@ -17,12 +17,12 @@ XAMP_METADATA_NAMESPACE_BEGIN
 /*
  * Create a metadata reader instance.
 */
-XAMP_METADATA_API AlignPtr<IMetadataReader> MakeMetadataReader();
+XAMP_METADATA_API ScopedPtr<IMetadataReader> MakeMetadataReader();
 
 /*
  * Create a metadata writer instance.
 */
-XAMP_METADATA_API AlignPtr<IMetadataWriter> MakeMetadataWriter();
+XAMP_METADATA_API ScopedPtr<IMetadataWriter> MakeMetadataWriter();
 
 /*
  * Get the supported file extensions.

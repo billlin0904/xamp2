@@ -190,11 +190,11 @@ private:
 	WinHandle close_request_;
 	IXAudio2MasteringVoice* mastering_voice_;
 	mutable IXAudio2SourceVoice* source_voice_;
-	AlignPtr<XAudio2EngineContext> engine_context_;
-	AlignPtr<XAudio2VoiceContext> voice_context_;
+	ScopedPtr<XAudio2EngineContext> engine_context_;
+	ScopedPtr<XAudio2VoiceContext> voice_context_;
 	CComPtr<IXAudio2> xaudio2_;
 	LoggerPtr logger_;
-	AlignPtr<IThreadPoolExecutor> thread_pool_;
+	ScopedPtr<IThreadPoolExecutor> thread_pool_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

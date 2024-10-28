@@ -17,6 +17,7 @@
 class QMouseEvent;
 class QPushButton;
 class PlaylistTabBar;
+class XTooltip;
 
 class XAMP_WIDGET_SHARED_EXPORT PlaylistTabWidget final : public QTabWidget {
 	Q_OBJECT
@@ -89,6 +90,12 @@ public slots:
 	void onRetranslateUi();
 
 private:
+	void toolTipMove(const QPoint& pos);
+
+	void mouseMoveEvent(QMouseEvent* event) override;
+
+	void leaveEvent(QEvent* event) override;
+
 	void closeTab(int32_t tab_index);
 
 	bool removePlaylist(int32_t playlist_id);
@@ -105,6 +112,8 @@ private:
 	StoreType store_type_{ StoreType::PLAYLIST_LOCAL_STORE };
 	QPushButton* add_tab_button_{ nullptr };
 	PlaylistTabBar* tab_bar_{ nullptr };
+	XTooltip* tooltip_{ nullptr };
 	dao::PlaylistDao playlist_dao_;
+	QElapsedTimer elapsed_timer_;
 };
 

@@ -125,6 +125,10 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
     const std::function<void(int32_t, int32_t)>& fetch_cover) {
     const Stopwatch sw;
 
+    if (result.empty()) {
+        return;
+    }
+
     dao::MusicDao music_dao(database_->getDatabase());
     dao::ArtistDao artist_dao(database_->getDatabase());
     dao::AlbumDao album_dao(database_->getDatabase());
@@ -133,6 +137,15 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
     ensureAddUnknownId();
 
     Transliterator transliterator;
+
+    auto count_artist = 0;
+    const auto& front = result.front();
+    for (const auto& track_info : result) {
+		if (front.artist == track_info.artist) {
+			count_artist++;
+            break;
+		}
+    }
 
 	for (const auto& track_info : result) {        
         auto file_path = toQString(track_info.file_path);
@@ -166,6 +179,11 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
             catch (const std::exception& e) {
                 XAMP_LOG_ERROR("Failed to get initial letter: {}", e.what());
             }
+
+            if (count_artist > 1) {
+                artist = "Various Artists"_str;
+            }
+
             artist_id = artist_dao.addOrUpdateArtist(artist, first_char);
             XAMP_EXPECTS(artist_id != 0);
         }
@@ -177,9 +195,6 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
         else {
             // Avoid cue file album name create new album id.
             album_id = album_dao.getAlbumIdFromAlbumMusic(music_id);
-            audio_embedding_service_->embedAndSave(file_path, music_id)
-        	.then([](auto) {
-                });
         }
 
         if (album_id == kInvalidDatabaseId) {

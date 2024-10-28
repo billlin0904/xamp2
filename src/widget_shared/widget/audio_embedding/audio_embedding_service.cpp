@@ -3,7 +3,7 @@
 #include <widget/httpx.h>
 
 namespace {
-    constexpr auto BASE_URL = "http://127.0.0.1:8000"_str;
+    constexpr auto BASE_URL = "http://127.0.0.1:9090"_str;
 }
 
 AudioEmbeddingService::AudioEmbeddingService(QObject* parent)
@@ -14,14 +14,27 @@ AudioEmbeddingService::AudioEmbeddingService(QObject* parent)
 AudioEmbeddingService::~AudioEmbeddingService() = default;
 
 QCoro::Task<QString> AudioEmbeddingService::embedAndSave(const QString& path, int32_t audio_id) {
-    QVariantMap content;
+    /*QVariantMap content;
     content["file_path"_str] = path;
     content["audio_id"_str] = qFormat("%1").arg(audio_id);
     const auto json = json_util::serialize(content);
     http_client_.setUrl(qFormat("%1/embed_and_save").arg(BASE_URL));
     return http_client_
         .setJson(json)
-        .post();
+        .post();*/
+    QMultiMap<QString, QVariant> params;
+    params.insert("file_path"_str, path);
+    http_client_.setUrl(qFormat("%1/transcribe/").arg(BASE_URL));
+    auto content = co_await http_client_
+        .params(params)
+        .addAcceptJsonHeader()
+        .get();
+    QJsonDocument json_doc;
+    if (!json_util::deserialize(content, json_doc)) {
+        co_return QString();
+    }
+    auto lrc_content = json_doc.object()["lrc_content"_str].toString();
+	co_return lrc_content;
 }
 
 QCoro::Task<QList<EmbeddingQueryResult>> AudioEmbeddingService::queryEmbeddings(const QList<QString> &paths) {

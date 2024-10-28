@@ -8,18 +8,19 @@
 #include <algorithm>
 #include <future>
 #include <functional>
+
 #include <base/base.h>
 #include <base/memory.h>
+#include <base/assert.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
-
-/*
+	/*
 * MoveOnlyFunction is a function wrapper that can only be moved.
 * It is used to wrap a function that is only called once.
 */
 class MoveOnlyFunction final {
 public:
-    MoveOnlyFunction() = default;
+    MoveOnlyFunction() noexcept = default;
 
     template <typename Func>
     MoveOnlyFunction(Func&& f)
@@ -27,6 +28,7 @@ public:
     }
 
     void operator()(const StopToken& stop_token) {
+        XAMP_EXPECTS(impl_ != nullptr);
 	    impl_->Invoke(stop_token);
         impl_.reset();
     }    
@@ -50,6 +52,10 @@ public:
         impl_ = std::move(other.impl_);
         return *this;
     }
+
+    operator bool() const noexcept {
+        return impl_ != nullptr;
+    }
 	
     XAMP_DISABLE_COPY(MoveOnlyFunction)
 	
@@ -64,7 +70,7 @@ private:
         virtual void Invoke(const StopToken& stop_token) = 0;
     };
 
-    AlignPtr<ImplBase> impl_;
+    ScopedPtr<ImplBase> impl_;
 
     template <typename Func>
     struct ImplType final : ImplBase {

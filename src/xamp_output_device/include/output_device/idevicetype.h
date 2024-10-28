@@ -53,9 +53,9 @@ public:
 	* 
 	* @param device_id: device id.
 	* 
-	* @return AlignPtr<IOutputDevice>
+	* @return ScopedPtr<IOutputDevice>
 	*/
-    virtual AlignPtr<IOutputDevice> MakeDevice(const std::string & device_id) = 0;
+    virtual ScopedPtr<IOutputDevice> MakeDevice(const std::string & device_id) = 0;
 
 	/*
 	* Get device count.

@@ -13,9 +13,6 @@
 #include <widget/widget_shared.h>
 #include <widget/database.h>
 #include <widget/databasefacade.h>
-#include <widget/filesystemwatcher.h>
-
-class AudioEmbeddingService;
 
 class XAMP_WIDGET_SHARED_EXPORT FileSystemService final : public QObject {
     Q_OBJECT
@@ -44,8 +41,6 @@ signals:
 public slots:
     void onExtractFile(const QString& file_path, int32_t playlist_id);
 
-    void onSetWatchDirectory(const QString& dir);
-
     void cancelRequested();
 
 private:
@@ -56,11 +51,10 @@ private:
     bool is_stop_{ false };
     size_t total_work_{ 0 };
     std::atomic<size_t> completed_work_{ 0 };
-    FileSystemWatcher watcher_;
     Stopwatch total_time_elapsed_;
     Stopwatch update_ui_elapsed_;
     QTimer timer_;
-	AlignPtr<IThreadPoolExecutor> thread_pool_;
+	ScopedPtr<IThreadPoolExecutor> thread_pool_;
     LoggerPtr logger_;
 };
 

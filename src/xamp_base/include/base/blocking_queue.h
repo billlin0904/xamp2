@@ -17,25 +17,6 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-/*
-* BlockingQueue is a thread-safe queue that blocks when the queue is empty.
-* 
-* The queue is implemented using a circular buffer.
-* The queue is bounded, and the size is specified in the constructor.
-* The queue is thread-safe, and can be used by multiple producers and consumers.
-*
-* @param[in] T The type of the elements in the queue.
-* @param[in] Mutex The type of the mutex used to synchronize access to the queue.
-* @param[in] Queue The type of the queue used to store the elements.
-* @param[in] ConditionVariable The type of the condition variable used to block
-*    when the queue is empty.
-* @param[in] V The type of the value used to enable the constructor.
-* This is used to enable the constructor only if T is nothrow move assignable.
-* This is needed because the queue uses std::move to move elements from the
-* internal queue to the caller.
-* If T is not nothrow move assignable, the queue will throw an exception if
-* the queue is full and a new element is added.
-*/
 template
 <
     typename T,
@@ -64,11 +45,11 @@ public:
     * Destructor.    
     */
     ~BlockingQueue() {
-		WakeupForShutdown();
+		wakeup_for_shutdown();
 	}
 
     template <typename U>
-    bool TryEnqueue(U &&task) noexcept {
+    bool try_dequeue(U &&task) noexcept {
         {
 	        const std::unique_lock lock{mutex_, std::try_to_lock};
             if (!lock) {
@@ -84,12 +65,12 @@ public:
     }
 
     /*
-    * Enqueue a task to the queue.
+    * enqueue a task to the queue.
     * 
     * @param[in] task The task to enqueue.
     */
     template <typename U>
-    void Enqueue(U &&task) {
+    void enqueue(U &&task) {
         {
             std::lock_guard guard{ mutex_ };
             queue_.emplace(std::forward<T>(task));
@@ -103,7 +84,7 @@ public:
     * @param[in] value The value popped from the queue.
     * @return true if the value was popped, false if the queue is empty.
     */
-    bool TryDequeue(T& value) {
+    bool try_dequeue(T& value) {
         const std::unique_lock lock{ mutex_, std::try_to_lock };
         if (!lock) {
             return false;
@@ -122,7 +103,7 @@ public:
     * @param[in] value The value popped from the queue.
     * @return true if the value was popped, false if the queue is empty.
     */
-	bool Dequeue(T& task) {
+	bool dequeue(T& task) {
 		std::unique_lock guard{ mutex_ };
 
 		while (queue_.empty() && !done_) { 
@@ -146,7 +127,7 @@ public:
     * @param[in] wait_time The time to wait for the queue to be not empty.
     * @return true if the value was popped, false if the queue is empty.
     */
-    bool Dequeue(T& task, const std::chrono::milliseconds wait_time) {
+    bool dequeue(T& task, const std::chrono::milliseconds wait_time) {
         std::unique_lock guard{ mutex_ };
 
         while (queue_.empty() && !done_) {
@@ -170,7 +151,7 @@ public:
     * not empty. This is used to shutdown the queue.
     * 
     */
-    void WakeupForShutdown() {
+    void wakeup_for_shutdown() {
         {
             std::lock_guard guard{ mutex_ };
             done_ = true;
@@ -183,7 +164,7 @@ public:
     * 
     * @return true if the queue is empty, false otherwise.    
     */
-    bool IsEmpty() const noexcept {
+    bool is_empty() const noexcept {
         std::lock_guard guard{ mutex_ };
         return queue_.empty();
     }
@@ -193,7 +174,7 @@ public:
     * 
     * @return true if the queue is full, false otherwise.
     */
-    bool IsFull() const noexcept {
+    bool is_full() const noexcept {
         std::lock_guard guard{ mutex_ };
         return queue_.full();
     }
@@ -208,7 +189,7 @@ public:
         return queue_.size();
     }
 
-    void Wakeup() {
+    void wakeup() {
         notify_.notify_all();
     }
 

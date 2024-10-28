@@ -30,7 +30,7 @@ public:
 	XAMP_NO_DISCARD std::string GetDiscIdLookupUrl(const std::string& drive) const;
 private:
 	class MBDiscIdImpl;
-	AlignPtr<MBDiscIdImpl> impl_;
+	ScopedPtr<MBDiscIdImpl> impl_;
 };
 
 XAMP_STREAM_NAMESPACE_END

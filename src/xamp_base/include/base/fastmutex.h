@@ -24,7 +24,7 @@ public:
 	XAMP_NO_DISCARD bool try_lock() noexcept;
 private:
 	class SRWMutexImpl;
-	AlignPtr<SRWMutexImpl> impl_;
+	ScopedPtr<SRWMutexImpl> impl_;
 };
 
 using FastMutex = SRWMutex;

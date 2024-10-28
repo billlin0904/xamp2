@@ -56,7 +56,7 @@ static struct IopmAssertion {
 } iopmAssertion;
 #endif
 
-AlignPtr<IAudioDeviceManager> MakeAudioDeviceManager() {
+ScopedPtr<IAudioDeviceManager> MakeAudioDeviceManager() {
 	return MakeAlign<IAudioDeviceManager, AudioDeviceManager>();
 }
 

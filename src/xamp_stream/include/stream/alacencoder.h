@@ -23,7 +23,7 @@ public:
 	void Encode(std::function<bool(uint32_t)> const& progress) override;
 private:
 	class AlacFileEncoderImpl;
-	AlignPtr<AlacFileEncoderImpl> impl_;
+	ScopedPtr<AlacFileEncoderImpl> impl_;
 };
 
 XAMP_STREAM_NAMESPACE_END

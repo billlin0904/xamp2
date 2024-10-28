@@ -11,11 +11,11 @@
 
 XAMP_METADATA_NAMESPACE_BEGIN
 
-AlignPtr<IMetadataReader> MakeMetadataReader() {
+ScopedPtr<IMetadataReader> MakeMetadataReader() {
 	return MakeAlign<IMetadataReader, TaglibMetadataReader>();
 }
 
-AlignPtr<IMetadataWriter> MakeMetadataWriter() {
+ScopedPtr<IMetadataWriter> MakeMetadataWriter() {
 	return MakeAlign<IMetadataWriter, TaglibMetadataWriter>();
 }
 

@@ -92,15 +92,11 @@ signals:
 
 	void extractFile(const QString& file_path, int32_t playlist_id, bool is_podcast_mode);	
 
-	void translation(const QString& keyword, const QString& from, const QString& to);	
-
 	void changePlayerOrder(PlayerOrder order);
 
 	void updateNewVersion(const QVersionNumber&version);
 
 	void fetchThumbnailUrl(const DatabaseCoverId &id, const QString& thumbnail_url);
-
-	void setWatchDirectory(const QString& dir);
 
 	void findAlbumCover(const DatabaseCoverId& id);
 
@@ -147,8 +143,6 @@ public slots:
 
 	void onSetAlbumCover(int32_t album_id, const QString& cover_id);
 
-	void onTranslationCompleted(const QString& keyword, const QString& result);
-
 	void onEditTags(int32_t playlist_id, const QList<PlayListEntity>& entities);
 
 	void onCheckForUpdate();
@@ -175,6 +169,15 @@ public slots:
 
 	void onRetranslateUi();
 
+	void onPlayerStateChanged(PlayerState play_state);
+
+	void onDeviceStateChanged(DeviceState state, const QString& device_id);
+
+	void onCacheYtMusicFile(const PlayListEntity& entity);
+
+	void onSampleTimeChanged(double stream_time);
+
+	void onActivated(QSystemTrayIcon::ActivationReason reason);
 private:
 	void initialUi();
 
@@ -218,11 +221,7 @@ private:
 
 	QWidgetAction* createDeviceMenuWidget(const QString& desc, const QIcon& icon = QIcon());
 
-	void onSampleTimeChanged(double stream_time);
-
 	void playLocalFile(const PlayListEntity& entity);
-
-	void onPlayerStateChanged(PlayerState play_state);
 
 	void addItem(const QString& file_name);
 
@@ -239,10 +238,6 @@ private:
 	void setSeekPosValue(double stream_time_as_ms);
 
 	void resetSeekPosValue();
-
-    void onDeviceStateChanged(DeviceState state, const QString& device_id);
-
-	void cacheYtMusicFile(const PlayListEntity& entity);
 
     void updateUi(const PlayListEntity& entity, const PlaybackFormat& playback_format, bool open_done, bool is_doubleclicked);
 
@@ -264,7 +259,7 @@ private:
 		const QString &name,
 		bool resize = false);
 
-	XAMP_NO_DISCARD PlaylistPage* localPlaylistPage() const;
+	PlaylistPage* localPlaylistPage() const;
 
 	void playCloudVideoId(const PlayListEntity& entity, const QString& video_id, bool is_doubleclicked);
 
@@ -274,9 +269,8 @@ private:
 
 	void setCover(const QString& cover_id);
 
-	void onActivated(QSystemTrayIcon::ActivationReason reason);
-
 	void showAbout();
+	void connectThemeChanedSignal();
 
 	bool is_seeking_;
 	bool trigger_upgrade_action_;

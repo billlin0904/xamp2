@@ -91,7 +91,7 @@ private:
 	QString lrc_;
 	QString orilyrc_;
 	QString trlyrc_;
-	AlignPtr<ILrcParser> lyric_;
+	ScopedPtr<ILrcParser> lyric_;
 	Furigana furigana_;
 	std::vector<std::vector<FuriganaEntity>> furiganas_;
 };

@@ -33,8 +33,11 @@ XMainWindow::XMainWindow()
 #if defined(Q_OS_WIN)
 	, screen_number_(1)
 #endif
-	, content_widget_(nullptr) {    
+	, content_widget_(nullptr) {
+    setAttribute(Qt::WA_DontCreateNativeAncestors);
     setObjectName("XMainWindow"_str);
+    setAcceptDrops(true);
+    readDriveInfo();
 }
 
 void XMainWindow::setShortcut(const QKeySequence& shortcut) {
@@ -57,10 +60,13 @@ void XMainWindow::setShortcut(const QKeySequence& shortcut) {
 
 void XMainWindow::setContentWidget(IXFrame *content_widget) {
     content_widget_ = content_widget;
+    if (!content_widget) {
+        installWindowAgent();
+        return;
+    }
+    installWindowAgent();
     setCentralWidget(content_widget);
-    setAcceptDrops(true);
-    readDriveInfo();
-    ensureInitTaskbar();    
+    ensureInitTaskbar();
 }
 
 // QScopedPointer require default destructor.
@@ -71,23 +77,12 @@ void XMainWindow::onThemeChangedFinished(ThemeColor theme_color) {
 
 void XMainWindow::ensureInitTaskbar() {
 #if defined(Q_OS_WIN)
+    if (!content_widget_) {
+        return;
+    }
     if (!task_bar_) {
-        task_bar_.reset(new WinTaskbar(this));
-        (void)QObject::connect(task_bar_.get(), &WinTaskbar::playClicked, [this]() {
-            content_widget_->playOrPause();
-            });
-
-        (void)QObject::connect(task_bar_.get(), &WinTaskbar::pauseClicked, [this]() {
-            content_widget_->playOrPause();
-            });
-
-        (void)QObject::connect(task_bar_.get(), &WinTaskbar::forwardClicked, [this]() {
-            content_widget_->playNext();
-            });
-
-        (void)QObject::connect(task_bar_.get(), &WinTaskbar::backwardClicked, [this]() {
-            content_widget_->playPrevious();
-            });
+        task_bar_.reset(new WinTaskbar(this, content_widget_));
+        task_bar_->setIconicThumbnail(qTheme.defaultSizeUnknownCover());
     }
 #endif
 }
@@ -317,16 +312,6 @@ void XMainWindow::readDriveInfo() {
 #endif
 }
 
-void XMainWindow::closeEvent(QCloseEvent* event) {
-    if (!content_widget_) {
-        QWidget::closeEvent(event);
-        return;
-    }
-
-    content_widget_->close();
-    QWidget::closeEvent(event);
-}
-
 void XMainWindow::showEvent(QShowEvent* event) {
 #if defined(Q_OS_WIN)
     if (!task_bar_) {
@@ -340,6 +325,9 @@ void XMainWindow::showEvent(QShowEvent* event) {
 void XMainWindow::setIconicThumbnail(const QPixmap& image) {
 #if defined(Q_OS_WIN)
     ensureInitTaskbar();
+    if (!task_bar_) {
+        return;
+    }
     task_bar_->setIconicThumbnail(image);
 #endif
 }

@@ -23,6 +23,8 @@ public:
 
     explicit XDialog(QWidget* parent = nullptr, bool modal = true);
 
+	~XDialog() override;
+
     void setContentWidget(QWidget* content, bool no_moveable = false, bool disable_resize = true);
 
     QWidget* contentWidget() const {
@@ -43,7 +45,7 @@ private:
 
     void installWindowAgent();
 
-    QWK::WidgetWindowAgent* window_agent_;
+    QWK::WidgetWindowAgent* window_agent_{ nullptr };
     QWidget* content_{ nullptr };
 };
 

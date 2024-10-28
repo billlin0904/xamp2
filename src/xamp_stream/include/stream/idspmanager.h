@@ -24,9 +24,9 @@ public:
     // note: return true (fetch more data).
     XAMP_NO_DISCARD virtual bool ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) = 0;
 
-    virtual void AddPreDSP(AlignPtr<IAudioProcessor> processor) = 0;
+    virtual void AddPreDSP(ScopedPtr<IAudioProcessor> processor) = 0;
 
-    virtual void AddPostDSP(AlignPtr<IAudioProcessor> processor) = 0;
+    virtual void AddPostDSP(ScopedPtr<IAudioProcessor> processor) = 0;
 
     virtual IDSPManager& AddEqualizer() = 0;
 
@@ -42,7 +42,7 @@ public:
 
     virtual IDSPManager& RemoveSampleRateConverter() = 0;
 
-    virtual void SetSampleWriter(AlignPtr<ISampleWriter> writer = nullptr) = 0;
+    virtual void SetSampleWriter(ScopedPtr<ISampleWriter> writer = nullptr) = 0;
 
     XAMP_NO_DISCARD virtual bool IsEnableSampleRateConverter() const = 0;
 

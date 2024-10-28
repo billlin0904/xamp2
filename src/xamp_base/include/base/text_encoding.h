@@ -30,7 +30,7 @@ public:
 	bool IsUtf8(const std::string& input);
 private:
 	class TextEncodingImpl;
-	AlignPtr<TextEncodingImpl> impl_;
+	ScopedPtr<TextEncodingImpl> impl_;
 };
 
 XAMP_BASE_API void LoadLibIconvLib();

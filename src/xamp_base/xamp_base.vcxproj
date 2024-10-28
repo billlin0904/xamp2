@@ -189,7 +189,6 @@
     <ClInclude Include="include\base\math.h" />
     <ClInclude Include="include\base\executor.h" />
     <ClInclude Include="include\base\port.h" />
-    <ClInclude Include="include\base\rcu_ptr.h" />
     <ClInclude Include="include\base\sfc64.h" />
     <ClInclude Include="include\base\shared_singleton.h" />
     <ClInclude Include="include\base\simd.h" />
@@ -228,6 +227,7 @@
     <ClInclude Include="include\base\waitabletimer.h" />
     <ClInclude Include="include\base\windows_handle.h" />
     <ClInclude Include="include\base\workstealingtaskqueue.h" />
+    <ClInclude Include="include\base\work_stealing_queue.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\audioformat.cpp" />

@@ -76,7 +76,7 @@ double readAll(Path const& file_path,
 }
 
 void encodeFile(AnyMap const& config,
-	AlignPtr<IFileEncoder>& encoder,
+	ScopedPtr<IFileEncoder>& encoder,
 	std::function<bool(uint32_t)> const& progress,
 	TrackInfo const& track_info) {
 	const auto file_path = config.AsPath(FileEncoderConfig::kInputFilePath);

@@ -25,8 +25,8 @@ namespace http {
     class XAMP_WIDGET_SHARED_EXPORT HttpClient {
     public:
         HttpClient(QNetworkAccessManager* nam, const QString& url, QObject* parent = nullptr);
+
         explicit HttpClient(const QString& url, QObject* parent = nullptr);
-        ~HttpClient();
 
         void setUrl(const QString& url);
         void setTimeout(int timeout);

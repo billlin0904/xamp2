@@ -300,7 +300,7 @@ namespace {
 }
 
 
-WinTaskbar::WinTaskbar(XMainWindow* window) {
+WinTaskbar::WinTaskbar(XMainWindow* window, IXFrame* frame) {
 	auto hr = ::CoCreateInstance(CLSID_TaskbarList,
 		nullptr,
 		CLSCTX_INPROC_SERVER,
@@ -323,6 +323,7 @@ WinTaskbar::WinTaskbar(XMainWindow* window) {
 	const auto theme = qAppSettings.valueAsEnum<ThemeColor>(kAppSettingTheme);
 	setTheme(theme);
 	setWindow(window);
+	frame_ = frame;
 }
 
 WinTaskbar::~WinTaskbar() = default;
@@ -414,21 +415,23 @@ void WinTaskbar::createToolbarImages() {
 	QPixmap img;
 	QBitmap mask;
 
-	HImageHandleListHandle himl(COMCTL32_DLL.ImageList_Create(20, 20, ILC_COLOR32, 4, 0));
+	constexpr auto kIconSize = 32;
 
-	img = seek_backward_icon.pixmap(20);
+	HImageHandleListHandle himl(COMCTL32_DLL.ImageList_Create(kIconSize, kIconSize, ILC_COLOR32, 4, 0));
+
+	img = seek_backward_icon.pixmap(kIconSize);
 	mask = img.createMaskFromColor(Qt::transparent);
 	COMCTL32_DLL.ImageList_Add(himl.get(), qt_pixmapToWinHBITMAP(img, HBitmapPremultipliedAlpha), qt_pixmapToWinHBITMAP(mask));
 
-	img = play_icon.pixmap(20);
+	img = play_icon.pixmap(kIconSize);
 	mask = img.createMaskFromColor(Qt::transparent);
 	COMCTL32_DLL.ImageList_Add(himl.get(), qt_pixmapToWinHBITMAP(img, HBitmapPremultipliedAlpha), qt_pixmapToWinHBITMAP(mask));
 
-	img = seek_forward_icon.pixmap(20);
+	img = seek_forward_icon.pixmap(kIconSize);
 	mask = img.createMaskFromColor(Qt::transparent);
 	COMCTL32_DLL.ImageList_Add(himl.get(), qt_pixmapToWinHBITMAP(img, HBitmapPremultipliedAlpha), qt_pixmapToWinHBITMAP(mask));
 
-	img = pause_icon.pixmap(20);
+	img = pause_icon.pixmap(kIconSize);
 	mask = img.createMaskFromColor(Qt::transparent);
 	COMCTL32_DLL.ImageList_Add(himl.get(), qt_pixmapToWinHBITMAP(img, HBitmapPremultipliedAlpha), qt_pixmapToWinHBITMAP(mask));
 
@@ -512,11 +515,11 @@ bool WinTaskbar::nativeEventFilter(const QByteArray& event_type, void* message, 
 			if (button_id == ToolButton_Play) {
 				if (buttons[1].iBitmap == ToolButton_Play) {
 					buttons[1].iBitmap = ToolButton_Pause;
-					emit pauseClicked();
+					frame_->playOrPause();
 				}
 				else {
 					buttons[1].iBitmap = ToolButton_Play;
-					emit playClicked();
+					frame_->playOrPause();
 				}
 
 				const auto hwnd = reinterpret_cast<HWND>(window_->winId());
@@ -527,10 +530,10 @@ bool WinTaskbar::nativeEventFilter(const QByteArray& event_type, void* message, 
 			}
 			else {
 				if (button_id == ToolButton_Forward) {
-					emit forwardClicked();
+					frame_->playPrevious();
 				}
 				if (button_id == ToolButton_Backward) {
-					emit backwardClicked();
+					frame_->playNext();
 				}
 			}
 			return true;

@@ -1,0 +1,59 @@
+﻿Build started at 上午 09:28...
+1>------ Build started: Project: widget_shared, Configuration: Release x64 ------
+1>albumartistpage.cpp
+1>appsettings.cpp
+1>audio_embedding_service.cpp
+1>databasefacade.cpp
+1>httpx.cpp
+1>imagecache.cpp
+1>lyricsshowwidget.cpp
+1>networkdiskcache.cpp
+1>playlistpage.cpp
+1>playlistsqlquerytablemodel.cpp
+1>playliststyleditemdelegate.cpp
+1>playlisttabbar.cpp
+1>playlisttableproxymodel.cpp
+1>similarsongsviewpage.cpp
+1>uiplayerstateadapter.cpp
+1>image_util.cpp
+1>read_until.cpp
+1>ui_util.cpp
+1>widget_shared_global.cpp
+1>albumcoverservice.cpp
+1>F:\Source\xamp2\src\widget_shared\widget\playlistpage.cpp(1,1): warning C4828: The file contains a character starting at offset 0xbe6 that is illegal in the current source character set (codepage 65001).
+1>F:\Source\xamp2\src\widget_shared\widget\playlistpage.cpp(1,1): warning C4828: The file contains a character starting at offset 0xbe8 that is illegal in the current source character set (codepage 65001).
+1>F:\Source\xamp2\src\widget_shared\widget\playlistpage.cpp(1,1): warning C4828: The file contains a character starting at offset 0xbe9 that is illegal in the current source character set (codepage 65001).
+1>F:\Source\xamp2\src\widget_shared\widget\playlistpage.cpp(1,1): warning C4828: The file contains a character starting at offset 0xbea that is illegal in the current source character set (codepage 65001).
+1>F:\Source\xamp2\src\widget_shared\widget\playlistpage.cpp(1,1): warning C4828: The file contains a character starting at offset 0xbec that is illegal in the current source character set (codepage 65001).
+1>F:\Source\xamp2\src\widget_shared\widget\playlistpage.cpp(1,1): warning C4828: The file contains a character starting at offset 0xbee that is illegal in the current source character set (codepage 65001).
+1>F:\Source\xamp2\src\widget_shared\widget\playlistpage.cpp(1,1): warning C4828: The file contains a character starting at offset 0xbf2 that is illegal in the current source character set (codepage 65001).
+1>F:\Source\xamp2\src\widget_shared\widget\playlistpage.cpp(1,1): warning C4828: The file contains a character starting at offset 0xbf3 that is illegal in the current source character set (codepage 65001).
+1>F:\Source\xamp2\src\widget_shared\widget\playlistpage.cpp(1,1): warning C4828: The file contains a character starting at offset 0xbf6 that is illegal in the current source character set (codepage 65001).
+1>F:\Source\xamp2\src\widget_shared\widget\playlistpage.cpp(1,1): warning C4828: The file contains a character starting at offset 0xbf8 that is illegal in the current source character set (codepage 65001).
+1>F:\Source\xamp2\src\widget_shared\widget\playliststyleditemdelegate.cpp(1,1): warning C4828: The file contains a character starting at offset 0x13b3 that is illegal in the current source character set (codepage 65001).
+1>F:\Source\xamp2\src\widget_shared\widget\playliststyleditemdelegate.cpp(1,1): warning C4828: The file contains a character starting at offset 0x13b7 that is illegal in the current source character set (codepage 65001).
+1>F:\Source\xamp2\src\widget_shared\widget\playliststyleditemdelegate.cpp(1,1): warning C4828: The file contains a character starting at offset 0x13bd that is illegal in the current source character set (codepage 65001).
+1>F:\Source\xamp2\src\widget_shared\widget\playliststyleditemdelegate.cpp(1,1): warning C4828: The file contains a character starting at offset 0x13be that is illegal in the current source character set (codepage 65001).
+1>F:\Source\xamp2\src\widget_shared\widget\playliststyleditemdelegate.cpp(1,1): warning C4828: The file contains a character starting at offset 0x13c1 that is illegal in the current source character set (codepage 65001).
+1>F:\Source\xamp2\src\widget_shared\widget\playliststyleditemdelegate.cpp(1,1): warning C4828: The file contains a character starting at offset 0x13c2 that is illegal in the current source character set (codepage 65001).
+1>F:\Source\xamp2\src\widget_shared\widget\playliststyleditemdelegate.cpp(1,1): warning C4828: The file contains a character starting at offset 0x13c3 that is illegal in the current source character set (codepage 65001).
+1>F:\Source\xamp2\src\widget_shared\widget\playliststyleditemdelegate.cpp(1,1): warning C4828: The file contains a character starting at offset 0x13c9 that is illegal in the current source character set (codepage 65001).
+1>F:\Source\xamp2\src\widget_shared\widget\playliststyleditemdelegate.cpp(1,1): warning C4828: The file contains a character starting at offset 0x13cb that is illegal in the current source character set (codepage 65001).
+1>F:\Source\xamp2\src\widget_shared\widget\playliststyleditemdelegate.cpp(1,1): warning C4828: The file contains a character starting at offset 0x13cc that is illegal in the current source character set (codepage 65001).
+1>F:\Source\xamp2\src\widget_shared\widget\playliststyleditemdelegate.cpp(1,1): warning C4828: The file contains a character starting at offset 0x13cd that is illegal in the current source character set (codepage 65001).
+1>F:\Source\xamp2\src\widget_shared\widget\playliststyleditemdelegate.cpp(1,1): warning C4828: The file contains a character starting at offset 0x13cf that is illegal in the current source character set (codepage 65001).
+1>F:\Source\xamp2\src\widget_shared\widget\playliststyleditemdelegate.cpp(1,1): warning C4828: The file contains a character starting at offset 0x13d3 that is illegal in the current source character set (codepage 65001).
+1>F:\Source\xamp2\src\widget_shared\widget\playliststyleditemdelegate.cpp(1,1): warning C4828: The file contains a character starting at offset 0x13d4 that is illegal in the current source character set (codepage 65001).
+1>backgroundservice.cpp
+1>filesystemservice.cpp
+1>xdialog.cpp
+1>xmainwindow.cpp
+1>xmessagebox.cpp
+1>xprogressdialog.cpp
+1>xtooltip.cpp
+1>ytmusic_disckcache.cpp
+1>ytmusicoauth.cpp
+1>ytmusicservice.cpp
+1>xampplayer.cpp
+Build has been canceled.
+========== Elapsed 10.700 seconds ==========

@@ -182,7 +182,6 @@ void LyricsShowWidget::paintItem(QPainter* painter, const int32_t index, QRect& 
 	const QFontMetrics metrics(painter->font());
 	const auto text = QString::fromStdWString(lyric_->lineAt(index).lrc);
 
-	//const auto furigana_result = furigana_.Convert(text.toStdWString());
 	if (furiganas_.empty()) {
 		painter->drawText((rect.width() - metrics.horizontalAdvance(text)) / 2,
 			rect.y() + (rect.height() - metrics.height()) / 2,
@@ -294,9 +293,9 @@ bool LyricsShowWidget::loadLrcFile(const QString &file_path) {
 	const QString suffix = file_info.completeSuffix();
 
 	QString lrc_path = file_dir + QDir::separator() + base_name;
-	std::function<AlignPtr<ILrcParser>()> make_parser_func;
+	std::function<ScopedPtr<ILrcParser>()> make_parser_func;
 
-	const OrderedMap<QString, std::function<AlignPtr<ILrcParser>()>> lrc_parser_map{
+	const OrderedMap<QString, std::function<ScopedPtr<ILrcParser>()>> lrc_parser_map{
 		{
 			".lrc"_str, []() {
 			return MakeAlign<ILrcParser, LrcParser>();

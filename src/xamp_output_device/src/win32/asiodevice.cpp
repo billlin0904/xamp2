@@ -32,7 +32,7 @@ namespace {
 		bool is_xrun{ false };
 		bool post_output{ false };
 		AsioDevice* device{ nullptr };
-		AlignPtr<AsioDrivers> drivers{};
+		ScopedPtr<AsioDrivers> drivers{};
 		AudioConvertContext data_context{};
 		ASIOCallbacks asio_callbacks{};
 		Stopwatch buffer_switch_stopwatch;

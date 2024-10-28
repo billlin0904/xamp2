@@ -43,7 +43,7 @@ public:
     XAMP_NO_DISCARD bool CanWriteEmbeddedCover(const Path& path) const override;
 private:
     class TaglibMetadataWriterImpl;
-    AlignPtr<TaglibMetadataWriterImpl> writer_;
+    ScopedPtr<TaglibMetadataWriterImpl> writer_;
 };
 
 XAMP_METADATA_NAMESPACE_END

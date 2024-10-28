@@ -127,8 +127,6 @@ namespace http {
         : HttpClient(new QNetworkAccessManager(parent), url, parent) {
     }
 
-    HttpClient::~HttpClient() = default;
-
     void HttpClient::setUrl(const QString& url) {
         url_ = url;
     }

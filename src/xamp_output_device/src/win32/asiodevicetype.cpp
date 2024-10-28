@@ -25,7 +25,7 @@ public:
 
     void ScanNewDevice();
 
-	AlignPtr<IOutputDevice> MakeDevice(const  std::string &device_id);
+	ScopedPtr<IOutputDevice> MakeDevice(const  std::string &device_id);
 private:
 	DeviceInfo GetDeviceInfo(std::wstring const& name, const  std::string & device_id) const;
 
@@ -86,7 +86,7 @@ DeviceInfo AsioDeviceType::AsioDeviceTypeImpl::GetDeviceInfo(std::wstring const&
 	return info;
 }
 
-AlignPtr<IOutputDevice> AsioDeviceType::AsioDeviceTypeImpl::MakeDevice(const  std::string & device_id) {
+ScopedPtr<IOutputDevice> AsioDeviceType::AsioDeviceTypeImpl::MakeDevice(const  std::string & device_id) {
 	return MakeAlign<IOutputDevice, AsioDevice>(device_id);
 }
 
@@ -124,7 +124,7 @@ void AsioDeviceType::ScanNewDevice() {
 	impl_->ScanNewDevice();
 }
 
-AlignPtr<IOutputDevice> AsioDeviceType::MakeDevice(std::string const& device_id) {
+ScopedPtr<IOutputDevice> AsioDeviceType::MakeDevice(std::string const& device_id) {
 	return impl_->MakeDevice(device_id);
 }
 

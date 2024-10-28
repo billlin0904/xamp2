@@ -11,6 +11,12 @@
 
 namespace dao {
 
+struct XAMP_WIDGET_SHARED_EXPORT PlaylistAlbumStats {
+    int32_t album_count{ 0 };
+    int32_t music_count{ 0 };
+    double total_duration{0};
+};
+
 class XAMP_WIDGET_SHARED_EXPORT PlaylistDao final {
 public:
     PlaylistDao();
@@ -34,6 +40,8 @@ public:
     void setNowPlayingState(int32_t playlist_id, int32_t playlist_music_id, PlayingState playing);
     std::map<int32_t, int32_t> getPlaylistIndex(StoreType type);
     void forEachPlaylist(std::function<void(int32_t, int32_t, StoreType, QString, QString)>&& fun);
+	QList<QString> getAlbumCoverIds(int32_t playlist_id);
+    PlaylistAlbumStats getAlbumStats(int32_t playlist_id);
 private:
     QSqlDatabase& db_;
 };

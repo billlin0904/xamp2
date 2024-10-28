@@ -25,7 +25,7 @@ public:
 
 	XAMP_NO_DISCARD Vector<DeviceInfo> GetDeviceInfo() const;
 
-	AlignPtr<IOutputDevice> MakeDevice(const std::string& device_id);
+	ScopedPtr<IOutputDevice> MakeDevice(const std::string& device_id);
 	
 private:
 	LoggerPtr logger_;
@@ -38,7 +38,7 @@ NullOutputDeviceType::NullOutputDeviceTypeImpl::NullOutputDeviceTypeImpl() noexc
 void NullOutputDeviceType::NullOutputDeviceTypeImpl::ScanNewDevice() {
 }
 
-AlignPtr<IOutputDevice> NullOutputDeviceType::NullOutputDeviceTypeImpl::MakeDevice(const  std::string & device_id) {
+ScopedPtr<IOutputDevice> NullOutputDeviceType::NullOutputDeviceTypeImpl::MakeDevice(const  std::string & device_id) {
 	return MakeAlign<IOutputDevice, NullOutputDevice>();
 }
 
@@ -97,7 +97,7 @@ Vector<DeviceInfo> NullOutputDeviceType::GetDeviceInfo() const {
 	return impl_->GetDeviceInfo();
 }
 
-AlignPtr<IOutputDevice> NullOutputDeviceType::MakeDevice(const std::string& device_id) {
+ScopedPtr<IOutputDevice> NullOutputDeviceType::MakeDevice(const std::string& device_id) {
 	return impl_->MakeDevice(device_id);
 }
 

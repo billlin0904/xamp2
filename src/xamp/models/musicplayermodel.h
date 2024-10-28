@@ -20,7 +20,7 @@ public:
 
 	void stop();
 
-	const AlignPtr<IAudioDeviceManager>& GetAudioDeviceManager();
+	const ScopedPtr<IAudioDeviceManager>& GetAudioDeviceManager();
 
 	void seek(double seconds);
 

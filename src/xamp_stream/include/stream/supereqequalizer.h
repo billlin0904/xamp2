@@ -36,7 +36,7 @@ public:
 
 private:
     class SuperEqEqualizerImpl;
-    AlignPtr<SuperEqEqualizerImpl> impl_;
+    ScopedPtr<SuperEqEqualizerImpl> impl_;
 };
 
 XAMP_STREAM_NAMESPACE_END

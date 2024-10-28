@@ -168,6 +168,7 @@ Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
     , state_adapter_(std::make_shared<UIPlayerStateAdapter>())
 	, player_(player)
 	, http_client_(QString(), this) {
+    setAttribute(Qt::WA_DontCreateNativeAncestors);
     ui_.setupUi(this);
 }
 
@@ -241,7 +242,6 @@ void Xamp::destroy() {
     XampCrashHandler.Cleanup();
 }
 
-
 void Xamp::initialAudioEmbeddingService() {
     if (audio_embedding_service_) {
          return;
@@ -289,6 +289,58 @@ void Xamp::showAbout() {
 	dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_ABOUT));
     dialog->setTitle(tr("About"));
     dialog->exec();
+}
+
+void Xamp::connectThemeChanedSignal() {
+	(void)QObject::connect(&qTheme,
+	                       &ThemeManager::themeChangedFinished,
+	                       lrc_page_.get(),
+	                       &LrcPage::onThemeChangedFinished);
+
+	(void)QObject::connect(&qTheme,
+	                       &ThemeManager::themeChangedFinished,
+	                       this,
+	                       &Xamp::onThemeChangedFinished);
+
+	(void)QObject::connect(&qTheme,
+	                       &ThemeManager::themeChangedFinished,
+	                       playlist_tab_page_.get(),
+	                       &PlaylistTabWidget::onThemeChangedFinished);
+
+	(void)QObject::connect(&qTheme,
+	                       &ThemeManager::themeChangedFinished,
+	                       yt_music_tab_page_.get(),
+	                       &PlaylistTabWidget::onThemeChangedFinished);
+
+	(void)QObject::connect(&qTheme,
+	                       &ThemeManager::themeChangedFinished,
+	                       ui_.naviBar,
+	                       &NavBarListView::onThemeChangedFinished);
+
+	(void)QObject::connect(&qTheme,
+	                       &ThemeManager::themeChangedFinished,
+	                       music_library_page_->album(),
+	                       &AlbumView::onThemeChangedFinished);
+
+	(void)QObject::connect(&qTheme,
+	                       &ThemeManager::themeChangedFinished,
+	                       cd_page_.get(),
+	                       &CdPage::onThemeChangedFinished);
+
+	(void)QObject::connect(&qTheme,
+	                       &ThemeManager::themeChangedFinished,
+	                       ui_.mutedButton,
+	                       &VolumeButton::onThemeChangedFinished);
+
+	(void)QObject::connect(&qTheme,
+	                       &ThemeManager::themeChangedFinished,
+	                       lrc_page_.get(),
+	                       &LrcPage::onThemeChangedFinished);
+
+	(void)QObject::connect(&qTheme,
+	                       &ThemeManager::themeChangedFinished,
+	                       music_library_page_.get(),
+	                       &AlbumArtistPage::onThemeChangedFinished);
 }
 
 void Xamp::setMainWindow(IXMainWindow* main_window) {
@@ -341,8 +393,6 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     album_cover_service_->moveToThread(&album_cover_service_thread_);
     album_cover_service_thread_.start(QThread::NormalPriority);
 
-    //album_cover_service_->mergeUnknownAlbumCover();
-
     file_system_service_.reset(new FileSystemService());
     file_system_service_->moveToThread(&file_system_service_thread_);
     file_system_service_thread_.start(QThread::LowestPriority);
@@ -390,16 +440,6 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         setCurrentTab(0);
     }
 
-    (void)QObject::connect(this,
-        &Xamp::translation,
-        background_service_.get(),
-        &BackgroundService::onTranslation);
-
-    (void)QObject::connect(background_service_.get(), 
-        &BackgroundService::translationCompleted,
-        this,
-        &Xamp::onTranslationCompleted);
-
     (void)QObject::connect(album_cover_service_.get(),
         &AlbumCoverService::setAlbumCover,
         this, 
@@ -420,66 +460,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         this,
         &Xamp::onFetchThumbnailUrlError);
 
-    (void)QObject::connect(&qTheme,
-        &ThemeManager::themeChangedFinished,
-        lrc_page_.get(),
-        &LrcPage::onThemeChangedFinished);
-
-    (void)QObject::connect(&qTheme,
-        &ThemeManager::themeChangedFinished, 
-        &qImageCache,
-        &ImageCache::onThemeChangedFinished);
-
-    (void)QObject::connect(&qTheme,
-        &ThemeManager::themeChangedFinished,
-        this,
-        &Xamp::onThemeChangedFinished);
-
-    (void)QObject::connect(&qTheme,
-        &ThemeManager::themeChangedFinished,
-        playlist_tab_page_.get(),
-        &PlaylistTabWidget::onThemeChangedFinished);
-
-    (void)QObject::connect(&qTheme,
-        &ThemeManager::themeChangedFinished,
-        yt_music_tab_page_.get(),
-        &PlaylistTabWidget::onThemeChangedFinished);
-
-    (void)QObject::connect(&qTheme,
-        &ThemeManager::themeChangedFinished,
-        ui_.naviBar,
-        &NavBarListView::onThemeChangedFinished);
-
-    (void)QObject::connect(&qTheme,
-        &ThemeManager::themeChangedFinished,
-        music_library_page_->album(),
-        &AlbumView::onThemeChangedFinished);
-
-    (void)QObject::connect(&qTheme,
-        &ThemeManager::themeChangedFinished,
-        cd_page_.get(),
-        &CdPage::onThemeChangedFinished);
-
-    (void)QObject::connect(&qTheme,
-        &ThemeManager::themeChangedFinished,
-        ui_.mutedButton,
-        &VolumeButton::onThemeChangedFinished);
-
-    (void)QObject::connect(&qTheme,
-        &ThemeManager::themeChangedFinished,
-        lrc_page_.get(),
-        &LrcPage::onThemeChangedFinished);
-
-    (void)QObject::connect(&qTheme,
-        &ThemeManager::themeChangedFinished,
-        music_library_page_.get(),
-        &AlbumArtistPage::onThemeChangedFinished);
-
-    (void)QObject::connect(this,
-        &Xamp::setWatchDirectory,
-        file_system_service_.get(),
-        &FileSystemService::onSetWatchDirectory,
-        Qt::QueuedConnection);
+    connectThemeChanedSignal();
 
     (void)QObject::connect(this,
         &Xamp::extractFile,
@@ -492,6 +473,12 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         file_system_service_.get(),
         &FileSystemService::onExtractFile,
         Qt::QueuedConnection);
+
+   (void)QObject::connect(music_library_page_->artist()->artistViewPage()->album()->styledDelegate(),
+       &AlbumViewStyledDelegate::findAlbumCover,
+       album_cover_service_.get(),
+       &AlbumCoverService::onFindAlbumCover,
+       Qt::QueuedConnection);
 
    (void)QObject::connect(music_library_page_->album()->styledDelegate(),
        &AlbumViewStyledDelegate::findAlbumCover,
@@ -585,7 +572,6 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     initialDeviceList();
     
     (void)QObject::connect(&ui_update_timer_timer_, &QTimer::timeout, this, &Xamp::onDelayedDownloadThumbnail);
-    emit setWatchDirectory(qAppSettings.myMusicFolderPath());
 }
 
 void Xamp::onRestartApp() {
@@ -664,7 +650,7 @@ void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std:
     playlist_page->spinner()->stopAnimation();
 }
 
-void Xamp::cacheYtMusicFile(const PlayListEntity& entity) {
+void Xamp::onCacheYtMusicFile(const PlayListEntity& entity) {
     auto [video_id, setVideoId] = parseYtMusicPath(entity.file_path);
 
     const auto dialog = makeProgressDialog(
@@ -1160,12 +1146,10 @@ void Xamp::initialController() {
             return;
         }
         QScopedPointer<XDialog> dialog(new XDialog(this));
-        QScopedPointer<EqualizerView> eq(new EqualizerView(dialog.get()));
-        qTheme.setSegoeFluentFontIcons();
-        auto icon = qTheme.fontIcon(Glyphs::ICON_EQUALIZER);
-        dialog->setIcon(icon);
-        dialog->setTitle(tr("EQ"));
-        dialog->setContentWidget(eq.get(), false);
+        auto* eq = new EqualizerView(dialog.get());
+        dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_EQUALIZER));
+        dialog->setTitle(tr("Equalizer"));
+        dialog->setContentWidget(eq, false);
         dialog->exec();
     });
 
@@ -1275,9 +1259,9 @@ void Xamp::setCurrentTab(int32_t table_id) {
 }
 
 void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
-    qImageCache.remove(kAlbumCacheTag + qImageCache.unknownCoverId());
-    qImageCache.remove(qImageCache.unknownCoverId());
-    qImageCache.loadUnknownCover();
+    //qImageCache.remove(kAlbumCacheTag + qImageCache.unknownCoverId());
+    //qImageCache.remove(qImageCache.unknownCoverId());
+    //qImageCache.loadUnknownCover();
 
     Q_FOREACH(QFrame *frame, device_type_frame_) {
         qTheme.setFrameBackgroundColor(frame);
@@ -1310,13 +1294,11 @@ void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
 
     if (current_entity_) {
         if (current_entity_.value().cover_id == qImageCache.unknownCoverId()) {
-            lrc_page_->setCover(qImageCache.getOrAddDefault(qImageCache.unknownCoverId()));
-            setCover(qImageCache.unknownCoverId());
+            setCover(kEmptyString);
         }
     }
     else {
-		lrc_page_->setCover(qImageCache.getOrAddDefault(qImageCache.unknownCoverId()));
-		setCover(qImageCache.unknownCoverId());
+		setCover(kEmptyString);
     }
    
 	setNaviBarMenuButton(ui_);
@@ -1649,10 +1631,10 @@ void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked, boo
     player_->EnableFadeOut(qAppSettings.valueAsBool(kAppSettingEnableFadeOut));
 
     if (is_query_embeddings) {
-        audio_embedding_service_->queryEmbeddings(QList<QString> { entity.file_path })
+        /*audio_embedding_service_->queryEmbeddings(QList<QString> { entity.file_path })
     	.then([this](auto result) {
             music_library_page_->similarSong()->onQueryEmbeddingsReady(result);
-            });
+            });*/
     }
 
 	// Setup bluetooth device or shared output device (ex: Windows WASAPI) sample rate converter.
@@ -1812,7 +1794,7 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
  
     if (local_music) {
         if (!lrc_page_->lyrics()->loadLrcFile(entity.file_path)) {
-            musixmatch_service_->search(entity.album, entity.artist, entity.title).then([this, entity](const auto& lrc) {
+            /*musixmatch_service_->search(entity.album, entity.artist, entity.title).then([this, entity](const auto& lrc) {
 				if (lrc.isEmpty()) {
 					return;
 				}
@@ -1823,7 +1805,17 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
                     file.write(lrc.toUtf8());
                     file.close();
                 }
-                });
+                });*/
+            audio_embedding_service_->embedAndSave(entity.file_path, entity.music_id)
+                .then([this, entity](auto lrc) {
+                lrc_page_->lyrics()->onSetLrc(lrc);
+                /*const auto save_file_path = entity.parent_path + QDir::separator() + entity.file_name + ".lrc"_str;
+                QFile file(save_file_path);
+                if (file.open(QIODevice::WriteOnly)) {
+                    file.write(lrc.toUtf8());
+                    file.close();
+                }*/
+            });
         }
     } else {
         lrc_page_->lyrics()->loadLrcFile(kEmptyString);
@@ -1866,13 +1858,23 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
 }
 
 void Xamp::setCover(const QString &cover_id) {
-    const auto cover = qImageCache.getOrAddDefault(cover_id, true);
+	// Lazy load qImageCache cache image.
+    QPixmap cover;
+	if (cover_id.isEmpty()) {
+        cover = qTheme.defaultSizeUnknownCover();
+	}
+	else {
+        cover = qImageCache.getOrAddDefault(cover_id, true);
+	}
+
     const QSize cover_size(ui_.coverLabel->size().width() - image_util::kPlaylistImageRadius,
         ui_.coverLabel->size().height() - image_util::kPlaylistImageRadius);
     const auto ui_cover = image_util::roundImage(
         image_util::resizeImage(cover, cover_size, false),
         image_util::kPlaylistImageRadius);
     ui_.coverLabel->setPixmap(ui_cover);
+
+    lrc_page_->setCover(cover);
 }
 
 void Xamp::onUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
@@ -1945,7 +1947,14 @@ void Xamp::drivesRemoved(const DriveInfo& /*drive_info*/) {
 
 void Xamp::onSetCover(const QString& cover_id, PlaylistPage* page) {
     auto found_cover = false;
-    const auto cover = qImageCache.getOrAddDefault(cover_id, true);
+
+	// Lazy load qImageCache cache image.
+    QPixmap cover;
+    if (cover_id.isEmpty()) {
+        cover = qTheme.defaultSizeUnknownCover();
+    } else {
+        cover = qImageCache.getOrAddDefault(cover_id, true);
+    }
 
     if (!cover_id.isEmpty() && cover_id != qImageCache.unknownCoverId()) {
         found_cover = true;
@@ -2545,7 +2554,7 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
     (void)QObject::connect(playlist_page->playlist(),
         &PlaylistTableView::downloadFile,
         this,
-        &Xamp::cacheYtMusicFile);
+        &Xamp::onCacheYtMusicFile);
 
     (void)QObject::connect(playlist_page->playlist(),
         &PlaylistTableView::editTags,
@@ -2613,6 +2622,7 @@ void Xamp::onReadFilePath(const QString& file_path) {
 
 void Xamp::onSetAlbumCover(int32_t album_id, const QString& cover_id) {
     album_dao_.setAlbumCover(album_id, cover_id);
+    music_library_page_->artist()->artistViewPage()->album()->refreshCover();
     music_library_page_->album()->refreshCover();
     music_library_page_->year()->refreshCover();
     if (current_entity_) {
@@ -2621,10 +2631,6 @@ void Xamp::onSetAlbumCover(int32_t album_id, const QString& cover_id) {
             onSetCover(cover_id, nullptr);
 		}
     }
-}
-
-void Xamp::onTranslationCompleted(const QString& keyword, const QString& result) {
-    artist_dao_.updateArtistEnglishName(keyword, result);
 }
 
 void Xamp::onEditTags(int32_t /*playlist_id*/, const QList<PlayListEntity>& entities) {

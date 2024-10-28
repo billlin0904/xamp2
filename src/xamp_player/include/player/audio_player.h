@@ -241,14 +241,14 @@ public:
     * 
     * @return The audio device manager.
     */
-    const AlignPtr<IAudioDeviceManager>& GetAudioDeviceManager() override;
+    const ScopedPtr<IAudioDeviceManager>& GetAudioDeviceManager() override;
 
     /*
     * Get dsp manager.
     * 
     * @return The dsp manager.
     */
-    AlignPtr<IDSPManager>& GetDspManager() override;    
+    ScopedPtr<IDSPManager>& GetDspManager() override;    
 
     /*
     * Buffer stream.
@@ -315,7 +315,7 @@ private:
 
     void CopySamples(void * samples, size_t num_buffer_frames) const;
 
-    void BufferSamples(const AlignPtr<FileStream>& stream, int32_t buffer_count = 1);
+    void BufferSamples(const ScopedPtr<FileStream>& stream, int32_t buffer_count = 1);
 
     void UpdatePlayerStreamTime(int32_t stream_time_sec_unit = 0) noexcept;
 
@@ -325,7 +325,7 @@ private:
 
     void ReadPlayerAction();
 
-    void ReadStreamInfo(DsdModes dsd_mode, AlignPtr<FileStream>& stream);
+    void ReadStreamInfo(DsdModes dsd_mode, ScopedPtr<FileStream>& stream);
 
     void ProcessFadeOut();
 
@@ -364,12 +364,12 @@ private:
     Timer timer_;    
     AudioFormat input_format_;
     AudioFormat output_format_;
-    AlignPtr<FileStream> stream_;
-    AlignPtr<IDeviceType> device_type_;
-    AlignPtr<IOutputDevice> device_;
-    AlignPtr<IDSPManager> dsp_manager_;
-    AlignPtr<IAudioProcessor> fader_;
-    AlignPtr<IAudioDeviceManager> device_manager_;
+    ScopedPtr<FileStream> stream_;
+    ScopedPtr<IDeviceType> device_type_;
+    ScopedPtr<IOutputDevice> device_;
+    ScopedPtr<IDSPManager> dsp_manager_;
+    ScopedPtr<IAudioProcessor> fader_;
+    ScopedPtr<IAudioDeviceManager> device_manager_;
     std::weak_ptr<IPlaybackStateAdapter> state_adapter_;    
     Task<void> stream_task_;        
     AnyMap config_;
@@ -382,7 +382,7 @@ private:
     FastConditionVariable read_finish_and_wait_seek_signal_cond_;
     MpmcQueue<PlayerAction> action_queue_;
     AudioBuffer<int8_t> fifo_;
-    AlignPtr<IThreadPoolExecutor> thread_pool_;
+    ScopedPtr<IThreadPoolExecutor> thread_pool_;
 };
 
 XAMP_AUDIO_PLAYER_NAMESPACE_END

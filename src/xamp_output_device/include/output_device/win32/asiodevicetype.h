@@ -91,10 +91,10 @@ public:
 	* @param device_id: device id
 	* @return IOutputDevice
 	*/
-	AlignPtr<IOutputDevice> MakeDevice(std::string const &device_id) override;
+	ScopedPtr<IOutputDevice> MakeDevice(std::string const &device_id) override;
 private:
 	class AsioDeviceTypeImpl;
-	AlignPtr<AsioDeviceTypeImpl> impl_;
+	ScopedPtr<AsioDeviceTypeImpl> impl_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

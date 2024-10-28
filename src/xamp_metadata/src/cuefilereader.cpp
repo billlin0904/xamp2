@@ -39,7 +39,7 @@ namespace {
 		return second * 75;
 	}
 
-	FastMutex libcue_mutex;
+	//FastMutex libcue_mutex;
 }
 
 XAMP_DECLARE_LOG_NAME(CueLoader);
@@ -56,7 +56,7 @@ public:
 		auto utf8_text = ReadFileToUtf8String(path);
 
 		// NOTE: libcue is not thread-safe so we need to lock it.
-		std::lock_guard<FastMutex> lock{ libcue_mutex };
+		//std::lock_guard<FastMutex> lock{ libcue_mutex };
 
 		auto *cd_handle = LIBCUE_LIB.cue_parse_string(utf8_text.c_str());
 		if (!cd_handle) {

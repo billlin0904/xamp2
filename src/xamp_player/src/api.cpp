@@ -52,7 +52,7 @@ void LoadComponentSharedLibrary() {
 }
 
 #ifdef XAMP_OS_WIN
-AlignPtr<ICDDevice> OpenCD(int32_t driver_letter) {
+ScopedPtr<ICDDevice> OpenCD(int32_t driver_letter) {
     return StreamFactory::MakeCDDevice(driver_letter);
 }
 #endif

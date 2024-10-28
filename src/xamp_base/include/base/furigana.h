@@ -32,7 +32,7 @@ public:
 	std::vector<FuriganaEntity> Convert(const std::wstring& text);
 private:
 	class FuriganaImpl;
-	AlignPtr<FuriganaImpl> impl_;
+	ScopedPtr<FuriganaImpl> impl_;
 };
 
 XAMP_BASE_NAMESPACE_END

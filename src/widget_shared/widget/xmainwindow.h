@@ -10,9 +10,7 @@
 #include <QSystemTrayIcon>
 #include <widget/driveinfo.h>
 
-#if defined(Q_OS_WIN)
 class WinTaskbar;
-#endif
 
 class XAMP_WIDGET_SHARED_EXPORT XMainWindow final : public IXMainWindow {
 public:
@@ -66,8 +64,6 @@ protected:
 
     void dropEvent(QDropEvent *event) override;
 
-    void closeEvent(QCloseEvent* event) override;
-
     void saveAppGeometry() override;
 
 public slots:
@@ -82,8 +78,8 @@ private:
 
     uint32_t screen_number_;
     QPoint last_pos_;
-#if defined(Q_OS_WIN)
     QScopedPointer<WinTaskbar> task_bar_;
+#if defined(Q_OS_WIN)
     QMap<QString, DriveInfo> exist_drives_;
     QFrame* title_frame_{ nullptr };
 #endif

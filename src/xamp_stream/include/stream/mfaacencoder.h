@@ -54,7 +54,7 @@ public:
 	static Vector<EncodingProfile> GetAvailableEncodingProfile();
 private:
 	class MFAACFileEncoderImpl;
-	AlignPtr<MFAACFileEncoderImpl> impl_;
+	ScopedPtr<MFAACFileEncoderImpl> impl_;
 };
 
 XAMP_STREAM_NAMESPACE_END

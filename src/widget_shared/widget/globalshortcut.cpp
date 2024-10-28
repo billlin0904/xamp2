@@ -1,7 +1,6 @@
 #include <widget/globalshortcut.h>
 
 #if defined(Q_OS_WIN)
-#include <widget/win32/wintaskbar.h>
 #include <base/platfrom_handle.h>
 #include <Dbt.h>
 #else

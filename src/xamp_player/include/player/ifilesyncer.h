@@ -41,7 +41,7 @@ public:
 	void SyncToDevice() override;
 private:
 	class ITunesFileSyncerImpl;
-	AlignPtr<ITunesFileSyncerImpl> impl_;
+	ScopedPtr<ITunesFileSyncerImpl> impl_;
 };
 
 XAMP_AUDIO_PLAYER_NAMESPACE_END

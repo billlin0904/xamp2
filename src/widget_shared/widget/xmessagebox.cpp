@@ -90,7 +90,8 @@ XMessageBox::XMessageBox(const QString& title,
 	adjustSize();
 }
 
-XMessageBox::~XMessageBox() = default;
+XMessageBox::~XMessageBox() {
+}
 
 void XMessageBox::setTextFont(const QFont& font) {
 	message_text_label_->setFont(font);

@@ -30,7 +30,7 @@ public:
 	void Cleanup();
 private:
 	class CrashHandlerImpl;
-	AlignPtr<CrashHandlerImpl> impl_;
+	ScopedPtr<CrashHandlerImpl> impl_;
 };
 
 #define XampCrashHandler SharedSingleton<CrashHandler>::GetInstance()

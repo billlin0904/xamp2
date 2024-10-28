@@ -23,7 +23,7 @@ public:
     char GetLatinLetter(const std::wstring& name);
 private:
     class TransliteratorImpl;
-    AlignPtr<TransliteratorImpl> impl_;
+    ScopedPtr<TransliteratorImpl> impl_;
 };
 
 XAMP_BASE_NAMESPACE_END

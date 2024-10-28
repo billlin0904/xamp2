@@ -34,7 +34,7 @@ public:
 
 private:
     class R8brainSampleRateConverterImpl;
-    AlignPtr<R8brainSampleRateConverterImpl> impl_;
+    ScopedPtr<R8brainSampleRateConverterImpl> impl_;
 };
 
 XAMP_STREAM_NAMESPACE_END

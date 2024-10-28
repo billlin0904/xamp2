@@ -70,7 +70,7 @@ public:
 	XAMP_NO_DISCARD Uuid GetTypeId() const override;
 private:	
 	class BassFileStreamImpl;
-	AlignPtr<BassFileStreamImpl> stream_;
+	ScopedPtr<BassFileStreamImpl> stream_;
 };
 
 XAMP_STREAM_NAMESPACE_END

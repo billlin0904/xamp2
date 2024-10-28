@@ -29,7 +29,7 @@ public:
 
 	XAMP_NO_DISCARD Vector<DeviceInfo> GetDeviceInfo() const;
 
-	AlignPtr<IOutputDevice> MakeDevice(const std::string& device_id);
+	ScopedPtr<IOutputDevice> MakeDevice(const std::string& device_id);
 
 private:
 	XAMP_NO_DISCARD Vector<DeviceInfo> GetDeviceInfoList() const;
@@ -50,7 +50,7 @@ void XAudio2DeviceType::XAudio2DeviceTypeImpl::ScanNewDevice() {
 	device_list_ = GetDeviceInfoList();
 }
 
-AlignPtr<IOutputDevice> XAudio2DeviceType::XAudio2DeviceTypeImpl::MakeDevice(const std::string& device_id) {
+ScopedPtr<IOutputDevice> XAudio2DeviceType::XAudio2DeviceTypeImpl::MakeDevice(const std::string& device_id) {
 	return MakeAlign<IOutputDevice, XAudio2OutputDevice>(String::ToStdWString(device_id));
 }
 
@@ -186,7 +186,7 @@ Vector<DeviceInfo> XAudio2DeviceType::GetDeviceInfo() const {
 	return impl_->GetDeviceInfo();
 }
 
-AlignPtr<IOutputDevice> XAudio2DeviceType::MakeDevice(const std::string& device_id) {
+ScopedPtr<IOutputDevice> XAudio2DeviceType::MakeDevice(const std::string& device_id) {
 	return impl_->MakeDevice(device_id);
 }
 

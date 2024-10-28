@@ -133,7 +133,6 @@
     <ClInclude Include="widget\dao\musicdao.h" />
     <ClInclude Include="widget\dao\playlistdao.h" />
     <ClInclude Include="widget\databasecoverid.h" />
-    <QtMoc Include="widget\filesystemwatcher.h" />
     <ClInclude Include="widget\genre_view.h" />
     <QtMoc Include="widget\taglistview.h" />
     <ClInclude Include="widget\httpx.h" />
@@ -161,7 +160,7 @@
     <QtMoc Include="widget\worker\backgroundservice.h" />
     <QtMoc Include="widget\worker\filesystemservice.h" />
     <QtMoc Include="widget\worker\albumcoverservice.h" />
-    <QtMoc Include="widget\win32\wintaskbar.h" />
+    <ClInclude Include="widget\win32\wintaskbar.h" />
     <ClInclude Include="widget\xmessagebox.h" />
     <ClInclude Include="widget\youtubedl\ytmusicservice.h" />
     <QtMoc Include="widget\youtubedl\ytmusicoauth.h" />
@@ -252,7 +251,6 @@
     <ClCompile Include="widget\equalizerview.cpp" />
     <ClCompile Include="widget\filesystemmodel.cpp" />
     <ClCompile Include="widget\filesystemviewpage.cpp" />
-    <ClCompile Include="widget\filesystemwatcher.cpp" />
     <ClCompile Include="widget\fonticon.cpp" />
     <ClCompile Include="widget\genre_view.cpp" />
     <ClCompile Include="widget\genre_view_page.cpp" />

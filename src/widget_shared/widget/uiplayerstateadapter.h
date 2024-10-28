@@ -60,5 +60,5 @@ private:
     size_t band_size_;
     size_t fft_size_;
     double desired_band_width_;
-    AlignPtr<STFT> stft_;
+    ScopedPtr<STFT> stft_;
 };

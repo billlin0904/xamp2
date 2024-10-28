@@ -27,7 +27,7 @@ public:
 
 private:
 	class BassFlacFileEncoderImpl;
-	AlignPtr<BassFlacFileEncoderImpl> impl_;
+	ScopedPtr<BassFlacFileEncoderImpl> impl_;
 };
 
 XAMP_STREAM_NAMESPACE_END

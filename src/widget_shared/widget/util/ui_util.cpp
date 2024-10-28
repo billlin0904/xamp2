@@ -171,15 +171,15 @@ PlayerOrder getNextOrder(PlayerOrder cur) noexcept {
     return static_cast<PlayerOrder>(next % max);
 }
 
-AlignPtr<IAudioProcessor> makeR8BrainSampleRateConverter() {
+ScopedPtr<IAudioProcessor> makeR8BrainSampleRateConverter() {
     return MakeAlign<IAudioProcessor, R8brainSampleRateConverter>();
 }
 
-AlignPtr<IAudioProcessor> makeSrcSampleRateConverter() {
+ScopedPtr<IAudioProcessor> makeSrcSampleRateConverter() {
     return MakeAlign<IAudioProcessor, SrcSampleRateConverter>();
 }
 
-AlignPtr<IAudioProcessor> makeSoxrSampleRateConverter(const QVariantMap& settings) {
+ScopedPtr<IAudioProcessor> makeSoxrSampleRateConverter(const QVariantMap& settings) {
     const auto quality = static_cast<SoxrQuality>(settings[kSoxrQuality].toInt());
     const auto stop_band = settings[kSoxrStopBand].toInt();
     const auto pass_band = settings[kSoxrPassBand].toInt();
@@ -197,7 +197,7 @@ AlignPtr<IAudioProcessor> makeSoxrSampleRateConverter(const QVariantMap& setting
     return converter;
 }
 
-AlignPtr<IAudioProcessor> makeSampleRateConverter(uint32_t sample_rate) {
+ScopedPtr<IAudioProcessor> makeSampleRateConverter(uint32_t sample_rate) {
     QMap<QString, QVariant> soxr_settings;
 
     soxr_settings[kResampleSampleRate] = sample_rate;

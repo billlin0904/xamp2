@@ -5,6 +5,7 @@
 #include <QPainter>
 
 #include <thememanager.h>
+#include <widget/xtooltip.h>
 #include <widget/util/str_util.h>
 
 // TextAlignedStyle
@@ -64,7 +65,7 @@ void PlaylistTabBar::mouseDoubleClickEvent(QMouseEvent* event) {
 	}
 
 	constexpr auto top_margin = 3;
-	constexpr auto left_margin = 6;
+	constexpr auto left_margin = 24;
 
 	const auto rect = tabRect(edited_index_);
 
@@ -88,6 +89,9 @@ void PlaylistTabBar::mouseDoubleClickEvent(QMouseEvent* event) {
 		break;
 	}
 
+	auto f = font();
+	f.setBold(true);
+	line_edit_->setFont(f);
 	line_edit_->setText(tabText(edited_index_));
 	line_edit_->move(rect.left() + left_margin, rect.top() + top_margin);
 	line_edit_->resize(rect.width() - 2 * left_margin, rect.height() - 2 * top_margin);
@@ -122,21 +126,11 @@ bool PlaylistTabBar::eventFilter(QObject* object, QEvent* event) {
 
 QSize PlaylistTabBar::tabSizeHint(int index) const {
 	QSize size(QTabBar::tabSizeHint(index));
-#if 1
-	if (tab_count_ < kSmallTabCount) {
-		size.setWidth(kSmallTabWidth);
-	}
-	else {		
-		auto width = dynamic_cast<QWidget*>(parent())->width() - kMaxButtonWidth;
-		size.setWidth(width / tab_count_);
-    }
-#else
-	if (!tab_count_) {
-		return size;
-	}
 	auto width = dynamic_cast<QWidget*>(parent())->width() - kMaxButtonWidth;
+	if (tab_count_ <= 4) {
+		return QSize(width / 4, size.height());
+	}
 	size.setWidth(width / tab_count_);
-#endif
 	return size;
 }
 

@@ -16,7 +16,7 @@ void MusicPlayerModel::stop() {
 	player_->Stop(true, true, true);
 }
 
-const AlignPtr<IAudioDeviceManager>& MusicPlayerModel::GetAudioDeviceManager() {
+const ScopedPtr<IAudioDeviceManager>& MusicPlayerModel::GetAudioDeviceManager() {
 	return player_->GetAudioDeviceManager();
 }
 

@@ -40,7 +40,7 @@ public:
 
 private:
     class BassEqualizerImpl;
-    AlignPtr<BassEqualizerImpl> impl_;
+    ScopedPtr<BassEqualizerImpl> impl_;
 };
 
 XAMP_STREAM_NAMESPACE_END

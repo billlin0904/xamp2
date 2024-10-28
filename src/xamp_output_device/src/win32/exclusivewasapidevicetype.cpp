@@ -30,7 +30,7 @@ public:
 
 	XAMP_NO_DISCARD Vector<DeviceInfo> GetDeviceInfo() const;
 
-	AlignPtr<IOutputDevice> MakeDevice(const std::string& device_id);
+	ScopedPtr<IOutputDevice> MakeDevice(const std::string& device_id);
 
 private:
 	XAMP_NO_DISCARD CComPtr<IMMDevice> GetDeviceById(const std::wstring& device_id) const;
@@ -74,7 +74,7 @@ CComPtr<IMMDevice> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::Get
 	return device;
 }
 
-AlignPtr<IOutputDevice> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::MakeDevice(const std::string & device_id) {
+ScopedPtr<IOutputDevice> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::MakeDevice(const std::string & device_id) {
 	return MakeAlign<IOutputDevice, ExclusiveWasapiDevice>(GetDeviceById(String::ToStdWString(device_id)));
 }
 
@@ -225,7 +225,7 @@ Vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfo() const {
 	return impl_->GetDeviceInfo();
 }
 
-AlignPtr<IOutputDevice> ExclusiveWasapiDeviceType::MakeDevice(std::string const& device_id) {
+ScopedPtr<IOutputDevice> ExclusiveWasapiDeviceType::MakeDevice(std::string const& device_id) {
 	return impl_->MakeDevice(device_id);
 }
 

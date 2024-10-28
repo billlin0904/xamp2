@@ -237,7 +237,7 @@ private:
 	IAudioCallback* callback_;
 	LoggerPtr logger_;
 	Task<void> render_task_;
-	AlignPtr<IThreadPoolExecutor> thread_pool_;
+	ScopedPtr<IThreadPoolExecutor> thread_pool_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

@@ -4,6 +4,7 @@
 #include <stream/bassequalizer.h>
 #include <stream/soxresampler.h>
 #include <stream/r8brainresampler.h>
+#include <stream/srcresampler.h>
 #include <stream/dsdmodesamplewriter.h>
 #include <stream/basscompressor.h>
 #include <stream/bassparametriceq.h>
@@ -13,9 +14,10 @@
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
-XAMP_DECLARE_LOG_NAME(DspManager);
-
-static constexpr int32_t kDefaultBufSize = 1024 * 1024;
+namespace {
+    XAMP_DECLARE_LOG_NAME(DspManager);
+    constexpr int32_t kDefaultBufSize = 1024 * 1024;
+}
 
 DSPManager::DSPManager() {
     logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(DspManager));
@@ -23,12 +25,12 @@ DSPManager::DSPManager() {
     post_dsp_buffer_.resize(kDefaultBufSize);
 }
 
-void DSPManager::AddPostDSP(AlignPtr<IAudioProcessor> processor) {
+void DSPManager::AddPostDSP(ScopedPtr<IAudioProcessor> processor) {
     XAMP_LOG_D(logger_, "Add post dsp:{} success.", processor->GetDescription());
     AddOrReplace(std::move(processor), post_dsp_);
 }
 
-void DSPManager::AddPreDSP(AlignPtr<IAudioProcessor> processor) {
+void DSPManager::AddPreDSP(ScopedPtr<IAudioProcessor> processor) {
     XAMP_LOG_D(logger_, "Add pre dsp:{} success.", processor->GetDescription());
     AddOrReplace(std::move(processor), pre_dsp_);
 }
@@ -53,7 +55,7 @@ IDSPManager& DSPManager::AddCompressor() {
     return *this;
 }
 
-void DSPManager::SetSampleWriter(AlignPtr<ISampleWriter> writer) {
+void DSPManager::SetSampleWriter(ScopedPtr<ISampleWriter> writer) {
     if (!writer) {
         sample_writer_.reset();
         return;
@@ -74,6 +76,7 @@ IDSPManager& DSPManager::RemoveParametricEq() {
 IDSPManager& DSPManager::RemoveSampleRateConverter() {
     RemovePostDSP<R8brainSampleRateConverter>();
     RemovePostDSP<SoxrSampleRateConverter>();
+    RemovePostDSP<SrcSampleRateConverter>();
     return *this;
 }
 
@@ -96,7 +99,7 @@ bool DSPManager::Contains(const Uuid& type) const noexcept {
         });
 }
 
-void DSPManager::AddOrReplace(AlignPtr<IAudioProcessor> processor, Vector<AlignPtr<IAudioProcessor>>& dsp_chain) {
+void DSPManager::AddOrReplace(ScopedPtr<IAudioProcessor> processor, Vector<ScopedPtr<IAudioProcessor>>& dsp_chain) {
     auto id = processor->GetTypeId();
     const auto itr = std::find_if(dsp_chain.begin(), dsp_chain.end(),
                                           [id](auto const& processor) {
@@ -112,13 +115,15 @@ void DSPManager::AddOrReplace(AlignPtr<IAudioProcessor> processor, Vector<AlignP
 
 bool DSPManager::IsEnableSampleRateConverter() const {
     const auto equal_id = [](const auto& id) {
-        return XAMP_UUID_OF(SoxrSampleRateConverter) == id || XAMP_UUID_OF(R8brainSampleRateConverter) == id;
+        return XAMP_UUID_OF(SoxrSampleRateConverter) == id
+    	|| XAMP_UUID_OF(R8brainSampleRateConverter) == id
+    	|| XAMP_UUID_OF(SrcSampleRateConverter) == id;
     };
     return Contains(equal_id);
 }
 
 bool DSPManager::ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) {
-    return dispatch_(samples, num_samples, fifo);
+    return std::invoke(dispatch_, samples, num_samples, fifo);
 }
 
 bool DSPManager::DefaultProcess(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) {

@@ -133,6 +133,8 @@ namespace {
 
         ostr << "\r\nstack backtrace:\r\n";
 
+        (void) SYMBOL_LOADER.GetCurrentProcess();
+
         std::vector<uint8_t> symbol_buffer;
         symbol_buffer.resize(sizeof(SYMBOL_INFO) + sizeof(wchar_t) * MAX_SYM_NAME);
 
@@ -170,7 +172,7 @@ namespace {
             symbol_info->MaxNameLen = kMaxSymbolNameSize;
 
             DWORD64 displacement = 0;
-            entry.has_symbol = ::SymFromAddr(GetCurrentProcess(),
+            entry.has_symbol = ::SymFromAddr(SYMBOL_LOADER.GetCurrentProcess(),
                 entry.address,
                 &displacement,
                 symbol_info);

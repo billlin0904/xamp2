@@ -1,4 +1,4 @@
-#include <widget/worker/filesystemservice.h>
+﻿#include <widget/worker/filesystemservice.h>
 
 #include <QDirIterator>
 #include <execution>
@@ -8,11 +8,10 @@
 #include <metadata/cueloader.h>
 
 #include <widget/albumview.h>
-#include <widget/audio_embedding/audio_embedding_service.h>
 #include <widget/util/ui_util.h>
 
 namespace {
-	const std::string kCueFileExtension(".cue");
+	constexpr std::string_view kCueFileExtension(".cue");
 	XAMP_DECLARE_LOG_NAME(FileSystemService);
 
 	struct PathInfo {
@@ -22,7 +21,7 @@ namespace {
 	};
 
 	std::pair<size_t, Vector<PathInfo>> getPathSortByFileCount(
-		const AlignPtr<IThreadPoolExecutor>& thread_pool,
+		const ScopedPtr<IThreadPoolExecutor>& thread_pool,
 		const Vector<QString>& paths,
 		const QStringList& file_name_filters,
 		std::function<void(size_t)>&& action) {
@@ -70,11 +69,10 @@ namespace {
 }
 
 FileSystemService::FileSystemService()
-	: watcher_(this)
-	, timer_(this) {
+	: timer_(this) {
 	(void)QObject::connect(&timer_, &QTimer::timeout, this, &FileSystemService::updateProgress);
 	logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(FileSystemService));
-	constexpr auto kThreadPoolSize = 4;
+	constexpr auto kThreadPoolSize = 8;
 	thread_pool_ = ThreadPoolBuilder::MakeThreadPool(
 		XAMP_LOG_NAME(FileSystemService),
 		ThreadPriority::PRIORITY_BACKGROUND,
@@ -85,17 +83,13 @@ FileSystemService::FileSystemService()
 FileSystemService::~FileSystemService() {
 }
 
-void FileSystemService::onSetWatchDirectory(const QString& dir) {
-	watcher_.addPath(dir);
-}
-
 void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 	QDirIterator itr(dir,
 		getTrackInfoFileNameFilter(), 
 		QDir::NoDotAndDotDot | QDir::Files,
 	    QDirIterator::Subdirectories);
 
-	FloatMap<std::wstring, Vector<Path>> directory_files;
+	FloatMap<QString, Vector<Path>> directory_files;
 
 	XAMP_ON_SCOPE_EXIT(
 		for (auto& files : directory_files) {
@@ -104,6 +98,7 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 		}
 	);
 
+	// Note: CueLoader has thread safe issue so we need to process not in parallel.
 	auto process_cue_file = [this](const auto &path, auto playlist_id) {
 		try {
 			ForwardList<TrackInfo> tracks;
@@ -123,22 +118,27 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 		}			
 	};
 
+	auto process_file = [this, &directory_files, playlist_id, process_cue_file](const auto& dir) {
+		const auto next_path = toNativeSeparators(dir);
+		const auto path = next_path.toStdWString();
+		const Path test_path(path);
+		if (test_path.extension() != kCueFileExtension) {
+			const auto directory = QFileInfo(dir).dir().path();
+			if (!directory_files.contains(directory)) {
+				directory_files[directory].reserve(kReserveFilePathSize);
+			}
+			directory_files[directory].emplace_back(path);
+		}
+		else {
+			process_cue_file(test_path, playlist_id);
+		}
+		};
+
 	while (itr.hasNext()) {
 		if (is_stop_) {
 			return;
 		}
-		auto next_path = toNativeSeparators(itr.next());
-		auto path = next_path.toStdWString();
-		// Note: CueLoader has thread safe issue so we need to process not in parallel.
-		if (Path(path).extension() == kCueFileExtension) {
-			process_cue_file(path, playlist_id);
-			continue;
-		}
-		auto directory = QFileInfo(next_path).dir().path().toStdWString();
-		if (!directory_files.contains(directory)) {
-			directory_files[directory].reserve(kReserveFilePathSize);
-		}
-		directory_files[directory].emplace_back(path);
+		process_file(itr.next());
 	}
 
 	if (directory_files.empty()) {
@@ -146,18 +146,10 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 			XAMP_LOG_DEBUG("Not found file: {}", String::ToString(dir.toStdWString()));
 			return;
 		}
-		const auto next_path = toNativeSeparators(dir);
-		const auto path = next_path.toStdWString();
-		// Note: CueLoader has thread safe issue so we need to process not in parallel.
-		if (Path(path).extension() == kCueFileExtension) {
-			process_cue_file(path, playlist_id);		
-		}
-		else {
-			const auto directory = QFileInfo(dir).dir().path().toStdWString();
-			directory_files[directory].emplace_back(path);
-		}		
+		process_file(dir);
 	}
 
+	// directory_files 目的是為了將同一個檔案分類再一起, 為了以下進行平行處理資料夾內的檔案, 並將解析後得結果進行track no排序.
 	Executor::ParallelFor(*thread_pool_, directory_files, [&](const auto& path_info) {
 		if (is_stop_) {
 			return;
@@ -182,9 +174,9 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 		tracks.sort([](const auto& first, const auto& last) {
 			return first.track < last.track;
 		});
-		emit readFilePath(stringFormat("Extract directory {} size:{} completed.",
-			String::ToString(path_info.first),
-			path_info.second.size()));
+		emit readFilePath(qFormat("Extract directory %1 size:%2 completed.")
+			.arg(path_info.first)
+			.arg(path_info.second.size()));
 		emit insertDatabase(tracks, playlist_id);
 	});
 }
@@ -216,7 +208,7 @@ void FileSystemService::onExtractFile(const QString& file_path, int32_t playlist
 	auto [total_work, file_count_paths] =
 		getPathSortByFileCount(thread_pool_, paths, getTrackInfoFileNameFilter(),
 		                       [this](auto total_file_count) {
-				emit foundFileCount(total_file_count);
+		emit foundFileCount(total_file_count);
 	});
 
 	XAMP_ON_SCOPE_EXIT(

@@ -33,7 +33,7 @@ public:
 
 private:
     class BassCompressorImpl;
-    AlignPtr<BassCompressorImpl> impl_;
+    ScopedPtr<BassCompressorImpl> impl_;
 };
 
 XAMP_STREAM_NAMESPACE_END

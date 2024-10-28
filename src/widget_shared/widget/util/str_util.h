@@ -73,6 +73,10 @@ XAMP_WIDGET_SHARED_EXPORT inline bool isNullOfEmpty(const QString& s) {
 	return s.isNull() || s.isEmpty();
 }
 
+XAMP_WIDGET_SHARED_EXPORT inline QString qFormat(const QString &str) {
+	return str;
+}
+
 XAMP_WIDGET_SHARED_EXPORT inline QString qFormat(char const* const str) {
     return {QLatin1String{ str }};
 }

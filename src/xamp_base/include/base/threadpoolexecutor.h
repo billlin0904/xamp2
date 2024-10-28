@@ -32,7 +32,7 @@ public:
 	/*
 	* Constructor.
 	*/
-	TaskScheduler(const std::string_view& pool_name,
+	TaskScheduler(const std::string_view& name,
 	              size_t max_thread,
 	              const CpuAffinity& affinity,
 	              ThreadPriority priority);
@@ -48,6 +48,8 @@ public:
     * Get thread pool size.
     */
     size_t GetThreadSize() const override;
+
+	void SetBulkSize(size_t max_size) override;
 
     /*
     * Submit job to thread pool.
@@ -67,33 +69,39 @@ private:
     /*
     * Try dequeue task from shared queue.
     */
-    MoveOnlyFunction TryDequeueSharedQueue(const StopToken& stop_token);
+    size_t TryDequeueSharedQueue(Vector<MoveOnlyFunction>& tasks, const StopToken& stop_token);
 
     /*
     * Try dequeue task from shared queue.
     */
-    MoveOnlyFunction TryDequeueSharedQueue(const StopToken& stop_token, std::chrono::milliseconds timeout);
+    size_t TryDequeueSharedQueue(Vector<MoveOnlyFunction>& tasks, const StopToken& stop_token, std::chrono::milliseconds timeout);
 
     /*
     * Try steal task from other thread.
     */
-    Vector<MoveOnlyFunction> TrySteal(const StopToken& stop_token, size_t random_start, size_t current_thread_index);
+    size_t TrySteal(Vector<MoveOnlyFunction> &tasks, const StopToken& stop_token, size_t random_start, size_t current_thread_index);
 
     /*
     * Try dequeue task from local queue.
     */
-    Vector<MoveOnlyFunction> TryLocalPop(const StopToken& stop_token, WorkStealingTaskQueue* local_queue) const;
+    size_t TryLocalPop(Vector<MoveOnlyFunction>& tasks, const StopToken& stop_token, WorkStealingTaskQueue* local_queue) const;
 
     /*
     * Add thread to thread pool.
     */
     void AddThread(size_t i, ThreadPriority priority);
 
+    /*
+	 * Execute task.
+	 */
+    void Execute(Vector<MoveOnlyFunction>& tasks, size_t task_size, size_t current_index, const StopToken& stop_token);
+
     std::atomic<bool> is_stopped_;
     std::atomic<size_t> running_thread_;
     size_t max_thread_;
+	size_t bulk_size_;
     FastMutex mutex_;
-    std::string pool_name_;
+    std::string name_;
     Vector<JThread> threads_;
     Vector<std::atomic<ExecuteFlags>> task_execute_flags_;
     SharedTaskQueuePtr task_pool_;
@@ -106,7 +114,7 @@ private:
 
 class ThreadPoolExecutor final : public IThreadPoolExecutor {
 public:
-	explicit ThreadPoolExecutor(const std::string_view& pool_name,
+	explicit ThreadPoolExecutor(const std::string_view& name,
 	                            uint32_t max_thread = std::thread::hardware_concurrency(),
 	                            const CpuAffinity &affinity = CpuAffinity::kAll,
 	                            ThreadPriority priority = ThreadPriority::PRIORITY_NORMAL);
@@ -118,6 +126,8 @@ public:
     void Stop() override;
 
     size_t GetThreadSize() const override;
+
+	void SetBulkSize(size_t max_size) override;
 };
 
 XAMP_BASE_NAMESPACE_END

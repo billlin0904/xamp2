@@ -60,7 +60,7 @@ bool IsDsdFile(const Path & path) {
     return IsDsdFileChunk(file_chunks);
 }
 
-AlignPtr<FileStream> StreamFactory::MakeFileStream(const Path& file_path, DsdModes dsd_mode) {
+ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& file_path, DsdModes dsd_mode) {
     if (!IsCDAFile(file_path)) {
         switch (dsd_mode) {
         case DsdModes::DSD_MODE_NATIVE:
@@ -76,15 +76,15 @@ AlignPtr<FileStream> StreamFactory::MakeFileStream(const Path& file_path, DsdMod
     }
 }
 
-AlignPtr<IFileEncoder> StreamFactory::MakeFlacEncoder() {
+ScopedPtr<IFileEncoder> StreamFactory::MakeFlacEncoder() {
     return MakeAlign<IFileEncoder, BassFlacFileEncoder>();
 }
 
-AlignPtr<IFileEncoder> StreamFactory::MakeAlacEncoder() {
+ScopedPtr<IFileEncoder> StreamFactory::MakeAlacEncoder() {
     return MakeAlign<IFileEncoder, AlacFileEncoder>();
 }
 
-AlignPtr<IFileEncoder> StreamFactory::MakeAACEncoder() {
+ScopedPtr<IFileEncoder> StreamFactory::MakeAACEncoder() {
 #ifdef XAMP_OS_WIN
     return MakeAlign<IFileEncoder, MFAACFileEncoder>();
     //return MakeAlign<IFileEncoder, AvFileEncoder>(AvEncodeId::AV_ENCODE_ID_AAC);
@@ -93,38 +93,38 @@ AlignPtr<IFileEncoder> StreamFactory::MakeAACEncoder() {
 #endif
 }
 
-AlignPtr<IFileEncoder> StreamFactory::MakeWaveEncoder() {
+ScopedPtr<IFileEncoder> StreamFactory::MakeWaveEncoder() {
     return MakeAlign<IFileEncoder, BassWavFileEncoder>();
 }
 
-AlignPtr<IAudioProcessor> StreamFactory::MakeParametricEq() {
+ScopedPtr<IAudioProcessor> StreamFactory::MakeParametricEq() {
     return MakeAlign<IAudioProcessor, BassParametricEq>();
 }
 
-AlignPtr<IAudioProcessor> StreamFactory::MakeEqualizer() {
+ScopedPtr<IAudioProcessor> StreamFactory::MakeEqualizer() {
     return MakeAlign<IAudioProcessor, BassEqualizer>();    
 }
 
 #ifdef XAMP_OS_WIN
-AlignPtr<IAudioProcessor> StreamFactory::MakeSuperEqEqualizer() {
+ScopedPtr<IAudioProcessor> StreamFactory::MakeSuperEqEqualizer() {
     return MakeAlign<IAudioProcessor, SuperEqEqualizer>();
 }
 #endif
 
-AlignPtr<IAudioProcessor> StreamFactory::MakeCompressor() {
+ScopedPtr<IAudioProcessor> StreamFactory::MakeCompressor() {
     return MakeAlign<IAudioProcessor, BassCompressor>();
 }
 
-AlignPtr<IAudioProcessor> StreamFactory::MakeFader() {
+ScopedPtr<IAudioProcessor> StreamFactory::MakeFader() {
     return MakeAlign<IAudioProcessor, BassFader>();
 }
 
-AlignPtr<IDSPManager> StreamFactory::MakeDSPManager() {
+ScopedPtr<IDSPManager> StreamFactory::MakeDSPManager() {
     return MakeAlign<IDSPManager, DSPManager>();
 }
 
 #ifdef XAMP_OS_WIN
-AlignPtr<ICDDevice> StreamFactory::MakeCDDevice(int32_t driver_letter) {
+ScopedPtr<ICDDevice> StreamFactory::MakeCDDevice(int32_t driver_letter) {
     return MakeAlign<ICDDevice, BassCDDevice>(static_cast<char>(driver_letter));
 }
 #endif
@@ -139,11 +139,11 @@ Vector<EncodingProfile> StreamFactory::GetAvailableEncodingProfile() {
     return AACFileEncoder::GetAvailableEncodingProfile();
 }
 
-IDsdStream* AsDsdStream(AlignPtr<FileStream> const& stream) noexcept {
+IDsdStream* AsDsdStream(ScopedPtr<FileStream> const& stream) noexcept {
     return dynamic_cast<IDsdStream*>(stream.get());
 }
 
-FileStream* AsFileStream(AlignPtr<IAudioStream> const& stream) noexcept {
+FileStream* AsFileStream(ScopedPtr<IAudioStream> const& stream) noexcept {
     return dynamic_cast<FileStream*>(stream.get());
 }
 
@@ -151,7 +151,7 @@ IDsdStream* AsDsdStream(FileStream* stream) noexcept {
     return dynamic_cast<IDsdStream*>(stream);
 }
 
-AlignPtr<FileStream> MakeFileStream(const Path& file_path, DsdModes dsd_mode) {
+ScopedPtr<FileStream> MakeFileStream(const Path& file_path, DsdModes dsd_mode) {
     auto file_stream = StreamFactory::MakeFileStream(file_path, dsd_mode);
 
     if (dsd_mode != DsdModes::DSD_MODE_PCM) {

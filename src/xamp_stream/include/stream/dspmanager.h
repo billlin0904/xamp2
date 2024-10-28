@@ -25,9 +25,9 @@ public:
 
     bool ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) override;
 
-    void AddPreDSP(AlignPtr<IAudioProcessor> processor) override;
+    void AddPreDSP(ScopedPtr<IAudioProcessor> processor) override;
 
-    void AddPostDSP(AlignPtr<IAudioProcessor> processor) override;
+    void AddPostDSP(ScopedPtr<IAudioProcessor> processor) override;
 
     IDSPManager& AddEqualizer() override;
 
@@ -43,7 +43,7 @@ public:
 
     IDSPManager& RemoveCompressor() override;
 
-    void SetSampleWriter(AlignPtr<ISampleWriter> writer = nullptr) override;
+    void SetSampleWriter(ScopedPtr<ISampleWriter> writer = nullptr) override;
 
     XAMP_NO_DISCARD bool IsEnableSampleRateConverter() const override;
 
@@ -51,14 +51,14 @@ public:
 
     XAMP_NO_DISCARD bool Contains(const Uuid& type) const noexcept override;
 private:
-    void AddOrReplace(AlignPtr<IAudioProcessor> processor, Vector<AlignPtr<IAudioProcessor>>& dsp_chain);
+    void AddOrReplace(ScopedPtr<IAudioProcessor> processor, Vector<ScopedPtr<IAudioProcessor>>& dsp_chain);
 
     bool Process(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo);
 
     bool DefaultProcess(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo);
 
-    using DspIterator = Vector<AlignPtr<IAudioProcessor>>::iterator;
-    using ConstDspIterator = Vector<AlignPtr<IAudioProcessor>>::const_iterator;
+    using DspIterator = Vector<ScopedPtr<IAudioProcessor>>::iterator;
+    using ConstDspIterator = Vector<ScopedPtr<IAudioProcessor>>::const_iterator;
 
     template <typename TDSP>
     DspIterator Find(DspIterator begin,
@@ -123,9 +123,9 @@ private:
         return GetDSP<TDSP>(post_dsp_.begin(), post_dsp_.end());
     }
 
-    Vector<AlignPtr<IAudioProcessor>> pre_dsp_;
-    Vector<AlignPtr<IAudioProcessor>> post_dsp_;
-    AlignPtr<ISampleWriter> sample_writer_;
+    Vector<ScopedPtr<IAudioProcessor>> pre_dsp_;
+    Vector<ScopedPtr<IAudioProcessor>> post_dsp_;
+    ScopedPtr<ISampleWriter> sample_writer_;
     Buffer<float> pre_dsp_buffer_;
     Buffer<float> post_dsp_buffer_;
     LoggerPtr logger_;

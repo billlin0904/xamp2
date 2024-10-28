@@ -114,6 +114,7 @@ namespace {
         return view_items;
     }
 }
+
 AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
     : QStyledItemDelegate(parent)
     , album_text_color_(Qt::black)

@@ -6,13 +6,14 @@
 #pragma once
 
 #include <widget/widget_shared.h>
+#include <widget/widget_shared_global.h>
 
 #include <qwindowdefs.h>
 
 #include <base/memory.h>
 #include <base/base.h>
 
-class GlobalShortcut final {
+class XAMP_WIDGET_SHARED_EXPORT GlobalShortcut final {
 public:
     GlobalShortcut();
 
@@ -27,7 +28,7 @@ public:
     quint32 nativeKeycode(Qt::Key key);
 private:
     class GlobalShortcutImpl;
-    AlignPtr<GlobalShortcutImpl> impl_;
+    ScopedPtr<GlobalShortcutImpl> impl_;
 };
 
 #define qGlobalShortcut SharedSingleton<GlobalShortcut>::GetInstance()

@@ -45,6 +45,6 @@ public:
     XAMP_NO_DISCARD bool canWriteEmbeddedCover(const Path& path) const;
 
 private:
-    AlignPtr<IMetadataReader> reader_;
-    AlignPtr<IMetadataWriter> writer_;
+    ScopedPtr<IMetadataReader> reader_;
+    ScopedPtr<IMetadataWriter> writer_;
 };

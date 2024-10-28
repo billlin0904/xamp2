@@ -21,43 +21,43 @@ public:
     StreamFactory() = delete;
 
     // Create a file stream object based on the file path and DSD mode
-    static AlignPtr<FileStream> MakeFileStream(const Path &filePath, DsdModes dsdMode);
+    static ScopedPtr<FileStream> MakeFileStream(const Path &filePath, DsdModes dsdMode);
 
     // Create a FLAC encoder object
-    static AlignPtr<IFileEncoder> MakeFlacEncoder();
+    static ScopedPtr<IFileEncoder> MakeFlacEncoder();
 
     // Create an ALAC encoder object
-    static AlignPtr<IFileEncoder> MakeAlacEncoder();
+    static ScopedPtr<IFileEncoder> MakeAlacEncoder();
 
     // Create an AAC encoder object
-    static AlignPtr<IFileEncoder> MakeAACEncoder();
+    static ScopedPtr<IFileEncoder> MakeAACEncoder();
 
     // Create a WAVE encoder object
-    static AlignPtr<IFileEncoder> MakeWaveEncoder();
+    static ScopedPtr<IFileEncoder> MakeWaveEncoder();
 
     // Create an equalizer audio processor object
-    static AlignPtr<IAudioProcessor> MakeEqualizer();
+    static ScopedPtr<IAudioProcessor> MakeEqualizer();
 
     #ifdef XAMP_OS_WIN
     // Create an super EQ equalizer audio processor object
-    static AlignPtr<IAudioProcessor> MakeSuperEqEqualizer();
+    static ScopedPtr<IAudioProcessor> MakeSuperEqEqualizer();
     #endif
 
     // Create a parametric equalizer audio processor object
-    static AlignPtr<IAudioProcessor> MakeParametricEq();
+    static ScopedPtr<IAudioProcessor> MakeParametricEq();
 
     // Create a compressor audio processor object
-    static AlignPtr<IAudioProcessor> MakeCompressor();
+    static ScopedPtr<IAudioProcessor> MakeCompressor();
 
     // Create a DSP manager object
-    static AlignPtr<IDSPManager> MakeDSPManager();
+    static ScopedPtr<IDSPManager> MakeDSPManager();
 
     // Create a fader audio processor object
-    static AlignPtr<IAudioProcessor> MakeFader();
+    static ScopedPtr<IAudioProcessor> MakeFader();
 
     // Create a CD device object (specific to Windows OS)
     #ifdef XAMP_OS_WIN
-    static AlignPtr<ICDDevice> MakeCDDevice(int32_t driverLetter);
+    static ScopedPtr<ICDDevice> MakeCDDevice(int32_t driverLetter);
     #endif
 
     // Get a vector of available encoding profiles
@@ -70,11 +70,11 @@ XAMP_STREAM_API IDsdStream* AsDsdStream(FileStream* stream) noexcept;
 
 XAMP_STREAM_API OrderedMap<std::string, std::string> GetBassDLLVersion();
 
-XAMP_STREAM_API IDsdStream* AsDsdStream(AlignPtr<FileStream> const & stream) noexcept;
+XAMP_STREAM_API IDsdStream* AsDsdStream(ScopedPtr<FileStream> const & stream) noexcept;
 
-XAMP_STREAM_API FileStream* AsFileStream(AlignPtr<IAudioStream> const& stream) noexcept;
+XAMP_STREAM_API FileStream* AsFileStream(ScopedPtr<IAudioStream> const& stream) noexcept;
 
-XAMP_STREAM_API AlignPtr<FileStream> MakeFileStream(const Path& file_path, DsdModes dsd_mode);
+XAMP_STREAM_API ScopedPtr<FileStream> MakeFileStream(const Path& file_path, DsdModes dsd_mode);
 
 XAMP_STREAM_API void LoadFFTLib();
 
