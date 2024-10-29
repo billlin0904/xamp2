@@ -146,6 +146,7 @@
     <ClInclude Include="widget\networkdiskcache.h" />
     <QtMoc Include="widget\playliststyleditemdelegate.h" />
     <QtMoc Include="widget\similarsongsviewpage.h" />
+    <QtMoc Include="widget\slidingstackedwidget.h" />
     <ClInclude Include="widget\tagio.h" />
     <ClInclude Include="widget\util\image_util.h" />
     <ClInclude Include="widget\util\json_util.h" />
@@ -280,6 +281,7 @@
     <ClCompile Include="widget\scrolllabel.cpp" />
     <ClCompile Include="widget\seekslider.cpp" />
     <ClCompile Include="widget\similarsongsviewpage.cpp" />
+    <ClCompile Include="widget\slidingstackedwidget.cpp" />
     <ClCompile Include="widget\spectrumwidget.cpp" />
     <ClCompile Include="widget\supereqview.cpp" />
     <ClCompile Include="widget\navbarlistview.cpp" />

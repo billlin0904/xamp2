@@ -293,8 +293,6 @@ private:
 
     void OnDeviceStateChange(DeviceState state, std::string const& device_id) override;
 
-    bool IsPcmAudio() const noexcept;
-
     void DoSeek(double stream_time);        
     	
     void OpenStream(Path const& file_path, DsdModes dsd_mode);

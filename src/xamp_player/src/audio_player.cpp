@@ -570,7 +570,7 @@ void AudioPlayer::CreateBuffer() {
 }
 
 void AudioPlayer::SetDeviceFormat() {
-    if (target_sample_rate_ != 0 && IsPcmAudio()) {
+    if (target_sample_rate_ != 0 && IsPcmAudio(dsd_mode_)) {
         if (output_format_.GetSampleRate() != target_sample_rate_) {
             device_id_.clear();
         }
@@ -726,10 +726,6 @@ void AudioPlayer::DoSeek(double stream_time) {
     fifo_.Clear();
     BufferStream(stream_time);
     Resume();
-}
-
-bool AudioPlayer::IsPcmAudio() const noexcept {
-    return (dsd_mode_ == DsdModes::DSD_MODE_PCM || dsd_mode_ == DsdModes::DSD_MODE_DSD2PCM);
 }
 
 void AudioPlayer::BufferSamples(const ScopedPtr<FileStream>& stream, int32_t buffer_count) {
@@ -892,7 +888,7 @@ void AudioPlayer::Play() {
 }
 
 void AudioPlayer::CopySamples(void* samples, size_t num_buffer_frames) const {
-    if (!IsPcmAudio()) {
+    if (!IsPcmAudio(dsd_mode_)) {
         return;
     }
 

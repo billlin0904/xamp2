@@ -326,7 +326,7 @@ void PlaylistTabWidget::toolTipMove(const QPoint& pos) {
 
     auto stats = playlist_dao.getAlbumStats(playlist_page->playlist()->playlistId());
 
-    auto tooltip_text = qFormat(tr("%1, %2 Tracks, %3"))
+    auto tooltip_text = qFormat(tr("%1, %2 Tracks: %3"))
 		.arg(stats.album_count)
 		.arg(stats.music_count)
 		.arg(formatDuration(stats.total_duration));
@@ -359,7 +359,11 @@ void PlaylistTabWidget::toolTipMove(const QPoint& pos) {
             tooltip_->setImage(image_util::mergeImage(images));
         }
     } else {
-        tooltip_->setImage(qTheme.defaultSizeUnknownCover());
+        if (!images.empty()) {
+            tooltip_->setImage(image_util::mergeImage(images));
+        } else {
+            tooltip_->setImage(qTheme.defaultSizeUnknownCover());
+        }
     }
    
     tooltip_->showAndStart(false);

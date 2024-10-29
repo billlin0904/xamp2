@@ -13,7 +13,9 @@
 #include <spdlog/fmt/fmt.h>
 #include <base/base.h>
 
-namespace xamp::base::String {
+XAMP_BASE_NAMESPACE_BEGIN
+
+namespace String {
 
 XAMP_BASE_API std::wstring ToStdWString(std::string const& utf8);
 
@@ -130,3 +132,5 @@ XAMP_ALWAYS_INLINE std::string Format(std::string_view s, Args &&...args) {
 }
 
 }
+
+XAMP_BASE_NAMESPACE_END

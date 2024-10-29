@@ -1251,10 +1251,10 @@ void Xamp::setCurrentTab(int32_t table_id) {
         break;
     }
     if (widgets_.size() > table_id) {
-        ui_.currentView->setCurrentWidget(widgets_[table_id]);
+        ui_.currentView->slideInWidget(widgets_[table_id]);
     }
     else {
-		ui_.currentView->setCurrentWidget(playlist_tab_page_.get());
+		ui_.currentView->slideInWidget(playlist_tab_page_.get());
     }
 }
 
@@ -1499,7 +1499,7 @@ void Xamp::playOrPause() {
             play_index_ = page->playlist()->model()->index(
                 play_index_.row(), PLAYLIST_IS_PLAYING);
             if (play_index_.row() == -1) {
-                // Don't not show message box. when the application will receive other signal.
+                // Don't show message box. when the application will receive other signal.
                 // message box will be show again.
                 //XMessageBox::showInformation(tr("Not found any playing item."));
                 return;

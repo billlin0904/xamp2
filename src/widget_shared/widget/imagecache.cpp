@@ -59,7 +59,7 @@ void ImageCache::loadUnknownCover() {
 }
 
 QPixmap ImageCache::scanCoverFromDir(const QString& file_path) {
-    const QList<QString> kTargetFolders = { "scans"_str, "artwork"_str, "booklet"_str };
+    const std::array<QString, 4> kTargetFolders = { "scans"_str, "artwork"_str, "booklet"_str };
 	constexpr auto kMaxDirCdUp = 4;
 
 	// 1...

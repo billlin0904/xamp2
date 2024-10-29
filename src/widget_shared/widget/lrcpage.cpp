@@ -14,6 +14,9 @@
 #include <widget/appsettings.h>
 #include <widget/seekslider.h>
 
+#include "xampplayer.h"
+#include "util/ui_util.h"
+
 LrcPage::LrcPage(QWidget* parent)
 	: QFrame(parent) {
 	setObjectName("lrcPage"_str);
@@ -46,7 +49,8 @@ void LrcPage::addCoverShadow(bool found_cover) {
 
 void LrcPage::setCover(const QPixmap& src) {
     cover_ = src.copy();
-	setFullScreen(false);
+	const auto is_full_screen = getMainWindow()->isMaximized() || getMainWindow()->isFullScreen();
+	setFullScreen(is_full_screen);
 	addCoverShadow(true);
 }
 
@@ -102,7 +106,8 @@ QSize LrcPage::coverSizeHint() const {
 }
 
 void LrcPage::resizeEvent(QResizeEvent* event) {
-	setFullScreen(false);
+	const auto is_full_screen = getMainWindow()->isMaximized() || getMainWindow()->isFullScreen();
+	setFullScreen(is_full_screen);
 }
 
 void LrcPage::setBackground(const QImage& cover) {

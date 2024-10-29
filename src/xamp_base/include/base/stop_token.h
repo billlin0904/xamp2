@@ -15,7 +15,6 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 using StopToken = std::stop_token;
 using StopSource = std::stop_source;
-inline constexpr std::nostopstate_t kNoStopState{};
 
 #else
 
