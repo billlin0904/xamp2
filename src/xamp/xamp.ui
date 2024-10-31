@@ -243,7 +243,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QStackedWidget" name="currentView">
+      <widget class="SlidingStackedWidget" name="currentView">
        <property name="frameShadow">
         <enum>QFrame::Shadow::Plain</enum>
        </property>
@@ -937,6 +937,12 @@
    <class>VolumeButton</class>
    <extends>QToolButton</extends>
    <header>widget/volumebutton.h</header>
+  </customwidget>
+  <customwidget>
+   <class>SlidingStackedWidget</class>
+   <extends>QStackedWidget</extends>
+   <header>widget/slidingstackedwidget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

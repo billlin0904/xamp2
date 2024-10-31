@@ -20,6 +20,7 @@ void IXMainWindow::installWindowAgent() {
     auto* title_label = new QLabel(this);
     title_label->setAlignment(Qt::AlignCenter);
     title_label->setObjectName("win-title-label"_str);
+    title_label->setStyleSheet("background-color: transparent"_str);
 
 #ifndef Q_OS_MAC
     auto set_button_style = [](auto* button) {

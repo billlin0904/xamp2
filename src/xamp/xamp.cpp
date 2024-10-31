@@ -849,10 +849,6 @@ void Xamp::initialSpectrum() {
         &SpectrumWidget::onThemeChangedFinished);
 }
 
-void Xamp::updateMaximumState(bool is_maximum) {
-    lrc_page_->setFullScreen(is_maximum);
-}
-
 void Xamp::closeEvent(QCloseEvent* event) {
     if (!trigger_upgrade_restart_ 
         && XMessageBox::showYesOrNo(tr("Do you want to exit the XAMP2 ?")) == QDialogButtonBox::No) {
@@ -1307,6 +1303,15 @@ void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
 
     music_library_page_->album()->reload();
     music_library_page_->artist()->reload();
+
+    switch (qTheme.themeColor()) {
+    case ThemeColor::DARK_THEME:
+        yt_music_search_page_->setStyleSheet("QFrame#playlistPage { border: none; background-color: #121212; }"_str);
+        break;
+    case ThemeColor::LIGHT_THEME:
+        yt_music_search_page_->setStyleSheet("QFrame#playlistPage { border: none; background-color: #f9f9f9; }"_str);
+        break;
+    }
 }
 
 void Xamp::onSearchArtistCompleted(const QString& artist, const QByteArray& image) {
@@ -2081,10 +2086,11 @@ PlaylistPage* Xamp::newPlaylistPage(PlaylistTabWidget *tab_widget, int32_t playl
 void Xamp::initialPlaylist() {
     lrc_page_.reset(new LrcPage(this));
     music_library_page_.reset(new AlbumArtistPage(this));
-    playlist_tab_page_.reset(new PlaylistTabWidget(this));    
-    yt_music_search_page_.reset(new PlaylistPage(this));
-    yt_music_tab_page_.reset(new PlaylistTabWidget(this));
+    playlist_tab_page_.reset(new PlaylistTabWidget(this));
 
+    yt_music_search_page_.reset(new PlaylistPage(this));    
+
+    yt_music_tab_page_.reset(new PlaylistTabWidget(this));
     yt_music_tab_page_->setStoreType(StoreType::CLOUD_STORE);
     yt_music_tab_page_->hidePlusButton();
 
@@ -2122,7 +2128,6 @@ void Xamp::initialPlaylist() {
             playlist_page->hidePlaybackInformation(true);
             playlist_page->playlist()->setPlayListGroup(PLAYLIST_GROUP_ALBUM);
             playlist_page->playlist()->enableCloudMode(true);
-            //playlist_page->playlist()->reload();
         }
     });    
 

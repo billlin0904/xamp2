@@ -51,7 +51,7 @@ public:
 
 	SpectrumWidget* spectrum();
 
-	void setFullScreen(bool enter);
+	void setFullScreen();
 
 public slots:
 	void onThemeChangedFinished(ThemeColor theme_color);

@@ -79,8 +79,6 @@ public:
 
     virtual void drivesRemoved(const DriveInfo& drive_info) = 0;
 
-    virtual void updateMaximumState(bool is_maximum) = 0;
-
     virtual void shortcutsPressed(const QKeySequence& shortcut) = 0;
 
     virtual QString translateText(const std::string_view& text) = 0;

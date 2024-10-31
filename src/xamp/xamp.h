@@ -215,8 +215,6 @@ private:
 
 	void closeEvent(QCloseEvent* event) override;
 
-	void updateMaximumState(bool is_maximum) override;
-
 	void setPlaylistPageCover(const QPixmap* cover, PlaylistPage* page = nullptr);
 
 	QWidgetAction* createDeviceMenuWidget(const QString& desc, const QIcon& icon = QIcon());
@@ -270,6 +268,7 @@ private:
 	void setCover(const QString& cover_id);
 
 	void showAbout();
+
 	void connectThemeChanedSignal();
 
 	bool is_seeking_;

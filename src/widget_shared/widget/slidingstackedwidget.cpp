@@ -10,8 +10,8 @@ SlidingStackedWidget::SlidingStackedWidget(QWidget* parent)
 	, wrap_(false)
 	, active_(false)
 	, direction_(Qt::Vertical)
-	, speed_(100)
-	, animation_type_(QEasingCurve::OutInQuad)
+	, speed_(300)
+	, animation_type_(QEasingCurve::InCubic)
 	, current_index_(0)
 	, next_index_(0)
 	, previous_pos_(0, 0)
@@ -98,12 +98,14 @@ void SlidingStackedWidget::slideInWidget(QWidget* new_widget) {
     new_widget->setGraphicsEffect(opacity_effect);
     opacity_animation_ = new QPropertyAnimation(opacity_effect, "opacity");
     opacity_animation_->setDuration(speed_);
-    opacity_animation_->setStartValue(0.0);
+    opacity_animation_->setStartValue(0.01);
     opacity_animation_->setEndValue(1.0);
     opacity_animation_->setEasingCurve(animation_type_);
 
     auto* anim_group = new QParallelAnimationGroup(this);
     connect(anim_group, &QParallelAnimationGroup::finished, this, &SlidingStackedWidget::animationDone);
+
+    anim_group->addAnimation(opacity_animation_);
 
     for (int index : {current, next}) {
         auto* animation = new QPropertyAnimation(widget(index), "pos");
@@ -114,7 +116,6 @@ void SlidingStackedWidget::slideInWidget(QWidget* new_widget) {
         anim_group->addAnimation(animation);
     }
 
-    anim_group->addAnimation(opacity_animation_);
     next_index_ = next;
     current_index_ = current;
     anim_group->start(QAbstractAnimation::DeleteWhenStopped);

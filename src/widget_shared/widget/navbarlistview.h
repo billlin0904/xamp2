@@ -25,6 +25,7 @@ enum TabIndex {
 };
 
 class XTooltip;
+class QWheelEvent;
 
 class XAMP_WIDGET_SHARED_EXPORT NavBarListView final : public QListView {
     Q_OBJECT
@@ -44,6 +45,8 @@ public:
     void setTabText(const QString& name, int table_id);
 
     void mouseMoveEvent(QMouseEvent* event) override;
+
+    void wheelEvent(QWheelEvent* event) override;
 
     void toolTipMove(const QPoint &pos);
 

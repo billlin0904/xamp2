@@ -86,6 +86,29 @@ void NavBarListView::mouseMoveEvent(QMouseEvent* event) {
     QListView::mouseMoveEvent(event);
 }
 
+void NavBarListView::wheelEvent(QWheelEvent* event) {
+    const auto count = model_.rowCount();
+    const auto play_index = currentIndex();
+
+	if (event->angleDelta().y() < 0) {
+        const auto next_index = (play_index.row() + 1) % count;
+        auto index = model()->index(next_index, 0);
+        auto table_id = index.data(Qt::UserRole + 1).toInt();
+        emit clickedTable(table_id);
+        setCurrentIndex(index);
+	}
+	else {
+        const auto next_index = (play_index.row() - 1) % count;
+		if (next_index < 0) {
+			return;
+		}
+        auto index = model()->index(next_index, 0);
+        auto table_id = index.data(Qt::UserRole + 1).toInt();
+        emit clickedTable(table_id);
+        setCurrentIndex(index);
+	}
+}
+
 void NavBarListView::onThemeChangedFinished(ThemeColor theme_color) {
     for (auto column_index = 0; column_index < model()->rowCount(); ++column_index) {
         auto* item = model_.item(column_index);

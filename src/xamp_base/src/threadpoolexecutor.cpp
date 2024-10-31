@@ -44,7 +44,7 @@ TaskScheduler::TaskScheduler(const std::string_view& name, size_t max_thread, co
 	: is_stopped_(false)
 	, running_thread_(0)
 	, max_thread_(std::max(max_thread, kMinThreadPoolSize))
-	, bulk_size_(kMaxBulkSize)
+	, bulk_size_(max_thread / 2)
 	, name_(name)
 	, task_execute_flags_(max_thread_)
 	, work_done_(static_cast<ptrdiff_t>(max_thread_))

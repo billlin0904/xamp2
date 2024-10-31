@@ -49,8 +49,7 @@ void LrcPage::addCoverShadow(bool found_cover) {
 
 void LrcPage::setCover(const QPixmap& src) {
     cover_ = src.copy();
-	const auto is_full_screen = getMainWindow()->isMaximized() || getMainWindow()->isFullScreen();
-	setFullScreen(is_full_screen);
+	setFullScreen();
 	addCoverShadow(true);
 }
 
@@ -79,7 +78,13 @@ void LrcPage::clearBackground() {
 	update();
 }
 
-void LrcPage::setFullScreen(bool enter) {
+void LrcPage::setFullScreen() {
+	auto enter = getMainWindow()->isMaximized() || getMainWindow()->isFullScreen();
+	auto size = getMainWindow()->size();
+	if (size.width() > 822 * 2) {
+		enter = true;
+	}
+
 	auto f = font();
 
 	if (!enter) {
@@ -106,8 +111,7 @@ QSize LrcPage::coverSizeHint() const {
 }
 
 void LrcPage::resizeEvent(QResizeEvent* event) {
-	const auto is_full_screen = getMainWindow()->isMaximized() || getMainWindow()->isFullScreen();
-	setFullScreen(is_full_screen);
+	setFullScreen();
 }
 
 void LrcPage::setBackground(const QImage& cover) {
