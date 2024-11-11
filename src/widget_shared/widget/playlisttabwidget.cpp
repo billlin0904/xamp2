@@ -15,17 +15,31 @@
 #include <widget/playlisttableview.h>
 #include <widget/actionmap.h>
 #include <widget/playlisttabwidget.h>
+#include <widget/imagecache.h>
+#include <widget/util/image_util.h>
 
-#include "imagecache.h"
-#include "util/image_util.h"
+#include <xampplayer.h>
+#include <widget/util/ui_util.h>
 
 PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     : QTabWidget(parent) {
     setObjectName("playlistTab");
     setMouseTracking(true);
+
+    tooltip_timer_ = new QTimer(this);
+    tooltip_timer_->setSingleShot(true);
+    tooltip_timer_->setInterval(1000);
     
     tab_bar_ = new PlaylistTabBar(this);
     setTabBar(tab_bar_);
+
+    (void)QObject::connect(tooltip_timer_, &QTimer::timeout, [this]() {
+        if (hovered_tab_index_ != -1) {
+            // Show the tooltip for the hovered tab index
+            auto pos = tab_bar_->tabRect(hovered_tab_index_).center();
+            toolTipMove(pos);
+        }
+		});
 
     add_tab_button_ = new QPushButton(this);    
     add_tab_button_->setMaximumSize(32, 32);
@@ -39,6 +53,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     add_tab_button_->setObjectName("plusButton"_str);
 
     auto* button_widget = new QWidget(this);
+    button_widget->setStyleSheet(qFormat(R"(background-color: transparent;)"));
     auto* layout = new QHBoxLayout(button_widget);
 	layout->setContentsMargins(0, 0, 4, 4);
 	layout->setSpacing(0);
@@ -124,7 +139,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
                 return;
             }
 
-            auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(tab_index));
+            auto* playlist_page = playlistPage(tab_index);
             emit saveToM3UFile(playlist_page->playlist()->playlistId(), tabBar()->tabText(tab_index));
 			});
 
@@ -134,7 +149,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
                 return;
             }
 
-            auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(tab_index));
+            auto* playlist_page = playlistPage(tab_index);
             emit loadPlaylistFile(playlist_page->playlist()->playlistId());
         });
 
@@ -142,7 +157,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
             action_map.exec(pt);
         );
         });
-#if 1
+
     (void)QObject::connect(tab_bar_, &PlaylistTabBar::tabBarClicked, [this](auto index) {
         auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(index));
         Q_ASSERT(playlist_page != nullptr);
@@ -160,14 +175,13 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
         Q_ASSERT(playlist_page != nullptr);
         qAppSettings.setValue(kAppSettingLastPlaylistTabIndex, playlist_page->playlist()->playlistId());
         });
-#endif
+
     (void)QObject::connect(this, &QTabWidget::tabCloseRequested,
         [this](auto tab_index) {
         /*if (XMessageBox::showYesOrNo(tr("Do you want to close tab ?")) == QDialogButtonBox::No) {
             return;
         }*/
-        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(tab_index));
-        Q_ASSERT(playlist_page != nullptr);
+        auto* playlist_page = playlistPage(tab_index);
         QString playlist;
         if (playlist_page->playlist()->cloudPlaylistId()) {
             playlist = playlist_page->playlist()->cloudPlaylistId().value();
@@ -181,7 +195,6 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
 
 	tooltip_ = new XTooltip();
     tooltip_->hide();
-    elapsed_timer_.restart();
     onThemeChangedFinished(qTheme.themeColor());     
 }
 
@@ -280,9 +293,9 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
     }
     add_tab_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_ADD));
 
-    for (int i = 0; i < tabBar()->count(); ++i) {
+    for (auto i = 0; i < tabBar()->count(); ++i) {
         setTabIcon(i, qTheme.fontIcon(Glyphs::ICON_DRAFT));  
-        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
+        auto* playlist_page = playlistPage(i);
         switch (qTheme.themeColor()) {
         case ThemeColor::DARK_THEME:
             playlist_page->setStyleSheet("QFrame#playlistPage { border: none; background-color: #121212; }"_str);
@@ -299,32 +312,30 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
 
 bool PlaylistTabWidget::removePlaylist(int32_t playlist_id) {
     Transaction scope;
-    dao::PlaylistDao playlist_dao(qGuiDb.getDatabase());
 
     return scope.complete([&]() {
-        playlist_dao.removePlaylistAllMusic(playlist_id);
-        playlist_dao.removePlaylist(playlist_id);
+        playlist_dao_.removePlaylistAllMusic(playlist_id);
+        playlist_dao_.removePlaylist(playlist_id);
         });
 }
 
 void PlaylistTabWidget::toolTipMove(const QPoint& pos) {
-    auto index = tab_bar_->tabAt(pos);
-	if (index < 0) {
-		tooltip_->hide();
+    if (hovered_tab_index_ == -1) {
+        tooltip_->hide();
         return;
-	}
+    }
 
     constexpr QSize kImageSize(150, 185);
     constexpr QSize kCoverSize(150, 150);
 
-	auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(index));
-    dao::PlaylistDao playlist_dao(qGuiDb.getDatabase());
+    auto index = hovered_tab_index_;
+	auto* playlist_page = playlistPage(index);
 
     auto rect = tab_bar_->tabRect(index);
     auto global_pos = mapToGlobal(rect.center());
     global_pos.setY(global_pos.y() + 24);
 
-    auto stats = playlist_dao.getAlbumStats(playlist_page->playlist()->playlistId());
+    auto stats = playlist_dao_.getAlbumStats(playlist_page->playlist()->playlistId());
 
     auto tooltip_text = qFormat(tr("%1, %2 Tracks: %3"))
 		.arg(stats.album_count)
@@ -343,7 +354,7 @@ void PlaylistTabWidget::toolTipMove(const QPoint& pos) {
         return;
     }
 
-    auto cover_ids = playlist_dao.getAlbumCoverIds(playlist_page->playlist()->playlistId());
+    auto cover_ids = playlist_dao_.getAlbumCoverIds(playlist_page->playlist()->playlistId());
 
     QList<QPixmap> images;
     Q_FOREACH(auto cover_id, cover_ids) {
@@ -370,18 +381,38 @@ void PlaylistTabWidget::toolTipMove(const QPoint& pos) {
 }
 
 void PlaylistTabWidget::mouseMoveEvent(QMouseEvent* event) {
-    toolTipMove(event->pos());
+    auto pos = event->pos();
+    auto index = tab_bar_->tabAt(pos);
+
+    if (index != hovered_tab_index_) {
+        // The hovered tab has changed
+        hovered_tab_index_ = index;
+        tooltip_timer_->stop();
+        tooltip_->hide();
+
+        if (hovered_tab_index_ != -1) {
+            // Start the timer
+            tooltip_timer_->start();
+        }
+    }
 	QTabWidget::mouseMoveEvent(event);
+}
+
+void PlaylistTabWidget::mousePressEvent(QMouseEvent* event) {
+    tooltip_timer_->stop();
+    tooltip_->hide();
+    QTabWidget::mousePressEvent(event);
 }
 
 void PlaylistTabWidget::leaveEvent(QEvent* event) {
 	tooltip_->hide();
+    hovered_tab_index_ = -1;
+    tooltip_timer_->stop();
 	QTabWidget::leaveEvent(event);
 }
 
 void PlaylistTabWidget::closeTab(int32_t tab_index) {
-    auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(tab_index));
-    Q_ASSERT(playlist_page != nullptr);
+    auto* playlist_page = playlistPage(tab_index);
     const auto* playlist = playlist_page->playlist();
     --tab_count_;
     if (removePlaylist(playlist->playlistId())) {
@@ -417,8 +448,7 @@ int32_t PlaylistTabWidget::currentPlaylistId() const {
 
 void PlaylistTabWidget::setCurrentTabIndex(int32_t playlist_id) {
 	for (auto i = 0; i < tabBar()->count(); ++i) {
-		auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
-		if (playlist_page->playlist()->playlistId() == playlist_id) {
+		if (playlistPage(i)->playlist()->playlistId() == playlist_id) {
 			setCurrentIndex(i);
 			break;
 		}
@@ -426,29 +456,24 @@ void PlaylistTabWidget::setCurrentTabIndex(int32_t playlist_id) {
 }
 
 void PlaylistTabWidget::saveTabOrder() const {
-    dao::PlaylistDao playlist_dao;
-
-    for (int i = 0; i < tabBar()->count(); ++i) {
-        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
-        Q_ASSERT(playlist_page != nullptr);
+    for (auto i = 0; i < tabBar()->count(); ++i) {
+        auto* playlist_page = playlistPage(i);
         const auto* playlist = playlist_page->playlist();
-        playlist_dao.setPlaylistIndex(playlist->playlistId(), i, store_type_);
+        playlist_dao_.setPlaylistIndex(playlist->playlistId(), i, store_type_);
         XAMP_LOG_DEBUG("saveTabOrder: {} at {}", tabText(i).toStdString(), i);
     }
 }
 
 void PlaylistTabWidget::restoreTabOrder() {
-    dao::PlaylistDao playlist_dao;
-    const auto playlist_index = playlist_dao.getPlaylistIndex(store_type_);
+    const auto playlist_index = playlist_dao_.getPlaylistIndex(store_type_);
 
     QList<QString> texts;
     QList<int> new_order;
 
     for (auto& [index, playlist_id] : playlist_index) {
         auto found = false;
-        for (int j = 0; j < tabBar()->count(); ++j) {
-            auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(j));
-            Q_ASSERT(playlist_page != nullptr);
+        for (auto j = 0; j < tabBar()->count(); ++j) {
+            auto* playlist_page = playlistPage(j);
 			playlist_page->playlist()->reload();
             const auto widget_playlist_id = playlist_page->playlist()->playlistId();
             if (widget_playlist_id == playlist_id) {
@@ -464,27 +489,27 @@ void PlaylistTabWidget::restoreTabOrder() {
     }
 
     // 移動 tab 的順序
-    for (int i = 0; i < new_order.size(); ++i) {
+    for (auto i = 0; i < new_order.size(); ++i) {
         tabBar()->moveTab(new_order[i], i);
     }
 
     // 重新設置 tab 的標籤
-    for (int i = 0; i < new_order.size(); ++i) {
+    for (auto i = 0; i < new_order.size(); ++i) {
         setTabText(i, texts[i]);
     }
 
     // 重新設置 tab 的 icon
-    for (int i = 0; i < new_order.size(); ++i) {
+    for (auto i = 0; i < new_order.size(); ++i) {
         setTabIcon(i, qTheme.fontIcon(Glyphs::ICON_DRAFT));
     }
 
-    // for (int i = 0; i < tabBar()->count(); ++i) {
-    //     XAMP_LOG_DEBUG("restoreTabOrder: {} at {}", tabText(i).toStdString(), i);
-    // }
+    for (auto i = 0; i < tabBar()->count(); ++i) {
+        XAMP_LOG_DEBUG("restoreTabOrder: {} at {}", tabText(i).toStdString(), i);
+    }
 }
 
 void PlaylistTabWidget::resetAllTabIcon() {
-    for (int i = 0; i < tabBar()->count(); ++i) {
+    for (auto i = 0; i < tabBar()->count(); ++i) {
         setTabIcon(i, qTheme.fontIcon(Glyphs::ICON_DRAFT));
     }
 }
@@ -493,7 +518,7 @@ void PlaylistTabWidget::setPlaylistTabIcon(const QIcon& icon) {
 	const auto tab_index = currentIndex();
     if (tab_index != -1) {
         setTabIcon(tab_index, icon);
-        for (int i = 0; i < tabBar()->count(); ++i) {
+        for (auto i = 0; i < tabBar()->count(); ++i) {
             if (i == tab_index) {
                 continue;
             }
@@ -503,10 +528,8 @@ void PlaylistTabWidget::setPlaylistTabIcon(const QIcon& icon) {
 }
 
 void PlaylistTabWidget::setPlaylistCover(const QPixmap& cover) {
-    for (int i = 0; i < tabBar()->count(); ++i) {
-        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
-        Q_ASSERT(playlist_page != nullptr);
-        playlist_page->setCover(&cover);
+    for (auto i = 0; i < tabBar()->count(); ++i) {
+        playlistPage(i)->setCover(&cover);
     }
 }
 
@@ -521,6 +544,17 @@ void PlaylistTabWidget::resizeTabWidth() {
 		return;
     }
     tab_bar_->setMinimumWidth(w - 45);
+	/*constexpr auto kMaxTabWidth = 300;
+    auto max_width = getMainWindow()->width() - 150;
+    tab_bar_->setMaximumWidth(max_width);
+    auto average_width = tab_bar_->count() > (max_width / kMaxTabWidth)
+		? max_width / tab_bar_->count() : kMaxTabWidth;
+    setStyleSheet(qFormat(R"(		
+	    QTabWidget QTabBar::tab {
+            min-height: 32px;
+			width: %1px; 
+        }
+	)").arg(average_width));*/
 }
 
 void PlaylistTabWidget::resizeEvent(QResizeEvent* event) {
@@ -535,9 +569,7 @@ bool PlaylistTabWidget::eventFilter(QObject* watched, QEvent* event) {
 void PlaylistTabWidget::closeAllTab() {
     QList<PlaylistPage*> playlist_pages;
     for (auto i = 0; i < tabBar()->count(); ++i) {
-        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
-        Q_ASSERT(playlist_page != nullptr);
-        playlist_pages.append(playlist_page);
+        playlist_pages.append(playlistPage(i));
     }
 
     Q_FOREACH(auto * page, playlist_pages) {
@@ -576,21 +608,24 @@ void PlaylistTabWidget::setStoreType(StoreType type) {
 
 void PlaylistTabWidget::reloadAll() {
     for (auto i = 0; i < count(); ++i) {
-        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
-        Q_ASSERT(playlist_page != nullptr);
-        playlist_page->playlist()->reload();
+        playlistPage(i)->playlist()->reload();
     }
 }
 
 PlaylistPage* PlaylistTabWidget::findPlaylistPage(int32_t playlist_id) {
     for (auto i = 0; i < count(); ++i) {
-        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
-        Q_ASSERT(playlist_page != nullptr);
+		auto* playlist_page = playlistPage(i);
         if (playlist_page->playlist()->playlistId() == playlist_id) {
             return playlist_page;
         }
     }
     return nullptr;
+}
+
+PlaylistPage* PlaylistTabWidget::playlistPage(int32_t index) const {
+    auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(index));
+    XAMP_ENSURES(playlist_page != nullptr);
+	return playlist_page;
 }
 
 void PlaylistTabWidget::setCurrentNowPlaying() {
@@ -601,8 +636,7 @@ void PlaylistTabWidget::setNowPlaying(int32_t playlist_id) {
     auto icon = qTheme.playlistPlayingIcon(PlaylistTabWidget::kTabIconSize, 1.4);
 
     for (auto i = 0; i < count(); ++i) {
-        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
-        if (playlist_page->playlist()->playlistId() == playlist_id) {
+        if (playlistPage(i)->playlist()->playlistId() == playlist_id) {
             setTabIcon(i, icon);
         }
         else {
@@ -629,8 +663,7 @@ void PlaylistTabWidget::setPlayerStateIcon(int32_t playlist_id, PlayerState stat
     }
 
     for (auto i = 0; i < count(); ++i) {
-        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(i));
-        if (playlist_page->playlist()->playlistId() == playlist_id) {
+        if (playlistPage(i)->playlist()->playlistId() == playlist_id) {
             setTabIcon(i, icon);
         }
         else {

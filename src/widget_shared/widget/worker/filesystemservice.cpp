@@ -156,11 +156,11 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 		}
 
 		ForwardList<TrackInfo> tracks;
+		auto reader = MakeMetadataReader();
 
 		for (const auto& path : path_info.second) {			
 			try {
-				TaglibMetadataReader reader;
-				tracks.push_front(reader.Extract(path));
+				tracks.push_front(reader->Extract(path));
 			}
 			catch (const std::exception &e) {
 				XAMP_LOG_DEBUG("Failed to extract file: {}", e.what());

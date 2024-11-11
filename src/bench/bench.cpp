@@ -15,7 +15,6 @@
 
 #include <base/logger_impl.h>
 #include <base/executor.h>
-#include <base/rcu_ptr.h>
 #include <base/uuidof.h>
 #include <base/sfc64.h>
 #include <base/mpmc_queue.h>
@@ -83,44 +82,6 @@ PlatformUUID ParseUuidString(const std::string& str) {
 }
 #endif
 
-static void BM_RcuPtr(benchmark::State& state) {
-    constexpr std::string_view kBM_RcuPtrLoggerName = "BM_RcuPtr";
-
-    const auto thread_pool = MakeThreadPoolExecutor(kBM_RcuPtrLoggerName);
-    XampLoggerFactory.GetLogger(kBM_RcuPtrLoggerName)
-        ->SetLevel(LOG_LEVEL_OFF);
-
-    const auto length = state.range(0);
-    RcuPtr<int> total(std::make_shared<int>());
-
-    for (auto _ : state) {
-	    Executor::ParallelFor(*thread_pool, 0, length, [&total](auto item) {
-			total.copy_update([item](auto cp) {
-				*cp += item;
-				});
-        }, 128);
-    }
-}
-
-static void BM_RcuPtrMutex(benchmark::State& state) {
-    constexpr std::string_view kBM_RcuPtrMutexLoggerName = "BM_RcuPtrMutex";
-
-    const auto thread_pool = MakeThreadPoolExecutor(kBM_RcuPtrMutexLoggerName);
-    XampLoggerFactory.GetLogger(kBM_RcuPtrMutexLoggerName)
-        ->SetLevel(LOG_LEVEL_OFF);
-
-    const auto length = state.range(0);
-    int total = 0;
-    FastMutex mutex;
-
-    for (auto _ : state) {
-	    Executor::ParallelFor(*thread_pool, 0, length, [&total, &mutex](auto item) {
-            std::lock_guard<FastMutex> guard{ mutex };
-			total += item;
-            }, 128);
-    }
-}
-
 static void BM_BaseLineThreadPool(benchmark::State& state) {
     const auto length = state.range(0);
     std::vector<int> n(length);
@@ -133,47 +94,52 @@ static void BM_BaseLineThreadPool(benchmark::State& state) {
     }
 }
 
-XAMP_DECLARE_LOG_NAME(BM_RandomPolicyThreadPool);
+XAMP_DECLARE_LOG_NAME(BM_ThreadPool);
 
-static void BM_RandomPolicyThreadPool(benchmark::State& state) {
-    CpuAffinity affinity = CpuAffinity::kAll;
+bool IsPrime(size_t n) {
+    // special handle for 0,1,2
+    if (n < 3) {
+        if (n == 2) return true;
+    }
+    // no need to check above sqrt(n)
+    const auto N = std::ceil(std::sqrt(n) + 1);
+    for (auto i = 2; i < N; ++i) {
+        if (n % i == 0) {
+            return false;
+        }
+    }
+    return true;
+}
 
-    const auto thread_pool = MakeThreadPoolExecutor(
-        XAMP_LOG_NAME(BM_RandomPolicyThreadPool),
+static void BM_ThreadPool(benchmark::State& state) {
+    const size_t max_thread = state.range(0);
+
+    auto thread_pool = ThreadPoolBuilder::MakeThreadPool(
+        XAMP_LOG_NAME(BM_ThreadPool),
         ThreadPriority::PRIORITY_NORMAL,
-        affinity,
-        32,
-        TaskSchedulerPolicy::ROUND_ROBIN_POLICY);
+        CpuAffinity::kAll,
+        max_thread);
 
-    XampLoggerFactory.GetLogger(XAMP_LOG_NAME(BM_RandomPolicyThreadPool))
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    XampLoggerFactory.GetLogger(XAMP_LOG_NAME(BM_ThreadPool))
         ->SetLevel(LOG_LEVEL_OFF);
 
-    const auto length = state.range(0);
-    std::atomic<int64_t> total;
+    std::atomic<int64_t> prime_count{0};
     for (auto _ : state) {
-        Executor::ParallelFor(*thread_pool, 0, length, [&total](auto item) {
-            total += item;
+        Executor::ParallelFor(*thread_pool, 0, 10, [&prime_count](auto item) {
+            if (IsPrime(item)) {
+                ++prime_count;
+            }
             });
     }
 }
 
-static void BM_BaseLine_StdParallelSort(benchmark::State& state) {
-    const auto length = state.range(0);
-	std::vector<int> n(length);
-	for (auto i = 0; i < length; ++i) {
-		n[i] = SharedSingleton<PRNG>::GetInstance().NextInt32();
-	}
-
-	for (auto _ : state) {
-		std::sort(std::execution::par_unseq, n.begin(), n.end());
-	}
-}
-
-static void BM_StdAsync(benchmark::State& state) {    
-    auto std_async_parallel_for = [](auto& items, auto&& f, size_t batches = 4) {
+static void BM_StdAsync(benchmark::State& state) {
+    auto std_async_parallel_for = [](auto& items, auto&& f) {
         auto begin = std::begin(items);
-        auto size = std::distance(begin, std::end(items));
-
+        size_t size = std::distance(begin, std::end(items));
+        size_t batches = std::thread::hardware_concurrency() / 2 + 1;
         for (size_t i = 0; i < size; ++i) {
             std::vector<std::shared_future<void>> futures((std::min)(size - i, batches));
             for (auto& ff : futures) {
@@ -188,14 +154,28 @@ static void BM_StdAsync(benchmark::State& state) {
         }
         };
 
-    auto length = state.range(0);
+    auto length = 10;
     std::vector<int> n(length);
     std::iota(n.begin(), n.end(), 1);
-    std::atomic<int64_t> total;
+    std::atomic<int64_t> prime_count;
     for (auto _ : state) {
-        std_async_parallel_for(n, [&total](auto item) {
-            total += item;
+        std_async_parallel_for(n, [&prime_count](auto item) {
+            if (IsPrime(item)) {
+                ++prime_count;
+            }
             });
+    }
+}
+
+static void BM_BaseLine_StdParallelSort(benchmark::State& state) {
+    const auto length = state.range(0);
+    std::vector<int> n(length);
+    for (auto i = 0; i < length; ++i) {
+        n[i] = SharedSingleton<PRNG>::GetInstance().NextInt32();
+    }
+
+    for (auto _ : state) {
+        std::sort(std::execution::par_unseq, n.begin(), n.end());
     }
 }
 
@@ -702,14 +682,14 @@ static void BM_MpmcQueue(benchmark::State& state) {
         for (auto i = 0; i < 8; ++i) {
             writer_thread.emplace_back([&]() {
                 while (!is_stop) {
-                    queue->TryEnqueue(1);
+                    queue->try_enqueue(1);
                 }
                 });
         }
     }
     for (auto _ : state) {
         int element;
-        queue->TryDequeue(element);
+        queue->try_dequeue(element);
     }
     if (state.thread_index() == 0) {
         // Teardown code here.
@@ -729,14 +709,14 @@ static void BM_BlockingQueue(benchmark::State& state) {
         for (auto i = 0; i < 8; ++i) {
             writer_thread.emplace_back([&]() {
                 while (!is_stop) {
-                    queue->TryEnqueue(1);
+                    queue->try_dequeue(1);
                 }
                 });
         }        
     }
     for (auto _ : state) {
         int element;
-        queue->TryDequeue(element);
+        queue->try_dequeue(element);
     }
     if (state.thread_index() == 0) {
         // Teardown code here.
@@ -780,8 +760,8 @@ static void BM_Spinlock(benchmark::State& state) {
 //BENCHMARK(BM_MpmcQueue)->ThreadRange(4, 512);
 //BENCHMARK(BM_BlockingQueue)->ThreadRange(4, 512);
 
-//BENCHMARK(BM_RandomPolicyThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
-//BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 8 << 12);
+BENCHMARK(BM_ThreadPool)->RangeMultiplier(2)->Range(8, 64);
+BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 64);
 //BENCHMARK(BM_StdForEachPar)->RangeMultiplier(2)->Range(8, 8 << 12);
 //BENCHMARK(BM_BaseLineThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
 
@@ -826,8 +806,8 @@ static void BM_Spinlock(benchmark::State& state) {
 //BENCHMARK(BM_ConvertToInt)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_ConvertToShortAvx)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_ConvertToShort)->RangeMultiplier(2)->Range(4096, 8 << 12);
-BENCHMARK(BM_InterleavedToPlanarConvertToInt8_AVX)->RangeMultiplier(2)->Range(4096, 8 << 12);
-BENCHMARK(BM_InterleavedToPlanarConvertToInt8_API)->RangeMultiplier(2)->Range(4096, 8 << 12);
+//BENCHMARK(BM_InterleavedToPlanarConvertToInt8_AVX)->RangeMultiplier(2)->Range(4096, 8 << 12);
+//BENCHMARK(BM_InterleavedToPlanarConvertToInt8_API)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt8_AVX)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt8)->RangeMultiplier(2)->Range(4096, 8 << 12);
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt32)->RangeMultiplier(2)->Range(4096, 8 << 12);

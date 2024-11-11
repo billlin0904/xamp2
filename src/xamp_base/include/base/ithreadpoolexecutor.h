@@ -58,6 +58,11 @@ protected:
 
 template <typename F, typename ... Args>
 decltype(auto) IThreadPoolExecutor::Spawn(F&& f, Args&&... args, ExecuteFlags flags) {
+    // When Spawn receives f, it effectively only captures a "reference" to the lambda expression,
+    // rather than the lambda’s value itself. Therefore, std::forward<Func>(f) will not move f,
+    // because f is an lvalue here, and std::forward does not turn an lvalue into an rvalue.
+    static_assert(std::is_lvalue_reference_v<F>, "Func must be l value reference.");
+
     using ReturnType = std::invoke_result_t<F, const StopToken&, Args...>;
 
     // MSVC packaged_task can't be constructed from a move-only lambda
@@ -71,7 +76,8 @@ decltype(auto) IThreadPoolExecutor::Spawn(F&& f, Args&&... args, ExecuteFlags fl
 
     auto future = task->get_future();
 
-    // note: std::unique_ptr會在SubmitJob離開lambda解構, 但是std::shared_ptr會確保lambda在解構的時候task才會解構.
+    // std::unique_ptr will destruct task when the lambda in SubmitJob finishes,
+    // but std::shared_ptr ensures that task will only be destructed when the lambda itself is fully released.
     scheduler_->SubmitJob([t = std::move(task)](const auto& stop_token) {
         (*t)(stop_token);
     }, flags);

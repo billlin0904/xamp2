@@ -21,7 +21,7 @@ namespace {
 	constexpr auto kSharedTaskQueueSize = 4096;
 	constexpr auto kMaxWorkQueueSize = 65536;
 	constexpr size_t kMinThreadPoolSize = 1;
-	constexpr size_t kMaxBulkSize = 64;
+	constexpr size_t kMaxStealBulkSize = 4;
 
 	// TLB size is 4K on most CPUs.
 	constexpr size_t kInitL1CacheLineSize{ 4 * 1024 };
@@ -171,7 +171,7 @@ size_t TaskScheduler::TrySteal(Vector<MoveOnlyFunction>& tasks, const StopToken&
 			}
 
 			if (task_execute_flags_[random_index].load(std::memory_order_acquire) != ExecuteFlags::EXECUTE_LONG_RUNNING) {
-				auto size = task_work_queues_.at(random_index)->try_dequeue_bulk(tasks.begin(), 4);
+				auto size = task_work_queues_.at(random_index)->try_dequeue_bulk(tasks.begin(), kMaxStealBulkSize);
 				if (size > 0) {
 					return size;
 				}

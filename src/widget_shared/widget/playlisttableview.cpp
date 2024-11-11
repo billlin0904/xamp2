@@ -135,6 +135,7 @@ ORDER BY
     }
 
     QString groupNone(int32_t playlist_id) {
+#if 0
         return qFormat(R"(
     SELECT
 	albums.coverId,
@@ -182,6 +183,52 @@ WHERE
 ORDER BY
 	musics.parentPath ASC,
 	musics.track ASC)").arg(playlist_id);
+#else
+        return qFormat(R"(
+    SELECT
+	albums.coverId,
+	musics.musicId,
+	playlistMusics.playing,
+	musics.track,
+	musics.path,
+	musics.fileSize,
+	musics.title,
+	musics.fileName,
+	artists.artist,
+	albums.album,
+	musics.bitRate,
+	musics.sampleRate,
+	albumMusic.albumId,
+	albumMusic.artistId,
+	musics.fileExt,
+	musics.parentPath,
+	musics.dateTime,
+	playlistMusics.playlistMusicsId,
+	musics.albumReplayGain,
+	musics.albumPeak,
+	musics.trackReplayGain,
+	musics.trackPeak,
+	musicLoudness.trackLoudness,
+	musics.genre,	
+	playlistMusics.isChecked,
+	musics.heart,
+	musics.duration,
+	musics.comment,
+	albums.year,
+	musics.coverId as musicCoverId,
+    musics.offset,
+	musics.isCueFile
+FROM
+	playlistMusics
+	JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
+	JOIN albumMusic ON playlistMusics.musicId = albumMusic.musicId
+	LEFT JOIN musicLoudness ON playlistMusics.musicId = musicLoudness.musicId
+	JOIN musics ON playlistMusics.musicId = musics.musicId
+	JOIN albums ON albumMusic.albumId = albums.albumId
+	JOIN artists ON albumMusic.artistId = artists.artistId 
+WHERE
+	playlistMusics.playlistId = %1)").arg(playlist_id);
+#endif
 }
 
 void PlaylistTableView::search(const QString& keyword) const {
@@ -194,6 +241,102 @@ void PlaylistTableView::search(const QString& keyword) const {
 
 PlaylistStyledItemDelegate* PlaylistTableView::styledDelegate() {
     return dynamic_cast<PlaylistStyledItemDelegate*>(itemDelegate());
+}
+
+void PlaylistTableView::moveUp() {
+    auto selected_indexes = selectionModel()->selectedRows();
+    if (selected_indexes.isEmpty()) return;
+
+    std::sort(selected_indexes.begin(), selected_indexes.end(), [](const QModelIndex& a, const QModelIndex& b) {
+        return a.row() < b.row();
+        });
+
+    if (proxy_model_->mapToSource(selected_indexes.first()).row() == 0) {
+        return;
+    }
+
+    std::optional<QModelIndex> last_index_opt;
+    std::optional<PlayListEntity> first_entity_opt;
+
+    if (selected_indexes.size() > 1) {
+        auto first_index = proxy_model_->mapToSource(selected_indexes.first());
+        auto first_entity = item(model_->index(first_index.row() - 1, 0));
+        auto last_index = proxy_model_->mapToSource(selected_indexes.last());
+        last_index_opt = last_index;
+        first_entity_opt = first_entity;
+    }    
+
+    for (const QModelIndex& index : selected_indexes) {
+        auto source_row = proxy_model_->mapToSource(index).row();
+        swapPositions(source_row, source_row - 1);
+    }
+
+    if (last_index_opt) {
+        updateIndex(last_index_opt.value().row(), first_entity_opt.value());
+    }
+    
+    selectMovedRows(selected_indexes, -1);
+}
+
+void PlaylistTableView::moveDown() {
+    auto selected_indexes = selectionModel()->selectedRows();
+    if (selected_indexes.isEmpty()) return;
+
+    std::sort(selected_indexes.begin(), selected_indexes.end(), [](const QModelIndex& a, const QModelIndex& b) {
+        return a.row() > b.row();
+        });
+
+	if (proxy_model_->mapToSource(selected_indexes.first()).row() == model_->rowCount() - 1) {
+		return;
+	}
+
+    std::optional<QModelIndex> first_index_opt;
+    std::optional<PlayListEntity> last_entity_opt;
+
+    if (selected_indexes.size() > 1) {
+        auto first_index = proxy_model_->mapToSource(selected_indexes.first());
+
+        auto last_index = proxy_model_->mapToSource(selected_indexes.last());
+        auto last_entity = item(model_->index(last_index.row() + 2, 0));
+
+        first_index_opt = first_index;
+        last_entity_opt = last_entity;
+    }
+
+    for (const QModelIndex& index : selected_indexes) {
+        auto source_row = proxy_model_->mapToSource(index).row();
+        swapPositions(source_row, source_row + 1);
+    }
+
+    if (first_index_opt) {
+        updateIndex(first_index_opt.value().row(), last_entity_opt.value());
+    }
+    selectMovedRows(selected_indexes, 1);
+}
+
+void PlaylistTableView::updateIndex(int index, const PlayListEntity& entity) {
+    const auto target = item(model_->index(index, 0));
+    auto [playing1, is_checked1] = playlist_dao_.getPlaylistMusic(playlist_id_, entity.playlist_music_id);
+    playlist_dao_.updatePlaylistMusic(target.playlist_music_id, entity.music_id, entity.album_id, playing1, is_checked1);
+}
+
+void PlaylistTableView::swapPositions(int row1, int row2) {
+	const auto item1 = item(model_->index(row1, 0));
+    const auto item2 = item(model_->index(row2, 0));
+	playlist_dao_.swapPlaylistMusicId(playlist_id_, item1, item2);
+}
+
+void PlaylistTableView::selectMovedRows(const QModelIndexList& selectedIndexes, int direction) {
+    selectionModel()->clearSelection();
+
+    for (const QModelIndex& index : selectedIndexes) {
+        int new_row = index.row() + direction;
+        QModelIndex newIndex = proxy_model_->mapFromSource(model_->index(new_row, 0));
+        selectionModel()->select(newIndex, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+    }
+
+    proxy_model_->invalidate();
+    reload();
 }
 
 void PlaylistTableView::reload(bool is_scroll_to, bool order_by) {
@@ -662,7 +805,19 @@ void PlaylistTableView::initial() {
             return;
         }
 
-        action_map.addSeparator();        
+        action_map.addSeparator();
+
+        auto* move_up_select_item_act = action_map.addAction(tr("Move up select items"));
+        action_map.setCallback(move_up_select_item_act, [this]() {
+			moveUp();
+            });
+
+        auto* move_down_select_item_act = action_map.addAction(tr("Move down select items"));
+        action_map.setCallback(move_down_select_item_act, [this]() {
+            moveDown();
+            });
+
+        action_map.addSeparator();
 
         auto* add_to_playlist_act = action_map.addAction(tr("Add file to playlist"));
         add_to_playlist_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FILE_CIRCLE_PLUS));

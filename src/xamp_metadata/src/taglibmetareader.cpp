@@ -395,23 +395,25 @@ class TaglibMetadataReader::TaglibMetadataReaderImpl {
 public:
     TaglibMetadataReaderImpl() = default;
 
-    static FileRef GetFileRef(const Path& path) {
+    static std::optional<FileRef> TryGetFileRef(const Path& path) {
 #ifdef XAMP_OS_WIN
-        return FileRef(path.wstring().c_str(), true, TagLib::AudioProperties::Fast);
+        FileRef ref(path.wstring().c_str(), true, TagLib::AudioProperties::Fast);
 #else
-        return FileRef(path.string().c_str(), true, TagLib::AudioProperties::Fast);
+        FileRef ref(path.string().c_str(), true, TagLib::AudioProperties::Fast);
 #endif
+        return ref.isNull() ? std::nullopt : std::optional<FileRef>(std::in_place_t{}, ref);
     }
 
     XAMP_NO_DISCARD TrackInfo Extract(const Path& path) const {
-        TrackInfo track_info;
-
-	    const auto fileref = GetFileRef(path);
-        if (fileref.isNull()) {
+        const auto fileref_opt = TryGetFileRef(path);
+        if (!fileref_opt) {
             throw FileNotFoundException();
         }
 
+        const auto& fileref = *fileref_opt;
         const auto* tag = fileref.tag();
+
+        TrackInfo track_info;
 
         if (tag != nullptr) {
             ExtractTag(path, tag, fileref.audioProperties(), track_info);
@@ -440,25 +442,27 @@ public:
 			return cover_;
 		}
 
-        const auto fileref = GetFileRef(path);
-        const auto* tag = fileref.tag();
-        if (!tag) {
-            cover_.clear();
+        const auto fileref_opt = TryGetFileRef(path);
+        if (!fileref_opt || !fileref_opt->tag()) {
             return cover_;
         }
+
         const auto ext = String::ToLower(path.extension().string());
-        GetCover(ext, fileref.file(), cover_);
+        GetCover(ext, fileref_opt->file(), cover_);
         return cover_;
     }
 
-    bool IsSupported(Path const & path) const noexcept {
+    XAMP_ALWAYS_INLINE bool IsSupported(const Path & path) const noexcept {
 		return Singleton<TaglibHelper>::GetInstance().IsSupported(path);
     }
 
     std::optional<ReplayGain> GetReplayGain(const Path& path) {
-        auto fileref = GetFileRef(path);
+        const auto fileref_opt = TryGetFileRef(path);
+        if (!fileref_opt) {
+            return std::nullopt;
+        }
         const auto ext = String::ToLower(path.extension().string());
-        return GetReplayGainFromFile(ext, fileref.file());
+        return GetReplayGainFromFile(ext, fileref_opt->file());
     }
 
 private:

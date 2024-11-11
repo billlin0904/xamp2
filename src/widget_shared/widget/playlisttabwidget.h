@@ -62,6 +62,8 @@ public:
 
 	PlaylistPage* findPlaylistPage(int32_t playlist_id);
 
+	PlaylistPage* playlistPage(int32_t index) const;
+
 	void setCurrentNowPlaying();
 
 	void setNowPlaying(int32_t playlist_id);
@@ -94,6 +96,8 @@ private:
 
 	void mouseMoveEvent(QMouseEvent* event) override;
 
+	void mousePressEvent(QMouseEvent* event) override;
+
 	void leaveEvent(QEvent* event) override;
 
 	void closeTab(int32_t tab_index);
@@ -109,11 +113,13 @@ private:
 	void resizeTabWidth();
 
 	int32_t tab_count_{ 0 };
+	int32_t hovered_tab_index_{ -1 };
+	QTimer* tooltip_timer_{ nullptr };
 	StoreType store_type_{ StoreType::PLAYLIST_LOCAL_STORE };
 	QPushButton* add_tab_button_{ nullptr };
 	PlaylistTabBar* tab_bar_{ nullptr };
 	XTooltip* tooltip_{ nullptr };
-	dao::PlaylistDao playlist_dao_;
-	QElapsedTimer elapsed_timer_;
+	mutable dao::PlaylistDao playlist_dao_;
+	QElapsedTimer last_click_time_;
 };
 

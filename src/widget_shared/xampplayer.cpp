@@ -59,7 +59,7 @@ void IXMainWindow::installWindowAgent() {
         };
 
     auto* icon_button = new QWK::WindowButton(this);
-    icon_button->setObjectName(QStringLiteral("icon-button"));
+    icon_button->setObjectName("icon-button"_str);
     icon_button->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     icon_button->setMinimumSize(QSize(32, 32));
     icon_button->setIconSize(QSize(16, 16));
@@ -124,8 +124,8 @@ void IXMainWindow::installWindowAgent() {
     setMenuWidget(window_bar);
 
 #ifndef Q_OS_MAC
-    QObject::connect(window_bar, &QWK::WindowBar::minimizeRequested, this, &QWidget::showMinimized);
-    QObject::connect(window_bar, &QWK::WindowBar::maximizeRequested, this, [this, max_button](bool max) {
+    (void)QObject::connect(window_bar, &QWK::WindowBar::minimizeRequested, this, &QWidget::showMinimized);
+    (void)QObject::connect(window_bar, &QWK::WindowBar::maximizeRequested, this, [this, max_button](bool max) {
         if (max) {
             showMaximized();
         }
@@ -138,7 +138,7 @@ void IXMainWindow::installWindowAgent() {
         // manually send leave events to the button.
         //emulateLeaveEvent(maxButton);
         });
-    QObject::connect(window_bar, &QWK::WindowBar::closeRequested, this, &QWidget::close);
+    (void)QObject::connect(window_bar, &QWK::WindowBar::closeRequested, this, &QWidget::close);
 #endif
 
     //setObjectName("IXMainWindow"_str);

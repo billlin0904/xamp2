@@ -157,6 +157,8 @@ void LrcPage::startBackgroundAnimation(const int durationMs) {
 void LrcPage::paintEvent(QPaintEvent*) {
 	QPainter painter(this);
 
+	painter.fillRect(rect(), QColor("#121212"));
+
 	if (background_image_.isNull()) {
 		return;
 	}

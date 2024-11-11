@@ -1255,10 +1255,6 @@ void Xamp::setCurrentTab(int32_t table_id) {
 }
 
 void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
-    //qImageCache.remove(kAlbumCacheTag + qImageCache.unknownCoverId());
-    //qImageCache.remove(qImageCache.unknownCoverId());
-    //qImageCache.loadUnknownCover();
-
     Q_FOREACH(QFrame *frame, device_type_frame_) {
         qTheme.setFrameBackgroundColor(frame);
 	}
@@ -1275,11 +1271,10 @@ void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
     setThemeIcon(ui_);
     setRepeatButtonIcon(ui_, order_);
     setWidgetStyle(ui_);
-    setWidgetStyle(ui_);
     updateButtonState(ui_.playButton, player_->GetState());
 
     for (auto i = 0; i < playlist_tab_page_->tabBar()->count(); ++i) {
-        auto* page = dynamic_cast<PlaylistPage*>(playlist_tab_page_->widget(i));
+        auto* page = playlist_tab_page_->playlistPage(i);
         if (!page) {
             continue;
         }
@@ -1302,16 +1297,7 @@ void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
     preference_action_->setIcon(qTheme.fontIcon(Glyphs::ICON_SETTINGS));
 
     music_library_page_->album()->reload();
-    music_library_page_->artist()->reload();
-
-    switch (qTheme.themeColor()) {
-    case ThemeColor::DARK_THEME:
-        yt_music_search_page_->setStyleSheet("QFrame#playlistPage { border: none; background-color: #121212; }"_str);
-        break;
-    case ThemeColor::LIGHT_THEME:
-        yt_music_search_page_->setStyleSheet("QFrame#playlistPage { border: none; background-color: #f9f9f9; }"_str);
-        break;
-    }
+    music_library_page_->artist()->reload();    
 }
 
 void Xamp::onSearchArtistCompleted(const QString& artist, const QByteArray& image) {
@@ -1355,9 +1341,13 @@ void Xamp::shortcutsPressed(const QKeySequence& shortcut) {
         	},
         },
         {
-            QKeySequence(Qt::Key_F11),
-            [this]() {
-                
+            QKeySequence(Qt::Key_F10), [this]() {
+                last_playlist_page_->playlist()->moveUp();
+            },
+        },
+        {
+            QKeySequence(Qt::Key_F11), [this]() {
+				last_playlist_page_->playlist()->moveDown();
             },
         }
     };
@@ -2372,6 +2362,8 @@ void Xamp::initialPlaylist() {
     connectPlaylistPageSignal(music_library_page_->year()->albumViewPage()->playlistPage());
 
     ui_.currentView->setCurrentIndex(0);
+
+	last_playlist_page_ = playlist_tab_page_->playlistPage(0);
 }
 
 void Xamp::initialCloudPlaylist() {

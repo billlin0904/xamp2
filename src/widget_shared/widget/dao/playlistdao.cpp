@@ -1,5 +1,6 @@
 #include <QSqlTableModel>
-
+#include <base/rng.h>
+#include <widget/widget_shared.h>
 #include <widget/dao/playlistdao.h>
 
 namespace dao {
@@ -178,6 +179,53 @@ namespace dao {
         query.bindValue(":playlistId"_str, playlist_id);
         query.bindValue(":playlistMusicsId"_str, playlist_music_id);
         DbIfFailedThrow1(query);
+    }
+
+    void PlaylistDao::updatePlaylistMusic(int32_t playlist_musics_id, int32_t new_music_id, const QVariant& albumId, const QVariant& playing, const QVariant& is_checked) {
+        SqlQuery query(db_);
+        query.prepare(R"(
+        UPDATE playlistMusics 
+        SET musicId = :new_music_id, albumId = :albumId, playing = :playing, isChecked = :isChecked 
+        WHERE playlistMusicsId = :playlistMusicsId
+    )"_str);
+        query.bindValue(":playlistMusicsId"_str, playlist_musics_id);
+        query.bindValue(":new_music_id"_str, new_music_id);
+        query.bindValue(":albumId"_str, albumId);
+        query.bindValue(":playing"_str, playing);
+        query.bindValue(":isChecked"_str, is_checked);
+        DbIfFailedThrow1(query);
+    }
+
+    std::pair<QVariant, QVariant> PlaylistDao::getPlaylistMusic(int32_t playlist_id, int32_t playlist_music_id) {
+        SqlQuery query(db_);
+
+        query.prepare(R"(
+        SELECT playing, isChecked
+		FROM playlistMusics
+		WHERE playlistId = :playlist_id AND (playlistMusicsId = :playlist_music_id)
+		)"_str);
+
+        query.bindValue(":playlist_id"_str, playlist_id);
+        query.bindValue(":playlist_music_id"_str, playlist_music_id);
+
+        DbIfFailedThrow1(query);
+
+        QVariant playing;
+        QVariant is_checked;
+
+        if (query.next()) {
+            playing = query.value("playing"_str);
+            is_checked = query.value("isChecked"_str);
+        }
+		return std::make_pair(playing, is_checked);
+    }
+
+    void PlaylistDao::swapPlaylistMusicId(int32_t playlist_id, const PlayListEntity& music_entity_1, const PlayListEntity& music_entity_2) {
+        auto [playing1, is_checked1] = getPlaylistMusic(playlist_id, music_entity_1.playlist_music_id);
+        auto [playing2, is_checked2] = getPlaylistMusic(playlist_id, music_entity_2.playlist_music_id);
+
+        updatePlaylistMusic(music_entity_1.playlist_music_id, music_entity_2.music_id, music_entity_2.album_id, playing2, is_checked2);
+        updatePlaylistMusic(music_entity_2.playlist_music_id, music_entity_1.music_id, music_entity_1.album_id, playing1, is_checked1);
     }
 
     std::map<int32_t, int32_t> PlaylistDao::getPlaylistIndex(StoreType type) {

@@ -9,6 +9,8 @@
 #include <widget/widget_shared.h>
 #include <widget/database.h>
 
+class PlayListEntity;
+
 namespace dao {
 
 struct XAMP_WIDGET_SHARED_EXPORT PlaylistAlbumStats {
@@ -42,6 +44,9 @@ public:
     void forEachPlaylist(std::function<void(int32_t, int32_t, StoreType, QString, QString)>&& fun);
 	QList<QString> getAlbumCoverIds(int32_t playlist_id);
     PlaylistAlbumStats getAlbumStats(int32_t playlist_id);
+	std::pair<QVariant, QVariant> getPlaylistMusic(int32_t playlist_id, int32_t playlist_music_id);
+    void swapPlaylistMusicId(int32_t playlist_id, const PlayListEntity& music_entity_1, const PlayListEntity& music_entity_2);
+    void updatePlaylistMusic(int32_t playlist_musics_id, int32_t new_music_id, const QVariant& albumId, const QVariant& playing, const QVariant& is_checked);
 private:
     QSqlDatabase& db_;
 };

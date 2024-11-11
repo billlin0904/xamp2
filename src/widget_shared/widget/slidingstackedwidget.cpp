@@ -10,8 +10,8 @@ SlidingStackedWidget::SlidingStackedWidget(QWidget* parent)
 	, wrap_(false)
 	, active_(false)
 	, direction_(Qt::Vertical)
-	, speed_(300)
-	, animation_type_(QEasingCurve::InCubic)
+	, speed_(150)
+	, animation_type_(QEasingCurve::OutQuad)
 	, current_index_(0)
 	, next_index_(0)
 	, previous_pos_(0, 0)
@@ -35,14 +35,14 @@ void SlidingStackedWidget::setWrap(bool wrap) {
 }
 
 void SlidingStackedWidget::slideInPrev() {
-    int current = currentIndex();
+    auto current = currentIndex();
     if (wrap_ || current > 0) {
         slideInIndex(current - 1);
     }
 }
 
 void SlidingStackedWidget::slideInNext() {
-    int current = currentIndex();
+    auto current = currentIndex();
     if (wrap_ || current < (count() - 1)) {
         slideInIndex(current + 1);
     }
@@ -64,32 +64,32 @@ void SlidingStackedWidget::slideInWidget(QWidget* new_widget) {
 
     active_ = true;
 
-    int current = currentIndex();
-    int next = indexOf(new_widget);
+    auto current = currentIndex();
+    auto next = indexOf(new_widget);
 
     if (current == next) {
         active_ = false;
         return;
     }
 
-    int offsetX = frameRect().width();
-    int offsetY = frameRect().height();
+    auto offset_x = frameRect().width();
+    auto offset_y = frameRect().height();
     widget(next)->setGeometry(frameRect());
 
     if (direction_ == Qt::Vertical) {
-        offsetX = 0;
-        offsetY = (current < next) ? -offsetY : offsetY;
+        offset_x = 0;
+        offset_y = (current < next) ? -offset_y : offset_y;
     }
     else {
-        offsetY = 0;
-        offsetX = (current < next) ? -offsetX : offsetX;
+        offset_y = 0;
+        offset_x = (current < next) ? -offset_x : offset_x;
     }
 
-    QPoint next_pos = widget(next)->pos();
-    QPoint current_pos = widget(current)->pos();
+    auto next_pos = widget(next)->pos();
+    auto current_pos = widget(current)->pos();
     previous_pos_ = current_pos;
 
-    QPoint offset(offsetX, offsetY);
+    QPoint offset(offset_x, offset_y);
     widget(next)->move(next_pos - offset);
     widget(next)->show();
     widget(next)->raise();
@@ -103,11 +103,11 @@ void SlidingStackedWidget::slideInWidget(QWidget* new_widget) {
     opacity_animation_->setEasingCurve(animation_type_);
 
     auto* anim_group = new QParallelAnimationGroup(this);
-    connect(anim_group, &QParallelAnimationGroup::finished, this, &SlidingStackedWidget::animationDone);
+    (void)QObject::connect(anim_group, &QParallelAnimationGroup::finished, this, &SlidingStackedWidget::animationDone);
 
     anim_group->addAnimation(opacity_animation_);
 
-    for (int index : {current, next}) {
+    for (auto index : {current, next}) {
         auto* animation = new QPropertyAnimation(widget(index), "pos");
         animation->setEasingCurve(animation_type_);
         animation->setDuration(speed_);

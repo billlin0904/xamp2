@@ -135,6 +135,16 @@ public:
 	void search(const QString& keyword) const;
 	
 	PlaylistStyledItemDelegate* styledDelegate();
+
+	void moveUp();
+
+	void moveDown();
+
+	void swapPositions(int row1, int row2);
+
+	void updateIndex(int index, const PlayListEntity &entity);
+
+	void selectMovedRows(const QModelIndexList& selectedIndexes, int direction);
 signals:
 	void updatePlayingState(const PlayListEntity &entity, PlayingState playing_state);
 

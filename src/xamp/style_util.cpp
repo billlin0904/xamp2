@@ -205,7 +205,8 @@ void setWidgetStyle(Ui::XampWindow& ui) {
     ui.startPosLabel->setFont(duration_font);
     ui.endPosLabel->setFont(duration_font);
 
-    if (qTheme.themeColor() == ThemeColor::DARK_THEME) {
+    switch (qTheme.themeColor()) {
+    case ThemeColor::DARK_THEME:
         ui.titleLabel->setStyleSheet(R"(
                                          QLabel#titleLabel {
                                          color: white;
@@ -213,23 +214,23 @@ void setWidgetStyle(Ui::XampWindow& ui) {
                                          }
                                          )"_str);
 
-        //      ui.currentView->setStyleSheet(qFormat(R"(
-        // QStackedWidget#currentView {
-        // 	padding: 0px;
-        // 	background-color: #121212;
-        // 	border-top-left-radius: 0px;
-        //              border: none;
-        //          }
-        //          )"));
+        ui.currentView->setStyleSheet(qFormat(R"(
+         QStackedWidget#currentView {
+         	padding: 0px;
+         	background-color: #121212;
+         	border-top-left-radius: 8px;
+            border: none;
+         }
+         )"));
 
-             ui.currentView->setStyleSheet(qFormat(R"(
-            QStackedWidget#currentView {
-                     padding: 0px;
-                     background: transparent;
-                     border-top-left-radius: 0px;
-                     border: none;
-                 }
-                 )"));
+        // ui.currentView->setStyleSheet(qFormat(R"(
+        //QStackedWidget#currentView {
+        //         padding: 0px;
+        //         background: transparent;
+        //         border-top-left-radius: 0px;
+        //         border: none;
+        //     }
+        //     )"));
 
         ui.bottomFrame->setStyleSheet(
             R"(
@@ -241,8 +242,8 @@ void setWidgetStyle(Ui::XampWindow& ui) {
 				border-right: none;
             }
             )"_str);
-    }
-    else {
+        break;
+	case ThemeColor::LIGHT_THEME:
         ui.titleLabel->setStyleSheet(R"(
                                          QLabel#titleLabel {
                                          color: black;
@@ -250,14 +251,14 @@ void setWidgetStyle(Ui::XampWindow& ui) {
                                          }
                                          )"_str);
 
-   //      ui.currentView->setStyleSheet(R"(
-            // QStackedWidget#currentView {
-   //              padding: 0px;
-            // 	background-color: #f9f9f9;
-            // 	border-top-left-radius: 0px;
-   //              border: none;
-   //          }
-   //          )"));
+        ui.currentView->setStyleSheet(qFormat(R"(
+         QStackedWidget#currentView {
+         	padding: 0px;
+         	background-color: #f9f9f9;
+         	border-top-left-radius: 8px;
+            border: none;
+        }
+        )"));
 
         ui.bottomFrame->setStyleSheet(
             R"(
@@ -269,6 +270,7 @@ void setWidgetStyle(Ui::XampWindow& ui) {
 				border-right: none;
             }
             )"_str);
+        break;
     }
 
     ui.artistLabel->setStyleSheet(R"(
