@@ -9,7 +9,6 @@
 #include <base/dll.h>
 #include <base/crashhandler.h>
 #include <base/platfrom_handle.h>
-#include <player/ifilesyncer.h>
 
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
@@ -64,10 +63,6 @@ namespace {
 #endif
 
 #ifdef _DEBUG
-    void RedirectIOToConsole() {
-        std::ios::sync_with_stdio();
-    }
-
     XAMP_DECLARE_LOG_NAME(Qt);
 
     void logMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg) {
@@ -141,8 +136,9 @@ namespace {
 #endif
         //QApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 
+        QLoggingCategory::setFilterRules(QStringLiteral("qt.gui.imageio.warning=false"));
+        qputenv("QT_ICC_PROFILE", QByteArray());
     	qputenv("QT_WIN_DEBUG_CONSOLE", "attach");
-        qputenv("QSG_INFO", "1");
 
         QApplication::setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
         QApplication::setApplicationName(kApplicationName);
@@ -194,9 +190,11 @@ namespace {
 
         XAMP_LOG_DEBUG("Start XAMP window...");
 
+        auto thread_pool = ThreadPoolBuilder::MakePlaybackThreadPool();
+
         XMainWindow main_window;
         //main_window.setContentWidget(nullptr);
-        Xamp win(&main_window, MakeAudioPlayer());
+        Xamp win(&main_window, MakeAudioPlayer(thread_pool));
         win.setMainWindow(&main_window);
         main_window.setContentWidget(&win);
         main_window.setTheme();
@@ -204,7 +202,6 @@ namespace {
         main_window.restoreAppGeometry();
         main_window.showWindow();
 
-#ifdef Q_OS_WIN
         if (qAppSettings.valueAsBool(kAppSettingEnableShortcut)) {
             main_window.setShortcut(QKeySequence(Qt::Key_MediaPlay));
             main_window.setShortcut(QKeySequence(Qt::Key_MediaStop));
@@ -216,7 +213,6 @@ namespace {
             main_window.setShortcut(QKeySequence(Qt::Key_F10));
             main_window.setShortcut(QKeySequence(Qt::Key_F11));
         }
-#endif
 
         return app.exec();
     }
@@ -236,13 +232,9 @@ int main() {
         return -1;
     }
 
-    qputenv("QT_ICC_PROFILE", QByteArray());
-
     std::atexit([]() {
         XampLoggerFactory.Shutdown();
         });
-
-    QLoggingCategory::setFilterRules(QStringLiteral("qt.gui.imageio.warning=false"));
 
     static char app_name[] = "xamp2";
     static constexpr int argc = 1;

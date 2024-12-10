@@ -236,7 +236,7 @@ public:
     /*
     * Set audio delay callback. 
     */
-    virtual void SetDelayCallback(std::function<void(uint32_t)> delay_callback) = 0;
+    virtual void SetDelayCallback(std::function<void(uint32_t)>&& delay_callback) = 0;
 
     /*
     * Set file cache mode.

@@ -30,7 +30,7 @@ public:
 
 	XAMP_NO_DISCARD Vector<DeviceInfo> GetDeviceInfo() const;
 
-	ScopedPtr<IOutputDevice> MakeDevice(const std::string& device_id);
+	ScopedPtr<IOutputDevice> MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::string& device_id);
 
 private:
 	XAMP_NO_DISCARD CComPtr<IMMDevice> GetDeviceById(const std::wstring& device_id) const;
@@ -61,7 +61,7 @@ std::optional<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeIm
 	if (hr == ERROR_NOT_FOUND) {
 		return std::nullopt;
 	}
-	return std::optional<DeviceInfo>{ std::in_place_t{}, helper::GetDeviceInfo(default_output_device, XAMP_UUID_OF(ExclusiveWasapiDeviceType)) };
+	return CreateOptional<DeviceInfo>(helper::GetDeviceInfo(default_output_device, XAMP_UUID_OF(ExclusiveWasapiDeviceType)));
 }
 
 Vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::GetDeviceInfo() const {
@@ -74,8 +74,8 @@ CComPtr<IMMDevice> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::Get
 	return device;
 }
 
-ScopedPtr<IOutputDevice> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::MakeDevice(const std::string & device_id) {
-	return MakeAlign<IOutputDevice, ExclusiveWasapiDevice>(GetDeviceById(String::ToStdWString(device_id)));
+ScopedPtr<IOutputDevice> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::string & device_id) {
+	return MakeAlign<IOutputDevice, ExclusiveWasapiDevice>(thread_pool, GetDeviceById(String::ToStdWString(device_id)));
 }
 
 size_t ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::GetDeviceCount() const {
@@ -124,26 +124,16 @@ Vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::Get
 
 			auto info = helper::GetDeviceInfo(device, XAMP_UUID_OF(ExclusiveWasapiDeviceType));
 
-			// Check device support exclusive mode
-			CComPtr<IAudioClient> client;
-			auto hr = device->Activate(__uuidof(IAudioClient),
-				CLSCTX_ALL,
-				nullptr,
-				reinterpret_cast<void**>(&client));
-			if (SUCCEEDED(hr)) {
-				WAVEFORMATEX* format = nullptr;
-				hr = client->GetMixFormat(&format);
-				if (FAILED(hr)) {
-					continue;
-				}
-				CComHeapPtr<WAVEFORMATEX> mix_format(format);
-				info.default_format = helper::ToAudioFormat(format);
-			}
+			AudioFormat default_format;
+			if (!helper::IsDeviceSupportExclusiveMode(device, default_format)) {
+				continue;
+			}			
 
 			if (default_device_name == info.name) {
 				info.is_default_device = true;
 			}
 
+			info.default_format = default_format;
 			if (info.default_format) {
 				XAMP_LOG_D(logger_, "{} default format: {}", String::ToString(info.name), info.default_format.value());
 			}
@@ -225,8 +215,8 @@ Vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfo() const {
 	return impl_->GetDeviceInfo();
 }
 
-ScopedPtr<IOutputDevice> ExclusiveWasapiDeviceType::MakeDevice(std::string const& device_id) {
-	return impl_->MakeDevice(device_id);
+ScopedPtr<IOutputDevice> ExclusiveWasapiDeviceType::MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, std::string const& device_id) {
+	return impl_->MakeDevice(thread_pool, device_id);
 }
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

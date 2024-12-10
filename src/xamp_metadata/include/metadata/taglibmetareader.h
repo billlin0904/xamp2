@@ -23,7 +23,7 @@ public:
     
     TrackInfo Extract(const Path& path) override;
 
-    const Vector<uint8_t>& ReadEmbeddedCover(const Path& path) override;
+    std::optional<Vector<uint8_t>> ReadEmbeddedCover(const Path& path) override;
 
     static HashSet<std::string> const & GetSupportFileExtensions();
 

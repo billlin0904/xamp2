@@ -68,7 +68,7 @@
       </WarningVersion>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/zlib/contrib/vstudio/vc14/x64/ZlibStatDebug/;../thirdparty/qcoro/msvc/qcoro/core/Debug/;../thirdparty/qcoro/msvc/qcoro/network/Debug/;../thirdparty/qwindowkit/msvc/out-amd64-Debug/lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Debug/;../thirdparty/zlib/contrib/vstudio/vc14/x64/ZlibStatDebug/;../thirdparty/qcoro/msvc/qcoro/core/Debug/;../thirdparty/qcoro/msvc/qcoro/network/Debug/;../thirdparty/qwindowkit/msvc/out-amd64-Debug/lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;zlibstat.lib;QWKCored.lib;QWKWidgetsd.lib;QCoro6Networkd.lib;QCoro6Cored.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

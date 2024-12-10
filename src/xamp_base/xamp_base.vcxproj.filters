@@ -105,6 +105,5 @@
     <ClInclude Include="include\base\transliterator.h" />
     <ClInclude Include="include\base\furigana.h" />
     <ClInclude Include="include\base\encoding_detector_tables.h" />
-    <ClInclude Include="include\base\work_stealing_queue.h" />
   </ItemGroup>
 </Project>

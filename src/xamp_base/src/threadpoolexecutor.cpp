@@ -40,7 +40,7 @@ namespace {
 	}
 }
 
-TaskScheduler::TaskScheduler(const std::string_view& name, size_t max_thread, const CpuAffinity &affinity, ThreadPriority priority)
+TaskScheduler::TaskScheduler(const std::string_view& name, size_t max_thread, ThreadPriority priority)
 	: is_stopped_(false)
 	, running_thread_(0)
 	, max_thread_(std::max(max_thread, kMinThreadPoolSize))
@@ -48,13 +48,15 @@ TaskScheduler::TaskScheduler(const std::string_view& name, size_t max_thread, co
 	, name_(name)
 	, task_execute_flags_(max_thread_)
 	, work_done_(static_cast<ptrdiff_t>(max_thread_))
-	, start_clean_up_(1)
-	, cpu_affinity_(affinity) {
+	, start_clean_up_(1) {
 	logger_ = XampLoggerFactory.GetLogger(name);
 
 	try {
 		task_pool_ = MakeAlign<SharedTaskQueue>(kSharedTaskQueueSize);
 		task_work_queues_.resize(max_thread_);
+		for (size_t i = 0; i < max_thread_; ++i) {
+			task_work_queues_[i] = MakeAlign<WorkStealingTaskQueue>(kMaxWorkQueueSize);
+		}
 		for (size_t i = 0; i < max_thread_; ++i) {
             AddThread(i, priority);
 		}
@@ -67,19 +69,13 @@ TaskScheduler::TaskScheduler(const std::string_view& name, size_t max_thread, co
 	work_done_.wait();
 
 	JThread([this]() mutable {
-		for (size_t i = 0; i < max_thread_; ++i) {
-			if (cpu_affinity_.IsCoreUse(i)) {
-				cpu_affinity_.SetAffinity(threads_.at(i));
-				XAMP_LOG_D(logger_, "Worker Thread {} affinity:{}.", i, cpu_affinity_);
-			}
-		}
         XAMP_LOG_D(logger_, "Set ({}) Thread affinity, priority is success.", max_thread_);
 		start_clean_up_.count_down();
 		}).detach();
 
 	XAMP_LOG_D(logger_,
-		"TaskScheduler initial max thread:{} affinity:{} priority:{}",
-		max_thread, cpu_affinity_, priority);
+		"TaskScheduler initial max thread:{} priority:{}",
+		max_thread, priority);
 }
 
 TaskScheduler::~TaskScheduler() {
@@ -226,9 +222,10 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 		}
 
 		XAMP_NO_TLS_GUARDS thread_local PRNG prng;
-		XAMP_NO_TLS_GUARDS thread_local WorkStealingTaskQueue task_local_queue(kMaxWorkQueueSize);
-		auto local_queue = &task_local_queue;
-		task_work_queues_[i] = local_queue;
+		//XAMP_NO_TLS_GUARDS thread_local WorkStealingTaskQueue task_local_queue(kMaxWorkQueueSize);
+		//auto* local_queue = &task_local_queue;
+		//task_work_queues_[i] = local_queue;
+		auto* local_queue = task_work_queues_[i].get();
 
 		Stopwatch spinning_watch;
 		XampCrashHandler.SetThreadExceptionHandlers();
@@ -298,8 +295,8 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
         });
 }
 
-ThreadPoolExecutor::ThreadPoolExecutor(const std::string_view& name, uint32_t max_thread, const CpuAffinity &affinity, ThreadPriority priority)
-	: IThreadPoolExecutor(MakeAlign<ITaskScheduler, TaskScheduler>(name,max_thread, affinity, priority)) {
+ThreadPoolExecutor::ThreadPoolExecutor(const std::string_view& name, uint32_t max_thread, ThreadPriority priority)
+	: IThreadPoolExecutor(MakeAlign<ITaskScheduler, TaskScheduler>(name,max_thread, priority)) {
 }
 
 ThreadPoolExecutor::~ThreadPoolExecutor() {

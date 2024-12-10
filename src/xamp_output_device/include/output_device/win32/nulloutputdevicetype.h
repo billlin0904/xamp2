@@ -92,7 +92,7 @@ public:
 	* @param device_id: device id
 	* @return ScopedPtr<IOutputDevice>
 	*/
-	ScopedPtr<IOutputDevice> MakeDevice(const std::string& device_id) override;
+	ScopedPtr<IOutputDevice> MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::string& device_id) override;
 	
 private:
 	class NullOutputDeviceTypeImpl;

@@ -10,19 +10,19 @@
 #include <base/buffer.h>
 #include <functional>
 
-namespace xamp {
-namespace stream {
-	class BassFileStream;
-}
-}
+XAMP_STREAM_NAMESPACE_BEGIN
 
-namespace xamp::stream::bass_utiltis {
+class BassFileStream;
 
-uint32_t Process(BassStreamHandle& stream, float const* samples, float * out, size_t num_samples);
+XAMP_STREAM_NAMESPACE_END
 
-bool Process(BassStreamHandle& stream, float const* samples, size_t num_samples, BufferRef<float>& out);
+XAMP_STREAM_UTIL_NAMESPACE_BEGIN 
+
+uint32_t ReadStream(const BassStreamHandle& stream, float const* samples, float* out, size_t num_samples);
+
+bool ReadStream(const BassStreamHandle& stream, float const* samples, size_t num_samples, BufferRef<float>& out);
 
 void Encode(FileStream& stream, std::function<bool(uint32_t) > const& progress);
 
-}
+XAMP_STREAM_UTIL_NAMESPACE_END
 

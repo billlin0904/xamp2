@@ -63,7 +63,7 @@ public:
 		constexpr bool once = false;
 
 		timer_queue_.reset(::CreateTimerQueue());
-
+		callback_ = std::move(callback);
 		HANDLE timer = nullptr;
 		if (!::CreateTimerQueueTimer(&timer,
 			timer_queue_.get(),
@@ -75,7 +75,6 @@ public:
 			throw PlatformException();
 		}
 		timer_.Reset(timer_queue_.get(), timer);
-		callback_ = std::move(callback);
 		is_stop_ = false;
 	}
 
@@ -96,7 +95,7 @@ private:
 	static void CALLBACK TimerProc(void* param, BOOLEAN timer_called) {
 		const auto* timer = static_cast<TimerImpl*>(param);
 		try {
-			timer->callback_();
+			std::invoke(timer->callback_);
 		} catch (...) {
 		}
 	}

@@ -29,8 +29,9 @@ XAMP_DECLARE_LOG_NAME(DefaultThreadPoollExecutor);
 * @return Task<decltype(f(args...))>
 */
 template <typename F, typename ... Args>
-decltype(auto) Spawn(IThreadPoolExecutor& executor, F&& f, Args&&... args, ExecuteFlags flags = ExecuteFlags::EXECUTE_NORMAL) {
-    return executor.Spawn(f, std::forward<Args>(args) ..., flags);
+decltype(auto) Spawn(IThreadPoolExecutor *executor, F&& f, Args&&... args, ExecuteFlags flags = ExecuteFlags::EXECUTE_NORMAL) {
+    XAMP_ENSURES(executor != nullptr);
+    return executor->Spawn(f, std::forward<Args>(args) ..., flags);
 }
 
 /*
@@ -44,7 +45,7 @@ decltype(auto) Spawn(IThreadPoolExecutor& executor, F&& f, Args&&... args, Execu
 template <typename C, typename Func>
 void ParallelFor(C& items, Func&& f) {
     auto executor = ThreadPoolBuilder::MakeThreadPool(kDefaultThreadPoollExecutorLoggerName);
-    ParallelFor(*executor, items, f);
+    ParallelFor(executor.get(), items, f);
 }
 
 /*
@@ -58,12 +59,12 @@ void ParallelFor(C& items, Func&& f) {
 * @return void
 */
 template <typename C, typename Func>
-void ParallelFor(IThreadPoolExecutor& executor,
+void ParallelFor(IThreadPoolExecutor* executor,
     C& items,
     Func&& f,
     const std::chrono::milliseconds &wait_timeout = std::chrono::milliseconds(100)) {
 
-    size_t batches = (executor.GetThreadSize() / 2) + 1;
+    size_t batches = (executor->GetThreadSize() / 2) + 1;
     auto begin = items.begin();
     auto end = items.end();
     using IteratorType = decltype(begin);
@@ -137,9 +138,9 @@ void ParallelFor(IThreadPoolExecutor& executor,
 * @return void
 */
 template <typename Func>
-void ParallelFor(IThreadPoolExecutor& executor, size_t begin, size_t end, Func&& f) {    
+void ParallelFor(IThreadPoolExecutor* executor, size_t begin, size_t end, Func&& f) {
     size_t size = end - begin;
-    size_t batches = (executor.GetThreadSize() / 2) + 1;
+    size_t batches = (executor->GetThreadSize() / 2) + 1;
     for (size_t i = 0; i < size;) {
         Vector<Task<void>> futures((std::min)(size - i, batches));
         for (auto& ff : futures) {

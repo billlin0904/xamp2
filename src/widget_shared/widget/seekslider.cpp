@@ -15,9 +15,16 @@ void SeekSlider::setRange(int64_t min, int64_t max) {
 	QSlider::setRange(static_cast<int>(min), static_cast<int>(max));
 }
 
+void SeekSlider::enableAnimation(bool enable) {
+	if (!enable && animation_) {
+		animation_->deleteLater();
+		animation_ = nullptr;
+	}
+}
+
 void SeekSlider::setValueAnimation(int value, bool animate) {
 	target_ = value;
-	if (animate) {
+	if (animate && animation_ != nullptr) {
 		animation_->stop();
 		animation_->setDuration(duration_);
 		animation_->setEasingCurve(easing_curve_);

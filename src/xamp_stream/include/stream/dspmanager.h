@@ -23,7 +23,7 @@ public:
 
 	void Initialize(const AnyMap& config) override;
 
-    bool ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) override;
+    bool ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<std::byte>& fifo) override;
 
     void AddPreDSP(ScopedPtr<IAudioProcessor> processor) override;
 
@@ -53,9 +53,9 @@ public:
 private:
     void AddOrReplace(ScopedPtr<IAudioProcessor> processor, Vector<ScopedPtr<IAudioProcessor>>& dsp_chain);
 
-    bool Process(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo);
+    bool Process(const float* samples, uint32_t num_samples, AudioBuffer<std::byte>& fifo);
 
-    bool DefaultProcess(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo);
+    bool DefaultProcess(const float* samples, uint32_t num_samples, AudioBuffer<std::byte>& fifo);
 
     using DspIterator = Vector<ScopedPtr<IAudioProcessor>>::iterator;
     using ConstDspIterator = Vector<ScopedPtr<IAudioProcessor>>::const_iterator;
@@ -94,7 +94,7 @@ private:
         if (itr == end) {
             return std::nullopt;
         }
-        return std::optional<TDSP*> { std::in_place_t{}, dynamic_cast<TDSP*>((*itr).get()) };
+        return CreateOptional<TDSP*>(dynamic_cast<TDSP*>((*itr).get()));
     }
 
     template <typename TDSP>
@@ -130,7 +130,7 @@ private:
     Buffer<float> post_dsp_buffer_;
     LoggerPtr logger_;
     AnyMap config_;
-    std::function<bool(float const*, size_t, AudioBuffer<int8_t>&)> dispatch_;
+    std::function<bool(float const*, uint32_t, AudioBuffer<std::byte>&)> dispatch_;
 };
 
 XAMP_STREAM_NAMESPACE_END

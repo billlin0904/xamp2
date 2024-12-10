@@ -29,7 +29,7 @@ public:
 
 	XAMP_NO_DISCARD Vector<DeviceInfo> GetDeviceInfo() const;
 
-	ScopedPtr<IOutputDevice> MakeDevice(const std::string& device_id);
+	ScopedPtr<IOutputDevice> MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::string& device_id);
 
 private:
 	XAMP_NO_DISCARD Vector<DeviceInfo> GetDeviceInfoList() const;
@@ -50,8 +50,8 @@ void XAudio2DeviceType::XAudio2DeviceTypeImpl::ScanNewDevice() {
 	device_list_ = GetDeviceInfoList();
 }
 
-ScopedPtr<IOutputDevice> XAudio2DeviceType::XAudio2DeviceTypeImpl::MakeDevice(const std::string& device_id) {
-	return MakeAlign<IOutputDevice, XAudio2OutputDevice>(String::ToStdWString(device_id));
+ScopedPtr<IOutputDevice> XAudio2DeviceType::XAudio2DeviceTypeImpl::MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::string& device_id) {
+	return MakeAlign<IOutputDevice, XAudio2OutputDevice>(thread_pool, String::ToStdWString(device_id));
 }
 
 DeviceInfo XAudio2DeviceType::XAudio2DeviceTypeImpl::GetDeviceInfo(uint32_t device) const {
@@ -78,7 +78,7 @@ std::optional<DeviceInfo> XAudio2DeviceType::XAudio2DeviceTypeImpl::GetDefaultDe
 	if (hr == ERROR_NOT_FOUND) {
 		return std::nullopt;
 	}
-	return std::optional<DeviceInfo> { std::in_place_t{}, helper::GetDeviceInfo(default_output_device, XAMP_UUID_OF(XAudio2DeviceType)) };
+	return CreateOptional<DeviceInfo>(helper::GetDeviceInfo(default_output_device, XAMP_UUID_OF(XAudio2DeviceType)));
 }
 
 Vector<DeviceInfo> XAudio2DeviceType::XAudio2DeviceTypeImpl::GetDeviceInfoList() const {
@@ -186,8 +186,8 @@ Vector<DeviceInfo> XAudio2DeviceType::GetDeviceInfo() const {
 	return impl_->GetDeviceInfo();
 }
 
-ScopedPtr<IOutputDevice> XAudio2DeviceType::MakeDevice(const std::string& device_id) {
-	return impl_->MakeDevice(device_id);
+ScopedPtr<IOutputDevice> XAudio2DeviceType::MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::string& device_id) {
+	return impl_->MakeDevice(thread_pool, device_id);
 }
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

@@ -43,7 +43,7 @@ public:
     * @param[in] path file path.
     * @return Vector<uint8_t>
     */
-    virtual const Vector<uint8_t>& ReadEmbeddedCover(const Path &path) = 0;
+    virtual std::optional<Vector<uint8_t>> ReadEmbeddedCover(const Path &path) = 0;
 
     /*
     * Check file is supported.

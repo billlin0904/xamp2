@@ -7,10 +7,6 @@
 #include <widget/appsettings.h>
 #include <widget/actionmap.h>
 
-namespace {
-	
-}
-
 SpectrumWidget::SpectrumWidget(QWidget* parent)
 	: QFrame(parent)
 	, buffer_(kBufferSize, std::valarray<float>(kMaxBands)) {
@@ -20,14 +16,6 @@ SpectrumWidget::SpectrumWidget(QWidget* parent)
 
 	timer_.setTimerType(Qt::PreciseTimer);
 	timer_.start(15);
-}
-
-void SpectrumWidget::setSampleRate(uint32_t sample_rate) {
-	sample_rate_ = sample_rate;
-}
-
-void SpectrumWidget::setFftSize(size_t fft_size) {
-	fft_size_ = fft_size;
 }
 
 void SpectrumWidget::setBarColor(const QColor& color) {

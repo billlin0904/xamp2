@@ -111,7 +111,7 @@ namespace {
 	constexpr std::chrono::milliseconds kGlitchFreeDuration{35};
 }
 
-ExclusiveWasapiDevice::ExclusiveWasapiDevice(const CComPtr<IMMDevice> & device)
+ExclusiveWasapiDevice::ExclusiveWasapiDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const CComPtr<IMMDevice> & device)
 	: raw_mode_(false)
 	, ignore_wait_slow_(false)
 	, is_2432_format_(true)
@@ -128,7 +128,7 @@ ExclusiveWasapiDevice::ExclusiveWasapiDevice(const CComPtr<IMMDevice> & device)
 	, device_(device)
 	, callback_(nullptr)
 	, logger_(XampLoggerFactory.GetLogger(kExclusiveWasapiDeviceLoggerName))
-	, thread_pool_(ThreadPoolBuilder::MakeOutputTheadPool()) {
+	, thread_pool_(thread_pool) {
 }
 
 ExclusiveWasapiDevice::~ExclusiveWasapiDevice() {
@@ -245,7 +245,6 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 		if (output_format.GetByteFormat() == ByteFormat::SINT32) {
 			hr = client_->IsFormatSupported(AUDCLNT_SHAREMODE_EXCLUSIVE, mix_format_, nullptr);
 
-			// TODO: 某些DAC driver不支援24/32 format, 如果出現AUDCLNT_E_UNSUPPORTED_FORMAT嘗試改用32.
 			auto is_32bit_format = false;
 
 			if (mix_format_->wFormatTag == WAVE_FORMAT_EXTENSIBLE
@@ -275,8 +274,10 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 				HrIfFailThrow(hr);
 			}
 
-			// FIXME: workaground for DSD file.
-			is_2432_format_ = true;
+			if (GetIoFormat() == DsdIoFormat::IO_FORMAT_DSD
+				|| GetIoFormat() == DsdIoFormat::IO_FORMAT_DOP) {
+				is_2432_format_ = true;
+			}
 		} else {
 			InitialDeviceFormat(output_format, 16);
 		}
@@ -339,8 +340,8 @@ void ExclusiveWasapiDevice::ReportError(HRESULT hr) noexcept {
 }
 
 bool ExclusiveWasapiDevice::GetSample(bool is_silence) noexcept {
-	XAMP_EXPECTS(render_client_ != nullptr);
-	XAMP_EXPECTS(callback_ != nullptr);
+	XAMP_ENSURES(render_client_ != nullptr);
+	XAMP_ENSURES(callback_ != nullptr);
 
 	BYTE* data = nullptr;
 
@@ -368,27 +369,7 @@ bool ExclusiveWasapiDevice::GetSample(bool is_silence) noexcept {
 			flags = AUDCLNT_BUFFERFLAGS_SILENT;
 			result = false;
 		}
-
-		if (!Is16BitSamples(mix_format_)) {
-			if (!is_2432_format_) {
-				DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Convert(
-					reinterpret_cast<int32_t*>(data),
-					buffer_.Get(),
-					data_convert_);
-			}
-			else {
-				DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::ConvertToInt2432(
-					reinterpret_cast<int32_t*>(data),
-					buffer_.Get(),
-					data_convert_);
-			}			
-		} else {
-			DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Convert(
-				reinterpret_cast<int16_t*>(data),
-				buffer_.Get(),
-				data_convert_);
-		}
-		
+		std::invoke(convert_, data, buffer_.Get(), data_convert_);		
 		hr = render_client_->ReleaseBuffer(buffer_frames_, flags);
 		return result;
 	}
@@ -464,10 +445,10 @@ void ExclusiveWasapiDevice::StartStream() {
 		throw_translated_com_error(AUDCLNT_E_NOT_INITIALIZED);
 	}
 
-	XAMP_EXPECTS(sample_ready_);
-	XAMP_EXPECTS(thread_start_);
-	XAMP_EXPECTS(thread_exit_);
-	XAMP_EXPECTS(close_request_);
+	XAMP_ENSURES(sample_ready_);
+	XAMP_ENSURES(thread_start_);
+	XAMP_ENSURES(thread_exit_);
+	XAMP_ENSURES(close_request_);
 
 	// Calculate buffer duration.	
 	const std::chrono::milliseconds buffer_duration((buffer_frames_ *
@@ -478,11 +459,38 @@ void ExclusiveWasapiDevice::StartStream() {
 	XAMP_LOG_D(logger_, "WASAPI wait timeout {}msec.", glitch_time.count());
 	// Reset event.
 	::ResetEvent(close_request_.get());
-	
+
+	if (!Is16BitSamples(mix_format_)) {
+		if (!is_2432_format_) {
+			convert_ = [](void* data, const float* buffer, const AudioConvertContext& context) {
+				DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Convert(
+					static_cast<int32_t*>(data),
+					buffer,
+					context);
+				};
+		}
+		else {
+			convert_ = [](void* data, const float* buffer, const AudioConvertContext& context) {
+				DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::ConvertToInt2432(
+					static_cast<int32_t*>(data),
+					buffer,
+					context);
+				};
+		}
+	}
+	else {
+		convert_ = [](void* data, const float* buffer, const AudioConvertContext& context) {
+			DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Convert(
+				static_cast<int16_t*>(data),
+				buffer,
+				context);
+			};
+	}
+
 	// Must be active device and prefill buffer.
 	GetSample(true);
 
-	render_task_ = Executor::Spawn(*thread_pool_, [this, glitch_time](const auto& stop_token) {
+	render_task_ = Executor::Spawn(thread_pool_.get(), [this, glitch_time](const auto& stop_token) {
 		XAMP_LOG_D(logger_, "Start exclusive mode stream task! thread: {}", GetCurrentThreadId());
 		DWORD current_timeout = INFINITE;
 		Stopwatch watch;
@@ -520,7 +528,8 @@ void ExclusiveWasapiDevice::StartStream() {
 			watch.Reset();
 
 			// Wait for sample ready or stop event.
-			auto result = ::WaitForMultipleObjects(objects.size(), objects.data(), FALSE, current_timeout);
+			auto result = ::WaitForMultipleObjects(static_cast<DWORD>(objects.size()),
+				objects.data(), FALSE, current_timeout);
 
 			// Check wait time.
 			const auto elapsed = watch.Elapsed<std::chrono::milliseconds>();
@@ -538,7 +547,7 @@ void ExclusiveWasapiDevice::StartStream() {
 					thread_exit = true;
 				}
 				if (!ignore_wait_slow_) {
-					current_timeout = glitch_time.count();
+					current_timeout = static_cast<DWORD>(glitch_time.count());
 				}
 				break;
 			case WAIT_OBJECT_0 + 1:
@@ -568,15 +577,18 @@ void ExclusiveWasapiDevice::StartStream() {
 }
 
 void ExclusiveWasapiDevice::SetStreamTime(const double stream_time) noexcept {
-	stream_time_ = stream_time * static_cast<double>(mix_format_->nSamplesPerSec);
+	ThrowIf<std::invalid_argument>(mix_format_->nSamplesPerSec != 0,
+		"Output sample rate can not set zero.");
+	stream_time_ = static_cast<int64_t>(stream_time * static_cast<double>(mix_format_->nSamplesPerSec));
 }
 
 double ExclusiveWasapiDevice::GetStreamTime() const noexcept {
+	ThrowIf<std::invalid_argument>(mix_format_->nSamplesPerSec != 0,
+		"Output sample rate can not set zero.");
     return stream_time_ / static_cast<double>(mix_format_->nSamplesPerSec);
 }
 
 uint32_t ExclusiveWasapiDevice::GetVolume() const {
-	// TODO: GetVolume回傳level, CoreAudio, ASIO均無法讀取設備的dBFS
 	auto volume_scalar = 0.0F;
 	HrIfFailThrow(endpoint_volume_->GetMasterVolumeLevelScalar(&volume_scalar));
 	return static_cast<uint32_t>(volume_scalar * 100.0F);
@@ -592,7 +604,6 @@ void ExclusiveWasapiDevice::SetVolume(uint32_t volume) const {
 		HrIfFailThrow(endpoint_volume_->SetMute(false, nullptr));
 	}
 
-	// 統一化在各設備之間不同音量控制.
 	float scaled_min_volume = 0;
 	float scaled_max_volume = 0;
 	float volume_increment = 0;
@@ -636,7 +647,6 @@ bool ExclusiveWasapiDevice::IsHardwareControlVolume() const {
 	const auto hw_support = (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_VOLUME)
 		&& (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_MUTE);
 	return hw_support;
-	//return false;
 }
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

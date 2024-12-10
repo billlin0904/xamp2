@@ -25,7 +25,7 @@ public:
 
 	XAMP_NO_DISCARD Vector<DeviceInfo> GetDeviceInfo() const;
 
-	ScopedPtr<IOutputDevice> MakeDevice(const std::string& device_id);
+	ScopedPtr<IOutputDevice> MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::string& device_id);
 	
 private:
 	LoggerPtr logger_;
@@ -38,8 +38,8 @@ NullOutputDeviceType::NullOutputDeviceTypeImpl::NullOutputDeviceTypeImpl() noexc
 void NullOutputDeviceType::NullOutputDeviceTypeImpl::ScanNewDevice() {
 }
 
-ScopedPtr<IOutputDevice> NullOutputDeviceType::NullOutputDeviceTypeImpl::MakeDevice(const  std::string & device_id) {
-	return MakeAlign<IOutputDevice, NullOutputDevice>();
+ScopedPtr<IOutputDevice> NullOutputDeviceType::NullOutputDeviceTypeImpl::MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::string & device_id) {
+	return MakeAlign<IOutputDevice, NullOutputDevice>(thread_pool);
 }
 
 DeviceInfo NullOutputDeviceType::NullOutputDeviceTypeImpl::GetDeviceInfo(uint32_t device) const {
@@ -62,7 +62,7 @@ std::optional<DeviceInfo> NullOutputDeviceType::NullOutputDeviceTypeImpl::GetDef
 	info.device_id      = kDeviceId;
 	info.is_support_dsd = true;
 	info.device_type_id = XAMP_UUID_OF(NullOutputDeviceType);
-	return std::optional<DeviceInfo>{ std::in_place_t{}, info };
+	return CreateOptional<DeviceInfo>(std::move(info));
 }
 
 NullOutputDeviceType::NullOutputDeviceType() noexcept
@@ -97,8 +97,8 @@ Vector<DeviceInfo> NullOutputDeviceType::GetDeviceInfo() const {
 	return impl_->GetDeviceInfo();
 }
 
-ScopedPtr<IOutputDevice> NullOutputDeviceType::MakeDevice(const std::string& device_id) {
-	return impl_->MakeDevice(device_id);
+ScopedPtr<IOutputDevice> NullOutputDeviceType::MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::string& device_id) {
+	return impl_->MakeDevice(thread_pool, device_id);
 }
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

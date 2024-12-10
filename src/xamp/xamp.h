@@ -277,7 +277,7 @@ private:
 	int32_t cloud_playlist_process_count_;
 	PlayerOrder order_;
 	QModelIndex play_index_;
-	IXMainWindow* main_window_;
+	IXMainWindow* main_window_{ nullptr };
 	PlaylistTabWidget* last_playlist_tab_{ nullptr };
 	PlaylistTableView* last_playlist_{ nullptr };
     PlaylistPage* last_playlist_page_{ nullptr };
@@ -316,5 +316,6 @@ private:
 	dao::MusicDao music_dao_;
 	dao::PlaylistDao playlist_dao_;
 	http::HttpClient http_client_;
-    Ui::XampWindow ui_;	
+    Ui::XampWindow ui_;
+	std::shared_ptr<IThreadPoolExecutor> thread_pool_;
 };

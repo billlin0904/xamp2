@@ -3,7 +3,7 @@
 #include <stream/bassfilestream.h>
 #include <stream/basslib.h>
 #include <stream/api.h>
-#include <stream/bass_utiltis.h>
+#include <stream/bass_util.h>
 
 #include <base/buffer.h>
 
@@ -53,7 +53,7 @@ public:
     }
 
     void Encode(std::function<bool(uint32_t) > const& progress) {
-        bass_utiltis::Encode(stream_, progress);
+        bass_util::Encode(stream_, progress);
     }
 
     BassFileStream stream_;

@@ -35,7 +35,7 @@ public:
 	* 
 	* @param device: device	 
 	*/
-	explicit ExclusiveWasapiDevice(const CComPtr<IMMDevice> & device);
+	explicit ExclusiveWasapiDevice(const std::shared_ptr<IThreadPoolExecutor> &thread_pool, const CComPtr<IMMDevice> & device);
 
 	/*
 	* Destructor.
@@ -237,7 +237,8 @@ private:
 	IAudioCallback* callback_;
 	LoggerPtr logger_;
 	Task<void> render_task_;
-	ScopedPtr<IThreadPoolExecutor> thread_pool_;
+	std::shared_ptr<IThreadPoolExecutor> thread_pool_;
+	std::function<void(void *, const float *, const AudioConvertContext &)> convert_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

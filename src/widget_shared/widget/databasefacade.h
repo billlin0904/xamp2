@@ -64,7 +64,7 @@ private:
     QString unknown_;
     LoggerPtr logger_;
     Database* database_;
-    QScopedPointer<AudioEmbeddingService> audio_embedding_service_;
+    //QScopedPointer<AudioEmbeddingService> audio_embedding_service_;
 };
 
 #define qDatabaseFacade SharedSingleton<DatabaseFacade>::GetInstance()

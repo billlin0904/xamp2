@@ -14,9 +14,10 @@ VolumeControlDialog::VolumeControlDialog(const std::shared_ptr<IAudioPlayer> &pl
     setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
 
     setAttribute(Qt::WA_TranslucentBackground);
-	setFixedSize(35, 110);
+	setFixedSize(40, 110);
 
 	ui_->volumeSlider->setRange(0, 100);
+    ui_->volumeSlider->setFixedWidth(30);
     ui_->volumeSlider->setFocusPolicy(Qt::NoFocus);
     ui_->volumeSlider->setSingleStep(1);
     ui_->volumeSlider->setInvertedAppearance(false);

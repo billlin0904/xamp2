@@ -24,7 +24,10 @@ public:
 
 		avrt_handle_ = ::AvSetMmThreadCharacteristicsW(task_name.data(), &avrt_task_index_);
 		if (avrt_handle_ != nullptr) {
-			::AvSetMmThreadPriority(avrt_handle_, static_cast<AVRT_PRIORITY>(priority));
+			if (!::AvSetMmThreadPriority(avrt_handle_, static_cast<AVRT_PRIORITY>(priority))) {
+				XAMP_LOG_ERROR("AvSetMmThreadPriority return failure! Error:{}",
+					GetLastErrorMessage());
+			}
 			return;
 		}
 		

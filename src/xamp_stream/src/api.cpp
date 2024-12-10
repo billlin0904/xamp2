@@ -69,8 +69,8 @@ ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& file_path, DsdMo
             return MakeAlign<FileStream, BassFileStream>();
         default:;
         }
-        return MakeAlign<FileStream, AvFileStream>();
-        //return MakeAlign<FileStream, BassFileStream>();
+        //return MakeAlign<FileStream, AvFileStream>();
+        return MakeAlign<FileStream, BassFileStream>();
     } else {
         return MakeAlign<FileStream, BassFileStream>();
     }
@@ -152,6 +152,8 @@ IDsdStream* AsDsdStream(FileStream* stream) noexcept {
 }
 
 ScopedPtr<FileStream> MakeFileStream(const Path& file_path, DsdModes dsd_mode) {
+    static const std::string kApeFileExtension = ".ape";
+
     auto file_stream = StreamFactory::MakeFileStream(file_path, dsd_mode);
 
     if (dsd_mode != DsdModes::DSD_MODE_PCM) {
@@ -185,6 +187,32 @@ ScopedPtr<FileStream> MakeFileStream(const Path& file_path, DsdModes dsd_mode) {
             }
             dsd_stream->SetDSDMode(dsd_mode);
         }
+    }
+
+    if (file_path.extension() != kApeFileExtension) {
+        for (auto i = 0; i < 1; ++i) {
+            try
+            {
+                file_stream->OpenFile(file_path);
+            }
+            catch (const FileNotFoundException&) {
+                throw;
+            }
+            catch (const Exception& e) {
+                // Fallback other stream
+                if (file_stream->GetTypeId() == XAMP_UUID_OF(AvFileStream)) {
+                    file_stream = MakeAlign<FileStream, BassFileStream>();
+                }
+                else {
+                    file_stream = MakeAlign<FileStream, AvFileStream>();
+                }
+                file_stream->OpenFile(file_path);
+            }
+        }
+    }
+    else {
+        file_stream = MakeAlign<FileStream, BassFileStream>();
+        file_stream->OpenFile(file_path);
     }
 
     return file_stream;

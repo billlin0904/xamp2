@@ -26,6 +26,8 @@
 #include <bitset>
 #include <thread>
 
+#include "base/scopeguard.h"
+
 #ifdef XAMP_OS_MAC
 extern "C" int __ulock_wait(uint32_t operation, void* addr, uint64_t value,
                             uint32_t timeout); /* timeout is specified in microseconds */
@@ -224,89 +226,6 @@ void SetThreadName(std::wstring const& name) {
     static constexpr int kMaxNameLength = 63;
     const auto shortened_name = String::ToUtf8String(name).substr(0, kMaxNameLength);
     ::pthread_setname_np(shortened_name.c_str());
-#endif
-}
-
-const CpuAffinity CpuAffinity::kAll(-1, true);
-const CpuAffinity CpuAffinity::kInvalid(-1, false);
-
-CpuAffinity::CpuAffinity(int32_t only_use_cpu, bool all_cpu_set) {
-    if (only_use_cpu != -1) {
-        cpus_.fill(all_cpu_set);
-        cpus_[only_use_cpu] = true;
-    } else {
-        cpus_.fill(all_cpu_set);
-    }
-}
-
-void CpuAffinity::SetCpu(int32_t cpu) {
-    cpus_[cpu] = true;
-}
-
-bool CpuAffinity::IsCoreUse(int32_t cpu) const {
-    return cpus_[cpu];
-}
-
-CpuAffinity::operator bool() const noexcept {
-    for (int i = 0; i < cpus_.size(); ++i) {
-        if (cpus_[i]) {
-            return true;
-        }
-    }
-    return false;
-}
-
-size_t CpuAffinity::GetCoreCount() {
-#ifdef XAMP_OS_WIN
-    SYSTEM_INFO sysinfo{};
-    ::GetSystemInfo(&sysinfo);
-    return sysinfo.dwNumberOfProcessors;
-#else
-    return 0;
-#endif
-}
-
-void CpuAffinity::SetAffinity(JThread& thread) {
-#ifdef XAMP_OS_WIN
-    const DWORD group_count = ::GetActiveProcessorGroupCount();
-    for (DWORD group_index = 0; group_index < group_count; ++group_index) {
-        GROUP_AFFINITY group_affinity = {};
-        group_affinity.Group = group_index;
-
-        const DWORD processor_count = ::GetActiveProcessorCount(group_index);
-        group_affinity.Mask = 0;
-
-        for (DWORD processor_index = 0; processor_index < processor_count; ++processor_index) {
-            if (cpus_[group_index * 64 + processor_index]) {
-                group_affinity.Mask |= (1ull << processor_index);
-            }
-        }
-
-        if (!::SetThreadGroupAffinity(thread.native_handle(), &group_affinity, nullptr)) {
-            XAMP_LOG_DEBUG("Failed to set SetThreadGroupAffinity! error: {}.", GetLastErrorMessage());
-        }
-        else {
-            XAMP_LOG_TRACE("Success to set SetThreadGroupAffinity mask: {:#02X}", group_affinity.Mask);
-        }
-
-        for (DWORD processor_index = 0; processor_index < processor_count; ++processor_index) {
-            if (cpus_[group_index * 64 + processor_index]) {
-                PROCESSOR_NUMBER processor_number = {};
-                processor_number.Group = group_index;
-                processor_number.Number = processor_index;
-                processor_number.Reserved = 0;
-                if (!::SetThreadIdealProcessorEx(thread.native_handle(), &processor_number, nullptr)) {
-                    XAMP_LOG_DEBUG("Failed to set SetThreadIdealProcessorEx! error: {}.", GetLastErrorMessage());
-                }
-                else {
-                    XAMP_LOG_TRACE("Success to set SetThreadIdealProcessorEx group: {} processor index: {}", group_index, processor_index);
-                    break;
-                }
-            }
-        }
-}
-#else
-	// TODO: Implement for Linux or macOS.
 #endif
 }
 

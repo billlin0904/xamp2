@@ -113,7 +113,7 @@ std::string_view Exception::ErrorToString(Errors error) {
     return "";
 }
 
-DeviceUnSupportedFormatException::DeviceUnSupportedFormatException(AudioFormat const & format)
+DeviceUnSupportedFormatException::DeviceUnSupportedFormatException(const AudioFormat &format)
 	: Exception(Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT)
 	, format_(format) {
 	std::ostringstream ostr;

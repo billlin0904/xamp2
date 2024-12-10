@@ -235,6 +235,36 @@ AudioFormat ToAudioFormat(const WAVEFORMATEX* format) {
 	return AudioFormat(DataFormat::FORMAT_PCM, format->nChannels, format->wBitsPerSample, format->nSamplesPerSec);
 }
 
+bool IsDeviceSupportExclusiveMode(const CComPtr<IMMDevice>& device, AudioFormat &default_format) {
+	CComPtr<IPropertyStore> property;
+	if (FAILED(device->OpenPropertyStore(STGM_READ, &property))) {
+		return false;
+	}
+
+	PropVariant prop_variant;
+	if (FAILED(property->GetValue(PKEY_AudioEngine_DeviceFormat, &prop_variant))) {
+		return false;
+	}
+
+	CComPtr<IAudioClient> client;
+	auto hr = device->Activate(__uuidof(IAudioClient),
+		CLSCTX_ALL,
+		nullptr,
+		reinterpret_cast<void**>(&client));
+	if (SUCCEEDED(hr)) {
+		hr = client->IsFormatSupported(
+			AUDCLNT_SHAREMODE_EXCLUSIVE,
+			reinterpret_cast<PWAVEFORMATEX>(prop_variant.blob.pBlobData),
+			nullptr
+		);
+		if (SUCCEEDED(hr)) {
+			default_format = ToAudioFormat(reinterpret_cast<WAVEFORMATEX*>(prop_variant.blob.pBlobData));
+			return true;
+		}
+	}
+	return false;
+}
+
 XAMP_OUTPUT_DEVICE_WIN32_HELPER_NAMESPACE_END
 
 #endif // XAMP_OS_WIN

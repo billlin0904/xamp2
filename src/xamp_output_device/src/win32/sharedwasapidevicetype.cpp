@@ -58,7 +58,7 @@ CComPtr<IMMDevice> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDevice
 	return device;
 }
 
-ScopedPtr<IOutputDevice> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::MakeDevice(const  std::string & device_id) {
+ScopedPtr<IOutputDevice> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::MakeDevice(const std::string & device_id) {
 	return MakeAlign<IOutputDevice, SharedWasapiDevice>(false, GetDeviceById(String::ToStdWString(device_id)));
 }
 
@@ -86,7 +86,7 @@ std::optional<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::Ge
 	if (hr == ERROR_NOT_FOUND) {
 		return std::nullopt;
 	}
-	return std::optional<DeviceInfo> { std::in_place_t{}, helper::GetDeviceInfo(default_output_device, XAMP_UUID_OF(SharedWasapiDeviceType)) };
+	return CreateOptional<DeviceInfo>(helper::GetDeviceInfo(default_output_device, XAMP_UUID_OF(SharedWasapiDeviceType)));
 }
 
 Vector<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDeviceInfoList() const {
@@ -194,7 +194,7 @@ Vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfo() const {
 	return impl_->GetDeviceInfo();
 }
 
-ScopedPtr<IOutputDevice> SharedWasapiDeviceType::MakeDevice(const std::string& device_id) {
+ScopedPtr<IOutputDevice> SharedWasapiDeviceType::MakeDevice(const std::shared_ptr<IThreadPoolExecutor>&, const std::string& device_id) {
 	return impl_->MakeDevice(device_id);
 }
 

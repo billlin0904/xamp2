@@ -8,9 +8,11 @@
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
-#define LIBR8_DLL SharedSingleton<R8brainLib>::GetInstance()
+namespace {
+	#define LIBR8_DLL SharedSingleton<R8brainLib>::GetInstance()
 
-const std::string_view VERSION = "R8brain " R8B_VERSION;
+	inline const std::string_view R8B_Description = "R8brain " R8B_VERSION;
+}
 
 class R8brainSampleRateConverter::R8brainSampleRateConverterImpl {
 public:
@@ -28,7 +30,7 @@ public:
 		output_sample_rate_ = output_sample_rate;
 	}
 
-	void Initialize(uint32_t input_sample_rate) {
+	void Init(uint32_t input_sample_rate) {
 		handle_.reset(LIBR8_DLL.r8b_create(input_sample_rate,
 			output_sample_rate_,
 			kR8brainBufferSize,
@@ -94,7 +96,7 @@ void R8brainSampleRateConverter::Initialize(const AnyMap& config) {
 	impl_->Start(output_format.GetSampleRate());
 
 	const auto input_format = config.Get<AudioFormat>(DspConfig::kInputFormat);
-	impl_->Initialize(input_format.GetSampleRate());
+	impl_->Init(input_format.GetSampleRate());
 }
 
 Uuid R8brainSampleRateConverter::GetTypeId() const {
@@ -102,7 +104,7 @@ Uuid R8brainSampleRateConverter::GetTypeId() const {
 }
 
 std::string_view R8brainSampleRateConverter::GetDescription() const noexcept {
-	return VERSION;
+	return R8B_Description;
 }
 
 XAMP_STREAM_NAMESPACE_END

@@ -658,11 +658,35 @@ LIMIT 5
     setShowMode(SHOW_ARTIST);
 }
 
-void AlbumView::filterCategories(const QSet<QString>& category) {
+void AlbumView::filterCategories(const QSet<QString>& category, FilterType filterType) {
     QStringList categories;
     Q_FOREACH(auto & c, category) {
         categories.append(qFormat("'%1'").arg(c));
-	}
+    }
+
+    QString condition;
+
+    switch (filterType) {
+		// In and or are the same. so we can use the same condition.
+    case FILTER_IN:
+    case FILTER_OR:
+        condition = qFormat("albumCategories.category IN (%1)").arg(categories.join(","_str));
+        break;
+
+    case FILTER_AND:
+        condition = qFormat(R"(
+            albums.albumId IN (
+                SELECT albumId
+                FROM albumCategories
+                WHERE category IN (%1)
+                GROUP BY albumId
+                HAVING COUNT(DISTINCT category) = %2
+            )
+        )").arg(categories.join(","_str))
+            .arg(categories.size());
+        break;
+    }
+
     last_query_ = qFormat(R"(
 SELECT
     albums.album,
@@ -673,19 +697,20 @@ SELECT
     artists.coverId as artistCover,
     albums.year,
     albums.heart,
-	albums.isHiRes,
+    albums.isHiRes,
     albums.isSelected
 FROM
     albums
 LEFT JOIN
-	artists ON artists.artistId = albums.artistId
+    artists ON artists.artistId = albums.artistId
 LEFT JOIN
-	albumCategories ON albumCategories.albumId = albums.albumId
+    albumCategories ON albumCategories.albumId = albums.albumId
 WHERE 
-	albumCategories.category IN (%1) AND albums.storeType != -3
+    (%1) AND albums.storeType != -3
 GROUP BY
     albums.album
-    )").arg(categories.join(","_str));
+    )").arg(condition);
+
     setShowMode(SHOW_ARTIST);
 }
 
@@ -728,7 +753,7 @@ AlbumViewPage* AlbumView::albumViewPage() {
         page_->hide();
 
         const auto list_view_rect = this->rect();
-        page_->setFixedSize(QSize(list_view_rect.size().width() - 2, list_view_rect.height()));
+        page_->setFixedSize(QSize(list_view_rect.size().width() - 2, list_view_rect.height() - 2));
 
         (void)QObject::connect(page_,
             &AlbumViewPage::clickedArtist,
@@ -790,7 +815,7 @@ void AlbumView::resizeEvent(QResizeEvent* event) {
     if (page_ != nullptr) {
         if (!page_->isHidden()) {
             const auto list_view_rect = this->rect();
-            page_->setFixedSize(QSize(list_view_rect.size().width() - 2, list_view_rect.height()));
+            page_->setFixedSize(QSize(list_view_rect.size().width() - 2, list_view_rect.height() - 2));
         }
     }    
     QListView::resizeEvent(event);

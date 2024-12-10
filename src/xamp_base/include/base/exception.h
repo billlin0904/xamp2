@@ -165,7 +165,7 @@ public:\
 
 class XAMP_BASE_API DeviceUnSupportedFormatException final : public Exception {
 public:
-    explicit DeviceUnSupportedFormatException(AudioFormat const & format);
+    explicit DeviceUnSupportedFormatException(const AudioFormat & format);
 
     virtual ~DeviceUnSupportedFormatException() override = default;
 
@@ -217,9 +217,21 @@ XAMP_DECLARE_EXCEPTION_CLASS(NotSupportResampleSampleRateException)
 XAMP_DECLARE_EXCEPTION_CLASS(NotSupportExclusiveModeException)
 XAMP_DECLARE_EXCEPTION_CLASS(BufferOverflowException)
 
+template <typename E>
+void Throw(std::string_view s) {
+    throw E(std::string{ s });
+}
+
 template <typename E, typename... Args>
 void Throw(std::string_view s, Args &&...args) {
     throw E(String::Format(s, std::forward<Args>(args)...).c_str());
+}
+
+template <typename E, typename T = bool>
+void ThrowIf(T&& value, std::string_view s) {
+    if (!value) {
+        Throw<E>(s);
+    }
 }
 
 template <typename E, typename T = bool, typename... Args>

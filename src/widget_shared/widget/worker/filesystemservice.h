@@ -54,7 +54,7 @@ private:
     Stopwatch total_time_elapsed_;
     Stopwatch update_ui_elapsed_;
     QTimer timer_;
-	ScopedPtr<IThreadPoolExecutor> thread_pool_;
+    std::shared_ptr<IThreadPoolExecutor> thread_pool_;
     LoggerPtr logger_;
 };
 

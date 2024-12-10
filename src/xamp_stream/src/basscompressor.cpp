@@ -1,7 +1,7 @@
 #include <stream/basscompressor.h>
 
 #include <stream/compressorconfig.h>
-#include <stream/bass_utiltis.h>
+#include <stream/bass_util.h>
 #include <stream/basslib.h>
 
 #include <base/buffer.h>
@@ -49,24 +49,7 @@ public:
     }
 
     bool Process(float const * samples, size_t num_samples, BufferRef<float>& out) const {
-        if (out.size() != num_samples) {
-            out.maybe_resize(num_samples);
-        }
-        MemoryCopy(out.data(), samples, num_samples * sizeof(float));
-
-        const auto bytes_read =
-            BASS_LIB.BASS_ChannelGetData(stream_.get(),
-                out.data(),
-                num_samples * sizeof(float));
-        if (bytes_read == kBassError) {
-            return false;
-        }
-        if (bytes_read == 0) {
-            return false;
-        }
-        const auto frames = bytes_read / sizeof(float);
-        out.maybe_resize(frames);
-        return true;
+		return bass_util::ReadStream(stream_, samples, num_samples, out);
     }
 
 private:
@@ -97,7 +80,7 @@ Uuid BassCompressor::GetTypeId() const {
 }
 
 std::string_view BassCompressor::GetDescription() const noexcept {
-    return "BassCompressor";
+    return Description;
 }
 
 XAMP_STREAM_NAMESPACE_END

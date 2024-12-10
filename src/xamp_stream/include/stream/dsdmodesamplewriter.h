@@ -20,18 +20,19 @@ class XAMP_STREAM_API DsdModeSampleWriter final : public ISampleWriter {
 public:
     explicit DsdModeSampleWriter(DsdModes dsd_mode, uint8_t sample_size);
 
-    XAMP_NO_DISCARD bool Process(float const * sample_buffer, size_t num_samples, AudioBuffer<int8_t>& buffer) override;
+    XAMP_NO_DISCARD bool Process(float const * sample_buffer, size_t num_samples, AudioBuffer<std::byte>& buffer) override;
 
-    XAMP_NO_DISCARD bool Process(BufferRef<float> const& input, AudioBuffer<int8_t>& buffer) override;
+    XAMP_NO_DISCARD bool Process(const BufferRef<float>& input, AudioBuffer<std::byte>& buffer) override;
 
+    XAMP_NO_DISCARD Uuid GetTypeId() const override;
 private:
-    bool ProcessNativeDsd(int8_t const * sample_buffer, size_t num_samples, AudioBuffer<int8_t>& buffer);
+    bool ProcessNativeDsd(const std::byte* sample_buffer, size_t num_samples, AudioBuffer<std::byte>& buffer);
 
-    bool ProcessPcm(int8_t const * sample_buffer, size_t num_samples, AudioBuffer<int8_t>& buffer);
+    bool ProcessPcm(const std::byte* sample_buffer, size_t num_samples, AudioBuffer<std::byte>& buffer);
 
 	DsdModes dsd_mode_;
     uint8_t sample_size_;
-    std::function<bool(int8_t const* , size_t , AudioBuffer<int8_t>& )> dispatch_;
+    std::function<bool(const std::byte*, size_t, AudioBuffer<std::byte>&)> dispatch_;
 };
 
 XAMP_STREAM_NAMESPACE_END

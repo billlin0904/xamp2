@@ -71,6 +71,12 @@ class XAMP_WIDGET_SHARED_EXPORT AlbumView : public QListView {
 	Q_OBJECT
 public:
     static constexpr auto kPageAnimationDurationMs = 200;
+
+	enum FilterType {
+		FILTER_IN,
+		FILTER_AND,
+		FILTER_OR
+	};
 	
 	explicit AlbumView(QWidget* parent = nullptr);
 
@@ -84,7 +90,7 @@ public:
 
 	void filterCategories(const QString& category);
 
-	void filterCategories(const QSet<QString>& category);
+	void filterCategories(const QSet<QString>& category, FilterType filterType = FILTER_IN);
 
 	void filterYears(const QSet<QString>& years);
 

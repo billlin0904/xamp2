@@ -17,8 +17,6 @@
 #include <widget/playlisttableview.h>
 #include <widget/imagecache.h>
 
-#include "audio_embedding/audio_embedding_service.h"
-
 XAMP_DECLARE_LOG_NAME(DatabaseFacade);
 
 namespace {
@@ -84,7 +82,6 @@ DatabaseFacade::DatabaseFacade(QObject* parent, Database* database)
     }
     initialUnknownTranslateString();
     ensureAddUnknownId();
-    audio_embedding_service_.reset(new AudioEmbeddingService());
 }
 
 DatabaseFacade::~DatabaseFacade() = default;
@@ -221,11 +218,13 @@ void DatabaseFacade::addTrackInfo(const ForwardList<TrackInfo>& result,
 
             if (is_hires) {
                 album_dao.addAlbumCategory(album_id, kHiResCategory);
-			}
+            }
 
             for (const auto& category : getAlbumCategories(album)) {
                 album_dao.addAlbumCategory(album_id, category);
             }
+
+            album_dao.addAlbumCategory(album_id, "Disk("_str + QString::fromStdWString(track_info.file_path.root_name().wstring()) + ")"_str);
         }
 
         XAMP_EXPECTS(album_id > 0);

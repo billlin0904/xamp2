@@ -34,7 +34,6 @@ public:
 	*/
 	TaskScheduler(const std::string_view& name,
 	              size_t max_thread,
-	              const CpuAffinity& affinity,
 	              ThreadPriority priority);
 	
     XAMP_DISABLE_COPY(TaskScheduler)
@@ -108,7 +107,6 @@ private:
     Vector<WorkStealingTaskQueuePtr> task_work_queues_;    
     Latch work_done_;
     Latch start_clean_up_;
-    CpuAffinity cpu_affinity_;
     LoggerPtr logger_;
 };
 
@@ -116,7 +114,6 @@ class ThreadPoolExecutor final : public IThreadPoolExecutor {
 public:
 	explicit ThreadPoolExecutor(const std::string_view& name,
 	                            uint32_t max_thread = std::thread::hardware_concurrency(),
-	                            const CpuAffinity &affinity = CpuAffinity::kAll,
 	                            ThreadPriority priority = ThreadPriority::PRIORITY_NORMAL);
 
 	~ThreadPoolExecutor() override;

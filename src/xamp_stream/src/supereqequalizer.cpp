@@ -4,7 +4,7 @@
 #include <supereq.h>
 
 #include <stream/basslib.h>
-#include <stream/bass_utiltis.h>
+#include <stream/bass_util.h>
 #include <stream/eqsettings.h>
 #include <stream/supereqequalizer.h>
 

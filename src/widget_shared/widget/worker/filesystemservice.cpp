@@ -21,7 +21,7 @@ namespace {
 	};
 
 	std::pair<size_t, Vector<PathInfo>> getPathSortByFileCount(
-		const ScopedPtr<IThreadPoolExecutor>& thread_pool,
+		std::shared_ptr<IThreadPoolExecutor>& thread_pool,
 		const Vector<QString>& paths,
 		const QStringList& file_name_filters,
 		std::function<void(size_t)>&& action) {
@@ -34,7 +34,7 @@ namespace {
 			path_infos.push_back({0, 0, path});
 		}
 
-		Executor::ParallelFor(*thread_pool, path_infos, [&](auto& path_info) {
+		Executor::ParallelFor(thread_pool.get(), path_infos, [&](auto& path_info) {
 			path_info.file_count = getFileCount(path_info.path, file_name_filters);
 			path_info.depth = path_info.path.count("/"_str);
 			total_file_count += path_info.file_count;
@@ -76,7 +76,6 @@ FileSystemService::FileSystemService()
 	thread_pool_ = ThreadPoolBuilder::MakeThreadPool(
 		XAMP_LOG_NAME(FileSystemService),
 		ThreadPriority::PRIORITY_BACKGROUND,
-		CpuAffinity::kAll,
 		kThreadPoolSize);
 }
 
@@ -150,7 +149,7 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 	}
 
 	// directory_files 目的是為了將同一個檔案分類再一起, 為了以下進行平行處理資料夾內的檔案, 並將解析後得結果進行track no排序.
-	Executor::ParallelFor(*thread_pool_, directory_files, [&](const auto& path_info) {
+	Executor::ParallelFor(thread_pool_.get(), directory_files, [&](const auto& path_info) {
 		if (is_stop_) {
 			return;
 		}

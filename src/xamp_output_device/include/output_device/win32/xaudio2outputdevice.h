@@ -41,7 +41,7 @@ public:
 	*
 	* @param device: device
 	*/
-	explicit XAudio2OutputDevice(const std::wstring &device_id);
+	XAudio2OutputDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::wstring &device_id);
 
 	/*
 	* Destructor.
@@ -194,7 +194,7 @@ private:
 	ScopedPtr<XAudio2VoiceContext> voice_context_;
 	CComPtr<IXAudio2> xaudio2_;
 	LoggerPtr logger_;
-	ScopedPtr<IThreadPoolExecutor> thread_pool_;
+	std::shared_ptr<IThreadPoolExecutor> thread_pool_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

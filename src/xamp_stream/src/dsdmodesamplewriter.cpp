@@ -17,15 +17,19 @@ DsdModeSampleWriter::DsdModeSampleWriter(DsdModes dsd_mode, uint8_t sample_size)
     }
 }
 
-bool DsdModeSampleWriter::Process(float const * sample_buffer, size_t num_samples, AudioBuffer<int8_t>& buffer) {
-    return dispatch_(reinterpret_cast<int8_t const*>(sample_buffer), num_samples, buffer);
+bool DsdModeSampleWriter::Process(float const * sample_buffer, size_t num_samples, AudioBuffer<std::byte>& buffer) {
+    return std::invoke(dispatch_, reinterpret_cast<const std::byte*>(sample_buffer), num_samples, buffer);
 }
 
-bool DsdModeSampleWriter::Process(BufferRef<float> const& input, AudioBuffer<int8_t>& buffer) {
+bool DsdModeSampleWriter::Process(const BufferRef<float>& input, AudioBuffer<std::byte>& buffer) {
     return Process(input.data(), input.size(), buffer);
 }
 
-bool DsdModeSampleWriter::ProcessNativeDsd(int8_t const * sample_buffer, size_t num_samples, AudioBuffer<int8_t>& fifo) {
+Uuid DsdModeSampleWriter::GetTypeId() const {
+    return XAMP_UUID_OF(DsdModeSampleWriter);
+}
+
+bool DsdModeSampleWriter::ProcessNativeDsd(const std::byte* sample_buffer, size_t num_samples, AudioBuffer<std::byte>& fifo) {
     ThrowIf<BufferOverflowException>(fifo.TryWrite(sample_buffer, num_samples),
         "Failed to write buffer, read:{} write:{}",
         fifo.GetAvailableRead(),
@@ -33,7 +37,7 @@ bool DsdModeSampleWriter::ProcessNativeDsd(int8_t const * sample_buffer, size_t 
     return true;
 }
 
-bool DsdModeSampleWriter::ProcessPcm(int8_t const * sample_buffer, size_t num_samples, AudioBuffer<int8_t>& fifo) {
+bool DsdModeSampleWriter::ProcessPcm(const std::byte* sample_buffer, size_t num_samples, AudioBuffer<std::byte>& fifo) {
     ThrowIf<BufferOverflowException>(fifo.TryWrite(sample_buffer, num_samples * sample_size_),
         "Failed to write buffer, read:{} write:{}",
         fifo.GetAvailableRead(),

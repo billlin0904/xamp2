@@ -218,41 +218,64 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 		const size_t channels = context.input_format.GetChannels();
 		const size_t convert_size = context.convert_size;
 
-		const size_t input_jump = context.in_jump;
-		const size_t output_jump = context.out_jump;
+		const size_t in_jump = channels;
+		const size_t out_jump = 1;
+		const size_t output_left_offset = 0;
+		const size_t output_right_offset = convert_size;
 
-		const size_t input_left_offset = context.in_offset[0];
-		const size_t input_right_offset = context.in_offset[1];
+		// mask設計：
+	// 我們一次處理16 frame (32 bytes)，排列為 [L0,R0,L1,R1,...,L15,R15]
+	// 左聲道位於偶數 index，右聲道位於奇數 index
+	// 利用 mask 選擇偶數位作為左聲道，奇數位作為右聲道。
+	// 若不需要的位元組以 0x80 標記，則該位元組將被清0。
 
-		const size_t output_left_offset = context.out_offset[0];
-		const size_t output_right_offset = context.out_offset[1];
-
+	// Left channel mask: 取偶數位 (0,2,4,...,30)，將其放在輸出前半 16 bytes，中高位(前16個byte)用0x80清0
 		const __m256i left_shuffle_mask = _mm256_set_epi8(
-			30, 28, 26, 24, 22, 20, 18, 16,
-			14, 12, 10, 8, 6, 4, 2, 0,
+			(char)0x80, (char)0x80, (char)0x80, (char)0x80,
+			(char)0x80, (char)0x80, (char)0x80, (char)0x80,
+			(char)0x80, (char)0x80, (char)0x80, (char)0x80,
+			(char)0x80, (char)0x80, (char)0x80, (char)0x80,
 			30, 28, 26, 24, 22, 20, 18, 16,
 			14, 12, 10, 8, 6, 4, 2, 0
 		);
 
+		// Right channel mask: 取奇數位 (1,3,5,...,31)
 		const __m256i right_shuffle_mask = _mm256_set_epi8(
-			31, 29, 27, 25, 23, 21, 19, 17,
-			15, 13, 11, 9, 7, 5, 3, 1,
+			(char)0x80, (char)0x80, (char)0x80, (char)0x80,
+			(char)0x80, (char)0x80, (char)0x80, (char)0x80,
+			(char)0x80, (char)0x80, (char)0x80, (char)0x80,
+			(char)0x80, (char)0x80, (char)0x80, (char)0x80,
 			31, 29, 27, 25, 23, 21, 19, 17,
 			15, 13, 11, 9, 7, 5, 3, 1
 		);
 
 		size_t i = 0;
+		// 一次處理16 frame = 32 bytes
+		for (; i + 16 <= convert_size; i += 16) {
+			__m256i input_values = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(input));
 
-		for (; i + 32 <= convert_size; i += 32) {
-			__m256i input_values = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(input + i * input_jump));
 			__m256i left_values = _mm256_shuffle_epi8(input_values, left_shuffle_mask);
 			__m256i right_values = _mm256_shuffle_epi8(input_values, right_shuffle_mask);
-			_mm256_storeu_si256(reinterpret_cast<__m256i*>(output + i * output_jump + output_left_offset), left_values);
-			_mm256_storeu_si256(reinterpret_cast<__m256i*>(output + i * output_jump + output_right_offset), right_values);
+
+			// left_values, right_values 都是 256-bit，有一半是0
+			// 我們只需要其低128-bit即為 16個byte的連續資料
+			__m128i left_128 = _mm256_castsi256_si128(left_values);
+			__m128i right_128 = _mm256_castsi256_si128(right_values);
+
+			// 輸出到正確的位置
+			_mm_storeu_si128(reinterpret_cast<__m128i*>(output + output_left_offset), left_128);
+			_mm_storeu_si128(reinterpret_cast<__m128i*>(output + output_right_offset), right_128);
+
+			input += in_jump * 16; // 前進16 frame，1 frame=2 bytes，因此前進32 bytes
+			output += out_jump * 16; // 輸出前進16 bytes（對應16 samples）
 		}
+
+		// 處理尾端不足16 frame的部分（標量處理）
 		for (; i < convert_size; ++i) {
-			output[i * output_jump + output_left_offset] = input[i * input_jump + input_left_offset];
-			output[i * output_jump + output_right_offset] = input[i * input_jump + input_right_offset];
+			output[output_left_offset] = input[0]; // left channel = 偶數index=0
+			output[output_right_offset] = input[1]; // right channel = 奇數index=1
+			input += in_jump;
+			output += out_jump;
 		}
 	}
 
@@ -260,30 +283,76 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 		XAMP_EXPECTS(output != nullptr);
 		XAMP_EXPECTS(input != nullptr);
 
+		const size_t channels = context.input_format.GetChannels();
+		XAMP_EXPECTS(channels == 2); // 假設立體聲
 		const size_t convert_size = context.convert_size;
 
-		const size_t input_jump = context.in_jump;
+		const size_t input_jump = context.in_jump;   // 每個 frame 的 input 前進量(以 int32_t 為單位)
+		const size_t output_jump = context.out_jump; // 每個 frame 的 output 前進量(以 int32_t 為單位)
+
+		const size_t input_left_offset = context.in_offset[0];
+		const size_t input_right_offset = context.in_offset[1];
+
 		const size_t output_left_offset = context.out_offset[0];
 		const size_t output_right_offset = context.out_offset[1];
-		const size_t avx2_lanes = 8;
+
+		// 我們處理 4 frames（8 int32_t），index 從 0 開始：
+		// int32_0(L), int32_1(R), int32_2(L), int32_3(R), int32_4(L), int32_5(R), int32_6(L), int32_7(R)
+		// 每個 int32 有 4 bytes，共 32 bytes。
+		// 我們要把偶數 index 的 int32 (0,2,4,6) 放到 left channel，
+		// 奇數 index 的 int32 (1,3,5,7) 放到 right channel。
+		//
+		// bytes 排列 (每個int32佔4 bytes)：
+		// int32_0: bytes [0..3]
+		// int32_1: bytes [4..7]
+		// int32_2: bytes [8..11]
+		// int32_3: bytes [12..15]
+		// int32_4: bytes [16..19]
+		// int32_5: bytes [20..23]
+		// int32_6: bytes [24..27]
+		// int32_7: bytes [28..31]
+
+		// Left channel mask: 取出 (0,2,4,6) 這些 int32 的 bytes：
+		// int32_0(0..3), int32_2(8..11), int32_4(16..19), int32_6(24..27)
+		// 將其連續放在前 16 bytes (4 int32)，其餘填上0x80不取用。
+		alignas(32) static const uint8_t left_mask_bytes[32] = {
+			0, 1, 2, 3,      // int32_0
+			8, 9, 10, 11,    // int32_2
+			16,17,18,19,     // int32_4
+			24,25,26,27,     // int32_6
+			0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80
+		};
+		// Right channel mask: 取出 (1,3,5,7)：
+		// int32_1(4..7), int32_3(12..15), int32_5(20..23), int32_7(28..31)
+		alignas(32) static const uint8_t right_mask_bytes[32] = {
+			4, 5, 6, 7,       // int32_1
+			12,13,14,15,      // int32_3
+			20,21,22,23,      // int32_5
+			28,29,30,31,      // int32_7
+			0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80
+		};
+
+		__m256i left_shuffle_mask = _mm256_load_si256(reinterpret_cast<const __m256i*>(left_mask_bytes));
+		__m256i right_shuffle_mask = _mm256_load_si256(reinterpret_cast<const __m256i*>(right_mask_bytes));
 
 		size_t i = 0;
 
-		const __m256i permute_mask_left = _mm256_set_epi32(14, 12, 10, 8, 6, 4, 2, 0);
-		const __m256i permute_mask_right = _mm256_set_epi32(15, 13, 11, 9, 7, 5, 3, 1);
+		// 一次處理4個frame
+		for (; i + 4 <= convert_size; i += 4) {
+			// 載入4個frame * 2channel = 8個int32 = 32 bytes
+			__m256i input_values = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(input + i * input_jump));
 
-		for (; i + avx2_lanes <= convert_size; i += avx2_lanes) {
-			__m256i input_values1 = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(input + i * input_jump));
-			__m256i input_values2 = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(input + (i + 4) * input_jump));        
-			__m256i left_values = _mm256_permutevar8x32_epi32(input_values1, permute_mask_left);        
-			__m256i right_values = _mm256_permutevar8x32_epi32(input_values1, permute_mask_right);
-			_mm256_storeu_si256(reinterpret_cast<__m256i*>(output + output_left_offset + i), left_values);
-			_mm256_storeu_si256(reinterpret_cast<__m256i*>(output + output_right_offset + i), right_values);
+			__m256i left_values = _mm256_shuffle_epi8(input_values, left_shuffle_mask);
+			__m256i right_values = _mm256_shuffle_epi8(input_values, right_shuffle_mask);
+
+			_mm256_storeu_si256(reinterpret_cast<__m256i*>(output + i * output_jump + output_left_offset), left_values);
+			_mm256_storeu_si256(reinterpret_cast<__m256i*>(output + i * output_jump + output_right_offset), right_values);
 		}
 
-		for (; i < convert_size * input_jump; i += input_jump) {
-			output[output_left_offset + i / input_jump] = input[i];
-			output[output_right_offset + i / input_jump] = input[i + 1];
+		// 尾端不足4個frame的資料以標量方式處理
+		for (; i < convert_size; ++i) {
+			output[i * output_jump + output_left_offset] = input[i * input_jump + input_left_offset];
+			output[i * output_jump + output_right_offset] = input[i * input_jump + input_right_offset];
 		}
 	}
 };

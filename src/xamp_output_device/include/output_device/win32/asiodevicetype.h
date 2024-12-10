@@ -91,7 +91,7 @@ public:
 	* @param device_id: device id
 	* @return IOutputDevice
 	*/
-	ScopedPtr<IOutputDevice> MakeDevice(std::string const &device_id) override;
+	ScopedPtr<IOutputDevice> MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, std::string const &device_id) override;
 private:
 	class AsioDeviceTypeImpl;
 	ScopedPtr<AsioDeviceTypeImpl> impl_;

@@ -34,26 +34,6 @@ XAMP_MAKE_ENUM(
     PRIORITY_PARENT_PROCESS
 )
 
-struct XAMP_BASE_API CpuAffinity {
-public:
-    static const CpuAffinity kAll;
-    static const CpuAffinity kInvalid;
-
-    explicit CpuAffinity(int32_t only_use_cpu = -1, bool all_cpu_set = true);
-
-    static size_t GetCoreCount();
-
-    operator bool() const noexcept;
-
-    void SetCpu(int32_t cpu);
-
-    bool IsCoreUse(int32_t cpu) const;
-
-    void SetAffinity(JThread& thread);
-private:
-    std::array<bool, 256> cpus_;
-};
-
 inline constexpr uint32_t kInfinity =
     #ifdef XAMP_OS_WIN 
 		0xFFFFFFFF;

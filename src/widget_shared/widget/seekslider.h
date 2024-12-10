@@ -20,6 +20,8 @@ public:
 
 	void setRange(int64_t min, int64_t max);
 
+	void enableAnimation(bool enable);
+
 signals:
 	void leftButtonValueChanged(int64_t value);
 

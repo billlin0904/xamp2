@@ -31,7 +31,7 @@ BackgroundService::BackgroundService()
 	, http_client_(&nam_, QString(), this)
     , buffer_pool_(MakeObjectPool<QByteArray>(kBufferPoolSize)) {
     logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(BackgroundService));
-	thread_pool_ = ThreadPoolBuilder::MakeBackgroundThreadPool();
+    thread_pool_ = ThreadPoolBuilder::MakeBackgroundThreadPool();
 }
 
 BackgroundService::~BackgroundService() = default;

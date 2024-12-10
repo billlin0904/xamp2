@@ -12,7 +12,7 @@
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
-NullOutputDevice::NullOutputDevice()
+NullOutputDevice::NullOutputDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool)
 	: is_running_(false)
 	, raw_mode_(false)
 	, is_muted_(false)
@@ -22,7 +22,7 @@ NullOutputDevice::NullOutputDevice()
 	, callback_(nullptr)
 	, wait_time_(0)
 	, logger_(XampLoggerFactory.GetLogger(kNullOutputDeviceLoggerName))
-	, thread_pool_(ThreadPoolBuilder::MakeOutputTheadPool()) {
+	, thread_pool_(thread_pool) {
 }
 
 NullOutputDevice::~NullOutputDevice() = default;
@@ -114,7 +114,7 @@ void NullOutputDevice::StartStream() {
 	XAMP_LOG_DEBUG("NullOutputDevice start render.");
 
 	is_stopped_ = false;
-	render_task_ = Executor::Spawn(*thread_pool_, [this](const StopToken& stop_token) {
+	render_task_ = Executor::Spawn(thread_pool_.get(), [this](const StopToken& stop_token) {
 		size_t num_filled_frames = 0;		
 		double sample_time = 0;
 

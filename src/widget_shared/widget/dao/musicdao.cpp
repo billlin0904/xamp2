@@ -168,8 +168,8 @@ namespace dao {
             auto lyrc = query.value("lyrc"_str).toString();
             auto tr_lyrc = query.value("trLyrc"_str).toString();
             if (!lyrc.isEmpty()) {
-                return std::optional<std::tuple<QString, QString>> { std::in_place_t{},
-                    std::tuple<QString, QString> { lyrc, tr_lyrc } };
+                return CreateOptional<std::tuple<QString, QString>>(
+                    std::tuple<QString, QString> { lyrc, tr_lyrc });
             }
         }
         return std::nullopt;

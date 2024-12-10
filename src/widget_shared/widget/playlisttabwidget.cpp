@@ -55,7 +55,8 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     auto* button_widget = new QWidget(this);
     button_widget->setStyleSheet(qFormat(R"(background-color: transparent;)"));
     auto* layout = new QHBoxLayout(button_widget);
-	layout->setContentsMargins(0, 0, 4, 4);
+    //button_widget->setMaximumHeight(32);
+	//layout->setContentsMargins(0, 0, 4, 4);
 	layout->setSpacing(0);
     layout->addWidget(add_tab_button_, 1);
 
@@ -230,7 +231,7 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
     }
 
 	QTabWidget QTabBar::tab {
-		min-height: 32px;
+		min-height: 40px;
 		background-color: #121212;        
 	}
 
@@ -267,7 +268,7 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
     }
 
 	QTabWidget QTabBar::tab {
-		min-height: 32px;
+		min-height: 40px;
 		color: black;
 		background-color: #f9f9f9;
 	}
@@ -365,9 +366,13 @@ void PlaylistTabWidget::toolTipMove(const QPoint& pos) {
 
     if (!images.empty() && images.size() < 4) {
         auto image_size = images.size();
-        for (auto i = 0; i < 4 - image_size; ++i) {
-            images.push_back(image_util::resizeImage(qTheme.defaultSizeUnknownCover(), kImageSize));
-            tooltip_->setImage(image_util::mergeImage(images));
+        if (image_size > 1) {
+            for (auto i = 0; i < 4 - image_size; ++i) {
+                images.push_back(image_util::resizeImage(qTheme.defaultSizeUnknownCover(), kImageSize));
+                tooltip_->setImage(image_util::mergeImage(images));
+            }
+        } else {
+            tooltip_->setImage(images[0]);
         }
     } else {
         if (!images.empty()) {
@@ -538,23 +543,12 @@ void PlaylistTabWidget::mouseDoubleClickEvent(QMouseEvent*) {
 }
 
 void PlaylistTabWidget::resizeTabWidth() {
-    auto w = width();
+    /*auto w = width();
     if (tab_bar_->count() <= 3) {
 		tab_bar_->setMinimumWidth(100);
 		return;
     }
-    tab_bar_->setMinimumWidth(w - 45);
-	/*constexpr auto kMaxTabWidth = 300;
-    auto max_width = getMainWindow()->width() - 150;
-    tab_bar_->setMaximumWidth(max_width);
-    auto average_width = tab_bar_->count() > (max_width / kMaxTabWidth)
-		? max_width / tab_bar_->count() : kMaxTabWidth;
-    setStyleSheet(qFormat(R"(		
-	    QTabWidget QTabBar::tab {
-            min-height: 32px;
-			width: %1px; 
-        }
-	)").arg(average_width));*/
+    tab_bar_->setMinimumWidth(w - 45);*/
 }
 
 void PlaylistTabWidget::resizeEvent(QResizeEvent* event) {

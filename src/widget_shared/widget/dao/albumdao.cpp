@@ -96,7 +96,7 @@ namespace dao {
             stats.year = query.value("year"_str).toInt();
             stats.durations = query.value("durations"_str).toDouble();
             stats.file_size = query.value("fileSize"_str).toULongLong();
-            return std::optional<AlbumStats>{ std::in_place_t{}, stats };
+            return CreateOptional<AlbumStats>(std::move(stats));
         }
 
         return std::nullopt;
@@ -414,7 +414,7 @@ LIMIT
         query.addBindValue(album_id);
         query.exec();
         while (query.next()) {
-            return  std::optional<QString> { std::in_place_t{}, query.value("path"_str).toString() };
+            return CreateOptional<QString>(query.value("path"_str).toString());
         }
         return std::nullopt;
     }

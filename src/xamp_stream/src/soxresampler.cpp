@@ -13,10 +13,11 @@
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
-XAMP_DECLARE_LOG_NAME(SoxrSampleRateConverter);
-
-const std::string_view VERSION = "Soxr " SOXR_THIS_VERSION_STR;
-#define LISOXR_LIB Singleton<SoxrLib>::GetInstance()
+namespace {
+	XAMP_DECLARE_LOG_NAME(SoxrSampleRateConverter);
+	const std::string_view SOXR_Description = "Soxr " SOXR_THIS_VERSION_STR;
+#define LISOXR_LIB Singleton<SoxrLib>::GetInstance()	
+}
 
 class SoxrSampleRateConverter::SoxrSampleRateConverterImpl final {
 public:
@@ -270,7 +271,7 @@ Uuid SoxrSampleRateConverter::GetTypeId() const {
 }
 
 std::string_view SoxrSampleRateConverter::GetDescription() const noexcept {
-	return VERSION;
+	return SOXR_Description;
 }
 	
 XAMP_STREAM_NAMESPACE_END

@@ -16,18 +16,13 @@ copy x64\Release\r8bsrc.dll deploy\
 
 copy x64\Release\widget_shared.dll deploy\
 
-copy x64\Release\FramelessHelperCore.dll deploy\
-copy x64\Release\FramelessHelperWidgets.dll deploy\
+copy x64\Release\QWKCore.dll deploy\
+copy x64\Release\QWKWidgets.dll deploy\
 
-copy x64\Release\bass.dll deploy\
-copy x64\Release\bassdsd.dll deploy\
-copy x64\Release\bass_aac.dll deploy\
-copy x64\Release\bassflac.dll deploy\
-copy x64\Release\bass_fx.dll deploy\
-copy x64\Release\bassmix.dll deploy\
-copy x64\Release\basscd.dll deploy\
-copy x64\Release\bassenc.dll deploy\
-copy x64\Release\bassenc_flac.dll deploy\
+copy x64\Release\supereq.dll deploy\
+copy x64\Release\mecab.dll deploy\
+
+xcopy x64\Release\components deploy\components\ /E /I /H /C /Y
 
 copy x64\Release\xamp_base.dll deploy\
 copy x64\Release\xamp_stream.dll deploy\
@@ -45,6 +40,7 @@ copy x64\Release\xamp.pdb deploy\
 copy x64\Release\xamp.pdb deploy\
 copy lincense.txt deploy\
 copy credits.txt deploy\
+copy fonticon.json deploy\
 
 xcopy /Y /S /I /E eqpresets deploy\eqpresets
 xcopy /Y /S /I /E Resource deploy\Resource
@@ -56,4 +52,4 @@ lrelease en_US.ts -qm en_US.qm
 copy en_US.qm x64\Debug\langs\
 copy en_US.qm x64\Release\langs\
 
-C:\Qt\6.5.2\msvc2019_64\bin\windeployqt --force deploy x64\Release\xamp.exe --release
+C:\Qt\6.7.2\msvc2019_64\bin\windeployqt --force deploy x64\Release\xamp.exe --release

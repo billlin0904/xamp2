@@ -59,6 +59,11 @@ constexpr size_t CountOf(T const (&)[N]) noexcept {
 	return N;
 }
 
+template <typename T, typename... Args>
+std::optional<T> CreateOptional(Args&&... args) {
+	return std::optional<T>(std::in_place_t{}, std::forward<Args>(args)...);
+}
+
 template <typename T, size_t AlignmentBytes = kMallocAlignSize>
 class XAMP_BASE_API_ONLY_EXPORT AlignedAllocator : public std::allocator<T> {
 public:

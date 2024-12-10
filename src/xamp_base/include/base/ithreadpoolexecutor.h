@@ -86,16 +86,13 @@ decltype(auto) IThreadPoolExecutor::Spawn(F&& f, Args&&... args, ExecuteFlags fl
 }
 
 struct XAMP_BASE_API ThreadPoolBuilder {
-    static ScopedPtr<IThreadPoolExecutor> MakeThreadPool(const std::string_view& pool_name,
+    static std::shared_ptr<IThreadPoolExecutor> MakeThreadPool(const std::string_view& pool_name,
         ThreadPriority priority = ThreadPriority::PRIORITY_NORMAL,
-        CpuAffinity affinity = CpuAffinity::kAll,
         uint32_t max_thread = std::thread::hardware_concurrency());
 
-    static ScopedPtr<IThreadPoolExecutor> MakeOutputTheadPool();
+    static std::shared_ptr<IThreadPoolExecutor> MakeBackgroundThreadPool();
 
-    static ScopedPtr<IThreadPoolExecutor> MakeBackgroundThreadPool();
-
-    static ScopedPtr<IThreadPoolExecutor> MakePlaybackThreadPool();
+    static std::shared_ptr<IThreadPoolExecutor> MakePlaybackThreadPool();
 };
 
 XAMP_BASE_NAMESPACE_END

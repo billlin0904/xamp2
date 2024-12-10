@@ -22,7 +22,7 @@ public:
 	virtual void Initialize(const AnyMap& config) = 0;
 
     // note: return true (fetch more data).
-    XAMP_NO_DISCARD virtual bool ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) = 0;
+    XAMP_NO_DISCARD virtual bool ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<std::byte>& fifo) = 0;
 
     virtual void AddPreDSP(ScopedPtr<IAudioProcessor> processor) = 0;
 

@@ -181,7 +181,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 			album_tag_list_widget_->disableAllTag(tr("All"));
 		}
 		else {
-			album_view_->filterCategories(tags);
+			album_view_->filterCategories(tags, AlbumView::FILTER_AND);
 		}
 		album_view_->albumViewPage()->hide();
 		album_view_->reload();

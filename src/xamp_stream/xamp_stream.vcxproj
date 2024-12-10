@@ -167,7 +167,7 @@
     <ClInclude Include="include\stream\basslib.h" />
     <ClInclude Include="include\stream\bassparametriceq.h" />
     <ClInclude Include="include\stream\basswavfileencoder.h" />
-    <ClInclude Include="include\stream\bass_utiltis.h" />
+    <ClInclude Include="include\stream\bass_util.h" />
     <ClInclude Include="include\stream\compressorconfig.h" />
     <ClInclude Include="include\stream\discIdlib.h" />
     <ClInclude Include="include\stream\dsd_times.h" />
@@ -216,7 +216,7 @@
     <ClCompile Include="src\bassparametriceq.cpp" />
     <ClCompile Include="src\basswavfileencoder.cpp" />
     <ClCompile Include="src\basslib.cpp" />
-    <ClCompile Include="src\bass_utiltis.cpp" />
+    <ClCompile Include="src\bass_util.cpp" />
     <ClCompile Include="src\dspmanager.cpp" />
     <ClCompile Include="src\fft.cpp" />
     <ClCompile Include="src\fftwlib.cpp" />

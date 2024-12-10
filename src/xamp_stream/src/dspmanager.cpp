@@ -56,10 +56,6 @@ IDSPManager& DSPManager::AddCompressor() {
 }
 
 void DSPManager::SetSampleWriter(ScopedPtr<ISampleWriter> writer) {
-    if (!writer) {
-        sample_writer_.reset();
-        return;
-    }
     sample_writer_ = std::move(writer);
 }
 
@@ -122,11 +118,11 @@ bool DSPManager::IsEnableSampleRateConverter() const {
     return Contains(equal_id);
 }
 
-bool DSPManager::ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) {
+bool DSPManager::ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<std::byte>& fifo) {
     return std::invoke(dispatch_, samples, num_samples, fifo);
 }
 
-bool DSPManager::DefaultProcess(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) {
+bool DSPManager::DefaultProcess(const float* samples, uint32_t num_samples, AudioBuffer<std::byte>& fifo) {
     ThrowIf<BufferOverflowException>(sample_writer_->Process(samples, num_samples, fifo), 
         "Failed to write buffer, read:{} write:{}", 
         fifo.GetAvailableRead(),
@@ -134,7 +130,7 @@ bool DSPManager::DefaultProcess(const float* samples, uint32_t num_samples, Audi
     return false;
 }
 
-bool DSPManager::Process(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) {
+bool DSPManager::Process(const float* samples, uint32_t num_samples, AudioBuffer<std::byte>& fifo) {
     BufferRef<float> pre_dsp_buffer(pre_dsp_buffer_);
     BufferRef<float> post_dsp_buffer(post_dsp_buffer_);
 

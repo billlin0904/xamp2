@@ -201,6 +201,7 @@ protected:
 	bool cloud_mode_{ false };
 	bool enable_delete_{ true };
 	bool enable_load_file_{ true };
+	bool enable_scroll_{ false };
 	int32_t hover_row_{ -1 };
 	int32_t hover_column_{ -1 };
 	int32_t playlist_id_{ -1 };

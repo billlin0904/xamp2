@@ -212,6 +212,7 @@ template <>
 struct AvResourceDeleter<AVCodecContext> {
     void operator()(AVCodecContext* p) const {
         XAMP_EXPECTS(p != nullptr);
+        LIBAV_LIB.Codec->avcodec_close(p);
         LIBAV_LIB.Codec->avcodec_free_context(&p);
     }
 };

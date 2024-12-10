@@ -44,7 +44,7 @@ public:
     virtual void Initialize(const AnyMap& config) = 0;
 
     /*
-    * Process the audio samples.
+    * ReadStream the audio samples.
     * 
     * @param samples: the input audio samples.
     * @param num_samples: the number of input audio samples.

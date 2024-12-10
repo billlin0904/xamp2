@@ -36,7 +36,7 @@ public:
     void SetEq(const EqSettings& settings);
 
     /**
-    * Process function processes the input samples using bass_utiltis and returns the result.
+    * ReadStream function processes the input samples using bass_util and returns the result.
     *
     * @param samples pointer to the input samples
     * @param num_samples number of samples to process

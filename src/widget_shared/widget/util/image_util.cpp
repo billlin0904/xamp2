@@ -307,7 +307,7 @@ namespace {
 
 	}
 
-	void stackblurJob(ScopedPtr<IThreadPoolExecutor>& thread_pool, QImage& image, uint32_t radius = 10, uint32_t cores = std::thread::hardware_concurrency()) {
+	void stackblurJob(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, QImage& image, uint32_t radius = 10, uint32_t cores = std::thread::hardware_concurrency()) {
 		XAMP_EXPECTS(radius > 0 && radius < 254);
 		XAMP_EXPECTS(cores > 0);
 
@@ -330,7 +330,7 @@ namespace {
 
 			for (auto i = 0; i < cores; i++) {
 				auto buffer = stack.data() + div * 4 * i;
-				tasks.push_back(Executor::Spawn(*thread_pool,
+				tasks.push_back(Executor::Spawn(thread_pool.get(),
 					[=](const StopToken& stop_token) {
 						stackblurJob(src, width, height, radius, cores, i, step, buffer);
 					}));
@@ -505,7 +505,7 @@ QPixmap roundImage(const QPixmap& src, QSize size, int32_t radius) {
 	return result;
 }
 
-QImage blurImage(ScopedPtr<IThreadPoolExecutor>& thread_pool, const QPixmap& source, QSize size) {
+QImage blurImage(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const QPixmap& source, QSize size) {
 	const QSize scaled_size(size.width() + kImageBlurRadius, size.height() + kImageBlurRadius);
 	auto resize_pixmap = resizeImage(source, scaled_size);
 	auto img = resize_pixmap.toImage();

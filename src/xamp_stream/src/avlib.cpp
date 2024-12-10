@@ -197,57 +197,15 @@ AvLib::AvLib() {
 	logger->SetLevel(level);
 
 	XAMP_LOG_D(logger, "Network init.");
-
-	GetSupportFileExtensions();
 }
 
 HashSet<std::string> AvLib::GetSupportFileExtensions() const {
 	HashSet<std::string> result;
-	HashSet<const AVCodec*> audio_codecs;
-
-    std::set<std::string> ordered_extension;
+	HashSet<std::string> ordered_extension;
 
 	const auto level = logger->GetLevel();
 	logger->SetLevel(LOG_LEVEL_DEBUG);
 
-#if 0
-	void* i = nullptr;
-	const AVCodec* codec;
-	while ((codec = Codec->av_codec_iterate(&i))) {
-		if (!codec->decode) {
-			if (codec->type == AVMEDIA_TYPE_AUDIO) {
-				audio_codecs.insert(codec);
-			}
-		}
-	}
-
-	auto output_format = Format->av_oformat_next(nullptr);
-
-#define IF_NULL_STR(value) value ? value : ""
-
-	while (output_format != nullptr) {
-		if (output_format->extensions) {
-			auto result = String::Split(output_format->extensions, ",");
-			if (!result.empty()) {
-				for (const auto& extension : result) {
-					auto ext = String::AsStdString(extension);
-					String::LTrim(ext);
-					String::RTrim(ext);
-					if (ordered_extension.find(ext) == ordered_extension.end()) {
-						ordered_extension.insert(ext);
-					}
-				}
-			} else {
-				ordered_extension.insert(String::Format(".{}", output_format->extensions));
-			}			
-		}
-		
-		XAMP_LOG_T(logger, "Load Libav output format: {} - {}",
-			IF_NULL_STR(output_format->long_name),
-			IF_NULL_STR(output_format->extensions));
-		output_format = output_format->next;
-	}
-#else
     const AVInputFormat *output_format;
     void *opaque = nullptr;
     while ((output_format = Format->av_demuxer_iterate(&opaque)) != nullptr){
@@ -267,7 +225,7 @@ HashSet<std::string> AvLib::GetSupportFileExtensions() const {
             }
         }
     }
-#endif
+
 	// Workaround!
 	ordered_extension.insert("wav");
 	ordered_extension.insert("mp3");

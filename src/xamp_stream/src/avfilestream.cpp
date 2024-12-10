@@ -42,10 +42,7 @@ public:
         audio_format_.Reset();
         swr_context_.reset();
         audio_frame_.reset();
-        if (codec_context_ != nullptr) {
-            LIBAV_LIB.Codec->avcodec_close(codec_context_.get());
-            codec_context_ = nullptr;
-        }
+        codec_context_.reset();
         format_context_.reset();
     }
 
@@ -313,7 +310,8 @@ public:
     }
 
     uint32_t GetBitDepth() const noexcept {
-        return (std::max)(format_context_->streams[audio_stream_id_]->codecpar->bits_per_raw_sample, 16);
+        constexpr auto kDefaultBitDepth = 16;
+        return (std::max)(format_context_->streams[audio_stream_id_]->codecpar->bits_per_raw_sample, kDefaultBitDepth);
     }
 
     void Seek(double stream_time) const {
@@ -383,11 +381,11 @@ private:
     mutable bool is_eof_{ false };
     int32_t audio_stream_id_;
     double duration_;
+    AVCodecParameters* codecpar_{ nullptr };
     AudioFormat audio_format_;
     AvPtr<SwrContext> swr_context_;
     AvPtr<AVFrame> audio_frame_;
-    AvPtr<AVCodecContext> codec_context_{nullptr};
-    AVCodecParameters *codecpar_{nullptr};
+    AvPtr<AVCodecContext> codec_context_;
     AvPtr<AVFormatContext> format_context_;
     AvPtr<AVPacket> packet_;
     LoggerPtr logger_;

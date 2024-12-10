@@ -135,55 +135,6 @@ ORDER BY
     }
 
     QString groupNone(int32_t playlist_id) {
-#if 0
-        return qFormat(R"(
-    SELECT
-	albums.coverId,
-	musics.musicId,
-	playlistMusics.playing,
-	musics.track,
-	musics.path,
-	musics.fileSize,
-	musics.title,
-	musics.fileName,
-	artists.artist,
-	albums.album,
-	musics.bitRate,
-	musics.sampleRate,
-	albumMusic.albumId,
-	albumMusic.artistId,
-	musics.fileExt,
-	musics.parentPath,
-	musics.dateTime,
-	playlistMusics.playlistMusicsId,
-	musics.albumReplayGain,
-	musics.albumPeak,
-	musics.trackReplayGain,
-	musics.trackPeak,
-	musicLoudness.trackLoudness,
-	musics.genre,	
-	playlistMusics.isChecked,
-	musics.heart,
-	musics.duration,
-	musics.comment,
-	albums.year,
-	musics.coverId as musicCoverId,
-    musics.offset,
-	musics.isCueFile
-FROM
-	playlistMusics
-	JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
-	JOIN albumMusic ON playlistMusics.musicId = albumMusic.musicId
-	LEFT JOIN musicLoudness ON playlistMusics.musicId = musicLoudness.musicId
-	JOIN musics ON playlistMusics.musicId = musics.musicId
-	JOIN albums ON albumMusic.albumId = albums.albumId
-	JOIN artists ON albumMusic.artistId = artists.artistId 
-WHERE
-	playlistMusics.playlistId = %1 
-ORDER BY
-	musics.parentPath ASC,
-	musics.track ASC)").arg(playlist_id);
-#else
         return qFormat(R"(
     SELECT
 	albums.coverId,
@@ -228,7 +179,6 @@ FROM
 	JOIN artists ON albumMusic.artistId = artists.artistId 
 WHERE
 	playlistMusics.playlistId = %1)").arg(playlist_id);
-#endif
 }
 
 void PlaylistTableView::search(const QString& keyword) const {
@@ -1135,6 +1085,9 @@ void PlaylistTableView::setNowPlayState(PlayingState playing_state) {
 }
 
 void PlaylistTableView::scrollToIndex(const QModelIndex& index) {
+    if (!enable_scroll_) {
+        return;
+    }
     QTableView::scrollTo(index, PositionAtCenter);
 }
 
@@ -1143,7 +1096,7 @@ std::optional<QModelIndex> PlaylistTableView::selectFirstItem() const {
     if (select_row.isEmpty()) {
         return std::nullopt;
     }
-    return std::optional<QModelIndex> { std::in_place_t{}, select_row[0] };
+    return CreateOptional<QModelIndex>(std::move(select_row[0]));
 }
 
 QList<PlayListEntity> PlaylistTableView::items() const {

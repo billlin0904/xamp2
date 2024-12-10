@@ -32,7 +32,7 @@ public:
 		data_ = MakeBuffer<float>(frame_size);
 		SetWindowType(type);
 		for (size_t i = 0; i < frame_size; i++) {
-			data_[i] = dispatch_(i, frame_size);
+			data_[i] = std::invoke(dispatch_, i, frame_size);
 		}
 	}
 

@@ -15,7 +15,7 @@
 #include <base/dsdsampleformat.h>
 #include <base/memory.h>
 #include <base/uuid.h>
-#include <base/mpmc_queue.h>
+#include <base/workstealingtaskqueue.h>
 #include <base/buffer.h>
 #include <base/fastmutex.h>
 #include <base/fastconditionvariable.h>
@@ -28,11 +28,18 @@
 #include <future>
 #include <optional>
 #include <any>
+#include <variant>
 
 XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 
 XAMP_MAKE_ENUM(PlayerActionId,
     PLAYER_SEEK);
+
+struct SeekAction {
+    double stream_time;
+};
+
+using PlayerActionContent = std::variant<SeekAction>;
 
 /*
 * PlayerAction is a struct that contains the player action.
@@ -41,7 +48,24 @@ XAMP_MAKE_ENUM(PlayerActionId,
 */
 struct PlayerAction {
     PlayerActionId id;
-    std::any content;
+    PlayerActionContent content;
+};
+
+struct PlaybackState {
+	std::atomic<bool> is_seeking = false;
+    std::atomic<bool> is_playing = false;
+    std::atomic<bool> is_paused = false;
+    std::atomic<PlayerState> state = PlayerState::PLAYER_STATE_STOPPED;
+    std::atomic<uint32_t> stream_time_sec_unit = 0;
+    double stream_offset_time = 0.0;
+    double stream_duration = 0.0;
+};
+
+struct AudioConfig {
+    uint32_t sample_size = 0;
+    uint32_t target_sample_rate = 0;
+    uint32_t volume = 0;
+    DsdModes dsd_mode = DsdModes::DSD_MODE_PCM;
 };
 
 /*
@@ -59,7 +83,7 @@ public:
     /*
     * Constructor.
     */
-    AudioPlayer();
+    explicit AudioPlayer(const std::shared_ptr<IThreadPoolExecutor>& thread_pool);
 
     /*
     * Destructor.
@@ -274,7 +298,7 @@ public:
     /*
      * Set audio delay callback.
      */
-    void SetDelayCallback(std::function<void(uint32_t)> delay_callback) override;
+    void SetDelayCallback(std::function<void(uint32_t)> &&delay_callback) override;
 
    /*
     * Set file cache mode.
@@ -309,13 +333,13 @@ private:
 
     void SetState(PlayerState play_state);
 
-    void ReadSampleLoop(int8_t* buffer, uint32_t buffer_size, std::unique_lock<FastMutex>& stopped_lock);
+    void ReadSampleLoop(std::byte* buffer, uint32_t buffer_size, std::unique_lock<FastMutex>& stopped_lock);
 
     void CopySamples(void * samples, size_t num_buffer_frames) const;
 
     void BufferSamples(const ScopedPtr<FileStream>& stream, int32_t buffer_count = 1);
 
-    void UpdatePlayerStreamTime(int32_t stream_time_sec_unit = 0) noexcept;
+    void UpdatePlayerStreamTime(uint32_t stream_time_sec_unit = 0) noexcept;
 
     void ResizeReadBuffer(uint32_t allocate_size);
 
@@ -323,7 +347,7 @@ private:
 
     void ReadPlayerAction();
 
-    void ReadStreamInfo(DsdModes dsd_mode, ScopedPtr<FileStream>& stream);
+    void ReadStreamInfo(DsdModes dsd_mode, const ScopedPtr<FileStream>& stream);
 
     void ProcessFadeOut();
 
@@ -341,21 +365,13 @@ private:
     bool is_dsd_file_;
     bool enable_fadeout_;
     bool enable_file_cache_;
-    DsdModes dsd_mode_;
-    uint32_t sample_size_;
-    uint32_t target_sample_rate_;
     uint32_t num_read_buffer_size_;
     uint32_t num_write_buffer_size_;
-    uint32_t volume_;
-    double stream_offset_time_;
     std::optional<uint32_t> dsd_speed_;
     std::atomic<bool> is_fade_out_;
-    std::atomic<bool> is_playing_;
-    std::atomic<bool> is_paused_;
-    std::atomic<int32_t> stream_time_sec_unit_;
-    std::atomic<PlayerState> state_;
     std::atomic<double> sample_end_time_;
-    std::atomic<double> stream_duration_;
+    AudioConfig audio_config_;
+	PlaybackState playback_state_;
     mutable FastMutex pause_mutex_;
     mutable FastMutex stopped_mutex_;    
     Uuid device_type_id_;
@@ -373,14 +389,14 @@ private:
     AnyMap config_;
     LoggerPtr logger_;
     std::string device_id_;
-    Buffer<int8_t> read_buffer_;    
+    Buffer<std::byte> read_buffer_;
     std::function<void(uint32_t)> delay_callback_;
     std::optional<DeviceInfo> device_info_;
     FastConditionVariable pause_cond_;
     FastConditionVariable read_finish_and_wait_seek_signal_cond_;
-    MpmcQueue<PlayerAction> action_queue_;
-    AudioBuffer<int8_t> fifo_;
-    ScopedPtr<IThreadPoolExecutor> thread_pool_;
+    ConcurrentQueue<PlayerAction> action_queue_;
+    AudioBuffer<std::byte> fifo_;
+    std::shared_ptr<IThreadPoolExecutor> thread_pool_;
 };
 
 XAMP_AUDIO_PLAYER_NAMESPACE_END

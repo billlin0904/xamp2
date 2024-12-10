@@ -65,9 +65,9 @@ public:
 
     QPixmap githubIcon() const;
 
-    QIcon playlistPlayingIcon(QSize icon_size, double scale_factor = 0.3) const;
+    QIcon playlistPlayingIcon(QSize icon_size, double scale_factor = 1.0) const;
 
-    QIcon playlistPauseIcon(QSize icon_size, double scale_factor = 0.3) const;
+    QIcon playlistPauseIcon(QSize icon_size, double scale_factor = 1.0) const;
 
     void setThemeColor(ThemeColor theme_color);    
 

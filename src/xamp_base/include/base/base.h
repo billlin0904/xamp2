@@ -164,7 +164,7 @@ XAMP_BASE_NAMESPACE_BEGIN
 /*
 * Avoid cache-pollution padding size.
 */
-inline constexpr size_t kCacheAlignSize{ 64 };
+inline constexpr size_t kCacheAlignSize = 64;
 
 /*
 * Memory allocate aligned size

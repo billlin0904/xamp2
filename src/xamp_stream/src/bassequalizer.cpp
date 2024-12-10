@@ -1,7 +1,7 @@
 #include <base/logger.h>
 #include <base/logger_impl.h>
 #include <stream/basslib.h>
-#include <stream/bass_utiltis.h>
+#include <stream/bass_util.h>
 #include <stream/eqsettings.h>
 #include <stream/bassequalizer.h>
 
@@ -47,7 +47,7 @@ public:
     }
 
     bool Process(float const* samples, size_t num_samples, BufferRef<float>& out) {
-        return bass_utiltis::Process(stream_, samples, num_samples, out);
+        return bass_util::ReadStream(stream_, samples, num_samples, out);
     }
 
     void SetEq(EqSettings const &settings) {

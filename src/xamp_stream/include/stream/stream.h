@@ -23,6 +23,9 @@
 #define XAMP_STREAM_NAMESPACE_BEGIN namespace xamp { namespace stream {
 #define XAMP_STREAM_NAMESPACE_END } }
 
+#define XAMP_STREAM_UTIL_NAMESPACE_BEGIN namespace xamp { namespace stream { namespace bass_util {
+#define XAMP_STREAM_UTIL_NAMESPACE_END } } }
+
 XAMP_STREAM_NAMESPACE_BEGIN
 	using namespace base;
 

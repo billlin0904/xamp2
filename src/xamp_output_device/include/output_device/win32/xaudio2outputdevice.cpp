@@ -93,7 +93,7 @@ private:
 	LoggerPtr logger_;
 };
 
-XAudio2OutputDevice::XAudio2OutputDevice(const std::wstring& device_id)
+XAudio2OutputDevice::XAudio2OutputDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::wstring& device_id)
 	: is_running_(false)
 	, buffer_frames_(0)
 	, callback_(nullptr)
@@ -101,7 +101,7 @@ XAudio2OutputDevice::XAudio2OutputDevice(const std::wstring& device_id)
 	, mastering_voice_(nullptr)
 	, source_voice_(nullptr)
 	, logger_(XampLoggerFactory.GetLogger(kXAudio2OutputDeviceLoggerName))
-	, thread_pool_(ThreadPoolBuilder::MakeOutputTheadPool()) {
+	, thread_pool_(thread_pool) {
 #ifdef _DEBUG
 	UINT32 flags = 0;
 	HrIfFailThrow(::XAudio2Create(&xaudio2_, XAUDIO2_DEBUG_ENGINE, XAUDIO2_DEFAULT_PROCESSOR));
@@ -289,7 +289,7 @@ void XAudio2OutputDevice::StartStream() {
 			voice_context_.get()));
 	}
 
-	render_task_ = Executor::Spawn(*thread_pool_, [this](const auto& stop_token) {
+	render_task_ = Executor::Spawn(thread_pool_.get(), [this](const auto& stop_token) {
 		is_running_ = true;
 
 		const std::array<HANDLE, 2> objects{
@@ -315,7 +315,7 @@ void XAudio2OutputDevice::StartStream() {
 				if (!state.BuffersQueued) {
 					break;
 				}
-				auto wait_result = ::WaitForMultipleObjects(objects.size(),
+				auto wait_result = ::WaitForMultipleObjects(static_cast<DWORD>(objects.size()),
 					objects.data(),
 					FALSE, 
 					INFINITE);
@@ -342,7 +342,7 @@ void XAudio2OutputDevice::StartStream() {
 			if (!state.BuffersQueued) {
 				break;
 			}
-			::WaitForMultipleObjects(objects.size(),
+			::WaitForMultipleObjects(static_cast<DWORD>(objects.size()),
 				objects.data(),
 				FALSE,
 				INFINITE);
@@ -365,7 +365,7 @@ HRESULT XAudio2OutputDevice::FillSamples(bool &end_of_stream) {
 
 	float sample_time = 0;
 	auto stream_time = stream_time_ + buffer_frames_;
-	float stream_time_float = static_cast<double>(stream_time) / static_cast<double>(output_format_.GetSampleRate());
+	float stream_time_float = static_cast<float>(static_cast<double>(stream_time) / static_cast<double>(output_format_.GetSampleRate()));
 	stream_time_ = stream_time;
 
 	XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(),

@@ -28,7 +28,7 @@ public:
 	/*
 	* Constructor
 	*/
-	NullOutputDevice();
+	NullOutputDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool);
 
 	/*
 	* Destructor
@@ -183,7 +183,7 @@ private:
 	Buffer<float> buffer_;
 	FastMutex mutex_;
 	FastConditionVariable wait_for_start_stream_cond_;
-	ScopedPtr<IThreadPoolExecutor> thread_pool_;
+	std::shared_ptr<IThreadPoolExecutor> thread_pool_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

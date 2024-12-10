@@ -57,8 +57,8 @@ ScopedPtr<ICDDevice> OpenCD(int32_t driver_letter) {
 }
 #endif
 
-std::shared_ptr<IAudioPlayer> MakeAudioPlayer() {
-    return MakeSharedPointer<AudioPlayer>();
+std::shared_ptr<IAudioPlayer> MakeAudioPlayer(const std::shared_ptr<IThreadPoolExecutor>& thread_pool) {
+    return MakeSharedPointer<AudioPlayer>(thread_pool);
 }
 
 XAMP_AUDIO_PLAYER_NAMESPACE_END

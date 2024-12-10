@@ -18,6 +18,10 @@
 #include <vector>
 #include <optional>
 
+XAMP_BASE_NAMESPACE_BEGIN
+class IThreadPoolExecutor;
+XAMP_BASE_NAMESPACE_END
+
 XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN
 
 /*
@@ -55,7 +59,7 @@ public:
 	* 
 	* @return ScopedPtr<IOutputDevice>
 	*/
-    virtual ScopedPtr<IOutputDevice> MakeDevice(const std::string & device_id) = 0;
+    virtual ScopedPtr<IOutputDevice> MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::string & device_id) = 0;
 
 	/*
 	* Get device count.

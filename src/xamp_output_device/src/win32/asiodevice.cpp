@@ -31,6 +31,7 @@ namespace {
 	struct ASIODriverContext {
 		bool is_xrun{ false };
 		bool post_output{ false };
+		bool mmcss_registered{ false };
 		AsioDevice* device{ nullptr };
 		ScopedPtr<AsioDrivers> drivers{};
 		AudioConvertContext data_context{};
@@ -99,7 +100,7 @@ namespace {
 #endif
 	}
 
-	ASIODriverContext theDriverContext;
+	ASIODriverContext the_driver_context;
 }
 
 inline constexpr int32_t kClockSourceSize = 32;
@@ -134,7 +135,7 @@ AsioDevice::~AsioDevice() {
 	}
 	buffer_.reset();
 	device_buffer_.reset();
-	theDriverContext.drivers.reset();
+	the_driver_context.drivers.reset();
 }
 
 bool AsioDevice::IsHardwareControlVolume() const {	
@@ -154,7 +155,7 @@ bool AsioDevice::IsMuted() const {
 }
 
 uint32_t AsioDevice::GetBufferSize() const noexcept {
-	return buffer_size_ * format_.GetChannels();
+	return static_cast<uint32_t>(buffer_size_ * format_.GetChannels());
 }
 
 void AsioDevice::SetSampleFormat(DsdFormat format) {
@@ -184,20 +185,20 @@ bool AsioDevice::IsSupportDsdFormat() const {
 }
 
 void AsioDevice::ResetCurrentDriver() {
-	if (!theDriverContext.drivers) {
+	if (!the_driver_context.drivers) {
 		return;
 	}
-	if (!theDriverContext.device) {
+	if (!the_driver_context.device) {
 		return;
 	}
-	theDriverContext.device->ReOpen();
-	theDriverContext.drivers.reset();
+	the_driver_context.device->ReOpen();
+	the_driver_context.drivers.reset();
 	XAMP_LOG_DEBUG("Remove ASIO driver");
 }
 
 void AsioDevice::RemoveCurrentDriver() {
-	if (!is_removed_driver_ && theDriverContext.drivers != nullptr) {
-		theDriverContext.drivers->removeCurrentDriver();
+	if (!is_removed_driver_ && the_driver_context.drivers != nullptr) {
+		the_driver_context.drivers->removeCurrentDriver();
 		is_removed_driver_ = true;
 	}
 }
@@ -206,23 +207,23 @@ void AsioDevice::SetVolumeLevelScalar(float level) {
 }
 
 void AsioDevice::ReOpen() {
-	if (theDriverContext.drivers != nullptr) {
-		const auto driver_name = theDriverContext.GetDriverName();
-		if (theDriverContext.driver_name == driver_name) {
+	if (the_driver_context.drivers != nullptr) {
+		const auto driver_name = the_driver_context.GetDriverName();
+		if (the_driver_context.driver_name == driver_name) {
 			is_removed_driver_ = false;
 			return;
 		}		
 	}
-	if (!theDriverContext.drivers) {
-		theDriverContext.drivers = MakeAlign<AsioDrivers>();
+	if (!the_driver_context.drivers) {
+		the_driver_context.drivers = MakeAlign<AsioDrivers>();
 	}
-	theDriverContext.drivers->removeCurrentDriver();
-	const auto driver_name = theDriverContext.GetDriverName();
-	if (!theDriverContext.drivers->loadDriver(const_cast<char*>(device_id_.c_str()))) {		
-		theDriverContext.drivers.reset();
+	the_driver_context.drivers->removeCurrentDriver();
+	const auto driver_name = the_driver_context.GetDriverName();
+	if (!the_driver_context.drivers->loadDriver(const_cast<char*>(device_id_.c_str()))) {		
+		the_driver_context.drivers.reset();
 		throw DeviceNotFoundException(driver_name);
 	}
-	theDriverContext.driver_name = driver_name;
+	the_driver_context.driver_name = driver_name;
 	is_removed_driver_ = false;
 }
 
@@ -292,7 +293,7 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 	const auto [prefer_size, buffer_size] = GetDeviceBufferSize();
 
 	long num_channel = 0;
-	for (auto& info : theDriverContext.buffer_infos) {
+	for (auto& info : the_driver_context.buffer_infos) {
 		info.isInput = ASIOFalse;
 		info.channelNum = num_channel;
 		info.buffers[0] = nullptr;
@@ -300,34 +301,34 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		++num_channel;
 	}
 
-	theDriverContext.asio_callbacks.bufferSwitch = OnBufferSwitchCallback;
-	theDriverContext.asio_callbacks.sampleRateDidChange = OnSampleRateChangedCallback;
-	theDriverContext.asio_callbacks.asioMessage = OnAsioMessagesCallback;
-	theDriverContext.asio_callbacks.bufferSwitchTimeInfo = OnBufferSwitchTimeInfoCallback;
-	theDriverContext.data_context.volume_factor = LinearToLog(volume_);
+	the_driver_context.asio_callbacks.bufferSwitch = OnBufferSwitchCallback;
+	the_driver_context.asio_callbacks.sampleRateDidChange = OnSampleRateChangedCallback;
+	the_driver_context.asio_callbacks.asioMessage = OnAsioMessagesCallback;
+	the_driver_context.asio_callbacks.bufferSwitchTimeInfo = OnBufferSwitchTimeInfoCallback;
+	the_driver_context.data_context.volume_factor = LinearToLog(volume_);
 
 	const auto result = ::ASIOCreateBuffers(
-		theDriverContext.buffer_infos.data(),
+		the_driver_context.buffer_infos.data(),
 	    output_format.GetChannels(),
 	    buffer_size,
-	    &theDriverContext.asio_callbacks);
+	    &the_driver_context.asio_callbacks);
 	if (result != ASE_OK) {
-		AsioIfFailedThrow(::ASIOCreateBuffers(theDriverContext.buffer_infos.data(),
+		AsioIfFailedThrow(::ASIOCreateBuffers(the_driver_context.buffer_infos.data(),
 			output_format.GetChannels(),
 			prefer_size,
-			&theDriverContext.asio_callbacks));
+			&the_driver_context.asio_callbacks));
 		buffer_size_ = prefer_size;
 	}
 	else {
 		buffer_size_ = buffer_size;
 	}
 
-	for (long i = 0; i < theDriverContext.buffer_infos.size(); ++i) {
-		theDriverContext.channel_infos[i].channel =
-			theDriverContext.buffer_infos[i].channelNum;
-		theDriverContext.channel_infos[i].isInput =
-			theDriverContext.buffer_infos[i].isInput;
-		AsioIfFailedThrow(::ASIOGetChannelInfo(&theDriverContext.channel_infos[i]));
+	for (long i = 0; i < the_driver_context.buffer_infos.size(); ++i) {
+		the_driver_context.channel_infos[i].channel =
+			the_driver_context.buffer_infos[i].channelNum;
+		the_driver_context.channel_infos[i].isInput =
+			the_driver_context.buffer_infos[i].isInput;
+		AsioIfFailedThrow(::ASIOGetChannelInfo(&the_driver_context.channel_infos[i]));
 	}
 
 	const auto in_format = output_format;
@@ -411,7 +412,7 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		constexpr auto kFloatByteSize = 4;
 		allocate_bytes = buffer_size_ * kFloatByteSize * format_.GetChannels();
 		buffer_bytes_ = buffer_size_ * kFloatByteSize;
-		theDriverContext.data_context = MakeConvert(in_format, format_, buffer_size_);
+		the_driver_context.data_context = MakeConvert(in_format, format_, buffer_size_);
 	}
 	else {
 		switch (channel_info.type) {
@@ -436,7 +437,7 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		const auto channel_buffer_size = buffer_size_ / 8;
 		buffer_bytes_ = channel_buffer_size;
 		allocate_bytes = buffer_size_;		
-		theDriverContext.data_context = MakeConvert(in_format, format_, channel_buffer_size);
+		the_driver_context.data_context = MakeConvert(in_format, format_, channel_buffer_size);
 	}
 
 	if (device_buffer_.GetSize() != allocate_bytes) {
@@ -453,7 +454,7 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 	AsioIfFailedThrow(::ASIOGetLatencies(&input_latency, &output_latency));
 	latency_ = GetLatencyMs(output_latency, output_format.GetSampleRate());
 	
-	theDriverContext.SetPostOutput();
+	the_driver_context.SetPostOutput();
 
 	// Almost driver not support kAsioCanOutputGain, we always return true for software volume control.
 	//return (io_format_ == DsdIoFormat::IO_FORMAT_PCM);
@@ -462,7 +463,7 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 
 	XAMP_LOG_D(logger_, "IO format :{} ", io_format_);
 	XAMP_LOG_D(logger_, "Buffer size :{} ", String::FormatBytes(buffer_.GetByteSize()));
-	XAMP_LOG_D(logger_, "Driver support post output: {}", theDriverContext.post_output);
+	XAMP_LOG_D(logger_, "Driver support post output: {}", the_driver_context.post_output);
 
 	if (latency_ < 15) {
 		XAMP_LOG_W(logger_, "Output latency: {} msec too small.", latency_);
@@ -489,10 +490,10 @@ void AsioDevice::SetMute(bool mute) const {
 
 void AsioDevice::FillSilentData() noexcept {
 	for (size_t i = 0, j = 0; i < format_.GetChannels(); ++i) {
-		MemorySet(theDriverContext.buffer_infos[i].buffers[0],
+		MemorySet(the_driver_context.buffer_infos[i].buffers[0],
 			0,
 			buffer_bytes_);
-		MemorySet(theDriverContext.buffer_infos[i].buffers[1],
+		MemorySet(the_driver_context.buffer_infos[i].buffers[1],
 			0,
 			buffer_bytes_);
 	}
@@ -500,9 +501,9 @@ void AsioDevice::FillSilentData() noexcept {
 
 bool AsioDevice::GetPCMSamples(long index, double sample_time, size_t& num_filled_frame) noexcept {
 	const auto vol = volume_.load();
-	if (theDriverContext.data_context.cache_volume != vol) {
-		theDriverContext.data_context.volume_factor = LinearToLog(vol);
-		theDriverContext.data_context.cache_volume = vol;
+	if (the_driver_context.data_context.cache_volume != vol) {
+		the_driver_context.data_context.volume_factor = LinearToLog(vol);
+		the_driver_context.data_context.cache_volume = vol;
 	}
 
 	// PCM mode input float to output format.
@@ -513,10 +514,10 @@ bool AsioDevice::GetPCMSamples(long index, double sample_time, size_t& num_fille
 		const auto in = reinterpret_cast<const float*>(buffer_.Get());
 		InterleaveToPlanar<float, int32_t>::Convert(
 			in,
-			static_cast<int32_t*>(theDriverContext.buffer_infos[0].buffers[index]),
-			static_cast<int32_t*>(theDriverContext.buffer_infos[1].buffers[index]),
+			static_cast<int32_t*>(the_driver_context.buffer_infos[0].buffers[index]),
+			static_cast<int32_t*>(the_driver_context.buffer_infos[1].buffers[index]),
 			buffer_size_ * format_.GetChannels(),
-			theDriverContext.data_context.volume_factor);
+			the_driver_context.data_context.volume_factor);
 		return true;
 	} else {
 		return false;
@@ -535,9 +536,9 @@ bool AsioDevice::GetDSDSamples(long index, double sample_time, size_t& num_fille
 		>::Convert(
 				device_buffer_.Get(),
 				buffer_.Get(),
-				theDriverContext.data_context);
+				the_driver_context.data_context);
 		for (size_t i = 0, j = 0; i < format_.GetChannels(); ++i) {
-			MemoryCopy(theDriverContext.buffer_infos[i].buffers[index],
+			MemoryCopy(the_driver_context.buffer_infos[i].buffers[index],
 				&device_buffer_[j++ * buffer_bytes_],
 				buffer_bytes_);
 		}
@@ -554,7 +555,7 @@ void AsioDevice::GetSamples(long index, double sample_time) noexcept {
 		FillSilentData();
 		is_stop_streaming_ = true;
 		condition_.notify_all();
-		theDriverContext.Post();
+		the_driver_context.Post();
 		return;
 	}
 
@@ -564,7 +565,7 @@ void AsioDevice::GetSamples(long index, double sample_time) noexcept {
 	
 	auto cache_played_bytes = output_bytes_.load();
 	if (cache_played_bytes == 0) {
-		theDriverContext.mmcss.BoostPriority();
+		the_driver_context.mmcss.BoostPriority();
 	}
 	
 	cache_played_bytes += buffer_bytes_ * format_.GetChannels();
@@ -574,7 +575,7 @@ void AsioDevice::GetSamples(long index, double sample_time) noexcept {
 	const auto got_samples = std::invoke(get_samples_, index, sample_time, num_filled_frame);
 	
 	if (got_samples) {
-		theDriverContext.Post();
+		the_driver_context.Post();
 	} else {
 		FillSilentData();
 	}
@@ -595,8 +596,8 @@ void AsioDevice::OpenStream(AudioFormat const & output_format) {
 	// Initialize ASIO driver
 	auto result = ::ASIOInit(&asio_driver_info);
 	if (result == ASE_NotPresent) {
-		const auto driver_name = theDriverContext.GetDriverName();
-		theDriverContext.drivers.reset();
+		const auto driver_name = the_driver_context.GetDriverName();
+		the_driver_context.drivers.reset();
 		throw DeviceNotFoundException(driver_name);
 	}
 	else if (result != ASE_OK) {
@@ -627,8 +628,8 @@ void AsioDevice::OpenStream(AudioFormat const & output_format) {
 
 	output_bytes_ = 0;
 	is_stopped_ = false;
-	theDriverContext.data_context.cache_volume = 0;
-	theDriverContext.device = this;
+	the_driver_context.data_context.cache_volume = 0;
+	the_driver_context.device = this;
 }
 
 void AsioDevice::SetOutputSampleRate(AudioFormat const & output_format) {
@@ -709,10 +710,10 @@ void AsioDevice::StartStream() {
 		get_samples_ = bind_front(&AsioDevice::GetDSDSamples, this);
 	}
 
-	theDriverContext.mmcss.RevertPriority();
+	the_driver_context.mmcss.RevertPriority();
 	is_streaming_ = true;
 	is_stop_streaming_ = false;
-	theDriverContext.buffer_switch_stopwatch.Reset();
+	the_driver_context.buffer_switch_stopwatch.Reset();
 	AsioIfFailedThrow(::ASIOStart());
 }
 
@@ -748,33 +749,38 @@ ASIOTime* AsioDevice::OnBufferSwitchTimeInfoCallback(ASIOTime* timeInfo, long in
 }
 
 void AsioDevice::OnBufferSwitchCallback(long index, ASIOBool processNow) {
+	if (!the_driver_context.mmcss_registered) {
+		the_driver_context.mmcss.BoostPriority(kMmcssProfileProAudio, MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL);
+		the_driver_context.mmcss_registered = true;
+	}
+
 	ASIOTime time_info{ 0 };
 	if (::ASIOGetSamplePosition(&time_info.timeInfo.samplePosition, &time_info.timeInfo.systemTime) == ASE_OK) {
 		time_info.timeInfo.flags = kSystemTimeValid | kSamplePositionValid;
 	}
 	
-	theDriverContext.device->OnBufferSwitchTimeInfoCallback(&time_info, index, processNow);
+	the_driver_context.device->OnBufferSwitchTimeInfoCallback(&time_info, index, processNow);
 	double sample_time = 0;
 	if (time_info.timeInfo.flags & kSamplePositionValid) {
 		sample_time = ASIO64toDouble(time_info.timeInfo.samplePosition)
-		/ theDriverContext.device->format_.GetSampleRate();
+		/ the_driver_context.device->format_.GetSampleRate();
 	}
 	constexpr auto kMinimalLatencyMs = 15;
-	const auto elapsed = theDriverContext.buffer_switch_stopwatch.Elapsed<std::chrono::milliseconds>().count();
-	if (theDriverContext.device->latency_ > kMinimalLatencyMs) {
-		if (elapsed > theDriverContext.device->latency_) {
-			XAMP_LOG_D(theDriverContext.device->logger_, "Wait event timeout! {}ms", elapsed);
+	const auto elapsed = the_driver_context.buffer_switch_stopwatch.Elapsed<std::chrono::milliseconds>().count();
+	if (the_driver_context.device->latency_ > kMinimalLatencyMs) {
+		if (elapsed > the_driver_context.device->latency_) {
+			XAMP_LOG_D(the_driver_context.device->logger_, "Wait event timeout! {}ms", elapsed);
 		}
 	}
 
-	theDriverContext.device->GetSamples(index, sample_time);
-	theDriverContext.buffer_switch_stopwatch.Reset();
+	the_driver_context.device->GetSamples(index, sample_time);
+	the_driver_context.buffer_switch_stopwatch.Reset();
 }
 
 long AsioDevice::OnAsioMessagesCallback(long selector, long value, void* message, double* opt) {
 	long ret = 0;
 
-	if (theDriverContext.device != nullptr) {
+	if (the_driver_context.device != nullptr) {
 		XAMP_LOG_INFO("Select:{} value:{}", selector, value);
 	}
 	
@@ -799,8 +805,8 @@ long AsioDevice::OnAsioMessagesCallback(long selector, long value, void* message
 		// ASIODisposeBuffers(), Destruction Afterwards you initialize the
 		// driver again.
 		XAMP_LOG_INFO("Driver reset requested!!!");
-		theDriverContext.device->AbortStream();		
-		theDriverContext.device->condition_.notify_one();
+		the_driver_context.device->AbortStream();		
+		the_driver_context.device->condition_.notify_one();
 		ret = 1L;
 		break;
 	case kAsioResyncRequest:
@@ -812,7 +818,7 @@ long AsioDevice::OnAsioMessagesCallback(long selector, long value, void* message
 		// another thread.  However a driver can issue it in other
 		// situations, too.
 		XAMP_LOG_INFO("Driver resync requested!!!");
-		theDriverContext.is_xrun = true;
+		the_driver_context.is_xrun = true;
 		ret = 1L;
 		break;
 	case kAsioLatenciesChanged:
@@ -853,8 +859,8 @@ void AsioDevice::OnSampleRateChangedCallback(ASIOSampleRate sampleRate) {
 	// sample rate status of an AES/EBU or S/PDIF digital input at the
 	// audio device.
 
-	theDriverContext.device->StopStream();
-	theDriverContext.device->callback_->OnError(SampleRateChangedException());
+	the_driver_context.device->StopStream();
+	the_driver_context.device->callback_->OnError(SampleRateChangedException());
 }
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

@@ -5,7 +5,7 @@
 
 #include <stream/bassfilestream.h>
 #include <stream/basslib.h>
-#include <stream/bass_utiltis.h>
+#include <stream/bass_util.h>
 
 #include <base/enum.h>
 #include <base/platfrom_handle.h>

@@ -45,7 +45,7 @@ std::optional<DeviceInfo> AsioDeviceType::AsioDeviceTypeImpl::GetDefaultDeviceIn
 	if (device_info_cache_.empty()) {
 		return std::nullopt;
 	}
-	return std::optional<DeviceInfo> { std::in_place_t{}, GetDeviceInfo(0) };
+	return CreateOptional<DeviceInfo>(GetDeviceInfo(0));
 }
 
 Vector<DeviceInfo> AsioDeviceType::AsioDeviceTypeImpl::GetDeviceInfo() const {
@@ -124,7 +124,7 @@ void AsioDeviceType::ScanNewDevice() {
 	impl_->ScanNewDevice();
 }
 
-ScopedPtr<IOutputDevice> AsioDeviceType::MakeDevice(std::string const& device_id) {
+ScopedPtr<IOutputDevice> AsioDeviceType::MakeDevice(const std::shared_ptr<IThreadPoolExecutor>&, std::string const& device_id) {
 	return impl_->MakeDevice(device_id);
 }
 

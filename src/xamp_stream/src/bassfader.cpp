@@ -1,7 +1,7 @@
 #include <stream/basslib.h>
 #include <base/memory.h>
 #include <base/buffer.h>
-#include <stream/bass_utiltis.h>
+#include <stream/bass_util.h>
 #include <base/logger_impl.h>
 #include <stream/bassfader.h>
 
@@ -42,7 +42,7 @@ public:
     }
 
     bool Process(float const * samples, size_t num_samples, BufferRef<float>& out) {
-        return bass_utiltis::Process(stream_, samples, num_samples, out);
+        return bass_util::ReadStream(stream_, samples, num_samples, out);
     }
 private:
     BassStreamHandle stream_;

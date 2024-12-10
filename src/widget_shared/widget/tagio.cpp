@@ -40,11 +40,11 @@ void TagIO::writeYear(const Path& path, uint32_t year) {
 }
 
 bool TagIO::embeddedCover(const Path& file_path, QPixmap& image, size_t& image_size) const {
-    const auto& buffer = reader_->ReadEmbeddedCover(file_path);
+    auto buffer = reader_->ReadEmbeddedCover(file_path);
     image_size = 0;
-    if (!buffer.empty()) {
-        image.loadFromData(buffer.data(), buffer.size());
-        image_size = buffer.size();
+    if (buffer) {
+        image.loadFromData(buffer->data(), buffer->size());
+        image_size = buffer->size();
         return true;
     }
     return false;
@@ -52,9 +52,9 @@ bool TagIO::embeddedCover(const Path& file_path, QPixmap& image, size_t& image_s
 
 QPixmap TagIO::embeddedCover(const Path& file_path) const {
     QPixmap pixmap;
-    const auto& buffer = reader_->ReadEmbeddedCover(file_path);
-    if (!buffer.empty()) {
-        pixmap.loadFromData(buffer.data(), buffer.size());
+    auto buffer = reader_->ReadEmbeddedCover(file_path);
+    if (buffer) {
+        pixmap.loadFromData(buffer->data(), buffer->size());
     }
     return pixmap;
 }

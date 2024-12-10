@@ -127,6 +127,16 @@ private:
 */
 template <typename T, typename U = std::enable_if_t<std::is_trivially_copyable_v<T>>>
 struct XAMP_BASE_API_ONLY_EXPORT BufferRef {
+    using value_type = T;
+    using size_type = std::size_t;
+    using difference_type = std::ptrdiff_t;
+    using reference = value_type&;
+    using const_reference = const value_type&;
+    using pointer = value_type*;
+    using const_pointer = const value_type*;
+    using iterator = pointer;
+    using const_iterator = const_pointer;
+
     explicit BufferRef(Buffer<T>& buf)
         : buffer_(buf.get())
         , size_(buf.size())
@@ -136,8 +146,19 @@ struct XAMP_BASE_API_ONLY_EXPORT BufferRef {
     XAMP_DISABLE_COPY_AND_MOVE(BufferRef)
 
     void CopyFrom(const T *buffer, size_t buffer_size) {
+        XAMP_ENSURES(buffer != nullptr);
         XAMP_ENSURES(buffer_size <= size_);
-        MemoryCopy(data(), buffer, buffer_size * sizeof(T));
+        if (buffer_size > 0) {
+            MemoryCopy(data(), buffer, buffer_size * sizeof(T));
+        }
+    }
+
+    template <typename InputIt>
+    void CopyFrom(InputIt first, InputIt last) {
+        const auto count = std::distance(first, last);
+        if (count > 0) {
+            CopyFrom(&(*first), static_cast<size_type>(count));
+        }
     }
 
     void maybe_resize(size_t size) noexcept {
@@ -148,11 +169,62 @@ struct XAMP_BASE_API_ONLY_EXPORT BufferRef {
         size_ = size;
     }
 
-    T* data() noexcept {
+    reference operator[](size_type pos) noexcept {
+        return buffer_[pos];
+    }
+
+    const_reference operator[](size_type pos) const noexcept {
+        return buffer_[pos];
+    }
+
+    reference at(size_type pos) {
+        if (pos >= size_) {
+            throw std::out_of_range("Index out of range");
+        }
+        return buffer_[pos];
+    }
+
+    const_reference at(size_type pos) const {
+        if (pos >= size_) {
+            throw std::out_of_range("Index out of range");
+        }
+        return buffer_[pos];
+    }
+
+    // Iterators
+    iterator begin() noexcept {
+	    return buffer_;
+    }
+
+    const_iterator begin() const noexcept {
+	    return buffer_;
+    }
+
+    const_iterator cbegin() const noexcept {
+	    return buffer_;
+    }
+
+    iterator end() noexcept {
+	    return buffer_ + size_;
+    }
+
+    const_iterator end() const noexcept {
+	    return buffer_ + size_;
+    }
+
+    const_iterator cend() const noexcept {
+        return buffer_ + size_;
+    }
+
+    XAMP_NO_DISCARD bool empty() const noexcept {
+        return size_ == 0;
+    }
+
+    pointer data() noexcept {
         return buffer_;
     }
 
-    const T* data() const noexcept {
+    const_pointer data() const noexcept {
         return buffer_;
     }
 

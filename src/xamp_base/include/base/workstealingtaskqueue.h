@@ -16,10 +16,13 @@ XAMP_BASE_NAMESPACE_BEGIN
 using SharedTaskQueue = BlockingQueue<MoveOnlyFunction>;
 using SharedTaskQueuePtr = ScopedPtr<SharedTaskQueue>;
 
+template <typename T>
+using ConcurrentQueue = moodycamel::ConcurrentQueue<T>;
+
 using WorkStealingTaskQueue = moodycamel::ConcurrentQueue<MoveOnlyFunction>;
 //using WorkStealingTaskQueue = MpmcQueue<MoveOnlyFunction>;
 //using WorkStealingTaskQueue = BlockingQueue<MoveOnlyFunction>;
-//using WorkStealingTaskQueuePtr = ScopedPtr<WorkStealingTaskQueue>;
-using WorkStealingTaskQueuePtr = WorkStealingTaskQueue*;
+using WorkStealingTaskQueuePtr = ScopedPtr<WorkStealingTaskQueue>;
+//using WorkStealingTaskQueuePtr = WorkStealingTaskQueue*;
 
 XAMP_BASE_NAMESPACE_END

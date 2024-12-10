@@ -26,8 +26,6 @@
 #include <player/api.h>
 #include <stream/api.h>
 
-#include <player/ifilesyncer.h>
-
 #include <stream/compressorconfig.h>
 #include <stream/idspmanager.h>
 
@@ -1067,6 +1065,8 @@ void Xamp::initialController() {
         }
         });
 
+    ui_.seekSlider->enableAnimation(false);
+
     (void)QObject::connect(ui_.seekSlider, &SeekSlider::leftButtonValueChanged, [this](auto value) {
         try {
 			is_seeking_ = true;
@@ -1523,6 +1523,7 @@ void Xamp::setupDsp(const PlayListEntity& item) const {
     }
     else {
         player_->GetDspManager()->RemoveEqualizer();
+        player_->GetDspManager()->RemoveParametricEq();
     }
 }
 
@@ -1820,8 +1821,6 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
     lrc_page_->album()->setText(entity.album);
     lrc_page_->artist()->setText(entity.artist);
     lrc_page_->format()->setText(format2String(playback_format, entity.file_extension));
-    lrc_page_->spectrum()->setFftSize(state_adapter_->fftSize());
-    lrc_page_->spectrum()->setSampleRate(playback_format.output_format.GetSampleRate());
 
     if (!local_music) {
         const auto lyrics_opt = music_dao_.getLyrics(entity.music_id);
@@ -2003,7 +2002,7 @@ void Xamp::playNextItem(int32_t forward, bool is_play) {
     const auto count = last_playlist_->model()->rowCount();
     if (count == 0) {
         stopPlay();
-		// Don't not show message box. when the application will receive other signal.
+		// Don't show message box. when the application will receive other signal.
 		// message box will be show again.
         //XMessageBox::showInformation(tr("Not found any playing item."));
         return;
@@ -2680,13 +2679,6 @@ void Xamp::onPlaybackError(const QString& message) {
 }
 
 void Xamp::onSyncToDevice(int32_t playlist_id, const QList<PlayListEntity>& entities) {
-    ITunesFileSyncer syncer;
-    syncer.SyncToDevice();
-
-    Q_FOREACH(auto entity, entities) {
-		syncer.AddMusicToLibrary(entity.file_path.toStdWString());
-    }
-    syncer.SyncToDevice();
 }
 
 void Xamp::onRetranslateUi() {

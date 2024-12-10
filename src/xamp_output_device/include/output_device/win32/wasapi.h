@@ -136,6 +136,8 @@ double GetStreamPosInMilliseconds(CComPtr<IAudioClock>& clock);
 
 AudioFormat ToAudioFormat(const WAVEFORMATEX* format);
 
+bool IsDeviceSupportExclusiveMode(const CComPtr<IMMDevice>& device, AudioFormat& default_format);
+
 XAMP_OUTPUT_DEVICE_WIN32_HELPER_NAMESPACE_END
 
 #endif

@@ -235,6 +235,27 @@ XAMP_BASE_API_ONLY_EXPORT ScopedPtr<Type> MakeAlign(Args&& ... args) {
     return ScopedPtr<Type>(obj);
 }
 
+template <typename BaseType, typename ImplType, typename... Args>
+std::shared_ptr<BaseType> MakeShared(Args&&... args) {
+    constexpr size_t AlignSize = alignof(ImplType);
+    void* mem = ::operator new(sizeof(ImplType), std::align_val_t{ AlignSize });
+    if (!mem) {
+        throw std::bad_alloc();
+    }
+
+    try {
+        auto obj = ::new(mem) ImplType(std::forward<Args>(args)...);
+        return std::shared_ptr<BaseType>(obj, [](BaseType* ptr) {
+            ptr->~BaseType();
+            ::operator delete(ptr, std::align_val_t{ AlignSize });
+            });
+    }
+    catch (...) {
+        ::operator delete(mem, std::align_val_t{ AlignSize });
+        throw;
+    }
+}
+
 /*
 * Make aligned array.
 *

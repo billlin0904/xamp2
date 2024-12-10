@@ -1,13 +1,13 @@
-#include <stream/bass_utiltis.h>
+#include <stream/bass_util.h>
 
 #include <stream/bassfilestream.h>
 #include <stream/basslib.h>
 
 #include <base/buffer.h>
 
-namespace xamp::stream::bass_utiltis {
+XAMP_STREAM_UTIL_NAMESPACE_BEGIN
 
-uint32_t Process(BassStreamHandle& stream, float const* samples, float* out, size_t num_samples) {
+uint32_t ReadStream(const BassStreamHandle& stream, float const* samples, float* out, size_t num_samples) {
     MemoryCopy(out, samples, num_samples * sizeof(float));
     const auto bytes_read =
         BASS_LIB.BASS_ChannelGetData(stream.get(),
@@ -16,16 +16,16 @@ uint32_t Process(BassStreamHandle& stream, float const* samples, float* out, siz
     return bytes_read;
 }
 
-bool Process(BassStreamHandle& stream, float const * samples, size_t num_samples, BufferRef<float>& out) {
+bool ReadStream(const BassStreamHandle& stream, float const* samples, size_t num_samples, BufferRef<float>& out) {
     if (out.size() != num_samples) {
         out.maybe_resize(num_samples);
     }
     MemoryCopy(out.data(), samples, num_samples * sizeof(float));
 
     const auto bytes_read =
-            BASS_LIB.BASS_ChannelGetData(stream.get(),
-                                 out.data(),
-                                 num_samples * sizeof(float));
+        BASS_LIB.BASS_ChannelGetData(stream.get(),
+            out.data(),
+            num_samples * sizeof(float));
     if (bytes_read == kBassError) {
         return false;
     }
@@ -59,4 +59,4 @@ void Encode(FileStream& stream, std::function<bool(uint32_t) > const& progress) 
     }
 }
 
-}
+XAMP_STREAM_UTIL_NAMESPACE_END
