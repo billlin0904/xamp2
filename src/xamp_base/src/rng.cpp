@@ -1,30 +1,32 @@
-#include <base/rng.h>
+﻿#include <base/rng.h>
 #include <base/algorithm.h>
 #include <base/platform.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
 
 Sfc64Engine<> MakeRandomEngine() {
-    Sfc64Engine<> engine;
-
-    // https://github.com/sevmeyer/prng/blob/master/include/prng/prng.hpp
-    static auto entropy = GetSystemEntropy();
-
-    // Ensure that each instance uses a different seed.
-    // Constant from https://en.wikipedia.org/wiki/RC5
-    entropy += UINT64_C(0x9e3779b97f4a7c15);
-    auto c = entropy;
-
-    // Add possible entropy from the current time.
     using Clock = std::chrono::high_resolution_clock;
-    auto b = static_cast<uint64_t>(Clock::now().time_since_epoch().count());
+    uint32_t random_address = 0;
+    // 利用系統級熵源 (GetSystemEntropy) 提供高品質初始亂數，再加上
+    // 當前高精度時間戳 (Clock::now()) 的 count 產生 seed1。
+    // 這使得種子值受系統底層亂數及時間因素影響，提高不可預測性。
+    uint64_t seed1 = GetSystemEntropy()
+        ^ static_cast<uint64_t>(Clock::now().time_since_epoch().count());
 
-    // Add possible entropy from the address of this object.
-    // This is most effective when ASLR is active.
-    auto a = static_cast<uint64_t>(std::hash<decltype(&engine)>{}(&engine));
+    // 使用 "黄金比例" 常數 0x9e3779b97f4a7c15ULL 與 seed1 相加，產生 seed2。
+    // 該常數能將 bits 均勻擴散，減少模式出現的概率，進而提升隨機品質。
+    uint64_t seed2 = seed1 + 0x9e3779b97f4a7c15ULL;
 
-    engine.seed(a, b, c, 18);
-    return engine;
+    // 將本地變數 random_address 的地址經由 std::hash 處理，以作為額外熵源，
+    // seed3 將 seed2 與該 hash value XOR 結合。此舉利用位址隨機化 (ASLR)
+    // 可能產生的變化，達到更高的不可預測性。
+    uint64_t seed3 = seed2 ^ (std::hash<void*>()(&random_address));
+
+    // 以 seed1, seed2, seed3 初始化 Sfc64Engine，引擎將在建構時
+    // 執行預熱 (warmup) 12 回合，以確保內部狀態更均勻隨機化。
+    // 使用 return 值直接建構物件，能讓編譯器做 RVO (Return Value Optimization) 
+    // 減少不必要的拷貝或移動。
+    return { seed1, seed2, seed3, 12 };
 }
 
 PRNG::PRNG() noexcept

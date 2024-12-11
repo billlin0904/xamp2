@@ -51,8 +51,8 @@ public:
     }
 
     float NextSingle(
-        const float min = (std::numeric_limits<float>::min)(),
-        const float max = (std::numeric_limits<float>::max)()) noexcept {
+        const float min = 0.0f,
+        const float max = 1.0f) noexcept {
         return (*this)(min, max);
     }
 

@@ -14,7 +14,7 @@
 #include <base/assert.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
-	/*
+/*
 * MoveOnlyFunction is a function wrapper that can only be moved.
 * It is used to wrap a function that is only called once.
 */
@@ -27,21 +27,14 @@ public:
         : impl_(MakeAlign<ImplBase, ImplType<Func>>(std::forward<Func>(f))) {
     }
 
+	/*
+	 * Calls the wrapped function with the given stop_token.
+	 * The function is only called once.
+	 */
     void operator()(const StopToken& stop_token) {
         XAMP_EXPECTS(impl_ != nullptr);
 	    impl_->Invoke(stop_token);
         impl_.reset();
-    }    
-
-    template <typename Func>
-    MoveOnlyFunction(MoveOnlyFunction&& other) noexcept(std::is_nothrow_move_constructible_v<Func>)
-        : impl_(std::move(other.impl_)) {
-    }
-
-    template <typename Func>
-    MoveOnlyFunction& operator=(MoveOnlyFunction&& other) noexcept(std::is_nothrow_move_assignable_v<Func>) {
-        impl_ = std::move(other.impl_);
-        return *this;
     }
 
     MoveOnlyFunction(MoveOnlyFunction&& other) noexcept
@@ -53,7 +46,7 @@ public:
         return *this;
     }
 
-    operator bool() const noexcept {
+    explicit operator bool() const noexcept {
         return impl_ != nullptr;
     }
 	
@@ -74,12 +67,15 @@ private:
 
     template <typename Func>
     struct ImplType final : ImplBase {
+        static_assert(std::is_invocable_v<Func, const StopToken&>,
+            "Func must be callable with a const StopToken& argument.");
+
 	    ImplType(Func&& f) noexcept(std::is_nothrow_move_assignable_v<Func>)
             : f_(std::forward<Func>(f)) {
         }
 
         void Invoke(const StopToken& stop_token) override {
-            std::invoke<Func>(std::forward<Func>(f_), stop_token);
+            std::invoke(f_, stop_token);
         }
         Func f_;
     };

@@ -595,30 +595,29 @@ uint32_t ExclusiveWasapiDevice::GetVolume() const {
 }
 
 void ExclusiveWasapiDevice::SetVolume(uint32_t volume) const {
+	// 將音量限制在0~100%之間
 	volume = std::clamp(volume, static_cast<uint32_t>(0), static_cast<uint32_t>(100));
 
+	// 如果目前為靜音狀態，先解靜音
 	auto is_mute = FALSE;
 	HrIfFailThrow(endpoint_volume_->GetMute(&is_mute));
-
 	if (is_mute) {
-		HrIfFailThrow(endpoint_volume_->SetMute(false, nullptr));
+		HrIfFailThrow(endpoint_volume_->SetMute(FALSE, nullptr));
 	}
 
-	float scaled_min_volume = 0;
-	float scaled_max_volume = 0;
-	float volume_increment = 0;
-	HrIfFailThrow(endpoint_volume_->GetVolumeRange(&scaled_min_volume, &scaled_max_volume, &volume_increment));
+	// 將百分比轉換為線性比例(0.0f ~ 1.0f)
+	float target_volume_scale = static_cast<float>(volume) / 100.0f;
 
-    const float target_volume_scale = volume / 100.0f;
-	const float target_volume_level = (scaled_max_volume - scaled_min_volume) * target_volume_scale + scaled_min_volume;
-	const float volume_range = scaled_max_volume - scaled_min_volume;
-	const float target_volume_normalized = (target_volume_level - scaled_min_volume) / volume_range;
-	HrIfFailThrow(endpoint_volume_->SetMasterVolumeLevelScalar(target_volume_normalized, nullptr));
+	// 直接以線性比例設定音量
+	HrIfFailThrow(endpoint_volume_->SetMasterVolumeLevelScalar(target_volume_scale, nullptr));
 
-	float db_volume = 0;
+	// 若需檢查當前dB值，可呼叫GetMasterVolumeLevel()取得
+	float db_volume = 0.0f;
 	HrIfFailThrow(endpoint_volume_->GetMasterVolumeLevel(&db_volume));
-	XAMP_LOG_D(logger_, "Current:{} dB, max_volume:{} dB, min_volume:{} dB, volume_normalized:{} dB, volume_range:{} ",
-		db_volume, scaled_max_volume, scaled_min_volume, target_volume_normalized, volume_range);
+
+	XAMP_LOG_D(logger_,
+		"Set volume to {}%, linear scale: {:.2f}, current: {:.2f} dB.",
+		volume, target_volume_scale, db_volume);
 }
 
 void ExclusiveWasapiDevice::SetVolumeLevelScalar(float level) {

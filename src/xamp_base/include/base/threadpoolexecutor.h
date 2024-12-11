@@ -99,7 +99,6 @@ private:
     std::atomic<size_t> running_thread_;
     size_t max_thread_;
 	size_t bulk_size_;
-    FastMutex mutex_;
     std::string name_;
     Vector<JThread> threads_;
     Vector<std::atomic<ExecuteFlags>> task_execute_flags_;

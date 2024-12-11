@@ -47,6 +47,8 @@ namespace {
 			::PropVariantInit(this);
 		}
 
+		XAMP_DISABLE_COPY(PropVariant)
+
 		/*
 		* Destructor.
 		*/
@@ -235,37 +237,66 @@ AudioFormat ToAudioFormat(const WAVEFORMATEX* format) {
 	return AudioFormat(DataFormat::FORMAT_PCM, format->nChannels, format->wBitsPerSample, format->nSamplesPerSec);
 }
 
-bool IsDeviceSupportExclusiveMode(const CComPtr<IMMDevice>& device, AudioFormat &default_format) {
-	CComPtr<IPropertyStore> property;
-	if (FAILED(device->OpenPropertyStore(STGM_READ, &property))) {
-		return false;
-	}
-
-	PropVariant prop_variant;
-	if (FAILED(property->GetValue(PKEY_AudioEngine_DeviceFormat, &prop_variant))) {
-		return false;
-	}
-
+bool IsDeviceSupportExclusiveMode(const CComPtr<IMMDevice>& device, AudioFormat& default_format) {
 	CComPtr<IAudioClient> client;
 	auto hr = device->Activate(__uuidof(IAudioClient),
 		CLSCTX_ALL,
 		nullptr,
 		reinterpret_cast<void**>(&client));
-	if (SUCCEEDED(hr)) {
-		hr = client->IsFormatSupported(
-			AUDCLNT_SHAREMODE_EXCLUSIVE,
-			reinterpret_cast<PWAVEFORMATEX>(prop_variant.blob.pBlobData),
-			nullptr
-		);
+	if (FAILED(hr)) {
+		return false;
+	}
+
+	REFERENCE_TIME default_device_period = 0;
+	REFERENCE_TIME minimum_device_period = 0;
+	if (FAILED(client->GetDevicePeriod(&default_device_period, &minimum_device_period))) {
+		return false;
+	}
+
+	constexpr struct TestFormat {
+		uint32_t sample_rate;
+		uint16_t bits_per_sample;
+	} test_formats[] = {
+		{44100, 24},  // 44.1kHz/24bit
+		{44100, 32},  // 44.1kHz/32bit
+		{48000, 24},  // 48kHz/24bit
+		{48000, 32},  // 48kHz/32bit
+		// 為了加速測試速度，僅測試以上格式.
+	};
+
+	for (auto test_format : test_formats) {
+		const AudioFormat audio_format(DataFormat::FORMAT_PCM, AudioFormat::kMaxChannel, test_format.bits_per_sample, test_format.sample_rate);
+
+		WAVEFORMATEXTENSIBLE format{ 0 };
+		format.Format.nChannels = audio_format.GetChannels();
+		format.Format.nSamplesPerSec = audio_format.GetSampleRate();
+		format.Format.nAvgBytesPerSec = audio_format.GetAvgBytesPerSec();
+		format.Format.nBlockAlign = audio_format.GetBlockAlign();
+		format.Format.cbSize = sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
+		format.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
+		format.SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
+		format.Samples.wValidBitsPerSample = test_formats->bits_per_sample;
+
+		// 雖然有效位元是24或32，但WAVEFORMATEXTENSIBLE結構中Format.wBitsPerSample若設定32且wValidBitsPerSample=24表示24bit pack於32bit框架中
+		format.Format.wBitsPerSample = 32;
+
+		const auto* mix_format = reinterpret_cast<WAVEFORMATEX*>(&format);
+		hr = client->Initialize(AUDCLNT_SHAREMODE_EXCLUSIVE,
+			AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
+			default_device_period,
+			default_device_period,
+			mix_format,
+			nullptr);
 		if (SUCCEEDED(hr)) {
-			default_format = ToAudioFormat(reinterpret_cast<WAVEFORMATEX*>(prop_variant.blob.pBlobData));
+			default_format = audio_format;
 			return true;
 		}
 	}
+
 	return false;
 }
 
 XAMP_OUTPUT_DEVICE_WIN32_HELPER_NAMESPACE_END
 
-#endif // XAMP_OS_WIN
+#endif
 

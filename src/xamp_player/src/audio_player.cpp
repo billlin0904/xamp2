@@ -52,7 +52,7 @@ namespace {
     constexpr uint32_t kMaxBufferSecs = 5;
     constexpr uint32_t kActionQueueSize = 30;
 
-    constexpr std::chrono::milliseconds kUpdateSampleIntervalMs(100);
+    constexpr std::chrono::milliseconds kUpdateSampleIntervalMs(15);
     constexpr std::chrono::milliseconds kReadSampleWaitTimeMs(15);
     constexpr std::chrono::milliseconds kPauseWaitTimeout(30);
     constexpr std::chrono::seconds kWaitForStreamStopTime(10);
@@ -650,12 +650,14 @@ void AudioPlayer::SetStateAdapter(const std::weak_ptr<IPlaybackStateAdapter>& ad
         }
 
         const auto stream_time_sec_unit = p->playback_state_.stream_time_sec_unit.load();
-        if (stream_time_sec_unit > 0) {
+        if (stream_time_sec_unit != kStopStreamTime) {
             adapter->OnSampleTime(stream_time_sec_unit / 1000.0);
         }
-        else if (p->playback_state_.is_playing && stream_time_sec_unit == -1) {
-            p->SetState(PlayerState::PLAYER_STATE_STOPPED);
-            p->playback_state_.is_playing = false;
+        else if (p->playback_state_.is_playing) {
+            if (stream_time_sec_unit == kStopStreamTime) {
+                p->SetState(PlayerState::PLAYER_STATE_STOPPED);
+                p->playback_state_.is_playing = false;
+            }
         }
         });
 }
@@ -668,12 +670,10 @@ void AudioPlayer::Seek(double stream_time) {
     if (device_->IsStreamOpen()) {
         read_finish_and_wait_seek_signal_cond_.notify_one();
 		playback_state_.is_seeking = true;
-        SeekAction seek_action{ stream_time };
-        PlayerAction action{
+        action_queue_.try_enqueue(PlayerAction{
             PlayerActionId::PLAYER_SEEK,
-            seek_action
-        };
-        action_queue_.try_enqueue(std::move(action));
+            SeekAction{ stream_time }
+            });
     }
 }
 
@@ -917,7 +917,7 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
     // <--------------------------------------->
     //
     if (stream_time >= playback_state_.stream_duration) {
-        UpdatePlayerStreamTime(-1);
+        UpdatePlayerStreamTime(kStopStreamTime);
         return DataCallbackResult::STOP;
     }
 

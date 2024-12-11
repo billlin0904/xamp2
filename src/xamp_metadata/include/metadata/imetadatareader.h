@@ -41,9 +41,9 @@ public:
     * Get embedded cover from file.
     * 
     * @param[in] path file path.
-    * @return Vector<uint8_t>
+    * @return Vector<std::byte>
     */
-    virtual std::optional<Vector<uint8_t>> ReadEmbeddedCover(const Path &path) = 0;
+    virtual std::optional<Vector<std::byte>> ReadEmbeddedCover(const Path &path) = 0;
 
     /*
     * Check file is supported.

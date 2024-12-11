@@ -212,19 +212,7 @@ void TaskScheduler::Execute(Vector<MoveOnlyFunction>& tasks, size_t task_size, s
 
 void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {	
     threads_.emplace_back([i, this, priority](const auto& stop_token) mutable {
-		StackBuffer<std::byte> L1_padding_buffer;
-
-		if (IsCPUSupportHT()) {
-			// Avoid 64K Aliasing in L1 Cache (Intel hyper-threading)
-			L1_padding_buffer =
-				MakeStackBuffer((std::min)(kInitL1CacheLineSize * i,
-					kMaxL1CacheLineSize));
-		}
-
 		XAMP_NO_TLS_GUARDS thread_local PRNG prng;
-		//XAMP_NO_TLS_GUARDS thread_local WorkStealingTaskQueue task_local_queue(kMaxWorkQueueSize);
-		//auto* local_queue = &task_local_queue;
-		//task_work_queues_[i] = local_queue;
 		auto* local_queue = task_work_queues_[i].get();
 
 		Stopwatch spinning_watch;

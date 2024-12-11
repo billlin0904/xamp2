@@ -511,13 +511,18 @@ bool AsioDevice::GetPCMSamples(long index, double sample_time, size_t& num_fille
 	buffer_.Fill(0);
 
 	XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_size_, num_filled_frame, stream_time, sample_time) == DataCallbackResult::CONTINUE) {
-		const auto in = reinterpret_cast<const float*>(buffer_.Get());
-		InterleaveToPlanar<float, int32_t>::Convert(
-			in,
-			static_cast<int32_t*>(the_driver_context.buffer_infos[0].buffers[index]),
-			static_cast<int32_t*>(the_driver_context.buffer_infos[1].buffers[index]),
-			buffer_size_ * format_.GetChannels(),
-			the_driver_context.data_context.volume_factor);
+		DataConverter<
+			PackedFormat::INTERLEAVED,
+			PackedFormat::PLANAR
+		>::Convert(
+			reinterpret_cast<int32_t*>(device_buffer_.Get()),
+			reinterpret_cast<const float*>(buffer_.Get()),
+			the_driver_context.data_context);
+		for (size_t i = 0, j = 0; i < format_.GetChannels(); ++i) {
+			MemoryCopy(the_driver_context.buffer_infos[i].buffers[index],
+				&device_buffer_[j++ * buffer_bytes_],
+				buffer_bytes_);
+		}
 		return true;
 	} else {
 		return false;
@@ -531,8 +536,8 @@ bool AsioDevice::GetDSDSamples(long index, double sample_time, size_t& num_fille
 
 	XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_bytes_, num_filled_frame, stream_time, sample_time) == DataCallbackResult::CONTINUE) {
 		DataConverter<
-			PackedFormat::PLANAR,
-			PackedFormat::INTERLEAVED
+			PackedFormat::INTERLEAVED,
+			PackedFormat::PLANAR
 		>::Convert(
 				device_buffer_.Get(),
 				buffer_.Get(),
