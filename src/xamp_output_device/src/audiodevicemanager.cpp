@@ -77,7 +77,6 @@ AudioDeviceManager::AudioDeviceManager()
     XAMP_REGISTER_DEVICE_TYPE(ExclusiveWasapiDeviceType);
     XAMP_REGISTER_DEVICE_TYPE(NullOutputDeviceType);
     XAMP_REGISTER_DEVICE_TYPE(AsioDeviceType);
-    DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Initial();
 #else
     using namespace osx;
     XAMP_REGISTER_DEVICE_TYPE(CoreAudioDeviceType);

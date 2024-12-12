@@ -648,12 +648,8 @@ void AudioPlayer::SetStateAdapter(const std::weak_ptr<IPlaybackStateAdapter>& ad
         if (p->playback_state_.is_seeking) {
             return;
         }
-
         const auto stream_time_sec_unit = p->playback_state_.stream_time_sec_unit.load();
-        if (stream_time_sec_unit != kStopStreamTime) {
-            adapter->OnSampleTime(stream_time_sec_unit / 1000.0);
-        }
-        else if (p->playback_state_.is_playing) {
+        if (p->playback_state_.is_playing) {
             if (stream_time_sec_unit == kStopStreamTime) {
                 p->SetState(PlayerState::PLAYER_STATE_STOPPED);
                 p->playback_state_.is_playing = false;
@@ -880,6 +876,8 @@ void AudioPlayer::CopySamples(void* samples, size_t num_buffer_frames) const {
     if (elapsed >= kMinimalCopySamplesTime) {
         XAMP_LOG_D(logger_, "CopySamples too slow ({} ms)!", elapsed.count());
     }
+    auto stream_time_sec_unit = playback_state_.stream_time_sec_unit.load();
+    adapter->OnSampleTime(stream_time_sec_unit / 1000.0);
 }
 
 DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_frames, size_t & num_filled_frames, double stream_time, double /*sample_time*/) noexcept {
@@ -894,7 +892,7 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
     }
 
     if (stream_time >= playback_state_.stream_duration) {
-        UpdatePlayerStreamTime(-1);
+        UpdatePlayerStreamTime(kStopStreamTime);
         return DataCallbackResult::STOP;
     }
 

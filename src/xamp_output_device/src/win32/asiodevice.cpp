@@ -344,7 +344,6 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 	switch (channel_info.type) {
 	case ASIOSTInt16MSB:
 	case ASIOSTInt16LSB:
-		//format_.SetByteFormat(ByteFormat::SINT16);
 		XAMP_LOG_D(logger_, "Driver support format: 16 bit.");
 		//break;
 		throw AsioException(Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT);
@@ -352,32 +351,26 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 	case ASIOSTInt32LSB24: // 32 bit data with 24 bit alignment
 	case ASIOSTInt24MSB:   // used for 20 bits as well
 	case ASIOSTInt32MSB24: // 32 bit data with 24 bit alignment
-		//format_.SetByteFormat(ByteFormat::SINT24);
 		XAMP_LOG_D(logger_, "Driver support format: 20 bit.");
 		//break;
 		throw AsioException(Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT);
 	case ASIOSTFloat32LSB: // IEEE 754 32 bit float, as found on Intel x86 architecture
-		//format_.SetByteFormat(ByteFormat::FLOAT32);
 		XAMP_LOG_D(logger_, "Driver support format: 32 bit float.");
 		//break;
 		throw AsioException(Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT);
 	case ASIOSTFloat64LSB: // IEEE 754 64 bit double float, as found on Intel x86 architecture	
-		//format_.SetByteFormat(ByteFormat::FLOAT64);
 		XAMP_LOG_D(logger_, "Driver support format: 64 bit float.");
 		//break;
 		throw AsioException(Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT);
 	case ASIOSTFloat32MSB: // IEEE 754 32 bit float, Big Endian architecture 
-		//format_.SetByteFormat(ByteFormat::FLOAT32);
 		XAMP_LOG_D(logger_, "Driver support format: 32 bit float.");
 		//break;
 		throw AsioException(Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT);
 	case ASIOSTFloat64MSB: // IEEE 754 64 bit double float, Big Endian architecture		
-		//format_.SetByteFormat(ByteFormat::FLOAT64);
 		XAMP_LOG_D(logger_, "Driver support format: 64 bit float.");
 		//break;
 		throw AsioException(Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT);
 	case ASIOSTInt32MSB:
-		//format_.SetByteFormat(ByteFormat::SINT32);
 		XAMP_LOG_D(logger_, "Driver support format: ASIOSTInt32LSB.");
 		//break;
 		throw AsioException(Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT);
@@ -395,7 +388,6 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		XAMP_LOG_D(logger_, "Driver support format: ASIOSTDSDInt8MSB1.");
 		break;
 	case ASIOSTDSDInt8NER8:
-		//format_.SetByteFormat(ByteFormat::SINT8);
 		XAMP_LOG_D(logger_, "Driver support format: ASIOSTDSDInt8NER8.");
 		//break;
 		throw AsioException(Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT);
@@ -577,9 +569,8 @@ void AsioDevice::GetSamples(long index, double sample_time) noexcept {
 	output_bytes_ = cache_played_bytes;	
 
 	size_t num_filled_frame = 0;
-	const auto got_samples = std::invoke(get_samples_, index, sample_time, num_filled_frame);
-	
-	if (got_samples) {
+
+	if (std::invoke(get_samples_, index, sample_time, num_filled_frame)) {
 		the_driver_context.Post();
 	} else {
 		FillSilentData();
