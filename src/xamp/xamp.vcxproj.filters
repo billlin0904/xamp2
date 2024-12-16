@@ -5,12 +5,6 @@
     <ClCompile Include="xapplication.cpp" />
     <ClCompile Include="style_util.cpp" />
     <ClCompile Include="xamp.cpp" />
-    <ClCompile Include="models\musicplayermodel.cpp">
-      <Filter>models</Filter>
-    </ClCompile>
-    <ClCompile Include="controllers\msiccntroller.cpp">
-      <Filter>models</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtTranslation Include="zh_TW.ts" />
@@ -29,12 +23,6 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="xamp.h" />
-    <QtMoc Include="controllers\msiccntroller.h">
-      <Filter>models</Filter>
-    </QtMoc>
-    <QtMoc Include="models\musicplayermodel.h">
-      <Filter>models</Filter>
-    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="Resource\Theme\dark\darkstyle.qrc" />
@@ -59,9 +47,6 @@
   <ItemGroup>
     <Filter Include="controllers">
       <UniqueIdentifier>{74f0ef72-7e21-4b25-b823-945e8b5ba295}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="models">
-      <UniqueIdentifier>{51f1220b-08bc-4425-a0ec-d049133371cb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -1,55 +1,61 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\stats.c">
+    <ClCompile Include="F:\Source\xamp2\src\thirdparty\mimalloc\src\alloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\random.c">
+    <ClCompile Include="F:\Source\xamp2\src\thirdparty\mimalloc\src\alloc-aligned.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\os.c">
+    <ClCompile Include="F:\Source\xamp2\src\thirdparty\mimalloc\src\alloc-posix.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\bitmap.c">
+    <ClCompile Include="F:\Source\xamp2\src\thirdparty\mimalloc\src\arena.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\arena.c">
+    <ClCompile Include="F:\Source\xamp2\src\thirdparty\mimalloc\src\bitmap.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\segment-cache.c">
+    <ClCompile Include="F:\Source\xamp2\src\thirdparty\mimalloc\src\heap.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\segment.c">
+    <ClCompile Include="F:\Source\xamp2\src\thirdparty\mimalloc\src\init.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\page.c">
+    <ClCompile Include="F:\Source\xamp2\src\thirdparty\mimalloc\src\libc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\alloc.c">
+    <ClCompile Include="F:\Source\xamp2\src\thirdparty\mimalloc\src\options.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\alloc-aligned.c">
+    <ClCompile Include="F:\Source\xamp2\src\thirdparty\mimalloc\src\os.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\alloc-posix.c">
+    <ClCompile Include="F:\Source\xamp2\src\thirdparty\mimalloc\src\page.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\heap.c">
+    <ClCompile Include="F:\Source\xamp2\src\thirdparty\mimalloc\src\random.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\options.c">
+    <ClCompile Include="F:\Source\xamp2\src\thirdparty\mimalloc\src\segment.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\src\init.c">
+    <ClCompile Include="F:\Source\xamp2\src\thirdparty\mimalloc\src\segment-map.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="F:\Source\xamp2\src\thirdparty\mimalloc\src\stats.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="F:\Source\xamp2\src\thirdparty\mimalloc\src\prim\prim.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\CMakeLists.txt" />
+    <CustomBuild Include="F:\Source\xamp2\src\thirdparty\mimalloc\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{661D13B2-FC33-358A-AA9C-A6AE0A78104B}</UniqueIdentifier>
+      <UniqueIdentifier>{741CF29A-2595-32AA-980D-27A41093CBE5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

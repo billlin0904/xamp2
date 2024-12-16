@@ -1,3 +1,21 @@
-﻿     Creating library C:/Users/User/source/repos/xamp2/src/thirdparty/mimalloc/msvc/Debug/mimalloc.lib and object C:/Users/User/source/repos/xamp2/src/thirdparty/mimalloc/msvc/Debug/mimalloc.exp
-  mimalloc.vcxproj -> C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\msvc\Debug\mimalloc.dll
+﻿  Building Custom Rule F:/Source/xamp2/src/thirdparty/mimalloc/CMakeLists.txt
+  alloc.c
+  alloc-aligned.c
+  alloc-posix.c
+  arena.c
+  bitmap.c
+  heap.c
+  init.c
+  libc.c
+  options.c
+  os.c
+  page.c
+  random.c
+  segment.c
+  segment-map.c
+  stats.c
+  prim.c
+  Generating Code...
+     Creating library F:/Source/xamp2/src/thirdparty/mimalloc/msvc/Debug/mimalloc.lib and object F:/Source/xamp2/src/thirdparty/mimalloc/msvc/Debug/mimalloc.exp
+  mimalloc.vcxproj -> F:\Source\xamp2\src\thirdparty\mimalloc\msvc\Debug\mimalloc.dll
   Copy mimalloc-redirect.dll to output directory

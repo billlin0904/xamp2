@@ -18,6 +18,7 @@
 #include <base/uuidof.h>
 #include <base/sfc64.h>
 #include <base/mpmc_queue.h>
+
 #include <stream/fft.h>
 
 #include <player/api.h>
@@ -117,7 +118,6 @@ static void BM_ThreadPool(benchmark::State& state) {
     auto thread_pool = ThreadPoolBuilder::MakeThreadPool(
         XAMP_LOG_NAME(BM_ThreadPool),
         ThreadPriority::PRIORITY_NORMAL,
-        CpuAffinity::kAll,
         max_thread);
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -127,7 +127,7 @@ static void BM_ThreadPool(benchmark::State& state) {
 
     std::atomic<int64_t> prime_count{0};
     for (auto _ : state) {
-        Executor::ParallelFor(*thread_pool, 0, 10, [&prime_count](auto item) {
+        Executor::ParallelFor(thread_pool.get(), 0, 10, [&prime_count](auto item) {
             if (IsPrime(item)) {
                 ++prime_count;
             }
@@ -402,34 +402,34 @@ static void BM_ConvertToShort(benchmark::State& state) {
 //    }
 //}
 //
-//static void InterleavedToPlanarConvertToInt8_Test() {
-//   auto length = 4096;
-//
-//   auto input = Vector<int8_t>(length);
-//	 for (auto i = 0; i < length; ++i) {
-//		input[i] = (i % 2) ? 1 : 0;
-//	 }
-//
-//    auto output = Vector<int8_t>(length);
-//
-//    AudioFormat input_format;
-//    AudioFormat output_format;
-//
-//    input_format.SetChannel(2);
-//	  input_format.SetPackedFormat(PackedFormat::INTERLEAVED);
-//    output_format.SetChannel(2);
-//    output_format.SetPackedFormat(PackedFormat::PLANAR);
-//
-//    const auto ctx = MakeConvert(input_format, output_format, length / 2);
-//
-//    // Add test Convert code in here.
-//    DataConverter<PackedFormat::INTERLEAVED, PackedFormat::PLANAR>::Convert(output.data(), input.data(), ctx);
-//
-//    for (size_t i = 0; i < length / 2; ++i) {
-//        assert(output[i] == 0);
-//        assert(output[i + length / 2] == 1);
-//    }
-//}
+static void InterleavedToPlanarConvertToInt8_Test() {
+	auto length = 8192;
+
+	auto output = Vector<int8_t>(length);
+	auto input = Vector<int8_t>(length);
+	for (auto i = 0; i < length; ++i) {
+		input[i] = (i % 2) ? 127 : -128;
+	 }
+
+    AudioFormat input_format;
+    AudioFormat output_format;
+
+    input_format.SetChannel(2);
+	input_format.SetPackedFormat(PackedFormat::INTERLEAVED);
+    output_format.SetChannel(2);
+    output_format.SetPackedFormat(PackedFormat::PLANAR);
+
+    const auto ctx = MakeConvert(input_format, output_format, length / 2);
+
+    // Add test Convert code in here.
+    //DataConverter<PackedFormat::INTERLEAVED, PackedFormat::PLANAR>::Convert(output.data(), input.data(), ctx);
+    DataConverter<PackedFormat::PLANAR, PackedFormat::INTERLEAVED>::Convert(output.data(), input.data(), ctx);
+
+    for (size_t i = 0; i < length / 2; ++i) {
+        assert(output[i] == -128);
+        assert(output[i + length / 2] == 127);
+    }
+}
 
 static void BM_InterleavedToPlanarConvertToInt8_AVX(benchmark::State& state) {
     auto length = state.range(0);
@@ -761,7 +761,7 @@ static void BM_Spinlock(benchmark::State& state) {
 //BENCHMARK(BM_BlockingQueue)->ThreadRange(4, 512);
 
 BENCHMARK(BM_ThreadPool)->RangeMultiplier(2)->Range(8, 64);
-BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 64);
+//BENCHMARK(BM_StdAsync)->RangeMultiplier(2)->Range(8, 64);
 //BENCHMARK(BM_StdForEachPar)->RangeMultiplier(2)->Range(8, 8 << 12);
 //BENCHMARK(BM_BaseLineThreadPool)->RangeMultiplier(2)->Range(8, 8 << 12);
 
@@ -825,7 +825,7 @@ int main(int argc, char** argv) {
     DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Initial();
     
     //InterleavedToPlanarConvertToInt32_Test();
-    //InterleavedToPlanarConvertToInt8_Test();
+    InterleavedToPlanarConvertToInt8_Test();
 
     XampLoggerFactory
         .AddDebugOutput()

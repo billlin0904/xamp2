@@ -1,16 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\test\test-api-fill.c">
+    <ClCompile Include="F:\Source\xamp2\src\thirdparty\mimalloc\test\test-api-fill.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="C:\Users\User\source\repos\xamp2\src\thirdparty\mimalloc\CMakeLists.txt" />
+    <CustomBuild Include="F:\Source\xamp2\src\thirdparty\mimalloc\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{661D13B2-FC33-358A-AA9C-A6AE0A78104B}</UniqueIdentifier>
+      <UniqueIdentifier>{741CF29A-2595-32AA-980D-27A41093CBE5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

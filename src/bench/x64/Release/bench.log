@@ -1,0 +1,16 @@
+﻿  bench.cpp
+F:\Source\xamp2\src\xamp_base\include\base\base.h(1,1): warning C4819: The file contains a character that cannot be represented in the current code page (950). Save the file in Unicode format to prevent data loss
+  (compiling source file 'bench.cpp')
+  
+F:\Source\xamp2\src\xamp_base\include\base\platform.h(1,1): warning C4819: The file contains a character that cannot be represented in the current code page (950). Save the file in Unicode format to prevent data loss
+  (compiling source file 'bench.cpp')
+  
+F:\Source\xamp2\src\xamp_base\include\base\dataconverter.h(410,33): warning C4244: 'argument': conversion from 'const float' to 'int32_t', possible loss of data
+  (compiling source file 'bench.cpp')
+  
+F:\Source\xamp2\src\bench\bench.cpp(121,9): warning C4267: 'argument': conversion from 'size_t' to 'uint32_t', possible loss of data
+F:\Source\xamp2\src\bench\bench.cpp(554,67): warning C4267: '=': conversion from 'size_t' to 'uint32_t', possible loss of data
+F:\Source\xamp2\src\bench\bench.cpp(571,67): warning C4267: '=': conversion from 'size_t' to 'uint32_t', possible loss of data
+  Generating code
+  Finished generating code
+  bench.vcxproj -> F:\Source\xamp2\src\xamp\x64\Release\bench.exe

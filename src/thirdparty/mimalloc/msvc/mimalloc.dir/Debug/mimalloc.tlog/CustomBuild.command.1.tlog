@@ -1,6 +1,6 @@
-^C:\USERS\USER\SOURCE\REPOS\XAMP2\SRC\THIRDPARTY\MIMALLOC\CMAKELISTS.TXT
+^F:\SOURCE\XAMP2\SRC\THIRDPARTY\MIMALLOC\CMAKELISTS.TXT
 setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/User/source/repos/xamp2/src/thirdparty/mimalloc -BC:/Users/User/source/repos/xamp2/src/thirdparty/mimalloc/msvc --check-stamp-file C:/Users/User/source/repos/xamp2/src/thirdparty/mimalloc/msvc/CMakeFiles/generate.stamp
+"C:\Program Files\CMake\bin\cmake.exe" -SF:/Source/xamp2/src/thirdparty/mimalloc -BF:/Source/xamp2/src/thirdparty/mimalloc/msvc --check-stamp-file F:/Source/xamp2/src/thirdparty/mimalloc/msvc/CMakeFiles/generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone

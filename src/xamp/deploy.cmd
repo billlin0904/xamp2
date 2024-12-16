@@ -1,55 +1,65 @@
-copy x64\Release\xamp.exe deploy\
-copy x64\Release\opengl32sw.dll deploy\
-copy x64\Release\libcrypto-1_1-x64.dll deploy\
-copy x64\Release\libfftw3f-3.dll deploy\
-copy x64\Release\libfftw3-3.dll deploy\
-copy x64\Release\taglib.dll deploy\
-copy x64\Release\libssl-1_1-x64.dll deploy\
-copy x64\Release\libsoxr.dll deploy\
-copy x64\Release\bassmix.dll deploy\
-copy x64\Release\ebur128.dll deploy\
-copy x64\Release\mimalloc-override.dll deploy\
-copy x64\Release\mimalloc-redirect.dll deploy\
-copy x64\Release\widget_shared.dll deploy\
-copy x64\Release\QSimpleUpdater.dll deploy\
-copy x64\Release\r8bsrc.dll deploy\
+@echo off
 
-copy x64\Release\widget_shared.dll deploy\
+REM 定義常用路徑變數
+SET BUILD_DIR=x64\Release
+SET DEPLOY_DIR=deploy
 
-copy x64\Release\QWKCore.dll deploy\
-copy x64\Release\QWKWidgets.dll deploy\
+REM 建立部署目錄（若不存在）
+if not exist "%DEPLOY_DIR%" mkdir "%DEPLOY_DIR%"
 
-copy x64\Release\supereq.dll deploy\
-copy x64\Release\mecab.dll deploy\
+REM 複製 DLL 檔案 (可考慮使用通配符，但需確認無多餘不必要的檔案)
+copy %BUILD_DIR%\xamp.exe %DEPLOY_DIR%\
+copy %BUILD_DIR%\opengl32sw.dll %DEPLOY_DIR%\
+copy %BUILD_DIR%\libcrypto-1_1-x64.dll %DEPLOY_DIR%\
+copy %BUILD_DIR%\libfftw3f-3.dll %DEPLOY_DIR%\
+copy %BUILD_DIR%\libfftw3-3.dll %DEPLOY_DIR%\
+copy %BUILD_DIR%\taglib.dll %DEPLOY_DIR%\
+copy %BUILD_DIR%\libssl-1_1-x64.dll %DEPLOY_DIR%\
+copy %BUILD_DIR%\libsoxr.dll %DEPLOY_DIR%\
+copy %BUILD_DIR%\bassmix.dll %DEPLOY_DIR%\
+copy %BUILD_DIR%\ebur128.dll %DEPLOY_DIR%\
+copy %BUILD_DIR%\mimalloc-override.dll %DEPLOY_DIR%\
+copy %BUILD_DIR%\mimalloc-redirect.dll %DEPLOY_DIR%\
+copy %BUILD_DIR%\widget_shared.dll %DEPLOY_DIR%\
+copy %BUILD_DIR%\QSimpleUpdater.dll %DEPLOY_DIR%\
+copy %BUILD_DIR%\r8bsrc.dll %DEPLOY_DIR%\
+copy %BUILD_DIR%\QWKCore.dll %DEPLOY_DIR%\
+copy %BUILD_DIR%\QWKWidgets.dll %DEPLOY_DIR%\
+copy %BUILD_DIR%\supereq.dll %DEPLOY_DIR%\
+copy %BUILD_DIR%\mecab.dll %DEPLOY_DIR%\
 
-xcopy x64\Release\components deploy\components\ /E /I /H /C /Y
+REM 拷貝 components 資料夾
+robocopy %BUILD_DIR%\components %DEPLOY_DIR%\components /E
 
-copy x64\Release\xamp_base.dll deploy\
-copy x64\Release\xamp_stream.dll deploy\
-copy x64\Release\xamp_metadata.dll deploy\
-copy x64\Release\xamp_output_device.dll deploy\
-copy x64\Release\xamp_player.dll deploy\
+REM 複製其餘 DLL、pdb、txt、json 檔案
+copy %BUILD_DIR%\xamp_base.dll %DEPLOY_DIR%\
+copy %BUILD_DIR%\xamp_stream.dll %DEPLOY_DIR%\
+copy %BUILD_DIR%\xamp_metadata.dll %DEPLOY_DIR%\
+copy %BUILD_DIR%\xamp_output_device.dll %DEPLOY_DIR%\
+copy %BUILD_DIR%\xamp_player.dll %DEPLOY_DIR%\
 
-copy x64\Release\xamp_base.pdb deploy\
-copy x64\Release\xamp_stream.pdb deploy\
-copy x64\Release\xamp_metadata.pdb deploy\
-copy x64\Release\xamp_output_device.pdb deploy\
-copy x64\Release\xamp_player.pdb deploy\
-copy x64\Release\xamp.pdb deploy\
+copy %BUILD_DIR%\xamp_base.pdb %DEPLOY_DIR%\
+copy %BUILD_DIR%\xamp_stream.pdb %DEPLOY_DIR%\
+copy %BUILD_DIR%\xamp_metadata.pdb %DEPLOY_DIR%\
+copy %BUILD_DIR%\xamp_output_device.pdb %DEPLOY_DIR%\
+copy %BUILD_DIR%\xamp_player.pdb %DEPLOY_DIR%\
+copy %BUILD_DIR%\xamp.pdb %DEPLOY_DIR%\
 
-copy x64\Release\xamp.pdb deploy\
-copy lincense.txt deploy\
-copy credits.txt deploy\
-copy fonticon.json deploy\
+copy lincense.txt %DEPLOY_DIR%\
+copy credits.txt %DEPLOY_DIR%\
+copy fonticon.json %DEPLOY_DIR%\
 
-xcopy /Y /S /I /E eqpresets deploy\eqpresets
-xcopy /Y /S /I /E Resource deploy\Resource
-xcopy /Y /S /I /E x64\Release\langs deploy\langs
-xcopy /Y /S /I /E x64\Release\fonts deploy\fonts
+REM xcopy EQ presets, Resource, langs, fonts
+robocopy eqpresets %DEPLOY_DIR%\eqpresets /E
+robocopy Resource %DEPLOY_DIR%\Resource /E
+robocopy %BUILD_DIR%\langs %DEPLOY_DIR%\langs /E
+robocopy %BUILD_DIR%\fonts %DEPLOY_DIR%\fonts /E
 
+REM 產生多語檔 en_US.qm
 lrelease en_US.ts -qm en_US.qm
 
 copy en_US.qm x64\Debug\langs\
-copy en_US.qm x64\Release\langs\
+copy en_US.qm %BUILD_DIR%\langs\
 
-C:\Qt\6.7.2\msvc2019_64\bin\windeployqt --force deploy x64\Release\xamp.exe --release
+REM 執行 windeployqt
+C:\Qt\6.7.2\msvc2019_64\bin\windeployqt --force %DEPLOY_DIR% %BUILD_DIR%\xamp.exe --release

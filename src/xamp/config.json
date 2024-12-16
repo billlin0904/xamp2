@@ -4,12 +4,12 @@
             "Default": "debug",
             "Override": {
                 "AsioDevice": "info",
-                "AudioPlayer": "info",
+                "AudioPlayer": "debug",
                 "AvFileStream": "info",
-                "BASS": "info",
+                "BASS": "debug",
                 "BackgroundService": "info",
                 "BackgroundThreadPool": "info",
-                "BassFileStream": "info",
+                "BassFileStream": "debug",
                 "BassParametricEq": "info",
                 "CrashHandler": "debug",
                 "CueLoader": "info",
@@ -55,6 +55,6 @@
         }
     },
     "Src": {
-        "resampleSampleRate": 96000
+        "resampleSampleRate": 192000
     }
 }
