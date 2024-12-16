@@ -6,7 +6,6 @@
 #include <base/platform.h>
 #include <base/rng.h>
 #include <base/stopwatch.h>
-#include <base/latch.h>
 #include <base/crashhandler.h>
 
 #include <algorithm>
@@ -22,22 +21,6 @@ namespace {
 	constexpr auto kMaxWorkQueueSize = 65536;
 	constexpr size_t kMinThreadPoolSize = 1;
 	constexpr size_t kMaxStealBulkSize = 4;
-
-	// TLB size is 4K on most CPUs.
-	constexpr size_t kInitL1CacheLineSize{ 4 * 1024 };
-	// Most CPUs have a L1 cache line size of 64 bytes.
-	constexpr size_t kMaxL1CacheLineSize{ 48 * 1024 };
-
-	bool IsCPUSupportHT() {
-		int32_t reg[4]{ 0 };
-#ifdef XAMP_OS_WIN
-		::__cpuid(reg, 1); // CPUID function 1 gives processor features
-#elif defined(XAMP_OS_MAC)
-		__cpuid(1, reg[0], reg[1], reg[2], reg[3]);
-#endif
-		// Bit 28 of reg[3] (EDX) indicates support for Hyper-Threading
-		return (reg[3] & (1 << 28)) != 0;
-	}
 }
 
 TaskScheduler::TaskScheduler(const std::string_view& name, size_t max_thread, ThreadPriority priority)
@@ -68,7 +51,7 @@ TaskScheduler::TaskScheduler(const std::string_view& name, size_t max_thread, Th
 
 	work_done_.wait();
 
-	JThread([this]() mutable {
+	std::jthread([this]() mutable {
         XAMP_LOG_D(logger_, "Set ({}) Thread affinity, priority is success.", max_thread_);
 		start_clean_up_.count_down();
 		}).detach();
@@ -126,7 +109,7 @@ void TaskScheduler::Destroy() noexcept {
 	XAMP_LOG_D(logger_, "Thread pool was destroy.");
 }
 
-size_t TaskScheduler::TryDequeueSharedQueue(Vector<MoveOnlyFunction>& tasks, const StopToken& stop_token, std::chrono::milliseconds timeout) {
+size_t TaskScheduler::TryDequeueSharedQueue(Vector<MoveOnlyFunction>& tasks, const std::stop_token& stop_token, std::chrono::milliseconds timeout) {
 	if (!stop_token.stop_requested()) {
 		MoveOnlyFunction func;
 		if (task_pool_->dequeue(func, timeout)) {
@@ -137,7 +120,7 @@ size_t TaskScheduler::TryDequeueSharedQueue(Vector<MoveOnlyFunction>& tasks, con
 	return {};
 }
 
-size_t TaskScheduler::TryDequeueSharedQueue(Vector<MoveOnlyFunction>& tasks, const StopToken& stop_token) {
+size_t TaskScheduler::TryDequeueSharedQueue(Vector<MoveOnlyFunction>& tasks, const std::stop_token& stop_token) {
 	if (!stop_token.stop_requested()) {
 		MoveOnlyFunction func;
 		if (task_pool_->try_dequeue(func)) {
@@ -148,7 +131,7 @@ size_t TaskScheduler::TryDequeueSharedQueue(Vector<MoveOnlyFunction>& tasks, con
 	return 0;
 }
 
-size_t TaskScheduler::TryLocalPop(Vector<MoveOnlyFunction>& tasks, const StopToken& stop_token, WorkStealingTaskQueue* local_queue) const {
+size_t TaskScheduler::TryLocalPop(Vector<MoveOnlyFunction>& tasks, const std::stop_token& stop_token, WorkStealingTaskQueue* local_queue) const {
 	if (!stop_token.stop_requested()) {
 		auto size = local_queue->try_dequeue_bulk(tasks.begin(), tasks.size());
 		if (size > 0) {
@@ -158,7 +141,7 @@ size_t TaskScheduler::TryLocalPop(Vector<MoveOnlyFunction>& tasks, const StopTok
 	return 0;
 }
 
-size_t TaskScheduler::TrySteal(Vector<MoveOnlyFunction>& tasks, const StopToken& stop_token, size_t random_start, size_t current_thread_index) {
+size_t TaskScheduler::TrySteal(Vector<MoveOnlyFunction>& tasks, const std::stop_token& stop_token, size_t random_start, size_t current_thread_index) {
 	if (!stop_token.stop_requested()) {
 		for (size_t attempts = 0; attempts < kMaxAttempts; ++attempts) {
 			size_t random_index = (random_start + attempts) % max_thread_;
@@ -201,7 +184,7 @@ void TaskScheduler::SetWorkerThreadName(size_t i) {
 	SetThreadName(stream.str());
 }
 
-void TaskScheduler::Execute(Vector<MoveOnlyFunction>& tasks, size_t task_size, size_t current_index, const StopToken& stop_token) {
+void TaskScheduler::Execute(Vector<MoveOnlyFunction>& tasks, size_t task_size, size_t current_index, const std::stop_token& stop_token) {
 	for (size_t i = 0; i < task_size; ++i) {
 		auto running_thread = ++running_thread_;
 		std::invoke(tasks[i], stop_token);

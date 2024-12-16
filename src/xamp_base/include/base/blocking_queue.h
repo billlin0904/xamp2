@@ -93,7 +93,9 @@ public:
         if (queue_.empty()) {
             return false;
         }
-        value = std::move(queue_.top());
+
+        value = std::move(queue_.front());
+        queue_.pop();
         return true;
 	}
 
@@ -111,11 +113,11 @@ public:
 			notify_.wait(guard);
 		}
 
-        if (queue_.empty() || done_) {
+        if (queue_.empty()) {
 			return false;
 		}
 
-		task = std::move(queue_.top());
+		task = std::move(queue_.front());
 		queue_.pop();
         return true;
 	}
@@ -136,11 +138,12 @@ public:
             }
         }
     
-        if (queue_.empty() || done_) { 
+        if (queue_.empty()) { 
             return false;
         }
 
-        task = std::move(queue_.top());
+        task = std::move(queue_.front());
+        queue_.pop();
         return true;
     }
 
@@ -148,7 +151,7 @@ public:
     * Weak up all threads waiting for the queue to be not empty.
     * 
     * This function is used to wake up all threads waiting for the queue to be
-    * not empty. This is used to shutdown the queue.
+    * not empty. This is used to shut down the queue.
     * 
     */
     void wakeup_for_shutdown() {

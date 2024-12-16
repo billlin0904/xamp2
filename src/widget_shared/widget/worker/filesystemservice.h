@@ -8,6 +8,8 @@
 #include <QObject>
 #include <QTimer>
 
+#include <stop_token>
+
 #include <widget/playlistentity.h>
 #include <widget/widget_shared_global.h>
 #include <widget/widget_shared.h>
@@ -55,6 +57,7 @@ private:
     Stopwatch update_ui_elapsed_;
     QTimer timer_;
     std::shared_ptr<IThreadPoolExecutor> thread_pool_;
+    std::stop_source stop_source_;
     LoggerPtr logger_;
 };
 

@@ -10,8 +10,8 @@
 #include <base/memory.h>
 #include <base/stl.h>
 #include <base/platform.h>
-#include <base/stop_token.h>
 
+#include <stop_token>
 #include <future>
 #include <type_traits>
 #include <memory>
@@ -63,11 +63,11 @@ decltype(auto) IThreadPoolExecutor::Spawn(F&& f, Args&&... args, ExecuteFlags fl
     // because f is an lvalue here, and std::forward does not turn an lvalue into an rvalue.
     static_assert(std::is_lvalue_reference_v<F>, "Func must be l value reference.");
 
-    using ReturnType = std::invoke_result_t<F, const StopToken&, Args...>;
+    using ReturnType = std::invoke_result_t<F, const std::stop_token&, Args...>;
 
     // MSVC packaged_task can't be constructed from a move-only lambda
     // https://github.com/microsoft/STL/issues/321
-    using PackagedTaskType = std::packaged_task<ReturnType(const StopToken&)>;
+    using PackagedTaskType = std::packaged_task<ReturnType(const std::stop_token&)>;
 
     auto task = MakeSharedPointer<PackagedTaskType>(bind_front(
         std::forward<F>(f),

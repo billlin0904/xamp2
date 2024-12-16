@@ -69,8 +69,8 @@ ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& file_path, DsdMo
             return MakeAlign<FileStream, BassFileStream>();
         default:;
         }
-        //return MakeAlign<FileStream, AvFileStream>();
-        return MakeAlign<FileStream, BassFileStream>();
+        return MakeAlign<FileStream, AvFileStream>();
+        //return MakeAlign<FileStream, BassFileStream>();
     } else {
         return MakeAlign<FileStream, BassFileStream>();
     }

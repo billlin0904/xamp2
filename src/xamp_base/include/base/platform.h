@@ -11,7 +11,6 @@
 
 #include <base/enum.h>
 #include <base/base.h>
-#include <base/jthread.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
 
@@ -41,7 +40,7 @@ inline constexpr uint32_t kInfinity =
         0; // 在 macOS 上，超時為 0 表示無限等待
     #endif
 
-XAMP_BASE_API void SetThreadPriority(JThread& thread, ThreadPriority priority);
+XAMP_BASE_API void SetThreadPriority(std::jthread& thread, ThreadPriority priority);
 
 XAMP_BASE_API void SetThreadName(std::wstring const & name);
 

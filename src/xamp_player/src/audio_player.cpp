@@ -803,7 +803,7 @@ void AudioPlayer::Play() {
         return;
     }
 
-    stream_task_ = Executor::Spawn(thread_pool_.get(), [player = shared_from_this()](const StopToken& stop_token) {
+    stream_task_ = Executor::Spawn(thread_pool_.get(), [player = shared_from_this()](const auto& stop_token) {
         auto* p = player.get();
 
         std::unique_lock<FastMutex> pause_lock{ p->pause_mutex_ };

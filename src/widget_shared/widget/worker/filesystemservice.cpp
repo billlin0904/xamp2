@@ -21,7 +21,8 @@ namespace {
 	};
 
 	std::pair<size_t, Vector<PathInfo>> getPathSortByFileCount(
-		std::shared_ptr<IThreadPoolExecutor>& thread_pool,
+		const std::shared_ptr<IThreadPoolExecutor>& thread_pool,
+		const std::stop_token &stop_token,
 		const Vector<QString>& paths,
 		const QStringList& file_name_filters,
 		std::function<void(size_t)>&& action) {
@@ -34,7 +35,7 @@ namespace {
 			path_infos.push_back({0, 0, path});
 		}
 
-		Executor::ParallelFor(thread_pool.get(), path_infos, [&](auto& path_info) {
+		Executor::ParallelFor(thread_pool.get(), stop_token, path_infos, [&](auto& path_info)->void {
 			path_info.file_count = getFileCount(path_info.path, file_name_filters);
 			path_info.depth = path_info.path.count("/"_str);
 			total_file_count += path_info.file_count;
@@ -149,15 +150,19 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 	}
 
 	// directory_files 目的是為了將同一個檔案分類再一起, 為了以下進行平行處理資料夾內的檔案, 並將解析後得結果進行track no排序.
-	Executor::ParallelFor(thread_pool_.get(), directory_files, [&](const auto& path_info) {
+	Executor::ParallelFor(thread_pool_.get(), stop_source_.get_token(), directory_files, [&](const auto& path_info, const std::stop_token& stop_token) {
 		if (is_stop_) {
 			return;
 		}
 
 		ForwardList<TrackInfo> tracks;
-		auto reader = MakeMetadataReader();
+	 	thread_local auto reader = MakeMetadataReader();
 
-		for (const auto& path : path_info.second) {			
+		for (const auto& path : path_info.second) {
+			if (stop_token.stop_requested()) {
+				return;
+			}
+
 			try {
 				tracks.push_front(reader->Extract(path));
 			}
@@ -205,7 +210,7 @@ void FileSystemService::onExtractFile(const QString& file_path, int32_t playlist
 	emit readFileStart();
 
 	auto [total_work, file_count_paths] =
-		getPathSortByFileCount(thread_pool_, paths, getTrackInfoFileNameFilter(),
+		getPathSortByFileCount(thread_pool_, stop_source_.get_token(), paths, getTrackInfoFileNameFilter(),
 		                       [this](auto total_file_count) {
 		emit foundFileCount(total_file_count);
 	});
@@ -235,10 +240,14 @@ void FileSystemService::onExtractFile(const QString& file_path, int32_t playlist
 
 	timer_.start(std::chrono::seconds(1));
 
+	// This function is thread safe, reset stop_source_ is thread safe.
+	stop_source_ = std::stop_source();
+
 	for (const auto& path_info : file_count_paths) {
 		if (is_stop_) {
 			return;
 		}
+
 		try {
 			scanPathFiles(playlist_id, path_info.path);
 		}
@@ -268,4 +277,5 @@ void FileSystemService::updateProgress() {
 
 void FileSystemService::cancelRequested() {
 	is_stop_ = true;
+	stop_source_.request_stop();
 }

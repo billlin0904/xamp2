@@ -105,6 +105,8 @@ template
 >
 class XAMP_BASE_API_ONLY_EXPORT SharedLibraryFunction final {
 public:
+    static_assert(std::is_function_v<std::remove_pointer_t<T>>, "T must be a function pointer type");
+
     /*
     * Constructor.
     * 
@@ -129,12 +131,7 @@ public:
 #endif
     
     XAMP_NO_DISCARD XAMP_ALWAYS_INLINE operator T* () const noexcept {
-        XAMP_EXPECTS(func_ != nullptr);
         return func_;
-    }
-
-    XAMP_NO_DISCARD XAMP_ALWAYS_INLINE bool IsValid() const noexcept {
-        return func_ != nullptr;
     }
 
     XAMP_NO_DISCARD XAMP_ALWAYS_INLINE T* Get() const noexcept {

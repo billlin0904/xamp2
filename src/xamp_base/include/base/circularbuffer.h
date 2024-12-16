@@ -213,18 +213,33 @@ public:
     }
 
     /*
-    * Get the first item in the buffer.
-    * 
-    * @return The first item in the buffer.
-    */
-	XAMP_NO_DISCARD T& top() {
+     * Get the front item in the buffer.
+     */
+    XAMP_NO_DISCARD T& front() {
         if (empty()) {
             throw std::runtime_error("empty buffer");
         }
+        return data_[first_pos()];
+    }
 
-        auto pos = first_pos();
+    /*
+	 * Get the front item in the buffer.
+	 */
+    XAMP_NO_DISCARD const T& front() const {
+        if (empty()) {
+            throw std::runtime_error("empty buffer");
+        }
+        return data_[first_pos()];
+    }
+
+    /*
+	 * Remove an item from the buffer.
+	 */
+    void pop() {
+        if (empty()) {
+            throw std::runtime_error("empty buffer");
+        }
         size_--;
-        return data_[pos];
     }
 
     /*

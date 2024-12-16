@@ -105,7 +105,8 @@ AvUtilLib::AvUtilLib() try
 	, XAMP_LOAD_DLL_API(av_samples_fill_arrays)
 	, XAMP_LOAD_DLL_API(av_rescale_q)
 	, XAMP_LOAD_DLL_API(av_sample_fmt_is_planar)
-	, XAMP_LOAD_DLL_API(av_dict_get) {
+	, XAMP_LOAD_DLL_API(av_dict_get)
+	, XAMP_LOAD_DLL_API(av_opt_set) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());

@@ -48,8 +48,6 @@
     <ClInclude Include="include\base\fastmutex.h" />
     <ClInclude Include="include\base\fs.h" />
     <ClInclude Include="include\base\int24.h" />
-    <ClInclude Include="include\base\jthread.h" />
-    <ClInclude Include="include\base\latch.h" />
     <ClInclude Include="include\base\logger_impl.h" />
     <ClInclude Include="include\base\object_pool.h" />
     <ClInclude Include="include\base\pimplptr.h" />
@@ -76,7 +74,6 @@
     <ClInclude Include="include\base\platform.h" />
     <ClInclude Include="include\base\stacktrace.h" />
     <ClInclude Include="include\base\stopwatch.h" />
-    <ClInclude Include="include\base\stop_token.h" />
     <ClInclude Include="include\base\moveonly_function.h" />
     <ClInclude Include="include\base\task.h" />
     <ClInclude Include="include\base\threadpoolexecutor.h" />

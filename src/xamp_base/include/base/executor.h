@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2024 XAMP project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -9,9 +9,11 @@
 #include <base/stl.h>
 #include <base/task.h>
 #include <base/logger_impl.h>
+#include <base/fastconditionvariable.h>
 #include <base/fastmutex.h>
+#include <base/workstealingtaskqueue.h>
 #include <base/ithreadpoolexecutor.h>
-
+#include <base/blocking_queue.h>
 #include <condition_variable>
 
 XAMP_BASE_NAMESPACE_BEGIN
@@ -48,6 +50,7 @@ void ParallelFor(C& items, Func&& f) {
     ParallelFor(executor.get(), items, f);
 }
 
+#if 0
 /*
 * Parallel for.
 * 
@@ -91,7 +94,7 @@ void ParallelFor(IThreadPoolExecutor* executor,
 
         for (size_t j = 0; j < batch_size; ++j) {
             if (!is_future_duplicate(futures, itr)) {
-                auto task = Executor::Spawn(executor, [fun = std::forward<Func>(f), itr](const StopToken& token) -> void {
+                auto task = Executor::Spawn(executor, [fun = std::forward<Func>(f), itr](const auto& token) -> void {
                     if (!token.stop_requested()) {
                         fun(*itr);
                     }                    
@@ -126,6 +129,60 @@ void ParallelFor(IThreadPoolExecutor* executor,
         future.second.wait();
     }
 }
+#endif
+
+/*
+ * Parallel for.
+ *
+ * @param[in] executor
+ * @param[in] items
+ * @param[in] f
+ * @return void
+ *
+ */
+template <typename C, typename Func>
+void ParallelFor(IThreadPoolExecutor* executor,
+    const std::stop_token& stop_token,
+    C& items,
+    Func&& f) {
+    using ValueType = typename C::value_type;
+
+    if (items.empty()) {
+        return;
+    }
+
+    constexpr bool can_call_with_stop =
+        std::is_invocable_v<Func, ValueType&, const std::stop_token&>;
+
+	ConcurrentQueue<ValueType*> task_queue(items.size());
+
+    for (auto& item : items) {
+        task_queue.enqueue(&item);
+    }
+
+    auto worker = [&stop_token, &task_queue, fun = std::forward<Func>(f)](const auto& token) {
+        ValueType *task;
+        while (!stop_token.stop_requested() && !token.stop_requested() && task_queue.try_dequeue(task)) {
+            if constexpr (can_call_with_stop) {
+                fun(*task, stop_token);
+            } else {
+                fun(*task);
+            }
+        }
+        };
+
+    const size_t worker_count = executor->GetThreadSize();
+    std::vector<SharedTask<void>> futures;
+    futures.reserve(worker_count);
+
+    for (size_t i = 0; i < worker_count; ++i) {
+        futures.push_back(Executor::Spawn(executor, worker).share());
+    }
+
+    for (auto& fut : futures) {
+        fut.wait();
+    }
+}
 
 /*
 * Parallel for.
@@ -144,7 +201,7 @@ void ParallelFor(IThreadPoolExecutor* executor, size_t begin, size_t end, Func&&
     for (size_t i = 0; i < size;) {
         Vector<Task<void>> futures((std::min)(size - i, batches));
         for (auto& ff : futures) {
-            ff = Executor::Spawn(executor, [func = std::forward<Func>(f), begin, i](const StopToken& token) -> void {
+            ff = Executor::Spawn(executor, [func = std::forward<Func>(f), begin, i](const auto& token) -> void {
                 if (!token.stop_requested()) {
                     func(begin + i);
                 }                

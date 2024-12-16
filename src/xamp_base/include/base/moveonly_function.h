@@ -6,6 +6,7 @@
 #pragma once
 
 #include <algorithm>
+#include <stop_token>
 #include <future>
 #include <functional>
 
@@ -31,7 +32,7 @@ public:
 	 * Calls the wrapped function with the given stop_token.
 	 * The function is only called once.
 	 */
-    void operator()(const StopToken& stop_token) {
+    void operator()(const std::stop_token& stop_token) {
         XAMP_EXPECTS(impl_ != nullptr);
 	    impl_->Invoke(stop_token);
         impl_.reset();
@@ -60,21 +61,21 @@ private:
     */
     struct XAMP_NO_VTABLE ImplBase {
         virtual ~ImplBase() = default;
-        virtual void Invoke(const StopToken& stop_token) = 0;
+        virtual void Invoke(const std::stop_token& stop_token) = 0;
     };
 
     ScopedPtr<ImplBase> impl_;
 
     template <typename Func>
     struct ImplType final : ImplBase {
-        static_assert(std::is_invocable_v<Func, const StopToken&>,
+        static_assert(std::is_invocable_v<Func, const std::stop_token&>,
             "Func must be callable with a const StopToken& argument.");
 
 	    ImplType(Func&& f) noexcept(std::is_nothrow_move_assignable_v<Func>)
             : f_(std::forward<Func>(f)) {
         }
 
-        void Invoke(const StopToken& stop_token) override {
+        void Invoke(const std::stop_token& stop_token) override {
             std::invoke(f_, stop_token);
         }
         Func f_;

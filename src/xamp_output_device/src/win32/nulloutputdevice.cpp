@@ -7,6 +7,7 @@
 #include <output_device/iaudiocallback.h>
 
 #ifdef XAMP_OS_WIN
+#include <base/scopeguard.h>
 #include <output_device/win32/mmcss.h>
 #endif
 
@@ -114,13 +115,14 @@ void NullOutputDevice::StartStream() {
 	XAMP_LOG_DEBUG("NullOutputDevice start render.");
 
 	is_stopped_ = false;
-	render_task_ = Executor::Spawn(thread_pool_.get(), [this](const StopToken& stop_token) {
+	render_task_ = Executor::Spawn(thread_pool_.get(), [this](const auto& stop_token) {
 		size_t num_filled_frames = 0;		
 		double sample_time = 0;
 
 #ifdef XAMP_OS_WIN
         Mmcss mmcss;
 		mmcss.BoostPriority(kMmcssProfileProAudio, MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL);
+		XAMP_ON_SCOPE_EXIT(mmcss.RevertPriority());
 #endif
 
 		wait_for_start_stream_cond_.notify_one();
@@ -136,9 +138,7 @@ void NullOutputDevice::StartStream() {
 			}
 			std::this_thread::sleep_for(wait_time_);
 		}
-#ifdef XAMP_OS_WIN
-		mmcss.RevertPriority();
-#endif
+
 		XAMP_LOG_DEBUG("NullOutputDevice stop render.");
 
 		}, ExecuteFlags::EXECUTE_LONG_RUNNING);

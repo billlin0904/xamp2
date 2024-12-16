@@ -229,7 +229,7 @@ void SetThreadName(std::wstring const& name) {
 #endif
 }
 
-void SetThreadPriority(JThread& thread, ThreadPriority priority) {
+void SetThreadPriority(std::jthread& thread, ThreadPriority priority) {
 #ifdef XAMP_OS_WIN
     auto thread_priority = THREAD_PRIORITY_NORMAL;
     switch (priority) {

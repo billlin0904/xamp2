@@ -199,7 +199,7 @@ public:
     	? AV_CH_LAYOUT_STEREO : static_cast<int64_t>(codec_context_->channel_layout);
        
         swr_context_.reset(LIBAV_LIB.Swr->swr_alloc_set_opts(swr_context_.get(),
-            AV_CH_LAYOUT_STEREO,
+            channel_layout,
             AV_SAMPLE_FMT_FLT,
             codec_context_->sample_rate,
             channel_layout,
@@ -210,6 +210,8 @@ public:
 
         // Down mix to stereo.
         AvIfFailedThrow(LIBAV_LIB.Swr->swr_init(swr_context_.get()));
+        LIBAV_LIB.Util->av_opt_set(swr_context_.get(), "rematrix_volume", "1.0", 0);
+
         audio_format_.SetFormat(DataFormat::FORMAT_PCM);
         if (codec_context_->channels != AudioFormat::kMaxChannel) {
             XAMP_LOG_D(logger_,"Mix {} to Stereo channel", codec_context_->channels);
