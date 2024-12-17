@@ -10,6 +10,32 @@
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
+namespace {
+    constexpr auto AVERROR_NOFMT = -42;
+
+    OrderedMap<std::wstring, std::wstring> ProbeFileInfo(const Path& file_path, const LoggerPtr &logger) {
+        AVFormatContext* ctx = nullptr;
+        AvPtr<AVFormatContext> format_context;
+        AVDictionary* options = nullptr;
+
+        const auto file_path_ut8 = String::ToString(file_path.wstring());
+        const auto err = LIBAV_LIB.Format->avformat_open_input(&ctx, file_path_ut8.c_str(), nullptr, &options);
+        if (err != 0) {
+            return {};
+        }
+
+        format_context.reset(ctx);
+
+        OrderedMap<std::wstring, std::wstring> file_info;
+        AVDictionaryEntry* tag = nullptr;
+        while ((tag = LIBAV_LIB.Util->av_dict_get(format_context->metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
+            file_info[String::ToString(tag->key)] = String::ToString(tag->value);
+            XAMP_LOG_D(logger, "{} {}", tag->key, tag->value);
+        }
+        return file_info;
+    }
+}
+
 XAMP_DECLARE_LOG_NAME(AvFileStream);
 
 class AvFileStream::AvFileStreamImpl {
@@ -46,36 +72,12 @@ public:
         format_context_.reset();
     }
 
-    OrderedMap<std::wstring, std::wstring> ProbeFileInfo(const Path& file_path) {
-        AVFormatContext* ctx = nullptr;
-        AvPtr<AVFormatContext> format_context;
-        AVDictionary* options = nullptr;
-
-        const auto file_path_ut8 = String::ToString(file_path.wstring());
-        const auto err = LIBAV_LIB.Format->avformat_open_input(&ctx, file_path_ut8.c_str(), nullptr, &options);
-        if (err != 0) {
-            return {};
-        }
-
-        format_context.reset(ctx);
-
-        OrderedMap<std::wstring, std::wstring> file_info;
-        AVDictionaryEntry* tag = nullptr;
-        while ((tag = LIBAV_LIB.Util->av_dict_get(format_context->metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
-            file_info[String::ToString(tag->key)] = String::ToString(tag->value);
-            XAMP_LOG_D(logger_, "{} {}", tag->key, tag->value);
-        }
-        return file_info;
-    }
-
     /*
     * Load file from file path.
     * 
     * @param file_path File path.
     */
     void OpenFile(const Path & file_path) {
-        ProbeFileInfo(file_path);
-
         AVFormatContext* format_context = nullptr;
         AVDictionary* options = nullptr;
         
@@ -89,11 +91,9 @@ public:
         const auto file_path_ut8 = String::ToString(file_path.wstring());
         const auto err = LIBAV_LIB.Format->avformat_open_input(&format_context, file_path_ut8.c_str(), nullptr, &options);
         if (err != 0) {
-            static constexpr auto AVERROR_NOFMT = -42;
             switch (err) {
             case AVERROR_INVALIDDATA:
                 throw NotSupportFormatException();
-                break;
             case AVERROR_NOFMT:
                 throw FileNotFoundException();
             default:
@@ -107,6 +107,8 @@ public:
         else {
             throw NotSupportFormatException();
         }
+
+        ProbeFileInfo(file_path, logger_);
 
         // max analyze duration: 5s
         format_context->max_analyze_duration = 5 * AV_TIME_BASE;
@@ -130,7 +132,7 @@ public:
         }
 
         const auto stream = format_context_->streams[audio_stream_id_];
-        // todo: opus格式可能會讀不出duration.
+        // TODO: opus格式可能會讀不出duration.
         if (stream->duration == AV_NOPTS_VALUE) {
             duration_ = 0;
             return;
@@ -178,21 +180,19 @@ public:
             throw NotSupportFormatException();
         }
 
-        auto FormatBitRate = [this]() {
-            std::ostringstream ostr;
+        auto format_bit_rate = [this]() {
             if (GetBitRate() > 1000.0) {
-                ostr << Round(GetBitRate() / 1000.0, 1) << " Kbps";
-            } else { 
-                ostr << GetBitRate() << " bps";
+                return String::Format("{} Kbps", Round(GetBitRate() / 1000.0, 1));
+            } else {
+                return String::Format("{} bps", GetBitRate());
             }
-            return ostr.str();
             };
 
         if (format_context_->iformat != nullptr) {
             XAMP_LOG_D(logger_, "Stream input format => {} bitdetph:{} bitrate:{}",
                 format_context_->iformat->name,
                 GetBitDepth(),
-                FormatBitRate());
+                format_bit_rate());
         }
 
         const int64_t channel_layout = codec_context_->channel_layout == 0
@@ -208,8 +208,9 @@ public:
             0,
             nullptr));
 
-        // Down mix to stereo.
         AvIfFailedThrow(LIBAV_LIB.Swr->swr_init(swr_context_.get()));
+
+        // 指定降混後音量不衰減
         LIBAV_LIB.Util->av_opt_set(swr_context_.get(), "rematrix_volume", "1.0", 0);
 
         audio_format_.SetFormat(DataFormat::FORMAT_PCM);

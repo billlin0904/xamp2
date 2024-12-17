@@ -22,4 +22,5 @@ protected:
 
 private:
     Vector<int32_t> filters_;
+    QString substring_pattern_;
 };

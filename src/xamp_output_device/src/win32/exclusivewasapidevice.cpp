@@ -363,7 +363,7 @@ bool ExclusiveWasapiDevice::GetSample(bool is_silence) noexcept {
 
 	// Get sample from callback.
 	size_t num_filled_frames = 0;
-	XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_frames_, num_filled_frames, stream_time_float, sample_time) == DataCallbackResult::CONTINUE) {
+	if (callback_->OnGetSamples(buffer_.Get(), buffer_frames_, num_filled_frames, stream_time_float, sample_time) == DataCallbackResult::CONTINUE) {
 		bool result = true;
 		if (num_filled_frames != buffer_frames_) {
 			flags = AUDCLNT_BUFFERFLAGS_SILENT;

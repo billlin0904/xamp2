@@ -34,13 +34,13 @@ XAMP_BASE_API AudioConvertContext MakeConvert(AudioFormat const& in_format, Audi
 #ifdef XAMP_OS_WIN
 
 template <typename T, typename TStoreType = T>
-void AVX2Convert(TStoreType* XAMP_RESTRICT output, const float* XAMP_RESTRICT input, int32_t float_scale, const AudioConvertContext& context) noexcept {
+void AVX2Convert(TStoreType* output, const float* input, float float_scale, const AudioConvertContext& context) noexcept {
 	XAMP_EXPECTS(output != nullptr);
 	XAMP_EXPECTS(input != nullptr);
 
 	const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * context.input_format.GetChannels();
 
-	const __m256 scale = _mm256_set1_ps(static_cast<float>(float_scale));
+	const __m256 scale = _mm256_set1_ps(float_scale);
 
 	while (input + 8 <= end_input) {
 		XAMP_ASSERT(end_input - input > 0);
@@ -49,12 +49,12 @@ void AVX2Convert(TStoreType* XAMP_RESTRICT output, const float* XAMP_RESTRICT in
 		__m256 scaled_values = _mm256_mul_ps(input_values, scale);
 
 		if constexpr (std::is_same_v<T, int32_t>) {
-			__m256i output_values = _mm256_cvtps_epi32(scaled_values);
+			__m256i output_values = _mm256_cvttps_epi32(scaled_values);
 			_mm256_store_si256(reinterpret_cast<__m256i*>(output), output_values);
 			output += 8;
 		}
 		else if constexpr (sizeof(T) == 3) {
-			__m256i output_values = _mm256_cvtps_epi32(scaled_values);
+			__m256i output_values = _mm256_cvttps_epi32(scaled_values);
 			alignas(32) int32_t temp_output[8];
 			_mm256_store_si256(reinterpret_cast<__m256i*>(temp_output), output_values);
 			__m256i temp_output_values = _mm256_load_si256(reinterpret_cast<const __m256i*>(temp_output));
@@ -63,7 +63,7 @@ void AVX2Convert(TStoreType* XAMP_RESTRICT output, const float* XAMP_RESTRICT in
 			output += 8;
 		}
 		else if constexpr (std::is_same_v<T, short>) {
-			__m256i output_values = _mm256_cvtps_epi32(scaled_values);
+			__m256i output_values = _mm256_cvttps_epi32(scaled_values);
 			__m256i packed_values = _mm256_packs_epi32(output_values, output_values);
 			packed_values = _mm256_permute4x64_epi64(packed_values, 0xD8);
 			_mm_store_si128(reinterpret_cast<__m128i*>(output), _mm256_castsi256_si128(packed_values));
@@ -82,7 +82,7 @@ void AVX2Convert(TStoreType* XAMP_RESTRICT output, const float* XAMP_RESTRICT in
 		XAMP_ASSERT(end_input - input > 0);
 		if constexpr (sizeof(T) == 3) {
 			int32_t temp = static_cast<int32_t>(*input * float_scale) << 8;
-			*reinterpret_cast<int32_t* XAMP_RESTRICT>(output) = temp;
+			*reinterpret_cast<int32_t*>(output) = temp;
 			output += 1;
 		}
 		else if constexpr (std::is_same_v<T, short>) {
@@ -99,7 +99,7 @@ void AVX2Convert(TStoreType* XAMP_RESTRICT output, const float* XAMP_RESTRICT in
 
 template <PackedFormat InputFormat, PackedFormat OutputFormat>
 struct XAMP_BASE_API_ONLY_EXPORT DataConverter {
-	static void Convert(int8_t* XAMP_RESTRICT output, const int8_t* XAMP_RESTRICT input, const AudioConvertContext& context) noexcept {
+	static void Convert(int8_t* output, const int8_t* input, const AudioConvertContext& context) noexcept {
 		XAMP_EXPECTS(output != nullptr);
 		XAMP_EXPECTS(input != nullptr);
 
@@ -117,7 +117,7 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter {
 		}
 	}
 
-	static void Convert(int32_t* XAMP_RESTRICT output, const float* XAMP_RESTRICT input, const AudioConvertContext& context) noexcept {
+	static void Convert(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
 		XAMP_EXPECTS(output != nullptr);
 		XAMP_EXPECTS(input != nullptr);
 
@@ -152,7 +152,7 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 	// 3. 跨 lane 的問題：
 	//    `_mm256_shuffle_epi8` 能處理 byte-level 重組，但限制在 128-bit lane 內，
 	//    無法解決跨 lane 的搬移需求。
-	static void Convert(int8_t* XAMP_RESTRICT output, const int8_t* XAMP_RESTRICT input, const AudioConvertContext& context) noexcept {
+	static void Convert(int8_t* output, const int8_t* input, const AudioConvertContext& context) noexcept {
 		XAMP_EXPECTS(output != nullptr);
 		XAMP_EXPECTS(input != nullptr);
 		XAMP_EXPECTS(context.input_format.GetChannels() == 2);
@@ -215,7 +215,7 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 		}
 	}
 
-	static void SSEConvert(int32_t* XAMP_RESTRICT output, const int32_t* XAMP_RESTRICT input, const AudioConvertContext& context) noexcept {
+	static void SSEConvert(int32_t* output, const int32_t* input, const AudioConvertContext& context) noexcept {
 		XAMP_EXPECTS(output != nullptr);
 		XAMP_EXPECTS(input != nullptr);
 		XAMP_EXPECTS(context.input_format.GetChannels() == 2);
@@ -264,7 +264,7 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 		}
 	}
 
-	static void Convert(int32_t* XAMP_RESTRICT output, const float* XAMP_RESTRICT input, const AudioConvertContext& context) noexcept {
+	static void Convert(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
 		XAMP_EXPECTS(output != nullptr);
 		XAMP_EXPECTS(input != nullptr);
 		XAMP_EXPECTS(context.input_format.GetChannels() == 2);
@@ -305,7 +305,7 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 
 			// float->int32
 			__m256 scaled_values = _mm256_mul_ps(input_values, scale);
-			__m256i int_values = _mm256_cvtps_epi32(scaled_values);
+			__m256i int_values = _mm256_cvttps_epi32(scaled_values);
 
 			// 分離左聲道 (0,2,4,6)
 			__m256i left_values = _mm256_permutevar8x32_epi32(int_values, left_perm_mask);
@@ -330,9 +330,9 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 		for (; i < frames; ++i) {
 			float L = input[0];
 			float R = input[1];
-			// 簡單四捨五入
-			int32_t Li = static_cast<int32_t>(L > 0.0f ? L + 0.5f : L - 0.5f);
-			int32_t Ri = static_cast<int32_t>(R > 0.0f ? R + 0.5f : R - 0.5f);
+			
+			int32_t Li = static_cast<int32_t>(L * kFloat32Scale);
+			int32_t Ri = static_cast<int32_t>(R * kFloat32Scale);
 
 			left_channel[0] = Li;
 			right_channel[0] = Ri;
@@ -346,15 +346,15 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 
 template <>
 struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED> {
-	static void Convert(int16_t* XAMP_RESTRICT output, const float* XAMP_RESTRICT input, const AudioConvertContext& context) noexcept {
+	static void Convert(int16_t* output, const float* input, const AudioConvertContext& context) noexcept {
 		AVX2Convert<int16_t>(output, input, kFloat16Scale, context);
 	}
 
-	static void Convert(int32_t* XAMP_RESTRICT output, const float* XAMP_RESTRICT input, const AudioConvertContext& context) noexcept {
+	static void Convert(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
 		AVX2Convert<int32_t>(output, input, kFloat32Scale, context);
 	}
 
-	static void ConvertToInt2432(int32_t* XAMP_RESTRICT output, const float* XAMP_RESTRICT input, const AudioConvertContext& context) noexcept {
+	static void ConvertToInt2432(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
 		AVX2Convert<Int24, int32_t>(output, input, kFloat24Scale, context);
 	}
 };

@@ -73,6 +73,38 @@ struct ExceptionPointer : EXCEPTION_POINTERS {
         delete ExceptionRecord;
     }
 };
+
+void CreateMinidump(_EXCEPTION_POINTERS* exception_pointers) {
+    auto file_name = String::ToStdWString(String::Format("{}-crashdump.dmp", GetSequentialUUID()));
+
+    auto file = CreateFileW(file_name.c_str(),
+        GENERIC_WRITE,
+        0, 
+        nullptr,
+        CREATE_ALWAYS, 
+        FILE_ATTRIBUTE_NORMAL,
+        nullptr);
+    if ((file == nullptr) || (file == INVALID_HANDLE_VALUE)) {
+        return;
+    }
+
+    FileHandle crashdump(file);
+    MINIDUMP_EXCEPTION_INFORMATION mdei{};
+    mdei.ThreadId = ::GetCurrentThreadId();
+    mdei.ExceptionPointers = exception_pointers;
+    mdei.ClientPointers = FALSE;
+
+    MINIDUMP_TYPE mdt = MiniDumpNormal;
+    ::MiniDumpWriteDump(
+        GetCurrentProcess(),
+        GetCurrentProcessId(),
+        crashdump.get(),
+        mdt,
+        (exception_pointers ? &mdei : nullptr),
+        nullptr,
+        nullptr
+    );
+}
 #endif
 
 class CrashHandler::CrashHandlerImpl {
@@ -85,7 +117,7 @@ public:
         std::lock_guard<std::recursive_mutex> guard{ mutex_ };
 
         StackTrace stack_trace;
-        const auto* exception_pointers = static_cast<PEXCEPTION_POINTERS>(info);
+        auto* exception_pointers = static_cast<PEXCEPTION_POINTERS>(info);
 
         const auto itr = kIgnoreExceptionCode.find(exception_pointers->ExceptionRecord->ExceptionCode);
         if (itr != kIgnoreExceptionCode.end()) {
@@ -108,6 +140,8 @@ public:
             XAMP_LOG_DEBUG("Uncaught exception: {:#010X} ({}) {}\r\n",
                 code, GetPlatformErrorMessage(code), stack_trace.CaptureStack());
         }
+
+        CreateMinidump(exception_pointers);
     }
 
     static void DumpCurrentExceptionStack() {

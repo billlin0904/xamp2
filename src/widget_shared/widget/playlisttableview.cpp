@@ -197,70 +197,97 @@ void PlaylistTableView::moveUp() {
     auto selected_indexes = selectionModel()->selectedRows();
     if (selected_indexes.isEmpty()) return;
 
+    // 將選取索引依顯示列排序（升冪）
     std::sort(selected_indexes.begin(), selected_indexes.end(), [](const QModelIndex& a, const QModelIndex& b) {
         return a.row() < b.row();
         });
 
-    if (proxy_model_->mapToSource(selected_indexes.first()).row() == 0) {
+    // 在執行任何交換動作前，先取得所有 source row，避免中途re-map引發混亂
+    std::vector<int> source_rows;
+    source_rows.reserve(selected_indexes.size());
+    for (auto& index : selected_indexes) {
+        source_rows.push_back(proxy_model_->mapToSource(index).row());
+    }
+
+    // 若最上面的元素已在最上方(row=0)，無法再上移
+    if (source_rows.front() == 0) {
         return;
     }
 
-    std::optional<QModelIndex> last_index_opt;
+    // 若有多個項目被移動，取得第一個項目前一行的entity，以及最後一個項目行的index以便之後updateIndex
+    std::optional<int> last_source_row_opt;
     std::optional<PlayListEntity> first_entity_opt;
 
-    if (selected_indexes.size() > 1) {
-        auto first_index = proxy_model_->mapToSource(selected_indexes.first());
-        auto first_entity = item(model_->index(first_index.row() - 1, 0));
-        auto last_index = proxy_model_->mapToSource(selected_indexes.last());
-        last_index_opt = last_index;
+    if (source_rows.size() > 1) {
+        int first_source_row = source_rows.front();
+        auto first_entity = item(model_->index(first_source_row - 1, 0));
+        int last_source_row = source_rows.back();
+
+        last_source_row_opt = last_source_row;
         first_entity_opt = first_entity;
-    }    
-
-    for (const QModelIndex& index : selected_indexes) {
-        auto source_row = proxy_model_->mapToSource(index).row();
-        swapPositions(source_row, source_row - 1);
     }
 
-    if (last_index_opt) {
-        updateIndex(last_index_opt.value().row(), first_entity_opt.value());
+    // 依照 source_rows 中的順序一一上移（從上到下處理不會干擾後續行）
+    for (auto row : source_rows) {
+        swapPositions(row, row - 1);
     }
-    
+
+    // 若有記錄first_entity與last_source_row，更新之
+    if (last_source_row_opt && first_entity_opt) {
+        updateIndex(last_source_row_opt.value(), first_entity_opt.value());
+    }
+
+    // 再次選取移動後的新位置
     selectMovedRows(selected_indexes, -1);
 }
 
 void PlaylistTableView::moveDown() {
     auto selected_indexes = selectionModel()->selectedRows();
-    if (selected_indexes.isEmpty()) return;
+    if (selected_indexes.isEmpty()) {
+        return;
+    }
 
+    // 將選取的列以顯示列(row)升冪排序
     std::sort(selected_indexes.begin(), selected_indexes.end(), [](const QModelIndex& a, const QModelIndex& b) {
-        return a.row() > b.row();
+        return a.row() < b.row();
         });
 
-	if (proxy_model_->mapToSource(selected_indexes.first()).row() == model_->rowCount() - 1) {
-		return;
-	}
+    // 將選取列的 source row 一次記錄下來
+    std::vector<int> source_rows;
+    source_rows.reserve(selected_indexes.size());
+    for (auto& index : selected_indexes) {
+        source_rows.push_back(proxy_model_->mapToSource(index).row());
+    }
 
-    std::optional<QModelIndex> first_index_opt;
+    // 若底部列已在最後一行，無法往下移
+    if (source_rows.back() == model_->rowCount() - 1) {
+        return;
+    }
+
+    // 處理更新用的變數
+    std::optional<int> first_source_row_opt;
     std::optional<PlayListEntity> last_entity_opt;
 
-    if (selected_indexes.size() > 1) {
-        auto first_index = proxy_model_->mapToSource(selected_indexes.first());
-
-        auto last_index = proxy_model_->mapToSource(selected_indexes.last());
-        auto last_entity = item(model_->index(last_index.row() + 2, 0));
-
-        first_index_opt = first_index;
+    // 若有多個項目被選取，抓取範圍最上層項目的下一行資料
+    if (source_rows.size() > 1) {
+        int last_source_row_of_selection = source_rows.back();
+        // 往下移之後,最上面的項目將影響上一行的參考
+        auto last_entity = item(model_->index(last_source_row_of_selection + 1, 0));
+        first_source_row_opt = source_rows.front();
         last_entity_opt = last_entity;
     }
 
-    for (const QModelIndex& index : selected_indexes) {
-        auto source_row = proxy_model_->mapToSource(index).row();
-        swapPositions(source_row, source_row + 1);
+    // 開始從「底部」往「上」依序往下移行，避免順序錯亂
+    // 如有選取多行 (1,2)，會先處理 row=2 -> swap(2,3)，再處理 row=1 -> swap(1,2)
+    for (auto it = source_rows.rbegin(); it != source_rows.rend(); ++it) {
+        int row = *it;
+        swapPositions(row, row + 1);
     }
 
-    if (first_index_opt) {
-        updateIndex(first_index_opt.value().row(), last_entity_opt.value());
+    if (first_source_row_opt && last_entity_opt) {
+        updateIndex(first_source_row_opt.value(), last_entity_opt.value());
     }
+
     selectMovedRows(selected_indexes, 1);
 }
 
@@ -754,6 +781,19 @@ void PlaylistTableView::initial() {
                 );
             return;
         }
+
+        action_map.addSeparator();
+
+        auto* encode_alac_file_act = action_map.addAction(tr("Encode to ALAC File"));
+        action_map.setCallback(encode_alac_file_act, [this]() {
+            const auto rows = selectItemIndex();
+            QList<PlayListEntity> entities;
+            for (const auto& row : rows) {
+                const auto entity = this->item(row.second);
+                entities.push_back(entity);
+            }
+            emit encodeAlacFiles(entities);
+            });
 
         action_map.addSeparator();
 

@@ -99,10 +99,8 @@
 
 #ifdef XAMP_OS_WIN
 #define XAMP_NO_VTABLE __declspec(novtable)
-#define XAMP_RESTRICT __restrict
 #else
 #define XAMP_NO_VTABLE
-#define XAMP_RESTRICT __restrict__
 #endif
 
 #ifdef XAMP_OS_WIN
@@ -172,8 +170,8 @@ inline constexpr size_t kCacheAlignSize = 64;
 */
 inline constexpr size_t kMallocAlignSize{ 32 };
 
-inline constexpr int32_t kFloat16Scale { 32767 };
-inline constexpr int32_t kFloat24Scale { 8388607 };
+inline constexpr float kFloat16Scale { 32767.f };
+inline constexpr float kFloat24Scale { 8388607.f };
 // note: 必須要加上.f否則是round to 2147483648.
 inline constexpr float kFloat32Scale { 2147483647.f };
 inline constexpr float kMaxFloatSample { 1.0F };

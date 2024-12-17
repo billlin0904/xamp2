@@ -14,7 +14,7 @@ Qt::ItemFlags PlayListSqlQueryTableModel::flags(const QModelIndex& index) const 
     if (!index.isValid()) {
         return QAbstractTableModel::flags(index);
     }
-    return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable;
+    return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
 
 QVariant PlayListSqlQueryTableModel::headerData(int section, Qt::Orientation orientation, int role) const {

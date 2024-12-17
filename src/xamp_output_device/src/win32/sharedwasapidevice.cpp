@@ -401,7 +401,7 @@ HRESULT SharedWasapiDevice::GetSample(uint32_t frame_available, bool is_silence)
 	size_t num_filled_frames = 0;
 
 	// Get sample from callback.
-	XAMP_LIKELY(callback_->OnGetSamples(data, frame_available, num_filled_frames, stream_time_float, sample_time) == DataCallbackResult::CONTINUE) {
+	if (callback_->OnGetSamples(data, frame_available, num_filled_frames, stream_time_float, sample_time) == DataCallbackResult::CONTINUE) {
 		if (num_filled_frames != frame_available) {
 			flags = AUDCLNT_BUFFERFLAGS_SILENT;
 		}

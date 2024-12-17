@@ -178,6 +178,8 @@ public slots:
 	void onSampleTimeChanged(double stream_time);
 
 	void onActivated(QSystemTrayIcon::ActivationReason reason);
+
+	void onEncodeAlacFiles(const QList<PlayListEntity>& files);
 private:
 	void initialUi();
 
@@ -269,7 +271,7 @@ private:
 
 	void showAbout();
 
-	void connectThemeChanedSignal();
+	void connectThemeChangedSignal();
 
 	bool is_seeking_;
 	bool trigger_upgrade_action_;

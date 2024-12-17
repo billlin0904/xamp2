@@ -897,7 +897,7 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
     }
 
     size_t num_filled_bytes = 0;
-    XAMP_LIKELY(fifo_.TryRead(static_cast<std::byte*>(samples), sample_size, num_filled_bytes)) {
+    if (fifo_.TryRead(static_cast<std::byte*>(samples), sample_size, num_filled_bytes)) {
         num_filled_frames = num_filled_bytes / audio_config_.sample_size / output_format_.GetChannels();
         num_filled_frames = num_buffer_frames;
         UpdatePlayerStreamTime(static_cast<int32_t>(stream_time * 1000));

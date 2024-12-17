@@ -33,7 +33,12 @@ namespace {
             qAppSettings.setValue(kAppSettingLastOpenFolderPath, current_dir.absoluteFilePath(file_name));
         }
         else {
-            qAppSettings.setValue(kAppSettingLastOpenFolderPath, qAppSettings.myMusicFolderPath());
+            QDir current_dir(file_name);
+            if (current_dir.cdUp()) {
+                qAppSettings.setValue(kAppSettingLastOpenFolderPath, current_dir.path());
+            } else {
+                qAppSettings.setValue(kAppSettingLastOpenFolderPath, qAppSettings.myMusicFolderPath());
+            }
         }
     }
 }
@@ -251,7 +256,7 @@ QString getFileDialogFileExtensions() {
     return file_extension;
 }
 
-QString getExistingDirectory(QWidget* parent, const QString &title) {
+QString getExistingDirectory(QWidget* parent, const QString &title, const std::function<void(const QString&)>& action) {
     auto last_open_folder = qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
     if (last_open_folder.isEmpty()) {
         last_open_folder = qAppSettings.myMusicFolderPath();
@@ -261,9 +266,13 @@ QString getExistingDirectory(QWidget* parent, const QString &title) {
         title,
         last_open_folder,
         QFileDialog::ShowDirsOnly);
-
+    if (dir_name.isNull()) {
+        return dir_name;
+    }
     saveLastOpenFolderPath(dir_name);
-
+    if (action) {
+        action(dir_name);
+    }
     return dir_name;
 }
 

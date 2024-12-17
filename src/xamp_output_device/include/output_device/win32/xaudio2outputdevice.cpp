@@ -368,7 +368,7 @@ HRESULT XAudio2OutputDevice::FillSamples(bool &end_of_stream) {
 	float stream_time_float = static_cast<float>(static_cast<double>(stream_time) / static_cast<double>(output_format_.GetSampleRate()));
 	stream_time_ = stream_time;
 
-	XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(),
+	if (callback_->OnGetSamples(buffer_.Get(),
 		buffer_frames_,
 		num_filled_frames,
 		stream_time_float,

@@ -276,6 +276,7 @@ bool IsDeviceSupportExclusiveMode(const CComPtr<IMMDevice>& device, AudioFormat&
 		format.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
 		format.SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
 		format.Samples.wValidBitsPerSample = test_formats->bits_per_sample;
+		format.dwChannelMask = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
 
 		// 雖然有效位元是24或32，但WAVEFORMATEXTENSIBLE結構中Format.wBitsPerSample若設定32且wValidBitsPerSample=24表示24bit pack於32bit框架中
 		format.Format.wBitsPerSample = 32;

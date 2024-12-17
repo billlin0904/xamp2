@@ -277,6 +277,32 @@ void Xamp::onActivated(QSystemTrayIcon::ActivationReason reason) {
     }
 }
 
+void Xamp::onEncodeAlacFiles(const QList<PlayListEntity>& files) {    
+    getExistingDirectory(this, kEmptyString, [this, &files](const auto& dir_name) {
+        for (const auto& file : files) {
+            const auto save_file_name = dir_name + "/"_str + file.file_name + ".m4a"_str;
+            auto encoder = StreamFactory::MakeAlacEncoder();
+            Path output_path(save_file_name.toStdWString());
+            AnyMap config;
+            config.AddOrReplace(FileEncoderConfig::kInputFilePath, Path(file.file_path.toStdWString()));
+            config.AddOrReplace(FileEncoderConfig::kOutputFilePath, output_path);
+            encoder->Start(config);
+            encoder->Encode([&](auto progress) {
+                return true;
+                });
+            encoder.reset();
+            TagIO tag_io;
+            tag_io.writeArtist(output_path, file.artist);
+            tag_io.writeTitle(output_path, file.title);
+            tag_io.writeAlbum(output_path, file.album);
+            tag_io.writeComment(output_path, file.comment);
+            tag_io.writeGenre(output_path, file.genre);
+            tag_io.writeTrack(output_path, file.track);
+            tag_io.writeYear(output_path, file.year);
+        }
+        });
+}
+
 void Xamp::showAbout() {
 	const QScopedPointer<XDialog> dialog(new XDialog(this));
 	const QScopedPointer<AboutPage> about_page(new AboutPage(dialog.get()));
@@ -289,7 +315,7 @@ void Xamp::showAbout() {
     dialog->exec();
 }
 
-void Xamp::connectThemeChanedSignal() {
+void Xamp::connectThemeChangedSignal() {
 	(void)QObject::connect(&qTheme,
 	                       &ThemeManager::themeChangedFinished,
 	                       lrc_page_.get(),
@@ -458,7 +484,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         this,
         &Xamp::onFetchThumbnailUrlError);
 
-    connectThemeChanedSignal();
+    connectThemeChangedSignal();
 
     (void)QObject::connect(this,
         &Xamp::extractFile,
@@ -2584,6 +2610,11 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
         &PlaylistTableView::syncToDevice,
         this,
         &Xamp::onSyncToDevice);
+
+    (void)QObject::connect(playlist_page->playlist(),
+        &PlaylistTableView::encodeAlacFiles,
+        this,
+        &Xamp::onEncodeAlacFiles);
 
     (void)QObject::connect(&qTheme,
         &ThemeManager::themeChangedFinished,
