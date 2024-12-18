@@ -133,6 +133,7 @@
     <ClInclude Include="widget\dao\musicdao.h" />
     <ClInclude Include="widget\dao\playlistdao.h" />
     <ClInclude Include="widget\databasecoverid.h" />
+    <QtMoc Include="widget\encodejobwidget.h" />
     <ClInclude Include="widget\genre_view.h" />
     <QtMoc Include="widget\taglistview.h" />
     <ClInclude Include="widget\httpx.h" />
@@ -186,7 +187,6 @@
     <QtMoc Include="widget\filesystemviewpage.h" />
     <ClInclude Include="widget\fonticon.h" />
     <ClInclude Include="widget\globalshortcut.h" />
-    <ClInclude Include="widget\http.h" />
     <QtMoc Include="widget\iconsizestyle.h" />
     <ClInclude Include="widget\imagecache.h" />
     <ClInclude Include="widget\jsonsettings.h" />
@@ -249,6 +249,12 @@
     <ClCompile Include="widget\database.cpp" />
     <ClCompile Include="widget\databasefacade.cpp" />
     <ClCompile Include="widget\doubleslider.cpp" />
+    <ClCompile Include="widget\encodejobwidget.cpp">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).moc</QtMocFileName>
+    </ClCompile>
     <ClCompile Include="widget\equalizerview.cpp" />
     <ClCompile Include="widget\filesystemmodel.cpp" />
     <ClCompile Include="widget\filesystemviewpage.cpp" />

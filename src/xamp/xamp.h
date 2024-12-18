@@ -24,6 +24,7 @@
 #include <widget/dao/albumdao.h>
 #include <widget/dao/artistdao.h>
 #include <widget/dao/playlistdao.h>
+#include <widget/encodejobwidget.h>
 
 #include <xampplayer.h>
 #include <ui_xamp.h>
@@ -101,7 +102,9 @@ signals:
 	void findAlbumCover(const DatabaseCoverId& id);
 
 	void cancelRequested();
-	
+
+	void addJobs(const QString& dir_name, QList<EncodeJob> jobs);
+
 public slots:
 	void onDelayedDownloadThumbnail();
 

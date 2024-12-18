@@ -35,6 +35,7 @@
 #include <widget/albumartistpage.h>
 #include <widget/albumview.h>
 #include <widget/artistview.h>
+#include <widget/encodejobwidget.h>
 
 #include <widget/appsettings.h>
 #include <widget/cdpage.h>
@@ -279,27 +280,17 @@ void Xamp::onActivated(QSystemTrayIcon::ActivationReason reason) {
 
 void Xamp::onEncodeAlacFiles(const QList<PlayListEntity>& files) {    
     getExistingDirectory(this, kEmptyString, [this, &files](const auto& dir_name) {
-        for (const auto& file : files) {
-            const auto save_file_name = dir_name + "/"_str + file.file_name + ".m4a"_str;
-            auto encoder = StreamFactory::MakeAlacEncoder();
-            Path output_path(save_file_name.toStdWString());
-            AnyMap config;
-            config.AddOrReplace(FileEncoderConfig::kInputFilePath, Path(file.file_path.toStdWString()));
-            config.AddOrReplace(FileEncoderConfig::kOutputFilePath, output_path);
-            encoder->Start(config);
-            encoder->Encode([&](auto progress) {
-                return true;
-                });
-            encoder.reset();
-            TagIO tag_io;
-            tag_io.writeArtist(output_path, file.artist);
-            tag_io.writeTitle(output_path, file.title);
-            tag_io.writeAlbum(output_path, file.album);
-            tag_io.writeComment(output_path, file.comment);
-            tag_io.writeGenre(output_path, file.genre);
-            tag_io.writeTrack(output_path, file.track);
-            tag_io.writeYear(output_path, file.year);
-        }
+        const QScopedPointer<XDialog> dialog(new XDialog(this));
+        const QScopedPointer<EncodeJobWidget> encode_job_widget(new EncodeJobWidget(dialog.get()));
+        encode_job_widget->setFixedSize(QSize(1200, 600));
+        (void)QObject::connect(background_service_.get(), &BackgroundService::updateJobProgress,
+            encode_job_widget.get(), &EncodeJobWidget::updateProgress);
+        emit addJobs(dir_name, encode_job_widget->addJobs("ALAC"_str, files));
+        dialog->setContentWidget(encode_job_widget.get());
+        dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_ABOUT));
+        dialog->setTitle(tr("Encode batch progress"));
+        dialog->exec();
+        background_service_->cancelAllJob();
         });
 }
 
@@ -2281,6 +2272,11 @@ void Xamp::initialPlaylist() {
     connectPlaylistPageSignal(yt_music_search_page_.get());
 
     setCover(kEmptyString);
+
+    (void)QObject::connect(this,
+        &Xamp::addJobs,
+        background_service_.get(),
+        &BackgroundService::onAddJobs);
 
     (void)QObject::connect(this,
         &Xamp::blurImage,

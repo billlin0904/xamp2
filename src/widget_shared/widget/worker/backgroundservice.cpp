@@ -20,7 +20,7 @@
 #include <stream/mbdiscid.h>
 #endif
 
-#include <QJsonDocument>
+#include <QDir>
 #include <QJsonValueRef>
 #include <QThread>
 
@@ -35,6 +35,80 @@ BackgroundService::BackgroundService()
 }
 
 BackgroundService::~BackgroundService() = default;
+
+void BackgroundService::cancelAllJob() {
+    stop_source_.request_stop();
+}
+
+void BackgroundService::onAddJobs(const QString& dir_name, QList<EncodeJob> jobs) {
+    stop_source_ = std::stop_source();
+    
+    /*Executor::ParallelFor(thread_pool_.get(), stop_source_.get_token(), jobs, [dir_name, this](auto &job) {
+        const auto save_file_name = dir_name + "/"_str + job.file.file_name + ".m4a"_str;
+        auto encoder = StreamFactory::MakeAlacEncoder();
+        Path output_path(save_file_name.toStdWString());
+        AnyMap config;
+        config.AddOrReplace(FileEncoderConfig::kInputFilePath, Path(job.file.file_path.toStdWString()));
+        config.AddOrReplace(FileEncoderConfig::kOutputFilePath, output_path);
+        encoder->Start(config);
+        encoder->Encode([job, this](auto progress) {
+            if (progress % 10 == 0) {
+                emit updateJobProgress(job.job_id, progress);
+            }
+            return true;
+            });
+        encoder.reset();
+        TagIO tag_io;
+        tag_io.writeArtist(output_path, job.file.artist);
+        tag_io.writeTitle(output_path, job.file.title);
+        tag_io.writeAlbum(output_path, job.file.album);
+        tag_io.writeComment(output_path, job.file.comment);
+        tag_io.writeGenre(output_path, job.file.genre);
+        tag_io.writeTrack(output_path, job.file.track);
+        tag_io.writeYear(output_path, job.file.year);
+        emit updateJobProgress(job.job_id, 100);
+        });*/
+    for (const auto& job : jobs) {
+        if (stop_source_.stop_requested()) {
+            return;
+        }
+
+        const auto temp_file_name = QDir::tempPath() + "/"_str + job.file.file_name + ".m4a"_str;
+        const auto save_file_name = dir_name + "/"_str + job.file.file_name + ".m4a"_str;
+
+        try {
+            auto encoder = StreamFactory::MakeAlacEncoder();
+            Path output_path(temp_file_name.toStdWString());
+            AnyMap config;
+            config.AddOrReplace(FileEncoderConfig::kInputFilePath, Path(job.file.file_path.toStdWString()));
+            config.AddOrReplace(FileEncoderConfig::kOutputFilePath, output_path);
+            encoder->Start(config);
+            encoder->Encode([job, this](auto progress) {
+                if (progress % 10 == 0) {
+                    emit updateJobProgress(job.job_id, progress);
+                }
+                return true;
+                });
+            encoder.reset();
+
+            TagIO tag_io;
+            tag_io.writeArtist(output_path, job.file.artist);
+            tag_io.writeTitle(output_path, job.file.title);
+            tag_io.writeAlbum(output_path, job.file.album);
+            tag_io.writeComment(output_path, job.file.comment);
+            tag_io.writeGenre(output_path, job.file.genre);
+            tag_io.writeTrack(output_path, job.file.track);
+            tag_io.writeYear(output_path, job.file.year);
+            QFile::rename(temp_file_name, save_file_name);
+            emit updateJobProgress(job.job_id, 100);
+            continue;
+        }
+        catch (const std::exception &e) {
+            XAMP_LOG_DEBUG(e.what());
+        }
+        QFile::remove(temp_file_name);
+    }
+}
 
 void BackgroundService::cancelRequested() {
     is_stop_ = true;

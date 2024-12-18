@@ -5,16 +5,19 @@
 
 #pragma once
 
+#include <stop_token>
+
 #include <QObject>
-#include <QNetworkAccessManager>
 #include <base/object_pool.h>
+#include <base/threadpoolexecutor.h>
+
 #include <widget/widget_shared.h>
 #include <widget/playlistentity.h>
 #include <widget/driveinfo.h>
 #include <widget/widget_shared_global.h>
 #include <widget/util/mbdiscid_util.h>
 #include <widget/httpx.h>
-#include <base/threadpoolexecutor.h>
+#include <widget/encodejobwidget.h>
 
 Q_DECLARE_METATYPE(ReplayGain);
 
@@ -41,7 +44,13 @@ signals:
 
 	void fetchMbDiscInfoCompleted(const MbDiscIdInfo &info);
 
+	void updateJobProgress(const QString& job_id, int new_progress);
+
 public Q_SLOT:
+	void cancelAllJob();
+
+	void onAddJobs(const QString& dir_name, QList<EncodeJob> jobs);
+
 	void cancelRequested();
 
 	void onBlurImage(const QString& cover_id, const QPixmap& image, QSize size);
@@ -58,6 +67,7 @@ private:
 	bool is_stop_{false};
 	LruCache<QString, QImage> blur_image_cache_;
 	LoggerPtr logger_;
+	std::stop_source stop_source_;
 	QNetworkAccessManager nam_;
 	http::HttpClient http_client_;
 	std::shared_ptr<ObjectPool<QByteArray>> buffer_pool_;
