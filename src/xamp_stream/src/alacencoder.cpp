@@ -221,14 +221,14 @@ public:
                 ConvertFloatToInt24SSE(input,
                     static_cast<int32_t*>(left_ch),
                     static_cast<int32_t*>(right_ch),
-                    read_samples / 2);
+                    read_samples);
                 };
         } else {
             convert_ = [](const float* input, void* left_ch, void* right_ch, size_t read_samples) {
                 ConvertFloatToInt16SSE(input,
                     static_cast<int16_t*>(left_ch),
                     static_cast<int16_t*>(right_ch),
-                    read_samples / 2);
+                    read_samples);
                 };
         }
 
