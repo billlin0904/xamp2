@@ -34,6 +34,7 @@ void XTooltip::setImageSize(const QSize& size) {
 void XTooltip::setImage(const QPixmap& pixmap) {
 	image_->setPixmap(pixmap);
 	image_->show();
+    adjustSize();
 }
 
 void XTooltip::setTextAlignment(Qt::Alignment alignment) {
