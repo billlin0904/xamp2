@@ -60,14 +60,28 @@ QList<EncodeJob> EncodeJobWidget::addJobs(const QString& encode_name, const QLis
     for (const auto& file : files) {
         auto* child = new QTreeWidgetItem(job_item);
         child->setText(ENCODE_LIST_FILE_NAME, file.file_name);
-        child->setText(ENCODE_LIST_FORMAT, qFormat(tr("%1 | %2 | %3 bit"))
-            .arg(encode_name)
-            .arg(formatSampleRate(file.sample_rate))
-            .arg(file.bit_rate < k24Bit441KhzBitRate ? 16 : 24));
-        child->setData(ENCODE_LIST_PROGRESS, Qt::UserRole + 1, 0);
+
         EncodeJob job;
         job.job_id = QString::fromStdString(generateUuid().toStdString());
         job.file = file;
+
+        if (encode_name == "ALAC"_str) {
+            child->setText(ENCODE_LIST_FORMAT, qFormat(tr("%1 | %2 | %3 bit"))
+                .arg(encode_name)
+                .arg(formatSampleRate(file.sample_rate))
+                .arg(file.bit_rate < k24Bit441KhzBitRate ? 16 : 24));
+            job.codec_id = "alac"_str;
+        }
+        else {
+            child->setText(ENCODE_LIST_FORMAT, qFormat(tr("%1 | %2 | %3 bit | 256kbps"))
+                .arg(encode_name)
+                .arg(formatSampleRate(file.sample_rate))
+                .arg(file.bit_rate < k24Bit441KhzBitRate ? 16 : 24));
+			job.bit_rate = 256000;
+			job.codec_id = "aac"_str;
+        }
+
+        child->setData(ENCODE_LIST_PROGRESS, Qt::UserRole + 1, 0);
         jobs.append(job);
         job_items_.insert(job.job_id, child);
         child->setText(ENCODE_LIST_STATE, tr("Pending"));

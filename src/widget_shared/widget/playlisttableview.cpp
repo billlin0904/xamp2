@@ -792,7 +792,18 @@ void PlaylistTableView::initial() {
                 const auto entity = this->item(row.second);
                 entities.push_back(entity);
             }
-            emit encodeAlacFiles(entities);
+            emit encodeAlacFiles("ALAC"_str, entities);
+            });
+
+        auto* encode_aac_file_act = action_map.addAction(tr("Encode to AAC File"));
+        action_map.setCallback(encode_aac_file_act, [this]() {
+            const auto rows = selectItemIndex();
+            QList<PlayListEntity> entities;
+            for (const auto& row : rows) {
+                const auto entity = this->item(row.second);
+                entities.push_back(entity);
+            }
+            emit encodeAlacFiles("AAC"_str, entities);
             });
 
         action_map.addSeparator();

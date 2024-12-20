@@ -46,7 +46,8 @@ AvFormatLib::AvFormatLib() try
 	, XAMP_LOAD_DLL_API(avio_open)
 	, XAMP_LOAD_DLL_API(av_interleaved_write_frame)
 	, XAMP_LOAD_DLL_API(av_guess_format)
-	, XAMP_LOAD_DLL_API(av_write_trailer) {
+	, XAMP_LOAD_DLL_API(av_write_trailer)
+	, XAMP_LOAD_DLL_API(av_dump_format) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());

@@ -278,14 +278,14 @@ void Xamp::onActivated(QSystemTrayIcon::ActivationReason reason) {
     }
 }
 
-void Xamp::onEncodeAlacFiles(const QList<PlayListEntity>& files) {    
-    getExistingDirectory(this, kEmptyString, [this, &files](const auto& dir_name) {
+void Xamp::onEncodeAlacFiles(const QString& codec_id, const QList<PlayListEntity>& files) {
+    getExistingDirectory(this, kEmptyString, [this, codec_id, &files](const auto& dir_name) {
         const QScopedPointer<XDialog> dialog(new XDialog(this));
         const QScopedPointer<EncodeJobWidget> encode_job_widget(new EncodeJobWidget(dialog.get()));
         encode_job_widget->setFixedSize(QSize(1200, 600));
         (void)QObject::connect(background_service_.get(), &BackgroundService::updateJobProgress,
-            encode_job_widget.get(), &EncodeJobWidget::updateProgress);
-        emit addJobs(dir_name, encode_job_widget->addJobs("ALAC"_str, files));
+            encode_job_widget.get(), &EncodeJobWidget::updateProgress);        
+        emit addJobs(dir_name, encode_job_widget->addJobs(codec_id, files));
         dialog->setContentWidget(encode_job_widget.get());
         dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_ABOUT));
         dialog->setTitle(tr("Encode batch progress"));
@@ -1209,8 +1209,8 @@ void Xamp::initialController() {
 }
 
 void Xamp::showNaviBarButton() {
-	constexpr auto kAnimationDuration = 100;
-	constexpr auto kMaxWidth = 180;
+    constexpr auto kAnimationDuration = 100;
+    constexpr auto kMaxWidth = 180;
     constexpr auto kMinWidth = 50;
 
     auto start_width = ui_.sliderFrame2->maximumWidth();
@@ -1222,6 +1222,13 @@ void Xamp::showNaviBarButton() {
     animation->setStartValue(start_width);
     animation->setEndValue(end_width);
     animation->setEasingCurve(QEasingCurve::OutQuad);
+
+    // 當動畫完成後鎖定寬度
+    (void)QObject::connect(animation, &QPropertyAnimation::finished, this, [this, end_width]() {
+        ui_.sliderFrame2->setMinimumWidth(end_width);
+        ui_.sliderFrame2->setMaximumWidth(end_width);
+        });
+
     animation->start(QAbstractAnimation::DeleteWhenStopped);
 }
 

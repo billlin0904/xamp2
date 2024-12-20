@@ -331,6 +331,9 @@ void PlaylistTabWidget::toolTipMove(const QPoint& pos) {
 
     auto index = hovered_tab_index_;
 	auto* playlist_page = playlistPage(index);
+	if (!playlist_page) {
+		return;
+	}
 
     auto rect = tab_bar_->tabRect(index);
     auto global_pos = mapToGlobal(rect.center());
@@ -543,12 +546,14 @@ void PlaylistTabWidget::mouseDoubleClickEvent(QMouseEvent*) {
 }
 
 void PlaylistTabWidget::resizeTabWidth() {
-    /*auto w = width();
-    if (tab_bar_->count() <= 3) {
-		tab_bar_->setMinimumWidth(100);
-		return;
+    int tab_count = tab_bar_->count();
+    if (tab_count <= 3) {
+        tab_bar_->setExpanding(false);
     }
-    tab_bar_->setMinimumWidth(w - 45);*/
+    else {
+        // 當標籤數量多於3時，可以讓tab擴張填滿
+        tab_bar_->setExpanding(true);
+    }
 }
 
 void PlaylistTabWidget::resizeEvent(QResizeEvent* event) {
@@ -618,7 +623,6 @@ PlaylistPage* PlaylistTabWidget::findPlaylistPage(int32_t playlist_id) {
 
 PlaylistPage* PlaylistTabWidget::playlistPage(int32_t index) const {
     auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(index));
-    XAMP_ENSURES(playlist_page != nullptr);
 	return playlist_page;
 }
 

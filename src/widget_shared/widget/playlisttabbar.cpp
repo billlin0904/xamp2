@@ -1,4 +1,4 @@
-#include <widget/playlisttabbar.h>
+﻿#include <widget/playlisttabbar.h>
 #include <QMouseEvent>
 #include <QPushButton>
 #include <QProxyStyle>
@@ -27,7 +27,7 @@ public:
 
 PlaylistTabBar::PlaylistTabBar(QWidget* parent)
 	: QTabBar(parent) {	
-	setExpanding(true);
+	setExpanding(false);
 	setTabsClosable(true);
 	setUsesScrollButtons(false);
     setElideMode(Qt::TextElideMode::ElideRight);
@@ -37,6 +37,10 @@ PlaylistTabBar::PlaylistTabBar(QWidget* parent)
 	setFont(f);
 	setFocusPolicy(Qt::StrongFocus);
     setStyle(new TextAlignedStyle());
+}
+
+void PlaylistTabBar::setWidthMode(WidthModes mode) {
+	width_mode_ = mode;
 }
 
 void PlaylistTabBar::setTabCount(int32_t count) {
@@ -125,12 +129,34 @@ bool PlaylistTabBar::eventFilter(QObject* object, QEvent* event) {
 }
 
 QSize PlaylistTabBar::tabSizeHint(int index) const {
-	QSize size(QTabBar::tabSizeHint(index));
-	auto width = dynamic_cast<QWidget*>(parent())->width() - kMaxButtonWidth;
-	if (tab_count_ <= 4) {
-		return QSize(width / 4, size.height());
+	QSize size;
+
+	if (width_mode_ == FIXED_WIDTH_MODE) {
+		size = QTabBar::tabSizeHint(index);
+
+		QFontMetrics fm(font());
+		QString text = tabText(index);
+
+		int text_width = fm.horizontalAdvance(text)- kButtonWidth;
+
+		int padding = 30;
+		int desired_width = text_width + padding;
+
+		//desired_width = qMin(desired_width, 600);
+		//desired_width = qMax(desired_width, 150);
+		desired_width = qBound(150, desired_width, 300);
+		size.setWidth(desired_width);
 	}
-	size.setWidth(width / tab_count_);
+	else if (width_mode_ == DYNAMIC_WIDTH_MODE) {
+		int total_width = parentWidget() ? parentWidget()->width() : 800;
+		int available_width = total_width - kButtonWidth;
+
+		int count = this->count() > 0 ? this->count() : 1;
+		int width_per_tab = available_width / count;
+
+		size = QTabBar::tabSizeHint(index);
+		size.setWidth(width_per_tab);
+	}
 	return size;
 }
 

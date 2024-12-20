@@ -15,7 +15,9 @@
 #include <widget/playlistentity.h>
 
 struct XAMP_WIDGET_SHARED_EXPORT EncodeJob {
+    uint32_t bit_rate{0};
     QString job_id;
+    QString codec_id;
     PlayListEntity file;
 };
 

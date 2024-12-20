@@ -170,7 +170,7 @@ signals:
 
 	void syncToDevice(int32_t playlist_id, const QList<PlayListEntity>& entities);
 
-	void encodeAlacFiles(const QList<PlayListEntity>& entities);
+	void encodeAlacFiles(const QString &codec_id, const QList<PlayListEntity>& entities);
 public slots:
 	void onPlayIndex(const QModelIndex& index, bool is_play = false, bool is_doubleclicked = false);
 

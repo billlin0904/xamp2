@@ -37,6 +37,44 @@ namespace {
         *buf += 4;
     }
 
+    void ConvertInterleavedToPlanarSSE(const float* input, float* left_ptr, float* right_ptr, size_t frames) {
+        size_t i = 0;
+        for (; i + 4 <= frames; i += 4) {
+            __m128 in1 = _mm_loadu_ps(input);     // L0,R0,L1,R1
+            __m128 in2 = _mm_loadu_ps(input + 4); // L2,R2,L3,R3
+
+            // 分離左聲道: 從 in1, in2 抽取偶數index樣本(L0,L1,L2,L3)
+            __m128 left_part1 = _mm_shuffle_ps(in1, in1, _MM_SHUFFLE(2, 0, 2, 0));  // (L0,L1,L0,L1)
+            __m128 left_part2 = _mm_shuffle_ps(in2, in2, _MM_SHUFFLE(2, 0, 2, 0));  // (L2,L3,L2,L3)
+            // 合併得到 (L0,L1,L2,L3)
+            __m128 left_final = _mm_unpacklo_ps(left_part1, left_part2); // (L0,L2,L1,L3)
+            left_final = _mm_shuffle_ps(left_final, left_final, _MM_SHUFFLE(2, 0, 3, 1)); // (L0,L1,L2,L3)
+
+            // 分離右聲道: 從 in1, in2 抽取奇數index樣本(R0,R1,R2,R3)
+            __m128 right_part1 = _mm_shuffle_ps(in1, in1, _MM_SHUFFLE(3, 1, 3, 1)); // (R0,R1,R0,R1)
+            __m128 right_part2 = _mm_shuffle_ps(in2, in2, _MM_SHUFFLE(3, 1, 3, 1)); // (R2,R3,R2,R3)
+            __m128 right_final = _mm_unpacklo_ps(right_part1, right_part2); // (R0,R2,R1,R3)
+            right_final = _mm_shuffle_ps(right_final, right_final, _MM_SHUFFLE(2, 0, 3, 1)); // (R0,R1,R2,R3)
+
+            // 將結果存回記憶體
+            _mm_storeu_ps(left_ptr, left_final);
+            _mm_storeu_ps(right_ptr, right_final);
+
+            left_ptr += 4;
+            right_ptr += 4;
+            input += 8; // 前進8個float (4 frames * 2)
+        }
+
+        // 處理不足4 frames的尾巴
+        for (; i < frames; i++) {
+            left_ptr[0] = input[0];
+            right_ptr[0] = input[1];
+            left_ptr++;
+            right_ptr++;
+            input += 2;
+        }
+    }
+
     void ConvertFloatToInt16SSE(const float* input, int16_t* left_ptr, int16_t* right_ptr, size_t frames) {
         // 每次處理4 frames = 8 floats (L,R interleaved)
         // 須分離出左、右聲道
@@ -197,6 +235,11 @@ public:
     void Start(const AnyMap& config) {
         const auto input_file_path = config.AsPath(FileEncoderConfig::kInputFilePath);
         const auto output_file_path = config.AsPath(FileEncoderConfig::kOutputFilePath);
+        codec_type_ = config.Get<std::string>(FileEncoderConfig::kCodecId);
+        aac_bit_rate_ = config.Get<uint32_t>(FileEncoderConfig::kBitRate);
+		//codec_type_ = "aac";
+        //aac_bit_rate_ = 256000;
+        //codec_type_ = "alac";
         file_name_ = String::ToUtf8String(output_file_path.wstring());
         input_file_ = StreamFactory::MakeFileStream(input_file_path, DsdModes::DSD_MODE_PCM);
         input_file_->OpenFile(input_file_path);
@@ -204,35 +247,52 @@ public:
     }
 
     void CreateAudioStream() {
-        const auto frame_size = 4096;
+        const auto frame_size = 8192;
         const auto channel_layout = AV_CH_LAYOUT_STEREO; // stereo
         const char guess_file_name[] = "output.m4a";
         const char* file_name = file_name_.c_str();
 
-        auto best_sample_format = AV_SAMPLE_FMT_S16P;
-        auto sample_size = 16;
+        auto sample_format = AV_SAMPLE_FMT_NONE;
 
         const auto format = input_file_->GetFormat();
+        AVCodecID codec_id = AV_CODEC_ID_NONE;
 
-        if (input_file_->GetBitDepth() > 16) {
-            best_sample_format = AV_SAMPLE_FMT_S32P;
-            sample_size = 24;
-            convert_ = [](const float* input, void* left_ch, void* right_ch, size_t read_samples) {
-                ConvertFloatToInt24SSE(input,
-                    static_cast<int32_t*>(left_ch),
-                    static_cast<int32_t*>(right_ch),
-                    read_samples);
-                };
-        } else {
-            convert_ = [](const float* input, void* left_ch, void* right_ch, size_t read_samples) {
-                ConvertFloatToInt16SSE(input,
-                    static_cast<int16_t*>(left_ch),
-                    static_cast<int16_t*>(right_ch),
-                    read_samples);
-                };
-        }
+		// sample_size Only support ALAC encoding.
+        uint32_t sample_size = 0;
 
-        sample_size_ = sample_size;
+        if (codec_type_ == "aac") {
+            codec_id = AV_CODEC_ID_AAC;
+            sample_format = AV_SAMPLE_FMT_FLTP;
+            convert_ = [](const float* input, void* left_ch, void* right_ch, size_t read_samples) {
+				ConvertInterleavedToPlanarSSE(input,
+					static_cast<float*>(left_ch),
+					static_cast<float*>(right_ch),
+					read_samples);
+                };
+		}
+		else if (codec_type_ == "alac") {
+			codec_id = AV_CODEC_ID_ALAC;
+            if (input_file_->GetBitDepth() > 16) {
+                sample_size = 24;
+                sample_format = AV_SAMPLE_FMT_S32P;
+                convert_ = [](const float* input, void* left_ch, void* right_ch, size_t read_samples) {
+                    ConvertFloatToInt24SSE(input,
+                        static_cast<int32_t*>(left_ch),
+                        static_cast<int32_t*>(right_ch),
+                        read_samples);
+                    };
+            }
+            else {
+                sample_format = AV_SAMPLE_FMT_S16P;
+                sample_size = 16;
+                convert_ = [](const float* input, void* left_ch, void* right_ch, size_t read_samples) {
+                    ConvertFloatToInt16SSE(input,
+                        static_cast<int16_t*>(left_ch),
+                        static_cast<int16_t*>(right_ch),
+                        read_samples);
+                    };
+            }
+		}
 
         AVIOContext* output_io_context = nullptr;
         AvIfFailedThrow(LIBAV_LIB.Format->avio_open(&output_io_context, file_name, AVIO_FLAG_WRITE));
@@ -245,7 +305,7 @@ public:
 
         format_context_->pb = output_io_context;
 
-        auto* av_codec = LIBAV_LIB.Codec->avcodec_find_encoder(AV_CODEC_ID_ALAC);
+        auto* av_codec = LIBAV_LIB.Codec->avcodec_find_encoder(codec_id);
         if (!av_codec) {
             throw Exception("ALAC encoder not found.");
         }
@@ -259,17 +319,22 @@ public:
         codec_context_->channels = format.GetChannels();
         codec_context_->channel_layout = channel_layout;
         codec_context_->sample_rate = format.GetSampleRate();
-        codec_context_->sample_fmt = best_sample_format;
+        codec_context_->sample_fmt = sample_format;
         codec_context_->frame_size = frame_size;
+
+        if (codec_type_ == "aac") {
+			codec_context_->bit_rate = aac_bit_rate_;
+			codec_context_->profile = FF_PROFILE_AAC_LOW;
+        }
 
         stream_->id = format_context_->nb_streams - 1;
         stream_->codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
-        stream_->codecpar->codec_id = AV_CODEC_ID_ALAC;
+        stream_->codecpar->codec_id = codec_id;
         stream_->codecpar->channel_layout = channel_layout;
         stream_->codecpar->channels = format.GetChannels();
         stream_->codecpar->sample_rate = format.GetSampleRate();
         stream_->codecpar->frame_size = frame_size;
-        stream_->codecpar->format = best_sample_format;
+        stream_->codecpar->format = sample_format;
         stream_->time_base = AVRational{ 1, static_cast<int32_t>(format.GetSampleRate()) };
         codec_context_->time_base = stream_->time_base;
 
@@ -277,40 +342,46 @@ public:
         if (format_context_->oformat->flags & AVFMT_GLOBALHEADER)
             codec_context_->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 
-        // 設定 ALAC extradata (alacSpecificConfig)
-        codec_context_->extradata = static_cast<uint8_t*>(LIBAV_LIB.Util->av_malloc(kAlacExtradataSize + AV_INPUT_BUFFER_PADDING_SIZE));
-        codec_context_->extradata_size = kAlacExtradataSize;
-        MemorySet(codec_context_->extradata, 0, kAlacExtradataSize);
+        if (codec_type_ == "alac") {
+            codec_context_->extradata = static_cast<uint8_t*>(LIBAV_LIB.Util->av_malloc(kAlacExtradataSize + AV_INPUT_BUFFER_PADDING_SIZE));
+            codec_context_->extradata_size = kAlacExtradataSize;
+            MemorySet(codec_context_->extradata, 0, kAlacExtradataSize);
 
-        uint8_t* buf = codec_context_->extradata;
-        auto frame_length = frame_size; // ensure consistent with frame_size
-        auto avg_bitrate = format.GetSampleRate() * format.GetChannels() * sample_size; // bits per second
-        auto sr = format.GetSampleRate();
+            uint8_t* buf = codec_context_->extradata;
+            auto frame_length = frame_size; // ensure consistent with frame_size
+            auto avg_bitrate = format.GetSampleRate() * format.GetChannels() * sample_size; // bits per second
+            auto sr = format.GetSampleRate();
 
-        // Write alacSpecificConfig in big-endian
-        bytestream_put_be32(&buf, frame_length); // 4 bytes
-        bytestream_put_byte(&buf, 0);            // compatibleVersion
-        bytestream_put_byte(&buf, sample_size);  // bitDepth (16)
-        bytestream_put_byte(&buf, 40);           // pb
-        bytestream_put_byte(&buf, 10);           // mb
-        bytestream_put_byte(&buf, 14);           // kb (rice_param_limit)
-        bytestream_put_byte(&buf, format.GetChannels()); // channels
-        bytestream_put_be16(&buf, 255);          // maxRun
-        bytestream_put_be32(&buf, 0);            // maxFrameBytes (0=unknown)
-        bytestream_put_be32(&buf, avg_bitrate);  // avgBitrate (bits/sec)
-        bytestream_put_be32(&buf, sr);           // sampleRate (big-endian)
+            // Write alacSpecificConfig in big-endian
+            bytestream_put_be32(&buf, frame_length); // 4 bytes
+            bytestream_put_byte(&buf, 0);            // compatibleVersion
+            bytestream_put_byte(&buf, sample_size);  // bitDepth (16)
+            bytestream_put_byte(&buf, 40);           // pb
+            bytestream_put_byte(&buf, 10);           // mb
+            bytestream_put_byte(&buf, 14);           // kb (rice_param_limit)
+            bytestream_put_byte(&buf, format.GetChannels()); // channels
+            bytestream_put_be16(&buf, 255);          // maxRun
+            bytestream_put_be32(&buf, 0);            // maxFrameBytes (0=unknown)
+            bytestream_put_be32(&buf, avg_bitrate);  // avgBitrate (bits/sec)
+            bytestream_put_be32(&buf, sr);           // sampleRate (big-endian)
 
-        // Padding to reach 36 bytes total
-        for (int i = 0; i < 12; i++) {
-            bytestream_put_byte(&buf, 0);
-        }      
+            // Padding to reach 36 bytes total
+            for (int i = 0; i < 12; i++) {
+                bytestream_put_byte(&buf, 0);
+            }
 
-        // 先開啟編碼器
-        AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_open2(codec_context_.get(), av_codec, nullptr));
-        // 接著從 codec_context_ 將參數(包含 extradata) 拷貝到 codecpar
+            AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_open2(codec_context_.get(), av_codec, nullptr));
+		}
+		else if (codec_type_ == "aac") {
+            AVDictionary* opts = nullptr;
+            av_dict_set(&opts, "profile", "aac_low", 0);
+            AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_open2(codec_context_.get(), av_codec, &opts));
+            av_dict_free(&opts);
+		}
+
         AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_parameters_from_context(stream_->codecpar, codec_context_.get()));
-        // 寫入文件標頭
         AvIfFailedThrow(LIBAV_LIB.Format->avformat_write_header(format_context_.get(), nullptr));
+		LIBAV_LIB.Format->av_dump_format(format_context_.get(), 0, file_name, 1);
     }
 
     bool EncodeFrame(AVFrame* frame) {
@@ -324,6 +395,10 @@ public:
         }
 
         auto ret = LIBAV_LIB.Codec->avcodec_send_frame(codec_context_.get(), frame);
+        if (ret == AVERROR_EOF) {
+			XAMP_LOG_WARN("avcodec_send_frame: AVERROR_EOF");
+			return false;
+        }
         AvIfFailedThrow(ret);
 
         ret = LIBAV_LIB.Codec->avcodec_receive_packet(codec_context_.get(), packet.get());
@@ -400,9 +475,10 @@ public:
     }
 
 private:
-    uint32_t sample_size_{ 0 };
+    uint32_t aac_bit_rate_{ 0 };
     int64_t pts_{ 0 };
     AVStream* stream_{ nullptr };
+    std::string codec_type_;
     std::string file_name_;
     AvPtr<AVCodecContext> codec_context_;
     AvPtr<AVIOContext> output_io_context_;

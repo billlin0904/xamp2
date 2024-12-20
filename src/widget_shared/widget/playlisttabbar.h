@@ -9,16 +9,21 @@
 #include <QTabBar>
 #include <widget/widget_shared_global.h>
 
+enum WidthModes {
+	FIXED_WIDTH_MODE,
+	DYNAMIC_WIDTH_MODE
+};
+
 class XAMP_WIDGET_SHARED_EXPORT PlaylistTabBar final : public QTabBar {
 	Q_OBJECT
 public:
-	static constexpr size_t kSmallTabCount = 3;
-	static constexpr size_t kSmallTabWidth = 230;
-	static constexpr size_t kMaxButtonWidth = 60;
+	static constexpr size_t kButtonWidth = 60;
 
 	explicit PlaylistTabBar(QWidget* parent = nullptr);
 	
 	void setTabCount(int32_t count);
+
+	void setWidthMode(WidthModes mode);
 signals:
 	void textChanged(int32_t index, const QString &text);
 
@@ -38,7 +43,8 @@ private:
 
 	void resizeEvent(QResizeEvent* event) override;
 
+	WidthModes width_mode_{ DYNAMIC_WIDTH_MODE };
 	int32_t edited_index_{0};
-	int32_t tab_count_{ 0 };
+	int32_t tab_count_{ 0 };	
 	QLineEdit* line_edit_{nullptr};
 };

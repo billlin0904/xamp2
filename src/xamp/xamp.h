@@ -182,7 +182,7 @@ public slots:
 
 	void onActivated(QSystemTrayIcon::ActivationReason reason);
 
-	void onEncodeAlacFiles(const QList<PlayListEntity>& files);
+	void onEncodeAlacFiles(const QString& codec_id, const QList<PlayListEntity>& files);
 private:
 	void initialUi();
 

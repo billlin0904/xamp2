@@ -81,6 +81,7 @@ public:
    XAMP_DECLARE_DLL_NAME(av_interleaved_write_frame);
    XAMP_DECLARE_DLL_NAME(av_guess_format);
    XAMP_DECLARE_DLL_NAME(av_write_trailer);
+   XAMP_DECLARE_DLL_NAME(av_dump_format);
 };
 
 class AvCodecLib final {
