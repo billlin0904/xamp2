@@ -2,7 +2,6 @@
 #include <widget/util/json_util.h>
 #include <base/object_pool.h>
 #include <widget/util/image_util.h>
-#include <widget/util/read_until.h>
 #include <widget/databasefacade.h>
 #include <widget/worker/albumcoverservice.h>
 #include <widget/tagio.h>

@@ -150,7 +150,7 @@ size_t TaskScheduler::TrySteal(Vector<MoveOnlyFunction>& tasks, const std::stop_
 			}
 
 			if (task_execute_flags_[random_index].load(std::memory_order_acquire) != ExecuteFlags::EXECUTE_LONG_RUNNING) {
-				auto size = task_work_queues_.at(random_index)->try_dequeue_bulk(tasks.begin(), kMaxStealBulkSize);
+				auto size = task_work_queues_.at(random_index)->try_dequeue_bulk(tasks.begin(), tasks.size());
 				if (size > 0) {
 					return size;
 				}

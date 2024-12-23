@@ -68,7 +68,6 @@
 
 #include <widget/util/image_util.h>
 #include <widget/util/mbdiscid_util.h>
-#include <widget/util/read_until.h>
 #include <widget/util/str_util.h>
 #include <widget/util/ui_util.h>
 
@@ -2610,11 +2609,6 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
         });
 
     (void)QObject::connect(playlist_page->playlist(),
-        &PlaylistTableView::syncToDevice,
-        this,
-        &Xamp::onSyncToDevice);
-
-    (void)QObject::connect(playlist_page->playlist(),
         &PlaylistTableView::encodeAlacFiles,
         this,
         &Xamp::onEncodeAlacFiles);
@@ -2710,9 +2704,6 @@ void Xamp::onRemainingTimeEstimation(size_t total_work, size_t completed_work, i
 void Xamp::onPlaybackError(const QString& message) {
     player_->Stop();
     XMessageBox::showError(message, kApplicationTitle, true);
-}
-
-void Xamp::onSyncToDevice(int32_t playlist_id, const QList<PlayListEntity>& entities) {
 }
 
 void Xamp::onRetranslateUi() {

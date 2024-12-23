@@ -17,6 +17,8 @@
 #include <mutex>
 #include <string>
 
+#include "fastmutex.h"
+
 namespace spdlog {
     class logger;
 
@@ -129,14 +131,14 @@ public:
 
     LoggerPtr GetLogger(const std::string_view& name);
 
-    LoggerPtr GetLogger(const std::string& name);
-
     Vector<LoggerPtr> GetAllLogger();
 
     void SetLevel(LogLevel level);
 
     void Shutdown();
-private:    
+private:
+    LoggerPtr GetLoggerImpl(const std::string& name);
+    FastMutex lock_;
     Vector<spdlog::sink_ptr> sinks_;
     LoggerPtr default_logger_;
 };

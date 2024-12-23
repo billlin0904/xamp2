@@ -379,7 +379,7 @@ MFAACFileEncoder::MFAACFileEncoder()
 
 XAMP_PIMPL_IMPL(MFAACFileEncoder)
 
-void MFAACFileEncoder::Start(const AnyMap& config) {
+void MFAACFileEncoder::Start(const AnyMap& config, const std::shared_ptr<IFileEncodeWriter>& writer) {
     impl_->Start(config);
 }
 

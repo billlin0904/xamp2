@@ -63,25 +63,26 @@ private:
     SharedLibraryHandle module_;
 
 public:
-   XAMP_DECLARE_DLL_NAME(avformat_open_input);
-   XAMP_DECLARE_DLL_NAME(avformat_close_input);
-   XAMP_DECLARE_DLL_NAME(avformat_find_stream_info);
-   XAMP_DECLARE_DLL_NAME(av_seek_frame);
-   XAMP_DECLARE_DLL_NAME(av_read_frame);
-   XAMP_DECLARE_DLL_NAME(av_write_frame);
-   XAMP_DECLARE_DLL_NAME(avformat_write_header);
-   XAMP_DECLARE_DLL_NAME(avformat_network_init);
-   XAMP_DECLARE_DLL_NAME(avformat_network_deinit);
-   XAMP_DECLARE_DLL_NAME(avformat_alloc_context);
-   XAMP_DECLARE_DLL_NAME(avformat_new_stream);
-   XAMP_DECLARE_DLL_NAME(avformat_query_codec);
-   XAMP_DECLARE_DLL_NAME(av_demuxer_iterate);
-   XAMP_DECLARE_DLL_NAME(avformat_alloc_output_context2);
-   XAMP_DECLARE_DLL_NAME(avio_open);
-   XAMP_DECLARE_DLL_NAME(av_interleaved_write_frame);
-   XAMP_DECLARE_DLL_NAME(av_guess_format);
-   XAMP_DECLARE_DLL_NAME(av_write_trailer);
-   XAMP_DECLARE_DLL_NAME(av_dump_format);
+    XAMP_DECLARE_DLL_NAME(avformat_open_input);
+    XAMP_DECLARE_DLL_NAME(avformat_close_input);
+    XAMP_DECLARE_DLL_NAME(avformat_find_stream_info);
+    XAMP_DECLARE_DLL_NAME(av_seek_frame);
+    XAMP_DECLARE_DLL_NAME(av_read_frame);
+    XAMP_DECLARE_DLL_NAME(av_write_frame);
+    XAMP_DECLARE_DLL_NAME(avformat_write_header);
+    XAMP_DECLARE_DLL_NAME(avformat_network_init);
+    XAMP_DECLARE_DLL_NAME(avformat_network_deinit);
+    XAMP_DECLARE_DLL_NAME(avformat_alloc_context);
+    XAMP_DECLARE_DLL_NAME(avformat_new_stream);
+    XAMP_DECLARE_DLL_NAME(avformat_query_codec);
+    XAMP_DECLARE_DLL_NAME(av_demuxer_iterate);
+    XAMP_DECLARE_DLL_NAME(avformat_alloc_output_context2);
+    XAMP_DECLARE_DLL_NAME(avio_open);
+    XAMP_DECLARE_DLL_NAME(av_interleaved_write_frame);
+    XAMP_DECLARE_DLL_NAME(av_guess_format);
+    XAMP_DECLARE_DLL_NAME(av_write_trailer);
+    XAMP_DECLARE_DLL_NAME(av_dump_format);
+	XAMP_DECLARE_DLL_NAME(avio_alloc_context);
 };
 
 class AvCodecLib final {
@@ -151,6 +152,7 @@ public:
     XAMP_DECLARE_DLL_NAME(av_sample_fmt_is_planar);
     XAMP_DECLARE_DLL_NAME(av_dict_get);
     XAMP_DECLARE_DLL_NAME(av_opt_set);
+    XAMP_DECLARE_DLL_NAME(av_dict_free);
 };
 
 class AvSwLib final {

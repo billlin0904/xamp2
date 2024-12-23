@@ -240,6 +240,8 @@ int main() {
     static constexpr int argc = 1;
     static char* argv[] = { app_name, nullptr };
 
+    std::ios::sync_with_stdio(false);
+
     QStringList args;
     auto exist_code = 0;
     try {

@@ -18,9 +18,9 @@ public:
 
 	XAMP_PIMPL(AlacFileEncoder)
 
-	void Start(const AnyMap& config) override;
+	void Start(const AnyMap& config, const std::shared_ptr<IFileEncodeWriter>& writer) override;
 
-	void Encode(std::function<bool(uint32_t)> const& progress) override;
+	void Encode(const std::stop_token& stop_token, std::function<bool(uint32_t)> const& progress) override;
 private:
 	class AlacFileEncoderImpl;
 	ScopedPtr<AlacFileEncoderImpl> impl_;

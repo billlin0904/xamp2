@@ -504,6 +504,7 @@ std::string GetSequentialUUID() {
         ::UuidToStringA(&uuid, &uuid_string);
         result.assign(reinterpret_cast<const char*>(uuid_string));
         ::RpcStringFreeA(&uuid_string);
+        String::Remove(result, "-");
     }
     return result;
 }

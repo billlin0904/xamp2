@@ -148,10 +148,12 @@ Vector<LoggerPtr> LoggerManager::GetAllLogger() {
 }
 
 LoggerPtr LoggerManager::GetLogger(const std::string_view& name) {
-	return GetLogger(std::string(name));
+	return GetLoggerImpl(std::string(name));
 }
 
-LoggerPtr LoggerManager::GetLogger(const std::string &name) {
+LoggerPtr LoggerManager::GetLoggerImpl(const std::string &name) {
+	std::lock_guard<FastMutex> guard{ lock_ };
+
 	auto logger = spdlog::get(name);
 	if (logger != nullptr) {
 		return std::make_shared<Logger>(logger);

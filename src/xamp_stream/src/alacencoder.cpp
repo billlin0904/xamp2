@@ -222,17 +222,40 @@ namespace {
             input += 2;
         }
     }
+
+    int32_t CustomWritePacket(void* opaque, uint8_t* buf, int32_t buf_size) {
+        auto* writer = static_cast<IFileEncodeWriter*>(opaque);
+        if (!writer) {
+            return AVERROR(EINVAL);
+        }
+
+        int32_t written = writer->Write(buf, buf_size);
+        if (written < 0) {
+            return AVERROR(EIO);
+        }
+        return written;
+    }
+
+    int64_t CustomSeekPacket(void* opaque, int64_t offset, int32_t whence) {
+        auto* writer = static_cast<IFileEncodeWriter*>(opaque);
+        if (!writer) {
+            return AVERROR(EINVAL);
+        }
+		return writer->Seek(offset, whence);
+    }
 }
 
 class AlacFileEncoder::AlacFileEncoderImpl {
 public:
+    static constexpr auto kFrameSize = 8192;
+
     ~AlacFileEncoderImpl() {
         codec_context_.reset();
         output_io_context_.reset();
         format_context_.reset();
     }
 
-    void Start(const AnyMap& config) {
+    void Start(const AnyMap& config, const std::shared_ptr<IFileEncodeWriter>& writer) {
         const auto input_file_path = config.AsPath(FileEncoderConfig::kInputFilePath);
         const auto output_file_path = config.AsPath(FileEncoderConfig::kOutputFilePath);
         codec_type_ = config.Get<std::string>(FileEncoderConfig::kCodecId);
@@ -243,11 +266,12 @@ public:
         file_name_ = String::ToUtf8String(output_file_path.wstring());
         input_file_ = StreamFactory::MakeFileStream(input_file_path, DsdModes::DSD_MODE_PCM);
         input_file_->OpenFile(input_file_path);
+        writer_ = writer;
         CreateAudioStream();
+        XAMP_LOG_DEBUG("Encoding: {} Bit rate: {} ", codec_type_, aac_bit_rate_);
     }
 
     void CreateAudioStream() {
-        const auto frame_size = 8192;
         const auto channel_layout = AV_CH_LAYOUT_STEREO; // stereo
         const char guess_file_name[] = "output.m4a";
         const char* file_name = file_name_.c_str();
@@ -294,20 +318,51 @@ public:
             }
 		}
 
-        AVIOContext* output_io_context = nullptr;
-        AvIfFailedThrow(LIBAV_LIB.Format->avio_open(&output_io_context, file_name, AVIO_FLAG_WRITE));
-        output_io_context_.reset(output_io_context);
+        if (writer_ != nullptr) {
+            auto* avio_buffer = static_cast<uint8_t*>(LIBAV_LIB.Util->av_malloc(kFrameSize));
+            if (!avio_buffer) {
+                throw Exception("Fail to allocate AVIO buffer.");
+            }
 
-        format_context_.reset(LIBAV_LIB.Format->avformat_alloc_context());
-        if (!format_context_) {
-            throw Exception();
+            auto* custom_io_ctx = LIBAV_LIB.Format->avio_alloc_context(
+                avio_buffer,                // buffer
+                kFrameSize,                 // buffer size
+                1,                          // write_flag
+                writer_.get(),              // opaque («ü¦VIFileEncodeWriter)
+                nullptr,                    // read_packet
+                &CustomWritePacket,         // write_packet
+                &CustomSeekPacket           // seek
+            );
+            if (!custom_io_ctx) {
+                LIBAV_LIB.Util->av_free(avio_buffer);
+                throw Exception("Fail to create custom AVIOContext.");
+            }
+
+            output_io_context_.reset(custom_io_ctx);
+
+            format_context_.reset(LIBAV_LIB.Format->avformat_alloc_context());
+            if (!format_context_) {
+                throw Exception();
+            }
+
+            format_context_->pb = custom_io_ctx;
+            format_context_->flags |= AVFMT_FLAG_CUSTOM_IO;
+        } else {
+            AVIOContext* output_io_context = nullptr;
+            AvIfFailedThrow(LIBAV_LIB.Format->avio_open(&output_io_context, file_name, AVIO_FLAG_WRITE));
+            output_io_context_.reset(output_io_context);
+
+            format_context_.reset(LIBAV_LIB.Format->avformat_alloc_context());
+            if (!format_context_) {
+                throw Exception();
+            }
+
+            format_context_->pb = output_io_context;
         }
-
-        format_context_->pb = output_io_context;
 
         auto* av_codec = LIBAV_LIB.Codec->avcodec_find_encoder(codec_id);
         if (!av_codec) {
-            throw Exception("ALAC encoder not found.");
+            throw Exception("Encoder codec id not found.");
         }
 
         stream_ = LIBAV_LIB.Format->avformat_new_stream(format_context_.get(), av_codec);
@@ -320,7 +375,7 @@ public:
         codec_context_->channel_layout = channel_layout;
         codec_context_->sample_rate = format.GetSampleRate();
         codec_context_->sample_fmt = sample_format;
-        codec_context_->frame_size = frame_size;
+        codec_context_->frame_size = kFrameSize;
 
         if (codec_type_ == "aac") {
 			codec_context_->bit_rate = aac_bit_rate_;
@@ -333,7 +388,7 @@ public:
         stream_->codecpar->channel_layout = channel_layout;
         stream_->codecpar->channels = format.GetChannels();
         stream_->codecpar->sample_rate = format.GetSampleRate();
-        stream_->codecpar->frame_size = frame_size;
+        stream_->codecpar->frame_size = kFrameSize;
         stream_->codecpar->format = sample_format;
         stream_->time_base = AVRational{ 1, static_cast<int32_t>(format.GetSampleRate()) };
         codec_context_->time_base = stream_->time_base;
@@ -348,22 +403,22 @@ public:
             MemorySet(codec_context_->extradata, 0, kAlacExtradataSize);
 
             uint8_t* buf = codec_context_->extradata;
-            auto frame_length = frame_size; // ensure consistent with frame_size
+            auto frame_length = kFrameSize; // ensure consistent with frame_size
             auto avg_bitrate = format.GetSampleRate() * format.GetChannels() * sample_size; // bits per second
             auto sr = format.GetSampleRate();
 
             // Write alacSpecificConfig in big-endian
             bytestream_put_be32(&buf, frame_length); // 4 bytes
             bytestream_put_byte(&buf, 0);            // compatibleVersion
-            bytestream_put_byte(&buf, sample_size);  // bitDepth (16)
+            bytestream_put_byte(&buf, sample_size);  // bitDepth
             bytestream_put_byte(&buf, 40);           // pb
             bytestream_put_byte(&buf, 10);           // mb
             bytestream_put_byte(&buf, 14);           // kb (rice_param_limit)
             bytestream_put_byte(&buf, format.GetChannels()); // channels
             bytestream_put_be16(&buf, 255);          // maxRun
             bytestream_put_be32(&buf, 0);            // maxFrameBytes (0=unknown)
-            bytestream_put_be32(&buf, avg_bitrate);  // avgBitrate (bits/sec)
-            bytestream_put_be32(&buf, sr);           // sampleRate (big-endian)
+            bytestream_put_be32(&buf, avg_bitrate); 
+            bytestream_put_be32(&buf, sr);
 
             // Padding to reach 36 bytes total
             for (int i = 0; i < 12; i++) {
@@ -374,9 +429,9 @@ public:
 		}
 		else if (codec_type_ == "aac") {
             AVDictionary* opts = nullptr;
-            av_dict_set(&opts, "profile", "aac_low", 0);
+            LIBAV_LIB.Util->av_dict_set(&opts, "profile", "aac_low", 0);
             AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_open2(codec_context_.get(), av_codec, &opts));
-            av_dict_free(&opts);
+            LIBAV_LIB.Util->av_dict_free(&opts);
 		}
 
         AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_parameters_from_context(stream_->codecpar, codec_context_.get()));
@@ -387,6 +442,10 @@ public:
     bool EncodeFrame(AVFrame* frame) {
         AvPtr<AVPacket> packet;
         packet.reset(LIBAV_LIB.Codec->av_packet_alloc());
+		if (!packet) {
+			throw Exception("Failed to allocate AVPacket.");
+		}
+
         LIBAV_LIB.Codec->av_init_packet(packet.get());
 
         if (frame != nullptr) {
@@ -417,7 +476,7 @@ public:
         return true;
     }
 
-    void Encode(const std::function<bool(uint32_t)>& progress) {
+    void Encode(const std::stop_token& stop_token, const std::function<bool(uint32_t)>& progress) {
         AvPtr<AVFrame> frame;
         frame.reset(LIBAV_LIB.Util->av_frame_alloc());
         frame->nb_samples = codec_context_->frame_size;
@@ -436,7 +495,7 @@ public:
             AvIfFailedThrow(ret);
         }
 
-        while (true) {
+        while (!stop_token.stop_requested()) {
             ret = LIBAV_LIB.Util->av_frame_make_writable(frame.get());
             if (ret < 0) {
                 AvIfFailedThrow(ret);
@@ -484,6 +543,7 @@ private:
     AvPtr<AVIOContext> output_io_context_;
     AvPtr<AVFormatContext> format_context_;
     std::function<void(const float*, void*, void*, size_t)> convert_;
+    std::shared_ptr<IFileEncodeWriter> writer_;
     ScopedPtr<FileStream> input_file_;
     Buffer<float> buffer_;
 };
@@ -494,12 +554,12 @@ AlacFileEncoder::AlacFileEncoder()
 
 XAMP_PIMPL_IMPL(AlacFileEncoder)
 
-void AlacFileEncoder::Start(const AnyMap& config) {
-    impl_->Start(config);
+void AlacFileEncoder::Start(const AnyMap& config, const std::shared_ptr<IFileEncodeWriter>& writer) {
+    impl_->Start(config, writer);
 }
 
-void AlacFileEncoder::Encode(std::function<bool(uint32_t)> const& progress) {
-    impl_->Encode(progress);
+void AlacFileEncoder::Encode(const std::stop_token& stop_token, std::function<bool(uint32_t)> const& progress) {
+    impl_->Encode(stop_token, progress);
 }
 
 XAMP_STREAM_NAMESPACE_END

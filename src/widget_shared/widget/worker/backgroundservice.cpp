@@ -6,13 +6,11 @@
 #include <widget/databasefacade.h>
 #include <widget/util/mbdiscid_util.h>
 #include <widget/appsettingnames.h>
-#include <widget/util/read_until.h>
 #include <widget/appsettings.h>
 #include <widget/widget_shared.h>
 #include <widget/imagecache.h>
 #include <widget/albumview.h>
 #include <widget/tagio.h>
-#include <widget/util/read_until.h>
 
 #include <base/logger_impl.h>
 
@@ -25,6 +23,23 @@
 #include <QThread>
 
 XAMP_DECLARE_LOG_NAME(BackgroundService);
+
+namespace {
+    QString uniqueFileName(const QDir& dir, const QString& originalName) {
+        QFileInfo info(originalName);
+        QString baseName = info.completeBaseName();
+        QString extension = info.suffix().isEmpty() ? ""_str : "."_str + info.suffix();
+
+        QString candidate = originalName;
+        int counter = 1;
+        
+        while (dir.exists(candidate)) {
+            candidate = qFormat("%1(%2)%3").arg(baseName).arg(counter).arg(extension);
+            counter++;
+        }
+        return candidate;
+    }
+}
 
 BackgroundService::BackgroundService()
     : nam_(this)
@@ -43,21 +58,26 @@ void BackgroundService::cancelAllJob() {
 void BackgroundService::onAddJobs(const QString& dir_name, QList<EncodeJob> jobs) {
     stop_source_ = std::stop_source();
     
-    /*Executor::ParallelFor(thread_pool_.get(), stop_source_.get_token(), jobs, [dir_name, this](auto &job) {
-        });*/
+    Executor::ParallelFor(thread_pool_.get(), stop_source_.get_token(), jobs, [dir_name, this](auto &job, const auto &stop_token) {
+        std::shared_ptr<IFileEncodeWriter> file_writer;
+        Path output_path;
 
-    for (const auto& job : jobs) {
-        if (stop_source_.stop_requested()) {
-            return;
+		// Ensure file name is unique.
+        while (true) {
+			try {
+                auto unique_save_file_name = uniqueFileName(QDir(dir_name), job.file.file_name + ".m4a"_str);
+                auto save_file_name = dir_name + "/"_str + unique_save_file_name;
+                output_path = save_file_name.toStdWString();
+				file_writer = MakFileEncodeWriter(output_path);
+				break;
+			}
+			catch (const Exception& e) {
+				XAMP_LOG_ERROR(e.GetErrorMessage());
+			}
         }
-
-        const auto temp_file_name = QDir::tempPath() + "/"_str + job.file.file_name + ".m4a"_str;
-        const auto save_file_name = dir_name + "/"_str + job.file.file_name + ".m4a"_str;
 
         try {
             auto encoder = StreamFactory::MakeAlacEncoder();
-            Path output_path(temp_file_name.toStdWString());
-            //Path output_path(save_file_name.toStdWString());
 
             AnyMap config;
             config.AddOrReplace(FileEncoderConfig::kInputFilePath, Path(job.file.file_path.toStdWString()));
@@ -65,14 +85,15 @@ void BackgroundService::onAddJobs(const QString& dir_name, QList<EncodeJob> jobs
             config.AddOrReplace(FileEncoderConfig::kCodecId, job.codec_id.toStdString());
             config.AddOrReplace(FileEncoderConfig::kBitRate, job.bit_rate);
 
-            encoder->Start(config);
-            encoder->Encode([job, this](auto progress) {
+            encoder->Start(config, file_writer);
+            encoder->Encode(stop_token, [job, this](auto progress) {
                 if (progress % 10 == 0) {
                     emit updateJobProgress(job.job_id, progress);
                 }
                 return true;
                 });
             encoder.reset();
+            file_writer.reset();
 
             TagIO tag_io;
             tag_io.writeArtist(output_path, job.file.artist);
@@ -83,14 +104,12 @@ void BackgroundService::onAddJobs(const QString& dir_name, QList<EncodeJob> jobs
             tag_io.writeTrack(output_path, job.file.track);
             tag_io.writeYear(output_path, job.file.year);
 
-            QFile::rename(temp_file_name, save_file_name);
             emit updateJobProgress(job.job_id, 100);
         }
-        catch (const std::exception &e) {
+        catch (const std::exception& e) {
             XAMP_LOG_ERROR(e.what());
         }
-        QFile::remove(temp_file_name);
-    }
+        });
 }
 
 void BackgroundService::cancelRequested() {

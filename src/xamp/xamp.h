@@ -168,8 +168,6 @@ public slots:
 
 	void onPlaybackError(const QString& message);
 
-	void onSyncToDevice(int32_t playlist_id, const QList<PlayListEntity>& entities);
-
 	void onRetranslateUi();
 
 	void onPlayerStateChanged(PlayerState play_state);

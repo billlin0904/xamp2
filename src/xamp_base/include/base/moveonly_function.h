@@ -32,7 +32,7 @@ public:
 	 * Calls the wrapped function with the given stop_token.
 	 * The function is only called once.
 	 */
-    void operator()(const std::stop_token& stop_token) {
+    XAMP_ALWAYS_INLINE void operator()(const std::stop_token& stop_token) {
         XAMP_EXPECTS(impl_ != nullptr);
 	    impl_->Invoke(stop_token);
         impl_.reset();

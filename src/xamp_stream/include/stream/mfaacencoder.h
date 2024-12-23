@@ -45,7 +45,7 @@ public:
 
 	XAMP_PIMPL(MFAACFileEncoder)
 
-	void Start(const AnyMap& config) override;
+	void Start(const AnyMap& config, const std::shared_ptr<IFileEncodeWriter>& writer) override;
 
 	void Encode(std::function<bool(uint32_t)> const& progress) override;
 

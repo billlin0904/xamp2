@@ -9,8 +9,6 @@
 #include <stream/bassfilestream.h>
 #include <stream/avfilestream.h>
 #include <stream/ifileencoder.h>
-#include <stream/basswavfileencoder.h>
-#include <stream/bassflacfileencoder.h>
 #include <stream/bassaacfileencoder.h>
 #include <stream/bassparametriceq.h>
 #include <stream/supereqequalizer.h>
@@ -44,6 +42,44 @@ XAMP_STREAM_NAMESPACE_BEGIN
         }
         return false;
     }
+
+    class FileWriter final : public IFileEncodeWriter {
+    public:
+        explicit FileWriter(const Path& path) {
+            file_.open(path, std::ios::binary);
+            if (!file_) {
+				throw FileNotFoundException();
+            }
+        }
+
+        ~FileWriter() override {
+            file_.close();
+        }
+
+        int64_t Seek(int64_t offset, int whence) override {
+			if (!file_.good()) {
+				return -1;
+			}
+			file_.seekp(offset, whence);
+			if (!file_) {
+				return -1;
+			}
+			return file_.tellp();
+        }
+
+        int32_t Write(const uint8_t* buf, int32_t size) override {
+            if (!file_.good()) {
+                return -1;
+            }
+            file_.write(reinterpret_cast<const char*>(buf), size);
+            if (!file_) {
+                return -1;
+            }
+            return size;
+        }
+    private:
+        std::ofstream file_;
+    };
 }
 
 bool IsDsdFile(const Path & path) {
@@ -76,10 +112,6 @@ ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& file_path, DsdMo
     }
 }
 
-ScopedPtr<IFileEncoder> StreamFactory::MakeFlacEncoder() {
-    return MakeAlign<IFileEncoder, BassFlacFileEncoder>();
-}
-
 ScopedPtr<IFileEncoder> StreamFactory::MakeAlacEncoder() {
     return MakeAlign<IFileEncoder, AlacFileEncoder>();
 }
@@ -91,10 +123,6 @@ ScopedPtr<IFileEncoder> StreamFactory::MakeAACEncoder() {
 #else
     return MakeAlign<IFileEncoder, BassAACFileEncoder>();
 #endif
-}
-
-ScopedPtr<IFileEncoder> StreamFactory::MakeWaveEncoder() {
-    return MakeAlign<IFileEncoder, BassWavFileEncoder>();
 }
 
 ScopedPtr<IAudioProcessor> StreamFactory::MakeParametricEq() {
@@ -240,6 +268,10 @@ void LoadBassLib() {
     for (const auto& info : BASS_LIB.GetVersions()) {
         XAMP_LOG_DEBUG("DLL {} version: {}", info.first, info.second);
     }
+}
+
+std::shared_ptr<IFileEncodeWriter> MakFileEncodeWriter(const Path& file_path) {
+	return std::make_shared<FileWriter>(file_path);
 }
 
 OrderedMap<std::string, std::string> GetBassDLLVersion() {

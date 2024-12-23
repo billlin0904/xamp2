@@ -6,15 +6,18 @@
 #pragma once
 
 #include <map>
+
 #include <base/stl.h>
 #include <base/fs.h>
 #include <base/memory.h>
 #include <base/encodingprofile.h>
-
 #include <base/dsdsampleformat.h>
+
+#include <stream/ifileencoder.h>
 #include <stream/stream.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
+
 
 class XAMP_STREAM_API StreamFactory {
 public:
@@ -23,17 +26,11 @@ public:
     // Create a file stream object based on the file path and DSD mode
     static ScopedPtr<FileStream> MakeFileStream(const Path &filePath, DsdModes dsdMode);
 
-    // Create a FLAC encoder object
-    static ScopedPtr<IFileEncoder> MakeFlacEncoder();
-
     // Create an ALAC encoder object
     static ScopedPtr<IFileEncoder> MakeAlacEncoder();
 
     // Create an AAC encoder object
     static ScopedPtr<IFileEncoder> MakeAACEncoder();
-
-    // Create a WAVE encoder object
-    static ScopedPtr<IFileEncoder> MakeWaveEncoder();
 
     // Create an equalizer audio processor object
     static ScopedPtr<IAudioProcessor> MakeEqualizer();
@@ -75,6 +72,8 @@ XAMP_STREAM_API IDsdStream* AsDsdStream(ScopedPtr<FileStream> const & stream) no
 XAMP_STREAM_API FileStream* AsFileStream(ScopedPtr<IAudioStream> const& stream) noexcept;
 
 XAMP_STREAM_API ScopedPtr<FileStream> MakeFileStream(const Path& file_path, DsdModes dsd_mode);
+
+XAMP_STREAM_API std::shared_ptr<IFileEncodeWriter> MakFileEncodeWriter(const Path& file_path);
 
 XAMP_STREAM_API void LoadFFTLib();
 

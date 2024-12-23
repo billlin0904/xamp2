@@ -755,19 +755,6 @@ void PlaylistTableView::initial() {
                 });
             });
 
-        auto* add_to_device_act = action_map.addAction(tr("Add file to device"));
-        add_to_device_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FILE_CIRCLE_PLUS));
-        action_map.setCallback(add_to_device_act, [this]() {
-            const auto rows = selectItemIndex();
-            QList<PlayListEntity> entities;
-            for (const auto& row : rows) {
-                entities.push_front(this->item(row.second));
-            }
-            emit syncToDevice(playlistId(), entities);
-            });
-
-        action_map.addSeparator();
-
         action_map.addSeparator();
         auto * copy_album_act = action_map.addAction(tr("Copy album"));
         copy_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_COPY));
@@ -795,7 +782,7 @@ void PlaylistTableView::initial() {
             emit encodeAlacFiles("ALAC"_str, entities);
             });
 
-        auto* encode_aac_file_act = action_map.addAction(tr("Encode to AAC File"));
+        auto* encode_aac_file_act = action_map.addAction(tr("Encode to AAC File (256Kbps)"));
         action_map.setCallback(encode_aac_file_act, [this]() {
             const auto rows = selectItemIndex();
             QList<PlayListEntity> entities;

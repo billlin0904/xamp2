@@ -47,7 +47,8 @@ AvFormatLib::AvFormatLib() try
 	, XAMP_LOAD_DLL_API(av_interleaved_write_frame)
 	, XAMP_LOAD_DLL_API(av_guess_format)
 	, XAMP_LOAD_DLL_API(av_write_trailer)
-	, XAMP_LOAD_DLL_API(av_dump_format) {
+	, XAMP_LOAD_DLL_API(av_dump_format)
+	, XAMP_LOAD_DLL_API(avio_alloc_context) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -107,7 +108,8 @@ AvUtilLib::AvUtilLib() try
 	, XAMP_LOAD_DLL_API(av_rescale_q)
 	, XAMP_LOAD_DLL_API(av_sample_fmt_is_planar)
 	, XAMP_LOAD_DLL_API(av_dict_get)
-	, XAMP_LOAD_DLL_API(av_opt_set) {
+	, XAMP_LOAD_DLL_API(av_opt_set)
+	, XAMP_LOAD_DLL_API(av_dict_free) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -193,10 +195,10 @@ AvLib::AvLib() {
 
 	Format->avformat_network_init();
 
-	const auto level = logger->GetLevel();
-	logger->SetLevel(LOG_LEVEL_DEBUG);
-	XAMP_LOG_D(logger, Codec->avcodec_configuration());
-	logger->SetLevel(level);
+	//const auto level = logger->GetLevel();
+	//logger->SetLevel(LOG_LEVEL_DEBUG);
+	//XAMP_LOG_D(logger, Codec->avcodec_configuration());
+	//logger->SetLevel(level);
 
 	XAMP_LOG_D(logger, "Network init.");
 }
@@ -205,8 +207,8 @@ HashSet<std::string> AvLib::GetSupportFileExtensions() const {
 	HashSet<std::string> result;
 	HashSet<std::string> ordered_extension;
 
-	const auto level = logger->GetLevel();
-	logger->SetLevel(LOG_LEVEL_DEBUG);
+	//const auto level = logger->GetLevel();
+	//logger->SetLevel(LOG_LEVEL_DEBUG);
 
     const AVInputFormat *output_format;
     void *opaque = nullptr;
@@ -243,7 +245,7 @@ HashSet<std::string> AvLib::GetSupportFileExtensions() const {
 		result.insert(file_extensions);
 	}
 
-	logger->SetLevel(level);
+	//logger->SetLevel(level);
 	return result;
 }
 
