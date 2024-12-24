@@ -3,7 +3,19 @@
 
 TrackInfo TagIO::getTrackInfo(const Path& path) {
     const auto reader = MakeMetadataReader();
-    return reader->Extract(path);
+	reader->Open(path);
+    return reader->Extract();
+}
+
+void TagIO::Open(const Path& path, TagIOMode mode) {
+    switch (mode) {
+	case TAG_IO_READ_MODE:
+		reader_->Open(path);
+		break;
+	case TAG_IO_WRITE_MODE:
+		writer_->Open(path);
+        break;
+    }
 }
 
 TagIO::TagIO()
@@ -11,36 +23,36 @@ TagIO::TagIO()
     , writer_(MakeMetadataWriter()) {
 }
 
-void TagIO::writeArtist(const Path& path, const QString& artist) {
-    writer_->WriteArtist(path, artist.toStdWString());
+void TagIO::writeArtist(const QString& artist) {
+    writer_->WriteArtist(artist.toStdWString());
 }
 
-void TagIO::writeAlbum(const Path& path, const QString& album) {
-    writer_->WriteAlbum(path, album.toStdWString());
+void TagIO::writeAlbum(const QString& album) {
+    writer_->WriteAlbum(album.toStdWString());
 }
 
-void TagIO::writeTitle(const Path& path, const QString& title) {
-    writer_->WriteTitle(path, title.toStdWString());
+void TagIO::writeTitle(const QString& title) {
+    writer_->WriteTitle(title.toStdWString());
 }
 
-void TagIO::writeTrack(const Path& path, uint32_t track) {
-    writer_->WriteTrack(path, track);
+void TagIO::writeTrack(uint32_t track) {
+    writer_->WriteTrack(track);
 }
 
-void TagIO::writeGenre(const Path& path, const QString& genre) {
-    writer_->WriteGenre(path, genre.toStdWString());
+void TagIO::writeGenre(const QString& genre) {
+    writer_->WriteGenre(genre.toStdWString());
 }
 
-void TagIO::writeComment(const Path& path, const QString& comment) {
-    writer_->WriteComment(path, comment.toStdWString());
+void TagIO::writeComment(const QString& comment) {
+    writer_->WriteComment(comment.toStdWString());
 }
 
-void TagIO::writeYear(const Path& path, uint32_t year) {
-    writer_->WriteYear(path, year);
+void TagIO::writeYear(uint32_t year) {
+    writer_->WriteYear(year);
 }
 
-bool TagIO::embeddedCover(const Path& file_path, QPixmap& image, size_t& image_size) const {
-    auto buffer = reader_->ReadEmbeddedCover(file_path);
+bool TagIO::embeddedCover(QPixmap& image, size_t& image_size) const {
+    auto buffer = reader_->ReadEmbeddedCover();
     image_size = 0;
     if (buffer) {
         image.loadFromData(reinterpret_cast<uchar*>(buffer->data()), buffer->size());
@@ -50,32 +62,28 @@ bool TagIO::embeddedCover(const Path& file_path, QPixmap& image, size_t& image_s
     return false;
 }
 
-QPixmap TagIO::embeddedCover(const Path& file_path) const {
+QPixmap TagIO::embeddedCover() const {
     QPixmap pixmap;
-    auto buffer = reader_->ReadEmbeddedCover(file_path);
+    auto buffer = reader_->ReadEmbeddedCover();
     if (buffer) {
         pixmap.loadFromData(reinterpret_cast<uchar*>(buffer->data()), buffer->size());
     }
     return pixmap;
 }
 
-void TagIO::removeEmbeddedCover(const Path& file_path) {
-    writer_->RemoveEmbeddedCover(file_path);
+void TagIO::removeEmbeddedCover() {
+    writer_->RemoveEmbeddedCover();
 }
 
-bool TagIO::canWriteEmbeddedCover(const Path& path) const {
-    return writer_->CanWriteEmbeddedCover(path);
+bool TagIO::canWriteEmbeddedCover() const {
+    return writer_->CanWriteEmbeddedCover();
 }
 
-void TagIO::writeEmbeddedCover(const Path& file_path, const QPixmap& image) {
+void TagIO::writeEmbeddedCover(const QPixmap& image) {
     if (image.isNull()) {
         return;
     }
 
     const auto buffer = image_util::image2Buffer(image);
-    writer_->WriteEmbeddedCover(file_path, buffer);
-}
-
-QPixmap TagIO::embeddedCover(const TrackInfo& track_info) const {
-    return embeddedCover(track_info.file_path);
+    writer_->WriteEmbeddedCover(buffer);
 }

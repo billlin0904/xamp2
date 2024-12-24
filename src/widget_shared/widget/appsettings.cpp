@@ -467,7 +467,6 @@ void AppSettings::registerMetaType() {
 	qRegisterMetaType<QList<TrackInfo>>("QList<TrackInfo>");
 	qRegisterMetaType<Vector<TrackInfo>>("Vector<TrackInfo>");
 	qRegisterMetaType<DriveInfo>("DriveInfo");
-	qRegisterMetaType<EncodingProfile>("EncodingProfile");
 	qRegisterMetaType<std::wstring>("std::wstring");
 	qRegisterMetaType<std::vector<search::SearchResultItem>>("std::vector<search::SearchResultItem>");
 	qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");

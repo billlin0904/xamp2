@@ -10,39 +10,44 @@
 #include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
 
+enum TagIOMode {
+	TAG_IO_READ_MODE,
+    TAG_IO_WRITE_MODE,
+};
+
 class XAMP_WIDGET_SHARED_EXPORT TagIO final {
 public:
     TagIO();
 
     XAMP_DISABLE_COPY_AND_MOVE(TagIO)
 
+	void Open(const Path& path, TagIOMode mode = TAG_IO_WRITE_MODE);
+
     static TrackInfo getTrackInfo(const Path& path);
 
-    void writeArtist(const Path& path, const QString& artist);
+    void writeArtist(const QString& artist);
 
-    void writeAlbum(const Path& path, const QString& album);
+    void writeAlbum(const QString& album);
 
-    void writeTitle(const Path& path, const QString& title);
+    void writeTitle(const QString& title);
 
-    void writeTrack(const Path& path, uint32_t track);
+    void writeTrack(uint32_t track);
 
-    void writeGenre(const Path& path, const QString& genre);
+    void writeGenre(const QString& genre);
 
-    void writeComment(const Path& path, const QString& comment);
+    void writeComment(const QString& comment);
 
-    void writeYear(const Path& path, uint32_t year);
+    void writeYear(uint32_t year);
 
-    QPixmap embeddedCover(const TrackInfo& track_info) const;
+    QPixmap embeddedCover() const;
 
-    QPixmap embeddedCover(const Path& file_path) const;
+    bool embeddedCover(QPixmap& image, size_t& image_size) const;
 
-    bool embeddedCover(const Path& file_path, QPixmap& image, size_t& image_size) const;
+    void removeEmbeddedCover();
 
-    void removeEmbeddedCover(const Path& file_path);
+    void writeEmbeddedCover(const QPixmap& image);
 
-    void writeEmbeddedCover(const Path& file_path, const QPixmap& image);
-
-    XAMP_NO_DISCARD bool canWriteEmbeddedCover(const Path& path) const;
+    XAMP_NO_DISCARD bool canWriteEmbeddedCover() const;
 
 private:
     ScopedPtr<IMetadataReader> reader_;

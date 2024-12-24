@@ -703,11 +703,12 @@ void Xamp::onCacheYtMusicFile(const PlayListEntity& entity) {
         }
 
         TagIO tag_io;
-        tag_io.writeAlbum(file_name.toStdWString(), temp.album);
-        tag_io.writeArtist(file_name.toStdWString(), temp.artist);
-        tag_io.writeTitle(file_name.toStdWString(), temp.title);
-        tag_io.writeTrack(file_name.toStdWString(), temp.track);
-        tag_io.writeEmbeddedCover(file_name.toStdWString(), image);
+        tag_io.Open(file_name.toStdWString());
+        tag_io.writeAlbum(temp.album);
+        tag_io.writeArtist(temp.artist);
+        tag_io.writeTitle(temp.title);
+        tag_io.writeTrack(temp.track);
+        tag_io.writeEmbeddedCover(image);
         qDiskCache.setFileName(video_id, file_name);
         XMessageBox::showInformation(tr("Successfully to write cache file."));
         });

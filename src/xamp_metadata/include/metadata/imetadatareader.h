@@ -21,37 +21,35 @@ class XAMP_METADATA_API XAMP_NO_VTABLE IMetadataReader {
 public:
     XAMP_BASE_CLASS(IMetadataReader)
 
+	virtual void Open(const Path& path) = 0;
+
     /*
     * Extract metadata from file.
     * 
-    * @param[in] path file path.
     * @return TrackInfo
     */
-    virtual TrackInfo Extract(const Path &path) = 0;
+    virtual TrackInfo Extract() = 0;
 
     /*
     * Get ReplayGain from file.
     * 
-    * @param[in] path file path.
     * @return ReplayGain
     */
-    virtual std::optional<ReplayGain> GetReplayGain(const Path& path) = 0;
+    virtual std::optional<ReplayGain> GetReplayGain() = 0;
  
     /*
     * Get embedded cover from file.
     * 
-    * @param[in] path file path.
     * @return Vector<std::byte>
     */
-    virtual std::optional<Vector<std::byte>> ReadEmbeddedCover(const Path &path) = 0;
+    virtual std::optional<Vector<std::byte>> ReadEmbeddedCover() = 0;
 
     /*
     * Check file is supported.
     * 
-    * @param[in] path file path.
     * @return bool
     */
-    XAMP_NO_DISCARD virtual bool IsSupported(const Path & path) const = 0;
+    XAMP_NO_DISCARD virtual bool IsSupported() const = 0;
 protected:
     IMetadataReader() = default;
 };

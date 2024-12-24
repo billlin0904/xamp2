@@ -24,7 +24,8 @@ void VmMemLock::Lock(void* address, size_t size) {
 	UnLock();	
 
 	if (!VirtualMemoryLock(address, size)) { // try lock memory!
-		throw PlatformException("VirtualLock return failure!");
+		XAMP_LOG_E(logger_, "VirtualLock return failure! {}", GetLastErrorMessage());
+		return;
 	}
 
 	// note: 強制配置實體記憶體page, 可以優化後面的相關操作. 等同於mmap API的MAP_POPULATE旗標.
@@ -32,7 +33,7 @@ void VmMemLock::Lock(void* address, size_t size) {
 	address_ = address;
 	size_ = size;
 
-	XAMP_LOG_D(logger_,
+	XAMP_LOG_T(logger_,
 		"VmMemLock lock address: 0x{:08x} size: {}.",
 		reinterpret_cast<int64_t>(address_),
 		String::FormatBytes(size_));
@@ -41,11 +42,11 @@ void VmMemLock::Lock(void* address, size_t size) {
 void VmMemLock::UnLock() noexcept {
 	if (address_) {
 		if (!VirtualMemoryUnLock(address_, size_)) {
-			XAMP_LOG_D(logger_,
+			XAMP_LOG_E(logger_,
 				"VirtualUnlock return failure! error:{} {}.",
 				GetLastErrorMessage(), StackTrace{}.CaptureStack());
 		}
-		XAMP_LOG_D(logger_,
+		XAMP_LOG_T(logger_,
 			"VmMemLock unlock address: 0x{:08x} size: {}.",
 			reinterpret_cast<int64_t>(address_), String::FormatBytes(size_));
 	}

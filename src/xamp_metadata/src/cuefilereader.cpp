@@ -93,11 +93,13 @@ public:
 				auto wide_cur_name = String::ToString(cur_name);
 				if (path.has_root_path()) {
 					auto file_path = path.parent_path() / Path(wide_cur_name);
-					track_info = reader->Extract(file_path);
+					reader->Open(file_path);
+					track_info = reader->Extract();
 					file_duration = track_info.duration;
 				}
 				else {
-					track_info = reader->Extract(Path(wide_cur_name));
+					reader->Open(Path(wide_cur_name));
+					track_info = reader->Extract();
 					file_duration = track_info.duration;
 				}		
 				track_info.is_cue_file = true;

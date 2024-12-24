@@ -23,22 +23,24 @@ namespace FileEncoderConfig {
 	constexpr static auto kEncodingProfile = std::string_view("EncodingProfile");
 };
 
-class XAMP_STREAM_API XAMP_NO_VTABLE IFileEncodeWriter {
+class XAMP_STREAM_API XAMP_NO_VTABLE IIoContext {
 public:
-	XAMP_BASE_CLASS(IFileEncodeWriter)
+	XAMP_BASE_CLASS(IIoContext)
 
 	virtual int32_t Write(const uint8_t* buf, int32_t size) = 0;
 
+	virtual int32_t Read(uint8_t* buf, int32_t buf_size) = 0;
+
 	virtual int64_t Seek(int64_t offset, int whence) = 0;
 protected:
-	IFileEncodeWriter() = default;
+	IIoContext() = default;
 };
 
 class XAMP_STREAM_API XAMP_NO_VTABLE IFileEncoder {
 public:
 	XAMP_BASE_CLASS(IFileEncoder)
 
-	virtual void Start(const AnyMap& config, const std::shared_ptr<IFileEncodeWriter> &writer = std::shared_ptr<IFileEncodeWriter>()) = 0;
+	virtual void Start(const AnyMap& config, const std::shared_ptr<IIoContext> & io_context = std::shared_ptr<IIoContext>()) = 0;
 
 	virtual void Encode(const std::stop_token &stop_token, std::function<bool(uint32_t)> const& progress) = 0;
 

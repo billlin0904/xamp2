@@ -39,6 +39,12 @@ namespace {
         }
         return candidate;
     }
+
+    QString getValidFileName(QString fileName) {
+        static const QRegularExpression forbidden_pattern(R"([\*\?\"<>:/\\\|])"_str);
+        fileName.replace(forbidden_pattern, " "_str);
+		return fileName;
+    }
 }
 
 BackgroundService::BackgroundService()
@@ -59,13 +65,18 @@ void BackgroundService::onAddJobs(const QString& dir_name, QList<EncodeJob> jobs
     stop_source_ = std::stop_source();
     
     Executor::ParallelFor(thread_pool_.get(), stop_source_.get_token(), jobs, [dir_name, this](auto &job, const auto &stop_token) {
-        std::shared_ptr<IFileEncodeWriter> file_writer;
+        std::shared_ptr<IIoContext> file_writer;
         Path output_path;
+        
+        auto file_name = getValidFileName(job.file.title);
 
 		// Ensure file name is unique.
-        while (true) {
+        constexpr auto kMaxRetryTestUniqueFileName = 255;
+        auto i = 0;
+        for (; i < kMaxRetryTestUniqueFileName; ++i) {
 			try {
-                auto unique_save_file_name = uniqueFileName(QDir(dir_name), job.file.file_name + ".m4a"_str);
+                auto unique_save_file_name = uniqueFileName(QDir(dir_name), file_name + ".m4a"_str);
+                //auto unique_save_file_name = uniqueFileName(QDir(dir_name), job.file.title + ".wav"_str);
                 auto save_file_name = dir_name + "/"_str + unique_save_file_name;
                 output_path = save_file_name.toStdWString();
 				file_writer = MakFileEncodeWriter(output_path);
@@ -75,15 +86,22 @@ void BackgroundService::onAddJobs(const QString& dir_name, QList<EncodeJob> jobs
 				XAMP_LOG_ERROR(e.GetErrorMessage());
 			}
         }
+		if (i == kMaxRetryTestUniqueFileName) {
+			XAMP_LOG_ERROR("Failed to create unique file name.");
+			return;
+		}
 
+        Path input_path(job.file.file_path.toStdWString());
         try {
-            auto encoder = StreamFactory::MakeAlacEncoder();
+            auto encoder = StreamFactory::MakeM4AEncoder();
 
             AnyMap config;
-            config.AddOrReplace(FileEncoderConfig::kInputFilePath, Path(job.file.file_path.toStdWString()));
+            config.AddOrReplace(FileEncoderConfig::kInputFilePath, input_path);
             config.AddOrReplace(FileEncoderConfig::kOutputFilePath, output_path);
             config.AddOrReplace(FileEncoderConfig::kCodecId, job.codec_id.toStdString());
             config.AddOrReplace(FileEncoderConfig::kBitRate, job.bit_rate);
+            //config.AddOrReplace(FileEncoderConfig::kCodecId, std::string("pcm"));
+            //config.AddOrReplace(FileEncoderConfig::kBitRate, static_cast<uint32_t>(0));
 
             encoder->Start(config, file_writer);
             encoder->Encode(stop_token, [job, this](auto progress) {
@@ -95,14 +113,23 @@ void BackgroundService::onAddJobs(const QString& dir_name, QList<EncodeJob> jobs
             encoder.reset();
             file_writer.reset();
 
-            TagIO tag_io;
-            tag_io.writeArtist(output_path, job.file.artist);
-            tag_io.writeTitle(output_path, job.file.title);
-            tag_io.writeAlbum(output_path, job.file.album);
-            tag_io.writeComment(output_path, job.file.comment);
-            tag_io.writeGenre(output_path, job.file.genre);
-            tag_io.writeTrack(output_path, job.file.track);
-            tag_io.writeYear(output_path, job.file.year);
+            TagIO input_io;
+            input_io.Open(input_path, TAG_IO_READ_MODE);
+
+            TagIO output_io;
+            output_io.Open(output_path, TAG_IO_WRITE_MODE);
+            output_io.writeArtist(job.file.artist);
+            output_io.writeTitle(job.file.title);
+            output_io.writeAlbum(job.file.album);
+            output_io.writeComment(job.file.comment);
+            output_io.writeGenre(job.file.genre);
+            output_io.writeTrack(job.file.track);
+            output_io.writeYear(job.file.year);
+
+            auto cover = input_io.embeddedCover();
+            if (!cover.isNull()) {
+                output_io.writeEmbeddedCover(cover);
+            }
 
             emit updateJobProgress(job.job_id, 100);
         }

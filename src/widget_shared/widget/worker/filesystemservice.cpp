@@ -164,7 +164,8 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 			}
 
 			try {
-				tracks.push_front(reader->Extract(path));
+				reader->Open(path);
+				tracks.push_front(reader->Extract());
 			}
 			catch (const std::exception &e) {
 				XAMP_LOG_DEBUG("Failed to extract file: {}", e.what());

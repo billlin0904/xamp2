@@ -171,7 +171,6 @@
     <ClInclude Include="include\base\com_error_category.h" />
     <ClInclude Include="include\base\crashhandler.h" />
     <ClInclude Include="include\base\dsd_utils.h" />
-    <ClInclude Include="include\base\encodingprofile.h" />
     <ClInclude Include="include\base\enum.h" />
     <ClInclude Include="include\base\fastconditionvariable.h" />
     <ClInclude Include="include\base\fastmutex.h" />
@@ -233,7 +232,6 @@
     <ClCompile Include="src\dataconverter.cpp" />
     <ClCompile Include="src\dll.cpp" />
     <ClCompile Include="src\dsd_utils.cpp" />
-    <ClCompile Include="src\encodingprofile.cpp" />
     <ClCompile Include="src\exception.cpp" />
     <ClCompile Include="src\fastconditionvariable.cpp" />
     <ClCompile Include="src\fastmutex.cpp" />

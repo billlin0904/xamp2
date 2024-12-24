@@ -10,7 +10,6 @@
 #include <optional>
 
 #include <widget/widget_shared.h>
-#include <base/encodingprofile.h>
 #include <widget/youtubedl/ytmusicservice.h>
 
 #include <widget/uiplayerstateadapter.h>

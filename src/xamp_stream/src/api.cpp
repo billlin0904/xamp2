@@ -12,7 +12,6 @@
 #include <stream/bassaacfileencoder.h>
 #include <stream/bassparametriceq.h>
 #include <stream/supereqequalizer.h>
-#include <stream/mfaacencoder.h>
 #include <stream/bassfader.h>
 #include <stream/basscddevice.h>
 #include <stream/basscompressor.h>
@@ -22,7 +21,7 @@
 #include <stream/r8brainlib.h>
 #include <stream/soxrlib.h>
 #include <stream/srclib.h>
-#include <stream/alacencoder.h>
+#include <stream/m4aencoder.h>
 #include <stream/discIdlib.h>
 #include <stream/avlib.h>
 #include <stream/api.h>
@@ -43,16 +42,16 @@ XAMP_STREAM_NAMESPACE_BEGIN
         return false;
     }
 
-    class FileWriter final : public IFileEncodeWriter {
+    class LibAvIoContext final : public IIoContext {
     public:
-        explicit FileWriter(const Path& path) {
-            file_.open(path, std::ios::binary);
+        explicit LibAvIoContext(const Path& path) {
+            file_.open(path, std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
             if (!file_) {
 				throw FileNotFoundException();
             }
         }
 
-        ~FileWriter() override {
+        ~LibAvIoContext() override {
             file_.close();
         }
 
@@ -60,11 +59,36 @@ XAMP_STREAM_NAMESPACE_BEGIN
 			if (!file_.good()) {
 				return -1;
 			}
-			file_.seekp(offset, whence);
+            std::ios_base::seekdir dir;
+            switch (whence) {
+            case SEEK_SET:
+                dir = std::ios_base::beg;
+                break;
+            case SEEK_CUR:
+                dir = std::ios_base::cur;
+                break;
+            case SEEK_END:
+                dir = std::ios_base::end;
+                break;
+            default:
+                return -1;
+            }
+			file_.seekp(offset, dir);
 			if (!file_) {
 				return -1;
 			}
 			return file_.tellp();
+        }
+
+        int32_t Read(uint8_t* buf, int32_t buf_size) override {
+			if (!file_.good()) {
+				return -1;
+			}
+			file_.read(reinterpret_cast<char*>(buf), buf_size);
+			if (!file_) {
+                return static_cast<int32_t>(file_.gcount());
+			}
+			return file_.gcount();
         }
 
         int32_t Write(const uint8_t* buf, int32_t size) override {
@@ -78,7 +102,7 @@ XAMP_STREAM_NAMESPACE_BEGIN
             return size;
         }
     private:
-        std::ofstream file_;
+        std::fstream file_;
     };
 }
 
@@ -112,14 +136,9 @@ ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& file_path, DsdMo
     }
 }
 
-ScopedPtr<IFileEncoder> StreamFactory::MakeAlacEncoder() {
-    return MakeAlign<IFileEncoder, AlacFileEncoder>();
-}
-
-ScopedPtr<IFileEncoder> StreamFactory::MakeAACEncoder() {
+ScopedPtr<IFileEncoder> StreamFactory::MakeM4AEncoder() {
 #ifdef XAMP_OS_WIN
-    return MakeAlign<IFileEncoder, MFAACFileEncoder>();
-    //return MakeAlign<IFileEncoder, AvFileEncoder>(AvEncodeId::AV_ENCODE_ID_AAC);
+    return MakeAlign<IFileEncoder, M4AFileEncoder>();
 #else
     return MakeAlign<IFileEncoder, BassAACFileEncoder>();
 #endif
@@ -156,16 +175,6 @@ ScopedPtr<ICDDevice> StreamFactory::MakeCDDevice(int32_t driver_letter) {
     return MakeAlign<ICDDevice, BassCDDevice>(static_cast<char>(driver_letter));
 }
 #endif
-
-Vector<EncodingProfile> StreamFactory::GetAvailableEncodingProfile() {
-#ifdef XAMP_OS_WIN
-    using AACFileEncoder = MFAACFileEncoder;
-#else
-    using AACFileEncoder = BassAACFileEncoder;
-#endif
-
-    return AACFileEncoder::GetAvailableEncodingProfile();
-}
 
 IDsdStream* AsDsdStream(ScopedPtr<FileStream> const& stream) noexcept {
     return dynamic_cast<IDsdStream*>(stream.get());
@@ -270,8 +279,8 @@ void LoadBassLib() {
     }
 }
 
-std::shared_ptr<IFileEncodeWriter> MakFileEncodeWriter(const Path& file_path) {
-	return std::make_shared<FileWriter>(file_path);
+std::shared_ptr<IIoContext> MakFileEncodeWriter(const Path& file_path) {
+	return std::make_shared<LibAvIoContext>(file_path);
 }
 
 OrderedMap<std::string, std::string> GetBassDLLVersion() {

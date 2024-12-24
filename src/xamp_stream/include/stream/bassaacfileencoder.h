@@ -10,7 +10,6 @@
 #include <base/memory.h>
 #include <base/stl.h>
 #include <base/uuidof.h>
-#include <base/encodingprofile.h>
 
 #ifdef XAMP_OS_MAC
 

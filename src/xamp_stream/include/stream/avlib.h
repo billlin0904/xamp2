@@ -117,6 +117,7 @@ public:
     XAMP_DECLARE_DLL_NAME(av_packet_free);
     XAMP_DECLARE_DLL_NAME(avcodec_free_context);
     XAMP_DECLARE_DLL_NAME(avcodec_parameters_to_context);
+    XAMP_DECLARE_DLL_NAME(avcodec_find_encoder_by_name);
 };
 
 class AvUtilLib final {
@@ -258,6 +259,14 @@ struct AvResourceDeleter<AVAudioFifo> {
     void operator()(AVAudioFifo* p) const {
         XAMP_EXPECTS(p != nullptr);
         LIBAV_LIB.Util->av_audio_fifo_free(p);
+    }
+};
+
+template <>
+struct AvResourceDeleter<AVDictionary> {
+    void operator()(AVDictionary* p) const {
+        XAMP_EXPECTS(p != nullptr);
+        LIBAV_LIB.Util->av_dict_free(&p);
     }
 };
 

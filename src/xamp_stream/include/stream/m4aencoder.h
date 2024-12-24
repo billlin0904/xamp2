@@ -10,20 +10,21 @@
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
-class AlacFileEncoder final : public IFileEncoder {
+class M4AFileEncoder final : public IFileEncoder {
 	XAMP_DECLARE_MAKE_CLASS_UUID(AlacFileEncoder, "85335F36-A582-4B72-B0E7-3EFFFE35A5DB")
 
 public:
-	AlacFileEncoder();
+	M4AFileEncoder();
 
-	XAMP_PIMPL(AlacFileEncoder)
+	XAMP_PIMPL(M4AFileEncoder)
 
-	void Start(const AnyMap& config, const std::shared_ptr<IFileEncodeWriter>& writer) override;
+	void Start(const AnyMap& config, const std::shared_ptr<IIoContext>& io_context) override;
 
 	void Encode(const std::stop_token& stop_token, std::function<bool(uint32_t)> const& progress) override;
+
 private:
-	class AlacFileEncoderImpl;
-	ScopedPtr<AlacFileEncoderImpl> impl_;
+	class M4AFileEncoderImpl;
+	ScopedPtr<M4AFileEncoderImpl> impl_;
 };
 
 XAMP_STREAM_NAMESPACE_END

@@ -10,7 +10,6 @@
 #include <base/stl.h>
 #include <base/fs.h>
 #include <base/memory.h>
-#include <base/encodingprofile.h>
 #include <base/dsdsampleformat.h>
 
 #include <stream/ifileencoder.h>
@@ -26,11 +25,8 @@ public:
     // Create a file stream object based on the file path and DSD mode
     static ScopedPtr<FileStream> MakeFileStream(const Path &filePath, DsdModes dsdMode);
 
-    // Create an ALAC encoder object
-    static ScopedPtr<IFileEncoder> MakeAlacEncoder();
-
     // Create an AAC encoder object
-    static ScopedPtr<IFileEncoder> MakeAACEncoder();
+    static ScopedPtr<IFileEncoder> MakeM4AEncoder();
 
     // Create an equalizer audio processor object
     static ScopedPtr<IAudioProcessor> MakeEqualizer();
@@ -56,9 +52,6 @@ public:
     #ifdef XAMP_OS_WIN
     static ScopedPtr<ICDDevice> MakeCDDevice(int32_t driverLetter);
     #endif
-
-    // Get a vector of available encoding profiles
-    static Vector<EncodingProfile> GetAvailableEncodingProfile();
 };
 
 XAMP_STREAM_API bool IsDsdFile(Path const& path);
@@ -73,7 +66,7 @@ XAMP_STREAM_API FileStream* AsFileStream(ScopedPtr<IAudioStream> const& stream) 
 
 XAMP_STREAM_API ScopedPtr<FileStream> MakeFileStream(const Path& file_path, DsdModes dsd_mode);
 
-XAMP_STREAM_API std::shared_ptr<IFileEncodeWriter> MakFileEncodeWriter(const Path& file_path);
+XAMP_STREAM_API std::shared_ptr<IIoContext> MakFileEncodeWriter(const Path& file_path);
 
 XAMP_STREAM_API void LoadFFTLib();
 

@@ -9,7 +9,7 @@
 #include <stream/avlib.h>
 #include <stream/api.h>
 #include <stream/filestream.h>
-#include <stream/alacencoder.h>
+#include <stream/m4aencoder.h>
 #include <stream/bassfilestream.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
@@ -136,8 +136,8 @@ namespace {
 
             // 現在 left_final, right_final 是 float(L0,L1,L2,L3) and float(R0,R1,R2,R3)
             // 將 float -> int32 -> int16
-            __m128i left_i32 = _mm_cvtps_epi32(left_final);
-            __m128i right_i32 = _mm_cvtps_epi32(right_final);
+            __m128i left_i32 = _mm_cvttps_epi32(left_final);
+            __m128i right_i32 = _mm_cvttps_epi32(right_final);
 
             // 將int32打包成int16
             __m128i packed = _mm_packs_epi32(left_i32, right_i32);
@@ -196,8 +196,8 @@ namespace {
             __m128 right_merge = _mm_unpacklo_ps(right_part1, right_part2); // (R0,R2,R1,R3)
             right_merge = _mm_shuffle_ps(right_merge, right_merge, _MM_SHUFFLE(2, 0, 3, 1)); // (R0,R1,R2,R3)
 
-            __m128i left_i32 = _mm_cvtps_epi32(left_merge);
-            __m128i right_i32 = _mm_cvtps_epi32(right_merge);
+            __m128i left_i32 = _mm_cvttps_epi32(left_merge);
+            __m128i right_i32 = _mm_cvttps_epi32(right_merge);
 
             // 將24bit對齊: << 8
             __m128i shift8 = _mm_slli_epi32(left_i32, 8);
@@ -223,8 +223,20 @@ namespace {
         }
     }
 
+    int32_t CustomReadPacket(void* opaque, uint8_t* buf, int32_t buf_size) {
+		auto* reader = static_cast<IIoContext*>(opaque);
+		if (!reader) {
+			return AVERROR(EINVAL);
+		}
+		int32_t read = reader->Read(buf, buf_size);
+		if (read < 0) {
+			return AVERROR(EIO);
+		}
+		return read;
+    }
+
     int32_t CustomWritePacket(void* opaque, uint8_t* buf, int32_t buf_size) {
-        auto* writer = static_cast<IFileEncodeWriter*>(opaque);
+        auto* writer = static_cast<IIoContext*>(opaque);
         if (!writer) {
             return AVERROR(EINVAL);
         }
@@ -237,7 +249,7 @@ namespace {
     }
 
     int64_t CustomSeekPacket(void* opaque, int64_t offset, int32_t whence) {
-        auto* writer = static_cast<IFileEncodeWriter*>(opaque);
+        auto* writer = static_cast<IIoContext*>(opaque);
         if (!writer) {
             return AVERROR(EINVAL);
         }
@@ -245,35 +257,31 @@ namespace {
     }
 }
 
-class AlacFileEncoder::AlacFileEncoderImpl {
+class M4AFileEncoder::M4AFileEncoderImpl {
 public:
-    static constexpr auto kFrameSize = 8192;
+    static constexpr auto kFrameSize = 1024;
 
-    ~AlacFileEncoderImpl() {
+    ~M4AFileEncoderImpl() {
         codec_context_.reset();
         output_io_context_.reset();
         format_context_.reset();
     }
 
-    void Start(const AnyMap& config, const std::shared_ptr<IFileEncodeWriter>& writer) {
+    void Start(const AnyMap& config, const std::shared_ptr<IIoContext>& writer) {
         const auto input_file_path = config.AsPath(FileEncoderConfig::kInputFilePath);
         const auto output_file_path = config.AsPath(FileEncoderConfig::kOutputFilePath);
         codec_type_ = config.Get<std::string>(FileEncoderConfig::kCodecId);
         aac_bit_rate_ = config.Get<uint32_t>(FileEncoderConfig::kBitRate);
-		//codec_type_ = "aac";
-        //aac_bit_rate_ = 256000;
-        //codec_type_ = "alac";
         file_name_ = String::ToUtf8String(output_file_path.wstring());
         input_file_ = StreamFactory::MakeFileStream(input_file_path, DsdModes::DSD_MODE_PCM);
         input_file_->OpenFile(input_file_path);
         writer_ = writer;
         CreateAudioStream();
-        XAMP_LOG_DEBUG("Encoding: {} Bit rate: {} ", codec_type_, aac_bit_rate_);
     }
 
     void CreateAudioStream() {
         const auto channel_layout = AV_CH_LAYOUT_STEREO; // stereo
-        const char guess_file_name[] = "output.m4a";
+        std::string guess_file_name = "output.m4a";
         const char* file_name = file_name_.c_str();
 
         auto sample_format = AV_SAMPLE_FMT_NONE;
@@ -287,11 +295,13 @@ public:
         if (codec_type_ == "aac") {
             codec_id = AV_CODEC_ID_AAC;
             sample_format = AV_SAMPLE_FMT_FLTP;
-            convert_ = [](const float* input, void* left_ch, void* right_ch, size_t read_samples) {
+            convert_ = [](const float* input, AVFrame* frame, size_t read_samples) {
+                void* left_ch = frame->data[0];
+                void* right_ch = frame->data[1];
 				ConvertInterleavedToPlanarSSE(input,
 					static_cast<float*>(left_ch),
 					static_cast<float*>(right_ch),
-					read_samples);
+                    read_samples / 2);
                 };
 		}
 		else if (codec_type_ == "alac") {
@@ -299,24 +309,46 @@ public:
             if (input_file_->GetBitDepth() > 16) {
                 sample_size = 24;
                 sample_format = AV_SAMPLE_FMT_S32P;
-                convert_ = [](const float* input, void* left_ch, void* right_ch, size_t read_samples) {
+                convert_ = [](const float* input, AVFrame* frame, size_t read_samples) {
+                    void* left_ch = frame->data[0];
+                    void* right_ch = frame->data[1];
                     ConvertFloatToInt24SSE(input,
                         static_cast<int32_t*>(left_ch),
                         static_cast<int32_t*>(right_ch),
-                        read_samples);
+                        read_samples / 2);
                     };
             }
             else {
                 sample_format = AV_SAMPLE_FMT_S16P;
                 sample_size = 16;
-                convert_ = [](const float* input, void* left_ch, void* right_ch, size_t read_samples) {
+                convert_ = [](const float* input, AVFrame *frame, size_t read_samples) {
+                    void* left_ch = frame->data[0];
+                    void* right_ch = frame->data[1];
                     ConvertFloatToInt16SSE(input,
                         static_cast<int16_t*>(left_ch),
                         static_cast<int16_t*>(right_ch),
-                        read_samples);
+                        read_samples / 2);
                     };
             }
 		}
+        else if (codec_type_ == "pcm") {
+            codec_id = AV_CODEC_ID_PCM_S16LE;
+            sample_format = AV_SAMPLE_FMT_S16;
+            sample_size = 16;
+            guess_file_name = "output.wav";
+            convert_ = [](const float* input, AVFrame* frame, size_t read_samples) {
+                auto* dst = reinterpret_cast<int16_t*>(frame->data[0]);
+                auto* src = input;
+
+                for (int i = 0; i < read_samples; i += 2) {
+                    float L = src[i + 0] * kFloat16Scale;
+                    float R = src[i + 1] * kFloat16Scale;
+
+                    dst[i + 0] = static_cast<int16_t>(L);
+                    dst[i + 1] = static_cast<int16_t>(R);
+                }
+                };
+        }
 
         if (writer_ != nullptr) {
             auto* avio_buffer = static_cast<uint8_t*>(LIBAV_LIB.Util->av_malloc(kFrameSize));
@@ -329,7 +361,7 @@ public:
                 kFrameSize,                 // buffer size
                 1,                          // write_flag
                 writer_.get(),              // opaque (指向IFileEncodeWriter)
-                nullptr,                    // read_packet
+                &CustomReadPacket,          // read_packet
                 &CustomWritePacket,         // write_packet
                 &CustomSeekPacket           // seek
             );
@@ -349,7 +381,7 @@ public:
             format_context_->flags |= AVFMT_FLAG_CUSTOM_IO;
         } else {
             AVIOContext* output_io_context = nullptr;
-            AvIfFailedThrow(LIBAV_LIB.Format->avio_open(&output_io_context, file_name, AVIO_FLAG_WRITE));
+            AvIfFailedThrow(LIBAV_LIB.Format->avio_open(&output_io_context, guess_file_name.c_str(), AVIO_FLAG_WRITE));
             output_io_context_.reset(output_io_context);
 
             format_context_.reset(LIBAV_LIB.Format->avformat_alloc_context());
@@ -393,7 +425,8 @@ public:
         stream_->time_base = AVRational{ 1, static_cast<int32_t>(format.GetSampleRate()) };
         codec_context_->time_base = stream_->time_base;
 
-        format_context_->oformat = LIBAV_LIB.Format->av_guess_format(nullptr, guess_file_name, nullptr);
+        format_context_->oformat = LIBAV_LIB.Format->av_guess_format(nullptr, guess_file_name.c_str(), nullptr);
+
         if (format_context_->oformat->flags & AVFMT_GLOBALHEADER)
             codec_context_->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 
@@ -408,9 +441,9 @@ public:
             auto sr = format.GetSampleRate();
 
             // Write alacSpecificConfig in big-endian
-            bytestream_put_be32(&buf, frame_length); // 4 bytes
+            bytestream_put_be32(&buf, frame_length);       // 4 bytes
             bytestream_put_byte(&buf, 0);            // compatibleVersion
-            bytestream_put_byte(&buf, sample_size);  // bitDepth
+            bytestream_put_byte(&buf, sample_size);        // bitDepth
             bytestream_put_byte(&buf, 40);           // pb
             bytestream_put_byte(&buf, 10);           // mb
             bytestream_put_byte(&buf, 14);           // kb (rice_param_limit)
@@ -429,9 +462,16 @@ public:
 		}
 		else if (codec_type_ == "aac") {
             AVDictionary* opts = nullptr;
-            LIBAV_LIB.Util->av_dict_set(&opts, "profile", "aac_low", 0);
-            AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_open2(codec_context_.get(), av_codec, &opts));
-            LIBAV_LIB.Util->av_dict_free(&opts);
+
+            auto* codec = LIBAV_LIB.Codec->avcodec_find_encoder_by_name("libfdk_aac");
+			if (!codec) {
+                LIBAV_LIB.Util->av_dict_set(&opts, "profile", "aac_low", 0);
+                AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_open2(codec_context_.get(), av_codec, &opts));
+			}            
+			else {
+                LIBAV_LIB.Util->av_dict_set(&opts, "aac_object_type", "2", 0);
+				AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_open2(codec_context_.get(), codec, &opts));
+			}
 		}
 
         AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_parameters_from_context(stream_->codecpar, codec_context_.get()));
@@ -507,10 +547,7 @@ public:
                 break;
             }
 
-            std::invoke(convert_, buffer_.data(),
-                frame->data[0],
-                frame->data[1],
-                read_samples / 2);
+            std::invoke(convert_, buffer_.data(), frame.get(), read_samples);
 
             if (!EncodeFrame(frame.get())) {
                 break;
@@ -542,23 +579,23 @@ private:
     AvPtr<AVCodecContext> codec_context_;
     AvPtr<AVIOContext> output_io_context_;
     AvPtr<AVFormatContext> format_context_;
-    std::function<void(const float*, void*, void*, size_t)> convert_;
-    std::shared_ptr<IFileEncodeWriter> writer_;
+    std::function<void(const float*, AVFrame*, size_t)> convert_;
+    std::shared_ptr<IIoContext> writer_;
     ScopedPtr<FileStream> input_file_;
     Buffer<float> buffer_;
 };
 
-AlacFileEncoder::AlacFileEncoder()
-    : impl_(MakeAlign<AlacFileEncoderImpl>()) {
+M4AFileEncoder::M4AFileEncoder()
+    : impl_(MakeAlign<M4AFileEncoderImpl>()) {
 }
 
-XAMP_PIMPL_IMPL(AlacFileEncoder)
+XAMP_PIMPL_IMPL(M4AFileEncoder)
 
-void AlacFileEncoder::Start(const AnyMap& config, const std::shared_ptr<IFileEncodeWriter>& writer) {
-    impl_->Start(config, writer);
+void M4AFileEncoder::Start(const AnyMap& config, const std::shared_ptr<IIoContext>& io_context) {
+    impl_->Start(config, io_context);
 }
 
-void AlacFileEncoder::Encode(const std::stop_token& stop_token, std::function<bool(uint32_t)> const& progress) {
+void M4AFileEncoder::Encode(const std::stop_token& stop_token, std::function<bool(uint32_t)> const& progress) {
     impl_->Encode(stop_token, progress);
 }
 

@@ -16,31 +16,33 @@ class TaglibMetadataWriter final : public IMetadataWriter {
 public:
     TaglibMetadataWriter();
 
-	XAMP_PIMPL(TaglibMetadataWriter)
+    XAMP_PIMPL(TaglibMetadataWriter)
 
-    void WriteReplayGain(Path const& path, const ReplayGain& replay_gain) override;
+	void Open(const Path& path) override;
+
+    void WriteReplayGain(const ReplayGain& replay_gain) override;
    
-    void Write(Path const & path, TrackInfo const& track_info) override;
+    void Write(TrackInfo const& track_info) override;
 
-    void WriteTitle(const Path & path, const std::wstring & title) override;
+    void WriteTitle(const std::wstring & title) override;
 
-    void WriteArtist(const Path & path, const std::wstring & artist) override;
+    void WriteArtist(const std::wstring & artist) override;
 
-    void WriteAlbum(const Path & path, const std::wstring & album) override;
+    void WriteAlbum(const std::wstring & album) override;
 
-    void WriteTrack(const Path & path, uint32_t track) override;
+    void WriteTrack(uint32_t track) override;
 
-    void WriteComment(const Path& path, const std::wstring& comment) override;
+    void WriteComment(const std::wstring& comment) override;
 
-    void WriteGenre(const Path& path, const std::wstring& genre) override;
+    void WriteGenre(const std::wstring& genre) override;
 
-    void WriteYear(const Path& path, uint32_t year) override;
+    void WriteYear(uint32_t year) override;
 
-    void WriteEmbeddedCover(const Path & path, const Vector<uint8_t> &image) const override;
+    void WriteEmbeddedCover(const Vector<uint8_t> &image) const override;
 
-    void RemoveEmbeddedCover(const Path& path) override;
+    void RemoveEmbeddedCover() override;
 
-    XAMP_NO_DISCARD bool CanWriteEmbeddedCover(const Path& path) const override;
+    XAMP_NO_DISCARD bool CanWriteEmbeddedCover() const override;
 private:
     class TaglibMetadataWriterImpl;
     ScopedPtr<TaglibMetadataWriterImpl> writer_;

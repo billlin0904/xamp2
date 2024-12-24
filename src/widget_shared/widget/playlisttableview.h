@@ -21,7 +21,6 @@
 #include <widget/dao/albumdao.h>
 
 #include <base/rng.h>
-#include <base/encodingprofile.h>
 
 class PlayListSqlQueryTableModel;
 class PlayListTableFilterProxyModel;

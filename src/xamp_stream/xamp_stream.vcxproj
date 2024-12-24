@@ -156,7 +156,7 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="include\stream\alacencoder.h" />
+    <ClInclude Include="include\stream\m4aencoder.h" />
     <ClInclude Include="include\stream\anymap.h" />
     <ClInclude Include="include\stream\avfilestream.h" />
     <ClInclude Include="include\stream\avlib.h" />
@@ -185,7 +185,6 @@
     <ClInclude Include="include\stream\filestream.h" />
     <ClInclude Include="include\stream\isameplewriter.h" />
     <ClInclude Include="include\stream\mbdiscid.h" />
-    <ClInclude Include="include\stream\mfaacencoder.h" />
     <ClInclude Include="include\stream\r8brainlib.h" />
     <ClInclude Include="include\stream\r8brainresampler.h" />
     <ClInclude Include="include\stream\dsdmodesamplewriter.h" />
@@ -200,7 +199,7 @@
     <ClInclude Include="include\stream\wavefilewriter.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\alacencoder.cpp" />
+    <ClCompile Include="src\m4aencoder.cpp" />
     <ClCompile Include="src\avfilestream.cpp" />
     <ClCompile Include="src\avlib.cpp" />
     <ClCompile Include="src\bassaacfileencoder.cpp" />
@@ -217,7 +216,6 @@
     <ClCompile Include="src\fft.cpp" />
     <ClCompile Include="src\fftwlib.cpp" />
     <ClCompile Include="src\mbdiscid.cpp" />
-    <ClCompile Include="src\mfaacencoder.cpp" />
     <ClCompile Include="src\api.cpp" />
     <ClCompile Include="src\dsdmodesamplewriter.cpp" />
     <ClCompile Include="src\r8brainresampler.cpp" />
