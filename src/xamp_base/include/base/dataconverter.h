@@ -33,6 +33,229 @@ XAMP_BASE_API AudioConvertContext MakeConvert(AudioFormat const& in_format, Audi
 
 #ifdef XAMP_OS_WIN
 
+XAMP_BASE_API inline void ConvertFloatToFloatSSE(const float* input, float* left_ptr, float* right_ptr, size_t frames) {
+	size_t i = 0;
+
+	for (; i + 4 <= frames; i += 4) {
+		// 讀入 8 個 floats
+		__m128 in1 = _mm_loadu_ps(input);       // [L0,R0,L1,R1]
+		__m128 in2 = _mm_loadu_ps(input + 4);   // [L2,R2,L3,R3]
+
+		// 第 1 級 unpack: 把 in1, in2 拆成 low, high
+		//   low  = [L0,L2, R0,R2]
+		//   high = [L1,L3, R1,R3]
+		__m128 low = _mm_unpacklo_ps(in1, in2);
+		__m128 high = _mm_unpackhi_ps(in1, in2);
+
+		// 第 2 級 unpack: 
+		//   left  = [L0,L1,L2,L3]
+		//   right = [R0,R1,R2,R3]
+		__m128 left = _mm_unpacklo_ps(low, high);
+		__m128 right = _mm_unpackhi_ps(low, high);
+
+		// 寫回 planar
+		_mm_storeu_ps(left_ptr, left);     // 寫出 (L0,L1,L2,L3)
+		_mm_storeu_ps(right_ptr, right);   // 寫出 (R0,R1,R2,R3)
+
+		left_ptr += 4;
+		right_ptr += 4;
+		input += 8;  // 處理了 4 frames => 8 floats
+	}
+
+	// 尾端不足4 frames 用標量處理
+	for (; i < frames; i++) {
+		left_ptr[0] = input[0];  // L
+		right_ptr[0] = input[1];  // R
+		left_ptr++;
+		right_ptr++;
+		input += 2;
+	}
+}
+
+XAMP_BASE_API inline void ConvertFloatToInt16SSE(const float* input, int16_t* left_ptr, int16_t* right_ptr, size_t frames) {
+	// 一次處理 4 frames => 8 個 float： [L0,R0, L1,R1, L2,R2, L3,R3]
+   // SSE 一次可載入 4 個 float => in1=[L0,R0,L1,R1], in2=[L2,R2,L3,R3]
+   // 再透過兩級 unpacklo/hi_ps 直接分離出 left=[L0,L1,L2,L3], right=[R0,R1,R2,R3]
+
+	size_t i = 0;
+	__m128 scale = _mm_set1_ps(kFloat16Scale);
+
+	for (; i + 4 <= frames; i += 4) {
+		// 1) 載入 8 個 floats
+		__m128 in1 = _mm_loadu_ps(input);       // => L0,R0,L1,R1
+		__m128 in2 = _mm_loadu_ps(input + 4);   // => L2,R2,L3,R3
+
+		// 2) 乘以縮放常數 => float => ±32767
+		in1 = _mm_mul_ps(in1, scale);
+		in2 = _mm_mul_ps(in2, scale);
+
+		// 3) 第一級 unpack => 
+		//    low  = [L0,L2, R0,R2]
+		//    high = [L1,L3, R1,R3]
+		__m128 low = _mm_unpacklo_ps(in1, in2);
+		__m128 high = _mm_unpackhi_ps(in1, in2);
+
+		// 4) 第二級 unpack 分離左、右聲道
+		//    left  = [L0,L1, L2,L3]
+		//    right = [R0,R1, R2,R3]
+		__m128 left = _mm_unpacklo_ps(low, high);
+		__m128 right = _mm_unpackhi_ps(low, high);
+
+		// 5) float => int32 => packs => int16
+		__m128i left_i32 = _mm_cvttps_epi32(left);
+		__m128i right_i32 = _mm_cvttps_epi32(right);
+
+		// _mm_packs_epi32: 
+		//   前4個 int16(低64bits) = left_i32，
+		//   後4個 int16(高64bits) = right_i32。
+		// 形成 packed: [L0,L1,L2,L3,  R0,R1,R2,R3](int16)
+		__m128i packed = _mm_packs_epi32(left_i32, right_i32);
+
+		// 6) 把前4個 int16 存到 left_ptr、後4個 int16 存到 right_ptr
+		//    這裡可以先用 _mm_storel_epi64 拿低64bits給 left，再用 hi 取高64bits給 right
+		_mm_storel_epi64(reinterpret_cast<__m128i*>(left_ptr), packed);
+		__m128i hi = _mm_unpackhi_epi64(packed, packed);
+		_mm_storel_epi64(reinterpret_cast<__m128i*>(right_ptr), hi);
+
+		// 7) 更新指標
+		left_ptr += 4;
+		right_ptr += 4;
+		input += 8;  // 已處理 4 frames => 8 floats
+	}
+
+	// 8) 尾端不足4 frames => 標量處理
+	for (; i < frames; i++) {
+		float L = input[0] * kFloat16Scale;
+		float R = input[1] * kFloat16Scale;
+		// cast => int16 (截斷, 若要四捨五入可加 0.5f)
+		int16_t Li = static_cast<int16_t>(L);
+		int16_t Ri = static_cast<int16_t>(R);
+		*left_ptr++ = Li;
+		*right_ptr++ = Ri;
+		input += 2;
+	}
+}
+
+XAMP_BASE_API inline void ConvertFloatToInt24(const float* input, int32_t* left_ptr, int32_t* right_ptr, size_t frames) {
+	for (size_t i = 0; i < frames; i++) {
+		// interleaved float: L,R
+		float L = input[2 * i + 0] * kFloat24Scale;
+		float R = input[2 * i + 1] * kFloat24Scale;
+
+		// 轉成 int32 後 << 8 以對齊 24 bit
+		int32_t Li = static_cast<int32_t>(L) << 8;
+		int32_t Ri = static_cast<int32_t>(R) << 8;
+
+		// planar 輸出: left全部存在 left_ptr，right全部存在 right_ptr
+		left_ptr[i] = Li;
+		right_ptr[i] = Ri;
+	}
+}
+
+XAMP_BASE_API inline void ConvertFloatToInt16(const float* input, int16_t* left_ptr, int16_t* right_ptr, size_t frames) {
+	for (size_t i = 0; i < frames; i++) {
+		// interleaved float: L,R
+		float L = input[2 * i + 0] * kFloat16Scale;
+		float R = input[2 * i + 1] * kFloat16Scale;
+
+		// 轉成 int16
+		int16_t Li = static_cast<int16_t>(L);
+		int16_t Ri = static_cast<int16_t>(R);
+
+		// planar 輸出: left全部存在 left_ptr，right全部存在 right_ptr
+		left_ptr[i] = Li;
+		right_ptr[i] = Ri;
+	}
+}
+
+XAMP_BASE_API inline void ConvertFloatToInt32SSE(const float* input, int32_t* left_ptr, int32_t* right_ptr, size_t frames) {
+	size_t i = 0;
+	__m128 scale = _mm_set1_ps(kFloat24Scale);
+
+	for (; i + 4 <= frames; i += 4) {
+		__m128 in1 = _mm_loadu_ps(input);     // L0,R0,L1,R1
+		__m128 in2 = _mm_loadu_ps(input + 4); // L2,R2,L3,R3
+
+		// 乘以縮放因子
+		in1 = _mm_mul_ps(in1, scale);
+		in2 = _mm_mul_ps(in2, scale);
+
+		// 使用 unpacklo/hi 直接分離左右聲道
+		__m128 low = _mm_unpacklo_ps(in1, in2);   // L0,L2,R0,R2
+		__m128 high = _mm_unpackhi_ps(in1, in2);  // L1,L3,R1,R3
+
+		// 再次 unpack 得到最終順序
+		__m128 left = _mm_unpacklo_ps(low, high);  // L0,L1,L2,L3
+		__m128 right = _mm_unpackhi_ps(low, high); // R0,R1,R2,R3
+
+		// 轉換並存儲
+		__m128i left_i32 = _mm_cvttps_epi32(left);
+		__m128i right_i32 = _mm_cvttps_epi32(right);
+
+		_mm_storeu_si128(reinterpret_cast<__m128i*>(left_ptr), left_i32);
+		_mm_storeu_si128(reinterpret_cast<__m128i*>(right_ptr), right_i32);
+
+		left_ptr += 4;
+		right_ptr += 4;
+		input += 8;
+	}
+
+	// 尾端不足4 frames標量處理
+	for (; i < frames; i++) {
+		float L = input[0] * kFloat24Scale;
+		float R = input[1] * kFloat24Scale;
+		int32_t Li = static_cast<int32_t>(L);
+		int32_t Ri = static_cast<int32_t>(R);
+		*left_ptr++ = Li;
+		*right_ptr++ = Ri;
+		input += 2;
+	}
+}
+
+XAMP_BASE_API inline void ConvertFloatToInt24SSE(const float* input, int32_t* left_ptr, int32_t* right_ptr, size_t frames) {
+	size_t i = 0;
+	__m128 scale = _mm_set1_ps(kFloat24Scale);
+
+	for (; i + 4 <= frames; i += 4) {
+		__m128 in1 = _mm_loadu_ps(input);     // L0,R0,L1,R1
+		__m128 in2 = _mm_loadu_ps(input + 4); // L2,R2,L3,R3
+
+		// 乘以縮放因子
+		in1 = _mm_mul_ps(in1, scale);
+		in2 = _mm_mul_ps(in2, scale);
+
+		// 使用 unpacklo/hi 直接分離左右聲道
+		__m128 low = _mm_unpacklo_ps(in1, in2);   // L0,L2,R0,R2
+		__m128 high = _mm_unpackhi_ps(in1, in2);  // L1,L3,R1,R3
+
+		// 再次 unpack 得到最終順序
+		__m128 left = _mm_unpacklo_ps(low, high);  // L0,L1,L2,L3
+		__m128 right = _mm_unpackhi_ps(low, high); // R0,R1,R2,R3
+
+		// 轉換並存儲
+		__m128i left_i32 = _mm_cvttps_epi32(left);
+		__m128i right_i32 = _mm_cvttps_epi32(right);
+
+		_mm_storeu_si128(reinterpret_cast<__m128i*>(left_ptr), _mm_slli_epi32(left_i32, 8));
+		_mm_storeu_si128(reinterpret_cast<__m128i*>(right_ptr), _mm_slli_epi32(right_i32, 8));
+
+		left_ptr += 4;
+		right_ptr += 4;
+		input += 8;
+	}
+
+	// 尾端不足4 frames標量處理
+	for (; i < frames; i++) {
+		float L = input[0] * kFloat24Scale;
+		float R = input[1] * kFloat24Scale;
+		int32_t Li = static_cast<int32_t>(L) << 8;
+		int32_t Ri = static_cast<int32_t>(R) << 8;
+		*left_ptr++ = Li;
+		*right_ptr++ = Ri;
+		input += 2;
+	}
+}
+
 template <typename T, typename TStoreType = T>
 void AVX2Convert(TStoreType* output, const float* input, float float_scale, const AudioConvertContext& context) noexcept {
 	XAMP_EXPECTS(output != nullptr);
@@ -98,47 +321,7 @@ void AVX2Convert(TStoreType* output, const float* input, float float_scale, cons
 }
 
 template <PackedFormat InputFormat, PackedFormat OutputFormat>
-struct XAMP_BASE_API_ONLY_EXPORT DataConverter {
-	static void Convert(int8_t* output, const int8_t* input, const AudioConvertContext& context) noexcept {
-		XAMP_EXPECTS(output != nullptr);
-		XAMP_EXPECTS(input != nullptr);
-
-		const auto output_left_offset = context.out_offset[0];
-		const auto output_right_offset = context.out_offset[1];
-
-		const auto input_left_offset = context.in_offset[0];
-		const auto input_right_offset = context.in_offset[1];
-
-		for (size_t i = 0; i < context.convert_size; ++i) {
-			output[output_left_offset] = input[input_left_offset];
-			output[output_right_offset] = input[input_right_offset];
-			input += context.in_jump;
-			output += context.out_jump;
-		}
-	}
-
-	static void Convert(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
-		XAMP_EXPECTS(output != nullptr);
-		XAMP_EXPECTS(input != nullptr);
-
-		const auto output_left_offset = context.out_offset[0];
-		const auto output_right_offset = context.out_offset[1];
-
-		const auto input_left_offset = context.in_offset[0];
-		const auto input_right_offset = context.in_offset[1];
-
-		for (size_t i = 0; i < context.convert_size; ++i) {
-			const auto left = input[input_left_offset] * context.volume_factor;
-			output[output_left_offset] = static_cast<int32_t>(left * kFloat32Scale);
-
-			const auto right = input[input_right_offset] * context.volume_factor;
-			output[output_right_offset] = static_cast<int32_t>(right * kFloat32Scale);
-
-			input += context.in_jump;
-			output += context.out_jump;
-		}
-	}
-};
+struct XAMP_BASE_API_ONLY_EXPORT DataConverter {};
 
 template <>
 struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, PackedFormat::PLANAR> {
@@ -215,55 +398,6 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 		}
 	}
 
-	static void SSEConvert(int32_t* output, const int32_t* input, const AudioConvertContext& context) noexcept {
-		XAMP_EXPECTS(output != nullptr);
-		XAMP_EXPECTS(input != nullptr);
-		XAMP_EXPECTS(context.input_format.GetChannels() == 2);
-
-		const size_t frames = context.convert_size;
-
-		// Planar 格式分離：左聲道放在 output[0 .. frames-1]
-		// 右聲道放在 output[frames .. (2*frames)-1]
-		int32_t* left_channel = output;
-		int32_t* right_channel = output + frames;
-
-		// 一次處理2 frames = 4 samples (L0,R0,L1,R1) = 16 bytes
-		// 使用 _mm_shuffle_epi32 重組 dwords:
-		// 輸入: [L0(0),R0(1),L1(2),R1(3)]
-		// 左聲道: L0,L1 => result[0]=input[0], result[1]=input[2]
-		// 可用 _MM_SHUFFLE(3,3,2,0): result[0]=input[0], result[1]=input[2]
-		constexpr int left_mask = _MM_SHUFFLE(3, 3, 2, 0);
-
-		// 右聲道: R0,R1 => result[0]=input[1], result[1]=input[3]
-		// 可用 _MM_SHUFFLE(3,3,3,1): result[0]=input[1], result[1]=input[3]
-		constexpr int right_mask = _MM_SHUFFLE(3, 3, 3, 1);
-
-		size_t i = 0;
-		for (; i + 2 <= frames; i += 2) {
-			__m128i input_values = _mm_loadu_si128(reinterpret_cast<const __m128i*>(input));
-
-			__m128i left_values = _mm_shuffle_epi32(input_values, left_mask);
-			__m128i right_values = _mm_shuffle_epi32(input_values, right_mask);
-
-			// _mm_storel_epi64儲存低64 bits (即2個int32)
-			_mm_storel_epi64(reinterpret_cast<__m128i*>(left_channel), left_values);
-			_mm_storel_epi64(reinterpret_cast<__m128i*>(right_channel), right_values);
-
-			input += 4;         // 2 frames * 2ch = 4 int32前進
-			left_channel += 2;  // left channel 增加2個樣本
-			right_channel += 2; // right channel 增加2個樣本
-		}
-
-		// 尾端若剩1 frame (2 samples) 標量處理
-		for (; i < frames; ++i) {
-			left_channel[0] = input[0];   // L
-			right_channel[0] = input[1];  // R
-			input += 2;
-			left_channel++;
-			right_channel++;
-		}
-	}
-
 	static void Convert(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
 		XAMP_EXPECTS(output != nullptr);
 		XAMP_EXPECTS(input != nullptr);
@@ -273,74 +407,7 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 		int32_t* left_channel = output;
 		int32_t* right_channel = output + frames;
 
-		// 每 frame = 2 floats (L,R)
-		// AVX2一次可以處理 8 個 floats = 4 frames
-		// Layout: [L0,R0,L1,R1,L2,R2,L3,R3] (index 0=L0,1=R0,2=L1,3=R1,4=L2,5=R2,6=L3,7=R3)
-		//
-		// 轉成int32後為8個int32:
-		// 左聲道 indices: 0,2,4,6
-		// 右聲道 indices: 1,3,5,7
-		//
-		// 利用 _mm256_permutevar8x32_epi32 重組:
-		// 左聲道想要順序 [0,2,4,6] = (0,2,4,6)
-		// 右聲道想要順序 [1,3,5,7] = (1,3,5,7)
-		//
-		// _mm256_permutevar8x32_epi32 需要給定一個控制索引的 __m256i
-		// ex: for left: index控制向量 = {0,2,4,6, ...其餘可填入任意不取值位置...}
-		// 但我們只存前4個int32，因此可用 _mm256_castsi256_si128 取低128-bit後存。
-		//
-		// 在此範例中，我們取前4個int32即可透過 _mm_storeu_si128 儲存。
-		//
-		// Left permute mask: {0,2,4,6, ...}
-		// Right permute mask: {1,3,5,7, ...}
-
-		const __m256i left_perm_mask = _mm256_setr_epi32(0, 2, 4, 6, 0, 0, 0, 0);
-		const __m256i right_perm_mask = _mm256_setr_epi32(1, 3, 5, 7, 0, 0, 0, 0);
-		const __m256 scale = _mm256_set1_ps(kFloat32Scale);
-
-		size_t i = 0;
-		for (; i + 4 <= frames; i += 4) {
-			// 載入8個 floats
-			__m256 input_values = _mm256_loadu_ps(input);
-
-			// float->int32
-			__m256 scaled_values = _mm256_mul_ps(input_values, scale);
-			__m256i int_values = _mm256_cvttps_epi32(scaled_values);
-
-			// 分離左聲道 (0,2,4,6)
-			__m256i left_values = _mm256_permutevar8x32_epi32(int_values, left_perm_mask);
-			// 分離右聲道 (1,3,5,7)
-			__m256i right_values = _mm256_permutevar8x32_epi32(int_values, right_perm_mask);
-
-			// left_values, right_values 各有8個int32，但我們只在乎前4個值
-			// 轉回128-bit儲存
-			__m128i left_128 = _mm256_castsi256_si128(left_values);
-			__m128i right_128 = _mm256_castsi256_si128(right_values);
-
-			// 儲存4個int32
-			_mm_storeu_si128(reinterpret_cast<__m128i*>(left_channel), left_128);
-			_mm_storeu_si128(reinterpret_cast<__m128i*>(right_channel), right_128);
-
-			input += 8; // 4 frames * 2ch = 8 floats
-			left_channel += 4;
-			right_channel += 4;
-		}
-
-		// 處理不足4 frames的尾端
-		for (; i < frames; ++i) {
-			float L = input[0];
-			float R = input[1];
-			
-			int32_t Li = static_cast<int32_t>(L * kFloat32Scale);
-			int32_t Ri = static_cast<int32_t>(R * kFloat32Scale);
-
-			left_channel[0] = Li;
-			right_channel[0] = Ri;
-
-			input += 2;
-			left_channel++;
-			right_channel++;
-		}
+		ConvertFloatToInt32SSE(input, left_channel, right_channel, frames);
 	}
 };
 

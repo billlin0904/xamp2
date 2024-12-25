@@ -48,7 +48,8 @@ AvFormatLib::AvFormatLib() try
 	, XAMP_LOAD_DLL_API(av_guess_format)
 	, XAMP_LOAD_DLL_API(av_write_trailer)
 	, XAMP_LOAD_DLL_API(av_dump_format)
-	, XAMP_LOAD_DLL_API(avio_alloc_context) {
+	, XAMP_LOAD_DLL_API(avio_alloc_context)
+	, XAMP_LOAD_DLL_API(avio_context_free) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -110,7 +111,8 @@ AvUtilLib::AvUtilLib() try
 	, XAMP_LOAD_DLL_API(av_sample_fmt_is_planar)
 	, XAMP_LOAD_DLL_API(av_dict_get)
 	, XAMP_LOAD_DLL_API(av_opt_set)
-	, XAMP_LOAD_DLL_API(av_dict_free) {
+	, XAMP_LOAD_DLL_API(av_dict_free)
+	, XAMP_LOAD_DLL_API(av_freep) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());

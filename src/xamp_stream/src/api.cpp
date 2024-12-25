@@ -232,9 +232,6 @@ ScopedPtr<FileStream> MakeFileStream(const Path& file_path, DsdModes dsd_mode) {
             {
                 file_stream->OpenFile(file_path);
             }
-            catch (const FileNotFoundException&) {
-                throw;
-            }
             catch (const Exception& e) {
                 // Fallback other stream
                 if (file_stream->GetTypeId() == XAMP_UUID_OF(AvFileStream)) {

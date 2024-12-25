@@ -40,11 +40,10 @@ XAMP_STREAM_NAMESPACE_BEGIN
     class IAudioStream;
     class ICDDevice;
     class IFileEncoder;
+    class IIoContext;
     class FileStream;
     class IDsdStream;
     class IDSPManager;
-
-    class Ebur128Reader;
 
     using Complex = std::complex<float>;
     using ComplexValarray = std::valarray<Complex>;

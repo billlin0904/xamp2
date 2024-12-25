@@ -93,43 +93,47 @@ void BackgroundService::onAddJobs(const QString& dir_name, QList<EncodeJob> jobs
 
         Path input_path(job.file.file_path.toStdWString());
         try {
-            auto encoder = StreamFactory::MakeM4AEncoder();
+            
+           {
+                auto encoder = StreamFactory::MakeM4AEncoder();
 
-            AnyMap config;
-            config.AddOrReplace(FileEncoderConfig::kInputFilePath, input_path);
-            config.AddOrReplace(FileEncoderConfig::kOutputFilePath, output_path);
-            config.AddOrReplace(FileEncoderConfig::kCodecId, job.codec_id.toStdString());
-            config.AddOrReplace(FileEncoderConfig::kBitRate, job.bit_rate);
-            //config.AddOrReplace(FileEncoderConfig::kCodecId, std::string("pcm"));
-            //config.AddOrReplace(FileEncoderConfig::kBitRate, static_cast<uint32_t>(0));
+                AnyMap config;
+                config.AddOrReplace(FileEncoderConfig::kInputFilePath, input_path);
+                config.AddOrReplace(FileEncoderConfig::kOutputFilePath, output_path);
+                config.AddOrReplace(FileEncoderConfig::kCodecId, job.codec_id.toStdString());
+                config.AddOrReplace(FileEncoderConfig::kBitRate, job.bit_rate);
+                //config.AddOrReplace(FileEncoderConfig::kCodecId, std::string("pcm"));
+                //config.AddOrReplace(FileEncoderConfig::kBitRate, static_cast<uint32_t>(0));
 
-            encoder->Start(config, file_writer);
-            encoder->Encode(stop_token, [job, this](auto progress) {
-                if (progress % 10 == 0) {
-                    emit updateJobProgress(job.job_id, progress);
-                }
-                return true;
-                });
-            encoder.reset();
-            file_writer.reset();
+                encoder->Start(config, file_writer);
+                encoder->Encode(stop_token, [job, this](auto progress) {
+                    if (progress % 10 == 0) {
+                        emit updateJobProgress(job.job_id, progress);
+                    }
+                    return true;
+                    });
+				file_writer.reset();
+           }
 
-            TagIO input_io;
-            input_io.Open(input_path, TAG_IO_READ_MODE);
+           {
+               TagIO input_io;
+               input_io.Open(input_path, TAG_IO_READ_MODE);
 
-            TagIO output_io;
-            output_io.Open(output_path, TAG_IO_WRITE_MODE);
-            output_io.writeArtist(job.file.artist);
-            output_io.writeTitle(job.file.title);
-            output_io.writeAlbum(job.file.album);
-            output_io.writeComment(job.file.comment);
-            output_io.writeGenre(job.file.genre);
-            output_io.writeTrack(job.file.track);
-            output_io.writeYear(job.file.year);
+               TagIO output_io;
+               output_io.Open(output_path, TAG_IO_WRITE_MODE);
+               output_io.writeArtist(job.file.artist);
+               output_io.writeTitle(job.file.title);
+               output_io.writeAlbum(job.file.album);
+               output_io.writeComment(job.file.comment);
+               output_io.writeGenre(job.file.genre);
+               output_io.writeTrack(job.file.track);
+               output_io.writeYear(job.file.year);
 
-            auto cover = input_io.embeddedCover();
-            if (!cover.isNull()) {
-                output_io.writeEmbeddedCover(cover);
-            }
+               auto cover = input_io.embeddedCover();
+               if (!cover.isNull()) {
+                   output_io.writeEmbeddedCover(cover);
+               }
+           }
 
             emit updateJobProgress(job.job_id, 100);
         }

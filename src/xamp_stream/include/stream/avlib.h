@@ -83,6 +83,7 @@ public:
     XAMP_DECLARE_DLL_NAME(av_write_trailer);
     XAMP_DECLARE_DLL_NAME(av_dump_format);
 	XAMP_DECLARE_DLL_NAME(avio_alloc_context);
+    XAMP_DECLARE_DLL_NAME(avio_context_free);
 };
 
 class AvCodecLib final {
@@ -154,6 +155,7 @@ public:
     XAMP_DECLARE_DLL_NAME(av_dict_get);
     XAMP_DECLARE_DLL_NAME(av_opt_set);
     XAMP_DECLARE_DLL_NAME(av_dict_free);
+    XAMP_DECLARE_DLL_NAME(av_freep);
 };
 
 class AvSwLib final {

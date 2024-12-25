@@ -43,7 +43,7 @@ private:
 
 	void resizeEvent(QResizeEvent* event) override;
 
-	WidthModes width_mode_{ DYNAMIC_WIDTH_MODE };
+	WidthModes width_mode_{ FIXED_WIDTH_MODE };
 	int32_t edited_index_{0};
 	int32_t tab_count_{ 0 };	
 	QLineEdit* line_edit_{nullptr};
