@@ -170,7 +170,7 @@ XAMP_BASE_API inline void ConvertFloatToInt16(const float* input, int16_t* left_
 
 XAMP_BASE_API inline void ConvertFloatToInt32SSE(const float* input, int32_t* left_ptr, int32_t* right_ptr, size_t frames) {
 	size_t i = 0;
-	__m128 scale = _mm_set1_ps(kFloat24Scale);
+	__m128 scale = _mm_set1_ps(kFloat32Scale);
 
 	for (; i + 4 <= frames; i += 4) {
 		__m128 in1 = _mm_loadu_ps(input);     // L0,R0,L1,R1
