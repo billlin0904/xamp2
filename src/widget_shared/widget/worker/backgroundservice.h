@@ -46,6 +46,8 @@ signals:
 
 	void updateJobProgress(const QString& job_id, int new_progress);
 
+	void jobError(const QString& job_id, const QString &message);
+
 public Q_SLOT:
 	void cancelAllJob();
 

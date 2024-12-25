@@ -84,6 +84,7 @@ void BackgroundService::onAddJobs(const QString& dir_name, QList<EncodeJob> jobs
 			}
 			catch (const Exception& e) {
 				XAMP_LOG_ERROR(e.GetErrorMessage());
+				emit jobError(job.job_id, tr("Error"));
 			}
         }
 		if (i == kMaxRetryTestUniqueFileName) {
@@ -139,6 +140,7 @@ void BackgroundService::onAddJobs(const QString& dir_name, QList<EncodeJob> jobs
         }
         catch (const std::exception& e) {
             XAMP_LOG_ERROR(e.what());
+            emit jobError(job.job_id, tr("Error"));
         }
         });
 }

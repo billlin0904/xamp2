@@ -40,10 +40,13 @@ public:
 
     QList<EncodeJob> addJobs(const QString &encode_name, const QList<PlayListEntity>& files);
 
-    void updateProgress(const QString &job_id, int new_progress);
+public slots:
+    void onUpdateProgress(const QString &job_id, int new_progress);
 
-    void updateProgressItem(QTreeWidgetItem* item, int new_progress);
+	void onJobError(const QString& job_id, const QString& message);
 private:
+    void updateProgressItem(QTreeWidgetItem* item, int new_progress);
+
     void setupUI();
 
     QTreeWidget* tree_;

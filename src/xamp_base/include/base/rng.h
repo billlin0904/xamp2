@@ -85,6 +85,17 @@ public:
 		return output;
 	}
 
+    Vector<float> NextSingles(size_t size, 
+        const float min = 0.0f,
+        const float max = 1.0f) {
+        Vector<float> output(size);
+		const auto gen = [this, min, max]() noexcept {
+			return NextSingle(min, max);
+			};
+        std::generate_n(output.begin(), size, gen);
+        return output;
+    }
+
     void SetSeed(uint64_t seed);
 
     Sfc64Engine<>& engine() {

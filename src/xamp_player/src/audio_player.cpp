@@ -743,7 +743,7 @@ void AudioPlayer::SetReadSampleSize(uint32_t num_samples) {
 
 void AudioPlayer::WaitForReadFinishAndSeekSignal(std::unique_lock<FastMutex>& stopped_lock) {
     if (read_finish_and_wait_seek_signal_cond_.wait_for(stopped_lock, kWaitForSignalWhenReadFinish) != std::cv_status::timeout) {
-        XAMP_LOG_D(logger_, "Stream is read done!, Weak up for seek signal.");
+        XAMP_LOG_T(logger_, "Stream is read done!, Weak up for seek signal.");
     }
 }
 

@@ -283,7 +283,9 @@ void Xamp::onEncodeAlacFiles(const QString& codec_id, const QList<PlayListEntity
         const QScopedPointer<EncodeJobWidget> encode_job_widget(new EncodeJobWidget(dialog.get()));
         encode_job_widget->setFixedSize(QSize(1200, 600));
         (void)QObject::connect(background_service_.get(), &BackgroundService::updateJobProgress,
-            encode_job_widget.get(), &EncodeJobWidget::updateProgress);        
+            encode_job_widget.get(), &EncodeJobWidget::onUpdateProgress);
+        (void)QObject::connect(background_service_.get(), &BackgroundService::jobError,
+            encode_job_widget.get(), &EncodeJobWidget::onJobError);
         emit addJobs(dir_name, encode_job_widget->addJobs(codec_id, files));
         dialog->setContentWidget(encode_job_widget.get());
         dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_ABOUT));

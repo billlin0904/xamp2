@@ -18,20 +18,70 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 struct XAMP_BASE_API AudioConvertContext {
     AudioConvertContext();
-    size_t in_jump{0};
-    size_t out_jump{0};
 	float volume_factor{1.0};
     size_t cache_volume{0};
     size_t convert_size{0};
 	AudioFormat input_format;
 	AudioFormat output_format;
-    std::array<size_t, AudioFormat::kMaxChannel> in_offset{};
-    std::array<size_t, AudioFormat::kMaxChannel> out_offset{};
 };
 
 XAMP_BASE_API AudioConvertContext MakeConvert(AudioFormat const& in_format, AudioFormat const& out_format, size_t convert_size) noexcept;
 
 #ifdef XAMP_OS_WIN
+
+XAMP_BASE_API inline void ConvertInt8ToInt8SSE(const int8_t* input, int8_t* left_ptr, int8_t* right_ptr, size_t frames) {
+	// mask: 取出「偶數索引」=> [0,2,4,6,8,10,12,14]，其餘填 0x80 (表示不取)
+	// mask: 16 bytes
+	alignas(16) static constexpr int8_t mask_even[16] = {
+		0,2,4,6, 8,10,12,14,  // 依序抓偶數 index
+		(int8_t)0x80,(int8_t)0x80,(int8_t)0x80,(int8_t)0x80,
+		(int8_t)0x80,(int8_t)0x80,(int8_t)0x80,(int8_t)0x80
+	};
+
+	// mask: 取出「奇數索引」=> [1,3,5,7,9,11,13,15]
+	alignas(16) static constexpr int8_t mask_odd[16] = {
+		1,3,5,7, 9,11,13,15,
+		(int8_t)0x80,(int8_t)0x80,(int8_t)0x80,(int8_t)0x80,
+		(int8_t)0x80,(int8_t)0x80,(int8_t)0x80,(int8_t)0x80
+	};
+
+	__m128i vMaskEven = _mm_load_si128(reinterpret_cast<const __m128i*>(mask_even));
+	__m128i vMaskOdd = _mm_load_si128(reinterpret_cast<const __m128i*>(mask_odd));
+
+	size_t i = 0;
+
+	while (frames >= 8) {
+		// 讀取 16 bytes => SSE寄存器
+		__m128i data = _mm_loadu_si128(reinterpret_cast<const __m128i*>(input));
+		// data=[L0,R0,L1,R1, L2,R2,L3,R3, L4,R4,L5,R5, L6,R6,L7,R7]
+
+		// 取偶數索引 => left
+		// _mm_shuffle_epi8( data, vMaskEven )
+		// 會把 data中 index=[0,2,4,6,8,10,12,14] 的 byte 抽出到輸出向量的前 8 bytes 
+		// 後 8 bytes 若 mask=0x80 => 填0
+		__m128i leftVal = _mm_shuffle_epi8(data, vMaskEven);
+
+		// 取奇數索引 => right
+		__m128i rightVal = _mm_shuffle_epi8(data, vMaskOdd);
+
+		// 只需要前 8 bytes => [L0..L7] / [R0..R7]
+		// 可用 _mm_storel_epi64 寫 8 bytes
+		_mm_storel_epi64(reinterpret_cast<__m128i*>(left_ptr), leftVal);
+		_mm_storel_epi64(reinterpret_cast<__m128i*>(right_ptr), rightVal);
+
+		// 更新指標
+		input += 16;  // 8 frames => 16 bytes
+		left_ptr += 8;
+		right_ptr += 8;
+		frames -= 8;
+	}
+
+	// leftover 標量: frames 個 frame => 2*frames bytes
+	for (; frames > 0; frames--) {
+		*left_ptr++ = *input++;  // L
+		*right_ptr++ = *input++;  // R
+	}
+}
 
 XAMP_BASE_API inline void ConvertFloatToFloatSSE(const float* input, float* left_ptr, float* right_ptr, size_t frames) {
 	size_t i = 0;
@@ -202,8 +252,8 @@ XAMP_BASE_API inline void ConvertFloatToInt32SSE(const float* input, int32_t* le
 
 	// 尾端不足4 frames標量處理
 	for (; i < frames; i++) {
-		float L = input[0] * kFloat24Scale;
-		float R = input[1] * kFloat24Scale;
+		float L = input[0] * kFloat32Scale;
+		float R = input[1] * kFloat32Scale;
 		int32_t Li = static_cast<int32_t>(L);
 		int32_t Ri = static_cast<int32_t>(R);
 		*left_ptr++ = Li;
@@ -351,14 +401,14 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 
 		// 準備 shuffle mask
 		// left_channel_mask：選取偶數 byte(0,2,4,...) 放入前8 bytes，其餘填 0x80 (會置為0)
-		__m128i left_shuffle_mask = _mm_set_epi8(
+		static __m128i left_shuffle_mask = _mm_set_epi8(
 			(char)0x80, (char)0x80, (char)0x80, (char)0x80,
 			(char)0x80, (char)0x80, (char)0x80, (char)0x80,
 			14, 12, 10, 8, 6, 4, 2, 0
 		);
 
 		// right_channel_mask：選取奇數 byte(1,3,5,...) 同理
-		__m128i right_shuffle_mask = _mm_set_epi8(
+		static __m128i right_shuffle_mask = _mm_set_epi8(
 			(char)0x80, (char)0x80, (char)0x80, (char)0x80,
 			(char)0x80, (char)0x80, (char)0x80, (char)0x80,
 			15, 13, 11, 9, 7, 5, 3, 1

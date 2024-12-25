@@ -139,14 +139,50 @@ static void BM_StdThreadPool(benchmark::State& state) {
     }
 }
 
+static void BM_ConvertInt8ToInt8SSE(benchmark::State& state) {
+    const size_t frames = static_cast<size_t>(state.range(0));
+    PRNG prng;
+    auto input = prng.NextBytes(2 * frames);
+    std::vector<int8_t> left(frames), right(frames);
+    for (auto _ : state) {
+        ConvertInt8ToInt8SSE(input.data(), left.data(), right.data(), frames);
+        benchmark::DoNotOptimize(left);
+        benchmark::DoNotOptimize(right);
+    }
+    state.SetItemsProcessed(static_cast<int64_t>(state.iterations()) * frames);
+}
+
+static void BM_ConvertFloatToInt32SSE(benchmark::State& state) {
+    const size_t frames = static_cast<size_t>(state.range(0));
+    PRNG prng;
+    auto input = prng.NextSingles(2 * frames);
+    std::vector<int32_t> left(frames), right(frames);
+    for (auto _ : state) {
+        ConvertFloatToInt32SSE(input.data(), left.data(), right.data(), frames);
+        benchmark::DoNotOptimize(left);
+        benchmark::DoNotOptimize(right);
+    }
+    state.SetItemsProcessed(static_cast<int64_t>(state.iterations()) * frames);
+}
+
+static void BM_ConvertFloatToFloatSSE(benchmark::State& state) {
+    const size_t frames = static_cast<size_t>(state.range(0));
+    PRNG prng;
+    auto input = prng.NextSingles(2 * frames);
+    std::vector<float> left(frames), right(frames);
+    for (auto _ : state) {
+        ConvertFloatToFloatSSE(input.data(), left.data(), right.data(), frames);
+        benchmark::DoNotOptimize(left);
+        benchmark::DoNotOptimize(right);
+    }
+    state.SetItemsProcessed(static_cast<int64_t>(state.iterations()) * frames);
+}
+
 static void BM_ConvertFloatToInt24SSE(benchmark::State& state) {
     const size_t frames = static_cast<size_t>(state.range(0));
-    std::vector<float> input(2 * frames);
+    PRNG prng;
+    auto input = prng.NextSingles(2 * frames);
     std::vector<int32_t> left(frames), right(frames);
-	PRNG prng;
-    std::generate(input.begin(), input.end(), [&prng]() {
-        return prng.NextSingle();
-        });
 	for (auto _ : state) {
         ConvertFloatToInt24SSE(input.data(), left.data(), right.data(), frames);
         benchmark::DoNotOptimize(left);
@@ -157,12 +193,9 @@ static void BM_ConvertFloatToInt24SSE(benchmark::State& state) {
 
 static void BM_ConvertFloatToInt24(benchmark::State& state) {
     const size_t frames = static_cast<size_t>(state.range(0));
-    std::vector<float> input(2 * frames);
-    std::vector<int32_t> left(frames), right(frames);
     PRNG prng;
-    std::generate(input.begin(), input.end(), [&prng]() {
-        return prng.NextSingle();
-        });
+    auto input = prng.NextSingles(2 * frames);
+    std::vector<int32_t> left(frames), right(frames);
     for (auto _ : state) {
         ConvertFloatToInt24(input.data(), left.data(), right.data(), frames);
         benchmark::DoNotOptimize(left);
@@ -171,8 +204,12 @@ static void BM_ConvertFloatToInt24(benchmark::State& state) {
     state.SetItemsProcessed(static_cast<int64_t>(state.iterations()) * frames);
 }
 
-BENCHMARK(BM_ConvertFloatToInt24)->RangeMultiplier(2)->Range(256, 512);
-BENCHMARK(BM_ConvertFloatToInt24SSE)->RangeMultiplier(2)->Range(256, 512);
+BENCHMARK(BM_ConvertFloatToInt24)->RangeMultiplier(2)->Range(256, 256);
+
+BENCHMARK(BM_ConvertInt8ToInt8SSE)->RangeMultiplier(2)->Range(256, 256);
+BENCHMARK(BM_ConvertFloatToInt24SSE)->RangeMultiplier(2)->Range(256, 256);
+BENCHMARK(BM_ConvertFloatToFloatSSE)->RangeMultiplier(2)->Range(256, 256);
+BENCHMARK(BM_ConvertFloatToInt32SSE)->RangeMultiplier(2)->Range(256, 256);
 
 BENCHMARK(BM_ThreadPoolBaseLine);
 BENCHMARK(BM_ThreadPool)->Arg(2)->Arg(4)->Arg(8)->Arg(16)->Arg(32);

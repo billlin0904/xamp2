@@ -110,11 +110,18 @@ void EncodeJobWidget::updateProgressItem(QTreeWidgetItem* item, int new_progress
     tree_->viewport()->update();
 }
 
-void EncodeJobWidget::updateProgress(const QString& job_id, int new_progress) {
+void EncodeJobWidget::onUpdateProgress(const QString& job_id, int new_progress) {
     auto itr = job_items_.find(job_id);
     if (itr != job_items_.end()) {
         updateProgressItem(itr.value(), new_progress);
     }
+}
+
+void EncodeJobWidget::onJobError(const QString& job_id, const QString& message) {
+	auto itr = job_items_.find(job_id);
+	if (itr != job_items_.end()) {
+		itr.value()->setText(ENCODE_LIST_STATE, message);
+	}
 }
 
 void EncodeJobWidget::setupUI() {
