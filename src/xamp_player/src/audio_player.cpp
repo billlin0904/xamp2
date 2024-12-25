@@ -859,12 +859,15 @@ void AudioPlayer::Play() {
 }
 
 void AudioPlayer::CopySamples(void* samples, size_t num_buffer_frames) const {
-    if (!IsPcmAudio(audio_config_.dsd_mode)) {
+    const auto adapter = state_adapter_.lock();
+    if (!adapter) {
         return;
     }
 
-    const auto adapter = state_adapter_.lock();
-    if (!adapter) {
+    auto stream_time_sec_unit = playback_state_.stream_time_sec_unit.load();
+    adapter->OnSampleTime(stream_time_sec_unit / 1000.0);
+
+    if (!IsPcmAudio(audio_config_.dsd_mode)) {
         return;
     }
 
@@ -876,8 +879,6 @@ void AudioPlayer::CopySamples(void* samples, size_t num_buffer_frames) const {
     if (elapsed >= kMinimalCopySamplesTime) {
         XAMP_LOG_D(logger_, "CopySamples too slow ({} ms)!", elapsed.count());
     }
-    auto stream_time_sec_unit = playback_state_.stream_time_sec_unit.load();
-    adapter->OnSampleTime(stream_time_sec_unit / 1000.0);
 }
 
 DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_frames, size_t & num_filled_frames, double stream_time, double /*sample_time*/) noexcept {
