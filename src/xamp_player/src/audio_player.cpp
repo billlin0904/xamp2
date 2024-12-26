@@ -341,9 +341,9 @@ uint32_t AudioPlayer::GetVolume() const {
 }
 
 bool AudioPlayer::IsHardwareControlVolume() const {
-    if (device_ != nullptr && device_->IsStreamOpen()) {
-        return device_->IsHardwareControlVolume();
-    }
+    //if (device_ != nullptr && device_->IsStreamOpen()) {
+    //    return device_->IsHardwareControlVolume();
+    //}
     return false;
 }
 
@@ -877,7 +877,7 @@ void AudioPlayer::CopySamples(void* samples, size_t num_buffer_frames) const {
     adapter->OnSamplesChanged(static_cast<const float*>(samples), num_buffer_frames);
     auto elapsed = watch.Elapsed<std::chrono::milliseconds>();
     if (elapsed >= kMinimalCopySamplesTime) {
-        XAMP_LOG_D(logger_, "CopySamples too slow ({} ms)!", elapsed.count());
+        XAMP_LOG_W(logger_, "CopySamples too slow ({} ms)!", elapsed.count());
     }
 }
 

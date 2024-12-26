@@ -178,7 +178,6 @@ public:
 	*/
 	DsdIoFormat GetIoFormat() const override;
 
-	void SetVolumeLevelScalar(float level) override;
 private:
 	/*
 	* Initial device format
@@ -209,10 +208,13 @@ private:
 	* @param is_silence: is silence
 	*/
 	bool GetSample(bool is_silence) noexcept;
-	
+
+	void SetVolumeLevelScalar(float level);
+
 	bool raw_mode_;
 	bool ignore_wait_slow_;
 	bool is_2432_format_;
+	bool is_hardware_control_volume_;
 	std::atomic<bool> is_running_;
 	MmcssThreadPriority thread_priority_;
 	uint32_t buffer_frames_;
@@ -225,7 +227,6 @@ private:
 	WinHandle thread_exit_;
 	WinHandle close_request_;
 	std::wstring mmcss_name_;
-	AudioConvertContext data_convert_;
 	REFERENCE_TIME aligned_period_;
 	CComPtr<IMMDevice> device_;
 	CComPtr<IAudioClient3> client_;
@@ -237,10 +238,11 @@ private:
 	IAudioCallback* callback_;
 	LoggerPtr logger_;
 	Task<void> render_task_;
+	mutable AudioConvertContext data_convert_;
 	std::shared_ptr<IThreadPoolExecutor> thread_pool_;
 	std::function<void(void *, const float *, const AudioConvertContext &)> convert_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
 
-#endif // XAMP_OS_WIN
+#endif

@@ -56,6 +56,8 @@ XAMP_WIDGET_SHARED_EXPORT ScopedPtr<IAudioProcessor> makeR8BrainSampleRateConver
 
 XAMP_WIDGET_SHARED_EXPORT ScopedPtr<IAudioProcessor> makeSrcSampleRateConverter();
 
+XAMP_WIDGET_SHARED_EXPORT ScopedPtr<IAudioProcessor> makeSoxrSampleRateConverter(uint32_t sample_rate);
+
 XAMP_WIDGET_SHARED_EXPORT ScopedPtr<IAudioProcessor> makeSoxrSampleRateConverter(const QVariantMap& settings);
 
 XAMP_WIDGET_SHARED_EXPORT ScopedPtr<IAudioProcessor> makeSampleRateConverter(uint32_t sample_rate);

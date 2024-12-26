@@ -218,9 +218,10 @@ XAMP_BASE_API inline void ConvertFloatToInt16(const float* input, int16_t* left_
 	}
 }
 
-XAMP_BASE_API inline void ConvertFloatToInt32SSE(const float* input, int32_t* left_ptr, int32_t* right_ptr, size_t frames) {
+XAMP_BASE_API inline void ConvertFloatToInt32SSE(const float* input, int32_t* left_ptr, int32_t* right_ptr, size_t frames, float volume = 1.0) {
 	size_t i = 0;
 	__m128 scale = _mm_set1_ps(kFloat32Scale);
+	__m128 volume_scale = _mm_set1_ps(volume);
 
 	for (; i + 4 <= frames; i += 4) {
 		__m128 in1 = _mm_loadu_ps(input);     // L0,R0,L1,R1
@@ -229,6 +230,9 @@ XAMP_BASE_API inline void ConvertFloatToInt32SSE(const float* input, int32_t* le
 		// 乘以縮放因子
 		in1 = _mm_mul_ps(in1, scale);
 		in2 = _mm_mul_ps(in2, scale);
+
+		in1 = _mm_mul_ps(in1, volume_scale);
+		in2 = _mm_mul_ps(in2, volume_scale);
 
 		// 使用 unpacklo/hi 直接分離左右聲道
 		__m128 low = _mm_unpacklo_ps(in1, in2);   // L0,L2,R0,R2
@@ -314,12 +318,15 @@ void AVX2Convert(TStoreType* output, const float* input, float float_scale, cons
 	const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * context.input_format.GetChannels();
 
 	const __m256 scale = _mm256_set1_ps(float_scale);
+	const __m256 volume_scale = _mm256_set1_ps(context.volume_factor);
 
 	while (input + 8 <= end_input) {
 		XAMP_ASSERT(end_input - input > 0);
 
 		__m256 input_values = _mm256_load_ps(input);
+
 		__m256 scaled_values = _mm256_mul_ps(input_values, scale);
+		scaled_values = _mm256_mul_ps(scaled_values, volume_scale);
 
 		if constexpr (std::is_same_v<T, int32_t>) {
 			__m256i output_values = _mm256_cvttps_epi32(scaled_values);

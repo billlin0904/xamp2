@@ -25,6 +25,7 @@
 
 #include <widget/playlistentity.h>
 #include <widget/playlisttablemodel.h>
+#include <widget/jsonsettings.h>
 
 namespace {
     void saveLastOpenFolderPath(const QString& file_name) {
@@ -182,6 +183,13 @@ ScopedPtr<IAudioProcessor> makeR8BrainSampleRateConverter() {
 
 ScopedPtr<IAudioProcessor> makeSrcSampleRateConverter() {
     return MakeAlign<IAudioProcessor, SrcSampleRateConverter>();
+}
+
+ScopedPtr<IAudioProcessor> makeSoxrSampleRateConverter(uint32_t sample_rate) {
+	const auto setting_name = qAppSettings.valueAsString(kAppSettingSoxrSettingName);
+	QMap<QString, QVariant> soxr_settings = qJsonSettings.valueAs(kSoxr).toMap()[setting_name].toMap();
+	soxr_settings[kResampleSampleRate] = sample_rate;
+	return makeSoxrSampleRateConverter(soxr_settings);
 }
 
 ScopedPtr<IAudioProcessor> makeSoxrSampleRateConverter(const QVariantMap& settings) {

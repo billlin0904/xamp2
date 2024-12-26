@@ -6,7 +6,7 @@
 #include <output_device/win32/comexception.h>
 #include <output_device/win32/wasapi.h>
 
-#include <base/math.h>
+#include <base/volume.h>
 #include <base/executor.h>
 #include <base/ithreadpoolexecutor.h>
 #include <base/logger.h>
@@ -115,6 +115,7 @@ ExclusiveWasapiDevice::ExclusiveWasapiDevice(const std::shared_ptr<IThreadPoolEx
 	: raw_mode_(false)
 	, ignore_wait_slow_(false)
 	, is_2432_format_(true)
+	, is_hardware_control_volume_(true)
 	, is_running_(false)
 	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL)
 	, buffer_frames_(0)
@@ -589,12 +590,20 @@ double ExclusiveWasapiDevice::GetStreamTime() const noexcept {
 }
 
 uint32_t ExclusiveWasapiDevice::GetVolume() const {
+	if (!IsHardwareControlVolume()) {
+		return GainToVolumeLevel(data_convert_.volume_factor);
+	}
 	auto volume_scalar = 0.0F;
 	HrIfFailThrow(endpoint_volume_->GetMasterVolumeLevelScalar(&volume_scalar));
 	return static_cast<uint32_t>(volume_scalar * 100.0F);
 }
 
 void ExclusiveWasapiDevice::SetVolume(uint32_t volume) const {
+	if (!IsHardwareControlVolume()) {
+		data_convert_.volume_factor = VolumeLevelToGain(volume);
+		return;
+	}
+
 	// 將音量限制在0~100%之間
 	volume = std::clamp(volume, static_cast<uint32_t>(0), static_cast<uint32_t>(100));
 

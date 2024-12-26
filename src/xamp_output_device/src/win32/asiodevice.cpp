@@ -116,7 +116,7 @@ AsioDevice::AsioDevice(const  std::string & device_id)
 	, latency_(0)
 	, io_format_(DsdIoFormat::IO_FORMAT_PCM)
 	, sample_format_(DsdFormat::DSD_INT8MSB)
-	, volume_(0)
+	, volume_level_(0)
 	, buffer_size_(0)
 	, buffer_bytes_(0)
 	, output_bytes_(0)
@@ -134,15 +134,10 @@ AsioDevice::~AsioDevice() {
 	catch (...) {
 	}
 	buffer_.reset();
-	device_buffer_.reset();
 	the_driver_context.drivers.reset();
 }
 
 bool AsioDevice::IsHardwareControlVolume() const {	
-	if (is_streaming_) {
-		return true;
-	}
-
 	return is_hardware_control_volume_;
 }
 
@@ -151,7 +146,7 @@ void AsioDevice::AbortStream() noexcept {
 }
 
 bool AsioDevice::IsMuted() const {
-	return volume_ == 0;
+	return volume_level_ == 0;
 }
 
 uint32_t AsioDevice::GetBufferSize() const noexcept {
@@ -201,9 +196,6 @@ void AsioDevice::RemoveCurrentDriver() {
 		the_driver_context.drivers->removeCurrentDriver();
 		is_removed_driver_ = true;
 	}
-}
-
-void AsioDevice::SetVolumeLevelScalar(float level) {
 }
 
 void AsioDevice::ReOpen() {
@@ -305,7 +297,7 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 	the_driver_context.asio_callbacks.sampleRateDidChange = OnSampleRateChangedCallback;
 	the_driver_context.asio_callbacks.asioMessage = OnAsioMessagesCallback;
 	the_driver_context.asio_callbacks.bufferSwitchTimeInfo = OnBufferSwitchTimeInfoCallback;
-	the_driver_context.data_context.volume_factor = LinearToLog(volume_);
+	the_driver_context.data_context.volume_factor = VolumeLevelToGain(volume_level_);
 
 	const auto result = ::ASIOCreateBuffers(
 		the_driver_context.buffer_infos.data(),
@@ -432,13 +424,9 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		the_driver_context.data_context = MakeConvert(in_format, format_, channel_buffer_size);
 	}
 
-	if (device_buffer_.GetSize() != allocate_bytes) {
-		device_buffer_.reset();
-		device_buffer_ = MakeBuffer<int8_t>(allocate_bytes);
-	}
 	if (buffer_.GetSize() != allocate_bytes) {
 		buffer_.reset();
-		buffer_ = MakeBuffer<int8_t>(allocate_bytes);
+		buffer_ = MakeBuffer<std::byte>(allocate_bytes);
 	}
 
 	long input_latency = 0;
@@ -451,7 +439,8 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 	// Almost driver not support kAsioCanOutputGain, we always return true for software volume control.
 	//return (io_format_ == DsdIoFormat::IO_FORMAT_PCM);
 	ASIOIoFormat asio_fomrmat{};
-	is_hardware_control_volume_ = !(::ASIOFuture(kAsioCanOutputGain, &asio_fomrmat) == ASE_SUCCESS);
+	//is_hardware_control_volume_ = ::ASIOFuture(kAsioCanOutputGain, &asio_fomrmat) != ASE_SUCCESS;
+	is_hardware_control_volume_ = false;
 
 	XAMP_LOG_D(logger_, "IO format :{} ", io_format_);
 	XAMP_LOG_D(logger_, "Buffer size :{} ", String::FormatBytes(buffer_.GetByteSize()));
@@ -463,20 +452,20 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 }
 
 uint32_t AsioDevice::GetVolume() const {
-	return volume_;
+	return volume_level_;
 }
 
 void AsioDevice::SetVolume(uint32_t volume) const {
 	if (is_hardware_control_volume_) {
 		return;
 	}
-	volume_ = std::clamp(volume, static_cast<uint32_t>(0), static_cast<uint32_t>(99));
-	XAMP_LOG_D(logger_, "Current volume: {}({} db)", GetVolume(), VolumeToDb(volume_));
+	volume_level_ = std::clamp(volume, static_cast<uint32_t>(0), static_cast<uint32_t>(100));
+	XAMP_LOG_D(logger_, "Current volume: {}({} db)", GetVolume(), VolumeLevelToDb(volume_level_));
 }
 
 void AsioDevice::SetMute(bool mute) const {
 	if (mute) {
-		volume_ = 0;
+		volume_level_ = 0;
 	}
 }
 
@@ -492,21 +481,21 @@ void AsioDevice::FillSilentData() noexcept {
 }
 
 bool AsioDevice::GetPCMSamples(long index, double sample_time, size_t& num_filled_frame) noexcept {
-	const auto vol = volume_.load();
+	const auto vol = volume_level_.load();
 	if (the_driver_context.data_context.cache_volume != vol) {
-		the_driver_context.data_context.volume_factor = LinearToLog(vol);
+		the_driver_context.data_context.volume_factor = VolumeLevelToGain(vol);
 		the_driver_context.data_context.cache_volume = vol;
 	}
 
 	// PCM mode input float to output format.
 	const auto stream_time = static_cast<double>(output_bytes_) / format_.GetAvgBytesPerSec();
-	buffer_.Fill(0);
 
 	if (callback_->OnGetSamples(buffer_.Get(), buffer_size_, num_filled_frame, stream_time, sample_time) == DataCallbackResult::CONTINUE) {
 		ConvertFloatToInt32SSE(reinterpret_cast<const float*>(buffer_.Get()),
 			static_cast<int32_t*>(the_driver_context.buffer_infos[0].buffers[index]),
 			static_cast<int32_t*>(the_driver_context.buffer_infos[1].buffers[index]),
-			the_driver_context.data_context.convert_size);
+			the_driver_context.data_context.convert_size,
+			the_driver_context.data_context.volume_factor);
 		return true;
 	} else {
 		return false;

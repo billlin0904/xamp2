@@ -9,10 +9,10 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-XAMP_BASE_API float VolumeToDb(int32_t volume_level) noexcept;
+XAMP_BASE_API float VolumeLevelToDb(int32_t volume_level);
 
-XAMP_BASE_API float LinearToLog(int32_t volume_level) noexcept;
+XAMP_BASE_API float VolumeLevelToGain(int32_t volume_level);
 
-XAMP_BASE_API int32_t LogToLineaer(float volume_db) noexcept;
+XAMP_BASE_API int32_t GainToVolumeLevel(float volume_db);
 
 XAMP_BASE_NAMESPACE_END

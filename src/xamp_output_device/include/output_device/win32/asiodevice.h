@@ -207,7 +207,6 @@ public:
 	*/	
 	void RemoveCurrentDriver();
 
-	void SetVolumeLevelScalar(float level) override;
 private:
 	/*
 	* On buffer switch time info callback
@@ -302,7 +301,7 @@ private:
 	int64_t latency_;
 	DsdIoFormat io_format_;
 	DsdFormat sample_format_;
-	mutable std::atomic<uint32_t> volume_;
+	mutable std::atomic<uint32_t> volume_level_;
 	size_t buffer_size_;
 	size_t buffer_bytes_;
 	std::atomic<int64_t> output_bytes_;	
@@ -314,8 +313,7 @@ private:
 	std::function<bool(long, double, size_t&)> get_samples_;
 	LoggerPtr logger_;
 	std::string device_id_;
-	Buffer<int8_t> buffer_;
-	Buffer<int8_t> device_buffer_;
+	Buffer<std::byte> buffer_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

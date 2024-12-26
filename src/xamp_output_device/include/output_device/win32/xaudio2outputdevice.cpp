@@ -394,9 +394,6 @@ void XAudio2OutputDevice::AbortStream() noexcept {
 	is_running_ = false;
 }
 
-void XAudio2OutputDevice::SetVolumeLevelScalar(float level) {
-}
-
 void XAudio2OutputDevice::ReportError(HRESULT hr) noexcept {
 	if (FAILED(hr)) {
 		callback_->OnError(com_to_system_error(hr));

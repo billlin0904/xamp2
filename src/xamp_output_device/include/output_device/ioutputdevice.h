@@ -95,13 +95,6 @@ public:
     virtual void SetVolume(uint32_t volume) const = 0;
 
 	/*
-	* Set volume level.
-	*
-	* @param volume: level (0.0 ~ 1.0)
-	*/
-	virtual void SetVolumeLevelScalar(float level) = 0;
-
-	/*
 	* Set mute.
 	* 
 	* @param mute: mute (true/false)

@@ -165,8 +165,6 @@ public:
 	*/
 	XAMP_NO_DISCARD virtual DsdIoFormat GetIoFormat() const override;
 
-	void SetVolumeLevelScalar(float level) override;
-
 private:
 	bool is_running_;
 	bool raw_mode_;

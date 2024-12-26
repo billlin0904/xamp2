@@ -168,9 +168,6 @@ DsdIoFormat NullOutputDevice::GetIoFormat() const {
 	return raw_mode_ ? DsdIoFormat::IO_FORMAT_DSD : DsdIoFormat::IO_FORMAT_PCM;
 }
 
-void NullOutputDevice::SetVolumeLevelScalar(float level) {
-}
-
 bool NullOutputDevice::IsHardwareControlVolume() const {
 	return false;
 }

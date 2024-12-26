@@ -470,9 +470,6 @@ void SharedWasapiDevice::AbortStream() noexcept {
 	is_running_ = false;
 }
 
-void SharedWasapiDevice::SetVolumeLevelScalar(float level) {
-}
-
 bool SharedWasapiDevice::IsHardwareControlVolume() const {
 	return false;
 }

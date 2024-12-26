@@ -1681,7 +1681,7 @@ void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked, boo
 			target_sample_rate = sample_rate;
         }
         byte_format = ByteFormat::SINT16;
-        player_->GetDspManager()->AddPreDSP(makeSrcSampleRateConverter());
+        player_->GetDspManager()->AddPreDSP(makeSoxrSampleRateConverter(target_sample_rate));
     }
 
     setupSampleRateConverter(sample_rate_converter_factory,
