@@ -312,9 +312,6 @@ XAMP_BASE_API inline void ConvertFloatToInt24SSE(const float* input, int32_t* le
 
 template <typename T, typename TStoreType = T>
 void AVX2Convert(TStoreType* output, const float* input, float float_scale, const AudioConvertContext& context) noexcept {
-	XAMP_EXPECTS(output != nullptr);
-	XAMP_EXPECTS(input != nullptr);
-
 	const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * context.input_format.GetChannels();
 
 	const __m256 scale = _mm256_set1_ps(float_scale);
@@ -342,7 +339,7 @@ void AVX2Convert(TStoreType* output, const float* input, float float_scale, cons
 			_mm256_store_si256(reinterpret_cast<__m256i*>(output), shifted_values);
 			output += 8;
 		}
-		else if constexpr (std::is_same_v<T, short>) {
+		else if constexpr (std::is_same_v<T, int16_t>) {
 			__m256i output_values = _mm256_cvttps_epi32(scaled_values);
 			__m256i packed_values = _mm256_packs_epi32(output_values, output_values);
 			packed_values = _mm256_permute4x64_epi64(packed_values, 0xD8);
@@ -365,8 +362,8 @@ void AVX2Convert(TStoreType* output, const float* input, float float_scale, cons
 			*reinterpret_cast<int32_t*>(output) = temp;
 			output += 1;
 		}
-		else if constexpr (std::is_same_v<T, short>) {
-			*output = static_cast<short>(*input * float_scale);
+		else if constexpr (std::is_same_v<T, int16_t>) {
+			*output = static_cast<int16_t>(*input * float_scale);
 			++output;
 		}
 		else {
@@ -393,10 +390,6 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 	//    `_mm256_shuffle_epi8` 能處理 byte-level 重組，但限制在 128-bit lane 內，
 	//    無法解決跨 lane 的搬移需求。
 	static void Convert(int8_t* output, const int8_t* input, const AudioConvertContext& context) noexcept {
-		XAMP_EXPECTS(output != nullptr);
-		XAMP_EXPECTS(input != nullptr);
-		XAMP_EXPECTS(context.input_format.GetChannels() == 2);
-
 		const size_t convert_size = context.convert_size;
 		// 左聲道: 放在 output[0 .. convert_size-1]
 		// 右聲道: 放在 output[convert_size .. (2*convert_size)-1]
@@ -408,14 +401,14 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 
 		// 準備 shuffle mask
 		// left_channel_mask：選取偶數 byte(0,2,4,...) 放入前8 bytes，其餘填 0x80 (會置為0)
-		static __m128i left_shuffle_mask = _mm_set_epi8(
+		static const __m128i left_shuffle_mask = _mm_set_epi8(
 			(char)0x80, (char)0x80, (char)0x80, (char)0x80,
 			(char)0x80, (char)0x80, (char)0x80, (char)0x80,
 			14, 12, 10, 8, 6, 4, 2, 0
 		);
 
 		// right_channel_mask：選取奇數 byte(1,3,5,...) 同理
-		static __m128i right_shuffle_mask = _mm_set_epi8(
+		static const __m128i right_shuffle_mask = _mm_set_epi8(
 			(char)0x80, (char)0x80, (char)0x80, (char)0x80,
 			(char)0x80, (char)0x80, (char)0x80, (char)0x80,
 			15, 13, 11, 9, 7, 5, 3, 1
@@ -456,14 +449,9 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 	}
 
 	static void Convert(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
-		XAMP_EXPECTS(output != nullptr);
-		XAMP_EXPECTS(input != nullptr);
-		XAMP_EXPECTS(context.input_format.GetChannels() == 2);
-
 		const size_t frames = context.convert_size;
 		int32_t* left_channel = output;
 		int32_t* right_channel = output + frames;
-
 		ConvertFloatToInt32SSE(input, left_channel, right_channel, frames);
 	}
 };

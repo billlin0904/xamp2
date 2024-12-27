@@ -56,7 +56,11 @@ public:
         codec_type_ = config.Get<std::string>(FileEncoderConfig::kCodecId);
         aac_bit_rate_ = config.Get<uint32_t>(FileEncoderConfig::kBitRate);
         file_name_ = String::ToUtf8String(output_file_path.wstring());
-        input_file_ = StreamFactory::MakeFileStream(input_file_path, DsdModes::DSD_MODE_PCM);
+        auto dsd_mode = DsdModes::DSD_MODE_DSD2PCM;
+        if (!IsDsdFile(input_file_path)) {
+            dsd_mode = DsdModes::DSD_MODE_PCM;
+        }
+        input_file_ = StreamFactory::MakeFileStream(input_file_path, dsd_mode);
         input_file_->OpenFile(input_file_path);
         if (!writer) {
             writer_ = MakFileEncodeWriter(output_file_path);
