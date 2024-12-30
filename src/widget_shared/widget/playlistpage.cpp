@@ -153,7 +153,7 @@ void PlaylistPage::initial() {
 	auto* horizontalLayout_8 = new QHBoxLayout();
 	horizontalLayout_8->setSpacing(0);
 	horizontalLayout_8->setObjectName(QString::fromUtf8("horizontalLayout_8"));
-	horizontalLayout_8->setContentsMargins(0, 0, 0, 0);
+	
 	horizontal_spacer_4_ = new QSpacerItem(5, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
 	horizontalLayout_8->addItem(horizontal_spacer_4_);
@@ -166,7 +166,7 @@ void PlaylistPage::initial() {
 	horizontal_spacer_5_ = new QSpacerItem(5, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 	horizontalLayout_8->addItem(horizontal_spacer_5_);
 	horizontalLayout_8->setStretch(1, 1);
-
+	 
 	auto* horizontal_layout_9 = new QHBoxLayout();
 	horizontal_layout_9->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
 	horizontal_layout_9->addWidget(search_line_edit_, 1);
@@ -175,7 +175,6 @@ void PlaylistPage::initial() {
 
 	main_layout->addLayout(horizontalLayout_8);
 	main_layout->setStretch(4, 1);
-	//main_layout->addWidget(playlist_);
 
 	(void)QObject::connect(playlist_,
 		&PlaylistTableView::updateAlbumCover,
@@ -297,13 +296,6 @@ void PlaylistPage::onThemeChangedFinished(ThemeColor theme_color) {
 	format_->setStyleSheet("QLabel { font-family: FormatFont; font-size: 16px; color: "_str + colorToString(qTheme.textColor()) + "; background-color: transparent; }"_str);
 	qTheme.setLineEditStyle(search_line_edit_, "playlistSearchLineEdit"_str);
 	search_line_action_->setIcon(qTheme.fontIcon(Glyphs::ICON_SEARCH));
-
-	/*switch (theme_color) {
-	case ThemeColor::DARK_THEME:
-		setStyleSheet("background-color: #121212;"_str);
-		break;
-	}*/
-	setStyleSheet("background-color: transparent;"_str);
 }
 
 void PlaylistPage::onSetCoverById(const QString& cover_id) {

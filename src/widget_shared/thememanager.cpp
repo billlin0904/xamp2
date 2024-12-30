@@ -278,6 +278,10 @@ QLatin1String ThemeManager::themeColorPath(ThemeColor theme_color) const {
 	return "White"_str;
 }
 
+QColor ThemeManager::indicatorColor() const {
+    return textColor();
+}
+
 QColor ThemeManager::textColor() const {
     auto color = Qt::black;
     switch (themeColor()) {
@@ -500,7 +504,7 @@ void ThemeManager::setBackgroundColor(QWidget* widget) {
     widget->setStyleSheet(backgroundColorToString(color));
 }
 
-void ThemeManager::loadAndSetThemeQss() {
+void ThemeManager::setThemeQssFile() {
     qApp->setFont(defaultFont());
 
     QString filename;

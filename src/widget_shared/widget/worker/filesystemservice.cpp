@@ -76,8 +76,8 @@ FileSystemService::FileSystemService()
 	constexpr auto kThreadPoolSize = 8;
 	thread_pool_ = ThreadPoolBuilder::MakeThreadPool(
 		XAMP_LOG_NAME(FileSystemService),
-		ThreadPriority::PRIORITY_BACKGROUND,
-		kThreadPoolSize);
+		kThreadPoolSize,
+		ThreadPriority::PRIORITY_BACKGROUND);
 }
 
 FileSystemService::~FileSystemService() {

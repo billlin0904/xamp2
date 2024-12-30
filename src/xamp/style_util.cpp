@@ -144,7 +144,7 @@ void setRepeatButtonIcon(Ui::XampWindow& ui, PlayerOrder order) {
 }
 
 void setNaviBarTheme(NavBarListView* navi_bar) {
-    QString tab_left_color;
+    /*QString tab_left_color;
 
     switch (qTheme.themeColor()) {
     case ThemeColor::DARK_THEME:
@@ -172,7 +172,7 @@ void setNaviBarTheme(NavBarListView* navi_bar) {
 		border-left-style: solid;
 		border-left-color: rgb(%1);
 	}	
-	)").arg(tab_left_color));
+	)").arg(tab_left_color));*/
 }
 
 void setWidgetStyle(Ui::XampWindow& ui) {

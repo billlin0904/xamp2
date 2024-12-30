@@ -5,30 +5,38 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 namespace {
-	constexpr auto kMaxPlaybackThreadPoolSize{ 4 };
+	constexpr auto kMaxPlaybackThreadPoolSize{ 8 };
+	constexpr auto kMaxPlayerThreadPoolSize{ 2 };
 	constexpr auto kMaxBackgroundThreadPoolSize{ 12 };
 
 	XAMP_DECLARE_LOG_NAME(BackgroundThreadPool);
 	XAMP_DECLARE_LOG_NAME(PlaybackThreadPool);
+	XAMP_DECLARE_LOG_NAME(PlayerThreadPool);
 }
 
 std::shared_ptr<IThreadPoolExecutor> ThreadPoolBuilder::MakeThreadPool(const std::string_view& pool_name,
-	ThreadPriority priority,
-	uint32_t max_thread) {
+	uint32_t max_thread,
+	ThreadPriority priority) {
 	return MakeShared<IThreadPoolExecutor, ThreadPoolExecutor>(pool_name,
 		max_thread,
 		priority);
 }
 
 std::shared_ptr<IThreadPoolExecutor> ThreadPoolBuilder::MakeBackgroundThreadPool() {
-	return MakeShared<IThreadPoolExecutor, ThreadPoolExecutor>(kBackgroundThreadPoolLoggerName,
+	return MakeThreadPool(kBackgroundThreadPoolLoggerName,
 		kMaxBackgroundThreadPoolSize,
 		ThreadPriority::PRIORITY_BACKGROUND);
 }
 
 std::shared_ptr<IThreadPoolExecutor> ThreadPoolBuilder::MakePlaybackThreadPool() {
-	return MakeShared<IThreadPoolExecutor, ThreadPoolExecutor>(kPlaybackThreadPoolLoggerName,
+	return MakeThreadPool(kPlaybackThreadPoolLoggerName,
 		kMaxPlaybackThreadPoolSize,
+		ThreadPriority::PRIORITY_NORMAL);
+}
+
+std::shared_ptr<IThreadPoolExecutor> ThreadPoolBuilder::MakePlayerThreadPool() {
+	return MakeThreadPool(kPlayerThreadPoolLoggerName,
+		kMaxPlayerThreadPoolSize,
 		ThreadPriority::PRIORITY_NORMAL);
 }
 

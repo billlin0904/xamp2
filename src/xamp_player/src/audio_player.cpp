@@ -70,7 +70,7 @@ namespace {
 #endif
 }
 
-AudioPlayer::AudioPlayer(const std::shared_ptr<IThreadPoolExecutor>& thread_pool)
+AudioPlayer::AudioPlayer(const std::shared_ptr<IThreadPoolExecutor>& playback_thread_pool, const std::shared_ptr<IThreadPoolExecutor>& player_thread_pool)
     : is_muted_(false)
 	, is_dsd_file_(false)
     , enable_fadeout_(true)
@@ -84,7 +84,8 @@ AudioPlayer::AudioPlayer(const std::shared_ptr<IThreadPoolExecutor>& thread_pool
     , logger_(XampLoggerFactory.GetLogger(kAudioPlayerLoggerName))
     , action_queue_(kActionQueueSize)
 	, fifo_(AlignUp(kPreallocateBufferSize, GetPageSize()))
-	, thread_pool_(thread_pool) {
+	, playback_thread_pool_(playback_thread_pool)
+	, player_thread_pool_(player_thread_pool) {
     PreventSleep(true);
 }
 
@@ -150,7 +151,7 @@ void AudioPlayer::CreateDevice(const Uuid& device_type_id, const std::string & d
         }    	
         device_type_ = device_manager_->Create(device_type_id);
         device_type_->ScanNewDevice();
-        device_ = device_type_->MakeDevice(thread_pool_, device_id);
+        device_ = device_type_->MakeDevice(playback_thread_pool_, device_id);
         device_type_id_ = device_type_id;
         device_id_ = device_id;
         XAMP_LOG_D(logger_, "Create device: {}", device_type_->GetDescription());
@@ -402,9 +403,10 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream, bool quit) {
         XAMP_LOG_D(logger_, "Try to stop stream thread.");
 #ifdef XAMP_OS_WIN
         // MSVC 2019 is wait for std::packaged_task return timeout, while others such clang can't.
-        if (stream_task_.wait_for(kWaitForStreamStopTime) == std::future_status::timeout) {
-            throw StopStreamTimeoutException();
-        }
+        //if (stream_task_.wait_for(kWaitForStreamStopTime) == std::future_status::timeout) {
+        //    throw StopStreamTimeoutException();
+        //}
+        stream_task_.get();
 #else
         stream_task_.get();
 #endif
@@ -452,6 +454,7 @@ void AudioPlayer::ResizeFIFO(uint32_t fifo_size) {
         XAMP_LOG_D(logger_, "Allocate fifo buffer : {}.", String::FormatBytes(fifo_size));
         fifo_.Resize(fifo_size);
     }
+	fifo_.Clear();
 }
 
 void AudioPlayer::CreateBuffer() {
@@ -781,6 +784,8 @@ bool AudioPlayer::IsAvailableWrite() const noexcept {
 }
 
 void AudioPlayer::Play() {
+    XAMP_LOG_W(logger_, "Player is playing!");
+
     if (!device_) {
         return;
     }
@@ -800,10 +805,15 @@ void AudioPlayer::Play() {
     }
 
     if (stream_task_.valid()) {
+        XAMP_LOG_W(logger_, "Stream task is valid!");
         return;
     }
 
-    stream_task_ = Executor::Spawn(thread_pool_.get(), [player = shared_from_this()](const auto& stop_token) {
+    XAMP_LOG_W(logger_, "Stream task is spawning!");
+
+    stream_task_ = Executor::Spawn(player_thread_pool_.get(), [player = shared_from_this()](const auto& stop_token) {
+        XAMP_LOG_W(player->logger_, "Stream task is spawn done!");
+
         auto* p = player.get();
 
         std::unique_lock<FastMutex> pause_lock{ p->pause_mutex_ };

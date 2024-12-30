@@ -71,7 +71,7 @@ public:
 
     void setThemeColor(ThemeColor theme_color);    
 
-    void loadAndSetThemeQss();
+    void setThemeQssFile();
 
     void setBackgroundColor(QWidget* widget);
 
@@ -95,8 +95,14 @@ public:
 
     QColor coverShadowColor() const;
 
+    QColor indicatorColor() const;
+
     ThemeColor themeColor() const {
         return theme_color_;
+    }
+
+    bool isDarkTheme() const {
+		return theme_color_ == ThemeColor::DARK_THEME;
     }
 
     QString linearGradientStyle() const;

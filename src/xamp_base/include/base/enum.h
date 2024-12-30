@@ -130,7 +130,7 @@
 
 inline constexpr auto kMaxEnumSize = 100;
 
-#define XAMP_MAKE_ENUM(EnumName, ...) enum class EnumName { __VA_ARGS__, COUNT }; \
+#define XAMP_MAKE_ENUM(EnumName, ...) enum class EnumName : int32_t { __VA_ARGS__, COUNT }; \
 static constexpr const std::array<std::string_view, kMaxEnumSize> EnumName##_enum_names = {\
     ALL_ARGUMENTS_TO_STRING(__VA_ARGS__)\
 };\

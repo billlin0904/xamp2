@@ -26,6 +26,8 @@ public:
 	
 	explicit PlaylistTabWidget(QWidget* parent = nullptr);
 
+	void createNewTab(const QString& name, QWidget* widget, bool resize = false);
+
 	void hidePlusButton();
 
 	int32_t currentPlaylistId() const;
@@ -39,8 +41,6 @@ public:
 	void resetAllTabIcon();
 
 	void setPlaylistTabIcon(const QIcon &icon);
-
-	void createNewTab(const QString& name, QWidget* widget, bool resize = false);
 
 	void setPlaylistCover(const QPixmap &cover);
 
@@ -69,6 +69,7 @@ public:
 	void setNowPlaying(int32_t playlist_id);
 
 	void setPlayerStateIcon(int32_t playlist_id, PlayerState state);
+	
 signals:
 	void createNewPlaylist();
 
@@ -112,7 +113,6 @@ private:
 
 	void resizeTabWidth();
 
-	int32_t tab_count_{ 0 };
 	int32_t hovered_tab_index_{ -1 };
 	QTimer* tooltip_timer_{ nullptr };
 	StoreType store_type_{ StoreType::PLAYLIST_LOCAL_STORE };
@@ -123,3 +123,12 @@ private:
 	QElapsedTimer last_click_time_;
 };
 
+class XAMP_WIDGET_SHARED_EXPORT PlaylistTabPage : public QFrame {
+	Q_OBJECT
+public:
+	explicit PlaylistTabPage(QWidget* parent);
+
+	PlaylistTabWidget* tabWidget() const;
+private:
+	PlaylistTabWidget* tab_widget_{ nullptr };
+};

@@ -28,6 +28,7 @@
 #include <xampplayer.h>
 #include <ui_xamp.h>
 
+class PlaylistTabPage;
 class ProcessIndicator;
 class AudioEmbeddingService;
 class YtMusicHttpService;
@@ -286,13 +287,13 @@ private:
 	QAction* preference_action_{ nullptr };
 	std::optional<DeviceInfo> device_info_;
 	std::optional<PlayListEntity> current_entity_;	
-	QScopedPointer<LrcPage> lrc_page_;	
+	QScopedPointer<LrcPage> lrc_page_;
 	QScopedPointer<PlaylistPage> music_page_;
 	QScopedPointer<CdPage> cd_page_;	
 	QScopedPointer<AlbumArtistPage> music_library_page_;
 	QScopedPointer<FileSystemViewPage> file_explorer_page_;
 	QScopedPointer<PlaylistPage> yt_music_search_page_;
-	QScopedPointer<PlaylistTabWidget> playlist_tab_page_;
+	QScopedPointer<PlaylistTabPage> playlist_tab_page_;
 	QScopedPointer<PlaylistTabWidget> yt_music_tab_page_;
 	QScopedPointer<BackgroundService> background_service_;
 	QScopedPointer<AlbumCoverService> album_cover_service_;

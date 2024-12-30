@@ -1,3 +1,4 @@
+#include <QScrollArea>
 #include <widget/navbarlistview.h>
 #include <widget/util/str_util.h>
 #include <widget/xtooltip.h>
@@ -6,7 +7,8 @@
 #include <thememanager.h>
 
 NavBarListView::NavBarListView(QWidget *parent)
-    : QListView(parent)
+	: QFrame(parent) {
+	/*: QListView(parent)
     , model_(this) {
     setModel(&model_);
     setFrameStyle(QFrame::StyledPanel);
@@ -29,11 +31,43 @@ NavBarListView::NavBarListView(QWidget *parent)
         auto table_id = item->data(Qt::UserRole + 1).toInt();
         auto table_name = item->data(Qt::DisplayRole).toString();
         emit tableNameChanged(table_id, table_name);
-    });
+    });*/
 
     setStyleSheet("border: none"_str);
 	tooltip_ = new XTooltip();
     tooltip_->hide();
+
+	//return_btn_ = new NavToolButton(qFontIcon.getIcon(static_cast<int32_t>(Glyphs::ICON_CHEVRON_RIGHT)), this);
+    //menu_btn_ = new NavToolButton(qFontIcon.getIcon(static_cast<int32_t>(Glyphs::ICON_MENU)), this);
+
+    main_layout_ = new NavItemLayout(this);
+    main_layout_->setContentsMargins(0, 5, 0, 5);
+
+    scroll_widget_ = new QWidget();
+    scroll_area_ = new QScrollArea(this);
+    scroll_area_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scroll_area_->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scroll_area_->setWidget(scroll_widget_);
+    scroll_area_->setWidgetResizable(true);
+
+	top_layout_ = new NavItemLayout();
+    top_layout_->setContentsMargins(4, 0, 4, 0);
+    top_layout_->setSpacing(4);
+    top_layout_->setAlignment(Qt::AlignTop);
+
+    scroll_layout_ = new NavItemLayout(scroll_widget_);
+    scroll_layout_->setContentsMargins(4, 0, 4, 0);
+    scroll_layout_->setSpacing(4);
+    scroll_layout_->setAlignment(Qt::AlignTop);
+
+    bottom_layout_ = new NavItemLayout();
+    bottom_layout_->setContentsMargins(4, 0, 4, 0);
+    bottom_layout_->setSpacing(4);
+    bottom_layout_->setAlignment(Qt::AlignBottom);
+
+    main_layout_->addLayout(bottom_layout_, 0);
+    main_layout_->addWidget(scroll_area_, 1, Qt::AlignTop);
+    main_layout_->addLayout(bottom_layout_, 0);
 }
 
 QString NavBarListView::tabName(int table_id) const {
@@ -51,12 +85,13 @@ int32_t NavBarListView::tabId(const QString& name) const {
 }
 
 int32_t NavBarListView::currentTabId() const {
-    auto index = currentIndex();
+    /*auto index = currentIndex();
     if (!index.isValid()) {
         return -1;
     }
     auto table_id = index.data(Qt::UserRole + 1).toInt();
-    return table_id;
+    return table_id;*/
+    return -1;
 }
 
 void NavBarListView::onRetranslateUi() {
@@ -64,7 +99,7 @@ void NavBarListView::onRetranslateUi() {
 }
 
 void NavBarListView::toolTipMove(const QPoint& pos) {
-    auto index = indexAt(pos);
+    /*auto index = indexAt(pos);
     if (index.isValid()) {
         auto* item = model_.item(index.row(), index.column());
         auto tooltip_text = item->text();
@@ -78,16 +113,43 @@ void NavBarListView::toolTipMove(const QPoint& pos) {
                 elapsed_timer_.restart();
             }
         }
+    }*/
+}
+
+void NavBarListView::setCurrentIndex(int32_t tab_id) {
+    QHashIterator<int32_t, NavWidget*> itr(widgets_);
+	while (itr.hasNext()) {
+		itr.next();
+		if (itr.key() == tab_id) {
+            itr.value()->setSelected(true);
+            break;
+		}
+    }
+}
+
+void NavBarListView::collapse() {
+    QHashIterator<int32_t, NavWidget*> itr(widgets_);
+    while (itr.hasNext()) {
+        itr.next();
+        itr.value()->setCompacted(true);
+    }
+}
+
+void NavBarListView::expand() {
+    QHashIterator<int32_t, NavWidget*> itr(widgets_);
+    while (itr.hasNext()) {
+        itr.next();
+        itr.value()->setCompacted(false);
     }
 }
 
 void NavBarListView::mouseMoveEvent(QMouseEvent* event) {
-	toolTipMove(event->pos());
-    QListView::mouseMoveEvent(event);
+	/*toolTipMove(event->pos());
+    QListView::mouseMoveEvent(event);*/
 }
 
 void NavBarListView::wheelEvent(QWheelEvent* event) {
-    const auto count = model_.rowCount();
+    /*const auto count = model_.rowCount();
     const auto play_index = currentIndex();
 
 	if (event->angleDelta().y() < 0) {
@@ -106,11 +168,11 @@ void NavBarListView::wheelEvent(QWheelEvent* event) {
         auto table_id = index.data(Qt::UserRole + 1).toInt();
         emit clickedTable(table_id);
         setCurrentIndex(index);
-	}
+	}*/
 }
 
 void NavBarListView::onThemeChangedFinished(ThemeColor theme_color) {
-    for (auto column_index = 0; column_index < model()->rowCount(); ++column_index) {
+   /* for (auto column_index = 0; column_index < model()->rowCount(); ++column_index) {
         auto* item = model_.item(column_index);
         switch (column_index) {
         case TAB_PLAYLIST:
@@ -139,11 +201,45 @@ void NavBarListView::onThemeChangedFinished(ThemeColor theme_color) {
             break;
         }
     }
+    tooltip_->onThemeChangedFinished(theme_color);*/
+    if (widgets_.empty()) {
+        return;
+    }
+    QHashIterator<int32_t, NavWidget*> itr(widgets_);
+    while (itr.hasNext()) {
+        itr.next();
+        switch (itr.key()) {
+        case TAB_PLAYLIST:
+            itr.value()->setIcon(qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
+            break;
+        case TAB_FILE_EXPLORER:
+            itr.value()->setIcon(qTheme.fontIcon(Glyphs::ICON_DESKTOP));
+            break;
+        case TAB_LYRICS:
+            itr.value()->setIcon(qTheme.fontIcon(Glyphs::ICON_SUBTITLE));
+            break;
+        case TAB_MUSIC_LIBRARY:
+            itr.value()->setIcon(qTheme.fontIcon(Glyphs::ICON_MUSIC_LIBRARY));
+            break;
+        case TAB_CD:
+            itr.value()->setIcon(qTheme.fontIcon(Glyphs::ICON_CD));
+            break;
+        case TAB_YT_MUSIC_SEARCH:
+            itr.value()->setIcon(qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
+            break;
+        case TAB_YT_MUSIC_PLAYLIST:
+            itr.value()->setIcon(qTheme.fontIcon(Glyphs::ICON_YOUTUBE_PLAYLIST));
+            break;
+        case TAB_AI:
+            itr.value()->setIcon(qTheme.fontIcon(Glyphs::ICON_AI));
+            break;
+        }
+    }
     tooltip_->onThemeChangedFinished(theme_color);
 }
 
 void NavBarListView::setTabText(const QString& name, int table_id) {
-    for (auto column_index = 0; column_index < model()->rowCount(); ++column_index) {
+    /*for (auto column_index = 0; column_index < model()->rowCount(); ++column_index) {
         auto* item = model_.item(column_index);
         if (column_index == table_id) {
 			item->setText(name);
@@ -153,32 +249,51 @@ void NavBarListView::setTabText(const QString& name, int table_id) {
 
     names_[table_id] = name;
     ids_[name] = table_id;
-    tooltip_->setText(name);
+    tooltip_->setText(name);*/
 }
 
 void NavBarListView::addTab(const QString& name, int table_id, const QIcon& icon) {
-    auto *item = new QStandardItem(name);
-    item->setData(table_id);
-    item->setIcon(icon);
-    item->setSizeHint(QSize(36, 36));      
-    item->setData(name, Qt::UserRole);
-    auto f = item->font();
-    f.setPointSize(qTheme.fontSize(10));
-    item->setFont(f);
-    model_.appendRow(item);
+ //   auto *item = new QStandardItem(name);
+ //   item->setData(table_id);
+ //   item->setIcon(icon);
+ //   item->setSizeHint(QSize(36, 36));      
+ //   item->setData(name, Qt::UserRole);
+ //   auto f = item->font();
+ //   f.setPointSize(qTheme.fontSize(10));
+ //   item->setFont(f);
+ //   model_.appendRow(item);
     names_[table_id] = name;
     ids_[name] = table_id;	
-	// Prepare tooltip text width
-    tooltip_->setText(name);
+	//// Prepare tooltip text width
+ //   tooltip_->setText(name);
+    auto* button = new NavPushButton(icon, name, true, this);
+	widgets_[table_id] = button;
+	(void)QObject::connect(button, &NavPushButton::clicked, [this, table_id]() mutable  {
+        QHashIterator<int32_t, NavWidget*> itr(widgets_);
+        while (itr.hasNext()) {
+            itr.next();
+			if (itr.key() == table_id) {
+                itr.value()->setSelected(true);
+                emit clickedTable(table_id);
+			}
+			else {
+                itr.value()->setSelected(false);
+			}
+		}
+		});
+    button->setCompacted(false);
+    scroll_layout_->addWidget(button, 0, Qt::AlignTop);
 }
 
 void NavBarListView::addSeparator() {
-    auto* item = new QStandardItem();
+    /*auto* item = new QStandardItem();
     item->setFlags(Qt::NoItemFlags);
     auto* hline = new QFrame(this);
     item->setSizeHint(QSize(80, 2));
     hline->setFrameStyle(QFrame::HLine | QFrame::Sunken);
     model_.appendRow(item);
     const auto index = model_.indexFromItem(item);
-    setIndexWidget(index, hline);
+    setIndexWidget(index, hline);*/
+    auto* separator = new NavSeparator(this);
+    top_layout_->addWidget(separator, 0, Qt::AlignTop);
 }

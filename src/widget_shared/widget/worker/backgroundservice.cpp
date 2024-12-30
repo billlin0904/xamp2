@@ -230,9 +230,9 @@ void BackgroundService::onBlurImage(const QString& cover_id, const QPixmap& imag
         emit blurImage(QImage());
         return;
     }    
-    emit blurImage(blur_image_cache_.GetOrAdd(cover_id, [&]() {
+    /*emit blurImage(blur_image_cache_.GetOrAdd(cover_id, [&]() {
         return image_util::blurImage(thread_pool_, image, size);
-        }));
+        }));*/
 }
 
 void BackgroundService::onTranslation(const QString& keyword, const QString& from, const QString& to) {

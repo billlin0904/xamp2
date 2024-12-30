@@ -170,11 +170,13 @@ void TaskScheduler::SubmitJob(MoveOnlyFunction&& task, ExecuteFlags flags) {
 		if (task_execute_flags_[random_index].load(std::memory_order_acquire) != ExecuteFlags::EXECUTE_LONG_RUNNING) {
 			if (task_work_queues_.at(random_index)->try_enqueue(std::move(task))) {
 				task_execute_flags_[random_index] = flags;
+				XAMP_LOG_D(logger_, "TaskScheduler::SubmitJob() enqueue task to local queue.");
 				return;
 			}
 		}
 	}
 
+	XAMP_LOG_D(logger_, "TaskScheduler::SubmitJob() failed to enqueue task. Enqueue to shared queue.");
 	task_pool_->enqueue(task);
 }
 
@@ -188,6 +190,7 @@ void TaskScheduler::Execute(Vector<MoveOnlyFunction>& tasks, size_t task_size, s
 	for (size_t i = 0; i < task_size; ++i) {
 		auto running_thread = ++running_thread_;
 		std::invoke(tasks[i], stop_token);
+		XAMP_LOG_D(logger_, "Execute running {} task", running_thread);
 		--running_thread_;
 	}
 	task_execute_flags_[current_index] = ExecuteFlags::EXECUTE_NORMAL;

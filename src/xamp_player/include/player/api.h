@@ -10,10 +10,6 @@
 #include <player/iplaybackstateadapter.h>
 #include <stream/icddevice.h>
 
-XAMP_BASE_NAMESPACE_BEGIN
-class IThreadPoolExecutor;
-XAMP_BASE_NAMESPACE_END
-
 XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 
 /*
@@ -24,7 +20,7 @@ XAMP_PLAYER_API void LoadComponentSharedLibrary();
 /*
 * Create an audio player instance.
 */
-XAMP_PLAYER_API std::shared_ptr<IAudioPlayer> MakeAudioPlayer(const std::shared_ptr<IThreadPoolExecutor> &thread_pool);
+XAMP_PLAYER_API std::shared_ptr<IAudioPlayer> MakeAudioPlayer();
 
 #ifdef XAMP_OS_WIN
 /*

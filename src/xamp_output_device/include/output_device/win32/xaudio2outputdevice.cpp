@@ -142,6 +142,8 @@ void XAudio2OutputDevice::StopStream(bool wait_for_stop_stream) {
 		return;
 	}
 
+	XAMP_LOG_D(logger_, "StopStream");
+
 	// Signal thread to exit.
 	::SignalObjectAndWait(close_request_.get(),
 		thread_exit_.get(),

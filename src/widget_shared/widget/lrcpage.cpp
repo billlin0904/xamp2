@@ -20,6 +20,7 @@
 LrcPage::LrcPage(QWidget* parent)
 	: QFrame(parent) {
 	setObjectName("lrcPage"_str);
+	setFrameShape(QFrame::StyledPanel);
 	initial();
 }
 
@@ -111,7 +112,7 @@ QSize LrcPage::coverSizeHint() const {
 }
 
 void LrcPage::resizeEvent(QResizeEvent* event) {
-	setFullScreen();
+	//setFullScreen();
 }
 
 void LrcPage::setBackground(const QImage& cover) {
@@ -157,7 +158,7 @@ void LrcPage::startBackgroundAnimation(const int durationMs) {
 void LrcPage::paintEvent(QPaintEvent*) {
 	QPainter painter(this);
 
-	painter.fillRect(rect(), QColor("#121212"));
+	/*painter.fillRect(rect(), QColor("#121212"));
 
 	if (background_image_.isNull()) {
 		return;
@@ -174,7 +175,7 @@ void LrcPage::paintEvent(QPaintEvent*) {
 		painter.setOpacity(prev_bg_alpha_ / 255.0);
 		painter.drawImage(rect(), prev_background_image_);
 		painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-	}
+	}*/
 }
 
 void LrcPage::setAppearBgProgress(int x) {
@@ -219,7 +220,12 @@ void LrcPage::onThemeChangedFinished(ThemeColor theme_color) {
 }
 
 void LrcPage::initial() {
-	auto horizontal_layout_10 = new QHBoxLayout(this);
+	auto* main_layout = new QVBoxLayout(this);
+	main_layout->setSpacing(0);
+	main_layout->setObjectName(QString::fromUtf8("default_layout"));
+	main_layout->setContentsMargins(0, 0, 0, 0);
+
+	auto horizontal_layout_10 = new QHBoxLayout();
 	
 	horizontal_layout_10->setSpacing(0);
 	horizontal_layout_10->setObjectName(QString::fromUtf8("horizontalLayout_10"));
@@ -391,5 +397,10 @@ void LrcPage::initial() {
 	album_->hide();
 	artist_->hide();
 
-	//setStyleSheet("background-color: transparent; border: none;"_str);
+	//lyrics_widget_->hide();
+	//cover_label_->hide();
+	//spectrum_->hide();
+
+	main_layout->addLayout(horizontal_layout_10);
+	setStyleSheet("background-color: transparent; border: none;"_str);
 }

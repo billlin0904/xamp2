@@ -43,10 +43,6 @@ void PlaylistTabBar::setWidthMode(WidthModes mode) {
 	width_mode_ = mode;
 }
 
-void PlaylistTabBar::setTabCount(int32_t count) {
-	tab_count_ = count;
-}
-
 void PlaylistTabBar::onFinishRename() {
 	if (!line_edit_) {
 		return;
@@ -144,7 +140,7 @@ QSize PlaylistTabBar::tabSizeHint(int index) const {
 
 		//desired_width = qMin(desired_width, 600);
 		//desired_width = qMax(desired_width, 150);
-		desired_width = qBound(150, desired_width, 300);
+		desired_width = qBound(180, desired_width, 300);
 		size.setWidth(desired_width);
 	}
 	else if (width_mode_ == DYNAMIC_WIDTH_MODE) {

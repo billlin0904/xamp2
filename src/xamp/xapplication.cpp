@@ -80,7 +80,7 @@ void XApplication::loadSampleRateConverterConfig() {
 }
 
 void XApplication::setTheme() {
-	qTheme.loadAndSetThemeQss();
+	qTheme.setThemeQssFile();
 	const auto theme = qAppSettings.valueAsEnum<ThemeColor>(kAppSettingTheme);
 	qTheme.setThemeColor(theme);
 }

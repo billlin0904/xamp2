@@ -84,7 +84,7 @@ public:
     /*
     * Constructor.
     */
-    explicit AudioPlayer(const std::shared_ptr<IThreadPoolExecutor>& thread_pool);
+    AudioPlayer(const std::shared_ptr<IThreadPoolExecutor>& playback_thread_pool, const std::shared_ptr<IThreadPoolExecutor>& player_thread_pool);
 
     /*
     * Destructor.
@@ -397,7 +397,8 @@ private:
     FastConditionVariable read_finish_and_wait_seek_signal_cond_;
     ConcurrentQueue<PlayerAction> action_queue_;
     AudioBuffer<std::byte> fifo_;
-    std::shared_ptr<IThreadPoolExecutor> thread_pool_;
+    std::shared_ptr<IThreadPoolExecutor> playback_thread_pool_;
+	std::shared_ptr<IThreadPoolExecutor> player_thread_pool_;
 };
 
 XAMP_AUDIO_PLAYER_NAMESPACE_END

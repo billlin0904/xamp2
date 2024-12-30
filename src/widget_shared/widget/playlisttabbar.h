@@ -20,8 +20,6 @@ public:
 	static constexpr size_t kButtonWidth = 60;
 
 	explicit PlaylistTabBar(QWidget* parent = nullptr);
-	
-	void setTabCount(int32_t count);
 
 	void setWidthMode(WidthModes mode);
 signals:
@@ -45,6 +43,5 @@ private:
 
 	WidthModes width_mode_{ FIXED_WIDTH_MODE };
 	int32_t edited_index_{0};
-	int32_t tab_count_{ 0 };	
 	QLineEdit* line_edit_{nullptr};
 };

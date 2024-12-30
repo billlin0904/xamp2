@@ -190,11 +190,9 @@ namespace {
 
         XAMP_LOG_DEBUG("Start XAMP window...");
 
-        auto thread_pool = ThreadPoolBuilder::MakePlaybackThreadPool();
-
         XMainWindow main_window;
         //main_window.setContentWidget(nullptr);
-        Xamp win(&main_window, MakeAudioPlayer(thread_pool));
+        Xamp win(&main_window, MakeAudioPlayer());
         win.setMainWindow(&main_window);
         main_window.setContentWidget(&win);
         main_window.setTheme();

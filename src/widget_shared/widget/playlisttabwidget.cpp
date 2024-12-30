@@ -35,7 +35,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
 
     (void)QObject::connect(tooltip_timer_, &QTimer::timeout, [this]() {
         if (hovered_tab_index_ != -1) {
-            // Show the tooltip for the hovered tab index
+        	// Show the tooltip for the hovered tab index
             auto pos = tab_bar_->tabRect(hovered_tab_index_).center();
             toolTipMove(pos);
         }
@@ -55,8 +55,8 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     auto* button_widget = new QWidget(this);
     button_widget->setStyleSheet(qFormat(R"(background-color: transparent;)"));
     auto* layout = new QHBoxLayout(button_widget);
-    //button_widget->setMaximumHeight(32);
-	//layout->setContentsMargins(0, 0, 4, 4);
+    button_widget->setMaximumHeight(32);
+	layout->setContentsMargins(0, 0, 4, 4);
 	layout->setSpacing(0);
     layout->addWidget(add_tab_button_, 1);
 
@@ -160,6 +160,9 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
         });
 
     (void)QObject::connect(tab_bar_, &PlaylistTabBar::tabBarClicked, [this](auto index) {
+		if (index == -1) {
+			return;
+		}
         auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(index));
         Q_ASSERT(playlist_page != nullptr);
         playlist_page->playlist()->reload();
@@ -173,7 +176,9 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
 
     (void)QObject::connect(tab_bar_, &PlaylistTabBar::tabBarClicked, [this](auto index) {
         auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(index));
-        Q_ASSERT(playlist_page != nullptr);
+        if (!playlist_page) {
+            return;
+        }
         qAppSettings.setValue(kAppSettingLastPlaylistTabIndex, playlist_page->playlist()->playlistId());
         });
 
@@ -196,7 +201,8 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
 
 	tooltip_ = new XTooltip();
     tooltip_->hide();
-    onThemeChangedFinished(qTheme.themeColor());     
+    onThemeChangedFinished(qTheme.themeColor());
+	setStyleSheet("background-color: transparent; border: none;"_str);
 }
 
 void PlaylistTabWidget::hidePlusButton() {
@@ -208,7 +214,60 @@ void PlaylistTabWidget::onRetranslateUi() {
 }
 
 void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
-    switch (theme_color) {
+    if (qTheme.isDarkTheme()) {
+        setStyleSheet(qFormat(R"(
+    QTabBar { 
+        background: #121212; 
+		padding: 0px;
+    }
+
+	QTabWidget#playlistTab {
+		background: #121212; 
+		qproperty-iconSize: 16px 16px;
+        border: none;		
+	}
+
+    QTabWidget::pane {
+        background-color: #121212;  
+        border: 0px;		
+    }
+
+    QTabWidget::tab-bar {
+        left: 0;    
+        background-color: #121212;		
+		border-radius: 8px;
+    }
+
+	QTabWidget QTabBar::tab {
+		min-height: 32px;
+		background-color: #121212;
+		border-radius: 8px;
+		border: none;
+	}
+
+	QTabWidget QTabBar::tab:selected {
+		border-radius: 8px;
+		background-color: rgba(255, 255, 255, 10);
+	}
+
+	QTabBar::tab:hover {
+		border-radius: 8px;
+		background-color: rgba(255, 255, 255, 10);
+	}
+    )"));
+
+    add_tab_button_->setStyleSheet(qFormat(R"(
+	QPushButton#plusButton {
+        background-color: transparent;
+    }
+
+    QPushButton#plusButton:hover {
+        background-color: rgba(255, 255, 255, 10);
+    }
+    )"));
+    }
+
+    /*switch (theme_color) {
     case ThemeColor::DARK_THEME:
         setStyleSheet(qFormat(R"(
     QTabBar { 
@@ -231,7 +290,7 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
     }
 
 	QTabWidget QTabBar::tab {
-		min-height: 40px;
+		min-height: 36px;
 		background-color: #121212;        
 	}
 
@@ -268,7 +327,7 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
     }
 
 	QTabWidget QTabBar::tab {
-		min-height: 40px;
+		min-height: 36px;
 		color: black;
 		background-color: #f9f9f9;
 	}
@@ -291,7 +350,7 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
         break;
     default:
         break;
-    }
+    }*/
     add_tab_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_ADD));
 
     for (auto i = 0; i < tabBar()->count(); ++i) {
@@ -422,7 +481,6 @@ void PlaylistTabWidget::leaveEvent(QEvent* event) {
 void PlaylistTabWidget::closeTab(int32_t tab_index) {
     auto* playlist_page = playlistPage(tab_index);
     const auto* playlist = playlist_page->playlist();
-    --tab_count_;
     if (removePlaylist(playlist->playlistId())) {
         removeTab(tab_index);
         playlist_page->deleteLater();
@@ -441,13 +499,8 @@ void PlaylistTabWidget::createNewTab(const QString& name, QWidget* widget, bool 
     }
 
     const auto index = addTab(widget, name);
-    ++tab_count_;
-    tab_bar_->setTabCount(tab_count_);
     setTabIcon(index, qTheme.fontIcon(Glyphs::ICON_DRAFT));
     setCurrentIndex(index);
-    if (resize) {
-        resizeTabWidth();
-    }
 }
 
 int32_t PlaylistTabWidget::currentPlaylistId() const {
@@ -592,8 +645,6 @@ void PlaylistTabWidget::closeAllTab() {
             removePlaylist(playlist_id);
         });
 
-    tab_count_ = 0;
-    tab_bar_->setTabCount(tab_count_);
     clear();
     emit removeAllPlaylist();
     resizeTabWidth();
@@ -668,4 +719,22 @@ void PlaylistTabWidget::setPlayerStateIcon(int32_t playlist_id, PlayerState stat
             setTabIcon(i, qTheme.fontIcon(Glyphs::ICON_DRAFT));
         }
     }
+}
+
+PlaylistTabPage::PlaylistTabPage(QWidget* parent)
+	: QFrame(parent) {
+    setObjectName("playlistTabPage"_str);
+    setFrameShape(QFrame::StyledPanel);
+
+    auto* main_layout = new QVBoxLayout(this);
+    main_layout->setSpacing(0);
+    main_layout->setObjectName(QString::fromUtf8("default_layout"));
+    main_layout->setContentsMargins(4, 4, 4, 4);
+	tab_widget_ = new PlaylistTabWidget(this);
+	main_layout->addWidget(tab_widget_);
+    setStyleSheet("background-color: transparent; border: none;"_str);
+}
+
+PlaylistTabWidget* PlaylistTabPage::tabWidget() const {
+    return tab_widget_;
 }

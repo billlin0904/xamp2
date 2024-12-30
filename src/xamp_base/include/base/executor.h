@@ -50,15 +50,6 @@ void ParallelFor(C& items, Func&& f) {
     ParallelFor(executor.get(), items, f);
 }
 
-/*
- * Parallel for.
- *
- * @param[in] executor
- * @param[in] items
- * @param[in] f
- * @return void
- *
- */
 template <typename C, typename Func>
 void ParallelFor(IThreadPoolExecutor* executor,
     const std::stop_token& stop_token,
@@ -103,16 +94,14 @@ void ParallelFor(IThreadPoolExecutor* executor,
     }
 }
 
-/*
-* Parallel for.
-* 
-* @param[in] executor
-* @param[in] begin
-* @param[in] end
-* @param[in] f
-* @param[in] batches
-* @return void
-*/
+template <typename C, typename Func>
+void ParallelFor(IThreadPoolExecutor* executor,
+    C& items,
+    Func&& f) {
+    std::stop_token stop_token;
+	ParallelFor(executor, stop_token, items, std::forward<Func>(f));
+}
+
 template <typename Func>
 void ParallelFor(IThreadPoolExecutor* executor, size_t begin, size_t end, Func&& f) {
     size_t size = end - begin;
