@@ -133,7 +133,7 @@ void NullOutputDevice::StartStream() {
 			const auto stream_time_float = static_cast<double>(stream_time) / output_format_.GetSampleRate();
 
 			is_running_ = true;
-            XAMP_UNLIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_frames_, num_filled_frames, stream_time_float, sample_time) != DataCallbackResult::CONTINUE) {
+            if (callback_->OnGetSamples(buffer_.Get(), buffer_frames_, num_filled_frames, stream_time_float, sample_time) != DataCallbackResult::CONTINUE) {
 				break;
 			}
 			std::this_thread::sleep_for(wait_time_);

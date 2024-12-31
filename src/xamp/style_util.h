@@ -9,6 +9,7 @@
 #include <ui_xamp.h>
 
 class NavBarListView;
+class QTableView;
 
 void setShufflePlayOrder(Ui::XampWindow& ui);
 
@@ -27,3 +28,5 @@ void setWidgetStyle(Ui::XampWindow& ui);
 void updateButtonState(QToolButton* playButton, PlayerState state);
 
 void setNaviBarMenuButton(Ui::XampWindow& ui);
+
+void setTabViewStyle(QTableView *table_view);

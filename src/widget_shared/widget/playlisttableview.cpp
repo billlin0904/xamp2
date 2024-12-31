@@ -20,7 +20,6 @@
 #include <widget/playlistsqlquerytablemodel.h>
 #include <widget/processindicator.h>
 #include <widget/widget_shared.h>
-
 #include <thememanager.h>
 
 #include <widget/playlisttablemodel.h>
@@ -873,9 +872,6 @@ void PlaylistTableView::initial() {
 
     // note: Fix QTableView select color issue.
     setFocusPolicy(Qt::StrongFocus);
-
-    setStyleSheet("background-color: transparent; border: 0px;"_str);
-    horizontalHeader()->setStyleSheet("QHeaderView { background-color: transparent; }"_str);
 }
 
 void PlaylistTableView::onReloadEntity(const PlayListEntity& item) {

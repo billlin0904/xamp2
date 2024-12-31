@@ -37,33 +37,45 @@ void SeekSlider::setValueAnimation(int value, bool animate) {
 }
 
 void SeekSlider::mousePressEvent(QMouseEvent* event) {
-	if (event->button() == Qt::LeftButton) {
-		event->accept();
-		int64_t value = 0;
-		if (orientation() == Qt::Horizontal) {
-			auto x = event->pos().x();
-			value = ((max_ - min_) * x / width()) + min_;
-		}
-		else {
-			auto y = event->pos().y();
-			value = ((max_ - min_) * (height() - y) / height()) + min_;
-		}
-		setValueAnimation(value, true);
-		emit leftButtonValueChanged(value);
-	}
-	return QSlider::mousePressEvent(event);
+    if (event->button() == Qt::LeftButton) {
+        event->accept();
+
+        int64_t value = 0;
+        if (orientation() == Qt::Horizontal) {
+            const int x = event->pos().x();
+            if (width() > 0) {
+                value = ((max_ - min_) * x / width()) + min_;
+            }
+        }
+        else {
+            const int y = event->pos().y();
+            if (height() > 0) {
+                value = ((max_ - min_) * (height() - y) / height()) + min_;
+            }
+        }
+
+        // 夾在 [min_, max_] 範圍內
+        value = qBound<int64_t>(min_, value, max_);
+
+        setValueAnimation(static_cast<int>(value), true);
+        emit leftButtonValueChanged(value);
+
+        // ※ 視需求決定是否呼叫父類別, 或者在開始時呼叫
+        // QSlider::mousePressEvent(event);
+        return;
+    }
+    QSlider::mousePressEvent(event);
 }
 
-void SeekSlider::enterEvent(QEnterEvent* event) {
-	qTheme.setSliderTheme(this, true);
-}
-
-void SeekSlider::leaveEvent(QEvent* event) {
-	qTheme.setSliderTheme(this, false);
-}
-
-void SeekSlider::wheelEvent(QWheelEvent* event) {
-	constexpr int kVolumeSensitivity = 30;
-	const uint step = event->angleDelta().y() / kVolumeSensitivity;
-	setValueAnimation(value() + step, true);
-}
+//void SeekSlider::enterEvent(QEnterEvent* event) {
+//	qTheme.setSliderTheme(this, true);
+//}
+//
+//void SeekSlider::leaveEvent(QEvent* event) {
+//	qTheme.setSliderTheme(this, false);
+//}
+//void SeekSlider::wheelEvent(QWheelEvent* event) {
+//	constexpr int kVolumeSensitivity = 30;
+//	const uint step = event->angleDelta().y() / kVolumeSensitivity;
+//	setValueAnimation(value() + step, true);
+//}

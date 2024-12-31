@@ -1,5 +1,6 @@
 #include <QPainter>
 #include <QHeaderView>
+#include <QPainterPath>
 
 #include <thememanager.h>
 #include <widget/imagecache.h>
@@ -29,12 +30,16 @@ void PlaylistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionView
     const auto* view = qobject_cast<const PlaylistTableView*>(opt.styleObject);
     const auto behavior = view->selectionBehavior();
     const auto hover_index = view->hoverIndex();
+    auto is_selected = false;
 
     if (!(option.state & QStyle::State_Selected) && behavior != QTableView::SelectItems) {
-        if (behavior == QTableView::SelectRows && hover_index.row() == index.row())
+        if (behavior == QTableView::SelectRows && hover_index.row() == index.row()) {
             opt.state |= QStyle::State_MouseOver;
-        if (behavior == QTableView::SelectColumns && hover_index.column() == index.column())
+            is_selected = true;
+        }
+        if (behavior == QTableView::SelectColumns && hover_index.column() == index.column()) {            
             opt.state |= QStyle::State_MouseOver;
+        }
     }
 
     const auto value = index.model()->data(index.model()->index(index.row(), index.column()));
@@ -44,7 +49,7 @@ void PlaylistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionView
     opt.decorationSize = QSize(view->columnWidth(index.column()), view->verticalHeader()->defaultSectionSize());
     opt.displayAlignment = Qt::AlignVCenter | Qt::AlignRight;
     opt.font.setFamily("MonoFont"_str);
-    opt.font.setPointSize(qTheme.fontSize(10));
+    opt.font.setPointSize(qTheme.fontSize(8));
 
     switch (index.column()) {
     case PLAYLIST_TITLE:

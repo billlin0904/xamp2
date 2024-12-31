@@ -323,6 +323,7 @@ bool IsDeviceSupportExclusiveMode(const CComPtr<IMMDevice>& device, AudioFormat&
 		}
 	}
 	return false;
+	return true;
 }
 
 XAMP_OUTPUT_DEVICE_WIN32_HELPER_NAMESPACE_END

@@ -156,6 +156,8 @@ namespace {
         app.loadLang();
         app.loadSampleRateConverterConfig();
         app.setTheme();
+
+        qTheme.setThemeQssFile();
         
 #ifdef _DEBUG
         qInstallMessageHandler(logMessageHandler);
@@ -199,6 +201,8 @@ namespace {
         win.adjustSize();
         main_window.restoreAppGeometry();
         main_window.showWindow();
+
+        XAMP_LOG_DEBUG("Initial XAMP window done!");
 
         if (qAppSettings.valueAsBool(kAppSettingEnableShortcut)) {
             main_window.setShortcut(QKeySequence(Qt::Key_MediaPlay));

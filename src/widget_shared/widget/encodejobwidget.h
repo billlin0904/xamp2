@@ -23,6 +23,9 @@ struct XAMP_WIDGET_SHARED_EXPORT EncodeJob {
 
 Q_DECLARE_METATYPE(EncodeJob);
 
+class QStandardItem;
+class QStandardItemModel;
+
 class XAMP_WIDGET_SHARED_EXPORT ProgressBarDelegate : public QStyledItemDelegate {
     Q_OBJECT
 public:
@@ -45,11 +48,12 @@ public slots:
 
 	void onJobError(const QString& job_id, const QString& message);
 private:
-    void updateProgressItem(QTreeWidgetItem* item, int new_progress);
+    void updateProgressItem(const QPair<QStandardItem*, QStandardItem*> &item, int new_progress);
 
     void setupUI();
 
-    QTreeWidget* tree_;
+    QTreeView* tree_;
     ProgressBarDelegate* progress_delegate_;
-    QMap<QString, QTreeWidgetItem*> job_items_;
+	QStandardItemModel* model_;
+    QMap<QString, QPair<QStandardItem*, QStandardItem*>> job_items_;
 };

@@ -1,5 +1,9 @@
 #include <style_util.h>
 #include <thememanager.h>
+
+#include <QTableView>
+#include <QHeaderView>
+
 #include <widget/util/str_util.h>
 
 void setShufflePlayOrder(Ui::XampWindow& ui) {
@@ -144,35 +148,6 @@ void setRepeatButtonIcon(Ui::XampWindow& ui, PlayerOrder order) {
 }
 
 void setNaviBarTheme(NavBarListView* navi_bar) {
-    /*QString tab_left_color;
-
-    switch (qTheme.themeColor()) {
-    case ThemeColor::DARK_THEME:
-        tab_left_color = "42, 130, 218"_str;
-        break;
-    case ThemeColor::LIGHT_THEME:
-        tab_left_color = "42, 130, 218"_str;
-        break;
-    }
-
-    navi_bar->setStyleSheet(qFormat(R"(
-	QListView#naviBar {
-		border: none; 
-	}
-	QListView#naviBar::item {
-		border: 0px;
-		padding-left: 6px;
-	}
-	QListView#naviBar::item:hover {
-		border-radius: 2px;
-	}
-	QListView#naviBar::item:selected {
-		padding-left: 4px;		
-		border-left-width: 2px;
-		border-left-style: solid;
-		border-left-color: rgb(%1);
-	}	
-	)").arg(tab_left_color));*/
 }
 
 void setWidgetStyle(Ui::XampWindow& ui) {
@@ -281,7 +256,7 @@ void setWidgetStyle(Ui::XampWindow& ui) {
                                          )"_str);
 
     setNaviBarTheme(ui.naviBar);
-    qTheme.setSliderTheme(ui.seekSlider);
+    qTheme.setSliderTheme(ui.seekSlider, true);
 
     ui.deviceDescLabel->setStyleSheet("background: transparent;"_str);
 
@@ -294,4 +269,36 @@ void setWidgetStyle(Ui::XampWindow& ui) {
 
 void updateButtonState(QToolButton* playButton, PlayerState state) {
     qTheme.setPlayOrPauseButton(playButton, state != PlayerState::PLAYER_STATE_PAUSED);
+}
+
+void setTabViewStyle(QTableView* table_view) {
+    table_view->setStyleSheet(qFormat(R"(
+	QTableView {
+		background-color: transparent;
+        border: 1px solid rgba(255, 255, 255, 10);
+		border-radius: 4px;
+	}
+
+	QTableView::item:selected {
+		background-color: rgba(255, 255, 255, 10);
+	}
+    )"));
+
+    table_view->horizontalHeader()->setFixedHeight(30);
+    table_view->horizontalHeader()->setStyleSheet(qFormat(R"(	
+	QHeaderView::section {
+		background-color: transparent;
+		border-bottom: 1px solid rgba(255, 255, 255, 15);
+	}
+
+	QHeaderView::section::horizontal {
+		padding-left: 4px;
+		padding-right: 4px;
+		font-size: 9pt;
+	}
+
+	QHeaderView::section::horizontal::first, QHeaderView::section::horizontal::only-one {
+		border-left: 0px;
+	}
+    )"));
 }

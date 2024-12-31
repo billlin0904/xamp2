@@ -28,11 +28,11 @@ signals:
 protected:
 	void mousePressEvent(QMouseEvent* event) override;
 
-    void enterEvent(QEnterEvent* event) override;
+    //void enterEvent(QEnterEvent* event) override;
 
-	void leaveEvent(QEvent* event) override;
+	//void leaveEvent(QEvent* event) override;
 
-	void wheelEvent(QWheelEvent* event) override;
+	//void wheelEvent(QWheelEvent* event) override;
 
 private:
 	void setValueAnimation(int value, bool animate);

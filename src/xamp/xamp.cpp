@@ -1281,7 +1281,7 @@ void Xamp::onThemeChangedFinished(ThemeColor theme_color) {
         qTheme.setMuted(ui_.mutedButton, false);
     }
 
-    qTheme.setThemeQssFile();
+    //qTheme.setThemeQssFile();
 
     setThemeIcon(ui_);
     setRepeatButtonIcon(ui_, order_);
@@ -2081,6 +2081,7 @@ PlaylistPage* Xamp::newPlaylistPage(PlaylistTabWidget *tab_widget, int32_t playl
     auto* playlist_page = createPlaylistPage(tab_widget, playlist_id, kAppSettingPlaylistColumnName, cloud_playlist_id);
     playlist_page->playlist()->setHeaderViewHidden(false);
     playlist_page->pageTitle()->hide();
+    setTabViewStyle(playlist_page->playlist());
     connectPlaylistPageSignal(playlist_page);
     onSetCover(kEmptyString, playlist_page);
     tab_widget->createNewTab(name, playlist_page, resize);

@@ -33,7 +33,7 @@ PlaylistTabBar::PlaylistTabBar(QWidget* parent)
     setElideMode(Qt::TextElideMode::ElideRight);
 	setMovable(true);
 	auto f = font();
-	f.setPointSize(qTheme.fontSize(10));
+	f.setPointSize(qTheme.fontSize(8));
 	setFont(f);
 	setFocusPolicy(Qt::StrongFocus);
     setStyle(new TextAlignedStyle());

@@ -7,6 +7,8 @@
 
 #include <base/base.h>
 
+#include "base/fastmutex.h"
+
 #ifdef XAMP_OS_WIN
 
 #include <output_device/win32/comexception.h>
@@ -71,6 +73,12 @@ public:
 	* 
 	*/
 	void Destroy() {
+		std::lock_guard<FastMutex> guard{ mutex_ };
+		if (workitem_key_ != 0) {
+			::MFCancelWorkItem(workitem_key_);
+			workitem_key_ = 0;
+		}
+
 		if (!IsValid()) {
 			return;
 		}
@@ -123,6 +131,7 @@ public:
 	* @param[in] async_result: async result.
 	*/
 	STDMETHODIMP Invoke(IMFAsyncResult* async_result) override {
+		std::lock_guard<FastMutex> guard{ mutex_ };
 		if (!IsValid()) {
 			return S_OK;
 		}
@@ -142,6 +151,7 @@ public:
 	}
 
 private:
+	FastMutex mutex_;
 	std::wstring mmcss_name_;
 	DWORD queue_id_;
 	DWORD task_id_;

@@ -5,7 +5,7 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 namespace {
-	constexpr auto kMaxPlaybackThreadPoolSize{ 8 };
+	constexpr auto kMaxPlaybackThreadPoolSize{ 2 };
 	constexpr auto kMaxPlayerThreadPoolSize{ 2 };
 	constexpr auto kMaxBackgroundThreadPoolSize{ 12 };
 

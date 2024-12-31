@@ -812,64 +812,73 @@ void ThemeManager::setSliderTheme(QSlider* slider, bool enter) {
     QString slider_background_color;
     QString slider_border_color;
 
-	switch (themeColor()) {
-	case ThemeColor::LIGHT_THEME:
-       slider_background_color = "#9FCBFF"_str;
-       slider_border_color = "#C9CDD0"_str;
-       break;
-	case ThemeColor::DARK_THEME:
-       slider_background_color = "#1A72BB"_str;
-       slider_border_color = "#43474e"_str;
-       break;
-   }
+    switch (themeColor()) {
+    case ThemeColor::LIGHT_THEME:
+        slider_background_color = "#9FCBFF"_str;
+        slider_border_color = "#C9CDD0"_str;
+        break;
+    case ThemeColor::DARK_THEME:
+        slider_background_color = "#1A72BB"_str;
+        slider_border_color = "#43474e"_str;
+        break;
+    }
 
+    // handle 預設的邊框顏色
     auto handle_border_color = slider_background_color;
+
+    // 原先的 margin 值
     auto margin = 10;
     if (!enter) {
         handle_border_color = "transparent"_str;
         margin = 1;
     }
 
+    // 讓 handle 更圓：假設 handle 為 12x12，border-radius 設為 6 (直徑的一半)
+    // 可以依需求自行調整大小
+    const int handleSize = 12;
+    const int handleRadius = handleSize / 2;
+
     slider->setStyleSheet(qFormat(R"(
     QSlider {
-		background-color: transparent;
+        background-color: transparent;
     }
 
-	QSlider#%1::groove:vertical {        
+    QSlider#%1::groove:vertical {        
         background: %2;
-		border: 1px solid %2;
-		width: 2px;
+        border: 1px solid %2;
+        width: 2px;
         border-radius: 2px;
         padding-top: -1px;
         padding-bottom: 0px;
     }
 
     QSlider#%1::sub-page:vertical {
-		background: %3;
-		border: 1px solid %3;
-		width: 2px;
-		border-radius: 2px;
+        background: %3;
+        border: 1px solid %3;
+        width: 2px;
+        border-radius: 2px;
     }
 
     QSlider#%1::add-page:vertical {
-		background: %2;
-		border: 0px solid %2;
-		width: 2px;
-		border-radius: 2px;
-    }
-
-	QSlider#%1::handle:vertical {
-        width: 10px;
-		height: 10px;
-        margin: 0px -5px 0px -5px;
-		border-radius: 5px;
-		background-color: %2;
-		border: 1px solid %2;
-    }
-
-	QSlider#%1::groove:horizontal {        
         background: %2;
-		border: 1px solid %2;
+        border: 0px solid %2;
+        width: 2px;
+        border-radius: 2px;
+    }
+
+    QSlider#%1::handle:vertical {
+        /* 設為相同的寬高 + 圓角，視覺上就會是圓 */
+        width: %5px;
+        height: %5px;
+        margin: 0px -%6px 0px -%6px;  /* 可視需求微調 */
+        background-color: %2;
+        border: 1px solid %2;
+        border-radius: %7px;
+    }
+
+    QSlider#%1::groove:horizontal {        
+        background: %2;
+        border: 1px solid %2;
         height: 2px;
         border-radius: 2px;
         padding-left: -1px;
@@ -877,33 +886,36 @@ void ThemeManager::setSliderTheme(QSlider* slider, bool enter) {
     }
 
     QSlider#%1::sub-page:horizontal {
-		background: %2;
-		border: 1px solid %2;		
-		height: 2px;
-		border-radius: 2px;
+        background: %2;
+        border: 1px solid %2;
+        height: 2px;
+        border-radius: 2px;
     }
 
     QSlider#%1::add-page:horizontal {
-		background: %3;
-		border: 0px solid %2;
-		height: 2px;
-		border-radius: 2px;
+        background: %3;
+        border: 0px solid %2;
+        height: 2px;
+        border-radius: 2px;
     }
 
-	QSlider#%1::handle:horizontal {
+    QSlider#%1::handle:horizontal {
         width: %5px;
-		height: %5px;
-        margin: -5px 0px -5px 0px;
-		border-radius: 5px;
-		background-color: %4;
-		border: 1px solid %4;
+        height: %5px;
+        margin: -%6px 0px -%6px 0px; /* 可視需求微調 */
+        border-radius: %7px;
+        background-color: %4;
+        border: 1px solid %4;
     }
     )"
     ).arg(slider->objectName())
         .arg(slider_background_color)
         .arg(slider_border_color)
-		.arg(handle_border_color)
-        .arg(margin)
+        .arg(handle_border_color)
+        .arg(handleSize)
+        // margin 以 handleSize / 2 做微調，讓整個 handle 在中線上
+        .arg(handleSize / 2)
+        .arg(handleRadius)
     );
 }
 
