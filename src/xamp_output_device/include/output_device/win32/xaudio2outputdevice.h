@@ -33,9 +33,6 @@ XAMP_DECLARE_LOG_NAME(XAudio2OutputDevice);
 */
 class XAudio2OutputDevice final : public IOutputDevice {
 public:
-	// Wait thread start.
-	static constexpr auto kWaitThreadStartSecond = 60 * 1000; // 60sec
-
 	/*
 	* Constructor.
 	*
@@ -176,6 +173,7 @@ private:
 	class XAudio2VoiceContext;
 
 	bool is_running_;
+	bool is_playing_;
 	uint32_t buffer_frames_;
 	std::atomic<int64_t> stream_time_;
 	IAudioCallback* callback_;
@@ -192,6 +190,7 @@ private:
 	ScopedPtr<XAudio2VoiceContext> voice_context_;
 	CComPtr<IXAudio2> xaudio2_;
 	LoggerPtr logger_;
+	FastMutex mutex_;
 	std::shared_ptr<IThreadPoolExecutor> thread_pool_;
 };
 

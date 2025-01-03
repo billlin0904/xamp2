@@ -31,12 +31,18 @@ void TagWidgetItem::setEnable(bool enable) {
 		switch (qTheme.themeColor()) {
 		case ThemeColor::DARK_THEME:
 			listWidget()->itemWidget(this)->setStyleSheet(
-				qFormat("border-radius: 6px; border: 1px solid %1; background-color: #171818;").arg(color_.name())
+				qFormat("border-radius: 16px; border: 1px solid %1; background-color: #171818;").arg(color_.name())
 			);
+			/*listWidget()->itemWidget(this)->setStyleSheet(
+				qFormat("border-radius: 16px; border: 1px solid %1; background-color: %1;").arg(color_.name())
+			);
+			label_->setStyleSheet(
+				qFormat("color: %1;").arg("rgb(0, 0, 0)"_str)
+			);*/
 			break;
 		case ThemeColor::LIGHT_THEME:
 			listWidget()->itemWidget(this)->setStyleSheet(
-				qFormat("border-radius: 6px; border: 1px solid %1; background-color: #e6e6e6;").arg(color_.name())
+				qFormat("border-radius: 16px; border: 1px solid %1; background-color: #e6e6e6;").arg(color_.name())
 			);
 		}		
 		label_->setStyleSheet(
@@ -49,7 +55,7 @@ void TagWidgetItem::setEnable(bool enable) {
 		case ThemeColor::DARK_THEME:
 			color = QColor("#4d4d4d"_str);
 			listWidget()->itemWidget(this)->setStyleSheet(
-				qFormat("border-radius: 6px; border: 1px solid %1; background-color: #424548;").arg(color.name())
+				qFormat("border-radius: 16px; border: 1px solid %1; background-color: #424548;").arg(color.name())
 			);
 			label_->setStyleSheet(
 				qFormat("color: white;")
@@ -58,7 +64,7 @@ void TagWidgetItem::setEnable(bool enable) {
 		case ThemeColor::LIGHT_THEME:
 			color = Qt::lightGray;
 			listWidget()->itemWidget(this)->setStyleSheet(
-				qFormat("border-radius: 6px; border: 1px solid transparent; background-color: #e6e6e6;")
+				qFormat("border-radius: 16px; border: 1px solid transparent; background-color: #e6e6e6;")
 			);
 			label_->setStyleSheet(
 				qFormat("color: #2e2f31;")
@@ -122,32 +128,34 @@ void TagListView::setListViewFixedHeight(int32_t height) {
 void TagListView::onThemeChangedFinished(ThemeColor theme_color) {
 	switch (theme_color) {
 	case ThemeColor::DARK_THEME:
-		list_->setStyleSheet(
-		"QListWidget {"
-		"  border: none;"
-		"}"
-		"QListWidget::item {"
-		"  border: 1px solid transparent;"
-		"  border-radius: 8px;"
-		"  background-color: #2f3233;"
-		"}"
-		"QListWidget::item:selected {"
-		"  background-color: transparent;"
-		"}"_str);
+		list_->setStyleSheet(R"(
+        QListWidget {
+		  border: none;
+		}
+		QListWidget::item {
+		  border: 1px solid transparent;
+		  border-radius: 16px;
+		  background-color: #2f3233;
+		}
+		QListWidget::item:selected {
+		  background-color: transparent;
+		}
+        )"_str);
 		break;
 	case ThemeColor::LIGHT_THEME:
-		list_->setStyleSheet(
-			"QListWidget {"
-			"  border: none;"
-			"}"
-			"QListWidget::item {"
-			"  border: 1px solid transparent;"
-			"  border-radius: 8px;"
-			"  background-color: #e6e6e6;"
-			"}"
-			"QListWidget::item:selected {"
-			"  background-color: transparent;"
-			"}"_str);
+		list_->setStyleSheet(R"(
+        QListWidget {
+		  border: none;
+		}
+		QListWidget::item {
+		  border: 1px solid transparent;
+		  border-radius: 16px;
+		  background-color: #e6e6e6;
+		}
+		QListWidget::item:selected {
+		  background-color: transparent;
+		}
+        )"_str);
 		break;
 	}
 

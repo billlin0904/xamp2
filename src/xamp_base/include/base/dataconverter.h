@@ -21,11 +21,9 @@ struct XAMP_BASE_API AudioConvertContext {
 	float volume_factor{1.0};
     size_t cache_volume{0};
     size_t convert_size{0};
-	AudioFormat input_format;
-	AudioFormat output_format;
 };
 
-XAMP_BASE_API AudioConvertContext MakeConvert(AudioFormat const& in_format, AudioFormat const& out_format, size_t convert_size) noexcept;
+XAMP_BASE_API AudioConvertContext MakeConvert(size_t convert_size) noexcept;
 
 #ifdef XAMP_OS_WIN
 
@@ -34,15 +32,15 @@ XAMP_BASE_API inline void ConvertInt8ToInt8SSE(const int8_t* input, int8_t* left
 	// mask: 16 bytes
 	alignas(16) static constexpr int8_t mask_even[16] = {
 		0,2,4,6, 8,10,12,14,  // 依序抓偶數 index
-		(int8_t)0x80,(int8_t)0x80,(int8_t)0x80,(int8_t)0x80,
-		(int8_t)0x80,(int8_t)0x80,(int8_t)0x80,(int8_t)0x80
+		static_cast<int8_t>(0x80),static_cast<int8_t>(0x80),static_cast<int8_t>(0x80),static_cast<int8_t>(0x80),
+		static_cast<int8_t>(0x80),static_cast<int8_t>(0x80),static_cast<int8_t>(0x80),static_cast<int8_t>(0x80)
 	};
 
 	// mask: 取出「奇數索引」=> [1,3,5,7,9,11,13,15]
 	alignas(16) static constexpr int8_t mask_odd[16] = {
 		1,3,5,7, 9,11,13,15,
-		(int8_t)0x80,(int8_t)0x80,(int8_t)0x80,(int8_t)0x80,
-		(int8_t)0x80,(int8_t)0x80,(int8_t)0x80,(int8_t)0x80
+		static_cast<int8_t>(0x80),static_cast<int8_t>(0x80),static_cast<int8_t>(0x80),static_cast<int8_t>(0x80),
+		static_cast<int8_t>(0x80),static_cast<int8_t>(0x80),static_cast<int8_t>(0x80),static_cast<int8_t>(0x80)
 	};
 
 	__m128i vMaskEven = _mm_load_si128(reinterpret_cast<const __m128i*>(mask_even));
@@ -312,7 +310,7 @@ XAMP_BASE_API inline void ConvertFloatToInt24SSE(const float* input, int32_t* le
 
 template <typename T, typename TStoreType = T>
 void AVX2Convert(TStoreType* output, const float* input, float float_scale, const AudioConvertContext& context) noexcept {
-	const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * context.input_format.GetChannels();
+	const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * AudioFormat::kMaxChannel;
 
 	const __m256 scale = _mm256_set1_ps(float_scale);
 	const __m256 volume_scale = _mm256_set1_ps(context.volume_factor);
@@ -402,15 +400,15 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 		// 準備 shuffle mask
 		// left_channel_mask：選取偶數 byte(0,2,4,...) 放入前8 bytes，其餘填 0x80 (會置為0)
 		static const __m128i left_shuffle_mask = _mm_set_epi8(
-			(char)0x80, (char)0x80, (char)0x80, (char)0x80,
-			(char)0x80, (char)0x80, (char)0x80, (char)0x80,
+			static_cast<char>(0x80), static_cast<char>(0x80), static_cast<char>(0x80), static_cast<char>(0x80),
+			static_cast<char>(0x80), static_cast<char>(0x80), static_cast<char>(0x80), static_cast<char>(0x80),
 			14, 12, 10, 8, 6, 4, 2, 0
 		);
 
 		// right_channel_mask：選取奇數 byte(1,3,5,...) 同理
 		static const __m128i right_shuffle_mask = _mm_set_epi8(
-			(char)0x80, (char)0x80, (char)0x80, (char)0x80,
-			(char)0x80, (char)0x80, (char)0x80, (char)0x80,
+			static_cast<char>(0x80), static_cast<char>(0x80), static_cast<char>(0x80), static_cast<char>(0x80),
+			static_cast<char>(0x80), static_cast<char>(0x80), static_cast<char>(0x80), static_cast<char>(0x80),
 			15, 13, 11, 9, 7, 5, 3, 1
 		);
 

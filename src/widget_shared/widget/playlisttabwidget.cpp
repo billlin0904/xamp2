@@ -42,11 +42,11 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
 		});
 
     add_tab_button_ = new QPushButton(this);    
-    add_tab_button_->setMaximumSize(32, 32);
-    add_tab_button_->setMinimumSize(32, 32);
+    add_tab_button_->setMaximumSize(24, 24);
+    add_tab_button_->setMinimumSize(24, 24);
     add_tab_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_ADD));
 #ifdef Q_OS_WIN
-    add_tab_button_->setIconSize(QSize(18, 18));
+    add_tab_button_->setIconSize(QSize(16, 16));
 #else
     add_tab_button_->setIconSize(QSize(18, 18));
 #endif
@@ -55,7 +55,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     auto* button_widget = new QWidget(this);
     button_widget->setStyleSheet(qFormat(R"(background-color: transparent;)"));
     auto* layout = new QHBoxLayout(button_widget);
-    button_widget->setMaximumHeight(32);
+    button_widget->setMaximumHeight(24);
 	layout->setContentsMargins(0, 0, 4, 4);
 	layout->setSpacing(0);
     layout->addWidget(add_tab_button_, 1);

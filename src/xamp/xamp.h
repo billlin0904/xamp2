@@ -18,6 +18,7 @@
 #include <widget/driveinfo.h>
 #include <widget/util/str_util.h>
 #include <widget/databasecoverid.h>
+#include <widget/cardwidget.h>
 
 #include <widget/dao/musicdao.h>
 #include <widget/dao/albumdao.h>
@@ -106,8 +107,6 @@ signals:
 	void addJobs(const QString& dir_name, QList<EncodeJob> jobs);
 
 public slots:
-	void onDelayedDownloadThumbnail();
-
     void onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked, bool is_query_embeddings = false);
 
 	void ensureLocalOnePlaylistPage();
@@ -161,8 +160,6 @@ public slots:
 	void onSearchSuggestionsCompleted(const QList<QString>& result);
 
 	void onSetThumbnail(const DatabaseCoverId& id, const QString& cover_id);
-
-	void onFetchThumbnailUrlError(const DatabaseCoverId& id, const QString& thumbnail_url);
 
 	void onRemainingTimeEstimation(size_t total_work, size_t completed_work, int32_t secs);
 
@@ -292,22 +289,16 @@ private:
 	QScopedPointer<CdPage> cd_page_;	
 	QScopedPointer<AlbumArtistPage> music_library_page_;
 	QScopedPointer<FileSystemViewPage> file_explorer_page_;
-	QScopedPointer<PlaylistPage> yt_music_search_page_;
 	QScopedPointer<PlaylistTabPage> playlist_tab_page_;
-	QScopedPointer<PlaylistTabWidget> yt_music_tab_page_;
 	QScopedPointer<BackgroundService> background_service_;
 	QScopedPointer<AlbumCoverService> album_cover_service_;
 	QScopedPointer<FileSystemService> file_system_service_;
-    QScopedPointer<AudioEmbeddingService> audio_embedding_service_;
-	QScopedPointer<MusixmatchHttpService> musixmatch_service_;
-	QScopedPointer<YtMusicHttpService> ytmusic_http_service_;
-	QScopedPointer<YtMusicOAuth> ytmusic_oauth_;
 	QScopedPointer<QSystemTrayIcon> tray_icon_;
+	QScopedPointer<AudioEmbeddingService> audio_embedding_service_;
 	QList<QWidget*> widgets_;
     QThread background_service_thread_;
 	QThread album_cover_service_thread_;
 	QThread file_system_service_thread_;
-	QTimer ui_update_timer_timer_;
 	QMap<DatabaseCoverId, QString> download_thumbnail_pending_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
 	std::shared_ptr<IAudioPlayer> player_;

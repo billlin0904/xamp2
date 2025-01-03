@@ -158,17 +158,6 @@ void SharedWasapiDevice::SetAudioCallback(IAudioCallback* callback) noexcept {
 	callback_ = callback;
 }
 
-void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
-	XAMP_LOG_D(logger_, "StopStream is_running_: {}", is_running_);
-	if (!is_running_) {
-		return;
-	}
-
-	is_running_ = false;
-	rt_work_queue_->Destroy();
-	client_->Stop();
-}
-
 void SharedWasapiDevice::CloseStream() {
 	XAMP_LOG_D(logger_, "CloseStream is_running_: {}", is_running_);
 
@@ -211,19 +200,19 @@ void SharedWasapiDevice::InitialDeviceFormat(const AudioFormat& output_format) {
 		throw DeviceUnSupportedFormatException(output_format);
 	}
 
-	auto msec_per_samples = 1000.0 / static_cast<double>(output_format.GetSampleRate());
+	const auto ms_per_samples = 1000.0 / static_cast<double>(output_format.GetSampleRate());
 
 	XAMP_LOG_D(logger_,
 		"Initial device format fundamental:{:.2f} msec, current:{:.2f} msec, min:{:.2f} msec max:{:.2f} msec.",
-		fundamental_period_in_frame * msec_per_samples,
-		default_period_in_frame * msec_per_samples,
-		min_period_in_frame * msec_per_samples,
-		max_period_in_frame * msec_per_samples);
+		fundamental_period_in_frame * ms_per_samples,
+		default_period_in_frame * ms_per_samples,
+		min_period_in_frame * ms_per_samples,
+		max_period_in_frame * ms_per_samples);
 
 	buffer_time_ = default_period_in_frame;
 	//buffer_time_ = current_period_in_frame;
 
-	XAMP_LOG_D(logger_, "Use latency: {:.2f}", buffer_time_ * msec_per_samples);
+	XAMP_LOG_D(logger_, "Use latency: {:.2f}", buffer_time_ * ms_per_samples);
 }
 
 void SharedWasapiDevice::InitialDevice(const AudioFormat& output_format) {
@@ -378,7 +367,7 @@ void SharedWasapiDevice::ReportError(HRESULT hr) {
 	}
 }
 
-HRESULT SharedWasapiDevice::GetSample(uint32_t frame_available, bool is_silence) noexcept {
+HRESULT SharedWasapiDevice::GetSample(uint32_t frame_available, bool is_silence) {
 	XAMP_EXPECTS(render_client_ != nullptr);
 	XAMP_EXPECTS(callback_ != nullptr);
 
@@ -415,6 +404,11 @@ HRESULT SharedWasapiDevice::GetSample(uint32_t frame_available, bool is_silence)
 
 HRESULT SharedWasapiDevice::OnInvoke(IMFAsyncResult *) {
 	if (is_running_ && rt_work_queue_ != nullptr) {
+		if (!is_playing_) {
+			is_playing_ = true;
+			wait_for_start_stream_cond_.notify_one();
+		}
+
 		try {
 			GetSample(false);
 			rt_work_queue_->WaitAsync(sample_ready_.get());
@@ -426,26 +420,49 @@ HRESULT SharedWasapiDevice::OnInvoke(IMFAsyncResult *) {
 	return S_OK;
 }
 
+void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
+	std::unique_lock<FastMutex> guard{ mutex_ };
+
+	XAMP_LOG_D(logger_, "StopStream is_running_: {}", is_running_);
+	if (!is_running_) {
+		return;
+	}
+
+	is_running_ = false;
+	rt_work_queue_->Destroy();
+	HrIfFailThrow(client_->Stop());
+}
+
 void SharedWasapiDevice::StartStream() {
+	std::unique_lock<FastMutex> guard{ mutex_ };
+
 	XAMP_LOG_D(logger_, "StartStream!");
 
 	if (!client_) {
 		throw_translated_com_error(AUDCLNT_E_NOT_INITIALIZED);
 	}
 
+	is_playing_ = false;
 	// Note: 必要! 某些音效卡會爆音!
 	GetSample(true);
 	rt_work_queue_->Initial();
 	rt_work_queue_->WaitAsync(sample_ready_.get());
 	is_running_ = true;
 	HrIfFailThrow(client_->Start());
+
+	while (!is_playing_) {
+		if (wait_for_start_stream_cond_.wait_for(guard, kWaitStreamStartTimeout) == std::cv_status::timeout) {
+			XAMP_LOG_E(logger_, "SharedWasapiDevice start render timeout.");
+			return;
+		}
+	}
 }
 
 bool SharedWasapiDevice::IsStreamRunning() const noexcept {
 	return is_running_;
 }
 
-HRESULT SharedWasapiDevice::GetSample(bool is_silence) noexcept {
+HRESULT SharedWasapiDevice::GetSample(bool is_silence) {
 	uint32_t padding_frames = 0;
 
 	const auto hr = client_->GetCurrentPadding(&padding_frames);

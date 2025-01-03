@@ -238,9 +238,10 @@ private:
 	IAudioCallback* callback_;
 	LoggerPtr logger_;
 	Task<void> render_task_;
-	mutable AudioConvertContext data_convert_;
+	FastMutex mutex_;
 	std::shared_ptr<IThreadPoolExecutor> thread_pool_;
 	std::function<void(void *, const float *, const AudioConvertContext &)> convert_;
+	mutable AudioConvertContext data_convert_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

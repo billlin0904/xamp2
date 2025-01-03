@@ -168,6 +168,7 @@ public:
 private:
 	bool is_running_;
 	bool raw_mode_;
+	bool is_playing_;
 	mutable bool is_muted_;
 	std::atomic<bool> is_stopped_;
 	mutable uint32_t volume_;

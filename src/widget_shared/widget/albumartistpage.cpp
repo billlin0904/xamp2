@@ -16,7 +16,6 @@
 #include <widget/util/ui_util.h>
 #include <widget/artistview.h>
 #include <widget/genre_view.h>
-#include <widget/similarsongsviewpage.h>
 #include <widget/clickablelabel.h>
 #include <widget/util/str_util.h>
 #include <widget/albumview.h>
@@ -32,7 +31,7 @@ enum TAB_INDEX : std::uint8_t {
 	TAB_ALBUMS,
 	TAB_ARTISTS,
 	TAB_YEAR,
-	TAB_SIMILAR_SONG
+	//TAB_SIMILAR_SONG
 };
 
 AlbumTabListView::AlbumTabListView(QWidget* parent)
@@ -124,7 +123,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	album_tab_list_view_->addTab(tr("ALBUMS"), TAB_ALBUMS);
 	album_tab_list_view_->addTab(tr("ARTISTS"), TAB_ARTISTS);
 	album_tab_list_view_->addTab(tr("YEAR"), TAB_YEAR);
-	album_tab_list_view_->addTab(tr("SIMILAR"), TAB_SIMILAR_SONG);
+	//album_tab_list_view_->addTab(tr("SIMILAR"), TAB_SIMILAR_SONG);
 
 	qTheme.setAlbumNaviBarTheme(album_tab_list_view_);
 
@@ -430,9 +429,6 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 	current_view->addWidget(year_frame_);
 
-	similar_song_frame_ = new SimilarSongViewPage();
-	current_view->addWidget(similar_song_frame_);
-
 	(void)QObject::connect(album_tab_list_view_, &AlbumTabListView::clickedTable, [this, current_view](auto table_id) {
 		switch (table_id) {
 			case TAB_ALBUMS:
@@ -444,9 +440,9 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 			case TAB_YEAR:
 				current_view->setCurrentWidget(year_frame_);
 				break;
-			case TAB_SIMILAR_SONG:
+			/*case TAB_SIMILAR_SONG:
 				current_view->setCurrentWidget(similar_song_frame_);
-				break;
+				break;*/
 			default: 
 				break;
 		}

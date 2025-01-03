@@ -396,7 +396,7 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		constexpr auto kFloatByteSize = 4;
 		allocate_bytes = buffer_size_ * kFloatByteSize * format_.GetChannels();
 		buffer_bytes_ = buffer_size_ * kFloatByteSize;
-		the_driver_context.data_context = MakeConvert(in_format, format_, buffer_size_);
+		the_driver_context.data_context = MakeConvert(buffer_size_);
 	}
 	else {
 		switch (channel_info.type) {
@@ -421,7 +421,7 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		const auto channel_buffer_size = buffer_size_ / 8;
 		buffer_bytes_ = channel_buffer_size;
 		allocate_bytes = buffer_size_;		
-		the_driver_context.data_context = MakeConvert(in_format, format_, channel_buffer_size);
+		the_driver_context.data_context = MakeConvert(channel_buffer_size);
 	}
 
 	if (buffer_.GetSize() != allocate_bytes) {
@@ -641,6 +641,8 @@ bool AsioDevice::IsStreamOpen() const noexcept {
 }
 
 void AsioDevice::StopStream(bool wait_for_stop_stream) {
+	std::unique_lock lock{ mutex_ };
+
 	if (!is_streaming_) {
 		return;
 	}
@@ -648,7 +650,6 @@ void AsioDevice::StopStream(bool wait_for_stop_stream) {
 	XAMP_LOG_D(logger_, "StopStream");
 
 	is_streaming_ = false;
-	std::unique_lock lock{ mutex_ };
 
 	while (wait_for_stop_stream && !is_stop_streaming_) {
 		condition_.wait(lock);
@@ -672,6 +673,8 @@ void AsioDevice::CloseStream() {
 }
 
 void AsioDevice::StartStream() {
+	std::unique_lock lock{ mutex_ };
+
 	if (io_format_ == DsdIoFormat::IO_FORMAT_PCM) {
 		get_samples_ = bind_front(&AsioDevice::GetPCMSamples, this);
 	}

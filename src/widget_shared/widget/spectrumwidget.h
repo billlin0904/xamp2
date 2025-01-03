@@ -46,7 +46,7 @@ protected:
 private:
 	bool is_stop_{ false };
 	int32_t buffer_ptr_{0};
-	SpectrumStyles style_{ SpectrumStyles::BAR_STYLE };
+	SpectrumStyles style_{ SpectrumStyles::WAVE_STYLE };
 	QColor bar_color_;
 	ComplexValarray fft_data_;
 	std::vector<std::valarray<float>> buffer_;

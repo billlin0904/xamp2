@@ -11,13 +11,14 @@
 #include <QProxyStyle>
 
 #include <widget/widget_shared_global.h>
+#include <widget/util/str_util.h>
 #include <thememanager.h>
 
 class XAMP_WIDGET_SHARED_EXPORT XMenu : public QMenu {
 public:
 	explicit XMenu(QWidget* object = nullptr)
 		: QMenu(object) {
-		qTheme.setMenuStyle(this);
+		qTheme.setMenuStyle(this);		
 	}
 };
 

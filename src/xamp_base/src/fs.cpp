@@ -93,12 +93,16 @@ std::string ReadFileToUtf8String(const Path& path) {
 	file.open(path, std::ios::binary);
 
 	if (!file.is_open()) {
-		throw FileNotFoundException();
+		return {};
 	}
 
 	file.seekg(0, std::ios::end);
 	auto length = file.tellg();
 	file.seekg(0, std::ios::beg);
+
+	if (length <= 0) {
+		return {};
+	}
 
 	std::vector<char> buffer(length);
 	file.read(&buffer[0], length);

@@ -128,12 +128,14 @@
     <QtMoc Include="widget\albumviewstyleddelegate.h" />
     <QtMoc Include="widget\audio_embedding\audio_embedding_service.h" />
     <QtMoc Include="widget\chatgpt\waveformwidget.h" />
+    <QtMoc Include="widget\cardwidget.h" />
     <ClInclude Include="widget\dao\albumdao.h" />
     <ClInclude Include="widget\dao\artistdao.h" />
     <ClInclude Include="widget\dao\musicdao.h" />
     <ClInclude Include="widget\dao\playlistdao.h" />
     <ClInclude Include="widget\databasecoverid.h" />
     <QtMoc Include="widget\encodejobwidget.h" />
+    <QtMoc Include="widget\flowlayout.h" />
     <ClInclude Include="widget\genre_view.h" />
     <QtMoc Include="widget\taglistview.h" />
     <ClInclude Include="widget\httpx.h" />
@@ -146,7 +148,6 @@
     <ClInclude Include="widget\musixmatch\musixmatch.h" />
     <ClInclude Include="widget\networkdiskcache.h" />
     <QtMoc Include="widget\playliststyleditemdelegate.h" />
-    <QtMoc Include="widget\similarsongsviewpage.h" />
     <QtMoc Include="widget\slidingstackedwidget.h" />
     <ClInclude Include="widget\tagio.h" />
     <ClInclude Include="widget\util\image_util.h" />
@@ -237,6 +238,7 @@
     <ClCompile Include="widget\artistinfopage.cpp" />
     <ClCompile Include="widget\artistview.cpp" />
     <ClCompile Include="widget\audio_embedding\audio_embedding_service.cpp" />
+    <ClCompile Include="widget\cardwidget.cpp" />
     <ClCompile Include="widget\cdpage.cpp" />
     <ClCompile Include="widget\chatgpt\waveformwidget.cpp" />
     <ClCompile Include="widget\clickablelabel.cpp" />
@@ -257,6 +259,7 @@
     <ClCompile Include="widget\equalizerview.cpp" />
     <ClCompile Include="widget\filesystemmodel.cpp" />
     <ClCompile Include="widget\filesystemviewpage.cpp" />
+    <ClCompile Include="widget\flowlayout.cpp" />
     <ClCompile Include="widget\fonticon.cpp" />
     <ClCompile Include="widget\genre_view.cpp" />
     <ClCompile Include="widget\genre_view_page.cpp" />
@@ -285,7 +288,6 @@
     <ClCompile Include="widget\qetag.cpp" />
     <ClCompile Include="widget\scrolllabel.cpp" />
     <ClCompile Include="widget\seekslider.cpp" />
-    <ClCompile Include="widget\similarsongsviewpage.cpp" />
     <ClCompile Include="widget\slidingstackedwidget.cpp" />
     <ClCompile Include="widget\spectrumwidget.cpp" />
     <ClCompile Include="widget\supereqview.cpp" />

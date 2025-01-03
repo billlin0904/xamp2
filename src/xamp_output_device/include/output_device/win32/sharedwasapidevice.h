@@ -14,7 +14,7 @@
 
 #include <base/logger.h>
 #include <base/platfrom_handle.h>
-
+#include <base/fastconditionvariable.h>
 #include <atomic>
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
@@ -160,9 +160,9 @@ public:
 	void AbortStream() noexcept override;
 
 private:
-	HRESULT GetSample(bool is_silence) noexcept;
+	HRESULT GetSample(bool is_silence);
 
-	HRESULT GetSample(uint32_t frame_available, bool is_silence) noexcept;
+	HRESULT GetSample(uint32_t frame_available, bool is_silence);
 
 	void ReportError(HRESULT hr);
 
@@ -179,6 +179,7 @@ private:
 	class DeviceEventNotification;
 
 	bool is_low_latency_{ true };
+	bool is_playing_{ false };
 	std::atomic<bool> is_running_;
 	std::atomic<int64_t> stream_time_;	
 	uint32_t buffer_frames_;
@@ -194,8 +195,10 @@ private:
 	CComPtr<ISimpleAudioVolume> simple_audio_volume_;
 	CComPtr<IAudioEndpointVolume> endpoint_volume_;
 	IAudioCallback* callback_;
+	FastConditionVariable wait_for_start_stream_cond_;
 	CComPtr<WasapiWorkQueue<SharedWasapiDevice>> rt_work_queue_;
 	std::wstring mmcss_name_;
+	FastMutex mutex_;
 	LoggerPtr logger_;
 };
 

@@ -8,37 +8,9 @@
 
 NavBarListView::NavBarListView(QWidget *parent)
 	: QFrame(parent) {
-	/*: QListView(parent)
-    , model_(this) {
-    setModel(&model_);
-    setFrameStyle(QFrame::StyledPanel);
-    setEditTriggers(QAbstractItemView::NoEditTriggers);
-    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    setSpacing(2);
-
-#ifdef Q_OS_WIN
-    setIconSize(QSize(28, 28));
-#else
-    setIconSize(QSize(18, 18));
-#endif    
-
-    (void)QObject::connect(this, &QListView::clicked, [this](auto index) {
-        auto table_id = index.data(Qt::UserRole + 1).toInt();
-        emit clickedTable(table_id);
-    });
-
-    (void)QObject::connect(&model_, &QStandardItemModel::itemChanged, [this](auto item) {
-        auto table_id = item->data(Qt::UserRole + 1).toInt();
-        auto table_name = item->data(Qt::DisplayRole).toString();
-        emit tableNameChanged(table_id, table_name);
-    });*/
-
     setStyleSheet("border: none"_str);
 	tooltip_ = new XTooltip();
     tooltip_->hide();
-
-	//return_btn_ = new NavToolButton(qFontIcon.getIcon(static_cast<int32_t>(Glyphs::ICON_CHEVRON_RIGHT)), this);
-    //menu_btn_ = new NavToolButton(qFontIcon.getIcon(static_cast<int32_t>(Glyphs::ICON_MENU)), this);
 
     main_layout_ = new NavItemLayout(this);
     main_layout_->setContentsMargins(0, 5, 0, 5);
@@ -67,7 +39,6 @@ NavBarListView::NavBarListView(QWidget *parent)
 
     main_layout_->addLayout(bottom_layout_, 0);
     main_layout_->addWidget(scroll_area_, 1, Qt::AlignTop);
-    main_layout_->addLayout(bottom_layout_, 0);
 }
 
 QString NavBarListView::tabName(int table_id) const {
@@ -85,12 +56,6 @@ int32_t NavBarListView::tabId(const QString& name) const {
 }
 
 int32_t NavBarListView::currentTabId() const {
-    /*auto index = currentIndex();
-    if (!index.isValid()) {
-        return -1;
-    }
-    auto table_id = index.data(Qt::UserRole + 1).toInt();
-    return table_id;*/
     return -1;
 }
 
@@ -224,7 +189,7 @@ void NavBarListView::onThemeChangedFinished(ThemeColor theme_color) {
         case TAB_CD:
             itr.value()->setIcon(qTheme.fontIcon(Glyphs::ICON_CD));
             break;
-        case TAB_YT_MUSIC_SEARCH:
+        /*case TAB_YT_MUSIC_SEARCH:
             itr.value()->setIcon(qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
             break;
         case TAB_YT_MUSIC_PLAYLIST:
@@ -232,7 +197,7 @@ void NavBarListView::onThemeChangedFinished(ThemeColor theme_color) {
             break;
         case TAB_AI:
             itr.value()->setIcon(qTheme.fontIcon(Glyphs::ICON_AI));
-            break;
+            break;*/
         }
     }
     tooltip_->onThemeChangedFinished(theme_color);

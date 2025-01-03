@@ -5,8 +5,9 @@
 
 #pragma once
 
-#include <output_device/output_device.h>
+#include <chrono>
 
+#include <output_device/output_device.h>
 #include <base/audioformat.h>
 
 XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN
@@ -17,6 +18,8 @@ XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN
 */
 class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE IOutputDevice {
 public:
+	static constexpr auto kWaitStreamStartTimeout = std::chrono::milliseconds(60 * 1000);
+
 	XAMP_BASE_CLASS(IOutputDevice)
 
 	/*

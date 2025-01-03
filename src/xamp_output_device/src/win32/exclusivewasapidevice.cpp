@@ -323,7 +323,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	}
 
 	// Create convert function.
-    data_convert_ = MakeConvert(output_format, output_format, buffer_frames_);
+    data_convert_ = MakeConvert(buffer_frames_);
 	XAMP_LOG_D(logger_, "WASAPI internal buffer: {}.", String::FormatBytes(buffer_.GetByteSize()));
 }
 
@@ -420,6 +420,8 @@ DsdIoFormat ExclusiveWasapiDevice::GetIoFormat() const {
 }
 
 void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
+	std::unique_lock lock{ mutex_ };
+
 	XAMP_LOG_D(logger_, "StopStream is_running_: {}", is_running_);
 	if (!is_running_) {
 		return;
@@ -440,6 +442,8 @@ void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
 }
 
 void ExclusiveWasapiDevice::StartStream() {
+	std::unique_lock lock{ mutex_ };
+
 	XAMP_LOG_D(logger_, "StartStream!");
 
 	if (!client_ || !render_client_) {
@@ -567,13 +571,13 @@ void ExclusiveWasapiDevice::StartStream() {
 		}
 		}, ExecuteFlags::EXECUTE_LONG_RUNNING);
 
-	// Wait thread start.
-	constexpr auto kWaitThreadStartSecond = 60 * 1000; // 60sec
-	if (::WaitForSingleObject(thread_start_.get(), kWaitThreadStartSecond) == WAIT_TIMEOUT) {
-		throw_translated_com_error(HRESULT_FROM_WIN32(ERROR_TIMEOUT));
+	is_running_ = false;
+	while (!is_running_) {
+		if (::WaitForSingleObject(thread_start_.get(), kWaitStreamStartTimeout.count()) == WAIT_TIMEOUT) {
+			XAMP_LOG_E(logger_, "ExclusiveWasapiDevice start render timeout.");
+			return;
+		}
 	}
-
-	// Start stream.
 	HrIfFailThrow(client_->Start());
 }
 

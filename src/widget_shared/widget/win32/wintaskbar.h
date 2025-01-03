@@ -27,7 +27,7 @@ enum TaskbarProgressState {
     TASKBAR_PROCESS_STATE_PAUSED,
 };
 
-constexpr auto kWinThumbbarButtonSize = 3;
+constexpr auto kWinThumbbarButtonSize = 4;
 
 class WinTaskbar : public QObject, public QAbstractNativeEventFilter {
 public:
@@ -64,12 +64,8 @@ public:
     QIcon stop_play_icon;
     QIcon seek_forward_icon;
     QIcon seek_backward_icon;
-    std::array<THUMBBUTTON, kWinThumbbarButtonSize> buttons;
-
 private:
     void createToolbarImages();
-
-    void initialToolbarButtons();
 
     void setWindow(QWidget* window);
 

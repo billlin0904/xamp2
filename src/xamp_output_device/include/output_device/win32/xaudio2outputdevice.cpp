@@ -95,6 +95,7 @@ private:
 
 XAudio2OutputDevice::XAudio2OutputDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::wstring& device_id)
 	: is_running_(false)
+	, is_playing_(false)
 	, buffer_frames_(0)
 	, callback_(nullptr)
 	, device_id_(device_id)
@@ -138,6 +139,8 @@ void XAudio2OutputDevice::SetAudioCallback(IAudioCallback* callback) noexcept {
 }
 
 void XAudio2OutputDevice::StopStream(bool wait_for_stop_stream) {
+	std::unique_lock lock{ mutex_ };
+
 	if (!is_running_) {
 		return;
 	}
@@ -272,10 +275,7 @@ double XAudio2OutputDevice::GetStreamTime() const noexcept {
 }
 
 void XAudio2OutputDevice::StartStream() {
-	XAMP_EXPECTS(voice_context_->sample_ready_);
-	XAMP_EXPECTS(thread_start_);
-	XAMP_EXPECTS(thread_exit_);
-	XAMP_EXPECTS(close_request_);
+	std::unique_lock lock{ mutex_ };
 
 	::ResetEvent(close_request_.get());
 
@@ -353,12 +353,15 @@ void XAudio2OutputDevice::StartStream() {
 		XAMP_LOG_D(logger_, "Render task done!");
 	});
 
-	if (::WaitForSingleObject(thread_start_.get(), kWaitThreadStartSecond) == WAIT_TIMEOUT) {
-		throw_translated_com_error(HRESULT_FROM_WIN32(ERROR_TIMEOUT));
-	}
-
 	HrIfFailThrow(xaudio2_->StartEngine());
 	HrIfFailThrow(source_voice_->Start(0, XAUDIO2_COMMIT_NOW));
+
+	while (!is_running_) {
+		if (::WaitForSingleObject(thread_start_.get(), kWaitStreamStartTimeout.count()) == WAIT_TIMEOUT) {
+			XAMP_LOG_E(logger_, "ExclusiveWasapiDevice start render timeout.");
+			return;
+		}
+	}
 }
 
 HRESULT XAudio2OutputDevice::FillSamples(bool &end_of_stream) {

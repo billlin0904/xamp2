@@ -314,13 +314,13 @@ QString ThemeManager::backgroundColorString() const {
 }
 
 void ThemeManager::setMenuStyle(QWidget* menu) {
-	menu->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
+	/*menu->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
     menu->setAttribute(Qt::WA_TranslucentBackground);
     menu->setAttribute(Qt::WA_StyledBackground);
     menu->setStyle(new IconSizeStyle(14));
     auto f = defaultFont();
     f.setPointSize(10);
-    menu->setFont(f);
+    menu->setFont(f);*/
 }
 
 QIcon ThemeManager::fontRawIcon(const Glyphs code) {
@@ -736,9 +736,9 @@ void ThemeManager::setLineEditStyle(QLineEdit* line_edit, const QString& object_
                                             background-color: %2;
                                             border: 1px solid #4d4d4d;
                                             color: white;
-                                            border-radius: 8px;
+                                            border-radius: 12px;
                                             }
-                                            )").arg(object_name).arg("#3a3a3c"_str));
+                                            )").arg(object_name).arg("#121212"_str));
 			break;
         case ThemeColor::LIGHT_THEME:
             line_edit->setStyleSheet(qFormat(R"(
@@ -746,7 +746,7 @@ void ThemeManager::setLineEditStyle(QLineEdit* line_edit, const QString& object_
                                             background-color: %2;
                                             border: 1px solid gray;
                                             color: black;
-                                            border-radius: 8px;
+                                            border-radius: 12px;
                                             }
                                             )").arg(object_name).arg(colorToString(Qt::white)));
             break;

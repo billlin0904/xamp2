@@ -66,7 +66,7 @@ void XMainWindow::setContentWidget(IXFrame *content_widget) {
     }
     installWindowAgent();
     setCentralWidget(content_widget);
-    ensureInitTaskbar();
+    //ensureInitTaskbar();
 }
 
 // QScopedPointer require default destructor.

@@ -120,14 +120,14 @@ std::system_error com_to_system_error(HRESULT hr, IErrorInfo* help) {
 
     using com_cstr = std::unique_ptr<OLECHAR[], decltype(::SysFreeString)*>;
 
-    auto getDescription = [](IErrorInfo* help) -> com_cstr {
+    auto get_description = [](IErrorInfo* help) -> com_cstr {
             BSTR description = nullptr;
             if (help)
                 help->GetDescription(&description);
             return { description, &::SysFreeString };
         };
 
-    com_cstr&& description = getDescription(help);
+    com_cstr&& description = get_description(help);
     // remove trailing newline or dot (end of last sentence)
     if (unsigned int length = description ? ::SysStringLen(description.get()) : 0) {
         unsigned int n = length;
