@@ -13,6 +13,7 @@
 #include <QSharedPointer>
 #include <QWidget>
 
+class XApplication;
 class IXMainWindow;
 
 class XProgressDialog;

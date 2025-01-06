@@ -635,8 +635,7 @@ void PlaylistTabWidget::closeAllTab() {
         auto,
         auto) {
             if (playlist_id == kAlbumPlaylistId
-                || playlist_id == kCdPlaylistId
-                || playlist_id == kYtMusicSearchPlaylistId) {
+                || playlist_id == kCdPlaylistId) {
                 return;
             }
             if (store_type != store_type_) {

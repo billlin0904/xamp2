@@ -23,19 +23,19 @@ std::shared_ptr<IThreadPoolExecutor> ThreadPoolBuilder::MakeThreadPool(const std
 }
 
 std::shared_ptr<IThreadPoolExecutor> ThreadPoolBuilder::MakeBackgroundThreadPool() {
-	return MakeThreadPool(kBackgroundThreadPoolLoggerName,
+	return MakeThreadPool(XAMP_LOG_NAME(BackgroundThreadPool),
 		kMaxBackgroundThreadPoolSize,
 		ThreadPriority::PRIORITY_BACKGROUND);
 }
 
 std::shared_ptr<IThreadPoolExecutor> ThreadPoolBuilder::MakePlaybackThreadPool() {
-	return MakeThreadPool(kPlaybackThreadPoolLoggerName,
+	return MakeThreadPool(XAMP_LOG_NAME(PlaybackThreadPool),
 		kMaxPlaybackThreadPoolSize,
 		ThreadPriority::PRIORITY_NORMAL);
 }
 
 std::shared_ptr<IThreadPoolExecutor> ThreadPoolBuilder::MakePlayerThreadPool() {
-	return MakeThreadPool(kPlayerThreadPoolLoggerName,
+	return MakeThreadPool(XAMP_LOG_NAME(PlayerThreadPool),
 		kMaxPlayerThreadPoolSize,
 		ThreadPriority::PRIORITY_NORMAL);
 }

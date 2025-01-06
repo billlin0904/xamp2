@@ -319,7 +319,7 @@ public:
             AvIfFailedThrow(ret);
         }
 
-        while (!stop_token.stop_requested()) {
+        while (!stop_token.stop_requested() && input_file_->IsActive()) {
             ret = LIBAV_LIB.Util->av_frame_make_writable(frame.get());
             if (ret < 0) {
                 AvIfFailedThrow(ret);

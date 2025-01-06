@@ -106,6 +106,8 @@ signals:
 
 	void addJobs(const QString& dir_name, QList<EncodeJob> jobs);
 
+	void readWaveformAudioData(const Path& file_path);
+
 public slots:
     void onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked, bool is_query_embeddings = false);
 
@@ -151,14 +153,6 @@ public slots:
 
 	void onRestartApp();
 
-	void onSearchCompleted(const QList<search::Album>& result);
-
-	void onFetchAlbumCompleted(const album::Album& album);
-
-	void onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std::vector<playlist::Track>& tracks);
-
-	void onSearchSuggestionsCompleted(const QList<QString>& result);
-
 	void onSetThumbnail(const DatabaseCoverId& id, const QString& cover_id);
 
 	void onRemainingTimeEstimation(size_t total_work, size_t completed_work, int32_t secs);
@@ -170,8 +164,6 @@ public slots:
 	void onPlayerStateChanged(PlayerState play_state);
 
 	void onDeviceStateChanged(DeviceState state, const QString& device_id);
-
-	void onCacheYtMusicFile(const PlayListEntity& entity);
 
 	void onSampleTimeChanged(double stream_time);
 
@@ -194,8 +186,6 @@ private:
 	void initialSpectrum();
 
 	void destroy();
-
-	void initialYtMusicService();
 
 	void initialAudioEmbeddingService();
 
@@ -245,6 +235,8 @@ private:
 
 	void appendToPlaylist(const QString& file_name, bool append_to_playlist);
 
+	void appendToPlaylistId(const QString& file_name, int32_t playlist_id);
+
 	void setupSampleWriter(ByteFormat byte_format, PlaybackFormat& playback_format) const;
 
 	void setupSampleRateConverter(std::function<void()>& initial_sample_rate_converter,
@@ -258,8 +250,6 @@ private:
 		bool resize = false);
 
 	PlaylistPage* localPlaylistPage() const;
-
-	void playCloudVideoId(const PlayListEntity& entity, const QString& video_id, bool is_doubleclicked);
 
 	QString translateDeviceDescription(const IDeviceType* device_type);
 

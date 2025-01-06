@@ -12,6 +12,7 @@
 #include <widget/albumview.h>
 #include <widget/tagio.h>
 
+#include <stream/filestream.h>
 #include <base/logger_impl.h>
 
 #if defined(Q_OS_WIN)
@@ -230,9 +231,9 @@ void BackgroundService::onBlurImage(const QString& cover_id, const QPixmap& imag
         emit blurImage(QImage());
         return;
     }    
-    /*emit blurImage(blur_image_cache_.GetOrAdd(cover_id, [&]() {
+    emit blurImage(blur_image_cache_.GetOrAdd(cover_id, [&]() {
         return image_util::blurImage(thread_pool_, image, size);
-        }));*/
+        }));
 }
 
 void BackgroundService::onTranslation(const QString& keyword, const QString& from, const QString& to) {
@@ -251,4 +252,33 @@ void BackgroundService::onTranslation(const QString& keyword, const QString& fro
         result = result.mid(0, result.indexOf(",\""_str) - 1);
         emit translationCompleted(keyword, result);
         });
+}
+
+void BackgroundService::onReadWaveformAudioData(const Path& file_path) {
+    auto dsd_mode = DsdModes::DSD_MODE_DSD2PCM;
+    if (!IsDsdFile(file_path)) {
+        dsd_mode = DsdModes::DSD_MODE_PCM;
+    }
+
+    auto filestream = StreamFactory::MakeFileStream(file_path, dsd_mode);
+
+    try {
+        filestream->OpenFile(file_path);
+
+        std::vector<float> buffer(8192);
+
+        while (!is_stop_ && filestream->IsActive()) {
+            std::fill(buffer.begin(), buffer.end(), 0.0f);
+            auto read_samples = filestream->GetSamples(buffer.data(), buffer.size());
+            if (read_samples == 0) {
+                break;
+            }
+            emit readAudioData(buffer);
+        }
+
+        emit readAudioDataCompleted();
+    }
+	catch (const Exception& e) {
+		XAMP_LOG_ERROR(e.GetErrorMessage());
+	}
 }

@@ -13,9 +13,7 @@
 #include <widget/util/str_util.h>
 #include <widget/appsettings.h>
 #include <widget/seekslider.h>
-
-#include "xampplayer.h"
-#include "util/ui_util.h"
+#include <widget/util/ui_util.h>
 
 LrcPage::LrcPage(QWidget* parent)
 	: QFrame(parent) {
@@ -80,12 +78,12 @@ void LrcPage::clearBackground() {
 }
 
 void LrcPage::setFullScreen() {
-	auto enter = getMainWindow()->isMaximized() || getMainWindow()->isFullScreen();
+	/*auto enter = getMainWindow()->isMaximized() || getMainWindow()->isFullScreen();
 	auto size = getMainWindow()->size();
 	if (size.width() > 822 * 2) {
 		enter = true;
-	}
-
+	}*/
+	auto enter = false;
 	auto f = font();
 
 	if (!enter) {
@@ -112,7 +110,7 @@ QSize LrcPage::coverSizeHint() const {
 }
 
 void LrcPage::resizeEvent(QResizeEvent* event) {
-	//setFullScreen();
+	setFullScreen();
 }
 
 void LrcPage::setBackground(const QImage& cover) {
@@ -158,7 +156,7 @@ void LrcPage::startBackgroundAnimation(const int durationMs) {
 void LrcPage::paintEvent(QPaintEvent*) {
 	QPainter painter(this);
 
-	/*painter.fillRect(rect(), QColor("#121212"));
+	painter.fillRect(rect(), QColor("#121212"));
 
 	if (background_image_.isNull()) {
 		return;
@@ -175,7 +173,7 @@ void LrcPage::paintEvent(QPaintEvent*) {
 		painter.setOpacity(prev_bg_alpha_ / 255.0);
 		painter.drawImage(rect(), prev_background_image_);
 		painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-	}*/
+	}
 }
 
 void LrcPage::setAppearBgProgress(int x) {

@@ -10,10 +10,11 @@
 
 #include <thememanager.h>
 #include <widget/driveinfo.h>
-
-inline constexpr auto kRestartExistCode = -2;
+#include <widget/widget_shared.h>
 
 #include <QtWidgets/QMainWindow>
+
+inline constexpr auto kRestartExistCode = -2;
 
 namespace QWK {
     class WidgetWindowAgent;
@@ -53,12 +54,14 @@ public:
 
     virtual void setTheme() = 0;
 
+	IThreadPoolExecutor* threadPool() const;
 protected:
     IXMainWindow();
 
     void installWindowAgent();
 
     QWK::WidgetWindowAgent *window_agent_;
+    std::shared_ptr<IThreadPoolExecutor> thread_pool_;
 };
 
 class XAMP_WIDGET_SHARED_EXPORT IXFrame : public QFrame {

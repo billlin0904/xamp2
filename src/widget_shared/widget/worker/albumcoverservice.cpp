@@ -67,7 +67,7 @@ void AlbumCoverService::mergeUnknownAlbumCover() {
             return;
         }
         TagIO tag_io;
-		tag_io.Open(entity.file_path.toStdWString());
+		tag_io.Open(entity.file_path.toStdWString(), TAG_IO_READ_MODE);
         try {
             auto image = tag_io.embeddedCover();
             if (!image.isNull()) {
@@ -128,7 +128,7 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
         }
 
         TagIO reader;
-		reader.Open(music_file_path);
+		reader.Open(music_file_path, TAG_IO_READ_MODE);
         auto cover = reader.embeddedCover();
         if (!cover.isNull()) {
             //cover = image_util::mergeImage({ cover });

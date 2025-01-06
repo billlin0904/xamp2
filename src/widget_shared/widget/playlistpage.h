@@ -49,6 +49,8 @@ public:
 
 	QToolButton* heart();
 
+	QLineEdit* searchLineEdit();
+
 	void setHeart(bool heart);
 
 	void setCover(const QPixmap* cover);

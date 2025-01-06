@@ -5,29 +5,65 @@
 
 #pragma once
 
+#include <QFrame>
 #include <QWidget>
-#include <QAudioInput>
-#include <QByteArray>
+#include <widget/widget_shared_global.h>
+#include <widget/widget_shared.h>
 #include <vector>
 
-class QTimer;
-
-class WaveformWidget : public QWidget {
+class XAMP_WIDGET_SHARED_EXPORT WaveformWidget : public QFrame {
     Q_OBJECT
 
 public:
+    static constexpr int kFramesPerPeak = 4096;
+
     explicit WaveformWidget(QWidget *parent = nullptr);
 
-    ~WaveformWidget();
+    void setCurrentPosition(float sec);
+
+    void setSampleRate(uint32_t sample_rate);
+
+signals:
+    void playAt(float sec);
 
 public slots:
-    void readAudioData(const std::vector<int16_t> &buffer);
+    void onReadAudioData(const std::vector<float> & buffer);
 
-    void silence();
+    void updateWavePixmap();
+
+    void doneRead();
+
+    void clear();
+
 protected:
     void paintEvent(QPaintEvent *event) override;
 
+    void mousePressEvent(QMouseEvent* event) override;
+
+	void mouseMoveEvent(QMouseEvent* event) override;
+
+    void mouseReleaseEvent(QMouseEvent* event) override;
+
+    void resizeEvent(QResizeEvent* event) override;
+
 private:
-    QTimer* timer_;
-    std::vector<int16_t> buffer_;
+    void drawTimeAxis(QPainter& p);
+
+    void drawDuration(QPainter& painter);
+
+    float mapPeakToY(float peakVal, int top, int height, bool isPositive) const;
+
+    float xToTime(float x) const;
+
+    float timeToX(float sec) const;
+
+	bool is_read_completed_ = false;
+    bool pixmap_dirty_ = true;
+    float total_ms_ = 0.f;
+    size_t  peak_count_ = 0;
+    float cursor_ms_ = -1.f;
+    uint32_t sample_rate_ = 44100;
+    QPixmap wave_cache_;
+    std::vector<float> left_peaks_;
+    std::vector<float> right_peaks_;
 };

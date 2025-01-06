@@ -6,12 +6,12 @@
 #pragma once
 
 #include <widget/widget_shared_global.h>
+#include <widget/widget_shared.h>
 #include <QFrame>
-
-#include <QThread>
 
 class PlaylistPage;
 class FileSystemModel;
+class WaveformWidget;
 
 namespace Ui {
 	class FileSystemViewPage;
@@ -24,6 +24,9 @@ public:
 
 	virtual ~FileSystemViewPage() override;
 
+	PlaylistPage* playlistPage();
+
+	WaveformWidget* waveformWidget();
 signals:
 	void addPathToPlaylist(const QString& path, bool append_to_playlist);
 

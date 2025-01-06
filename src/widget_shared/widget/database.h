@@ -80,8 +80,7 @@ enum {
 	kDefaultPlaylistId = 1,
 	kAlbumPlaylistId,
 	kCdPlaylistId,
-	kYtMusicSearchPlaylistId,
-	kSimilarSongPlaylistId,
+	kFileSystemPlaylistId,
 	kMaxExistPlaylist
 };
 
@@ -111,7 +110,7 @@ inline bool isCloudStore(const StoreType store_type) {
 inline bool notAddablePlaylist(const int32_t playlist_id) {
 	return playlist_id == kAlbumPlaylistId
 		|| playlist_id == kCdPlaylistId
-		|| playlist_id == kSimilarSongPlaylistId;
+		|| playlist_id == kFileSystemPlaylistId;
 }
 
 class XAMP_WIDGET_SHARED_EXPORT Database final {

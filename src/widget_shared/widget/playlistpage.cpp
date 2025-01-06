@@ -237,6 +237,10 @@ QToolButton* PlaylistPage::heart() {
 	return heart_button_;
 }
 
+QLineEdit* PlaylistPage::searchLineEdit() {
+	return search_line_edit_;
+}
+
 ScrollLabel* PlaylistPage::title() {
 	return title_;
 }

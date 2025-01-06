@@ -8,9 +8,18 @@
 #include <thememanager.h>
 #include <xampplayer.h>
 
+namespace {
+    XAMP_DECLARE_LOG_NAME(GUIThreadPool);
+}
+
+IThreadPoolExecutor* IXMainWindow::threadPool() const {
+	return thread_pool_.get();
+}
+
 IXMainWindow::IXMainWindow()
 	: QMainWindow() {
     setAttribute(Qt::WA_DontCreateNativeAncestors);
+    thread_pool_ = ThreadPoolBuilder::MakeThreadPool(XAMP_LOG_NAME(GUIThreadPool), 4);
 }
 
 void IXMainWindow::installWindowAgent() {

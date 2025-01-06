@@ -48,6 +48,10 @@ signals:
 
 	void jobError(const QString& job_id, const QString &message);
 
+	void readAudioData(const std::vector<float>& interleaved);
+
+	void readAudioDataCompleted();
+
 public Q_SLOT:
 	void cancelAllJob();
 
@@ -64,6 +68,8 @@ public Q_SLOT:
 	void onSearchLyrics(int32_t music_id, const QString& title, const QString& artist);
 
 	void onTranslation(const QString& keyword, const QString& from, const QString& to);
+
+	void onReadWaveformAudioData(const Path & file_path);
 
 private:
 	bool is_stop_{false};

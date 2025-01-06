@@ -9,12 +9,16 @@
 #include <widget/filesystemmodel.h>
 #include <widget/util/ui_util.h>
 
+#include <QLabel>
 #include <QHelpEvent>
 #include <QDateTime>
 #include <QFileDialog>
 #include <QSortFilterProxyModel>
 #include <QStyledItemDelegate>
-#include <QToolTip>
+#include <QScrollBar>
+#include <widget/util/ui_util.h>
+
+#include "xampplayer.h"
 
 class FileSystemViewPage::DisableToolTipStyledItemDelegate : public QStyledItemDelegate {
 public:
@@ -80,7 +84,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     : QFrame(parent) {
     ui_ = new Ui::FileSystemViewPage();
     ui_->setupUi(this);
-
+    
     setFrameStyle(QFrame::StyledPanel);
 
     dir_model_ = new FileSystemModel(this);
@@ -98,6 +102,11 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     ui_->dirTree->setRootIndex(dir_first_sort_filter_->mapFromSource(dir_model_->index(qAppSettings.myMusicFolderPath())));
     ui_->dirTree->setStyleSheet("background-color: transparent"_str);
     ui_->dirTree->setSortingEnabled(true);
+    ui_->dirTree->setFixedWidth(300);
+
+    auto f = ui_->dirTree->font();
+    f.setPointSize(8);
+	ui_->dirTree->setFont(f);
 
     ui_->dirTree->header()->hide();
     ui_->dirTree->hideColumn(1);
@@ -105,6 +114,69 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     ui_->dirTree->hideColumn(3);
 
     ui_->dirTree->setContextMenuPolicy(Qt::CustomContextMenu);
+	ui_->page->searchLineEdit()->hide();
+    ui_->page->pageTitle()->hide();
+    ui_->page->hidePlaybackInformation(true);
+    ui_->page->playlist()->setPlaylistId(kFileSystemPlaylistId, kAppSettingPlaylistColumnName);
+
+    (void)QObject::connect(ui_->dirTree, &QTreeView::clicked, [this](const auto &index) {
+        ui_->page->playlist()->removeAll();
+
+        auto src_index = dir_first_sort_filter_->mapToSource(index);
+        auto path = toNativeSeparators(dir_model_->fileInfo(src_index).filePath());
+
+        QFileInfo file_info(path);
+        QString parent_dir_path;
+
+        if (!file_info.isDir()) {
+            parent_dir_path = file_info.absolutePath();
+        } else {
+            parent_dir_path = path;
+        }        
+
+        ForwardList<TrackInfo> track_infos;
+
+        QDirIterator itr(parent_dir_path,
+            getTrackInfoFileNameFilter(),
+            QDir::NoDotAndDotDot | QDir::Files);
+
+        std::vector<std::wstring> file_paths;
+        file_paths.reserve(20);
+
+    	while (itr.hasNext()) {
+            const auto next_path = toNativeSeparators(itr.next());
+            const auto path = next_path.toStdWString();
+			file_paths.push_back(path);
+        }
+
+        FastMutex mutex;
+
+        Executor::ParallelFor(getMainWindow()->threadPool(), file_paths, [&track_infos, &mutex](const auto& path) {
+            auto reader = MakeMetadataReader();
+            try {
+                reader->Open(path);
+				std::lock_guard lock(mutex);
+                track_infos.push_front(reader->Extract());
+            }
+            catch (const std::exception& e) {
+                XAMP_LOG_DEBUG("Failed to extract file: {}", e.what());
+            }
+            catch (...) {
+            }
+            });
+
+        if (track_infos.empty()) {
+            return;
+        }
+
+        track_infos.sort([](const auto& first, const auto& last) {
+            return first.track < last.track;
+            });
+
+        DatabaseFacade facade;
+        facade.insertTrackInfo(track_infos, kFileSystemPlaylistId, StoreType::LOCAL_STORE, nullptr);
+        ui_->page->playlist()->reload();
+        });
     (void)QObject::connect(ui_->dirTree, &QTreeView::customContextMenuRequested, [this](auto pt) {
         ActionMap<QTreeView, std::function<void(const QPoint&)>> action_map(ui_->dirTree);
 
@@ -143,6 +215,17 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
         action_map.exec(pt, pt);
         });
     setStyleSheet("background-color: transparent; border: none;"_str);
+
+    ui_->dirTree->verticalScrollBar()->setStyleSheet(
+        "QScrollBar:vertical { width: 6px; }"_str);
+}
+
+PlaylistPage* FileSystemViewPage::playlistPage() {
+    return ui_->page;
+}
+
+WaveformWidget* FileSystemViewPage::waveformWidget() {
+    return ui_->frame_2;
 }
 
 FileSystemViewPage::~FileSystemViewPage() {
