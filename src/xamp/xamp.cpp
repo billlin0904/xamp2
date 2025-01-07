@@ -1525,7 +1525,14 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
         emit findAlbumCover(DatabaseCoverId(entity.music_id, entity.album_id));
     }
 
-	file_explorer_page_->waveformWidget()->setSampleRate(entity.sample_rate);
+    uint32_t sampler_rate = 0;
+    if (entity.sample_rate >= 2822400) {
+        sampler_rate = 88200;
+    }
+    else {
+        sampler_rate = entity.sample_rate;
+    }
+	file_explorer_page_->waveformWidget()->setSampleRate(sampler_rate);
 	emit readWaveformAudioData(entity.file_path.toStdWString());
 
     music_dao_.updateMusicPlays(entity.music_id);
@@ -1881,7 +1888,7 @@ void Xamp::initialPlaylist() {
     (void)QObject::connect(background_service_.get(),
         &BackgroundService::readAudioDataCompleted,
         file_explorer_page_->waveformWidget(),
-        &WaveformWidget::updateWavePixmap);
+        &WaveformWidget::doneRead);
 
     (void)QObject::connect(file_explorer_page_->waveformWidget(), &WaveformWidget::playAt, [this](auto value) {
         try {

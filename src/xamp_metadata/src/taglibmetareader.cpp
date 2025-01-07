@@ -9,7 +9,7 @@
 #include <base/logger_impl.h>
 #include <base/singleton.h>
 #include <base/exception.h>
-#include <base/port.h>
+#include <base/fastmutex.h>
 
 #include <vector>
 #include <sstream>
@@ -395,28 +395,26 @@ private:
 
 class TaglibMetadataReader::TaglibMetadataReaderImpl {
 public:
-    TaglibMetadataReaderImpl() = default;
-
 	void Open(const Path& path) {
-		fileref_opt_ = TryGetFileRef(path);
+		file_ref_opt_ = TryGetFileRef(path);
         path_ = path;
 	}
 
     XAMP_NO_DISCARD TrackInfo Extract() const {
-		if (!fileref_opt_) {
+		if (!file_ref_opt_) {
 			throw Exception("file was NULL!");
 		}
 
-        const auto& fileref = *fileref_opt_;
-        const auto* tag = fileref.tag();
+        const auto& file_ref = *file_ref_opt_;
+        const auto* tag = file_ref.tag();
 
         TrackInfo track_info;
 
         if (tag != nullptr) {
-            ExtractTag(path_, tag, fileref.audioProperties(), track_info);
+            ExtractTag(path_, tag, file_ref.audioProperties(), track_info);
         } else {            
             SetFileInfo(path_, track_info);
-            SetAudioProperties(fileref.audioProperties(), track_info);
+            SetAudioProperties(file_ref.audioProperties(), track_info);
         }
 
         // Tag not empty but title maybe empty!
@@ -427,32 +425,32 @@ public:
         }
 
         const auto ext = String::ToLower(path_.extension().string());
-        track_info.replay_gain = GetReplayGainFromFile(ext, fileref.file());
+        track_info.replay_gain = GetReplayGainFromFile(ext, file_ref.file());
         return track_info;
     }
 
-    std::optional<Vector<std::byte>> ReadEmbeddedCover() {
+    std::optional<Vector<std::byte>> ReadEmbeddedCover() const {
 		if (!IsSupported()) {
             return std::nullopt;
 		}
 
-        if (!fileref_opt_ || !fileref_opt_->tag()) {
+        if (!file_ref_opt_ || !file_ref_opt_->tag()) {
             return std::nullopt;
         }
         const auto ext = String::ToLower(path_.extension().string());
-        return GetCover(ext, fileref_opt_->file());
+        return GetCover(ext, file_ref_opt_->file());
     }
 
     XAMP_ALWAYS_INLINE bool IsSupported() const noexcept {
 		return Singleton<TaglibHelper>::GetInstance().IsSupported(path_);
     }
 
-    std::optional<ReplayGain> GetReplayGain() {
-        if (!fileref_opt_) {
+    std::optional<ReplayGain> GetReplayGain() const {
+        if (!file_ref_opt_) {
             return std::nullopt;
         }
         const auto ext = String::ToLower(path_.extension().string());
-        return GetReplayGainFromFile(ext, fileref_opt_->file());
+        return GetReplayGainFromFile(ext, file_ref_opt_->file());
     }
 
 private:
@@ -464,8 +462,9 @@ private:
 #endif
         return ref.isNull() ? std::nullopt : CreateOptional<FileRef>(std::move(ref));
     }
+
     Path path_;
-    std::optional<FileRef> fileref_opt_;
+    std::optional<FileRef> file_ref_opt_;
 };
 
 XAMP_PIMPL_IMPL(TaglibMetadataReader)

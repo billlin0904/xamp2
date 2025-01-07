@@ -273,6 +273,7 @@ void BackgroundService::onReadWaveformAudioData(const Path& file_path) {
             if (read_samples == 0) {
                 break;
             }
+            //XAMP_LOG_DEBUG("Read {} samples", read_samples);
             emit readAudioData(buffer);
         }
 

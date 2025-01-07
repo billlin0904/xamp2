@@ -329,7 +329,7 @@ void AVX2Convert(TStoreType* output, const float* input, float float_scale, cons
 			output += 8;
 		}
 		else if constexpr (sizeof(T) == 3) {
-			__m256i output_values = _mm256_cvttps_epi32(scaled_values);
+			__m256i output_values = _mm256_cvtps_epi32(scaled_values);
 			alignas(32) int32_t temp_output[8];
 			_mm256_store_si256(reinterpret_cast<__m256i*>(temp_output), output_values);
 			__m256i temp_output_values = _mm256_load_si256(reinterpret_cast<const __m256i*>(temp_output));

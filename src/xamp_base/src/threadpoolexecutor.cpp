@@ -222,9 +222,9 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) resume.", thread_id, i);
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) start.", thread_id, i);
 
-		while (!is_stopped_ && !stop_token.stop_requested()) {
-			Vector<MoveOnlyFunction> tasks(bulk_size_);
+		Vector<MoveOnlyFunction> tasks(bulk_size_);
 
+		while (!is_stopped_ && !stop_token.stop_requested()) {
 			auto task_size = TryLocalPop(tasks, stop_token, local_queue);
 
 			if (!task_size) {

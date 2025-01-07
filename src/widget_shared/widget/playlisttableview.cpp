@@ -617,13 +617,13 @@ void PlaylistTableView::initial() {
 
             action_map.addSeparator();
 
-            auto *add_to_playlist = action_map.addSubMenu(tr("Add to cloud playlist"));
+            /*auto *add_to_playlist = action_map.addSubMenu(tr("Add to playlist"));
             QMap<QString, QString> playlist_ids;
             playlist_dao_.forEachPlaylist([&playlist_ids](auto, auto, auto store_type, auto cloud_playlist_id, auto name) {
                 if (store_type == StoreType::CLOUD_STORE) {
                     playlist_ids.insert(cloud_playlist_id, name);
                 }
-                });
+                });*/
 
             const auto rows = selectItemIndex();
             std::vector<std::string> video_ids;
@@ -668,8 +668,9 @@ void PlaylistTableView::initial() {
                     });
             }
 
-            for (auto itr = playlist_ids.begin(); itr != playlist_ids.end(); ++itr) {
+            /*for (auto itr = playlist_ids.begin(); itr != playlist_ids.end(); ++itr) {
                 const auto& playlist_id = itr.key();
+                
                 add_to_playlist->addAction(qFormat("Add to playlist (%1)").arg(itr.value()), [playlist_id, video_ids, this]() {
                     QString source_playlist_id;
                     if (cloudPlaylistId()) {
@@ -677,15 +678,15 @@ void PlaylistTableView::initial() {
                     }
                     emit addToPlaylist(source_playlist_id, playlist_id, video_ids);
                     });
-            }
+            }*/
 
-            action_map.setCallback(action_map.addAction(tr("Cache file")), [this]() {
+            /*action_map.setCallback(action_map.addAction(tr("Cache file")), [this]() {
                 const auto rows = selectItemIndex();
                 for (const auto& row : rows) {
                     auto play_list_entity = this->item(row.second);
                     emit downloadFile(play_list_entity);
                 }
-                });
+                });*/
             
             auto* remove_all_act = action_map.addAction(tr("Remove all"));
             remove_all_act->setIcon(qTheme.fontIcon(Glyphs::ICON_REMOVE_ALL));
@@ -743,12 +744,9 @@ void PlaylistTableView::initial() {
 
         auto* add_music_to_new_playlist_menu = action_map.addSubMenu(tr("Add music to new playlist"));
         playlist_dao_.forEachPlaylist([add_music_to_new_playlist_menu, this](auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
-            if (store_type == StoreType::CLOUD_STORE || store_type == StoreType::CLOUD_SEARCH_STORE) {
-                return;
-            }
-            if (playlist_id == kAlbumPlaylistId || playlist_id == kCdPlaylistId) {
-                return;
-            }
+			if (notAddablePlaylist(playlist_id)) {
+				return;
+			}
             add_music_to_new_playlist_menu->addAction(name, [playlist_id, this]() {
                 emit addPlaylist(playlist_id, items());
                 });

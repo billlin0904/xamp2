@@ -72,65 +72,33 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     (void)QObject::connect(this, &PlaylistTabWidget::customContextMenuRequested, [this](auto pt) {
         ActionMap<PlaylistTabWidget> action_map(this);
 
-        if (store_type_ == StoreType::CLOUD_STORE) {
-            action_map.setCallback(action_map.addAction(tr("Create a playlist")), [this]() {
-                emit createCloudPlaylist();
-                });
+        auto* close_all_tab_act = action_map.addAction(tr("Close all tab"), [this]() {
+            closeAllTab();
+            });
 
-            auto* reload_the_tab_act = action_map.addAction(tr("Reload all playlist"), [this]() {
-                emit reloadAllPlaylist();
-                });
+        auto* close_other_tab_act = action_map.addAction(tr("Close other tab"), [pt, this]() {
+            auto index = tabBar()->tabAt(pt);
+            if (index == -1) {
+                return;
+            }
 
-            auto* reload_the_playlist_act = action_map.addAction(tr("Reload the playlist"), [pt, this]() {
-                auto tab_index = tabBar()->tabAt(pt);
-                if (tab_index == -1) {
-                    return;
+            const auto* exclude_page = widget(index);
+
+            QList<QWidget*> playlist_pages;
+            for (auto i = 0; i < count(); ++i) {
+                auto* playlist_page = widget(i);
+                playlist_pages.append(playlist_page);
+            }
+
+            Q_FOREACH(auto * playlist_page, playlist_pages) {
+                if (playlist_page == exclude_page) {
+                    continue;
                 }
-                emit reloadPlaylist(tab_index);
-                });
-
-            auto* delete_the_tab_act = action_map.addAction(tr("Delete the playlist"), [pt, this]() {
-                auto tab_index = tabBar()->tabAt(pt);
-                if (tab_index == -1) {
-                    return;
-                }
-
-                auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(tab_index));
-                if (!playlist_page->playlist()->cloudPlaylistId()) {
-                    return;
-                }
-
-                emit deletePlaylist(playlist_page->playlist()->cloudPlaylistId().value());
-                });
-        } else {
-            auto* close_all_tab_act = action_map.addAction(tr("Close all tab"), [this]() {
-                closeAllTab();
-                });
-
-            auto* close_other_tab_act = action_map.addAction(tr("Close other tab"), [pt, this]() {
-                auto index = tabBar()->tabAt(pt);
-                if (index == -1) {
-                    return;
-                }
-
-                const auto* exclude_page = widget(index);
-
-                QList<QWidget*> playlist_pages;
-                for (auto i = 0; i < count(); ++i) {
-                    auto* playlist_page = widget(i);
-                    playlist_pages.append(playlist_page);
-                }
-
-                Q_FOREACH(auto * playlist_page, playlist_pages) {
-                    if (playlist_page == exclude_page) {
-                        continue;
-                    }
-                    const auto tab_index = indexOf(playlist_page);
-                    closeTab(tab_index);
-                }
-                emit removeAllPlaylist();
-                });
-        }
+                const auto tab_index = indexOf(playlist_page);
+                closeTab(tab_index);
+            }
+            emit removeAllPlaylist();
+            });
 
         action_map.addSeparator();
 
@@ -652,7 +620,7 @@ void PlaylistTabWidget::closeAllTab() {
 void PlaylistTabWidget::setStoreType(StoreType type) {
     store_type_ = type;
     setTabsClosable(true);
-    setMovable(store_type_ == StoreType::CLOUD_SEARCH_STORE ? true : false);
+    setMovable(true);
 }
 
 void PlaylistTabWidget::reloadAll() {

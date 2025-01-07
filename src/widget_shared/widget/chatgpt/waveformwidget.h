@@ -33,8 +33,6 @@ public slots:
 
     void doneRead();
 
-    void clear();
-
 protected:
     void paintEvent(QPaintEvent *event) override;
 
@@ -57,13 +55,13 @@ private:
 
     float timeToX(float sec) const;
 
-	bool is_read_completed_ = false;
     bool pixmap_dirty_ = true;
     float total_ms_ = 0.f;
     size_t  peak_count_ = 0;
     float cursor_ms_ = -1.f;
     uint32_t sample_rate_ = 44100;
     QPixmap wave_cache_;
+    QPixmap mask_pixmap_;
     std::vector<float> left_peaks_;
     std::vector<float> right_peaks_;
 };

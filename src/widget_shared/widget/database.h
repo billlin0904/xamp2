@@ -76,7 +76,7 @@ constexpr auto kMaxDatabasePoolSize = 8;
 
 constexpr int32_t kInvalidDatabaseId = -1;
 
-enum {
+enum PlaylistId {
 	kDefaultPlaylistId = 1,
 	kAlbumPlaylistId,
 	kCdPlaylistId,
@@ -99,15 +99,13 @@ enum class StoreType {
 	LOCAL_STORE,
 	PLAYLIST_LOCAL_STORE,
 	CLOUD_STORE,
-	CLOUD_SEARCH_STORE,
 };
 
-inline bool isCloudStore(const StoreType store_type) {
-	return store_type == StoreType::CLOUD_STORE
-		|| store_type == StoreType::CLOUD_SEARCH_STORE;
+XAMP_WIDGET_SHARED_EXPORT inline bool isCloudStore(StoreType store_type) {
+	return store_type == StoreType::CLOUD_STORE;
 }
 
-inline bool notAddablePlaylist(const int32_t playlist_id) {
+XAMP_WIDGET_SHARED_EXPORT inline bool notAddablePlaylist(const int32_t playlist_id) {
 	return playlist_id == kAlbumPlaylistId
 		|| playlist_id == kCdPlaylistId
 		|| playlist_id == kFileSystemPlaylistId;

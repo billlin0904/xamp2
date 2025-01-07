@@ -77,6 +77,22 @@ AudioDeviceManager::AudioDeviceManager()
     XAMP_REGISTER_DEVICE_TYPE(ExclusiveWasapiDeviceType);
     XAMP_REGISTER_DEVICE_TYPE(NullOutputDeviceType);
     XAMP_REGISTER_DEVICE_TYPE(AsioDeviceType);
+
+    switch (_MM_GET_ROUNDING_MODE()) {
+    case _MM_ROUND_NEAREST:
+        XAMP_LOG_DEBUG("MMX rounding mode: _MM_ROUND_NEAREST");
+        break;
+    case _MM_ROUND_TOWARD_ZERO:
+        XAMP_LOG_DEBUG("MMX rounding mode: _MM_ROUND_TOWARD_ZERO");
+        break;
+    case _MM_ROUND_DOWN:
+        XAMP_LOG_DEBUG("MMX rounding mode: _MM_ROUND_DOWN");
+        break;
+    case _MM_ROUND_UP:
+        XAMP_LOG_DEBUG("MMX rounding mode: _MM_ROUND_UP");
+        break;
+    default:;
+    }
 #else
     using namespace osx;
     XAMP_REGISTER_DEVICE_TYPE(CoreAudioDeviceType);

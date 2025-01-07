@@ -305,9 +305,6 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         auto* sub_menu = action_map.addSubMenu(tr("Add albums to playlist"));
         
         playlist_dao_.forEachPlaylist([sub_menu, this](auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
-            if (store_type == StoreType::CLOUD_STORE || store_type == StoreType::CLOUD_SEARCH_STORE) {
-                return;
-            }
             if (notAddablePlaylist(playlist_id)) {
                 return;
             }
@@ -468,9 +465,6 @@ void AlbumView::showMenu(const QPoint &pt) {
     auto* sub_menu = action_map.addSubMenu(tr("Add album to playlist"));
 
     playlist_dao_.forEachPlaylist([sub_menu, album_id, this](auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
-        if (store_type == StoreType::CLOUD_STORE || store_type == StoreType::CLOUD_SEARCH_STORE) {
-            return;
-        }
         if (notAddablePlaylist(playlist_id)) {
             return;
         }

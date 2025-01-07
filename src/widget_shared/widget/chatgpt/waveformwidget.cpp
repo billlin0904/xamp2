@@ -1,4 +1,4 @@
-#include <QPainter>
+Ôªø#include <QPainter>
 #include <QLinearGradient>
 #include <QTimer>
 #include <QPainterPath>
@@ -80,17 +80,13 @@ void WaveformWidget::onReadAudioData(const std::vector<float> & buffer) {
     update();
 }
 
-void WaveformWidget::clear() {
-	left_peaks_.clear();
-	right_peaks_.clear();
-    update();
-}
-
 void WaveformWidget::drawTimeAxis(QPainter& p) {
     auto total_sec = static_cast<int32_t>(total_ms_ / 1000.0f);
     if (total_sec <= 0) {
         return;
     }
+
+    bool min_range = total_sec < 20;
 
     int h = height();
     int y_base = h - 1;
@@ -117,7 +113,7 @@ void WaveformWidget::drawTimeAxis(QPainter& p) {
             p.drawLine(QPointF(x_tick, y_base), QPointF(x_tick, y_base - 2));
         }
 
-        if (cur_sec % 30 == 0) {
+        if (cur_sec % 30 == 0 || (min_range && cur_sec % 1 == 0)) {
             p.drawLine(QPointF(x_tick, y_base), QPointF(x_tick, y_base - 5));
 
             QString tick_text = formatDuration(cur_sec);
@@ -150,7 +146,7 @@ void WaveformWidget::drawDuration(QPainter& painter) {
 
     QString time_text = formatDuration(cur_sec, false);
 
-    QFontMetrics fm(painter.font());
+	const QFontMetrics fm(painter.font());
     int text_width = fm.horizontalAdvance(time_text);
     int text_height = fm.height();
 
@@ -159,31 +155,25 @@ void WaveformWidget::drawDuration(QPainter& painter) {
         x_text = 0;
     }
 
-    static const float y_text = 20.0f;
-    static const int padding = 4;
-    static const float corner_radius = 5.0f;
+    static const float kYTextHeight = 20.0f;
+    static const int kPadding = 4;
+    static const float kCornerRadius = 5.0f;
 
-    QRectF bg_rect(x_text, y_text - text_height, text_width + padding * 2, text_height + padding * 2);
+    QRectF bg_rect(x_text, kYTextHeight - text_height, text_width + kPadding * 2, text_height + kPadding * 2);
 
     painter.setPen(Qt::NoPen);
     painter.setBrush(QColor(50, 50, 200, 200));
-    painter.drawRoundedRect(bg_rect, corner_radius, corner_radius);
+    painter.drawRoundedRect(bg_rect, kCornerRadius, kCornerRadius);
 
     painter.setPen(Qt::white);
-    float text_baseline_y = (y_text + padding - fm.descent());
-    float text_start_x = x_text + padding;
+    float text_baseline_y = (kYTextHeight + kPadding - fm.descent());
+    float text_start_x = x_text + kPadding;
     painter.drawText(QPointF(text_start_x, text_baseline_y), time_text);
 }
 
 void WaveformWidget::paintEvent(QPaintEvent *event) {
     QPainter painter(this);
-
-    if (pixmap_dirty_ && is_read_completed_) {
-        updateWavePixmap();
-    }
-
     painter.drawPixmap(0, 0, wave_cache_);
-
     drawDuration(painter);
 	drawTimeAxis(painter);
 }
@@ -224,10 +214,7 @@ void WaveformWidget::mouseReleaseEvent(QMouseEvent* event) {
 
 void WaveformWidget::resizeEvent(QResizeEvent* event) {
 	QFrame::resizeEvent(event);
-	if (total_ms_ == 0.0f) {
-		return;
-	}
-	pixmap_dirty_ = true;
+    updateWavePixmap();
 	update();
 }
 
@@ -255,20 +242,20 @@ void WaveformWidget::updateWavePixmap() {
         return static_cast<float>(i) / (peak_count - 1) * (w - 1);
         };
 
-    // §W(•™¡nπD)
+    // ‰∏ä(Â∑¶ËÅ≤ÈÅì)
     {
         QPolygonF poly;
         poly.reserve(peak_count * 2);
         int top = 0, channelH = h / 2;
 
-        // •ø•b
+        // Ê≠£Âçä
         for (int i = 0; i < peak_count; i++) {
             float val = left_peaks_[i];
             float x = map_x(i);
             float y = mapPeakToY(val, top, channelH, true);
             poly.push_back(QPointF(x, y));
         }
-        // ≠t•b
+        // Ë≤†Âçä
         for (int i = peak_count - 1; i >= 0; i--) {
             float val = left_peaks_[i];
             float x = map_x(i);
@@ -281,7 +268,7 @@ void WaveformWidget::updateWavePixmap() {
         p.drawPolygon(poly);
     }
 
-    // §U(•k¡nπD)
+    // ‰∏ã(Âè≥ËÅ≤ÈÅì)
     {
         QPolygonF poly;
         poly.reserve(peak_count * 2);
@@ -306,28 +293,26 @@ void WaveformWidget::updateWavePixmap() {
         p.drawPolygon(poly);
     }
 
-    // => ®Ï¶π, wave §wµe¶n¶b wave_cache_
-    // §U¶∏ paintEvent() •uª› drawPixmap ¥N¶Ê
     pixmap_dirty_ = false;
     peak_count_ = left_peaks_.size();
-    total_ms_ = static_cast<float>(peak_count_) * (kFramesPerPeak * (1000.f / sample_rate_));
+    total_ms_ = static_cast<float>(peak_count_) * (kFramesPerPeak * (1000.f / static_cast<float>(sample_rate_)));
 }
 
 void WaveformWidget::doneRead() {
-	is_read_completed_ = true;
     updateWavePixmap();
+    update();
 }
 
 float WaveformWidget::mapPeakToY(float peakVal, int top, int height, bool isPositive) const {
-    float headroomFactor = 0.6f;
-    float midY = top + height * 0.5f;
-    float amplitudeRange = (height * 0.5f) * headroomFactor;
+    static const float kHeadroomFactor = 0.6f;
+
+    float mid_y = top + height * 0.5f;
+    float amplitude_range = (height * 0.5f) * kHeadroomFactor;
 
     if (isPositive) {
-        return midY - peakVal * amplitudeRange;
+        return mid_y - peakVal * amplitude_range;
     }
     else {
-        return midY + peakVal * amplitudeRange;
+        return mid_y + peakVal * amplitude_range;
     }
 }
-
