@@ -20,7 +20,7 @@ namespace {
             right_peaks.reserve(WaveformWidget::kFramesPerPeak);
         }
         const auto sign_mask = _mm256_castsi256_ps(_mm256_set1_epi32(0x7FFFFFFF));
-        const int frame_count = buffer.size() / 2;
+        const uint32_t frame_count = buffer.size() / 2;
 
         for (int start = 0; start < frame_count; start += WaveformWidget::kFramesPerPeak) {
             float max_left = 0.f;
@@ -64,6 +64,10 @@ WaveformWidget::WaveformWidget(QWidget *parent)
 
 void WaveformWidget::setCurrentPosition(float sec) {
 	cursor_ms_ = sec * 1000.f;
+    float ratio = cursor_ms_ / total_ms_;
+    ratio = std::clamp(ratio, 0.f, 1.f);
+    int play_index = static_cast<int>(std::floor(ratio * peak_count_));
+    updatePlayedPaths(play_index);
 	update();
 }
 
@@ -71,13 +75,147 @@ void WaveformWidget::setSampleRate(uint32_t sample_rate) {
 	sample_rate_ = sample_rate;
     left_peaks_.clear();
     right_peaks_.clear();
-    updateWavePixmap();
+	path_left_played_ = QPainterPath();
+    path_right_played_ = QPainterPath();
 	update();
 }
 
 void WaveformWidget::onReadAudioData(const std::vector<float> & buffer) {
 	GetChannelPeaks(buffer, left_peaks_, right_peaks_);
     update();
+}
+
+void WaveformWidget::updateUnplayedPixmap() {
+    unplayed_cache_ = QPixmap(size());
+    unplayed_cache_.fill(Qt::black);
+
+    if (left_peaks_.empty() || right_peaks_.empty()) {
+        return;
+    }
+
+    QPainter p(&unplayed_cache_);
+    p.setRenderHint(QPainter::Antialiasing, true);
+
+    int w = unplayed_cache_.width();
+    int h = unplayed_cache_.height();
+
+    int pc = static_cast<int>(left_peaks_.size());
+    if (pc < 1) return;
+
+    // 幫助：index->X
+    auto map_x = [&](int i) {
+        if (pc <= 1) return 0.f;
+        return static_cast<float>(i) / (pc - 1) * (w - 1);
+        };
+
+    // 左聲道
+    {
+        // build a path from [0.. pc], (整條)
+        QPainterPath path;
+
+        // step A) 正半
+        float x0 = map_x(0);
+        float y0 = mapPeakToY(left_peaks_[0], 0, h / 2, true);
+        path.moveTo(x0, y0);
+        for (int i = 1; i < pc; i++) {
+            float x = map_x(i);
+            float y = mapPeakToY(left_peaks_[i], 0, h / 2, true);
+            path.lineTo(x, y);
+        }
+        // step B) 反半
+        for (int i = pc - 1; i >= 0; i--) {
+            float x = map_x(i);
+            float y = mapPeakToY(left_peaks_[i], 0, h / 2, false);
+            path.lineTo(x, y);
+        }
+        path.closeSubpath();
+
+        p.setPen(Qt::NoPen);
+        p.setBrush(QColor(128, 128, 128, 180)); // 灰
+        p.drawPath(path);
+    }
+
+    // 右聲道
+    {
+        QPainterPath path;
+
+        float x0 = map_x(0);
+        float y0 = mapPeakToY(right_peaks_[0], h / 2, h / 2, true);
+        path.moveTo(x0, y0);
+
+        for (int i = 1; i < pc; i++) {
+            float x = map_x(i);
+            float y = mapPeakToY(right_peaks_[i], h / 2, h / 2, true);
+            path.lineTo(x, y);
+        }
+
+        for (int i = pc - 1; i >= 0; i--) {
+            float x = map_x(i);
+            float y = mapPeakToY(right_peaks_[i], h / 2, h / 2, false);
+            path.lineTo(x, y);
+        }
+        path.closeSubpath();
+
+        p.setPen(Qt::NoPen);
+        p.setBrush(QColor(0, 192, 192, 180)); // 青
+        p.drawPath(path);
+    }
+
+	peak_count_ = left_peaks_.size();
+    total_ms_ = static_cast<float>(peak_count_) * (kFramesPerPeak * (1000.f / static_cast<float>(sample_rate_)));
+}
+
+QPainterPath WaveformWidget::buildChannelPath(const std::vector<float>& peaks, int startIndex, int endIndex, int top, int channelH) const {
+    QPainterPath path;
+    if (endIndex <= startIndex) return path;
+
+    const int total_count = static_cast<int>(peaks.size());
+    if (startIndex < 0) startIndex = 0;
+    if (endIndex > total_count) endIndex = total_count;
+    if (endIndex <= startIndex) return path;
+
+    auto map_x = [&](int i) {
+        if (total_count <= 1) return 0.f;
+        return static_cast<float>(i) / (total_count - 1) * (width() - 1);
+        };
+
+    // 正半
+    float x0 = map_x(startIndex);
+    float y0 = mapPeakToY(peaks[startIndex], top, channelH, true);
+    path.moveTo(x0, y0);
+
+    for (int i = startIndex + 1; i < endIndex; i++) {
+        float x = map_x(i);
+        float y = mapPeakToY(peaks[i], top, channelH, true);
+        path.lineTo(x, y);
+    }
+
+    // 反半
+    for (int i = endIndex - 1; i >= startIndex; i--) {
+        float x = map_x(i);
+        float y = mapPeakToY(peaks[i], top, channelH, false);
+        path.lineTo(x, y);
+    }
+    path.closeSubpath();
+    return path;
+}
+
+void WaveformWidget::updatePlayedPaths(int playIndex) {
+    // left 
+    if (playIndex > 0) {
+        path_left_played_ = buildChannelPath(left_peaks_, 0, playIndex, 0, height() / 2);
+    }
+    else {
+        path_left_played_ = QPainterPath();
+    }
+
+    // right
+    if (playIndex > 0) {
+        path_right_played_ = buildChannelPath(right_peaks_, 0, playIndex, height() / 2, height() / 2);
+    }
+    else {
+        path_right_played_ = QPainterPath();
+    }
 }
 
 void WaveformWidget::drawTimeAxis(QPainter& p) {
@@ -100,7 +238,7 @@ void WaveformWidget::drawTimeAxis(QPainter& p) {
 
     int text_offset_y = -10;
 
-    QFontMetrics fm(p.font());
+    const QFontMetrics fm(p.font());
 
     for (auto cur_sec = 0; cur_sec <= total_sec; ++cur_sec) {
         if (cur_sec == 0) {
@@ -155,10 +293,6 @@ void WaveformWidget::drawDuration(QPainter& painter) {
         x_text = 0;
     }
 
-    static const float kYTextHeight = 20.0f;
-    static const int kPadding = 4;
-    static const float kCornerRadius = 5.0f;
-
     QRectF bg_rect(x_text, kYTextHeight - text_height, text_width + kPadding * 2, text_height + kPadding * 2);
 
     painter.setPen(Qt::NoPen);
@@ -173,9 +307,21 @@ void WaveformWidget::drawDuration(QPainter& painter) {
 
 void WaveformWidget::paintEvent(QPaintEvent *event) {
     QPainter painter(this);
-    painter.drawPixmap(0, 0, wave_cache_);
+    painter.setRenderHints(QPainter::Antialiasing, true);
+    painter.setRenderHints(QPainter::SmoothPixmapTransform, true);
+    painter.setRenderHints(QPainter::TextAntialiasing, true);
+
+    painter.drawPixmap(0, 0, unplayed_cache_);
+
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(kLeftPlayedChannelColor);
+    painter.drawPath(path_left_played_);
+
+    painter.setBrush(kRightPlayedChannelColor);
+    painter.drawPath(path_right_played_);
+
     drawDuration(painter);
-	drawTimeAxis(painter);
+    drawTimeAxis(painter);
 }
 
 float WaveformWidget::xToTime(float x) const {
@@ -214,98 +360,16 @@ void WaveformWidget::mouseReleaseEvent(QMouseEvent* event) {
 
 void WaveformWidget::resizeEvent(QResizeEvent* event) {
 	QFrame::resizeEvent(event);
-    updateWavePixmap();
+    updateUnplayedPixmap();
 	update();
 }
 
-void WaveformWidget::updateWavePixmap() {
-    wave_cache_ = QPixmap(size());
-    wave_cache_.fill(Qt::black);
-
-    if (left_peaks_.empty() || right_peaks_.empty()) {
-        return;
-    }
-
-    QPainter p(&wave_cache_);
-    p.setRenderHint(QPainter::Antialiasing, true);
-
-    int w = wave_cache_.width();
-    int h = wave_cache_.height();
-
-    int peak_count = static_cast<int>(left_peaks_.size());
-    if (peak_count < 1) {
-        return;
-    }
-
-    auto map_x = [&](int i) {
-        if (peak_count <= 1) return 0.0f;
-        return static_cast<float>(i) / (peak_count - 1) * (w - 1);
-        };
-
-    // 上(左聲道)
-    {
-        QPolygonF poly;
-        poly.reserve(peak_count * 2);
-        int top = 0, channelH = h / 2;
-
-        // 正半
-        for (int i = 0; i < peak_count; i++) {
-            float val = left_peaks_[i];
-            float x = map_x(i);
-            float y = mapPeakToY(val, top, channelH, true);
-            poly.push_back(QPointF(x, y));
-        }
-        // 負半
-        for (int i = peak_count - 1; i >= 0; i--) {
-            float val = left_peaks_[i];
-            float x = map_x(i);
-            float y = mapPeakToY(val, top, channelH, false);
-            poly.push_back(QPointF(x, y));
-        }
-
-        p.setPen(Qt::NoPen);
-        p.setBrush(QColor(128, 128, 128, 180));
-        p.drawPolygon(poly);
-    }
-
-    // 下(右聲道)
-    {
-        QPolygonF poly;
-        poly.reserve(peak_count * 2);
-        int top = h / 2;
-        int channelH = h / 2;
-
-        for (int i = 0; i < peak_count; i++) {
-            float val = right_peaks_[i];
-            float x = map_x(i);
-            float y = mapPeakToY(val, top, channelH, true);
-            poly.push_back(QPointF(x, y));
-        }
-        for (int i = peak_count - 1; i >= 0; i--) {
-            float val = right_peaks_[i];
-            float x = map_x(i);
-            float y = mapPeakToY(val, top, channelH, false);
-            poly.push_back(QPointF(x, y));
-        }
-
-        p.setPen(Qt::NoPen);
-        p.setBrush(QColor(0, 192, 192, 180));
-        p.drawPolygon(poly);
-    }
-
-    pixmap_dirty_ = false;
-    peak_count_ = left_peaks_.size();
-    total_ms_ = static_cast<float>(peak_count_) * (kFramesPerPeak * (1000.f / static_cast<float>(sample_rate_)));
-}
-
 void WaveformWidget::doneRead() {
-    updateWavePixmap();
+    updateUnplayedPixmap();
     update();
 }
 
 float WaveformWidget::mapPeakToY(float peakVal, int top, int height, bool isPositive) const {
-    static const float kHeadroomFactor = 0.6f;
-
     float mid_y = top + height * 0.5f;
     float amplitude_range = (height * 0.5f) * kHeadroomFactor;
 

@@ -7,6 +7,8 @@
 
 #include <QFrame>
 #include <QWidget>
+#include <QPainterPath>
+
 #include <widget/widget_shared_global.h>
 #include <widget/widget_shared.h>
 #include <vector>
@@ -15,7 +17,17 @@ class XAMP_WIDGET_SHARED_EXPORT WaveformWidget : public QFrame {
     Q_OBJECT
 
 public:
-    static constexpr int kFramesPerPeak = 4096;
+    static constexpr auto kLeftPlayedChannelColor = QColor(50, 255, 50, 180);
+    static constexpr auto kLeftUnPlayedChannelColor = QColor(128, 128, 128, 180);
+
+    static constexpr auto kRightPlayedChannelColor = QColor(50, 255, 50, 180);
+    static constexpr auto kRightUnPlayedChannelColor = QColor(0, 192, 192, 180);
+
+    static constexpr float kHeadroomFactor = 0.6f;
+    static constexpr float kYTextHeight = 20.0f;
+    static constexpr float kCornerRadius = 5.0f;
+    static constexpr uint32_t kPadding = 4;
+    static constexpr uint32_t kFramesPerPeak = 4096;
 
     explicit WaveformWidget(QWidget *parent = nullptr);
 
@@ -28,8 +40,6 @@ signals:
 
 public slots:
     void onReadAudioData(const std::vector<float> & buffer);
-
-    void updateWavePixmap();
 
     void doneRead();
 
@@ -45,6 +55,12 @@ protected:
     void resizeEvent(QResizeEvent* event) override;
 
 private:
+    void updateUnplayedPixmap();
+
+    QPainterPath buildChannelPath(const std::vector<float>& peaks, int startIndex, int endIndex, int top, int channelH) const;
+
+    void updatePlayedPaths(int playIndex);
+
     void drawTimeAxis(QPainter& p);
 
     void drawDuration(QPainter& painter);
@@ -55,13 +71,13 @@ private:
 
     float timeToX(float sec) const;
 
-    bool pixmap_dirty_ = true;
     float total_ms_ = 0.f;
     size_t  peak_count_ = 0;
     float cursor_ms_ = -1.f;
     uint32_t sample_rate_ = 44100;
-    QPixmap wave_cache_;
-    QPixmap mask_pixmap_;
     std::vector<float> left_peaks_;
     std::vector<float> right_peaks_;
+    QPixmap unplayed_cache_;
+    QPainterPath path_left_played_;
+    QPainterPath path_right_played_;
 };

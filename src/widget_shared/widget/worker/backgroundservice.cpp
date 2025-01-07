@@ -5,7 +5,7 @@
 #include <widget/database.h>
 #include <widget/databasefacade.h>
 #include <widget/util/mbdiscid_util.h>
-#include <widget/appsettingnames.h>
+#include <widget/chatgpt/waveformwidget.h>
 #include <widget/appsettings.h>
 #include <widget/widget_shared.h>
 #include <widget/imagecache.h>
@@ -265,7 +265,7 @@ void BackgroundService::onReadWaveformAudioData(const Path& file_path) {
     try {
         filestream->OpenFile(file_path);
 
-        std::vector<float> buffer(8192);
+        std::vector<float> buffer(WaveformWidget::kFramesPerPeak * filestream->GetFormat().GetChannels());
 
         while (!is_stop_ && filestream->IsActive()) {
             std::fill(buffer.begin(), buffer.end(), 0.0f);
