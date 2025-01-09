@@ -181,6 +181,8 @@ private:
 	AudioFormat output_format_;
 	Buffer<float> buffer_;
 	FastMutex mutex_;
+	FastMutex wait_for_shutdown_mutex_;
+	FastConditionVariable wait_for_shutdown_cond_;
 	FastConditionVariable wait_for_start_stream_cond_;
 	std::shared_ptr<IThreadPoolExecutor> thread_pool_;
 };

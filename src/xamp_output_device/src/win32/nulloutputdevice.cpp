@@ -46,6 +46,8 @@ void NullOutputDevice::StopStream(bool wait_for_stop_stream) {
 	}
 	
 	is_stopped_ = true;
+	wait_for_shutdown_cond_.notify_one();
+
 	if (render_task_.valid()) {
 		render_task_.get();
 	}
@@ -119,12 +121,14 @@ void NullOutputDevice::StartStream() {
 	is_stopped_ = false;
 
 	render_task_ = Executor::Spawn(thread_pool_.get(), [this](const auto& stop_token) {
+		std::unique_lock<FastMutex> guard{ wait_for_shutdown_mutex_ };
+
 		size_t num_filled_frames = 0;		
 		double sample_time = 0;
 
 #ifdef XAMP_OS_WIN
         Mmcss mmcss;
-		mmcss.BoostPriority(kMmcssProfileProAudio, MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL);
+		mmcss.BoostPriority(kMmcssProfileProAudio);
 		XAMP_ON_SCOPE_EXIT(mmcss.RevertPriority());
 #endif
 
@@ -140,7 +144,10 @@ void NullOutputDevice::StartStream() {
             if (callback_->OnGetSamples(buffer_.Get(), buffer_frames_, num_filled_frames, stream_time_float, sample_time) != DataCallbackResult::CONTINUE) {
 				break;
 			}
-			std::this_thread::sleep_for(wait_time_);
+
+			if (wait_for_shutdown_cond_.wait_for(guard, wait_time_) == std::cv_status::no_timeout) {
+				break;
+			}
 		}
 
 		XAMP_LOG_DEBUG("NullOutputDevice stop render.");

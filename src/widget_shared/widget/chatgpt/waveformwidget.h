@@ -13,13 +13,18 @@
 #include <widget/widget_shared.h>
 #include <vector>
 
+enum DrawMode {
+	ONLY_RIGHT_CHANNEL,
+    ONLY_LEFT_CHANNEL,
+	BOTH_CHANNEL
+};
+
 class XAMP_WIDGET_SHARED_EXPORT WaveformWidget : public QFrame {
     Q_OBJECT
 
 public:
     static constexpr auto kLeftPlayedChannelColor = QColor(50, 255, 50, 180);
     static constexpr auto kLeftUnPlayedChannelColor = QColor(128, 128, 128, 180);
-
     static constexpr auto kRightPlayedChannelColor = QColor(50, 255, 50, 180);
     static constexpr auto kRightUnPlayedChannelColor = QColor(0, 192, 192, 180);
 
@@ -28,12 +33,15 @@ public:
     static constexpr float kCornerRadius = 5.0f;
     static constexpr uint32_t kPadding = 4;
     static constexpr uint32_t kFramesPerPeak = 4096;
+    static constexpr int kTextOffsetY = -10;
 
     explicit WaveformWidget(QWidget *parent = nullptr);
 
     void setCurrentPosition(float sec);
 
     void setSampleRate(uint32_t sample_rate);
+
+    void setFramePerPeekSize(size_t size);
 
 signals:
     void playAt(float sec);
@@ -43,6 +51,7 @@ public slots:
 
     void doneRead();
 
+    void clear();
 protected:
     void paintEvent(QPaintEvent *event) override;
 
@@ -72,12 +81,13 @@ private:
     float timeToX(float sec) const;
 
     float total_ms_ = 0.f;
-    size_t  peak_count_ = 0;
+    size_t peak_count_ = 0;
     float cursor_ms_ = -1.f;
     uint32_t sample_rate_ = 44100;
+	size_t frame_per_peak_ = kFramesPerPeak;
     std::vector<float> left_peaks_;
     std::vector<float> right_peaks_;
-    QPixmap unplayed_cache_;
+    QPixmap cache_;
     QPainterPath path_left_played_;
     QPainterPath path_right_played_;
 };

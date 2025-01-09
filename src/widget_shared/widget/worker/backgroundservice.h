@@ -69,7 +69,7 @@ public Q_SLOT:
 
 	void onTranslation(const QString& keyword, const QString& from, const QString& to);
 
-	void onReadWaveformAudioData(const Path & file_path);
+	void onReadWaveformAudioData(size_t frame_per_peek, const Path & file_path);
 
 private:
 	bool is_stop_{false};

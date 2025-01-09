@@ -254,7 +254,7 @@ void BackgroundService::onTranslation(const QString& keyword, const QString& fro
         });
 }
 
-void BackgroundService::onReadWaveformAudioData(const Path& file_path) {
+void BackgroundService::onReadWaveformAudioData(size_t frame_per_peek, const Path& file_path) {
     auto dsd_mode = DsdModes::DSD_MODE_DSD2PCM;
     if (!IsDsdFile(file_path)) {
         dsd_mode = DsdModes::DSD_MODE_PCM;
@@ -265,7 +265,7 @@ void BackgroundService::onReadWaveformAudioData(const Path& file_path) {
     try {
         filestream->OpenFile(file_path);
 
-        std::vector<float> buffer(WaveformWidget::kFramesPerPeak * filestream->GetFormat().GetChannels());
+        std::vector<float> buffer(frame_per_peek * filestream->GetFormat().GetChannels());
 
         while (!is_stop_ && filestream->IsActive()) {
             std::fill(buffer.begin(), buffer.end(), 0.0f);

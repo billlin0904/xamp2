@@ -9,23 +9,23 @@
 #include <thememanager.h>
 
 namespace {
-    void GetChannelPeaks(const std::vector<float>& buffer, std::vector<float>& left_peeks, std::vector<float>& right_peaks) {
+    void GetChannelPeaks(const std::vector<float>& buffer, size_t frame_per_peek, std::vector<float>& left_peeks, std::vector<float>& right_peaks) {
         if (buffer.size() < 2) {
             return;
         }
         if (left_peeks.empty()) {
-            left_peeks.reserve(WaveformWidget::kFramesPerPeak);
+            left_peeks.reserve(frame_per_peek);
         }
         if (right_peaks.empty()) {
-            right_peaks.reserve(WaveformWidget::kFramesPerPeak);
+            right_peaks.reserve(frame_per_peek);
         }
         const auto sign_mask = _mm256_castsi256_ps(_mm256_set1_epi32(0x7FFFFFFF));
-        const uint32_t frame_count = buffer.size() / 2;
+        const size_t frame_count = buffer.size() / 2;
 
-        for (int start = 0; start < frame_count; start += WaveformWidget::kFramesPerPeak) {
+        for (int start = 0; start < frame_count; start += frame_per_peek) {
             float max_left = 0.f;
             float max_right = 0.f;
-            int end = (std::min)(start + WaveformWidget::kFramesPerPeak, frame_count);
+            int end = (std::min)(start + frame_per_peek, frame_count);
 
             // Use SIMD to find the maximum values
             __m256 max_left_vec = _mm256_setzero_ps();
@@ -63,11 +63,15 @@ WaveformWidget::WaveformWidget(QWidget *parent)
 }
 
 void WaveformWidget::setCurrentPosition(float sec) {
+    if (left_peaks_.empty() || right_peaks_.empty()) {
+        return;
+    }
+
 	cursor_ms_ = sec * 1000.f;
-    float ratio = cursor_ms_ / total_ms_;
-    ratio = std::clamp(ratio, 0.f, 1.f);
-    int play_index = static_cast<int>(std::floor(ratio * peak_count_));
-    updatePlayedPaths(play_index);
+    //float ratio = cursor_ms_ / total_ms_;
+    //ratio = std::clamp(ratio, 0.f, 1.f);
+	//const int play_index = static_cast<int>(std::floor(ratio * peak_count_));
+    //updatePlayedPaths(play_index);
 	update();
 }
 
@@ -80,24 +84,28 @@ void WaveformWidget::setSampleRate(uint32_t sample_rate) {
 	update();
 }
 
+void WaveformWidget::setFramePerPeekSize(size_t size) {
+	frame_per_peak_ = size;
+}
+
 void WaveformWidget::onReadAudioData(const std::vector<float> & buffer) {
-	GetChannelPeaks(buffer, left_peaks_, right_peaks_);
+	GetChannelPeaks(buffer, frame_per_peak_, left_peaks_, right_peaks_);
     update();
 }
 
 void WaveformWidget::updateUnplayedPixmap() {
-    unplayed_cache_ = QPixmap(size());
-    unplayed_cache_.fill(Qt::black);
+    cache_ = QPixmap(size());
+    cache_.fill(Qt::black);
 
     if (left_peaks_.empty() || right_peaks_.empty()) {
         return;
     }
 
-    QPainter p(&unplayed_cache_);
+    QPainter p(&cache_);
     p.setRenderHint(QPainter::Antialiasing, true);
 
-    int w = unplayed_cache_.width();
-    int h = unplayed_cache_.height();
+    int w = cache_.width();
+    int h = cache_.height();
 
     int pc = static_cast<int>(left_peaks_.size());
     if (pc < 1) return;
@@ -162,7 +170,7 @@ void WaveformWidget::updateUnplayedPixmap() {
     }
 
 	peak_count_ = left_peaks_.size();
-    total_ms_ = static_cast<float>(peak_count_) * (kFramesPerPeak * (1000.f / static_cast<float>(sample_rate_)));
+    total_ms_ = static_cast<float>(peak_count_) * (frame_per_peak_ * (1000.f / static_cast<float>(sample_rate_)));
 }
 
 QPainterPath WaveformWidget::buildChannelPath(const std::vector<float>& peaks, int startIndex, int endIndex, int top, int channelH) const {
@@ -224,7 +232,7 @@ void WaveformWidget::drawTimeAxis(QPainter& p) {
         return;
     }
 
-    bool min_range = total_sec < 20;
+    const bool min_range = total_sec <= 30;
 
     int h = height();
     int y_base = h - 1;
@@ -235,8 +243,6 @@ void WaveformWidget::drawTimeAxis(QPainter& p) {
     auto f = qTheme.monoFont();
     f.setPointSize(8);
     p.setFont(f);
-
-    int text_offset_y = -10;
 
     const QFontMetrics fm(p.font());
 
@@ -265,7 +271,7 @@ void WaveformWidget::drawTimeAxis(QPainter& p) {
             else if (x_text + tw > width()) {
                 x_text = width() - tw;
             }
-            float y_text = y_base + text_offset_y;
+            float y_text = y_base + kTextOffsetY;
             p.drawText(QPointF(x_text, y_text), tick_text);
         }
     }
@@ -311,14 +317,13 @@ void WaveformWidget::paintEvent(QPaintEvent *event) {
     painter.setRenderHints(QPainter::SmoothPixmapTransform, true);
     painter.setRenderHints(QPainter::TextAntialiasing, true);
 
-    painter.drawPixmap(0, 0, unplayed_cache_);
+    painter.drawPixmap(0, 0, cache_);
 
-    painter.setPen(Qt::NoPen);
-    painter.setBrush(kLeftPlayedChannelColor);
-    painter.drawPath(path_left_played_);
-
-    painter.setBrush(kRightPlayedChannelColor);
-    painter.drawPath(path_right_played_);
+    //painter.setPen(Qt::NoPen);
+    //painter.setBrush(kLeftPlayedChannelColor);
+    //painter.drawPath(path_left_played_);
+    //painter.setBrush(kRightPlayedChannelColor);
+    //painter.drawPath(path_right_played_);
 
     drawDuration(painter);
     drawTimeAxis(painter);
@@ -366,6 +371,19 @@ void WaveformWidget::resizeEvent(QResizeEvent* event) {
 
 void WaveformWidget::doneRead() {
     updateUnplayedPixmap();
+    update();
+}
+
+void WaveformWidget::clear() {
+    cache_ = QPixmap(size());
+    cache_.fill(Qt::black);
+    total_ms_ = 0.0f;
+    cursor_ms_ = -1.f;
+    peak_count_ = 0;
+    left_peaks_.clear();
+    right_peaks_.clear();
+	path_left_played_ = QPainterPath();
+    path_right_played_ = QPainterPath();
     update();
 }
 

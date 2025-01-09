@@ -1525,19 +1525,29 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
         emit findAlbumCover(DatabaseCoverId(entity.music_id, entity.album_id));
     }
 
-    uint32_t sampler_rate = 0;
-    if (entity.sample_rate >= 2822400) {
-        sampler_rate = 88200;
-    }
-    else {
-        sampler_rate = entity.sample_rate;
-    }
-	file_explorer_page_->waveformWidget()->setSampleRate(sampler_rate);
-	emit readWaveformAudioData(entity.file_path.toStdWString());
+	if (sender_playlist_page == file_explorer_page_->playlistPage()) {
+        uint32_t sampler_rate = 0;
+        if (entity.sample_rate >= 2822400) {
+            sampler_rate = 88200;
+        }
+        else {
+            sampler_rate = entity.sample_rate;
+        }
+        size_t frame_per_peak = WaveformWidget::kFramesPerPeak;
+        if (entity.duration < 30.0f) {
+            frame_per_peak = 1024;
+        }
+        file_explorer_page_->waveformWidget()->setSampleRate(sampler_rate);
+        emit readWaveformAudioData(frame_per_peak, entity.file_path.toStdWString());
+	} else {
+        file_explorer_page_->playlistPage()->playlist()->setNowPlayState(PLAY_CLEAR);
+		file_explorer_page_->waveformWidget()->clear();
+	}
 
     music_dao_.updateMusicPlays(entity.music_id);
     album_dao_.updateAlbumPlays(entity.album_id);
 
+    lrc_page_->spectrum()->reset();
     lrc_page_->spectrum()->start();
     player_->Play();
 

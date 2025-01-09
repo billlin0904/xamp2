@@ -106,7 +106,7 @@ signals:
 
 	void addJobs(const QString& dir_name, QList<EncodeJob> jobs);
 
-	void readWaveformAudioData(const Path& file_path);
+	void readWaveformAudioData(size_t frame_per_peek, const Path& file_path);
 
 public slots:
     void onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked, bool is_query_embeddings = false);
