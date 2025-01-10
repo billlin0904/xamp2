@@ -233,25 +233,6 @@ PreferencePage::PreferencePage(QWidget *parent)
         }
     });
 
-    (void)QObject::connect(ui_->replayGainModeCombo, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), [](auto index) {
-		switch (index) {
-		case 0:
-			qAppSettings.setEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_ALBUM_MODE);
-			qAppSettings.setValue(kAppSettingEnableReplayGain, true);
-			break;
-		case 1:
-			qAppSettings.setEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_TRACK_MODE);
-			qAppSettings.setValue(kAppSettingEnableReplayGain, true);
-			break;
-		case 2:
-			qAppSettings.setEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_NONE_MODE);
-			qAppSettings.setValue<bool>(kAppSettingEnableReplayGain, false);			
-			break;
-		}
-		});
-
-	ui_->replayGainModeCombo->setCurrentIndex(qAppSettings.valueAs(kAppSettingReplayGainMode).toInt());
-
 	(void)QObject::connect(ui_->selectResamplerComboBox, static_cast<void (QComboBox::*)(int32_t)>(&QComboBox::activated), [this](auto const& index) {
 		ui_->resamplerStackedWidget->setCurrentIndex(index);
 		switch (index) {

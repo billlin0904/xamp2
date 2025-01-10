@@ -13,11 +13,10 @@
 #include <widget/widget_shared.h>
 #include <vector>
 
-enum DrawMode {
-	ONLY_RIGHT_CHANNEL,
-    ONLY_LEFT_CHANNEL,
-	BOTH_CHANNEL
-};
+constexpr uint32_t DRAW_ONLY_RIGHT_CHANNEL = 1;
+constexpr uint32_t DRAW_ONLY_LEFT_CHANNEL  = 1 << 2;
+constexpr uint32_t DRAW_BOTH_CHANNEL       = 1 << 3;
+constexpr uint32_t DRAW_PLAYED_AREA        = 1 << 4;
 
 class XAMP_WIDGET_SHARED_EXPORT WaveformWidget : public QFrame {
     Q_OBJECT
@@ -43,6 +42,8 @@ public:
 
     void setFramePerPeekSize(size_t size);
 
+    void setDrawMode(uint32_t mode);
+
 signals:
     void playAt(float sec);
 
@@ -64,7 +65,7 @@ protected:
     void resizeEvent(QResizeEvent* event) override;
 
 private:
-    void updateUnplayedPixmap();
+    void updateCachePixmap();
 
     QPainterPath buildChannelPath(const std::vector<float>& peaks, int startIndex, int endIndex, int top, int channelH) const;
 
@@ -80,6 +81,7 @@ private:
 
     float timeToX(float sec) const;
 
+    uint32_t draw_mode_ = DRAW_ONLY_RIGHT_CHANNEL;
     float total_ms_ = 0.f;
     size_t peak_count_ = 0;
     float cursor_ms_ = -1.f;
@@ -90,4 +92,6 @@ private:
     QPixmap cache_;
     QPainterPath path_left_played_;
     QPainterPath path_right_played_;
+    QRectF old_left_played_brect_;
+    QRectF old_right_played_brect_;
 };

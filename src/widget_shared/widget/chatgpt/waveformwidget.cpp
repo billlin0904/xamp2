@@ -1,11 +1,13 @@
 ﻿#include <QPainter>
 #include <QLinearGradient>
 #include <QTimer>
-#include <QPainterPath>
 #include <QMouseEvent>
 
 #include <widget/util/str_util.h>
 #include <widget/chatgpt/waveformwidget.h>
+#include <widget/actionmap.h>
+#include <widget/appsettings.h>
+#include <widget/appsettingnames.h>
 #include <thememanager.h>
 
 namespace {
@@ -13,12 +15,14 @@ namespace {
         if (buffer.size() < 2) {
             return;
         }
-        if (left_peeks.empty()) {
-            left_peeks.reserve(frame_per_peek);
+
+    	if (left_peeks.empty()) {
+            left_peeks.reserve(frame_per_peek * 8);
         }
         if (right_peaks.empty()) {
-            right_peaks.reserve(frame_per_peek);
+            right_peaks.reserve(frame_per_peek * 8);
         }
+
         const auto sign_mask = _mm256_castsi256_ps(_mm256_set1_epi32(0x7FFFFFFF));
         const size_t frame_count = buffer.size() / 2;
 
@@ -55,11 +59,63 @@ namespace {
             right_peaks.push_back(max_right);
         }
     }
+
+    float mapX(int i, int peak_count, int widget_width) {
+        if (peak_count <= 1) return 0.f;
+        return static_cast<float>(i) / (peak_count - 1) * (widget_width - 1);
+    }
 }
 
 WaveformWidget::WaveformWidget(QWidget *parent)
     : QFrame(parent) {
     setStyleSheet("background-color: transparent; border: none;"_str);
+    setContextMenuPolicy(Qt::CustomContextMenu);
+    draw_mode_ = qAppSettings.valueAsInt(kAppSettingWaveformDrawMode);
+
+    (void)QObject::connect(this, &WaveformWidget::customContextMenuRequested, [this](auto pt) {
+        ActionMap<WaveformWidget> action_map(this);
+
+		auto setting_value = qAppSettings.valueAsInt(kAppSettingWaveformDrawMode);
+        auto show_ch_menu = action_map.addSubMenu(tr("Show Channel"));
+
+        auto* only_right_ch_act = show_ch_menu->addAction(tr("Show Only Right Channel"), [this]() {
+            auto enable = draw_mode_ & DRAW_PLAYED_AREA;
+            setDrawMode(DRAW_ONLY_RIGHT_CHANNEL | (enable ? DRAW_PLAYED_AREA : 0));
+            });
+		if (setting_value & DRAW_ONLY_RIGHT_CHANNEL) {
+            only_right_ch_act->setChecked(true);
+		}
+        auto* only_left_ch_act = show_ch_menu->addAction(tr("Show Only Left Channel"), [this]() {
+            auto enable = draw_mode_& DRAW_PLAYED_AREA;
+            setDrawMode(DRAW_ONLY_LEFT_CHANNEL | (enable ? DRAW_PLAYED_AREA : 0));
+            });
+        if (setting_value & DRAW_ONLY_LEFT_CHANNEL) {
+            only_left_ch_act->setChecked(true);
+        }
+        auto* only_both_ch_act = show_ch_menu->addAction(tr("Show Both Channel"), [this]() {
+            auto enable = draw_mode_ & DRAW_PLAYED_AREA;
+            setDrawMode(DRAW_BOTH_CHANNEL | (enable ? DRAW_PLAYED_AREA : 0));
+            });
+        if (setting_value & DRAW_BOTH_CHANNEL) {
+            only_both_ch_act->setChecked(true);
+        }
+        auto submenu = action_map.addSubMenu(tr("Show Played Area"));
+        auto* show_act = submenu->addAction(tr("Enable"), [this]() {
+			uint32_t mode = 0;
+			if (draw_mode_ & DRAW_PLAYED_AREA) {
+                mode = draw_mode_ & ~DRAW_PLAYED_AREA;
+			}
+			else {
+                mode = draw_mode_ | DRAW_PLAYED_AREA;
+			}
+			setDrawMode(mode);
+            });
+        if (setting_value & DRAW_PLAYED_AREA) {
+            show_act->setChecked(true);
+        }
+        action_map.exec(pt);
+        update();
+        });
 }
 
 void WaveformWidget::setCurrentPosition(float sec) {
@@ -68,10 +124,17 @@ void WaveformWidget::setCurrentPosition(float sec) {
     }
 
 	cursor_ms_ = sec * 1000.f;
-    //float ratio = cursor_ms_ / total_ms_;
-    //ratio = std::clamp(ratio, 0.f, 1.f);
-	//const int play_index = static_cast<int>(std::floor(ratio * peak_count_));
-    //updatePlayedPaths(play_index);
+
+    QRectF old_left_box = path_left_played_.boundingRect();
+    QRectF old_right_box = path_right_played_.boundingRect();
+
+    if (draw_mode_ & DRAW_PLAYED_AREA) {
+        float ratio = cursor_ms_ / total_ms_;
+        ratio = std::clamp(ratio, 0.f, 1.f);
+        const int play_index = static_cast<int>(std::floor(ratio * peak_count_));
+        updatePlayedPaths(play_index);
+    }
+    
 	update();
 }
 
@@ -88,89 +151,102 @@ void WaveformWidget::setFramePerPeekSize(size_t size) {
 	frame_per_peak_ = size;
 }
 
+void WaveformWidget::setDrawMode(uint32_t mode) {
+    draw_mode_ = mode;
+    updateCachePixmap();
+    qAppSettings.setValue(kAppSettingWaveformDrawMode, mode);
+	update();
+}
+
 void WaveformWidget::onReadAudioData(const std::vector<float> & buffer) {
 	GetChannelPeaks(buffer, frame_per_peak_, left_peaks_, right_peaks_);
     update();
 }
 
-void WaveformWidget::updateUnplayedPixmap() {
-    cache_ = QPixmap(size());
-    cache_.fill(Qt::black);
-
+void WaveformWidget::updateCachePixmap() {
     if (left_peaks_.empty() || right_peaks_.empty()) {
         return;
     }
 
-    QPainter p(&cache_);
-    p.setRenderHint(QPainter::Antialiasing, true);
+    const int w = width();
+    const int h = height();
 
-    int w = cache_.width();
-    int h = cache_.height();
+    QImage img(w, h, QImage::Format_ARGB32_Premultiplied);
+    img.fill(Qt::transparent);
 
-    int pc = static_cast<int>(left_peaks_.size());
+    QPainter p(&img);
+    p.setRenderHint(QPainter::Antialiasing);
+    p.setRenderHints(QPainter::SmoothPixmapTransform);
+
+    const int pc = static_cast<int>(left_peaks_.size());
     if (pc < 1) return;
 
-    // 幫助：index->X
-    auto map_x = [&](int i) {
-        if (pc <= 1) return 0.f;
-        return static_cast<float>(i) / (pc - 1) * (w - 1);
+    // 幫助函式: 將 [0..pc] 建出路徑(整條)
+    auto draw_one_channel = [&](const std::vector<float>& peaks,
+        const QColor& color,
+        int top,
+        int channelH)
+        {
+            // 正半
+            QPainterPath path;
+            float x0 = mapX(0, pc, w);
+            float y0 = mapPeakToY(peaks[0], top, channelH, true);
+            path.moveTo(x0, y0);
+
+            for (int i = 1; i < pc; i++) {
+                float x = mapX(i, pc, w);
+                float y = mapPeakToY(peaks[i], top, channelH, true);
+                path.lineTo(x, y);
+            }
+            // 反半
+            for (int i = pc - 1; i >= 0; i--) {
+                float x = mapX(i, pc, w);
+                float y = mapPeakToY(peaks[i], top, channelH, false);
+                path.lineTo(x, y);
+            }
+            path.closeSubpath();
+
+            p.setPen(Qt::NoPen);
+            p.setBrush(color);
+            p.drawPath(path);
         };
 
-    // 左聲道
-    {
-        // build a path from [0.. pc], (整條)
-        QPainterPath path;
+    // 依 draw_mode_ 不同, 我們決定 top / channelH
+    if (draw_mode_ & DRAW_BOTH_CHANNEL) {
+        // 左聲道 (上半)
+        draw_one_channel(left_peaks_,
+            kLeftUnPlayedChannelColor,  // 灰
+            0,    // top=0
+            h / 2); // channelH=一半
 
-        // step A) 正半
-        float x0 = map_x(0);
-        float y0 = mapPeakToY(left_peaks_[0], 0, h / 2, true);
-        path.moveTo(x0, y0);
-        for (int i = 1; i < pc; i++) {
-            float x = map_x(i);
-            float y = mapPeakToY(left_peaks_[i], 0, h / 2, true);
-            path.lineTo(x, y);
-        }
-        // step B) 反半
-        for (int i = pc - 1; i >= 0; i--) {
-            float x = map_x(i);
-            float y = mapPeakToY(left_peaks_[i], 0, h / 2, false);
-            path.lineTo(x, y);
-        }
-        path.closeSubpath();
-
-        p.setPen(Qt::NoPen);
-        p.setBrush(QColor(128, 128, 128, 180)); // 灰
-        p.drawPath(path);
+        // 右聲道 (下半)
+        draw_one_channel(right_peaks_,
+            kRightUnPlayedChannelColor,    // 青
+            h / 2, // top=中間開始
+            h / 2);
+    }
+    else if (draw_mode_ & DRAW_ONLY_LEFT_CHANNEL) {
+        // 只繪製 left_peaks_, 但「佔滿整個height()」
+        draw_one_channel(left_peaks_,
+            kLeftUnPlayedChannelColor,
+            0,  // top=0
+            h); // 全高
+    }
+    else if (draw_mode_ & DRAW_ONLY_RIGHT_CHANNEL) {
+        // 只繪製 right_peaks_, 佔滿整個height()
+        draw_one_channel(right_peaks_,
+            kRightUnPlayedChannelColor,
+            0,
+            h);
     }
 
-    // 右聲道
-    {
-        QPainterPath path;
+	p.end();
+    cache_ = QPixmap::fromImage(img);
 
-        float x0 = map_x(0);
-        float y0 = mapPeakToY(right_peaks_[0], h / 2, h / 2, true);
-        path.moveTo(x0, y0);
-
-        for (int i = 1; i < pc; i++) {
-            float x = map_x(i);
-            float y = mapPeakToY(right_peaks_[i], h / 2, h / 2, true);
-            path.lineTo(x, y);
-        }
-
-        for (int i = pc - 1; i >= 0; i--) {
-            float x = map_x(i);
-            float y = mapPeakToY(right_peaks_[i], h / 2, h / 2, false);
-            path.lineTo(x, y);
-        }
-        path.closeSubpath();
-
-        p.setPen(Qt::NoPen);
-        p.setBrush(QColor(0, 192, 192, 180)); // 青
-        p.drawPath(path);
-    }
-
-	peak_count_ = left_peaks_.size();
-    total_ms_ = static_cast<float>(peak_count_) * (frame_per_peak_ * (1000.f / static_cast<float>(sample_rate_)));
+    // 計算 total_ms_
+    peak_count_ = pc;
+    total_ms_ = static_cast<float>(peak_count_)
+		* (frame_per_peak_ * (1000.f / static_cast<float>(sample_rate_)));
 }
 
 QPainterPath WaveformWidget::buildChannelPath(const std::vector<float>& peaks, int startIndex, int endIndex, int top, int channelH) const {
@@ -182,25 +258,25 @@ QPainterPath WaveformWidget::buildChannelPath(const std::vector<float>& peaks, i
     if (endIndex > total_count) endIndex = total_count;
     if (endIndex <= startIndex) return path;
 
-    auto map_x = [&](int i) {
+    auto mapIndexToX = [&](int i) {
         if (total_count <= 1) return 0.f;
         return static_cast<float>(i) / (total_count - 1) * (width() - 1);
         };
 
     // 正半
-    float x0 = map_x(startIndex);
+    float x0 = mapIndexToX(startIndex);
     float y0 = mapPeakToY(peaks[startIndex], top, channelH, true);
     path.moveTo(x0, y0);
 
     for (int i = startIndex + 1; i < endIndex; i++) {
-        float x = map_x(i);
+        float x = mapIndexToX(i);
         float y = mapPeakToY(peaks[i], top, channelH, true);
         path.lineTo(x, y);
     }
 
     // 反半
     for (int i = endIndex - 1; i >= startIndex; i--) {
-        float x = map_x(i);
+        float x = mapIndexToX(i);
         float y = mapPeakToY(peaks[i], top, channelH, false);
         path.lineTo(x, y);
     }
@@ -209,20 +285,39 @@ QPainterPath WaveformWidget::buildChannelPath(const std::vector<float>& peaks, i
 }
 
 void WaveformWidget::updatePlayedPaths(int playIndex) {
-    // left 
-    if (playIndex > 0) {
-        path_left_played_ = buildChannelPath(left_peaks_, 0, playIndex, 0, height() / 2);
-    }
-    else {
+    // 如果 playIndex<=0 => 沒有已播放
+    if (playIndex <= 0) {
         path_left_played_ = QPainterPath();
+        path_right_played_ = QPainterPath();
+        return;
+    }
+    // clamp
+    if (playIndex > static_cast<int>(left_peaks_.size())) {
+        playIndex = static_cast<int>(left_peaks_.size());
     }
 
-    // right
-    if (playIndex > 0) {
-        path_right_played_ = buildChannelPath(right_peaks_, 0, playIndex, height() / 2, height() / 2);
+    const int h = height();
+
+    // 若 DRAW_BOTH_CHANNEL => 左聲道是 top=0, channelH=h/2
+    //        右聲道是 top=h/2, channelH=h/2
+    // 若 ONLY_LEFT => top=0, channelH=h
+    // 若 ONLY_RIGHT => top=0, channelH=h
+
+    if (draw_mode_ & DRAW_BOTH_CHANNEL) {
+        path_left_played_ = buildChannelPath(left_peaks_, 0, playIndex,
+            /*top=*/0,    /*channelH=*/h / 2);
+        path_right_played_ = buildChannelPath(right_peaks_, 0, playIndex,
+            /*top=*/h / 2,  /*channelH=*/h / 2);
     }
-    else {
+    else if (draw_mode_ & DRAW_ONLY_LEFT_CHANNEL) {
+        path_left_played_ = buildChannelPath(left_peaks_, 0, playIndex,
+            0, h);
         path_right_played_ = QPainterPath();
+    }
+    else if (draw_mode_ & DRAW_ONLY_RIGHT_CHANNEL) {
+        path_left_played_ = QPainterPath();
+        path_right_played_ = buildChannelPath(right_peaks_, 0, playIndex,
+            0, h);
     }
 }
 
@@ -313,17 +408,25 @@ void WaveformWidget::drawDuration(QPainter& painter) {
 
 void WaveformWidget::paintEvent(QPaintEvent *event) {
     QPainter painter(this);
-    painter.setRenderHints(QPainter::Antialiasing, true);
-    painter.setRenderHints(QPainter::SmoothPixmapTransform, true);
-    painter.setRenderHints(QPainter::TextAntialiasing, true);
+    painter.setRenderHints(QPainter::Antialiasing 
+        | QPainter::SmoothPixmapTransform 
+        | QPainter::TextAntialiasing);
 
+    painter.setClipRegion(event->region());
     painter.drawPixmap(0, 0, cache_);
 
-    //painter.setPen(Qt::NoPen);
-    //painter.setBrush(kLeftPlayedChannelColor);
-    //painter.drawPath(path_left_played_);
-    //painter.setBrush(kRightPlayedChannelColor);
-    //painter.drawPath(path_right_played_);
+	if (draw_mode_ & DRAW_PLAYED_AREA) {
+        if (draw_mode_ & DRAW_BOTH_CHANNEL || draw_mode_ & DRAW_ONLY_LEFT_CHANNEL) {
+			painter.setPen(Qt::NoPen);
+			painter.setBrush(kLeftPlayedChannelColor);
+			painter.drawPath(path_left_played_);
+		}
+		if (draw_mode_ & DRAW_BOTH_CHANNEL || draw_mode_ & DRAW_ONLY_RIGHT_CHANNEL) {
+			painter.setPen(Qt::NoPen);
+			painter.setBrush(kRightPlayedChannelColor);
+			painter.drawPath(path_right_played_);
+		}
+	}   
 
     drawDuration(painter);
     drawTimeAxis(painter);
@@ -365,12 +468,12 @@ void WaveformWidget::mouseReleaseEvent(QMouseEvent* event) {
 
 void WaveformWidget::resizeEvent(QResizeEvent* event) {
 	QFrame::resizeEvent(event);
-    updateUnplayedPixmap();
+    updateCachePixmap();
 	update();
 }
 
 void WaveformWidget::doneRead() {
-    updateUnplayedPixmap();
+    updateCachePixmap();
     update();
 }
 

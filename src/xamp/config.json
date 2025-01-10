@@ -18,8 +18,10 @@
                 "DspManager": "info",
                 "ExclusiveWasapiDevice": "info",
                 "ExclusiveWasapiDeviceType": "info",
+                "FileExplorer": "info",
                 "FileProcess": "info",
                 "FileSystemService": "info",
+                "GUIThreadPool": "info",
                 "Http": "debug",
                 "ImageCache": "info",
                 "LibAv": "info",
@@ -27,16 +29,18 @@
                 "NullOutputDevice": "info",
                 "NullOutputDeviceType": "info",
                 "OutputDeviceThreadPool": "info",
-                "PlaybackThreadPool": "info",
+                "PlaybackThreadPool": "debug",
+                "PlayerThreadPool": "debug",
                 "Qt": "info",
                 "SharedWasapiDevice": "info",
+                "SoxrSampleRateConverter": "info",
                 "SrcSampleRateConverter": "info",
                 "UI": "info",
-                "VirtualMemory": "info",
+                "VirtualMemory": "debug",
                 "XApplication": "info",
                 "XAudio2DeviceType": "info",
                 "XAudio2EngineContext": "info",
-                "XAudio2OutputDevice": "info",
+                "XAudio2OutputDevice": "debug",
                 "YtMusicOAuth": "info"
             }
         }
@@ -55,6 +59,6 @@
         }
     },
     "Src": {
-        "resampleSampleRate": 192000
+        "resampleSampleRate": 44100
     }
 }

@@ -480,21 +480,13 @@ void AppSettings::loadAppSettings() {
 	XAMP_LOG_DEBUG("LoadAppSettings.");
 
 	setDefaultEnumValue(kAppSettingOrder, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
-	setDefaultEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_TRACK_MODE);
-	setDefaultEnumValue(kAppSettingReplayGainScanMode, ReplayGainScanMode::RG_SCAN_MODE_FAST);
 	setDefaultEnumValue(kAppSettingTheme, ThemeColor::DARK_THEME);
 
 	setDefaultValue(kAppSettingDeviceType, kEmptyString);
 	setDefaultValue(kAppSettingDeviceId, kEmptyString);
 	setDefaultValue(kAppSettingVolume, 50);
-	setDefaultValue(kAppSettingUseFramelessWindow, true);
 	setDefaultValue(kLyricsFontSize, 12);
 	setDefaultValue(kAppSettingMinimizeToTray, true);
-	setDefaultValue(kAppSettingDiscordNotify, false);
-	setDefaultValue(kFlacEncodingLevel, 8);
-	setDefaultValue(kAppSettingReplayGainTargetGain, kReferenceGain);
-	setDefaultValue(kAppSettingReplayGainTargetLoudnes, kReferenceLoudness);
-	setDefaultValue(kAppSettingEnableReplayGain, true);
 	setDefaultValue(kAppSettingWindowState, false);
 	setDefaultValue(kAppSettingScreenNumber, 1);
 	setDefaultValue(kAppSettingEnableSpectrum, true);
