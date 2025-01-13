@@ -46,7 +46,7 @@ void NullOutputDevice::StopStream(bool wait_for_stop_stream) {
 	}
 	
 	is_stopped_ = true;
-	wait_for_shutdown_cond_.notify_one();
+	wait_for_shutdown_cond_.notify_all();
 
 	if (render_task_.valid()) {
 		render_task_.get();
@@ -133,7 +133,9 @@ void NullOutputDevice::StartStream() {
 #endif
 
 		is_playing_ = true;
-		wait_for_start_stream_cond_.notify_one();
+		wait_for_start_stream_cond_.notify_all();
+
+		XAMP_LOG_DEBUG("NullOutputDevice start render.");
 
 		while (!is_stopped_ && !stop_token.stop_requested()) {
 			const auto stream_time = stream_time_ + buffer_frames_;
@@ -146,6 +148,7 @@ void NullOutputDevice::StartStream() {
 			}
 
 			if (wait_for_shutdown_cond_.wait_for(guard, wait_time_) == std::cv_status::no_timeout) {
+				XAMP_LOG_DEBUG("NullOutputDevice receive shutdown.");
 				break;
 			}
 		}

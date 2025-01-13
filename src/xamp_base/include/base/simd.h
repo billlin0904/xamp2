@@ -20,23 +20,6 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 #ifdef XAMP_OS_WIN
 
-#define m256  __m256
-#define m256i __m256i
-#define m128 __m128
-#define m128i __m128i
-
-#ifdef XAMP_OS_WIN
-#define XAMP_VECTOR_CALL __vectorcall
-#else
-#define XAMP_VECTOR_CALL __attribute__((vectorcall))
-#endif
-
-inline constexpr int32_t kSSESimdLanes = sizeof(m128i);
-inline constexpr int32_t kAVX2SimdLanes = sizeof(m256i);
-// note: int/float = 4 Byte
-inline constexpr int32_t kSimdAlignedSize = kAVX2SimdLanes / sizeof(float);
-inline constexpr size_t kSimdCopyAlignedSize = 128;
-
 class SIMD {
 public:
     SIMD() = delete;

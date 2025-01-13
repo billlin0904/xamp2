@@ -24,20 +24,6 @@ XAMP_STREAM_NAMESPACE_BEGIN
 #if defined(XAMP_OS_WIN) || defined(XAMP_OS_MAC)
 
 #if (USE_INTEL_MKL_LIB)
-class MKLLib final {
-public:
-	MKLLib();
-
-	XAMP_DISABLE_COPY(MKLLib)
-private:
-	SharedLibraryHandle module_;
-
-public:
-	XAMP_DECLARE_DLL(MKL_malloc) MKL_malloc;
-	XAMP_DECLARE_DLL(MKL_free) MKL_free;
-};
-
-#define MKL_LIB Singleton<MKLLib>::GetInstance()
 
 static void ExecuteIForward(fftw_mkl_plan p) {
 	FFTW_LIB.DftiComputeForward(p->desc, p->io[0]);
@@ -58,7 +44,18 @@ static void ExecuteBackward(fftw_mkl_plan p) {
 MKLLib::MKLLib() try
     : module_(OpenSharedLibrary("mkl_rt.2"))
 	, XAMP_LOAD_DLL_API(MKL_malloc)
-	, XAMP_LOAD_DLL_API(MKL_free) {
+	, XAMP_LOAD_DLL_API(MKL_free)
+	, XAMP_LOAD_DLL_API(DftiErrorClass)
+	, XAMP_LOAD_DLL_API(DftiFreeDescriptor)
+	, XAMP_LOAD_DLL_API(DftiCreateDescriptor_s_1d)
+	, XAMP_LOAD_DLL_API(DftiCreateDescriptor_s_md)
+	, XAMP_LOAD_DLL_API(DftiCreateDescriptor_d_1d)
+	, XAMP_LOAD_DLL_API(DftiCreateDescriptor_d_md)
+	, XAMP_LOAD_DLL_API(DftiComputeForward)
+	, DftiCreateDescriptor_(module_, "DftiCreateDescriptor")
+	, XAMP_LOAD_DLL_API(DftiSetValue)
+	, XAMP_LOAD_DLL_API(DftiCommitDescriptor)
+	, XAMP_LOAD_DLL_API(DftiComputeBackward){
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -513,6 +510,14 @@ FFTWPlan MakeFFTW(uint32_t fft_size, uint32_t times, FFTWDoubleArray& fft_in, FF
 
 FFTWPlan MakeIFFTW(uint32_t fft_size, uint32_t times, FFTWComplexArray& ifft_in, FFTWDoubleArray& ifft_out) {
 	return FFTWPlan(FFTW_LIB.fftw_plan_dft_c2r_1d(fft_size / times, ifft_in.get(), ifft_out.get(), FFTW_ESTIMATE));
+}
+
+FFTWPtr MakeFFTWBuffer(size_t size) {
+	return FFTWPtr(static_cast<double*>(FFTW_LIB.fftw_malloc(sizeof(double) * size)));
+}
+
+FFTWFPtr MakeFFTWFBuffer(size_t size) {
+	return FFTWFPtr(static_cast<float*>(FFTWF_LIB.fftwf_malloc(sizeof(float) * size)));
 }
 
 #endif

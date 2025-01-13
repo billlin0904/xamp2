@@ -17,6 +17,7 @@ constexpr uint32_t DRAW_ONLY_RIGHT_CHANNEL = 1;
 constexpr uint32_t DRAW_ONLY_LEFT_CHANNEL  = 1 << 2;
 constexpr uint32_t DRAW_BOTH_CHANNEL       = 1 << 3;
 constexpr uint32_t DRAW_PLAYED_AREA        = 1 << 4;
+constexpr uint32_t DRAW_SPECTROGRAM        = 1 << 5;
 
 class XAMP_WIDGET_SHARED_EXPORT WaveformWidget : public QFrame {
     Q_OBJECT
@@ -38,6 +39,8 @@ public:
 
     void setCurrentPosition(float sec);
 
+    void setTotalDuration(float duration);
+
     void setSampleRate(uint32_t sample_rate);
 
     void setFramePerPeekSize(size_t size);
@@ -50,10 +53,15 @@ signals:
 public slots:
     void onReadAudioData(const std::vector<float> & buffer);
 
+    void setSpectrogramData(const QImage& spectrogramImg);
+
     void doneRead();
 
     void clear();
+
 protected:
+    void updateSpectrogramSize();
+
     void paintEvent(QPaintEvent *event) override;
 
     void mousePressEvent(QMouseEvent* event) override;
@@ -90,8 +98,8 @@ private:
     std::vector<float> left_peaks_;
     std::vector<float> right_peaks_;
     QPixmap cache_;
+    QPixmap spectrogram_;
+    QPixmap spectrogram_cache_;
     QPainterPath path_left_played_;
     QPainterPath path_right_played_;
-    QRectF old_left_played_brect_;
-    QRectF old_right_played_brect_;
 };

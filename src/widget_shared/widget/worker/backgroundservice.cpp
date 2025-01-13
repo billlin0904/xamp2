@@ -13,6 +13,8 @@
 #include <widget/tagio.h>
 
 #include <stream/filestream.h>
+#include <stream/fft.h>
+#include <stream/stft.h>
 #include <base/logger_impl.h>
 
 #if defined(Q_OS_WIN)
@@ -46,6 +48,75 @@ namespace {
         fileName.replace(forbidden_pattern, " "_str);
 		return fileName;
     }
+
+    class SoxColorTable {
+    public:
+        static constexpr int kSoxTableSize = 256;
+
+        SoxColorTable() {
+            for (int i = 0; i < kSoxTableSize; ++i) {
+                double ratio = static_cast<double>(i) / (kSoxTableSize - 1);
+                lut_[i] = soxColor(ratio);
+            }
+        }
+
+		QRgb operator[](float dB_val) const {
+            if (dB_val < -120.f) 
+                dB_val = -120.f;
+
+            if (dB_val > 0.f)   
+                dB_val = 0.f;
+
+            float ratio = (dB_val + 120.f) / 120.f;
+            int idx = static_cast<int>(ratio * (kSoxTableSize - 1) + 0.5f);
+
+            if (idx < 0)
+                idx = 0;
+            else if (idx >= kSoxTableSize) 
+                idx = kSoxTableSize - 1;
+
+			return lut_[idx];
+		}
+
+    private:
+        QRgb soxColor(double level) {
+            double r = 0.0;
+            if (level >= 0.13 && level < 0.73) {
+                r = sin((level - 0.13) / 0.60 * M_PI / 2.0);
+            }
+            else if (level >= 0.73) {
+                r = 1.0;
+            }
+
+            double g = 0.0;
+            if (level >= 0.6 && level < 0.91) {
+                g = sin((level - 0.6) / 0.31 * M_PI / 2.0);
+            }
+            else if (level >= 0.91) {
+                g = 1.0;
+            }
+
+            double b = 0.0;
+            if (level < 0.60) {
+                b = 0.5 * sin(level / 0.6 * M_PI);
+            }
+            else if (level >= 0.78) {
+                b = (level - 0.78) / 0.22;
+            }
+
+            // clamp b
+            if (b < 0.) b = 0.;
+            if (b > 1.) b = 1.;
+
+            uint32_t rr = static_cast<uint32_t>(r * 255.0 + 0.5);
+            uint32_t gg = static_cast<uint32_t>(g * 255.0 + 0.5);
+            uint32_t bb = static_cast<uint32_t>(b * 255.0 + 0.5);
+            return QColor(rr, gg, bb).rgb();
+        }
+
+        std::array<QRgb, kSoxTableSize> lut_;
+    };
+    
 }
 
 BackgroundService::BackgroundService()
@@ -282,4 +353,72 @@ void BackgroundService::onReadWaveformAudioData(size_t frame_per_peek, const Pat
 	catch (const Exception& e) {
 		XAMP_LOG_ERROR(e.GetErrorMessage());
 	}
+}
+
+void BackgroundService::onReadSpectrogram(const Path& file_path) {
+    static const SoxColorTable sox_color_table;
+    constexpr size_t kFFTSize = 4096;
+    constexpr size_t kHopSize = kFFTSize * 0.25;
+
+    auto dsd_mode = DsdModes::DSD_MODE_DSD2PCM;
+    if (!IsDsdFile(file_path)) {
+        dsd_mode = DsdModes::DSD_MODE_PCM;
+    }
+
+    auto filestream = StreamFactory::MakeFileStream(file_path, dsd_mode);
+
+    try {
+		filestream->OpenFile(file_path);
+	}
+	catch (const Exception& e) {
+		XAMP_LOG_ERROR(e.GetErrorMessage());
+		return;
+    }
+
+    size_t time_index = 0;
+    std::vector<float> buffer(kFFTSize);
+    std::vector<float> spec_data;
+
+    STFT fft(kFFTSize, kHopSize);
+    fft.SetWindowType(WindowType::HAMMING);
+
+    const double duration_sec = filestream->GetDurationAsSeconds();
+    size_t n_freq_bins = (kFFTSize / 2);
+    size_t max_time_bins = static_cast<size_t>(std::ceil(duration_sec * filestream->GetFormat().GetSampleRate() / kHopSize)) + 1;
+
+    spec_data.reserve(max_time_bins * n_freq_bins);
+	float n2 = kFFTSize * kFFTSize;
+
+	// Read audio data and calculate spectrogram
+
+    while (!is_stop_ && filestream->IsActive()) {
+        std::fill(buffer.begin(), buffer.end(), 0.0f);
+        auto read_samples = filestream->GetSamples(buffer.data(), buffer.size());
+        if (read_samples == 0) {
+            break;
+        }
+		const auto& freq_bins = fft.Process(buffer.data(), read_samples);
+        for (size_t f = 0; f < n_freq_bins && f < freq_bins.size(); f++) {
+            float dB = 10.0f * log10f((freq_bins[f].real() * freq_bins[f].real() + freq_bins[f].imag() * freq_bins[f].imag()) / n2);
+            if (dB < -120.f) dB = -120.f;
+            if (dB > 0.f)    dB = 0.f;
+            spec_data.push_back(dB);
+        }
+        time_index++;
+    }
+
+	// Draw spectrogram
+    QImage spec_img(static_cast<int>(time_index), static_cast<int>(n_freq_bins), QImage::Format_ARGB32_Premultiplied);
+    spec_img.fill(Qt::black);
+
+    for (int x = 0; x < static_cast<int>(time_index); x++) {
+        for (int f = 0; f < static_cast<int>(n_freq_bins); f++) {
+            float db_val = spec_data[x * n_freq_bins + f];
+            QRgb color = sox_color_table[db_val];
+            int y = static_cast<int>(n_freq_bins) - 1 - f;
+            spec_img.setPixel(x, y, color);
+        }
+    }
+
+	emit readAudioSpectrogram(spec_img);
 }

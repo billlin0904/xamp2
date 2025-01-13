@@ -34,6 +34,7 @@ private:
 	class DirFirstSortFilterProxyModel;
 	class DisableToolTipStyledItemDelegate;
 
+	QString file_path_;
 	Ui::FileSystemViewPage* ui_;
 	FileSystemModel* dir_model_;
 	DirFirstSortFilterProxyModel* dir_first_sort_filter_;

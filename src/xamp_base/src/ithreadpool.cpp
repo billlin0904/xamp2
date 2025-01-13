@@ -16,27 +16,32 @@ namespace {
 
 std::shared_ptr<IThreadPoolExecutor> ThreadPoolBuilder::MakeThreadPool(const std::string_view& pool_name,
 	uint32_t max_thread,
+	size_t bulk_size,
 	ThreadPriority priority) {
 	return MakeShared<IThreadPoolExecutor, ThreadPoolExecutor>(pool_name,
 		max_thread,
+		bulk_size,
 		priority);
 }
 
 std::shared_ptr<IThreadPoolExecutor> ThreadPoolBuilder::MakeBackgroundThreadPool() {
 	return MakeThreadPool(XAMP_LOG_NAME(BackgroundThreadPool),
 		kMaxBackgroundThreadPoolSize,
+		kMaxBackgroundThreadPoolSize / 2,
 		ThreadPriority::PRIORITY_BACKGROUND);
 }
 
 std::shared_ptr<IThreadPoolExecutor> ThreadPoolBuilder::MakePlaybackThreadPool() {
 	return MakeThreadPool(XAMP_LOG_NAME(PlaybackThreadPool),
 		kMaxPlaybackThreadPoolSize,
+		1,
 		ThreadPriority::PRIORITY_NORMAL);
 }
 
 std::shared_ptr<IThreadPoolExecutor> ThreadPoolBuilder::MakePlayerThreadPool() {
 	return MakeThreadPool(XAMP_LOG_NAME(PlayerThreadPool),
 		kMaxPlayerThreadPoolSize,
+		1,
 		ThreadPriority::PRIORITY_NORMAL);
 }
 

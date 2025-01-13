@@ -1538,7 +1538,9 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
             frame_per_peak = 1024;
         }
         file_explorer_page_->waveformWidget()->setSampleRate(sampler_rate);
-        emit readWaveformAudioData(frame_per_peak, entity.file_path.toStdWString());
+        file_explorer_page_->waveformWidget()->setTotalDuration(entity.duration);
+        //emit readWaveformAudioData(frame_per_peak, entity.file_path.toStdWString());
+        emit readAudioSpectrogram(entity.file_path.toStdWString());
 	} else {
         file_explorer_page_->playlistPage()->playlist()->setNowPlayState(PLAY_CLEAR);
 		file_explorer_page_->waveformWidget()->clear();
@@ -1890,10 +1892,20 @@ void Xamp::initialPlaylist() {
         background_service_.get(),
         &BackgroundService::onReadWaveformAudioData);
 
+    (void)QObject::connect(this,
+        &Xamp::readAudioSpectrogram,
+        background_service_.get(),
+        &BackgroundService::onReadSpectrogram);
+
+    (void)QObject::connect(background_service_.get(),
+        &BackgroundService::readAudioSpectrogram,
+        file_explorer_page_->waveformWidget(),
+		&WaveformWidget::setSpectrogramData);
+
     (void)QObject::connect(background_service_.get(),
         &BackgroundService::readAudioData,
         file_explorer_page_->waveformWidget(),
-		&WaveformWidget::onReadAudioData);
+        &WaveformWidget::onReadAudioData);
 
     (void)QObject::connect(background_service_.get(),
         &BackgroundService::readAudioDataCompleted,

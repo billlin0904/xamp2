@@ -23,11 +23,11 @@ namespace {
 	constexpr size_t kMaxStealBulkSize = 4;
 }
 
-TaskScheduler::TaskScheduler(const std::string_view& name, size_t max_thread, ThreadPriority priority)
+TaskScheduler::TaskScheduler(const std::string_view& name, size_t bulk_size, size_t max_thread, ThreadPriority priority)
 	: is_stopped_(false)
 	, running_thread_(0)
 	, max_thread_(std::max(max_thread, kMinThreadPoolSize))
-	, bulk_size_(max_thread / 2)
+	, bulk_size_(bulk_size)
 	, name_(name)
 	, task_execute_flags_(max_thread_)
 	, work_done_(static_cast<ptrdiff_t>(max_thread_))
@@ -67,11 +67,6 @@ TaskScheduler::~TaskScheduler() {
 
 size_t TaskScheduler::GetThreadSize() const {
 	return max_thread_;
-}
-
-void TaskScheduler::SetBulkSize(size_t max_size) {
-	XAMP_EXPECTS(max_size > 0);
-	bulk_size_ = max_size;
 }
 
 void TaskScheduler::Destroy() noexcept {
@@ -245,7 +240,7 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 
 					// Gradually increase the number of attempts if no task was found
 					if (!task_size) {
-						backoff_attempts = std::min(backoff_attempts * 2, 32); // Max backoff attempts
+						//backoff_attempts = std::min(backoff_attempts * 2, 32); // Max backoff attempts
 						CpuRelax();
 						continue;
 					}
@@ -269,8 +264,8 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
         });
 }
 
-ThreadPoolExecutor::ThreadPoolExecutor(const std::string_view& name, uint32_t max_thread, ThreadPriority priority)
-	: IThreadPoolExecutor(MakeAlign<ITaskScheduler, TaskScheduler>(name,max_thread, priority)) {
+ThreadPoolExecutor::ThreadPoolExecutor(const std::string_view& name, uint32_t max_thread, size_t bulk_size, ThreadPriority priority)
+	: IThreadPoolExecutor(MakeAlign<ITaskScheduler, TaskScheduler>(name,max_thread, bulk_size, priority)) {
 }
 
 ThreadPoolExecutor::~ThreadPoolExecutor() {
@@ -279,10 +274,6 @@ ThreadPoolExecutor::~ThreadPoolExecutor() {
 
 size_t ThreadPoolExecutor::GetThreadSize() const {
 	return scheduler_->GetThreadSize();
-}
-
-void ThreadPoolExecutor::SetBulkSize(size_t max_size) {
-	scheduler_->SetBulkSize(max_size);
 }
 
 void ThreadPoolExecutor::Stop() {

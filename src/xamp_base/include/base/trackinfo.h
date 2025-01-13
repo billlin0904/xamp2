@@ -11,6 +11,7 @@
 
 #include <base/base.h>
 #include <base/fs.h>
+#include <base/stl.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
 
@@ -52,28 +53,28 @@ struct XAMP_BASE_API TrackInfo final {
         if (!file_path.has_filename()) {
             return std::nullopt;
         }
-        return file_path.filename().wstring();
+        return CreateOptional<std::wstring>(file_path.filename().wstring());
     }
 
     std::optional<std::wstring> parent_path() const {
         if (!file_path.has_parent_path()) {
             return std::nullopt;
         }
-        return file_path.parent_path().wstring();
+        return CreateOptional<std::wstring>(file_path.parent_path().wstring());
     }
 
     std::optional<std::wstring> file_ext() const {
         if (!file_path.has_extension()) {
             return std::nullopt;
         }
-        return file_path.extension().wstring();
+        return CreateOptional<std::wstring>(file_path.extension().wstring());
     }
 
     std::optional<std::wstring> file_name_no_ext() const {
         if (!file_path.has_stem()) {
             return std::nullopt;
         }
-        return file_path.stem().wstring();
+        return CreateOptional<std::wstring>(file_path.stem().wstring());
     }
 };
 

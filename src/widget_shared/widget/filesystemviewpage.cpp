@@ -1,6 +1,6 @@
 #include <ui_filesystemviewpage.h>
-#include <widget/filesystemviewpage.h>
 
+#include <widget/filesystemviewpage.h>
 #include <widget/appsettings.h>
 #include <widget/database.h>
 #include <widget/appsettingnames.h>
@@ -9,6 +9,9 @@
 #include <widget/filesystemmodel.h>
 #include <widget/util/ui_util.h>
 #include <widget/xmainwindow.h>
+
+#include <widget/widget_shared.h>
+#include <base/workstealingtaskqueue.h>
 
 #include <QLabel>
 #include <QHelpEvent>
@@ -119,21 +122,26 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     ui_->page->playlist()->setHeaderViewHidden(false);
 
     (void)QObject::connect(ui_->dirTree, &QTreeView::clicked, [this](const auto &index) {
-        ui_->page->playlist()->removeAll();
-
         auto src_index = dir_first_sort_filter_->mapToSource(index);
-        auto path = toNativeSeparators(dir_model_->fileInfo(src_index).filePath());
-
+		auto path = dir_model_->fileInfo(src_index).filePath();
         QFileInfo file_info(path);
         QString parent_dir_path;
 
         if (!file_info.isDir()) {
             parent_dir_path = file_info.absolutePath();
-        } else {
+        }
+        else {
             parent_dir_path = path;
-        }        
+        }
 
-        ForwardList<TrackInfo> track_infos;
+		if (file_path_ == parent_dir_path) {
+			return;
+		}
+
+        ui_->page->playlist()->removeAll();
+
+		file_path_ = parent_dir_path;
+        ConcurrentQueue<TrackInfo> track_queue;
 
         QDirIterator itr(parent_dir_path, getTrackInfoFileNameFilter(),
             QDir::NoDotAndDotDot | QDir::Files);
@@ -147,16 +155,11 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
 			file_paths.push_back(path_str);
         }
 
-        FastMutex mutex;
-
-        getMainWindow()->threadPool()->SetBulkSize(1);
-
-        Executor::ParallelFor(getMainWindow()->threadPool(), file_paths, [&track_infos, &mutex](const auto& path) {
+        Executor::ParallelFor(getMainWindow()->threadPool(), file_paths, [&track_queue](const auto& path) {
             try {
                 auto reader = MakeMetadataReader();
                 reader->Open(path);
-                std::lock_guard lock(mutex);
-                track_infos.push_front(reader->Extract());
+                track_queue.enqueue(reader->Extract());
             }
             catch (const Exception& e) {
                 XAMP_LOG_DEBUG("Failed to extract file: {}", e.GetStackTrace());
@@ -165,8 +168,11 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
             }
             });
 
-        if (track_infos.empty()) {
-            return;
+        ForwardList<TrackInfo> track_infos;
+
+        TrackInfo temp;
+    	while (track_queue.try_dequeue(temp)) {
+            track_infos.push_front(temp);
         }
 
         track_infos.sort([](const auto& first, const auto& last) {

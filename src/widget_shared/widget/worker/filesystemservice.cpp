@@ -77,6 +77,7 @@ FileSystemService::FileSystemService()
 	thread_pool_ = ThreadPoolBuilder::MakeThreadPool(
 		XAMP_LOG_NAME(FileSystemService),
 		kThreadPoolSize,
+		1,
 		ThreadPriority::PRIORITY_BACKGROUND);
 }
 
@@ -156,7 +157,7 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 		}
 
 		ForwardList<TrackInfo> tracks;
-	 	thread_local auto reader = MakeMetadataReader();
+	 	auto reader = MakeMetadataReader();
 
 		for (const auto& path : path_info.second) {
 			if (stop_token.stop_requested()) {

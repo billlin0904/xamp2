@@ -21,8 +21,9 @@
 #if (USE_INTEL_MKL_LIB)
 #define MKL_DIRECT_CALL
 #include <fftw3.h>
-#include <fftw3_mkl.h>
+#include <fftw/fftw3_mkl.h>
 #include <mkl_service.h>
+#include <mkl.h>
 #else
 #include <fftw3.h>
 #endif
@@ -30,6 +31,32 @@
 XAMP_STREAM_NAMESPACE_BEGIN
 
 #if (USE_INTEL_MKL_LIB)
+
+class MKLLib final {
+public:
+	MKLLib();
+
+	XAMP_DISABLE_COPY(MKLLib)
+private:
+	SharedLibraryHandle module_;
+
+public:
+	XAMP_DECLARE_DLL(MKL_malloc) MKL_malloc;
+	XAMP_DECLARE_DLL(MKL_free) MKL_free;
+	XAMP_DECLARE_DLL(DftiErrorClass) DftiErrorClass;
+	XAMP_DECLARE_DLL(DftiFreeDescriptor) DftiFreeDescriptor;
+	XAMP_DECLARE_DLL(DftiCreateDescriptor_s_1d) DftiCreateDescriptor_s_1d;
+	XAMP_DECLARE_DLL(DftiCreateDescriptor_s_md) DftiCreateDescriptor_s_md;
+	XAMP_DECLARE_DLL(DftiCreateDescriptor_d_1d) DftiCreateDescriptor_d_1d;
+	XAMP_DECLARE_DLL(DftiCreateDescriptor_d_md) DftiCreateDescriptor_d_md;
+	XAMP_DECLARE_DLL(DftiComputeForward) DftiComputeForward;
+	XAMP_DECLARE_DLL(DftiCreateDescriptor) DftiCreateDescriptor_;
+	XAMP_DECLARE_DLL(DftiSetValue) DftiSetValue;
+	XAMP_DECLARE_DLL(DftiCommitDescriptor) DftiCommitDescriptor;
+	XAMP_DECLARE_DLL(DftiComputeBackward) DftiComputeBackward;
+};
+
+#define MKL_LIB Singleton<MKLLib>::GetInstance()
 
 class FFTWLib final {
 public:
@@ -42,7 +69,7 @@ private:
 
 public:
 	static void delete_plan(fftw_mkl_plan p);
-	static fftw_mkl_plan new_plan(void);
+	static fftw_mkl_plan new_plan();
 
 	XAMP_DECLARE_DLL(DftiErrorClass) DftiErrorClass;
 	XAMP_DECLARE_DLL(DftiFreeDescriptor) DftiFreeDescriptor;
@@ -130,11 +157,22 @@ public:
 template <typename T>
 struct FFTWPtrTraits;
 
+template <typename T>
+struct FFTWFPtrTraits;
+
 template <>
 struct FFTWPtrTraits<double> final {
 	void operator()(double* value) const {
 		XAMP_EXPECTS(value != nullptr);
 		FFTW_LIB.fftw_free(value);
+	}
+};
+
+template <>
+struct FFTWFPtrTraits<float> final {
+	void operator()(float* value) const {
+		XAMP_EXPECTS(value != nullptr);
+		FFTWF_LIB.fftwf_free(value);
 	}
 };
 
@@ -192,19 +230,18 @@ struct FFTWPlanTraits final {
 	}
 };
 
-using FFTWFPlan = UniqueHandle<fftwf_plan, FFTWFPlanTraits>;
 using FFTWPlan = UniqueHandle<fftw_plan, FFTWPlanTraits>;
+using FFTWFPlan = UniqueHandle<fftwf_plan, FFTWFPlanTraits>;
+
+using FFTWFPtr = std::unique_ptr<float, FFTWFPtrTraits<float>>;
+using FFTWPtr = std::unique_ptr<double, FFTWPtrTraits<double>>;
 
 using FFTWComplexArray = std::unique_ptr<fftw_complex[], FFTWPtrTraits<fftw_complex>>;
 using FFTWDoubleArray = std::unique_ptr<double[], FFTWPtrTraits<double>>;
 
-template <typename T>
-std::unique_ptr<T[], FFTWPtrTraits<T>> MakeFFTWBuffer(size_t size) {
-	return std::unique_ptr<
-		T[],
-		FFTWPtrTraits<T>
-	>(static_cast<T*>(FFTW_LIB.fftw_malloc(sizeof(T) * size)));
-}
+FFTWPtr MakeFFTWBuffer(size_t size);
+
+FFTWFPtr MakeFFTWFBuffer(size_t size);
 
 FFTWComplexArray MakeFFTWComplexArray(size_t size);
 

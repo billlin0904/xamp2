@@ -48,6 +48,8 @@ signals:
 
 	void jobError(const QString& job_id, const QString &message);
 
+	void readAudioSpectrogram(const QImage& spectrogram);
+
 	void readAudioData(const std::vector<float>& interleaved);
 
 	void readAudioDataCompleted();
@@ -71,6 +73,7 @@ public Q_SLOT:
 
 	void onReadWaveformAudioData(size_t frame_per_peek, const Path & file_path);
 
+	void onReadSpectrogram(const Path& file_path);
 private:
 	bool is_stop_{false};
 	LruCache<QString, QImage> blur_image_cache_;

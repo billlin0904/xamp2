@@ -28,8 +28,6 @@ public:
 
     virtual size_t GetThreadSize() const = 0;
 
-    virtual void SetBulkSize(size_t max_size) = 0;
-
     virtual void Destroy() noexcept = 0;
 protected:
     ITaskScheduler() = default;
@@ -40,8 +38,6 @@ public:
     XAMP_BASE_DISABLE_COPY_AND_MOVE(IThreadPoolExecutor)
 
     virtual size_t GetThreadSize() const = 0;
-
-    virtual void SetBulkSize(size_t max_size) = 0;
 
     virtual void Stop() = 0;
 
@@ -88,6 +84,7 @@ decltype(auto) IThreadPoolExecutor::Spawn(F&& f, Args&&... args, ExecuteFlags fl
 struct XAMP_BASE_API ThreadPoolBuilder {
     static std::shared_ptr<IThreadPoolExecutor> MakeThreadPool(const std::string_view& pool_name,
         uint32_t max_thread = std::thread::hardware_concurrency(),
+        size_t bulk_size = std::thread::hardware_concurrency() / 2,
         ThreadPriority priority = ThreadPriority::PRIORITY_NORMAL);
 
     static std::shared_ptr<IThreadPoolExecutor> MakeBackgroundThreadPool();

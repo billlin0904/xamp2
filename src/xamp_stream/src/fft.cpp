@@ -5,6 +5,7 @@
 #include <base/assert.h>
 #include <base/math.h>
 #include <base/logger_impl.h>
+#include <base/exception.h>
 #include <stream/fft.h>
 
 #ifdef XAMP_OS_WIN
@@ -85,24 +86,120 @@ private:
 
 #ifdef XAMP_OS_WIN
 
-using FFTWPtr = std::unique_ptr<float[], FFTWPtrTraits<float>>;
+#if (USE_INTEL_MKL_LIB)
+#define CallDftiCreateDescriptor(desc,prec,domain,dim,sizes) \
+    (/* single precision specific cases */ \
+     ((prec)==DFTI_SINGLE && (dim)==1) ? \
+		MKL_LIB.DftiCreateDescriptor_s_1d((desc),(domain),(sizes)) : \
+     ((prec)==DFTI_SINGLE) ? \
+		MKL_LIB.DftiCreateDescriptor_s_md((desc),(domain),(dim),(sizes)) : \
+     /* double precision specific cases */ \
+     ((prec)==DFTI_DOUBLE && (dim)==1) ? \
+		MKL_LIB.DftiCreateDescriptor_d_1d((desc),(domain),(sizes)) : \
+     ((prec)==DFTI_DOUBLE) ? \
+		MKL_LIB.DftiCreateDescriptor_d_md((desc),(domain),(dim),(sizes)) : \
+     /* no specific case matches, fall back to original call */ \
+     MKL_LIB.DftiCreateDescriptor_((desc),(prec),(domain),(dim),(sizes)))
 
+class FFT::FFTImpl {
+public:
+	FFTImpl()
+		: descriptor_(nullptr)
+		, frame_size_(0) {
+	}
+
+	~FFTImpl() {
+		if (descriptor_) {
+			MKL_LIB.DftiFreeDescriptor(&descriptor_);
+			descriptor_ = nullptr;
+		}
+	}
+
+	void Init(std::size_t frame_size) {
+		if (descriptor_) {
+			MKL_LIB.DftiFreeDescriptor(&descriptor_);
+			descriptor_ = nullptr;
+		}
+		frame_size_ = frame_size;
+		if (frame_size_ < 2) {
+			throw std::runtime_error("FFT frame_size must be >= 2");
+		}
+		complex_size_ = ComplexSize(frame_size);
+		MKL_LONG status = CallDftiCreateDescriptor(&descriptor_,
+			DFTI_SINGLE,
+			DFTI_REAL,
+			1,
+			static_cast<MKL_LONG>(frame_size_));
+		if (status != DFTI_NO_ERROR) {
+			throw std::runtime_error("DftiCreateDescriptor failed.");
+		}
+
+		status = MKL_LIB.DftiSetValue(descriptor_, DFTI_PLACEMENT, DFTI_NOT_INPLACE);
+		if (status != DFTI_NO_ERROR) {
+			throw std::runtime_error("DftiSetValue(PLACEMENT) failed.");
+		}
+
+		status = MKL_LIB.DftiCommitDescriptor(descriptor_);
+		if (status != DFTI_NO_ERROR) {
+			throw std::runtime_error("DftiCommitDescriptor failed.");
+		}
+
+		real_buffer_.resize(frame_size_, 0.f);
+		cplx_buffer_.resize(frame_size_ / 2 + 1); // MKL¤º³¡¿é¥X?
+	}
+
+	const ComplexValarray& Forward(float const* data, std::size_t size) {
+		if (!descriptor_) {
+			throw std::runtime_error("FFT not initialized yet.");
+		}
+		if (size > frame_size_) {
+			throw std::runtime_error("Input data size is bigger than frame_size_");
+		}
+
+		std::memcpy(real_buffer_.data(), data, sizeof(float) * size);
+
+		MKL_LONG status =
+			MKL_LIB.DftiComputeForward(descriptor_,
+				real_buffer_.data(),
+				cplx_buffer_.data());
+		if (status != DFTI_NO_ERROR) {
+			throw std::runtime_error("DftiComputeForward failed.");
+		}
+
+		for (size_t i = 0; i < complex_size_; ++i) {
+			output_[i] = Complex(cplx_buffer_[i].real(), cplx_buffer_[i].imag());
+		}
+
+		return output_;
+	}
+
+private:
+	size_t complex_size_;
+	DFTI_DESCRIPTOR_HANDLE descriptor_;
+	std::size_t frame_size_;
+	std::vector<std::complex<float>> cplx_buffer_;
+	std::vector<float> real_buffer_;
+	ComplexValarray output_;
+};
+#else
 class FFT::FFTImpl {
 public:
 	FFTImpl() = default;
 
-	~FFTImpl() = default;
+	~FFTImpl() {
+		XAMP_LOG_DEBUG("FFTImpl::~FFTImpl");
+	}
 
 	void Init(size_t frame_size) {
 		XAMP_ASSERT(IsPowerOfTwo(frame_size));
 		frame_size_ = frame_size;
 		complex_size_ = ComplexSize(frame_size);
-		data_ = MakeFFTWBuffer<float>(frame_size);
-		re_ = MakeFFTWBuffer<float>(complex_size_);
-		im_ = MakeFFTWBuffer<float>(complex_size_);
+		data_ = MakeFFTWFBuffer(frame_size);
+		re_ = MakeFFTWFBuffer(complex_size_);
+		im_ = MakeFFTWFBuffer(complex_size_);
 		output_ = ComplexValarray(Complex(), complex_size_);
 
-		fftw_iodim dim;
+		fftwf_iodim dim;
 		dim.n = static_cast<int>(frame_size);
 		dim.is = 1;
 		dim.os = 1;
@@ -113,7 +210,10 @@ public:
 			data_.get(),
 			re_.get(),
 			im_.get(),
-			FFTW_ESTIMATE));
+			FFTW_MEASURE));
+		if (!forward_) {
+			throw LibraryException("Failed call fftwf_plan_guru_split_dft_r2c.");
+		}
 
 		backward_.reset(FFTWF_LIB.fftwf_plan_guru_split_dft_c2r(1,
 			&dim,
@@ -122,11 +222,15 @@ public:
 			re_.get(),
 			im_.get(),
 			data_.get(),
-			FFTW_ESTIMATE));
+			FFTW_MEASURE));
+		if (!backward_) {
+			throw LibraryException("Failed call fftwf_plan_guru_split_dft_c2r.");
+		}
 	}
 
 	const ComplexValarray& Forward(float const* signals, size_t frame_size) {
 		XAMP_ASSERT(frame_size_ == frame_size);
+		XAMP_ASSERT(forward_);
 
 		MemoryCopy(data_.get(), signals, sizeof(float) * frame_size);
 
@@ -147,13 +251,14 @@ public:
 
 	size_t frame_size_{ 0 };
 	size_t complex_size_{ 0 };
-	FFTWPtr data_;
-	FFTWPtr re_;
-	FFTWPtr im_;
+	FFTWFPtr data_;
+	FFTWFPtr re_;
+	FFTWFPtr im_;
 	ComplexValarray output_;
 	FFTWFPlan forward_;
 	FFTWFPlan backward_;
 };
+#endif
 
 #else
 

@@ -32,6 +32,7 @@ public:
 	* Constructor.
 	*/
 	TaskScheduler(const std::string_view& name,
+				  size_t bulk_size,
 	              size_t max_thread,
 	              ThreadPriority priority);
 	
@@ -46,8 +47,6 @@ public:
     * Get thread pool size.
     */
     size_t GetThreadSize() const override;
-
-	void SetBulkSize(size_t max_size) override;
 
     /*
     * Submit job to thread pool.
@@ -112,6 +111,7 @@ class ThreadPoolExecutor final : public IThreadPoolExecutor {
 public:
 	explicit ThreadPoolExecutor(const std::string_view& name,
 	                            uint32_t max_thread = std::thread::hardware_concurrency(),
+								size_t bulk_size = std::thread::hardware_concurrency() / 2,
 	                            ThreadPriority priority = ThreadPriority::PRIORITY_NORMAL);
 
 	~ThreadPoolExecutor() override;
@@ -121,8 +121,6 @@ public:
     void Stop() override;
 
     size_t GetThreadSize() const override;
-
-	void SetBulkSize(size_t max_size) override;
 };
 
 XAMP_BASE_NAMESPACE_END

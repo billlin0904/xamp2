@@ -70,7 +70,7 @@ WaveformWidget::WaveformWidget(QWidget *parent)
     : QFrame(parent) {
     setStyleSheet("background-color: transparent; border: none;"_str);
     setContextMenuPolicy(Qt::CustomContextMenu);
-    draw_mode_ = qAppSettings.valueAsInt(kAppSettingWaveformDrawMode);
+    draw_mode_ = DRAW_SPECTROGRAM;//qAppSettings.valueAsInt(kAppSettingWaveformDrawMode);
 
     (void)QObject::connect(this, &WaveformWidget::customContextMenuRequested, [this](auto pt) {
         ActionMap<WaveformWidget> action_map(this);
@@ -119,11 +119,12 @@ WaveformWidget::WaveformWidget(QWidget *parent)
 }
 
 void WaveformWidget::setCurrentPosition(float sec) {
+	cursor_ms_ = sec * 1000.f;
+
     if (left_peaks_.empty() || right_peaks_.empty()) {
+        update();
         return;
     }
-
-	cursor_ms_ = sec * 1000.f;
 
     QRectF old_left_box = path_left_played_.boundingRect();
     QRectF old_right_box = path_right_played_.boundingRect();
@@ -135,6 +136,12 @@ void WaveformWidget::setCurrentPosition(float sec) {
         updatePlayedPaths(play_index);
     }
     
+	update();
+}
+
+void WaveformWidget::setTotalDuration(float duration) {
+	total_ms_ = duration * 1000.f;
+    peak_count_ = 2;
 	update();
 }
 
@@ -156,6 +163,12 @@ void WaveformWidget::setDrawMode(uint32_t mode) {
     updateCachePixmap();
     qAppSettings.setValue(kAppSettingWaveformDrawMode, mode);
 	update();
+}
+
+void WaveformWidget::setSpectrogramData(const QImage& spectrogramImg) {
+    spectrogram_ = QPixmap::fromImage(spectrogramImg);
+    updateSpectrogramSize();
+    update();
 }
 
 void WaveformWidget::onReadAudioData(const std::vector<float> & buffer) {
@@ -408,12 +421,18 @@ void WaveformWidget::drawDuration(QPainter& painter) {
 
 void WaveformWidget::paintEvent(QPaintEvent *event) {
     QPainter painter(this);
+
     painter.setRenderHints(QPainter::Antialiasing 
         | QPainter::SmoothPixmapTransform 
         | QPainter::TextAntialiasing);
 
     painter.setClipRegion(event->region());
-    painter.drawPixmap(0, 0, cache_);
+
+    if (draw_mode_ & DRAW_SPECTROGRAM) {
+        painter.drawPixmap(0, 0, spectrogram_cache_);
+    } else {
+        painter.drawPixmap(0, 0, cache_);
+    }
 
 	if (draw_mode_ & DRAW_PLAYED_AREA) {
         if (draw_mode_ & DRAW_BOTH_CHANNEL || draw_mode_ & DRAW_ONLY_LEFT_CHANNEL) {
@@ -468,12 +487,21 @@ void WaveformWidget::mouseReleaseEvent(QMouseEvent* event) {
 
 void WaveformWidget::resizeEvent(QResizeEvent* event) {
 	QFrame::resizeEvent(event);
-    updateCachePixmap();
+    if (draw_mode_ & DRAW_SPECTROGRAM) {
+		updateSpectrogramSize();
+	} else {
+        updateCachePixmap();
+	}
 	update();
 }
 
 void WaveformWidget::doneRead() {
-    updateCachePixmap();
+    if (draw_mode_ & DRAW_SPECTROGRAM) {
+        updateSpectrogramSize();
+    }
+    else {
+        updateCachePixmap();
+    }
     update();
 }
 
@@ -488,6 +516,12 @@ void WaveformWidget::clear() {
 	path_left_played_ = QPainterPath();
     path_right_played_ = QPainterPath();
     update();
+}
+
+void WaveformWidget::updateSpectrogramSize() {
+    if (spectrogram_.isNull())
+        return;
+    spectrogram_cache_ = spectrogram_.scaled(size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 }
 
 float WaveformWidget::mapPeakToY(float peakVal, int top, int height, bool isPositive) const {
