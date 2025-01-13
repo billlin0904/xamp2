@@ -32,6 +32,11 @@ public:
 		frame_size_ = frame_size;
 		data_ = MakeBuffer<float>(frame_size);
 		SetWindowType(type);
+		if (type == WindowType::HAMMING || type == WindowType::HANN) {
+			for (size_t i = 0; i < frame_size; i++) {
+				cos_lut_.push_back(std::cos((2.0 * XAMP_PI * i) / (frame_size - 1)));
+			}
+		}
 		for (size_t i = 0; i < frame_size; i++) {
 			data_[i] = std::invoke(dispatch_, i, frame_size);
 		}
@@ -44,6 +49,9 @@ public:
 			break;
 		case WindowType::HAMMING:
 			dispatch_ = bind_front(&WindowImpl::HammingWindow, this);
+			break;
+		case WindowType::HANN:
+			dispatch_ = bind_front(&WindowImpl::HannWindow, this);
 			break;
 		case WindowType::BLACKMAN_HARRIS:
 		default:
@@ -64,8 +72,12 @@ private:
 		return 1;
 	}
 
+	float HannWindow(size_t i, size_t N) {
+		return 0.5f * (1.0f - cos_lut_[i]);
+	}
+
 	float HammingWindow(size_t i, size_t N) {
-		return 0.54 - 0.46 * std::cos((2.0 * XAMP_PI * i) / (N - 1));
+		return 0.54f - 0.46f * cos_lut_[i];
 	}
 
 	float BlackmanHarrisWindow(size_t i, size_t N) {
@@ -82,6 +94,7 @@ private:
 	std::function<float(size_t, size_t)> dispatch_;
 	size_t frame_size_{0};
 	Buffer<float> data_;
+	std::vector<float> cos_lut_;
 };
 
 #ifdef XAMP_OS_WIN

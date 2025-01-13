@@ -79,15 +79,19 @@ private:
 
     void updatePlayedPaths(int playIndex);
 
-    void drawTimeAxis(QPainter& p);
+    void drawTimeAxis(QPainter& painter);
 
     void drawDuration(QPainter& painter);
+
+    void drawFrequencyAxis(QPainter& painter);
 
     float mapPeakToY(float peakVal, int top, int height, bool isPositive) const;
 
     float xToTime(float x) const;
 
     float timeToX(float sec) const;
+
+    float mapFreqToY(float freq) const;
 
     uint32_t draw_mode_ = DRAW_ONLY_RIGHT_CHANNEL;
     float total_ms_ = 0.f;

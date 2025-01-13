@@ -70,13 +70,20 @@ WaveformWidget::WaveformWidget(QWidget *parent)
     : QFrame(parent) {
     setStyleSheet("background-color: transparent; border: none;"_str);
     setContextMenuPolicy(Qt::CustomContextMenu);
-    draw_mode_ = DRAW_SPECTROGRAM;//qAppSettings.valueAsInt(kAppSettingWaveformDrawMode);
+    draw_mode_ = qAppSettings.valueAsInt(kAppSettingWaveformDrawMode);
 
     (void)QObject::connect(this, &WaveformWidget::customContextMenuRequested, [this](auto pt) {
         ActionMap<WaveformWidget> action_map(this);
 
 		auto setting_value = qAppSettings.valueAsInt(kAppSettingWaveformDrawMode);
         auto show_ch_menu = action_map.addSubMenu(tr("Show Channel"));
+
+		auto* show_spectrogram_act = show_ch_menu->addAction(tr("Show Spectrogram"), [this]() {
+			setDrawMode(DRAW_SPECTROGRAM);
+			});
+        if (setting_value & DRAW_SPECTROGRAM) {
+            show_spectrogram_act->setChecked(true);
+        }
 
         auto* only_right_ch_act = show_ch_menu->addAction(tr("Show Only Right Channel"), [this]() {
             auto enable = draw_mode_ & DRAW_PLAYED_AREA;
@@ -85,6 +92,7 @@ WaveformWidget::WaveformWidget(QWidget *parent)
 		if (setting_value & DRAW_ONLY_RIGHT_CHANNEL) {
             only_right_ch_act->setChecked(true);
 		}
+
         auto* only_left_ch_act = show_ch_menu->addAction(tr("Show Only Left Channel"), [this]() {
             auto enable = draw_mode_& DRAW_PLAYED_AREA;
             setDrawMode(DRAW_ONLY_LEFT_CHANNEL | (enable ? DRAW_PLAYED_AREA : 0));
@@ -92,6 +100,7 @@ WaveformWidget::WaveformWidget(QWidget *parent)
         if (setting_value & DRAW_ONLY_LEFT_CHANNEL) {
             only_left_ch_act->setChecked(true);
         }
+
         auto* only_both_ch_act = show_ch_menu->addAction(tr("Show Both Channel"), [this]() {
             auto enable = draw_mode_ & DRAW_PLAYED_AREA;
             setDrawMode(DRAW_BOTH_CHANNEL | (enable ? DRAW_PLAYED_AREA : 0));
@@ -99,6 +108,7 @@ WaveformWidget::WaveformWidget(QWidget *parent)
         if (setting_value & DRAW_BOTH_CHANNEL) {
             only_both_ch_act->setChecked(true);
         }
+
         auto submenu = action_map.addSubMenu(tr("Show Played Area"));
         auto* show_act = submenu->addAction(tr("Enable"), [this]() {
 			uint32_t mode = 0;
@@ -334,7 +344,7 @@ void WaveformWidget::updatePlayedPaths(int playIndex) {
     }
 }
 
-void WaveformWidget::drawTimeAxis(QPainter& p) {
+void WaveformWidget::drawTimeAxis(QPainter& painter) {
     auto total_sec = static_cast<int32_t>(total_ms_ / 1000.0f);
     if (total_sec <= 0) {
         return;
@@ -345,14 +355,14 @@ void WaveformWidget::drawTimeAxis(QPainter& p) {
     int h = height();
     int y_base = h - 1;
 
-    p.setPen(QPen(Qt::lightGray, 1, Qt::SolidLine));
-    p.drawLine(QPointF(0, y_base), QPointF(width(), y_base));
+    painter.setPen(QPen(Qt::lightGray, 1, Qt::SolidLine));
+    painter.drawLine(QPointF(0, y_base), QPointF(width(), y_base));
 
     auto f = qTheme.monoFont();
     f.setPointSize(8);
-    p.setFont(f);
+    painter.setFont(f);
 
-    const QFontMetrics fm(p.font());
+    const QFontMetrics fm(painter.font());
 
     for (auto cur_sec = 0; cur_sec <= total_sec; ++cur_sec) {
         if (cur_sec == 0) {
@@ -362,11 +372,11 @@ void WaveformWidget::drawTimeAxis(QPainter& p) {
         float x_tick = timeToX(cur_sec);
 
         if (cur_sec % 5 == 0) {
-            p.drawLine(QPointF(x_tick, y_base), QPointF(x_tick, y_base - 2));
+            painter.drawLine(QPointF(x_tick, y_base), QPointF(x_tick, y_base - 2));
         }
 
         if (cur_sec % 30 == 0 || (min_range && cur_sec % 1 == 0)) {
-            p.drawLine(QPointF(x_tick, y_base), QPointF(x_tick, y_base - 5));
+            painter.drawLine(QPointF(x_tick, y_base), QPointF(x_tick, y_base - 5));
 
             QString tick_text = formatDuration(cur_sec);
             int tw = fm.horizontalAdvance(tick_text);
@@ -380,7 +390,7 @@ void WaveformWidget::drawTimeAxis(QPainter& p) {
                 x_text = width() - tw;
             }
             float y_text = y_base + kTextOffsetY;
-            p.drawText(QPointF(x_text, y_text), tick_text);
+            painter.drawText(QPointF(x_text, y_text), tick_text);
         }
     }
 }
@@ -419,6 +429,40 @@ void WaveformWidget::drawDuration(QPainter& painter) {
     painter.drawText(QPointF(text_start_x, text_baseline_y), time_text);
 }
 
+void WaveformWidget::drawFrequencyAxis(QPainter& painter) {
+    painter.save();
+
+    painter.setPen(Qt::white);
+    painter.setFont(QFont("Mono"_str, 8));
+
+    const int axis_x = 0;
+    painter.drawLine(axis_x, 0, axis_x, height());
+
+    const float nyquist = static_cast<float>(sample_rate_) * 0.5f;
+
+    QFontMetrics fm(painter.font());
+    constexpr float kStepKHz = 5.0f * 1000.f;
+    int tx = axis_x + 8;    
+
+    for (float freq = 0.f; freq <= nyquist + 1.f; freq += kStepKHz) {
+        if (freq < 1.0f) {
+            continue;
+        }
+        float y = mapFreqToY(freq);
+        QString label = QString::number(static_cast<int>(freq * 0.001f)) + " kHz"_str;
+        if (std::fabs(freq - nyquist) < 1.0f) {
+            label = QString::number(static_cast<int>(nyquist * 0.001f)) + " kHz"_str;
+        }
+        painter.drawLine(QPointF(axis_x, y), QPointF(axis_x + 5, y));
+        int text_width = fm.horizontalAdvance(label);
+        int text_height = fm.height();
+        int ty = static_cast<int>(y + text_height * 0.5f);
+        painter.drawText(tx, ty, label);
+    }
+
+    painter.restore();
+}
+
 void WaveformWidget::paintEvent(QPaintEvent *event) {
     QPainter painter(this);
 
@@ -429,7 +473,10 @@ void WaveformWidget::paintEvent(QPaintEvent *event) {
     painter.setClipRegion(event->region());
 
     if (draw_mode_ & DRAW_SPECTROGRAM) {
-        painter.drawPixmap(0, 0, spectrogram_cache_);
+        if (!spectrogram_cache_.isNull()) {
+            painter.drawPixmap(0, 0, spectrogram_cache_);
+            drawFrequencyAxis(painter);
+        }
     } else {
         painter.drawPixmap(0, 0, cache_);
     }
@@ -469,6 +516,21 @@ float WaveformWidget::timeToX(float sec) const {
         return 0.f;
     float ratio = sec / total_sec; // [0..1]
     return ratio * w;
+}
+
+float WaveformWidget::mapFreqToY(float freq) const {
+    float nyquist = static_cast<float>(sample_rate_) * 0.5f;
+    if (nyquist <= 0.f) {
+        return height(); // 避免除以0
+    }
+    // ratio = freq / nyquist
+    // y = (1 - ratio) * height()
+    float ratio = freq / nyquist;
+    if (ratio < 0.f) ratio = 0.f;
+    if (ratio > 1.f) ratio = 1.f;
+
+    float y = (1.f - ratio) * static_cast<float>(height());
+    return y;
 }
 
 void WaveformWidget::mousePressEvent(QMouseEvent* event) {

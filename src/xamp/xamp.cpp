@@ -1539,7 +1539,7 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
         }
         file_explorer_page_->waveformWidget()->setSampleRate(sampler_rate);
         file_explorer_page_->waveformWidget()->setTotalDuration(entity.duration);
-        //emit readWaveformAudioData(frame_per_peak, entity.file_path.toStdWString());
+        emit readWaveformAudioData(frame_per_peak, entity.file_path.toStdWString());
         emit readAudioSpectrogram(entity.file_path.toStdWString());
 	} else {
         file_explorer_page_->playlistPage()->playlist()->setNowPlayState(PLAY_CLEAR);
