@@ -33,6 +33,7 @@ public:
 		data_ = MakeBuffer<float>(frame_size);
 		SetWindowType(type);
 		if (type == WindowType::HAMMING || type == WindowType::HANN) {
+			cos_lut_.reserve(frame_size);
 			for (size_t i = 0; i < frame_size; i++) {
 				cos_lut_.push_back(std::cos((2.0 * XAMP_PI * i) / (frame_size - 1)));
 			}

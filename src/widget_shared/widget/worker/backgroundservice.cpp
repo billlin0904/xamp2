@@ -356,10 +356,10 @@ void BackgroundService::onReadWaveformAudioData(size_t frame_per_peek, const Pat
 
 void BackgroundService::onReadSpectrogram(const Path& file_path) {
     static const SoxColorTable sox_color_table;
-    constexpr size_t kFFTSize = 16384;
+    constexpr size_t kFFTSize = 4096;
     constexpr size_t kHopSize = kFFTSize * 0.25;
     constexpr float kPower2FFSize = kFFTSize * kFFTSize;
-    constexpr size_t n_freq_bins = (kFFTSize / 2);
+    constexpr size_t kFreqBins = (kFFTSize / 2);
 
     auto dsd_mode = DsdModes::DSD_MODE_DSD2PCM;
     if (!IsDsdFile(file_path)) {
@@ -388,8 +388,8 @@ void BackgroundService::onReadSpectrogram(const Path& file_path) {
 	// Resize big image for spectrogram
     QImage spec_img(
         static_cast<int>(max_time_bins),
-        static_cast<int>(n_freq_bins),
-        QImage::Format_ARGB32_Premultiplied
+        static_cast<int>(kFreqBins),
+        QImage::Format_RGB32
     );
     spec_img.fill(Qt::black);
 
@@ -405,17 +405,10 @@ void BackgroundService::onReadSpectrogram(const Path& file_path) {
             XAMP_LOG_WARN("read_samples small than buffer size.");
 		}
 		const auto& freq_bins = fft.Process(buffer.data(), read_samples);
-        for (size_t f = 0; f < n_freq_bins && f < freq_bins.size(); f++) {
+        for (size_t f = 0; f < kFreqBins && f < freq_bins.size(); f++) {
             float dB = 10.0f * log10f((freq_bins[f].real() * freq_bins[f].real() + freq_bins[f].imag() * freq_bins[f].imag()) / kPower2FFSize);
-
-        	if (dB < -120.f)
-                dB = -120.f;
-
-        	if (dB > 0.f) 
-                dB = 0.f;
-
             QRgb color = sox_color_table[dB];
-            const int y = static_cast<int>(n_freq_bins) - 1 - static_cast<int>(f);
+            const int y = static_cast<int>(kFreqBins) - 1 - static_cast<int>(f);
             const int x = static_cast<int>(time_index);
             if (x >= 0 && x < spec_img.width()) {
                 spec_img.setPixel(x, y, color);
@@ -426,7 +419,7 @@ void BackgroundService::onReadSpectrogram(const Path& file_path) {
 	// Resize image to fit the spectrogram
     QImage final_img = spec_img.copy(0, 0,
         static_cast<int>(time_index),
-        static_cast<int>(n_freq_bins)
+        static_cast<int>(kFreqBins)
     );
     emit readAudioSpectrogram(final_img);
 }
