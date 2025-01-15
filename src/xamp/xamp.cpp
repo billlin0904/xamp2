@@ -1536,7 +1536,10 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
         size_t frame_per_peak = WaveformWidget::kFramesPerPeak;
         if (entity.duration < 30.0f) {
             frame_per_peak = 1024;
-        }
+		}
+		else if (entity.duration > 60.0f) {
+			frame_per_peak = 4096 * 4;
+		}
         file_explorer_page_->waveformWidget()->setSampleRate(sampler_rate);
         file_explorer_page_->waveformWidget()->setTotalDuration(entity.duration);
         emit readWaveformAudioData(frame_per_peak, entity.file_path.toStdWString());

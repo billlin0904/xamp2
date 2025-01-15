@@ -189,7 +189,7 @@ public:
     * 
     * @param[in] item The item to add to the buffer.    
     */
-    void emplace(T&& item) {
+    void emplace_back(T&& item) {
         head_ = next_pos();
         data_[head_] = std::move(item);
 
@@ -235,7 +235,7 @@ public:
     /*
 	 * Remove an item from the buffer.
 	 */
-    void pop() {
+    void pop_front() {
         if (empty()) {
             throw std::runtime_error("empty buffer");
         }

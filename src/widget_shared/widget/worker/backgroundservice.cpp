@@ -49,6 +49,10 @@ namespace {
 		return fileName;
     }
 
+    const double kMaxDb = 0.0;
+    const double kMinDb = -100.0;
+    const double kDbRange = kMaxDb - kMinDb;
+
     class SoxColorTable {
     public:
         static constexpr int kSoxTableSize = 256;
@@ -56,19 +60,19 @@ namespace {
         SoxColorTable() {
             for (int i = 0; i < kSoxTableSize; ++i) {
                 double ratio = static_cast<double>(i) / (kSoxTableSize - 1);
-                lut_[i] = soxColor(ratio);
+                lut_[i] = makeColor(ratio);
             }
         }
 
-		QRgb operator[](float dB_val) const {
-            if (dB_val < -120.f) 
-                dB_val = -120.f;
+		QRgb operator[](double dB_val) const {
+            if (dB_val < kMinDb)
+                dB_val = kMinDb;
 
-            if (dB_val > 0.f)   
-                dB_val = 0.f;
+            if (dB_val > kMaxDb)
+                dB_val = kMaxDb;
 
-            float ratio = (dB_val + 120.f) / 120.f;
-            int idx = static_cast<int>(ratio * (kSoxTableSize - 1) + 0.5f);
+            double ratio = (dB_val + kDbRange) / kDbRange;
+            int idx = static_cast<int>(ratio * (kSoxTableSize - 1) + 0.5);
 
             if (idx < 0)
                 idx = 0;
@@ -78,8 +82,7 @@ namespace {
 			return lut_[idx];
 		}
 
-    private:
-        QRgb soxColor(double level) {
+        static QRgb makeColor(double level) {
             double r = 0.0;
             if (level >= 0.13 && level < 0.73) {
                 r = sin((level - 0.13) / 0.60 * XAMP_PI / 2.0);
@@ -111,12 +114,12 @@ namespace {
             uint32_t rr = static_cast<uint32_t>(r * 255.0 + 0.5);
             uint32_t gg = static_cast<uint32_t>(g * 255.0 + 0.5);
             uint32_t bb = static_cast<uint32_t>(b * 255.0 + 0.5);
-            return QColor(rr, gg, bb).rgb();
-        }
 
+            return qRgb(rr, gg, bb);
+        }
+    private:
         std::array<QRgb, kSoxTableSize> lut_;
     };
-    
 }
 
 BackgroundService::BackgroundService()
@@ -167,46 +170,43 @@ void BackgroundService::onAddJobs(const QString& dir_name, QList<EncodeJob> jobs
         Path input_path(job.file.file_path.toStdWString());
         try {
             
-           {
-                auto encoder = StreamFactory::MakeM4AEncoder();
+            auto encoder = StreamFactory::MakeM4AEncoder();
 
-                AnyMap config;
-                config.AddOrReplace(FileEncoderConfig::kInputFilePath, input_path);
-                config.AddOrReplace(FileEncoderConfig::kOutputFilePath, output_path);
-                config.AddOrReplace(FileEncoderConfig::kCodecId, job.codec_id.toStdString());
-                config.AddOrReplace(FileEncoderConfig::kBitRate, job.bit_rate);
-                //config.AddOrReplace(FileEncoderConfig::kCodecId, std::string("pcm"));
-                //config.AddOrReplace(FileEncoderConfig::kBitRate, static_cast<uint32_t>(0));
+            AnyMap config;
+            config.AddOrReplace(FileEncoderConfig::kInputFilePath, input_path);
+            config.AddOrReplace(FileEncoderConfig::kOutputFilePath, output_path);
+            config.AddOrReplace(FileEncoderConfig::kCodecId, job.codec_id.toStdString());
+            config.AddOrReplace(FileEncoderConfig::kBitRate, job.bit_rate);
+            //config.AddOrReplace(FileEncoderConfig::kCodecId, std::string("pcm"));
+            //config.AddOrReplace(FileEncoderConfig::kBitRate, static_cast<uint32_t>(0));
 
-                encoder->Start(config, file_writer);
-                encoder->Encode(stop_token, [job, this](auto progress) {
-                    if (progress % 10 == 0) {
-                        emit updateJobProgress(job.job_id, progress);
-                    }
-                    return true;
-                    });
-				file_writer.reset();
-           }
+            encoder->Start(config, file_writer);
+            encoder->Encode(stop_token, [job, this](auto progress) {
+                if (progress % 10 == 0) {
+                    emit updateJobProgress(job.job_id, progress);
+                }
+                return true;
+                });
+            file_writer.reset();
+            encoder.reset();
 
-           {
-               TagIO input_io;
-               input_io.Open(input_path, TAG_IO_READ_MODE);
+            TagIO input_io;
+            input_io.Open(input_path, TAG_IO_READ_MODE);
 
-               TagIO output_io;
-               output_io.Open(output_path, TAG_IO_WRITE_MODE);
-               output_io.writeArtist(job.file.artist);
-               output_io.writeTitle(job.file.title);
-               output_io.writeAlbum(job.file.album);
-               output_io.writeComment(job.file.comment);
-               output_io.writeGenre(job.file.genre);
-               output_io.writeTrack(job.file.track);
-               output_io.writeYear(job.file.year);
+            TagIO output_io;
+            output_io.Open(output_path, TAG_IO_WRITE_MODE);
+            output_io.writeArtist(job.file.artist);
+            output_io.writeTitle(job.file.title);
+            output_io.writeAlbum(job.file.album);
+            output_io.writeComment(job.file.comment);
+            output_io.writeGenre(job.file.genre);
+            output_io.writeTrack(job.file.track);
+            output_io.writeYear(job.file.year);
 
-               auto cover = input_io.embeddedCover();
-               if (!cover.isNull()) {
-                   output_io.writeEmbeddedCover(cover);
-               }
-           }
+            auto cover = input_io.embeddedCover();
+            if (!cover.isNull()) {
+                output_io.writeEmbeddedCover(cover);
+            }
 
             emit updateJobProgress(job.job_id, 100);
         }
@@ -356,7 +356,7 @@ void BackgroundService::onReadWaveformAudioData(size_t frame_per_peek, const Pat
 
 void BackgroundService::onReadSpectrogram(const Path& file_path) {
     static const SoxColorTable sox_color_table;
-    constexpr size_t kFFTSize = 4096;
+    constexpr size_t kFFTSize = 4096 * 4;
     constexpr size_t kHopSize = kFFTSize * 0.25;
     constexpr float kPower2FFSize = kFFTSize * kFFTSize;
     constexpr size_t kFreqBins = (kFFTSize / 2);
@@ -385,15 +385,29 @@ void BackgroundService::onReadSpectrogram(const Path& file_path) {
     const double duration_sec = filestream->GetDurationAsSeconds();
     size_t max_time_bins = static_cast<size_t>(std::ceil(duration_sec * filestream->GetFormat().GetSampleRate() / kHopSize)) + 1;
 
+    QSize image_size(max_time_bins, kFreqBins + 1);
+
 	// Resize big image for spectrogram
-    QImage spec_img(
-        static_cast<int>(max_time_bins),
-        static_cast<int>(kFreqBins),
-        QImage::Format_RGB32
-    );
+    QImage spec_img(image_size, QImage::Format_RGB32);
     spec_img.fill(Qt::black);
 
 	// Read audio data and calculate spectrogram
+	const auto get_db = [](const std::complex<float> &complex) {
+        float power_val = (complex.real() * complex.real() + complex.imag() * complex.imag());
+        if (power_val == 0.0f) {
+            return -120.f;
+        }
+        float dB = 10.0 * log10f(power_val / kPower2FFSize);
+		return dB;
+	};
+
+    const auto get_real_db = [](const float real) {
+		if (real == 0.0f) {
+			return -120.f;
+		}
+    	float dB = 10.0 * log10f((real * real) / kPower2FFSize);
+        return dB;
+        };
 
     while (!is_stop_ && filestream->IsActive()) {
         std::fill(buffer.begin(), buffer.end(), 0.0f);
@@ -405,10 +419,20 @@ void BackgroundService::onReadSpectrogram(const Path& file_path) {
             XAMP_LOG_WARN("read_samples small than buffer size.");
 		}
 		const auto& freq_bins = fft.Process(buffer.data(), read_samples);
-        for (size_t f = 0; f < kFreqBins && f < freq_bins.size(); f++) {
-            float dB = 10.0f * log10f((freq_bins[f].real() * freq_bins[f].real() + freq_bins[f].imag() * freq_bins[f].imag()) / kPower2FFSize);
+        for (size_t f = 0; f < freq_bins.size(); f++) {
+            double dB = 0.0;
+			if (f == 0 || f == freq_bins.size() - 1) {
+				dB = get_real_db(freq_bins[f].real());
+            } else {
+                dB = get_db(freq_bins[f]);
+            }
+            //dB = -110;
             QRgb color = sox_color_table[dB];
-            const int y = static_cast<int>(kFreqBins) - 1 - static_cast<int>(f);
+      
+        	//double value = fmin(kMaxDb, fmax(kMinDb, dB));
+            //double level = (value - kMinDb) / kDbRange;
+			//QRgb color = SoxColorTable::makeColor(level);
+            const int y = static_cast<int>(freq_bins.size()) - 1 - static_cast<int>(f);
             const int x = static_cast<int>(time_index);
             if (x >= 0 && x < spec_img.width()) {
                 spec_img.setPixel(x, y, color);
@@ -416,10 +440,11 @@ void BackgroundService::onReadSpectrogram(const Path& file_path) {
         }
         time_index++;
     }
+
 	// Resize image to fit the spectrogram
     QImage final_img = spec_img.copy(0, 0,
         static_cast<int>(time_index),
-        static_cast<int>(kFreqBins)
+        static_cast<int>(kFreqBins + 1)
     );
     emit readAudioSpectrogram(final_img);
 }

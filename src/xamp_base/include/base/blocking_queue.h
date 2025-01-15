@@ -58,7 +58,7 @@ public:
             if (queue_.full()) {
 				return false;
 			}
-            queue_.emplace(std::forward<T>(task));
+            queue_.emplace_back(std::forward<T>(task));
         } // unlock
         notify_.notify_one();
         return true;
@@ -73,7 +73,7 @@ public:
     void enqueue(U &&task) {
         {
             std::lock_guard guard{ mutex_ };
-            queue_.emplace(std::forward<T>(task));
+            queue_.emplace_back(std::forward<T>(task));
         } // unlock
         notify_.notify_one();
     }
@@ -95,7 +95,7 @@ public:
         }
 
         value = std::move(queue_.front());
-        queue_.pop();
+        queue_.pop_front();
         return true;
 	}
 
@@ -118,7 +118,7 @@ public:
 		}
 
 		task = std::move(queue_.front());
-		queue_.pop();
+		queue_.pop_front();
         return true;
 	}
 
@@ -143,7 +143,7 @@ public:
         }
 
         task = std::move(queue_.front());
-        queue_.pop();
+        queue_.pop_front();
         return true;
     }
 

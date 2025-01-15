@@ -75,23 +75,23 @@ protected:
 private:
     void updateCachePixmap();
 
-    QPainterPath buildChannelPath(const std::vector<float>& peaks, int startIndex, int endIndex, int top, int channelH) const;
-
     void updatePlayedPaths(int playIndex);
 
-    void drawTimeAxis(QPainter& painter);
+    void drawTimeAxis(QPainter& painter, const QRect& rect);
 
-    void drawDuration(QPainter& painter);
+    void drawDuration(QPainter& painter, const QRect& rect);
 
-    void drawFrequencyAxis(QPainter& painter);
+    void drawFrequencyAxis(QPainter& painter, const QRect& rect);
 
     float mapPeakToY(float peakVal, int top, int height, bool isPositive) const;
 
-    float xToTime(float x) const;
+    float xToTime(float x, const QRect& rect) const;
 
-    float timeToX(float sec) const;
+    float timeToX(float sec, const QRect& rect) const;
 
-    float mapFreqToY(float freq) const;
+    float mapFreqToY(float freq, const QRect& rect) const;
+
+    QRect drawRect() const;
 
     uint32_t draw_mode_ = DRAW_ONLY_RIGHT_CHANNEL;
     float total_ms_ = 0.f;
