@@ -10,6 +10,7 @@ STFT::STFT(size_t frame_size, size_t shift_size)
 	, shift_size_(shift_size) {
     XAMP_EXPECTS(frame_size > 0);
     XAMP_EXPECTS(shift_size > 0);
+    XAMP_EXPECTS(shift_size_ < frame_size_);
     window_.Init(frame_size);
     fft_.Init(frame_size);
     output_size_ = frame_size - shift_size;
@@ -25,21 +26,26 @@ void STFT::SetWindowType(WindowType type) {
 
 const ComplexValarray& STFT::Process(const float* in, size_t length) {
     XAMP_EXPECTS(frame_size_ % AudioFormat::kMaxChannel == 0);
-    XAMP_EXPECTS(frame_size_ >= length / AudioFormat::kMaxChannel);
+    XAMP_EXPECTS((length / AudioFormat::kMaxChannel) <= frame_size_);
     
-    for (size_t i = 0; i < length / AudioFormat::kMaxChannel; ++i) {
-        in_[i] = in[i * 2];
+    size_t sample_count = length / AudioFormat::kMaxChannel;
+
+    for (size_t i = 0; i < sample_count; ++i) {
+        float left = in[i * 2];
+        float right = in[i * 2 + 1];
+        in_[i] = 0.5f * (left + right);
     }
 
-    for (size_t i = 0; i < output_size_; ++i) {
-        buf_[i] = buf_[i + shift_size_];
-    }
+    MemoryMove(buf_.data(),
+        buf_.data() + shift_size_,
+        sizeof(float) * output_size_);
 
-    for (size_t i = 0; i < shift_size_; ++i) {
-        buf_[output_size_ + i] = in_[i];
-    }
+    MemoryCopy(buf_.data() + output_size_,
+        in_.data(),
+        sizeof(float) * shift_size_);
 
-    MemoryCopy(out_.data(),buf_.data(), sizeof(float) * frame_size_);
+    MemoryCopy(out_. data(), buf_.data(), sizeof(float) * frame_size_);
+
     window_(out_.data(), frame_size_);
     return fft_.Forward(out_.data(), frame_size_);
 }

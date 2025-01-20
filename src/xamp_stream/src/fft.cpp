@@ -101,98 +101,99 @@ private:
 #ifdef XAMP_OS_WIN
 
 #if (USE_INTEL_MKL_LIB)
-#define CallDftiCreateDescriptor(desc,prec,domain,dim,sizes) \
-    (/* single precision specific cases */ \
-     ((prec)==DFTI_SINGLE && (dim)==1) ? \
-		MKL_LIB.DftiCreateDescriptor_s_1d((desc),(domain),(sizes)) : \
-     ((prec)==DFTI_SINGLE) ? \
-		MKL_LIB.DftiCreateDescriptor_s_md((desc),(domain),(dim),(sizes)) : \
-     /* double precision specific cases */ \
-     ((prec)==DFTI_DOUBLE && (dim)==1) ? \
-		MKL_LIB.DftiCreateDescriptor_d_1d((desc),(domain),(sizes)) : \
-     ((prec)==DFTI_DOUBLE) ? \
-		MKL_LIB.DftiCreateDescriptor_d_md((desc),(domain),(dim),(sizes)) : \
-     /* no specific case matches, fall back to original call */ \
-     MKL_LIB.DftiCreateDescriptor_((desc),(prec),(domain),(dim),(sizes)))
+
+#define IfFailedThrowMKL(s) \
+	if ((s) != 0 && !MKL_LIB.DftiErrorClass((s), DFTI_NO_ERROR)) { \
+		throw LibraryException(MKL_LIB.DftiErrorMessage((s))); \
+	}
+
+
+struct DftiDescriptorTraits final {
+	static DFTI_DESCRIPTOR_HANDLE invalid() {
+		return nullptr;
+	}
+
+	static void close(DFTI_DESCRIPTOR_HANDLE value) {
+		XAMP_EXPECTS(value != nullptr);
+		MKL_LIB.DftiFreeDescriptor(&value);
+	}
+};
+
+using DftiDescriptor = UniqueHandle<DFTI_DESCRIPTOR_HANDLE, DftiDescriptorTraits>;
 
 class FFT::FFTImpl {
 public:
-	FFTImpl()
-		: descriptor_(nullptr)
-		, frame_size_(0) {
-	}
+	FFTImpl() = default;
 
 	~FFTImpl() {
-		if (descriptor_) {
-			MKL_LIB.DftiFreeDescriptor(&descriptor_);
-			descriptor_ = nullptr;
-		}
+		XAMP_LOG_DEBUG("FFTImpl::~FFTImpl");
+		descriptor_.reset();
 	}
 
-	void Init(std::size_t frame_size) {
-		if (descriptor_) {
-			MKL_LIB.DftiFreeDescriptor(&descriptor_);
-			descriptor_ = nullptr;
-		}
+	void Init(size_t frame_size) {
+		XAMP_EXPECTS(frame_size >= 2);
+
+		descriptor_.reset();
 		frame_size_ = frame_size;
-		if (frame_size_ < 2) {
-			throw std::runtime_error("FFT frame_size must be >= 2");
-		}
+
 		complex_size_ = ComplexSize(frame_size);
-		MKL_LONG status = CallDftiCreateDescriptor(&descriptor_,
+		DFTI_DESCRIPTOR_HANDLE descriptor = nullptr;
+		MKL_LONG status = MKL_LIB.DftiCreateDescriptor_(&descriptor,
 			DFTI_SINGLE,
 			DFTI_REAL,
 			1,
 			static_cast<MKL_LONG>(frame_size_));
-		if (status != DFTI_NO_ERROR) {
-			throw std::runtime_error("DftiCreateDescriptor failed.");
-		}
+		IfFailedThrowMKL(status)
+		descriptor_.reset(descriptor);
 
-		status = MKL_LIB.DftiSetValue(descriptor_, DFTI_PLACEMENT, DFTI_NOT_INPLACE);
-		if (status != DFTI_NO_ERROR) {
-			throw std::runtime_error("DftiSetValue(PLACEMENT) failed.");
-		}
+		status = MKL_LIB.DftiSetValue(descriptor_.get(),
+			DFTI_PLACEMENT,
+			DFTI_NOT_INPLACE);
+		IfFailedThrowMKL(status)
 
-		status = MKL_LIB.DftiCommitDescriptor(descriptor_);
-		if (status != DFTI_NO_ERROR) {
-			throw std::runtime_error("DftiCommitDescriptor failed.");
-		}
+		status = MKL_LIB.DftiSetValue(descriptor_.get(),
+			DFTI_COMPLEX_STORAGE,
+			DFTI_REAL_REAL);
+		IfFailedThrowMKL(status)
 
-		real_buffer_.resize(frame_size_, 0.f);
-		cplx_buffer_.resize(frame_size_ / 2 + 1); // MKL¤º³¡¿é¥X?
+		status = MKL_LIB.DftiCommitDescriptor(descriptor_.get());
+		IfFailedThrowMKL(status)
+
+		real_.resize(frame_size_);
+		imag_.resize(frame_size_);
+		data_.resize(frame_size_);
+		output_.resize(complex_size_);
 	}
 
-	const ComplexValarray& Forward(float const* data, std::size_t size) {
-		if (!descriptor_) {
-			throw std::runtime_error("FFT not initialized yet.");
-		}
-		if (size > frame_size_) {
-			throw std::runtime_error("Input data size is bigger than frame_size_");
-		}
+	const ComplexValarray& Forward(const float* signals,
+		std::size_t frame_size) {
+		XAMP_ASSERT(frame_size_ == frame_size);
+		XAMP_ASSERT(descriptor_);
 
-		std::memcpy(real_buffer_.data(), data, sizeof(float) * size);
+		MemoryCopy(data_.data(), signals, frame_size * sizeof(float));
 
-		MKL_LONG status =
-			MKL_LIB.DftiComputeForward(descriptor_,
-				real_buffer_.data(),
-				cplx_buffer_.data());
-		if (status != DFTI_NO_ERROR) {
-			throw std::runtime_error("DftiComputeForward failed.");
-		}
+		MKL_LONG status = MKL_LIB.DftiComputeForward(
+			descriptor_.get(),
+			data_.data(),
+			real_.data(),
+			imag_.data()
+		);
+		IfFailedThrowMKL(status)
 
 		for (size_t i = 0; i < complex_size_; ++i) {
-			output_[i] = Complex(cplx_buffer_[i].real(), cplx_buffer_[i].imag());
+			output_[i] = Complex(real_[i], imag_[i]);
 		}
 
 		return output_;
 	}
 
 private:
-	size_t complex_size_;
-	DFTI_DESCRIPTOR_HANDLE descriptor_;
-	std::size_t frame_size_;
-	std::vector<std::complex<float>> cplx_buffer_;
-	std::vector<float> real_buffer_;
+	size_t complex_size_{ 0 };
+	size_t frame_size_{ 0 };
+	DftiDescriptor descriptor_;
+	std::vector<float> data_;
+	std::vector<float> real_;
+	std::vector<float> imag_;
 	ComplexValarray output_;
 };
 #else
@@ -224,7 +225,7 @@ public:
 			data_.get(),
 			re_.get(),
 			im_.get(),
-			FFTW_MEASURE));
+			FFTW_ESTIMATE));
 		if (!forward_) {
 			throw LibraryException("Failed call fftwf_plan_guru_split_dft_r2c.");
 		}
@@ -236,7 +237,7 @@ public:
 			re_.get(),
 			im_.get(),
 			data_.get(),
-			FFTW_MEASURE));
+			FFTW_ESTIMATE));
 		if (!backward_) {
 			throw LibraryException("Failed call fftwf_plan_guru_split_dft_c2r.");
 		}
@@ -259,7 +260,6 @@ public:
 		for (size_t i = 0; i < complex_size_; ++i) {
 			output_[i] = Complex(re[i], im[i]);
 		}
-
 		return output_;
 	}
 

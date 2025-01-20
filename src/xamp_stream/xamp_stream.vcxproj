@@ -43,6 +43,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
+    <UseInteloneMKL>Parallel</UseInteloneMKL>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -85,7 +86,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/supereq/supereq/x64/Debug</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/supereq/supereq/x64/Debug;C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>xamp_base.lib;supereq.lib;Mfplat.lib;Mf.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Bscmake>
@@ -126,7 +127,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/;../thirdparty/libsamplerate/include/;../thirdparty/supereq/;../thirdparty/libebur128/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/;../thirdparty/libsamplerate/include/;../thirdparty/supereq/;../thirdparty/libebur128/;C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\include\</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STREAM_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <DisableSpecificWarnings>4996;4819;4200;</DisableSpecificWarnings>
@@ -143,7 +144,7 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>../xamp/x64/Release/;../thirdparty/supereq/supereq/x64/Release</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../xamp/x64/Release/;../thirdparty/supereq/supereq/x64/Release;C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>xamp_base.lib;supereq.lib;Mfplat.lib;Mf.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>

@@ -33,6 +33,7 @@ IMPL_APP_SETTING_NAME(AppSettingMinimizeToTray, "AppSettings/minimizeToTray");
 IMPL_APP_SETTING_NAME(AppSettingBackgroundColor, "AppSettings/theme/backgroundColor");
 IMPL_APP_SETTING_NAME(AppSettingResamplerEnable, "AppSettings/enableResampler");
 IMPL_APP_SETTING_NAME(AppSettingResamplerType, "AppSettings/resamplerType");
+IMPL_APP_SETTING_NAME(AppSettingFileSystemLastOpenPath, "AppSettings/fileSystemLastOpenPath");
 
 IMPL_APP_SETTING_NAME(AppSettingWaveformDrawMode, "AppSettings/Waveform/drawMode");
 

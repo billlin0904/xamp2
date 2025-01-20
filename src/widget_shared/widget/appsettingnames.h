@@ -44,6 +44,7 @@ DECLARE_APP_SETTING_NAME(AppSettingEnableDebugStackTrace);
 DECLARE_APP_SETTING_NAME(AppSettingHideNaviBar);
 DECLARE_APP_SETTING_NAME(AppSettingLastPlaylistTabIndex);
 DECLARE_APP_SETTING_NAME(AppSettingEnableTray);
+DECLARE_APP_SETTING_NAME(AppSettingFileSystemLastOpenPath);
 
 // Waveform
 DECLARE_APP_SETTING_NAME(AppSettingWaveformDrawMode);

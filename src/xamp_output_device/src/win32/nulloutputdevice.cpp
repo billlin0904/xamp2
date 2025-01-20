@@ -38,7 +38,6 @@ void NullOutputDevice::SetAudioCallback(IAudioCallback* callback) noexcept {
 }
 
 void NullOutputDevice::StopStream(bool wait_for_stop_stream) {
-	std::unique_lock<FastMutex> guard{ mutex_ };
 	XAMP_LOG_DEBUG("NullOutputDevice stop stream.");
 
 	if (!is_running_) {
@@ -46,7 +45,6 @@ void NullOutputDevice::StopStream(bool wait_for_stop_stream) {
 	}
 	
 	is_stopped_ = true;
-	wait_for_shutdown_cond_.notify_all();
 
 	if (render_task_.valid()) {
 		render_task_.get();
@@ -114,15 +112,11 @@ double NullOutputDevice::GetStreamTime() const noexcept {
 }
 
 void NullOutputDevice::StartStream() {
-	std::unique_lock<FastMutex> guard{ mutex_ };
-
-	XAMP_LOG_DEBUG("NullOutputDevice start render.");
+	XAMP_LOG_DEBUG("NullOutputDevice start stream.");
 	is_playing_ = false;
 	is_stopped_ = false;
 
 	render_task_ = Executor::Spawn(thread_pool_.get(), [this](const auto& stop_token) {
-		std::unique_lock<FastMutex> guard{ wait_for_shutdown_mutex_ };
-
 		size_t num_filled_frames = 0;		
 		double sample_time = 0;
 
@@ -133,8 +127,6 @@ void NullOutputDevice::StartStream() {
 #endif
 
 		is_playing_ = true;
-		wait_for_start_stream_cond_.notify_all();
-
 		XAMP_LOG_DEBUG("NullOutputDevice start render.");
 
 		while (!is_stopped_ && !stop_token.stop_requested()) {
@@ -147,22 +139,12 @@ void NullOutputDevice::StartStream() {
 				break;
 			}
 
-			if (wait_for_shutdown_cond_.wait_for(guard, wait_time_) == std::cv_status::no_timeout) {
-				XAMP_LOG_DEBUG("NullOutputDevice receive shutdown.");
-				break;
-			}
+			std::this_thread::sleep_for(wait_time_);
 		}
 
 		XAMP_LOG_DEBUG("NullOutputDevice stop render.");
 
 		}, ExecuteFlags::EXECUTE_LONG_RUNNING);
-
-	while (!is_playing_) {
-		if (wait_for_start_stream_cond_.wait_for(guard, kWaitStreamStartTimeout) == std::cv_status::timeout) {
-			XAMP_LOG_E(logger_, "NullOutputDevice start render timeout.");
-			break;
-		}
-	}
 }
 
 bool NullOutputDevice::IsStreamRunning() const noexcept {

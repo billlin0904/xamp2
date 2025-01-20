@@ -46,6 +46,7 @@ XAMP_BASE_API bool PrefetchMemory(void* adddr, size_t length) noexcept;
 
 #define MemorySet(dest, c, size) std::memset(dest, c, size)
 #define MemoryCopy(dest, src, size) std::memcpy(dest, src, size)
+#define MemoryMove(dest, src, size) std::memmove(dest, src, size)
 
 /*
 * Allocate aligned memory.

@@ -24,9 +24,9 @@ public:
 
 	XAMP_PIMPL(Window)
 
-    void Init(size_t frame_size, WindowType type = WindowType::BLACKMAN_HARRIS);
+    void Init(size_t frame_size, WindowType type = WindowType::HANN);
 
-    void SetWindowType(WindowType type = WindowType::BLACKMAN_HARRIS);
+    void SetWindowType(WindowType type = WindowType::HANN);
 
     void operator()(float* buffer, size_t size) const noexcept;
 private:
