@@ -73,7 +73,7 @@ public Q_SLOT:
 
 	void onReadWaveformAudioData(size_t frame_per_peek, const Path & file_path);
 
-	void onReadSpectrogram(const Path& file_path);
+	void onReadSpectrogram(const QSize& widget_size, const Path& file_path);
 private:
 	bool is_stop_{false};
 	LruCache<QString, QImage> blur_image_cache_;

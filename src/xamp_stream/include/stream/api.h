@@ -66,7 +66,7 @@ XAMP_STREAM_API FileStream* AsFileStream(ScopedPtr<IAudioStream> const& stream) 
 
 XAMP_STREAM_API ScopedPtr<FileStream> MakeFileStream(const Path& file_path, DsdModes dsd_mode);
 
-XAMP_STREAM_API std::shared_ptr<IIoContext> MakFileEncodeWriter(const Path& file_path);
+XAMP_STREAM_API std::shared_ptr<IFile> MakFileEncodeWriter(const Path& file_path);
 
 XAMP_STREAM_API void LoadFFTLib();
 

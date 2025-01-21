@@ -40,7 +40,7 @@ XAMP_STREAM_NAMESPACE_BEGIN
     class IAudioStream;
     class ICDDevice;
     class IFileEncoder;
-    class IIoContext;
+    class IFile;
     class FileStream;
     class IDsdStream;
     class IDSPManager;

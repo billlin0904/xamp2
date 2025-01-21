@@ -26,6 +26,8 @@ public:
 
     void slideInWidget(QWidget* new_widget);
 
+	void setAnimationEnabled(bool enabled);
+    bool isAnimationEnabled() const;
 public slots:
     void slideInPrev();
     void slideInNext();
@@ -36,6 +38,7 @@ private:
 
     bool wrap_;
     bool active_;
+    bool animation_enabled_;
     Qt::Orientation direction_;
     int speed_;
     QEasingCurve::Type animation_type_;

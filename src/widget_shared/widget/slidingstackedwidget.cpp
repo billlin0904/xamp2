@@ -9,6 +9,7 @@ SlidingStackedWidget::SlidingStackedWidget(QWidget* parent)
     : QStackedWidget(parent)
 	, wrap_(false)
 	, active_(false)
+	, animation_enabled_(true)
 	, direction_(Qt::Vertical)
 	, speed_(300)
 	, animation_type_(QEasingCurve::OutQuad)
@@ -62,15 +63,19 @@ void SlidingStackedWidget::slideInWidget(QWidget* new_widget) {
     if (active_)
         return;
 
-    active_ = true;
-
     auto current = currentIndex();
     auto next = indexOf(new_widget);
 
     if (current == next) {
-        active_ = false;
         return;
     }
+
+    if (!animation_enabled_) {
+        setCurrentIndex(next);
+        return;
+    }
+
+    active_ = true;
 
     auto offset_x = frameRect().width();
     auto offset_y = frameRect().height();
@@ -96,29 +101,44 @@ void SlidingStackedWidget::slideInWidget(QWidget* new_widget) {
 
     auto* opacity_effect = new QGraphicsOpacityEffect(new_widget);
     new_widget->setGraphicsEffect(opacity_effect);
-    opacity_animation_ = new QPropertyAnimation(opacity_effect, "opacity");
+    opacity_animation_ = new QPropertyAnimation(
+        opacity_effect, "opacity");
     opacity_animation_->setDuration(speed_);
     opacity_animation_->setStartValue(0.01);
     opacity_animation_->setEndValue(1.0);
     opacity_animation_->setEasingCurve(animation_type_);
 
     auto* anim_group = new QParallelAnimationGroup(this);
-    (void)QObject::connect(anim_group, &QParallelAnimationGroup::finished, this, &SlidingStackedWidget::animationDone);
+    (void)QObject::connect(anim_group,
+        &QParallelAnimationGroup::finished, 
+        this, 
+        &SlidingStackedWidget::animationDone);
 
     anim_group->addAnimation(opacity_animation_);
 
     for (auto index : {current, next}) {
-        auto* animation = new QPropertyAnimation(widget(index), "pos");
+        auto* animation = new QPropertyAnimation(
+            widget(index), "pos");
         animation->setEasingCurve(animation_type_);
         animation->setDuration(speed_);
-        animation->setStartValue((index == current) ? current_pos : next_pos - offset);
-        animation->setEndValue((index == current) ? current_pos + offset : next_pos);
+        animation->setStartValue(
+            (index == current) ? current_pos : next_pos - offset);
+        animation->setEndValue(
+            (index == current) ? current_pos + offset : next_pos);
         anim_group->addAnimation(animation);
     }
 
     next_index_ = next;
     current_index_ = current;
     anim_group->start(QAbstractAnimation::DeleteWhenStopped);
+}
+
+void SlidingStackedWidget::setAnimationEnabled(bool enabled) {
+	animation_enabled_ = enabled;
+}
+
+bool SlidingStackedWidget::isAnimationEnabled() const {
+    return animation_enabled_;
 }
 
 void SlidingStackedWidget::animationDone() {

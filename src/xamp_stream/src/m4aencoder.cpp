@@ -50,9 +50,11 @@ public:
         format_context_.reset();
     }
 
-    void Start(const AnyMap& config, const std::shared_ptr<IIoContext>& writer) {
-        const auto input_file_path = config.AsPath(FileEncoderConfig::kInputFilePath);
-        const auto output_file_path = config.AsPath(FileEncoderConfig::kOutputFilePath);
+    void Start(const AnyMap& config, const std::shared_ptr<IFile>& writer) {
+        const auto input_file_path = 
+            config.AsPath(FileEncoderConfig::kInputFilePath);
+        const auto output_file_path =
+            config.AsPath(FileEncoderConfig::kOutputFilePath);
         codec_type_ = config.Get<std::string>(FileEncoderConfig::kCodecId);
         aac_bit_rate_ = config.Get<uint32_t>(FileEncoderConfig::kBitRate);
         file_name_ = String::ToUtf8String(output_file_path.wstring());
@@ -141,7 +143,8 @@ public:
         }
 
         if (writer_ != nullptr) {
-            auto* avio_buffer = static_cast<uint8_t*>(LIBAV_LIB.Util->av_malloc(kFrameSize));
+            auto* avio_buffer = static_cast<uint8_t*>(
+                LIBAV_LIB.Util->av_malloc(kFrameSize));
             if (!avio_buffer) {
                 throw Exception("Fail to allocate AVIO buffer.");
             }
@@ -171,7 +174,8 @@ public:
             format_context_->flags |= AVFMT_FLAG_CUSTOM_IO;
         } else {
             AVIOContext* output_io_context = nullptr;
-            AvIfFailedThrow(LIBAV_LIB.Format->avio_open(&output_io_context, guess_file_name.c_str(), AVIO_FLAG_WRITE));
+            AvIfFailedThrow(LIBAV_LIB.Format->avio_open(&output_io_context,
+                guess_file_name.c_str(), AVIO_FLAG_WRITE));
             output_io_context_.reset(output_io_context);
 
             format_context_.reset(LIBAV_LIB.Format->avformat_alloc_context());
@@ -187,7 +191,8 @@ public:
             throw Exception("Encoder codec id not found.");
         }
 
-        stream_ = LIBAV_LIB.Format->avformat_new_stream(format_context_.get(), av_codec);
+        stream_ = LIBAV_LIB.Format->avformat_new_stream(
+            format_context_.get(), av_codec);
         if (!stream_) {
             throw Exception("Failed to create new stream.");
         }
@@ -213,22 +218,27 @@ public:
         stream_->codecpar->sample_rate = format.GetSampleRate();
         stream_->codecpar->frame_size = kFrameSize;
         stream_->codecpar->format = sample_format;
-        stream_->time_base = AVRational{ 1, static_cast<int32_t>(format.GetSampleRate()) };
+        stream_->time_base = AVRational{
+        	1, static_cast<int32_t>(format.GetSampleRate()) };
         codec_context_->time_base = stream_->time_base;
 
-        format_context_->oformat = LIBAV_LIB.Format->av_guess_format(nullptr, guess_file_name.c_str(), nullptr);
+        format_context_->oformat = LIBAV_LIB.Format->av_guess_format(nullptr,
+            guess_file_name.c_str(), nullptr);
 
         if (format_context_->oformat->flags & AVFMT_GLOBALHEADER)
             codec_context_->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 
         if (codec_type_ == "alac") {
-            codec_context_->extradata = static_cast<uint8_t*>(LIBAV_LIB.Util->av_malloc(kAlacExtradataSize + AV_INPUT_BUFFER_PADDING_SIZE));
+            codec_context_->extradata = static_cast<uint8_t*>(
+                LIBAV_LIB.Util->av_malloc(
+                    kAlacExtradataSize + AV_INPUT_BUFFER_PADDING_SIZE));
             codec_context_->extradata_size = kAlacExtradataSize;
             MemorySet(codec_context_->extradata, 0, kAlacExtradataSize);
 
             uint8_t* buf = codec_context_->extradata;
             auto frame_length = kFrameSize; // ensure consistent with frame_size
-            auto avg_bitrate = format.GetSampleRate() * format.GetChannels() * sample_size; // bits per second
+            auto avg_bitrate = format.GetSampleRate()
+        	* format.GetChannels() * sample_size; // bits per second
             auto sr = format.GetSampleRate();
 
             // Write alacSpecificConfig in big-endian
@@ -250,17 +260,22 @@ public:
             }
 
             codec_context_->compression_level = 0;
-            AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_open2(codec_context_.get(), av_codec, nullptr));
+            AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_open2(
+                codec_context_.get(), av_codec, nullptr));
 		}
 		else if (codec_type_ == "aac") {
             AVDictionary* opts = nullptr;
             LIBAV_LIB.Util->av_dict_set(&opts, "profile", "aac_low", 0);
-            AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_open2(codec_context_.get(), av_codec, &opts));
+            AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_open2(
+                codec_context_.get(), av_codec, &opts));
 		}
 
-        AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_parameters_from_context(stream_->codecpar, codec_context_.get()));
-        AvIfFailedThrow(LIBAV_LIB.Format->avformat_write_header(format_context_.get(), nullptr));
-		LIBAV_LIB.Format->av_dump_format(format_context_.get(), 0, file_name, 1);
+        AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_parameters_from_context(
+            stream_->codecpar, codec_context_.get()));
+        AvIfFailedThrow(LIBAV_LIB.Format->avformat_write_header(
+            format_context_.get(), nullptr));
+		LIBAV_LIB.Format->av_dump_format(
+            format_context_.get(), 0, file_name, 1);
     }
 
     bool EncodeFrame(AVFrame* frame) {
@@ -273,18 +288,22 @@ public:
         LIBAV_LIB.Codec->av_init_packet(packet.get());
 
         if (frame != nullptr) {
-            frame->pts = LIBAV_LIB.Util->av_rescale_q(pts_, AVRational{ 1, frame->sample_rate }, codec_context_->time_base);
+            frame->pts = LIBAV_LIB.Util->av_rescale_q(
+                pts_, AVRational{ 1, frame->sample_rate }, 
+                codec_context_->time_base);
             pts_ += frame->nb_samples;
         }
 
-        auto ret = LIBAV_LIB.Codec->avcodec_send_frame(codec_context_.get(), frame);
+        auto ret = LIBAV_LIB.Codec->avcodec_send_frame(
+            codec_context_.get(), frame);
         if (ret == AVERROR_EOF) {
 			XAMP_LOG_WARN("avcodec_send_frame: AVERROR_EOF");
 			return false;
         }
         AvIfFailedThrow(ret);
 
-        ret = LIBAV_LIB.Codec->avcodec_receive_packet(codec_context_.get(), packet.get());
+        ret = LIBAV_LIB.Codec->avcodec_receive_packet(
+            codec_context_.get(), packet.get());
         if (ret == AVERROR_EOF) {
             return false;
         }
@@ -295,12 +314,14 @@ public:
             AvIfFailedThrow(ret);
         }
 
-        ret = LIBAV_LIB.Format->av_interleaved_write_frame(format_context_.get(), packet.get());
+        ret = LIBAV_LIB.Format->av_interleaved_write_frame(
+            format_context_.get(), packet.get());
         AvIfFailedThrow(ret);
         return true;
     }
 
-    void Encode(const std::stop_token& stop_token, const std::function<bool(uint32_t)>& progress) {
+    void Encode(const std::stop_token& stop_token,
+        const std::function<bool(uint32_t)>& progress) {
         AvPtr<AVFrame> frame;
         frame.reset(LIBAV_LIB.Util->av_frame_alloc());
         frame->nb_samples = codec_context_->frame_size;
@@ -311,7 +332,9 @@ public:
         buffer_.resize(codec_context_->frame_size * 2);
 
         auto format = input_file_->GetFormat();
-        uint64_t total_samples = static_cast<uint64_t>(input_file_->GetDurationAsSeconds() * format.GetSampleRate() * format.GetChannels());
+        uint64_t total_samples = static_cast<uint64_t>(
+            input_file_->GetDurationAsSeconds() 
+            * format.GetSampleRate() * format.GetChannels());
         uint64_t processed_samples = 0;
 
         auto ret = LIBAV_LIB.Util->av_frame_get_buffer(frame.get(), 0);
@@ -327,7 +350,8 @@ public:
 
             buffer_.Fill(0.0f);
 
-            const auto read_samples = input_file_->GetSamples(buffer_.data(),
+            const auto read_samples = input_file_->GetSamples(
+                buffer_.data(),
                 codec_context_->frame_size * 2);
             if (!read_samples) {
                 break;
@@ -343,7 +367,9 @@ public:
 
             uint32_t percentage = 0;
             if (total_samples > 0) {
-                percentage = static_cast<uint32_t>((static_cast<double>(processed_samples) / static_cast<double>(total_samples)) * 100);
+                percentage = static_cast<uint32_t>(
+                    (static_cast<double>(processed_samples) 
+                        / static_cast<double>(total_samples)) * 100);
             }
 
             if (!progress(percentage)) {
@@ -357,8 +383,10 @@ public:
     }
 
 private:
-    static int32_t CustomReadPacket(void* opaque, uint8_t* buf, int32_t buf_size) {
-        auto* reader = static_cast<IIoContext*>(opaque);
+    static int32_t CustomReadPacket(void* opaque,
+        uint8_t* buf,
+        int32_t buf_size) {
+        auto* reader = static_cast<IFile*>(opaque);
         if (!reader) {
             return AVERROR(EINVAL);
         }
@@ -369,8 +397,10 @@ private:
         return read;
     }
 
-    static int32_t CustomWritePacket(void* opaque, uint8_t* buf, int32_t buf_size) {
-        auto* writer = static_cast<IIoContext*>(opaque);
+    static int32_t CustomWritePacket(void* opaque,
+        uint8_t* buf,
+        int32_t buf_size) {
+        auto* writer = static_cast<IFile*>(opaque);
         if (!writer) {
             return AVERROR(EINVAL);
         }
@@ -382,8 +412,10 @@ private:
         return written;
     }
 
-    static int64_t CustomSeekPacket(void* opaque, int64_t offset, int32_t whence) {
-        auto* writer = static_cast<IIoContext*>(opaque);
+    static int64_t CustomSeekPacket(void* opaque, 
+        int64_t offset, 
+        int32_t whence) {
+        auto* writer = static_cast<IFile*>(opaque);
         if (!writer) {
             return AVERROR(EINVAL);
         }
@@ -398,7 +430,7 @@ private:
     AvPtr<AVIOContext> output_io_context_;
     AvPtr<AVFormatContext> format_context_;
     std::function<void(const float*, AVFrame*, size_t)> convert_;
-    std::shared_ptr<IIoContext> writer_;
+    std::shared_ptr<IFile> writer_;
     ScopedPtr<FileStream> input_file_;
     Buffer<float> buffer_;
 };
@@ -409,11 +441,13 @@ M4AFileEncoder::M4AFileEncoder()
 
 XAMP_PIMPL_IMPL(M4AFileEncoder)
 
-void M4AFileEncoder::Start(const AnyMap& config, const std::shared_ptr<IIoContext>& io_context) {
-    impl_->Start(config, io_context);
+void M4AFileEncoder::Start(const AnyMap& config,
+    const std::shared_ptr<IFile>& file) {
+    impl_->Start(config, file);
 }
 
-void M4AFileEncoder::Encode(const std::stop_token& stop_token, std::function<bool(uint32_t)> const& progress) {
+void M4AFileEncoder::Encode(const std::stop_token& stop_token,
+    std::function<bool(uint32_t)> const& progress) {
     impl_->Encode(stop_token, progress);
 }
 

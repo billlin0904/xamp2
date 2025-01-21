@@ -18,9 +18,11 @@ public:
 
 	XAMP_PIMPL(M4AFileEncoder)
 
-	void Start(const AnyMap& config, const std::shared_ptr<IIoContext>& io_context) override;
+	void Start(const AnyMap& config,
+		const std::shared_ptr<IFile>& file) override;
 
-	void Encode(const std::stop_token& stop_token, std::function<bool(uint32_t)> const& progress) override;
+	void Encode(const std::stop_token& stop_token, 
+		std::function<bool(uint32_t)> const& progress) override;
 
 private:
 	class M4AFileEncoderImpl;

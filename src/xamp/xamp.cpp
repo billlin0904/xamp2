@@ -421,6 +421,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
 
     const auto tab_name = qAppSettings.valueAsString(kAppSettingLastTabName);
     const auto tab_id = ui_.naviBar->tabId(tab_name);
+    ui_.currentView->setAnimationEnabled(false);
     if (tab_id != -1) {
         ui_.naviBar->setCurrentIndex(tab_id);
         setCurrentTab(tab_id);
@@ -429,6 +430,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         ui_.naviBar->setCurrentIndex(0);
         setCurrentTab(0);
     }
+    ui_.currentView->setAnimationEnabled(true);
 
     (void)QObject::connect(album_cover_service_.get(),
         &AlbumCoverService::setAlbumCover,
@@ -1543,7 +1545,7 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
         file_explorer_page_->waveformWidget()->setSampleRate(sampler_rate);
         file_explorer_page_->waveformWidget()->setTotalDuration(entity.duration);
         emit readWaveformAudioData(frame_per_peak, entity.file_path.toStdWString());
-        emit readAudioSpectrogram(entity.file_path.toStdWString());
+        emit readAudioSpectrogram(file_explorer_page_->waveformWidget()->size(), entity.file_path.toStdWString());
 	} else {
         file_explorer_page_->playlistPage()->playlist()->setNowPlayState(PLAY_CLEAR);
 		file_explorer_page_->waveformWidget()->clear();

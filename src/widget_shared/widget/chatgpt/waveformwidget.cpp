@@ -190,7 +190,7 @@ QRect WaveformWidget::drawRect() const {
     constexpr int leftMargin = 50;
     constexpr int rightMargin = 10;
     constexpr int topMargin = 10;
-    constexpr int bottomMargin = 30;
+    constexpr int bottomMargin = 20;
 
     QRect waveform_rect(leftMargin,
         topMargin,

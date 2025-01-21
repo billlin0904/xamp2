@@ -108,7 +108,7 @@ signals:
 
 	void readWaveformAudioData(size_t frame_per_peek, const Path& file_path);
 
-	void readAudioSpectrogram(const Path& file_path);
+	void readAudioSpectrogram(const QSize& widget_size, const Path& file_path);
 public slots:
     void onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked, bool is_query_embeddings = false);
 

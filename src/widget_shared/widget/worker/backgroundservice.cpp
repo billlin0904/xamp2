@@ -222,7 +222,7 @@ void BackgroundService::onAddJobs(const QString& dir_name,
     Executor::ParallelFor(thread_pool_.get(),
         stop_source_.get_token(),
         jobs, [dir_name, this](auto &job, const auto &stop_token) {
-        std::shared_ptr<IIoContext> file_writer;
+        std::shared_ptr<IFile> file_writer;
         Path output_path;
         
         auto file_name = getValidFileName(job.file.title);
@@ -451,7 +451,7 @@ void BackgroundService::onReadWaveformAudioData(size_t frame_per_peek,
 	}
 }
 
-void BackgroundService::onReadSpectrogram(const Path& file_path) {
+void BackgroundService::onReadSpectrogram(const QSize& widget_size, const Path& file_path) {
     static const ColorTable color_lut;
 
     try {
@@ -476,6 +476,9 @@ void BackgroundService::onReadSpectrogram(const Path& file_path) {
 
         uchar* data = spec_img.bits();
         int bytes_per_line = spec_img.bytesPerLine();
+
+		auto spec_img_width = spec_img.width();
+        auto spec_img_height = spec_img.height();
 
         // Read audio data and calculate spectrogram
         while (!is_stop_ && file_stream->IsActive()) {
@@ -509,10 +512,8 @@ void BackgroundService::onReadSpectrogram(const Path& file_path) {
                     freq_bins.size()) - 1 - static_cast<int>(f);
                 const int x = static_cast<int>(time_index);
 
-                if (x >= 0 && x < spec_img.width() &&
-					y >= 0 && y < spec_img.height()) {
-                    //spec_img.setPixel(x, y, color);
-
+                if (x >= 0 && x < spec_img_width &&
+					y >= 0 && y < spec_img_height) {
                     int idx = y * bytes_per_line + x * 3;
                     uchar r = qRed(color);
                     uchar g = qGreen(color);
@@ -532,7 +533,6 @@ void BackgroundService::onReadSpectrogram(const Path& file_path) {
             static_cast<int>(time_index),
             static_cast<int>(kFreqBins + 1)
         );
-
         emit readAudioSpectrogram(final_img);
 	}
 	catch (const Exception& e) {

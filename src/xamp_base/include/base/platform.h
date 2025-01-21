@@ -55,29 +55,55 @@ enum FastFilSeekMode {
 	FAST_IO_SEEK_END = 2,
 };
 
-class XAMP_BASE_API FastFile {
+class XAMP_BASE_API XAMP_NO_VTABLE IPlatformFile {
+public:
+    XAMP_BASE_CLASS(IPlatformFile)
+
+	virtual void Open(const Path& file_path, FastFileOpenMode mode) = 0;
+
+    virtual int64_t Seek(int64_t offset, FastFilSeekMode mode) = 0;
+
+    virtual void Close() = 0;
+
+    virtual bool Read(void* buffer,
+        uint32_t bytes_to_read, 
+        uint32_t& bytes_read) = 0;
+
+    virtual bool Write(const void* buffer,
+        uint32_t bytes_to_write, 
+        uint32_t& bytes_written) = 0;
+protected:
+    IPlatformFile() = default;
+};
+
+class XAMP_BASE_API FastFile : public IPlatformFile {
 public:
     FastFile();
 
 	explicit FastFile(const Path& file_path, FastFileOpenMode mode);
 
-    ~FastFile();
+    virtual ~FastFile();
 
-	void Open(const Path & file_path, FastFileOpenMode mode);
+	void Open(const Path & file_path, FastFileOpenMode mode) override;
 
-    int64_t Seek(int64_t offset, FastFilSeekMode mode);
+    int64_t Seek(int64_t offset, FastFilSeekMode mode) override;
 
-	void Close();
+	void Close() override;
 
-    bool Read(void* buffer, uint32_t bytes_to_read, uint32_t& bytes_read);
+    bool Read(void* buffer,
+        uint32_t bytes_to_read,
+        uint32_t& bytes_read) override;
 
-    bool Write(const void* buffer, uint32_t bytes_to_write, uint32_t& bytes_written);
+    bool Write(const void* buffer,
+        uint32_t bytes_to_write, 
+        uint32_t& bytes_written) override;
 private:
     class FastFileImpl;
 	ScopedPtr<FastFileImpl> impl_;
 };
 
-XAMP_BASE_API void SetThreadPriority(std::jthread& thread, ThreadPriority priority);
+XAMP_BASE_API void SetThreadPriority(std::jthread& thread,
+    ThreadPriority priority);
 
 XAMP_BASE_API void SetThreadName(std::wstring const & name);
 
@@ -90,18 +116,14 @@ XAMP_BASE_API bool VirtualMemoryLock(void* address, size_t size);
 XAMP_BASE_API bool VirtualMemoryUnLock(void* address, size_t size);
 
 XAMP_BASE_API void MSleep(std::chrono::milliseconds timeout);
-/*
-* Futex wait implementation.
-*
-* @param[out] to_wait_on The atomic variable to wait on.
-* @param[in] expected The expected value of the atomic variable.
-* @param[in] to The time to wait for.
-*
-* @return 0 if the atomic variable was woken up, -1 if the wait timed out.
-*/
-XAMP_BASE_API int32_t AtomicWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const timespec* to) noexcept;
 
-XAMP_BASE_API bool AtomicWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, uint32_t milliseconds) noexcept;
+XAMP_BASE_API int32_t AtomicWait(std::atomic<uint32_t>& to_wait_on, 
+    uint32_t expected, 
+    const timespec* to) noexcept;
+
+XAMP_BASE_API bool AtomicWait(std::atomic<uint32_t>& to_wait_on,
+    uint32_t expected, 
+    uint32_t milliseconds) noexcept;
 
 XAMP_BASE_API void AtomicWakeSingle(std::atomic<uint32_t>& to_wake) noexcept;
 
@@ -121,10 +143,15 @@ XAMP_BASE_API std::string GetSequentialUUID();
 XAMP_BASE_API void SetCurrentProcessPriority(ProcessPriority priority);
 
 XAMP_BASE_API void SetProcessPriority(int32_t pid, ProcessPriority priority);
+
 XAMP_BASE_API bool EnablePrivilege(std::string_view privilege, bool enable);
+
 XAMP_BASE_API bool ExtendProcessWorkingSetSize(size_t size);
+
 XAMP_BASE_API bool SetProcessWorkingSetSize(size_t working_set_size);
+
 XAMP_BASE_API void SetProcessMitigation();
+
 XAMP_BASE_API void SetThreadMitigation();
 #endif
 

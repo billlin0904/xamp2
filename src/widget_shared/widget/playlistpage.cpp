@@ -168,7 +168,8 @@ void PlaylistPage::initial() {
 	horizontalLayout_8->setStretch(1, 1);
 	 
 	auto* horizontal_layout_9 = new QHBoxLayout();
-	horizontal_layout_9->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
+	horizontal_spacer_9_ = new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding);
+	horizontal_layout_9->addSpacerItem(horizontal_spacer_9_);
 	horizontal_layout_9->addWidget(search_line_edit_, 1);
 	horizontal_layout_9->setContentsMargins(0, 0, 8, 10);
 	main_layout->addLayout(horizontal_layout_9);
@@ -266,6 +267,7 @@ void PlaylistPage::hidePlaybackInformation(bool hide) {
 		default_spacer_->changeSize(0, 0);
 		horizontal_spacer_4_->changeSize(0, 0);
 		horizontal_spacer_5_->changeSize(0, 0);
+		horizontal_spacer_9_->changeSize(0, 0);
 	}
 }
 

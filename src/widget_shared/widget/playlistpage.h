@@ -94,6 +94,7 @@ private:
 	QSpacerItem* horizontal_spacer_{ nullptr };
 	QSpacerItem* horizontal_spacer_4_{ nullptr };
 	QSpacerItem* horizontal_spacer_5_{ nullptr };
+	QSpacerItem* horizontal_spacer_9_{ nullptr };
 	QSpacerItem* middle_spacer_{ nullptr };
 	QSpacerItem* right_spacer_{ nullptr };
 	QSpacerItem* default_spacer_{ nullptr };

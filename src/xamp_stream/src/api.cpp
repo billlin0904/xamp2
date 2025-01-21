@@ -27,7 +27,7 @@
 #include <stream/api.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
-	namespace {
+namespace {
     bool IsDsdFileChunk(const std::string_view & file_chunks) noexcept {
         static constexpr std::array<std::string_view, 2> knows_chunks{
             "DSD ", // .dsd file
@@ -42,10 +42,13 @@ XAMP_STREAM_NAMESPACE_BEGIN
         return false;
     }
 
-    class LibAvIoContext final : public IIoContext {
+    class LibAvIoContext final : public IFile {
     public:
         explicit LibAvIoContext(const Path& path) {
-            file_.open(path, std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
+            file_.open(path, std::ios::in 
+                | std::ios::out 
+                | std::ios::binary 
+                | std::ios::trunc);
             if (!file_) {
 				throw FileNotFoundException();
             }
@@ -276,7 +279,7 @@ void LoadBassLib() {
     }
 }
 
-std::shared_ptr<IIoContext> MakFileEncodeWriter(const Path& file_path) {
+std::shared_ptr<IFile> MakFileEncodeWriter(const Path& file_path) {
 	return std::make_shared<LibAvIoContext>(file_path);
 }
 

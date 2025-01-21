@@ -128,18 +128,17 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
 	if (last_open_path.isEmpty()) {
 		last_open_path = qAppSettings.myMusicFolderPath();
 	}
-    //last_open_path = qAppSettings.myMusicFolderPath();
 
-    auto root_index = dir_model_->setRootPath(qAppSettings.myMusicFolderPath());
-
+    dir_model_->setRootPath(qAppSettings.myMusicFolderPath());
     dir_model_->setFilter(
         QDir::NoDotAndDotDot | QDir::AllDirs | QDir::Files);
     dir_model_->setNameFilters(getTrackInfoFileNameFilter());
     dir_model_->setNameFilterDisables(false);
 
     auto last_open_index = dir_model_->index(last_open_path);
-    ui_->dirTree->setRootIndex(root_index);
-    ui_->dirTree->expand(last_open_index);
+    auto proxy_index = dir_first_sort_filter_->mapFromSource(last_open_index);
+    ui_->dirTree->setCurrentIndex(proxy_index);
+    ui_->dirTree->expand(proxy_index);
 
     (void)QObject::connect(ui_->dirTree, &QTreeView::clicked,
         [this](const auto &index) {

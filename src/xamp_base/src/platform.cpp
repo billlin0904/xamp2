@@ -258,7 +258,10 @@ public:
 			throw FileNotFoundException();
 		}
 
-        event_handle_.reset(::CreateEvent(nullptr, TRUE, FALSE, nullptr));
+        event_handle_.reset(::CreateEvent(nullptr,
+            TRUE, 
+            FALSE, 
+            nullptr));
 		if (!event_handle_) {
 			throw PlatformException("Failure to create event.");
         }
@@ -301,11 +304,16 @@ public:
             return false;
         }
 
-        const auto wait_res = ::WaitForSingleObject(event_handle_.get(), kWaitTimeout);
+        const auto wait_res = ::WaitForSingleObject(
+            event_handle_.get(), kWaitTimeout);
         switch (wait_res) {
 			case WAIT_OBJECT_0:
-            if (!::GetOverlappedResult(file_handle_.get(), &ov_, &dw_bytes_read, FALSE)) {
-                XAMP_LOG_ERROR("Failure to read overlapped result ({}).", GetLastErrorMessage());
+            if (!::GetOverlappedResult(file_handle_.get(), 
+                &ov_,
+                &dw_bytes_read, 
+                FALSE)) {
+                XAMP_LOG_ERROR("Failure to read overlapped result ({}).",
+                    GetLastErrorMessage());
                 return false;
             }
             bytes_read = dw_bytes_read;
@@ -339,15 +347,21 @@ public:
 
         auto err = ::GetLastError();
 		if (err != ERROR_IO_PENDING) {
-            XAMP_LOG_ERROR("Failure write read file ({}).", GetLastErrorMessage());
+            XAMP_LOG_ERROR("Failure write read file ({}).",
+                GetLastErrorMessage());
 			return false;
 		}
 
-        const auto wait_res = ::WaitForSingleObject(event_handle_.get(), kWaitTimeout);
+        const auto wait_res = ::WaitForSingleObject(
+            event_handle_.get(), kWaitTimeout);
         switch (wait_res) {
 		case WAIT_OBJECT_0:
-            if (!::GetOverlappedResult(file_handle_.get(), &ov_, &dw_bytes_written, FALSE)) {
-                XAMP_LOG_ERROR("Failure to read overlapped result ({}).", GetLastErrorMessage());
+            if (!::GetOverlappedResult(file_handle_.get(),
+                &ov_, 
+                &dw_bytes_written, 
+                FALSE)) {
+                XAMP_LOG_ERROR("Failure to read overlapped result ({}).",
+                    GetLastErrorMessage());
                 return false;
             }
             bytes_written = dw_bytes_written;
@@ -377,7 +391,8 @@ public:
         case FAST_IO_SEEK_END: {
             LARGE_INTEGER file_size;
             if (!::GetFileSizeEx(file_handle_.get(), &file_size)) {
-                XAMP_LOG_ERROR("Failure to get current position ({}).", GetLastErrorMessage());
+                XAMP_LOG_ERROR("Failure to get current position ({}).", 
+                    GetLastErrorMessage());
                 return false;
             }
             new_offset = file_size.QuadPart + offset;
@@ -411,8 +426,7 @@ void FastFile::Open(const Path& file_path, FastFileOpenMode mode) {
 }
 
 int64_t FastFile::Seek(int64_t offset, FastFilSeekMode mode) {
-
-    return false;
+	return impl_->Seek(offset, mode);
 }
 
 FastFile::~FastFile() {

@@ -16,16 +16,21 @@
 XAMP_STREAM_NAMESPACE_BEGIN
 
 namespace FileEncoderConfig {
-    constexpr static auto kInputFilePath = std::string_view("InputFilePath");
-    constexpr static auto kOutputFilePath = std::string_view("OutputFilePath");
-	constexpr static auto kCodecId = std::string_view("CodecId");
-    constexpr static auto kBitRate = std::string_view("BitRate");
-	constexpr static auto kEncodingProfile = std::string_view("EncodingProfile");
+    constexpr static auto kInputFilePath =
+		std::string_view("InputFilePath");
+    constexpr static auto kOutputFilePath = 
+		std::string_view("OutputFilePath");
+	constexpr static auto kCodecId =
+		std::string_view("CodecId");
+    constexpr static auto kBitRate =
+		std::string_view("BitRate");
+	constexpr static auto kEncodingProfile = 
+		std::string_view("EncodingProfile");
 };
 
-class XAMP_STREAM_API XAMP_NO_VTABLE IIoContext {
+class XAMP_STREAM_API XAMP_NO_VTABLE IFile {
 public:
-	XAMP_BASE_CLASS(IIoContext)
+	XAMP_BASE_CLASS(IFile)
 
 	virtual int32_t Write(const uint8_t* buf, int32_t size) = 0;
 
@@ -33,16 +38,18 @@ public:
 
 	virtual int64_t Seek(int64_t offset, int whence) = 0;
 protected:
-	IIoContext() = default;
+	IFile() = default;
 };
 
 class XAMP_STREAM_API XAMP_NO_VTABLE IFileEncoder {
 public:
 	XAMP_BASE_CLASS(IFileEncoder)
 
-	virtual void Start(const AnyMap& config, const std::shared_ptr<IIoContext> & io_context = std::shared_ptr<IIoContext>()) = 0;
+	virtual void Start(const AnyMap& config,
+		const std::shared_ptr<IFile> & file = std::shared_ptr<IFile>()) = 0;
 
-	virtual void Encode(const std::stop_token &stop_token, std::function<bool(uint32_t)> const& progress) = 0;
+	virtual void Encode(const std::stop_token &stop_token,
+		std::function<bool(uint32_t)> const& progress) = 0;
 
 protected:
 	IFileEncoder() = default;
