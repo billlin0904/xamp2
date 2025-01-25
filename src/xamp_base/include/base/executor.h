@@ -31,7 +31,10 @@ XAMP_DECLARE_LOG_NAME(DefaultThreadPoollExecutor);
 * @return Task<decltype(f(args...))>
 */
 template <typename F, typename ... Args>
-decltype(auto) Spawn(IThreadPoolExecutor *executor, F&& f, Args&&... args, ExecuteFlags flags = ExecuteFlags::EXECUTE_NORMAL) {
+decltype(auto) Spawn(IThreadPoolExecutor *executor,
+    F&& f, 
+    Args&&... args,
+    ExecuteFlags flags = ExecuteFlags::EXECUTE_NORMAL) {
     XAMP_ENSURES(executor != nullptr);
     return executor->Spawn(f, std::forward<Args>(args) ..., flags);
 }
@@ -46,15 +49,16 @@ decltype(auto) Spawn(IThreadPoolExecutor *executor, F&& f, Args&&... args, Execu
 */
 template <typename C, typename Func>
 void ParallelFor(C& items, Func&& f) {
-    auto executor = ThreadPoolBuilder::MakeThreadPool(kDefaultThreadPoollExecutorLoggerName);
+    auto executor =
+        ThreadPoolBuilder::MakeThreadPool(kDefaultThreadPoollExecutorLoggerName);
     ParallelFor(executor.get(), items, f);
 }
 
 template <typename C, typename Func>
 void ParallelFor(IThreadPoolExecutor* executor,
-    const std::stop_token& stop_token,
     C& items,
-    Func&& f) {
+    Func&& f,
+    const std::stop_token& stop_token = std::stop_token()) {
     using ValueType = typename C::value_type;
 
     if (items.empty()) {
@@ -70,9 +74,12 @@ void ParallelFor(IThreadPoolExecutor* executor,
         task_queue.enqueue(&item);
     }
 
-    auto worker = [&stop_token, &task_queue, fun = std::forward<Func>(f)](const auto& token) {
+    auto worker = 
+        [&stop_token, &task_queue, fun = std::forward<Func>(f)](const auto& token) {
         ValueType *task;
-        while (!stop_token.stop_requested() && !token.stop_requested() && task_queue.try_dequeue(task)) {
+        while (!stop_token.stop_requested() 
+            && !token.stop_requested() 
+            && task_queue.try_dequeue(task)) {
             if constexpr (can_call_with_stop) {
                 fun(*task, stop_token);
             } else {
@@ -94,14 +101,6 @@ void ParallelFor(IThreadPoolExecutor* executor,
     }
 }
 
-template <typename C, typename Func>
-void ParallelFor(IThreadPoolExecutor* executor,
-    C& items,
-    Func&& f) {
-    std::stop_token stop_token;
-	ParallelFor(executor, stop_token, items, std::forward<Func>(f));
-}
-
 template <typename Func>
 void ParallelFor(IThreadPoolExecutor* executor, size_t begin, size_t end, Func&& f) {
     size_t size = end - begin;
@@ -109,7 +108,8 @@ void ParallelFor(IThreadPoolExecutor* executor, size_t begin, size_t end, Func&&
     for (size_t i = 0; i < size;) {
         Vector<Task<void>> futures((std::min)(size - i, batches));
         for (auto& ff : futures) {
-            ff = Executor::Spawn(executor, [func = std::forward<Func>(f), begin, i](const auto& token) -> void {
+            ff = Executor::Spawn(executor, 
+                [func = std::forward<Func>(f), begin, i](const auto& token) -> void {
                 if (!token.stop_requested()) {
                     func(begin + i);
                 }                

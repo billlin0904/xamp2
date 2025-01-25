@@ -35,12 +35,12 @@ namespace {
 			path_infos.push_back({0, 0, path});
 		}
 
-		Executor::ParallelFor(thread_pool.get(), stop_token, path_infos, [&](auto& path_info)->void {
+		Executor::ParallelFor(thread_pool.get(), path_infos, [&](auto& path_info)->void {
 			path_info.file_count = getFileCount(path_info.path, file_name_filters);
 			path_info.depth = path_info.path.count("/"_str);
 			total_file_count += path_info.file_count;
 			action(total_file_count);
-		});
+		}, stop_token);
 
 		std::erase_if(path_infos,
 		              [](const auto& info) { return info.file_count == 0; });
@@ -151,7 +151,8 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 	}
 
 	// directory_files 目的是為了將同一個檔案分類再一起, 為了以下進行平行處理資料夾內的檔案, 並將解析後得結果進行track no排序.
-	Executor::ParallelFor(thread_pool_.get(), stop_source_.get_token(), directory_files, [&](const auto& path_info, const std::stop_token& stop_token) {
+	Executor::ParallelFor(thread_pool_.get(),
+		directory_files, [&](const auto& path_info, const auto& stop_token) {
 		if (is_stop_) {
 			return;
 		}
@@ -184,7 +185,7 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 			.arg(path_info.first)
 			.arg(path_info.second.size()));
 		emit insertDatabase(tracks, playlist_id);
-	});
+	}, stop_source_.get_token());
 }
 
 void FileSystemService::onExtractFile(const QString& file_path, int32_t playlist_id) {

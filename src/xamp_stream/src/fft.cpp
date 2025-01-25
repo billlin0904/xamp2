@@ -31,16 +31,11 @@ public:
 	void Init(size_t frame_size, WindowType type) {
 		frame_size_ = frame_size;
 		data_ = MakeBuffer<float>(frame_size);
-		SetWindowType(type);
-		if (type == WindowType::HAMMING || type == WindowType::HANN) {
-			cos_lut_.reserve(frame_size);
-			for (size_t i = 0; i < frame_size; i++) {
-				cos_lut_.push_back(std::cos((2.0 * XAMP_PI * i) / (frame_size - 1)));
-			}
-		}
+		cos_lut_ = MakeBuffer<float>(frame_size);
 		for (size_t i = 0; i < frame_size; i++) {
-			data_[i] = std::invoke(dispatch_, i, frame_size);
+			cos_lut_[i] = cosf((2.0 * XAMP_PI * i) / (frame_size - 1));
 		}
+		SetWindowType(type);
 	}
 
 	void SetWindowType(WindowType type) {
@@ -58,6 +53,9 @@ public:
 		default:
 			dispatch_ = bind_front(&WindowImpl::BlackmanHarrisWindow, this);
 			break;
+		}
+		for (size_t i = 0; i < frame_size_; i++) {
+			data_[i] = std::invoke(dispatch_, i, frame_size_);
 		}
 	}
 
@@ -92,10 +90,10 @@ private:
 			- (a3 * std::cos((6.0f * XAMP_PI * i) / (N - 1)));
 	}
 
-	std::function<float(size_t, size_t)> dispatch_;
 	size_t frame_size_{0};
 	Buffer<float> data_;
-	std::vector<float> cos_lut_;
+	Buffer<float> cos_lut_;
+	std::function<float(size_t, size_t)> dispatch_;
 };
 
 #ifdef XAMP_OS_WIN
@@ -161,7 +159,6 @@ public:
 
 		real_.resize(frame_size_);
 		imag_.resize(frame_size_);
-		data_.resize(frame_size_);
 		output_.resize(complex_size_);
 	}
 
@@ -170,11 +167,9 @@ public:
 		XAMP_ASSERT(frame_size_ == frame_size);
 		XAMP_ASSERT(descriptor_);
 
-		MemoryCopy(data_.data(), signals, frame_size * sizeof(float));
-
 		MKL_LONG status = MKL_LIB.DftiComputeForward(
 			descriptor_.get(),
-			data_.data(),
+			const_cast<float*>(signals),
 			real_.data(),
 			imag_.data()
 		);
@@ -191,7 +186,6 @@ private:
 	size_t complex_size_{ 0 };
 	size_t frame_size_{ 0 };
 	DftiDescriptor descriptor_;
-	std::vector<float> data_;
 	std::vector<float> real_;
 	std::vector<float> imag_;
 	ComplexValarray output_;

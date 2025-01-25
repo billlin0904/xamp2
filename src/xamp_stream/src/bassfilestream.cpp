@@ -41,7 +41,7 @@ public:
                 file_path.c_str(),
                 0,
                 0,
-                flags | BASS_STREAM_DECODE | BASS_UNICODE));
+                flags | BASS_STREAM_DECODE | BASS_UNICODE | BASS_ASYNCFILE));
 #endif
         }
         else {
@@ -58,7 +58,7 @@ public:
                 file_path.c_str(),
                 0,
                 0,
-                flags | BASS_STREAM_DECODE | BASS_UNICODE,
+                flags | BASS_STREAM_DECODE | BASS_UNICODE | BASS_ASYNCFILE,
                 0));            
 #endif
             // BassLib DSD module default use 6dB gain.
@@ -104,7 +104,8 @@ public:
                 return;
             }
 
-            LoadMemoryMappedFile(file_path, mode, flags);
+            //LoadMemoryMappedFile(file_path, mode, flags);
+            LoadFile(file_path, mode, flags);
         } else {
 #ifdef XAMP_OS_MAC
             auto utf8 = String::ToString(file_path);

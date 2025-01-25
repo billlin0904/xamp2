@@ -24,6 +24,12 @@ void STFT::SetWindowType(WindowType type) {
     window_.Init(frame_size_);
 }
 
+void STFT::Clear() {
+    buf_.Fill(0);
+    out_.Fill(0);
+    in_.Fill(0);
+}
+
 const ComplexValarray& STFT::Process(const float* in, size_t length) {
     XAMP_EXPECTS(frame_size_ % AudioFormat::kMaxChannel == 0);
     XAMP_EXPECTS((length / AudioFormat::kMaxChannel) <= frame_size_);

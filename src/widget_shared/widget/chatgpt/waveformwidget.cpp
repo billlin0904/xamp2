@@ -132,7 +132,7 @@ void WaveformWidget::setCurrentPosition(float sec) {
 	cursor_ms_ = sec * 1000.f;
 
     if (left_peaks_.empty() || right_peaks_.empty()) {
-        update();
+        update(drawRect());
         return;
     }
 
@@ -146,7 +146,7 @@ void WaveformWidget::setCurrentPosition(float sec) {
         updatePlayedPaths(play_index);
     }
     
-	update();
+	update(drawRect());
 }
 
 void WaveformWidget::setTotalDuration(float duration) {
@@ -176,7 +176,7 @@ void WaveformWidget::setDrawMode(uint32_t mode) {
 }
 
 void WaveformWidget::setSpectrogramData(const QImage& spectrogramImg) {
-    spectrogram_ = QPixmap::fromImage(spectrogramImg);
+    spectrogram_ = spectrogramImg;
     updateSpectrogramSize();
     update();
 }
@@ -536,7 +536,7 @@ void WaveformWidget::paintEvent(QPaintEvent *event) {
 
     if (draw_mode_ & DRAW_SPECTROGRAM) {
         if (!spectrogram_cache_.isNull()) {
-            painter.drawPixmap(waveformRect, spectrogram_cache_);
+            painter.drawImage(waveformRect, spectrogram_cache_);
             drawFrequencyAxis(painter, waveformRect);
         }
     } else {
@@ -652,7 +652,12 @@ void WaveformWidget::clear() {
 void WaveformWidget::updateSpectrogramSize() {
     if (spectrogram_.isNull())
         return;
-    spectrogram_cache_ = spectrogram_.scaled(size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+	if (size() == spectrogram_cache_.size()) {
+        return;
+	}
+    //spectrogram_cache_ = spectrogram_.scaled(size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    spectrogram_cache_ = spectrogram_.scaled(size(), 
+        Qt::KeepAspectRatioByExpanding);
 }
 
 float WaveformWidget::mapPeakToY(float peakVal, int top, int height, bool isPositive) const {

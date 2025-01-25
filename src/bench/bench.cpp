@@ -81,6 +81,7 @@ static void BM_ThreadPool(benchmark::State& state) {
     auto thread_pool = ThreadPoolBuilder::MakeThreadPool(
         XAMP_LOG_NAME(BM_ThreadPool),
         max_thread,
+        max_thread / 2,
         ThreadPriority::PRIORITY_NORMAL);
 
     XampLoggerFactory.GetLogger(XAMP_LOG_NAME(BM_ThreadPool))
@@ -282,6 +283,7 @@ static void BM_FastFileWriteThreadPool(benchmark::State& state) {
     auto thread_pool = ThreadPoolBuilder::MakeThreadPool(
         XAMP_LOG_NAME(BM_ThreadPool),
         max_thread,
+        max_thread / 2,
         ThreadPriority::PRIORITY_NORMAL);
 
     XampLoggerFactory.GetLogger(XAMP_LOG_NAME(BM_ThreadPool))
@@ -312,6 +314,7 @@ static void BM_STDFileWriteThreadPool(benchmark::State& state) {
     auto thread_pool = ThreadPoolBuilder::MakeThreadPool(
         XAMP_LOG_NAME(BM_ThreadPool),
         max_thread,
+		max_thread / 2,
         ThreadPriority::PRIORITY_NORMAL);
 
     XampLoggerFactory.GetLogger(XAMP_LOG_NAME(BM_ThreadPool))

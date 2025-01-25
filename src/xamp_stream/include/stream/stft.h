@@ -20,6 +20,8 @@ public:
 
 	void SetWindowType(WindowType type);
 
+	void Clear();
+
 	const ComplexValarray& Process(const float* in, size_t length);
 private:
 	size_t frame_size_;

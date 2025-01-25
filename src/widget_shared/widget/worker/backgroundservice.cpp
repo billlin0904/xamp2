@@ -49,7 +49,7 @@ namespace {
 		return fileName;
     }
 
-    constexpr size_t kFFTSize = 4096;
+    constexpr size_t kFFTSize = 4096 * 2;
     constexpr size_t kHopSize = kFFTSize * 0.25;
     constexpr float kPower2FFSize = kFFTSize * kFFTSize;
     constexpr size_t kFreqBins = (kFFTSize / 2);
@@ -199,6 +199,17 @@ namespace {
         file_stream->OpenFile(file_path);
         return file_stream;
     }
+
+    auto makeImage(double duration_sec, uint32_t sample_rate) -> QImage {
+        size_t max_time_bins = static_cast<size_t>(std::ceil(
+            duration_sec
+            * sample_rate / kHopSize)) + 1;
+
+        QSize image_size(max_time_bins, kFreqBins + 1);
+        QImage spec_img(image_size, QImage::Format_RGB888);
+        spec_img.fill(Qt::black);
+        return spec_img;
+    }
 }
 
 BackgroundService::BackgroundService()
@@ -220,7 +231,6 @@ void BackgroundService::onAddJobs(const QString& dir_name,
     stop_source_ = std::stop_source();
     
     Executor::ParallelFor(thread_pool_.get(),
-        stop_source_.get_token(),
         jobs, [dir_name, this](auto &job, const auto &stop_token) {
         std::shared_ptr<IFile> file_writer;
         Path output_path;
@@ -307,7 +317,7 @@ void BackgroundService::onAddJobs(const QString& dir_name,
             XAMP_LOG_ERROR(e.what());
             emit jobError(job.job_id, tr("Error"));
         }
-        });
+        }, stop_source_.get_token());
 }
 
 void BackgroundService::cancelRequested() {
@@ -451,6 +461,28 @@ void BackgroundService::onReadWaveformAudioData(size_t frame_per_peek,
 	}
 }
 
+void drawImage(uchar* data, 
+    const std::complex<float> &bin,
+    const ComplexValarray &freq_bins,
+    int time_index,
+    int bytes_per_line,
+    int f) {
+    static const ColorTable color_lut;
+    auto dB = getDb(bin);
+    QRgb color = color_lut[dB];
+    const int y = static_cast<int>(freq_bins.size()) - 1 - static_cast<int>(f);
+    const int x = static_cast<int>(time_index);
+
+    int idx = y * bytes_per_line + x * 3;
+    uchar r = qRed(color);
+    uchar g = qGreen(color);
+    uchar b = qBlue(color);
+
+    data[idx + 0] = r;
+    data[idx + 1] = g;
+    data[idx + 2] = b;
+}
+
 void BackgroundService::onReadSpectrogram(const QSize& widget_size, const Path& file_path) {
     static const ColorTable color_lut;
 
@@ -460,29 +492,22 @@ void BackgroundService::onReadSpectrogram(const QSize& widget_size, const Path& 
     	STFT fft(kFFTSize, kHopSize);
         fft.SetWindowType(WindowType::HANN);
 
-        size_t time_index = 0;
-        std::vector<float> buffer(kFFTSize);
+        Buffer<float> buffer(kFFTSize);
 
-        const double duration_sec = file_stream->GetDurationAsSeconds();
-        size_t max_time_bins = static_cast<size_t>(std::ceil(
-            duration_sec 
-            * file_stream->GetFormat().GetSampleRate() / kHopSize)) + 1;
-
-        QSize image_size(max_time_bins, kFreqBins + 1);
-
-        // Resize big image for spectrogram
-        QImage spec_img(image_size, QImage::Format_RGB888);
-        spec_img.fill(Qt::black);
+		auto spec_img = makeImage(
+            file_stream->GetDurationAsSeconds(),
+			file_stream->GetFormat().GetSampleRate());
 
         uchar* data = spec_img.bits();
         int bytes_per_line = spec_img.bytesPerLine();
 
 		auto spec_img_width = spec_img.width();
         auto spec_img_height = spec_img.height();
+        size_t time_index = 0;
 
         // Read audio data and calculate spectrogram
         while (!is_stop_ && file_stream->IsActive()) {
-            std::fill(buffer.begin(), buffer.end(), 0.0f);
+            buffer.Fill(0);
             auto read_samples = file_stream->GetSamples(
                 buffer.data(), 
                 buffer.size());
@@ -533,6 +558,7 @@ void BackgroundService::onReadSpectrogram(const QSize& widget_size, const Path& 
             static_cast<int>(time_index),
             static_cast<int>(kFreqBins + 1)
         );
+		final_img = final_img.scaled(widget_size, Qt::KeepAspectRatioByExpanding);
         emit readAudioSpectrogram(final_img);
 	}
 	catch (const Exception& e) {

@@ -147,7 +147,7 @@ void SpectrumWidget::paintEvent(QPaintEvent* /*event*/) {
 }
 
 void SpectrumWidget::reset() {
-	fft_data_ = 0;
+	std::fill(fft_data_.begin(), fft_data_.end(), 0.0f);
 	for (auto &buffer : buffer_) {
 		buffer = 0;
 	}

@@ -102,8 +102,8 @@ private:
     std::vector<float> left_peaks_;
     std::vector<float> right_peaks_;
     QPixmap cache_;
-    QPixmap spectrogram_;
-    QPixmap spectrogram_cache_;
+    QImage spectrogram_;
+    QImage spectrogram_cache_;
     QPainterPath path_left_played_;
     QPainterPath path_right_played_;
 };

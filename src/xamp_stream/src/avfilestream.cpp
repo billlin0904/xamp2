@@ -89,7 +89,10 @@ public:
         LIBAV_LIB.Util->av_dict_set(&options, "probesize", "4M", AV_OPT_SEARCH_CHILDREN);
 
         const auto file_path_ut8 = String::ToString(file_path.wstring());
-        const auto err = LIBAV_LIB.Format->avformat_open_input(&format_context, file_path_ut8.c_str(), nullptr, &options);
+        const auto err = LIBAV_LIB.Format->avformat_open_input(&format_context, 
+            file_path_ut8.c_str(),
+            nullptr, 
+            &options);
         if (err != 0) {
             switch (err) {
             case AVERROR_INVALIDDATA:
@@ -118,7 +121,8 @@ public:
         }
 
         for (uint32_t i = 0; i < format_context_->nb_streams; ++i) {
-            if ((audio_stream_id_ < 0) && (format_context_->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)) {
+            if ((audio_stream_id_ < 0) 
+                && (format_context_->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)) {
                 audio_stream_id_ = i;
                 codecpar_ = format_context_->streams[i]->codecpar;
             }
