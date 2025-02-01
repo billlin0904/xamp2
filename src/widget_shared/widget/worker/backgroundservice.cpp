@@ -480,6 +480,7 @@ void BackgroundService::onReadWaveformAudioData(size_t frame_per_peek,
             if (read_samples == 0) {
                 break;
             }
+            //XAMP_LOG_DEBUG("Read samples size: {}", buffer.size());
             emit readAudioData(buffer);
         }
 

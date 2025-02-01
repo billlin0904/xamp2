@@ -159,7 +159,6 @@
   <ItemGroup>
     <ClInclude Include="include\stream\m4aencoder.h" />
     <ClInclude Include="include\stream\anymap.h" />
-    <ClInclude Include="include\stream\avfilestream.h" />
     <ClInclude Include="include\stream\avlib.h" />
     <ClInclude Include="include\stream\bassaacfileencoder.h" />
     <ClInclude Include="include\stream\basscompressor.h" />
@@ -201,7 +200,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\m4aencoder.cpp" />
-    <ClCompile Include="src\avfilestream.cpp" />
     <ClCompile Include="src\avlib.cpp" />
     <ClCompile Include="src\bassaacfileencoder.cpp" />
     <ClCompile Include="src\basscddevice.cpp" />

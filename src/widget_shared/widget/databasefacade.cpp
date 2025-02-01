@@ -6,8 +6,6 @@
 #include <base/logger_impl.h>
 #include <base/transliterator.h>
 
-#include <stream/avfilestream.h>
-
 #include <widget/util/str_util.h>
 #include <widget/widget_shared.h>
 #include <widget/dao/artistdao.h>

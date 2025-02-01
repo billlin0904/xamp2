@@ -29,6 +29,8 @@ namespace {
         const auto sign_mask = _mm256_castsi256_ps(_mm256_set1_epi32(0x7FFFFFFF));
         const size_t frame_count = buffer.size() / 2;
 
+        XAMP_LOG_DEBUG("frame_count: {}", frame_count);
+
         for (int start = 0; start < frame_count; start += frame_per_peek) {
             float max_left = 0.f;
             float max_right = 0.f;
@@ -61,11 +63,6 @@ namespace {
             left_peeks.push_back(max_left);
             right_peaks.push_back(max_right);
         }
-    }
-
-    float mapX(int i, int peak_count, int widget_width) {
-        if (peak_count <= 1) return 0.f;
-        return static_cast<float>(i) / (peak_count - 1) * (widget_width - 1);
     }
 }
 
@@ -144,9 +141,6 @@ void WaveformWidget::setCurrentPosition(float sec) {
         return;
     }
 
-    QRectF old_left_box = path_left_played_.boundingRect();
-    QRectF old_right_box = path_right_played_.boundingRect();
-
     if (draw_mode_ & DRAW_PLAYED_AREA) {
         float ratio = cursor_ms_ / total_ms_;
         ratio = std::clamp(ratio, 0.f, 1.f);
@@ -190,7 +184,10 @@ void WaveformWidget::setSpectrogramData(const QImage& spectrogramImg) {
 }
 
 void WaveformWidget::onReadAudioData(const std::vector<float> & buffer) {
+    XAMP_LOG_DEBUG("Read audio data {} size frame_per_peak_: {}", buffer.size(), frame_per_peak_);
 	GetChannelPeaks(buffer, frame_per_peak_, left_peaks_, right_peaks_);
+    XAMP_LOG_DEBUG("Update left_peaks size: {} right_peaks size: {}",
+        left_peaks_.size(), right_peaks_.size());
     update();
 }
 
@@ -209,19 +206,19 @@ QRect WaveformWidget::drawRect() const {
 }
 
 void WaveformWidget::updateCachePixmap() {
-    // 如果沒有任何 peak，直接退出
     if (left_peaks_.empty() || right_peaks_.empty()) {
         return;
     }
 
-    // === 1) 先決定 waveformRect，代表「白色框線」內部的繪製區域 ===
     QRect waveform_rect = drawRect();
-    // 若空間太小，不做繪製
     if (waveform_rect.width() <= 0 || waveform_rect.height() <= 0) {
         return;
     }
 
-    // === 2) 建立與 waveformRect 等大的 QImage，用來畫波形的「背景快取」 ===
+    XAMP_LOG_DEBUG("left_peaks size:{} right_peaks size:{}",
+        left_peaks_.size(),
+        right_peaks_.size());
+
     QImage img(waveform_rect.size(), QImage::Format_ARGB32_Premultiplied);
     img.fill(Qt::transparent);
 
@@ -229,28 +226,21 @@ void WaveformWidget::updateCachePixmap() {
     p.setRenderHint(QPainter::Antialiasing);
     p.setRenderHint(QPainter::SmoothPixmapTransform);
 
-    // peak_count 與計算後的總時長
     const int pc = static_cast<int>(left_peaks_.size());
     if (pc < 1) return;
 
-    // === 3) 幫助函式：將某一聲道的 peaks 轉成「局部座標(0..img.width())」的路徑並繪製 ===
     auto draw_one_channel = [&](const std::vector<float>& peaks,
         const QColor& color,
         int topInRect,
-        int channelHeight)
-        {
+        int channelHeight) {
             QPainterPath path;
 
-            // 當 pc=peaks.size()，每個 i 映射到 [0 .. waveformRect.width()-1 ]
-            // 為了簡化，最右可以用 (waveformRect.width()) 或 (waveformRect.width()-1) 都行
-            // 下列 mapIndexToLocalX 即求「在 cache_ 圖片裡的 x」
             auto mapIndexToLocalX = [&](int i) {
                 if (pc <= 1) return 0.f;
                 return static_cast<float>(i) / (pc - 1)
                     * static_cast<float>(waveform_rect.width() - 1);
                 };
 
-            // 先移動到 i=0 的位置(正半)
             float x0 = mapIndexToLocalX(0);
             float y0 = mapPeakToY(peaks[0],
                 topInRect, 
@@ -258,7 +248,6 @@ void WaveformWidget::updateCachePixmap() {
                 true);
             path.moveTo(x0, y0);
 
-            // 往右掃，畫「正半」
             for (int i = 1; i < pc; i++) {
                 float x = mapIndexToLocalX(i);
                 float y = mapPeakToY(peaks[i],
@@ -267,7 +256,7 @@ void WaveformWidget::updateCachePixmap() {
                     true);
                 path.lineTo(x, y);
             }
-            // 再往左掃，畫「負半」
+
             for (int i = pc - 1; i >= 0; i--) {
                 float x = mapIndexToLocalX(i);
                 float y = mapPeakToY(peaks[i],
@@ -283,15 +272,12 @@ void WaveformWidget::updateCachePixmap() {
             p.drawPath(path);
         };
 
-    // === 4) 根據 draw_mode_，決定要畫哪幾個聲道 ===
     int h = waveform_rect.height();
     if (draw_mode_ & DRAW_BOTH_CHANNEL) {
-        // 左聲道 (上半)
         draw_one_channel(left_peaks_, 
             kLeftUnPlayedChannelColor,
             0,
             h / 2);
-        // 右聲道 (下半)
         draw_one_channel(right_peaks_,
             kRightUnPlayedChannelColor, 
             h / 2, 
@@ -308,42 +294,34 @@ void WaveformWidget::updateCachePixmap() {
             kRightUnPlayedChannelColor, 0, h);
     }
 
-    p.end(); // 結束對 img 的繪製
+    p.end();
 
-    // === 5) 把繪製完成的波形快取存到 cache_ 裡，
-    //     注意：cache_ 的尺寸僅是 waveformRect 的大小
     cache_ = QPixmap::fromImage(img);
 
-    // === 6) 更新 peak_count_ 與 total_ms_ ===
     peak_count_ = pc;
     total_ms_ = static_cast<float>(peak_count_)
         * (frame_per_peak_ * (1000.f / static_cast<float>(sample_rate_)));
 }
 
 void WaveformWidget::updatePlayedPaths(int playIndex) {
-    // 如果播放位置 <=0，表示沒播放
     if (playIndex <= 0) {
         path_left_played_ = QPainterPath();
         path_right_played_ = QPainterPath();
         return;
     }
 
-    // clamp
     if (playIndex > static_cast<int>(left_peaks_.size())) {
         playIndex = static_cast<int>(left_peaks_.size());
     }
 
-    // === 1) 先決定 waveformRect（同 paintEvent & updateCachePixmap）===
-    QRect waveformRect = drawRect();
+    QRect waveform_rect = drawRect();
 
-    // 如果太小，直接清空路徑
-    if (waveformRect.width() <= 0 || waveformRect.height() <= 0) {
+    if (waveform_rect.width() <= 0 || waveform_rect.height() <= 0) {
         path_left_played_ = QPainterPath();
         path_right_played_ = QPainterPath();
         return;
     }
 
-    // === 2) 幫助函式：建立「已播放」區域的路徑 (絕對座標)
     auto buildChannelPath = [&](const std::vector<float>& peaks,
         int startIndex, int endIndex,
         int topInRect, int channelHeight)
@@ -356,17 +334,15 @@ void WaveformWidget::updatePlayedPaths(int playIndex) {
             if (endIndex > total_count) endIndex = total_count;
             if (endIndex <= startIndex) return path;
 
-            // 將索引 i → 「waveformRect 內的 x (絕對座標)」
             auto mapIndexToAbsX = [&](int i) {
-                if (total_count <= 1) return static_cast<float>(waveformRect.left());
+                if (total_count <= 1) return static_cast<float>(waveform_rect.left());
                 float ratio = static_cast<float>(i) / (total_count - 1);
-                float xRange = static_cast<float>(waveformRect.width() - 1);
-                return waveformRect.left() + ratio * xRange;
+                float xRange = static_cast<float>(waveform_rect.width() - 1);
+                return waveform_rect.left() + ratio * xRange;
                 };
 
-            // 正半
             float x0 = mapIndexToAbsX(startIndex);
-            float y0 = waveformRect.top() + mapPeakToY(peaks[startIndex],
+            float y0 = waveform_rect.top() + mapPeakToY(peaks[startIndex],
                 topInRect,
                 channelHeight,
                 true);
@@ -374,7 +350,7 @@ void WaveformWidget::updatePlayedPaths(int playIndex) {
 
             for (int i = startIndex + 1; i < endIndex; ++i) {
                 float x = mapIndexToAbsX(i);
-                float y = waveformRect.top() + mapPeakToY(peaks[i],
+                float y = waveform_rect.top() + mapPeakToY(peaks[i],
                     topInRect,
                     channelHeight,
                     true);
@@ -384,7 +360,7 @@ void WaveformWidget::updatePlayedPaths(int playIndex) {
             // 負半
             for (int i = endIndex - 1; i >= startIndex; --i) {
                 float x = mapIndexToAbsX(i);
-                float y = waveformRect.top() + mapPeakToY(peaks[i],
+                float y = waveform_rect.top() + mapPeakToY(peaks[i],
                     topInRect,
                     channelHeight,
                     false);
@@ -394,16 +370,13 @@ void WaveformWidget::updatePlayedPaths(int playIndex) {
             return path;
         };
 
-    // === 3) 根據「顯示模式」決定要建哪個聲道的路徑 ===
-    int h = waveformRect.height();
+    int h = waveform_rect.height();
     if (draw_mode_ & DRAW_BOTH_CHANNEL) {
-        // 左聲道 (上半)
         path_left_played_ = buildChannelPath(left_peaks_,
             0,
             playIndex,
             0, 
             h / 2);
-        // 右聲道 (下半)
         path_right_played_ = buildChannelPath(right_peaks_,
             0,
             playIndex,
@@ -474,48 +447,37 @@ void WaveformWidget::drawDuration(QPainter& painter, const QRect& rect) {
         return;
     }
 
-    // 1) 計算播放線的 X 座標
     float cur_sec = cursor_ms_ / 1000.f;
     float x_cursor = timeToX(cur_sec, rect);
 
-    // 2) 先畫播放線
     painter.setPen(QPen(QColor(100, 200, 255), 1));
     painter.drawLine(QPointF(x_cursor, rect.top() + 1),
         QPointF(x_cursor, rect.bottom()));
 
-    // 3) 取得顯示在時間框裡的文字(目前播放時間)
     QString time_text = formatDuration(cur_sec, false);
 
-    // 4) 計算文字大小
     const QFontMetrics fm(painter.font());
     int text_width = fm.horizontalAdvance(time_text);
     int text_height = fm.height();
 
-    // 5) 時間框的寬高(含內部 padding)
     float box_w = text_width + kPadding * 2;
     float box_h = text_height + kPadding * 2;
 
-    // 6) 預設放在播放線「右側」並留1px距離
     float lineGap = 1.0f;
     float x_text = x_cursor + lineGap;
 
-    // 若「右側」放不下(會超過 rect.right())，改畫在播放線「左側」並同樣留1px
     if (x_text + box_w > rect.right()) {
         x_text = x_cursor - lineGap - box_w;
     }
 
-    // 若又超出左邊界，則 clamp 回到 rect.left()
     if (x_text < rect.left()) {
         x_text = rect.left();
     }
 
-    // 7) 設定時間框的 Y 座標：這裡示範放在 rect.top() + 3.f
     float y_box = rect.top() + 3.f;
 
-    // 背景框
     QRectF bg_rect(x_text, y_box, box_w, box_h);
 
-    // 8) 畫背景(帶圓角)
     painter.setPen(Qt::NoPen);
     painter.setBrush(QColor(50, 50, 200, 200));
     painter.drawRoundedRect(bg_rect, kCornerRadius, kCornerRadius);
@@ -575,20 +537,20 @@ void WaveformWidget::paintEvent(QPaintEvent *event) {
 
     painter.setClipRegion(event->region());
 
-	QRect waveformRect = drawRect();
+    const QRect waveform_rect = drawRect();
 
     QPen framePen(Qt::white, 1);
     painter.setPen(framePen);
     painter.setBrush(Qt::NoBrush);
-    painter.drawRect(waveformRect);
+    painter.drawRect(waveform_rect);
 
     if (draw_mode_ & DRAW_SPECTROGRAM) {
         if (!spectrogram_cache_.isNull()) {
-            painter.drawImage(waveformRect, spectrogram_cache_);
-            drawFrequencyAxis(painter, waveformRect);
+            painter.drawImage(waveform_rect, spectrogram_cache_);
+            drawFrequencyAxis(painter, waveform_rect);
         }
     } else {
-        painter.drawPixmap(waveformRect, cache_);
+        painter.drawPixmap(waveform_rect, cache_);
     }
 
 	if (draw_mode_ & DRAW_PLAYED_AREA) {
@@ -606,8 +568,8 @@ void WaveformWidget::paintEvent(QPaintEvent *event) {
 		}
 	}   
 
-    drawDuration(painter, waveformRect);
-    drawTimeAxis(painter, waveformRect);
+    drawDuration(painter, waveform_rect);
+    drawTimeAxis(painter, waveform_rect);
 }
 
 float WaveformWidget::xToTime(float x, const QRect& rect) const {
@@ -615,7 +577,6 @@ float WaveformWidget::xToTime(float x, const QRect& rect) const {
     float total_sec = total_ms_ / 1000.f;
     if (total_sec <= 0.f) return 0.f;
 
-    // 先算在 waveformRect 的比例
     float localX = x - rect.left();
     if (localX < 0.f) localX = 0.f;
     if (localX > rect.width()) localX = static_cast<float>(rect.width());
@@ -646,7 +607,6 @@ float WaveformWidget::mapFreqToY(float freq, const QRect& rect) const {
     if (ratio < 0.f) ratio = 0.f;
     if (ratio > 1.f) ratio = 1.f;
 
-    // 頻率越高，y 越靠上 (0 在頂端)
     float y = rect.bottom() - ratio * rect.height();
     return y;
 }
@@ -677,6 +637,7 @@ void WaveformWidget::resizeEvent(QResizeEvent* event) {
 }
 
 void WaveformWidget::doneRead() {
+    XAMP_LOG_DEBUG("Done read!");
     updateSpectrogramSize();
     updateCachePixmap();
     update();

@@ -25,7 +25,6 @@
 #include <stream/filestream.h>
 #include <stream/bassfader.h>
 #include <stream/iaudioprocessor.h>
-#include <stream/avfilestream.h>
 #include <stream/bassfilestream.h>
 #include <stream/r8brainresampler.h>
 #include <stream/compressorconfig.h>

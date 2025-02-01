@@ -41,7 +41,7 @@ public:
                 file_path.c_str(),
                 0,
                 0,
-                flags | BASS_STREAM_DECODE | BASS_UNICODE | BASS_ASYNCFILE));
+                flags | BASS_STREAM_DECODE | BASS_UNICODE));
 #endif
         }
         else {
@@ -58,7 +58,7 @@ public:
                 file_path.c_str(),
                 0,
                 0,
-                flags | BASS_STREAM_DECODE | BASS_UNICODE | BASS_ASYNCFILE,
+                flags | BASS_STREAM_DECODE | BASS_UNICODE,
                 0));            
 #endif
             // BassLib DSD module default use 6dB gain.
@@ -166,7 +166,9 @@ public:
 
         const auto duration = GetDuration();
         if (duration < 1.0) {
-            throw LibraryException(String::Format("Duration too small! {:.2f} secs", duration));
+            throw LibraryException(
+                String::Format("Duration too small! {:.2f} secs", 
+                    duration));
         }
 
         if (GetFormat().GetChannels() == AudioFormat::kMaxChannel) {
@@ -174,17 +176,21 @@ public:
         }
 
         if (mode_ == DsdModes::DSD_MODE_PCM) {
-            mix_stream_.reset(BASS_LIB.MixLib->BASS_Mixer_StreamCreate(GetFormat().GetSampleRate(),
+            mix_stream_.reset(
+                BASS_LIB.MixLib->BASS_Mixer_StreamCreate(
+                    GetFormat().GetSampleRate(),
                 AudioFormat::kMaxChannel,
                 BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE | BASS_MIXER_END));
             if (!mix_stream_) {
                 throw BassException();
             }
 
-            BassIfFailedThrow(BASS_LIB.MixLib->BASS_Mixer_StreamAddChannel(mix_stream_.get(),
+            BassIfFailedThrow(
+                BASS_LIB.MixLib->BASS_Mixer_StreamAddChannel(mix_stream_.get(),
                 stream_.get(),
                 BASS_MIXER_BUFFER));
-            XAMP_LOG_D(logger_, "Mix stream {} channel to 2 channel", info_.chans);
+            XAMP_LOG_D(logger_, 
+                "Mix stream {} channel to 2 channel", info_.chans);
             info_.chans = AudioFormat::kMaxChannel;
         }
         else {
@@ -206,13 +212,19 @@ public:
     }
 
     XAMP_NO_DISCARD double GetReadProgress() const {
-        auto file_len = BASS_LIB.BASS_StreamGetFilePosition(GetHStream(), BASS_FILEPOS_END);
-        auto buffer = BASS_LIB.BASS_StreamGetFilePosition(GetHStream(), BASS_FILEPOS_BUFFER);
-        return 100.0 * static_cast<double>(buffer) / static_cast<double>(file_len);
+        auto file_len = 
+            BASS_LIB.BASS_StreamGetFilePosition(GetHStream(),
+                BASS_FILEPOS_END);
+        auto buffer =
+            BASS_LIB.BASS_StreamGetFilePosition(GetHStream(), 
+                BASS_FILEPOS_BUFFER);
+        return 100.0 * static_cast<double>(buffer)
+    	/ static_cast<double>(file_len);
     }
 
     XAMP_NO_DISCARD int32_t GetBufferingProgress() const {
-        return 100 - BASS_LIB.BASS_StreamGetFilePosition(GetHStream(), BASS_FILEPOS_BUFFERING);
+        return 100 - BASS_LIB.BASS_StreamGetFilePosition(GetHStream(), 
+            BASS_FILEPOS_BUFFERING);
     }
 
 	static void DownloadProc(const void* buffer, DWORD length, void* user) {
@@ -227,8 +239,10 @@ public:
             XAMP_LOG_D(impl->logger_, "{}", http_status);
     	} else {                      
             impl->download_size_ += length;
-            XAMP_LOG_D(impl->logger_, "Downloading {:.2f}% {}", impl->GetReadProgress(),
-                           String::FormatBytes(impl->download_size_));
+            XAMP_LOG_D(impl->logger_,
+                "Downloading {:.2f}% {}",
+                impl->GetReadProgress(),
+                String::FormatBytes(impl->download_size_));
         }
     }
 
@@ -246,11 +260,13 @@ public:
     }
 
     uint32_t GetSamples(void *buffer, uint32_t length) const {
-        return InternalGetSamples(buffer, length * GetSampleSize()) / GetSampleSize();
+        return InternalGetSamples(buffer,
+            length * GetSampleSize()) / GetSampleSize();
     }
 
     XAMP_NO_DISCARD double GetDuration() const {
-        const auto len = BASS_LIB.BASS_ChannelGetLength(GetHStream(), BASS_POS_BYTE);
+        const auto len = 
+            BASS_LIB.BASS_ChannelGetLength(GetHStream(), BASS_POS_BYTE);
         return BASS_LIB.BASS_ChannelBytes2Seconds(GetHStream(), len);
     }
 
@@ -273,17 +289,21 @@ public:
     }
 
     void Seek(double stream_time) const {
-        const auto pos_bytes = BASS_LIB.BASS_ChannelSeconds2Bytes(GetHStream(), stream_time);
-        BassIfFailedThrow(BASS_LIB.BASS_ChannelSetPosition(GetHStream(), pos_bytes, BASS_POS_BYTE));
+        const auto pos_bytes =
+            BASS_LIB.BASS_ChannelSeconds2Bytes(GetHStream(), stream_time);
+        BassIfFailedThrow(BASS_LIB.BASS_ChannelSetPosition(GetHStream(),
+            pos_bytes, BASS_POS_BYTE));
     }
 
     double GetPosition() const {
-        return BASS_LIB.BASS_ChannelBytes2Seconds(GetHStream(), BASS_LIB.BASS_ChannelGetPosition(GetHStream(), BASS_POS_BYTE));
+        return BASS_LIB.BASS_ChannelBytes2Seconds(GetHStream(),
+            BASS_LIB.BASS_ChannelGetPosition(GetHStream(), BASS_POS_BYTE));
     }
 
     XAMP_NO_DISCARD uint32_t GetDsdSampleRate() const {
         float rate = 0;
-        BassIfFailedThrow(BASS_LIB.BASS_ChannelGetAttribute(GetHStream(), BASS_ATTRIB_DSD_RATE, &rate));
+        BassIfFailedThrow(BASS_LIB.BASS_ChannelGetAttribute(GetHStream(), 
+            BASS_ATTRIB_DSD_RATE, &rate));
         return static_cast<uint32_t>(rate);
     }
 
@@ -308,7 +328,8 @@ public:
     }
 
     XAMP_NO_DISCARD uint32_t GetSampleSize() const noexcept {
-        return mode_ == DsdModes::DSD_MODE_NATIVE ? sizeof(int8_t) : sizeof(float);
+        return mode_ == DsdModes::DSD_MODE_NATIVE
+    	? sizeof(int8_t) : sizeof(float);
     }
 
     XAMP_NO_DISCARD DsdFormat GetDsdFormat() const noexcept {
@@ -336,7 +357,8 @@ public:
 
 private:
     uint32_t InternalGetSamples(void* buffer, uint32_t length) const noexcept {
-        const auto bytes_read = BASS_LIB.BASS_ChannelGetData(GetHStream(), buffer, length);
+        const auto bytes_read =
+            BASS_LIB.BASS_ChannelGetData(GetHStream(), buffer, length);
         if (bytes_read == kBassError) {
             return 0;
         }

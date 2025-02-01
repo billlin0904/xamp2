@@ -7,7 +7,6 @@
 #include <stream/basslib.h>
 #include <stream/idsdstream.h>
 #include <stream/bassfilestream.h>
-#include <stream/avfilestream.h>
 #include <stream/ifileencoder.h>
 #include <stream/bassaacfileencoder.h>
 #include <stream/bassparametriceq.h>
@@ -132,7 +131,6 @@ ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& file_path, DsdMo
             return MakeAlign<FileStream, BassFileStream>();
         default:;
         }
-        //return MakeAlign<FileStream, AvFileStream>();
         return MakeAlign<FileStream, BassFileStream>();
     } else {
         return MakeAlign<FileStream, BassFileStream>();
@@ -229,29 +227,8 @@ ScopedPtr<FileStream> MakeFileStream(const Path& file_path, DsdModes dsd_mode) {
         }
     }
 
-    if (file_path.extension() != kApeFileExtension) {
-        for (auto i = 0; i < 1; ++i) {
-            try
-            {
-                file_stream->OpenFile(file_path);
-            }
-            catch (const Exception& e) {
-                // Fallback other stream
-                if (file_stream->GetTypeId() == XAMP_UUID_OF(AvFileStream)) {
-                    file_stream = MakeAlign<FileStream, BassFileStream>();
-                }
-                else {
-                    file_stream = MakeAlign<FileStream, AvFileStream>();
-                }
-                file_stream->OpenFile(file_path);
-            }
-        }
-    }
-    else {
-        file_stream = MakeAlign<FileStream, BassFileStream>();
-        file_stream->OpenFile(file_path);
-    }
-
+    file_stream = MakeAlign<FileStream, BassFileStream>();
+    file_stream->OpenFile(file_path);
     return file_stream;
 }
 
