@@ -344,10 +344,6 @@ void Window::Init(size_t frame_size, WindowType type) {
 	impl_->Init(frame_size, type);
 }
 
-void Window::SetWindowType(WindowType type) {
-	impl_->SetWindowType(type);
-}
-
 void Window::operator()(float* buffer, size_t size) const noexcept {
 	return impl_->operator()(buffer, size);
 }

@@ -11,7 +11,10 @@
 #include <thememanager.h>
 
 namespace {
-    void GetChannelPeaks(const std::vector<float>& buffer, size_t frame_per_peek, std::vector<float>& left_peeks, std::vector<float>& right_peaks) {
+    void GetChannelPeaks(const std::vector<float>& buffer, 
+        size_t frame_per_peek, 
+        std::vector<float>& left_peeks, 
+        std::vector<float>& right_peaks) {
         if (buffer.size() < 2) {
             return;
         }
@@ -78,14 +81,16 @@ WaveformWidget::WaveformWidget(QWidget *parent)
 		auto setting_value = qAppSettings.valueAsInt(kAppSettingWaveformDrawMode);
         auto show_ch_menu = action_map.addSubMenu(tr("Show Channel"));
 
-		auto* show_spectrogram_act = show_ch_menu->addAction(tr("Show Spectrogram"), [this]() {
+		auto* show_spectrogram_act = show_ch_menu->addAction(
+            tr("Show Spectrogram"), [this]() {
 			setDrawMode(DRAW_SPECTROGRAM);
 			});
         if (setting_value & DRAW_SPECTROGRAM) {
             show_spectrogram_act->setChecked(true);
         }
 
-        auto* only_right_ch_act = show_ch_menu->addAction(tr("Show Only Right Channel"), [this]() {
+        auto* only_right_ch_act = show_ch_menu->addAction(
+            tr("Show Only Right Channel"), [this]() {
             auto enable = draw_mode_ & DRAW_PLAYED_AREA;
             setDrawMode(DRAW_ONLY_RIGHT_CHANNEL | (enable ? DRAW_PLAYED_AREA : 0));
             });
@@ -93,7 +98,8 @@ WaveformWidget::WaveformWidget(QWidget *parent)
             only_right_ch_act->setChecked(true);
 		}
 
-        auto* only_left_ch_act = show_ch_menu->addAction(tr("Show Only Left Channel"), [this]() {
+        auto* only_left_ch_act = show_ch_menu->addAction(
+            tr("Show Only Left Channel"), [this]() {
             auto enable = draw_mode_& DRAW_PLAYED_AREA;
             setDrawMode(DRAW_ONLY_LEFT_CHANNEL | (enable ? DRAW_PLAYED_AREA : 0));
             });
@@ -101,7 +107,8 @@ WaveformWidget::WaveformWidget(QWidget *parent)
             only_left_ch_act->setChecked(true);
         }
 
-        auto* only_both_ch_act = show_ch_menu->addAction(tr("Show Both Channel"), [this]() {
+        auto* only_both_ch_act = show_ch_menu->addAction(
+            tr("Show Both Channel"), [this]() {
             auto enable = draw_mode_ & DRAW_PLAYED_AREA;
             setDrawMode(DRAW_BOTH_CHANNEL | (enable ? DRAW_PLAYED_AREA : 0));
             });
@@ -110,7 +117,8 @@ WaveformWidget::WaveformWidget(QWidget *parent)
         }
 
         auto submenu = action_map.addSubMenu(tr("Show Played Area"));
-        auto* show_act = submenu->addAction(tr("Enable"), [this]() {
+        auto* show_act = submenu->addAction(
+            tr("Enable"), [this]() {
 			uint32_t mode = 0;
 			if (draw_mode_ & DRAW_PLAYED_AREA) {
                 mode = draw_mode_ & ~DRAW_PLAYED_AREA;
@@ -207,14 +215,14 @@ void WaveformWidget::updateCachePixmap() {
     }
 
     // === 1) 先決定 waveformRect，代表「白色框線」內部的繪製區域 ===
-    QRect waveformRect = drawRect();
+    QRect waveform_rect = drawRect();
     // 若空間太小，不做繪製
-    if (waveformRect.width() <= 0 || waveformRect.height() <= 0) {
+    if (waveform_rect.width() <= 0 || waveform_rect.height() <= 0) {
         return;
     }
 
     // === 2) 建立與 waveformRect 等大的 QImage，用來畫波形的「背景快取」 ===
-    QImage img(waveformRect.size(), QImage::Format_ARGB32_Premultiplied);
+    QImage img(waveform_rect.size(), QImage::Format_ARGB32_Premultiplied);
     img.fill(Qt::transparent);
 
     QPainter p(&img);
@@ -239,24 +247,33 @@ void WaveformWidget::updateCachePixmap() {
             auto mapIndexToLocalX = [&](int i) {
                 if (pc <= 1) return 0.f;
                 return static_cast<float>(i) / (pc - 1)
-                    * static_cast<float>(waveformRect.width() - 1);
+                    * static_cast<float>(waveform_rect.width() - 1);
                 };
 
             // 先移動到 i=0 的位置(正半)
             float x0 = mapIndexToLocalX(0);
-            float y0 = mapPeakToY(peaks[0], topInRect, channelHeight, true);
+            float y0 = mapPeakToY(peaks[0],
+                topInRect, 
+                channelHeight,
+                true);
             path.moveTo(x0, y0);
 
             // 往右掃，畫「正半」
             for (int i = 1; i < pc; i++) {
                 float x = mapIndexToLocalX(i);
-                float y = mapPeakToY(peaks[i], topInRect, channelHeight, true);
+                float y = mapPeakToY(peaks[i],
+                    topInRect, 
+                    channelHeight, 
+                    true);
                 path.lineTo(x, y);
             }
             // 再往左掃，畫「負半」
             for (int i = pc - 1; i >= 0; i--) {
                 float x = mapIndexToLocalX(i);
-                float y = mapPeakToY(peaks[i], topInRect, channelHeight, false);
+                float y = mapPeakToY(peaks[i],
+                    topInRect, 
+                    channelHeight,
+                    false);
                 path.lineTo(x, y);
             }
             path.closeSubpath();
@@ -267,18 +284,28 @@ void WaveformWidget::updateCachePixmap() {
         };
 
     // === 4) 根據 draw_mode_，決定要畫哪幾個聲道 ===
-    int h = waveformRect.height();
+    int h = waveform_rect.height();
     if (draw_mode_ & DRAW_BOTH_CHANNEL) {
         // 左聲道 (上半)
-        draw_one_channel(left_peaks_, kLeftUnPlayedChannelColor, 0, h / 2);
+        draw_one_channel(left_peaks_, 
+            kLeftUnPlayedChannelColor,
+            0,
+            h / 2);
         // 右聲道 (下半)
-        draw_one_channel(right_peaks_, kRightUnPlayedChannelColor, h / 2, h / 2);
+        draw_one_channel(right_peaks_,
+            kRightUnPlayedChannelColor, 
+            h / 2, 
+            h / 2);
     }
     else if (draw_mode_ & DRAW_ONLY_LEFT_CHANNEL) {
-        draw_one_channel(left_peaks_, kLeftUnPlayedChannelColor, 0, h);
+        draw_one_channel(left_peaks_,
+            kLeftUnPlayedChannelColor,
+            0,
+            h);
     }
     else if (draw_mode_ & DRAW_ONLY_RIGHT_CHANNEL) {
-        draw_one_channel(right_peaks_, kRightUnPlayedChannelColor, 0, h);
+        draw_one_channel(right_peaks_,
+            kRightUnPlayedChannelColor, 0, h);
     }
 
     p.end(); // 結束對 img 的繪製
@@ -339,19 +366,28 @@ void WaveformWidget::updatePlayedPaths(int playIndex) {
 
             // 正半
             float x0 = mapIndexToAbsX(startIndex);
-            float y0 = waveformRect.top() + mapPeakToY(peaks[startIndex], topInRect, channelHeight, true);
+            float y0 = waveformRect.top() + mapPeakToY(peaks[startIndex],
+                topInRect,
+                channelHeight,
+                true);
             path.moveTo(x0, y0);
 
             for (int i = startIndex + 1; i < endIndex; ++i) {
                 float x = mapIndexToAbsX(i);
-                float y = waveformRect.top() + mapPeakToY(peaks[i], topInRect, channelHeight, true);
+                float y = waveformRect.top() + mapPeakToY(peaks[i],
+                    topInRect,
+                    channelHeight,
+                    true);
                 path.lineTo(x, y);
             }
 
             // 負半
             for (int i = endIndex - 1; i >= startIndex; --i) {
                 float x = mapIndexToAbsX(i);
-                float y = waveformRect.top() + mapPeakToY(peaks[i], topInRect, channelHeight, false);
+                float y = waveformRect.top() + mapPeakToY(peaks[i],
+                    topInRect,
+                    channelHeight,
+                    false);
                 path.lineTo(x, y);
             }
             path.closeSubpath();
@@ -362,17 +398,33 @@ void WaveformWidget::updatePlayedPaths(int playIndex) {
     int h = waveformRect.height();
     if (draw_mode_ & DRAW_BOTH_CHANNEL) {
         // 左聲道 (上半)
-        path_left_played_ = buildChannelPath(left_peaks_, 0, playIndex, 0, h / 2);
+        path_left_played_ = buildChannelPath(left_peaks_,
+            0,
+            playIndex,
+            0, 
+            h / 2);
         // 右聲道 (下半)
-        path_right_played_ = buildChannelPath(right_peaks_, 0, playIndex, h / 2, h / 2);
+        path_right_played_ = buildChannelPath(right_peaks_,
+            0,
+            playIndex,
+            h / 2, 
+            h / 2);
     }
     else if (draw_mode_ & DRAW_ONLY_LEFT_CHANNEL) {
-        path_left_played_ = buildChannelPath(left_peaks_, 0, playIndex, 0, h);
+        path_left_played_ = buildChannelPath(left_peaks_,
+            0,
+            playIndex,
+            0,
+            h);
         path_right_played_ = QPainterPath();
     }
     else if (draw_mode_ & DRAW_ONLY_RIGHT_CHANNEL) {
         path_left_played_ = QPainterPath();
-        path_right_played_ = buildChannelPath(right_peaks_, 0, playIndex, 0, h);
+        path_right_played_ = buildChannelPath(right_peaks_,
+            0,
+            playIndex,
+            0,
+            h);
     }
 }
 
@@ -483,10 +535,6 @@ void WaveformWidget::drawFrequencyAxis(QPainter& painter, const QRect& rect) {
 
     // 先畫一條垂直線：top ~ bottom
     painter.setPen(QPen(Qt::white, 1));
-    //painter.drawLine(axisX + axisWidth - 1,
-    //    rect.top(),
-    //    axisX + axisWidth - 1,
-    //    rect.bottom());
 
     // 預設 nyquist 頻率
     float nyquist = static_cast<float>(sample_rate_) * 0.5f;
@@ -544,12 +592,14 @@ void WaveformWidget::paintEvent(QPaintEvent *event) {
     }
 
 	if (draw_mode_ & DRAW_PLAYED_AREA) {
-        if (draw_mode_ & DRAW_BOTH_CHANNEL || draw_mode_ & DRAW_ONLY_LEFT_CHANNEL) {
+        if (draw_mode_ & DRAW_BOTH_CHANNEL 
+            || draw_mode_ & DRAW_ONLY_LEFT_CHANNEL) {
 			painter.setPen(Qt::NoPen);
 			painter.setBrush(kLeftPlayedChannelColor);
 			painter.drawPath(path_left_played_);
 		}
-		if (draw_mode_ & DRAW_BOTH_CHANNEL || draw_mode_ & DRAW_ONLY_RIGHT_CHANNEL) {
+		if (draw_mode_ & DRAW_BOTH_CHANNEL 
+            || draw_mode_ & DRAW_ONLY_RIGHT_CHANNEL) {
 			painter.setPen(Qt::NoPen);
 			painter.setBrush(kRightPlayedChannelColor);
 			painter.drawPath(path_right_played_);
@@ -627,12 +677,8 @@ void WaveformWidget::resizeEvent(QResizeEvent* event) {
 }
 
 void WaveformWidget::doneRead() {
-    if (draw_mode_ & DRAW_SPECTROGRAM) {
-        updateSpectrogramSize();
-    }
-    else {
-        updateCachePixmap();
-    }
+    updateSpectrogramSize();
+    updateCachePixmap();
     update();
 }
 
@@ -655,12 +701,14 @@ void WaveformWidget::updateSpectrogramSize() {
 	if (size() == spectrogram_cache_.size()) {
         return;
 	}
-    //spectrogram_cache_ = spectrogram_.scaled(size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
     spectrogram_cache_ = spectrogram_.scaled(size(), 
         Qt::KeepAspectRatioByExpanding);
 }
 
-float WaveformWidget::mapPeakToY(float peakVal, int top, int height, bool isPositive) const {
+float WaveformWidget::mapPeakToY(float peakVal, 
+    int top,
+    int height, 
+    bool isPositive) const {
     float mid_y = top + height * 0.5f;
     float amplitude_range = (height * 0.5f) * kHeadroomFactor;
 

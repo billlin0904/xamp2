@@ -26,9 +26,8 @@ public:
 
     void Init(size_t frame_size, WindowType type = WindowType::HANN);
 
-    void SetWindowType(WindowType type = WindowType::HANN);
-
     void operator()(float* buffer, size_t size) const noexcept;
+
 private:
     class WindowImpl;
     ScopedPtr<WindowImpl> impl_;

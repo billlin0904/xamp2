@@ -20,8 +20,7 @@ STFT::STFT(size_t frame_size, size_t shift_size)
 }
 
 void STFT::SetWindowType(WindowType type) {
-    window_.SetWindowType(type);
-    window_.Init(frame_size_);
+    window_.Init(frame_size_, type);
 }
 
 void STFT::Clear() {

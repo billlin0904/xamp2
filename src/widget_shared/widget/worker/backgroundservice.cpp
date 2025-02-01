@@ -178,7 +178,7 @@ namespace {
             float dB = 10.0f * log10f(val / kPower2FFSize);
             return dB;
         }
-        return -120.f;
+        return kMinDb;
     }
 
     auto getRealDb(const float real) -> float {
@@ -186,7 +186,7 @@ namespace {
             float dB = 10.0f * log10f((real * real) / kPower2FFSize);
             return dB;
         }
-        return -120.f;
+        return kMinDb;
     }
 
     auto makePcmFileStream(const Path& file_path) -> ScopedPtr<FileStream> {
@@ -209,6 +209,35 @@ namespace {
         QImage spec_img(image_size, QImage::Format_RGB888);
         spec_img.fill(Qt::black);
         return spec_img;
+    }
+
+    void drawImage(uchar* data,
+        const ComplexValarray& freq_bins,
+        int time_index,
+        int bytes_per_line,
+        int f) {
+        static const ColorTable color_lut;
+        auto dB = 0.0f;
+
+        if (f == 0 || f == freq_bins.size() - 1) {
+            dB = getRealDb(freq_bins[f].real());
+        }
+        else {
+            dB = getDb(freq_bins[f]);
+        }
+
+        QRgb color = color_lut[dB];
+        const int y = static_cast<int>(freq_bins.size()) - 1 - static_cast<int>(f);
+        const int x = static_cast<int>(time_index);
+
+        int idx = y * bytes_per_line + x * 3;
+        uchar r = qRed(color);
+        uchar g = qGreen(color);
+        uchar b = qBlue(color);
+
+        data[idx + 0] = r;
+        data[idx + 1] = g;
+        data[idx + 2] = b;
     }
 }
 
@@ -461,33 +490,12 @@ void BackgroundService::onReadWaveformAudioData(size_t frame_per_peek,
 	}
 }
 
-void drawImage(uchar* data, 
-    const std::complex<float> &bin,
-    const ComplexValarray &freq_bins,
-    int time_index,
-    int bytes_per_line,
-    int f) {
-    static const ColorTable color_lut;
-    auto dB = getDb(bin);
-    QRgb color = color_lut[dB];
-    const int y = static_cast<int>(freq_bins.size()) - 1 - static_cast<int>(f);
-    const int x = static_cast<int>(time_index);
-
-    int idx = y * bytes_per_line + x * 3;
-    uchar r = qRed(color);
-    uchar g = qGreen(color);
-    uchar b = qBlue(color);
-
-    data[idx + 0] = r;
-    data[idx + 1] = g;
-    data[idx + 2] = b;
-}
-
 void BackgroundService::onReadSpectrogram(const QSize& widget_size, const Path& file_path) {
-    static const ColorTable color_lut;
-
     try {
 		auto file_stream = makePcmFileStream(file_path);
+		if (file_stream->GetDurationAsSeconds() <= 0.0) {
+			return;
+		}
 
     	STFT fft(kFFTSize, kHopSize);
         fft.SetWindowType(WindowType::HANN);
@@ -500,10 +508,7 @@ void BackgroundService::onReadSpectrogram(const QSize& widget_size, const Path& 
 
         uchar* data = spec_img.bits();
         int bytes_per_line = spec_img.bytesPerLine();
-
-		auto spec_img_width = spec_img.width();
-        auto spec_img_height = spec_img.height();
-        size_t time_index = 0;
+        int time_index = 0;
 
         // Read audio data and calculate spectrogram
         while (!is_stop_ && file_stream->IsActive()) {
@@ -523,31 +528,11 @@ void BackgroundService::onReadSpectrogram(const QSize& widget_size, const Path& 
                 buffer.size());
 
             for (size_t f = 0; f < freq_bins.size(); f++) {
-                double dB = 0.0;
-                if (f == 0 || f == freq_bins.size() - 1) {
-                    dB = getRealDb(freq_bins[f].real());
-                }
-                else {
-                    dB = getDb(freq_bins[f]);
-                }
-
-            	//dB = -110;
-                QRgb color = color_lut[dB];
-                const int y = static_cast<int>(
-                    freq_bins.size()) - 1 - static_cast<int>(f);
-                const int x = static_cast<int>(time_index);
-
-                if (x >= 0 && x < spec_img_width &&
-					y >= 0 && y < spec_img_height) {
-                    int idx = y * bytes_per_line + x * 3;
-                    uchar r = qRed(color);
-                    uchar g = qGreen(color);
-                    uchar b = qBlue(color);
-
-                    data[idx + 0] = r;
-                    data[idx + 1] = g;
-                    data[idx + 2] = b;
-                }
+            	drawImage(data,
+                    freq_bins, 
+                    time_index,
+                    bytes_per_line,
+                    f);
             }
             time_index++;
         }
@@ -558,7 +543,8 @@ void BackgroundService::onReadSpectrogram(const QSize& widget_size, const Path& 
             static_cast<int>(time_index),
             static_cast<int>(kFreqBins + 1)
         );
-		final_img = final_img.scaled(widget_size, Qt::KeepAspectRatioByExpanding);
+		final_img = final_img.scaled(widget_size, 
+            Qt::KeepAspectRatioByExpanding);
         emit readAudioSpectrogram(final_img);
 	}
 	catch (const Exception& e) {

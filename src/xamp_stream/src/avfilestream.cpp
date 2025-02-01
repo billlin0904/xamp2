@@ -40,28 +40,16 @@ XAMP_DECLARE_LOG_NAME(AvFileStream);
 
 class AvFileStream::AvFileStreamImpl {
 public:
-    /*
-    * Constructor.
-    * 
-    */
     AvFileStreamImpl()
         : audio_stream_id_(-1)
         , duration_(0.0) {
         logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(AvFileStream));
     }
 
-    /*
-    * Destructor.
-    * 
-    */
     ~AvFileStreamImpl() noexcept {
         Close();
     }
 
-    /*
-    * Close file stream.
-    * 
-    */
     void Close() noexcept {
         audio_stream_id_ = -1;
         duration_ = 0;
@@ -72,11 +60,6 @@ public:
         format_context_.reset();
     }
 
-    /*
-    * Load file from file path.
-    * 
-    * @param file_path File path.
-    */
     void OpenFile(const Path & file_path) {
         AVFormatContext* format_context = nullptr;
         AVDictionary* options = nullptr;
@@ -144,11 +127,6 @@ public:
         duration_ = ::av_q2d(stream->time_base) * static_cast<double>(stream->duration);
     }
 
-    /*
-    * Open audio stream.
-    * 
-    * @throw NotSupportFormatException
-    */
     void OpenAudioStream() {
         const AVCodec* codec = nullptr;
 
@@ -234,14 +212,6 @@ public:
         is_eof_ = false;
     }
 
-    /*
-    * Get audio samples.
-    * 
-    * @param buffer The buffer to store samples.
-    * @param length The length of buffer.
-    * 
-    * @return The number of samples read.
-    */
     uint32_t GetSamples(float* buffer, uint32_t length) const {
         const auto channel_read_samples = length / sizeof(float);
         uint32_t num_read_sample = 0;
@@ -339,32 +309,14 @@ public:
         is_eof_ = false;
     }
 
-    /*
-    * Check if the stream is active.
-    * 
-    * @return True if the stream is active.
-    */
     bool IsActive() const {
         return !is_eof_;
     }
 private:
-    /*
-    * Check if the stream has audio.
-    * 
-    * @return True if the stream has audio.
-    */
     XAMP_NO_DISCARD bool HasAudio() const noexcept {
         return audio_stream_id_ >= 0;
     }
 
-    /*
-    * Convert audio samples.
-    * 
-    * @param buffer The buffer to store samples.
-    * @param length The length of buffer.
-    * 
-    * @return The number of samples converted.
-    */
     uint32_t ConvertSamples(float* buffer, uint32_t length) const noexcept {
         if (audio_frame_->nb_samples > length) {
             XAMP_LOG_ERROR("Convert sample failure! read buffer too small {} < {}", 
@@ -386,8 +338,8 @@ private:
     }
 
     mutable bool is_eof_{ false };
-    int32_t audio_stream_id_;
-    double duration_;
+    int32_t audio_stream_id_{ -1 };
+    double duration_ { 0 };
     AVCodecParameters* codecpar_{ nullptr };
     AudioFormat audio_format_;
     AvPtr<SwrContext> swr_context_;
