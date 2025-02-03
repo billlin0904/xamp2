@@ -53,6 +53,10 @@ public:
             qTheme.setMenuStyle(submenu_.get());
 		}
 
+		void addSeparator() {
+			submenu_->addSeparator();
+		}
+
 		template <typename Callable>
 		QAction* addAction(const QString& menu_name,
 			Callable&& callback,
