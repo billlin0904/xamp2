@@ -78,7 +78,7 @@ std::optional<DeviceInfo> XAudio2DeviceType::XAudio2DeviceTypeImpl::GetDefaultDe
 	if (hr == ERROR_NOT_FOUND) {
 		return std::nullopt;
 	}
-	return CreateOptional<DeviceInfo>(helper::GetDeviceInfo(default_output_device, XAMP_UUID_OF(XAudio2DeviceType)));
+	return MakeOptional<DeviceInfo>(helper::GetDeviceInfo(default_output_device, XAMP_UUID_OF(XAudio2DeviceType)));
 }
 
 Vector<DeviceInfo> XAudio2DeviceType::XAudio2DeviceTypeImpl::GetDeviceInfoList() const {

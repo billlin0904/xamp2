@@ -68,7 +68,7 @@ namespace {
         if (!found) {
             return std::nullopt;
         }
-        return CreateOptional<ReplayGain>(std::move(replay_gain));
+        return MakeOptional<ReplayGain>(std::move(replay_gain));
     }
 
     std::optional<Vector<std::byte>> GetID3V2TagCover(const ID3v2::Tag* tag) {
@@ -87,7 +87,7 @@ namespace {
         Vector<std::byte> buffer;
         buffer.resize(frame->picture().size());
         MemoryCopy(buffer.data(), frame->picture().data(), static_cast<int32_t>(frame->picture().size()));
-        return CreateOptional<Vector<std::byte>>(std::move(buffer));
+        return MakeOptional<Vector<std::byte>>(std::move(buffer));
     }
 
     std::optional<Vector<std::byte>> GetApeTagCover(const APE::Tag* tag) {
@@ -104,7 +104,7 @@ namespace {
             auto pic = item.mid(pos);
             buffer.resize(pic.size());
             MemoryCopy(buffer.data(), pic.data(), static_cast<int32_t>(pic.size()));
-            return CreateOptional<Vector<std::byte>>(std::move(buffer));
+            return MakeOptional<Vector<std::byte>>(std::move(buffer));
         }
         return std::nullopt;
     }
@@ -161,7 +161,7 @@ namespace {
                 buffer.resize(cover_list[0].data().size());
                 MemoryCopy(buffer.data(), cover_list[0].data().data(),
                     static_cast<int32_t>(cover_list[0].data().size()));
-                return CreateOptional<Vector<std::byte>>(std::move(buffer));
+                return MakeOptional<Vector<std::byte>>(std::move(buffer));
             }
         }
         return std::nullopt;
@@ -203,7 +203,7 @@ namespace {
         if (!found) {
             return std::nullopt;
         }
-        return CreateOptional<ReplayGain>(std::move(replay_gain));
+        return MakeOptional<ReplayGain>(std::move(replay_gain));
     }
 
     std::optional<ReplayGain> GetFlacReplayGain(File* file) {
@@ -239,7 +239,7 @@ namespace {
         if (!found) {
             return std::nullopt;
         }
-        return CreateOptional<ReplayGain>(std::move(replay_gain));
+        return MakeOptional<ReplayGain>(std::move(replay_gain));
     }
 
     std::optional<Vector<std::byte>> GetFlacCover(File* file) {
@@ -253,7 +253,7 @@ namespace {
                 if (picture->type() == TagLib::FLAC::Picture::FrontCover) {
                     buffer.resize(picture->data().size());
                     MemoryCopy(buffer.data(), picture->data().data(), picture->data().size());
-                    return CreateOptional<Vector<std::byte>>(std::move(buffer));
+                    return MakeOptional<Vector<std::byte>>(std::move(buffer));
                 }
             }
         }
@@ -460,7 +460,7 @@ private:
 #else
         FileRef ref(path.string().c_str(), true, TagLib::AudioProperties::Fast);
 #endif
-        return ref.isNull() ? std::nullopt : CreateOptional<FileRef>(std::move(ref));
+        return ref.isNull() ? std::nullopt : MakeOptional<FileRef>(std::move(ref));
     }
 
     Path path_;

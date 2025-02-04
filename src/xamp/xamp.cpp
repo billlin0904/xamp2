@@ -78,6 +78,8 @@
 #include <widget/m3uparser.h>
 #include <widget/chatgpt/waveformwidget.h>
 
+#include "widget/krcparser.h"
+
 namespace {
     constexpr auto kShowProgressDialogMsSecs = 100;
     constexpr ConstexprQString kSoftwareUpdateUrl =
@@ -335,6 +337,70 @@ void Xamp::connectThemeChangedSignal() {
 	                       &ThemeManager::themeChangedFinished,
 	                       music_library_page_.get(),
 	                       &AlbumArtistPage::onThemeChangedFinished);
+}
+
+void Xamp::fetchKrc(const PlayListEntity& keyword) {
+	// Search keyword
+	http_client_.setUrl("http://mobilecdn.kugou.com/api/v3/search/song"_str);
+    http_client_.param("format"_str, "json"_str);
+    http_client_.param("keyword"_str, keyword.title);
+
+	http_client_.get().then([this, keyword](const auto& content) {
+        auto infos = parseInfoData(content);
+		// Parse hash
+		auto itr = std::find_if(infos.begin(),
+            infos.end(), [this, keyword](const InfoItem& info) {
+			return info.singername == keyword.artist;
+			});
+        if (itr == infos.end()) {
+            return;
+        }
+        http_client_.setUrl("http://krcs.kugou.com/search"_str);
+        http_client_.param("ver"_str, "1"_str);
+        http_client_.param("man"_str, "yes"_str);
+        http_client_.param("client"_str, "mobi"_str);
+        http_client_.param("keyword"_str, ""_str);
+        http_client_.param("duration"_str, ""_str);
+        http_client_.param("hash"_str, itr->hash);
+        http_client_.param("album_audio_id"_str, ""_str);
+		// Search AccessKey
+        http_client_.get().then([this, keyword](const auto& content) {
+            QList<Candidate> candidates = parseCandidatesFromJson(content);
+            auto citr = std::find_if(candidates.begin(),
+                candidates.end(), [keyword](const Candidate& info) {
+                    return info.singer == keyword.artist;
+                });
+            if (citr == candidates.end()) {
+                return;
+            }
+            http_client_.setUrl("http://lyrics.kugou.com/download"_str);
+            http_client_.param("ver"_str, "1"_str);
+            http_client_.param("client"_str, "pc"_str);
+            http_client_.param("id"_str, citr->id);
+            http_client_.param("accesskey"_str, citr->accesskey);
+            http_client_.param("fmt"_str, "krc"_str);
+            http_client_.param("charset"_str, "utf8"_str);
+            http_client_.get().then([this, keyword](const auto& content) {
+                XAMP_LOG_DEBUG("{}", content.toStdString());
+                std::optional<KrcContent> krc_content = parseKrcContent(content);
+				if (krc_content.has_value()) {
+					KrcParser parser;
+					if (!parser.parse(reinterpret_cast<uint8_t*>(
+                        krc_content->decodedContent.data()),
+                        krc_content->decodedContent.size())) {
+                        return;
+					}
+					auto krc_file_name = keyword.parent_path + "\\"_str + keyword.file_name + ".krc"_str;
+                    QSaveFile file(krc_file_name);
+                    file.open(QIODevice::WriteOnly);
+                    file.write(krc_content->decodedContent);
+                    if (file.commit()) {
+                        lrc_page_->lyrics()->loadLrcFile(krc_file_name);
+                    }
+				}
+                });
+            });
+		});
 }
 
 void Xamp::setMainWindow(IXMainWindow* main_window) {
@@ -1326,13 +1392,6 @@ void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked, boo
     player_->Stop();
     player_->EnableFadeOut(qAppSettings.valueAsBool(kAppSettingEnableFadeOut));
 
-    if (is_query_embeddings) {
-        /*audio_embedding_service_->queryEmbeddings(QList<QString> { entity.file_path })
-    	.then([this](auto result) {
-            music_library_page_->similarSong()->onQueryEmbeddingsReady(result);
-            });*/
-    }
-
 	// Setup bluetooth device or shared output device (ex: Windows WASAPI) sample rate converter.
     if (player_->GetAudioDeviceManager()->IsSharedDevice(device_info_.value().device_type_id)) {
         AudioFormat default_format;
@@ -1444,7 +1503,7 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
         if (is_doubleclicked) {
             playlist_page = sender_playlist_page;
             playlist_tab_widget = qobject_cast<PlaylistTabWidget*>(playlist_page->parent()->parent());
-            // It's an signal from album page.
+            // It's a signal from album page.
             if (playlist_tab_widget != nullptr) {
                 playlist_tab_widget->setCurrentNowPlaying();
             }
@@ -1501,6 +1560,7 @@ void Xamp::updateUi(const PlayListEntity& entity, const PlaybackFormat& playback
                     file.close();
                 }
             });*/
+			fetchKrc(entity);
         }
     } else {
         lrc_page_->lyrics()->loadLrcFile(kEmptyString);

@@ -1128,7 +1128,7 @@ std::optional<QModelIndex> PlaylistTableView::selectFirstItem() const {
     if (select_row.isEmpty()) {
         return std::nullopt;
     }
-    return CreateOptional<QModelIndex>(std::move(select_row[0]));
+    return MakeOptional<QModelIndex>(std::move(select_row[0]));
 }
 
 QList<PlayListEntity> PlaylistTableView::items() const {

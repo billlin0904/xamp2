@@ -100,7 +100,7 @@ public:
                     file_path.c_str(),
                     0,
                     0,
-                    flags | BASS_UNICODE | BASS_STREAM_DECODE));
+                    flags | BASS_UNICODE | BASS_STREAM_DECODE | BASS_ASYNCFILE));
                 return;
             }
 
@@ -120,7 +120,7 @@ public:
             stream_.reset(BASS_LIB.BASS_StreamCreateURL(
                 url,
                 0,
-                flags | BASS_STREAM_DECODE | BASS_UNICODE | BASS_STREAM_STATUS,
+                flags | BASS_STREAM_DECODE | BASS_UNICODE | BASS_STREAM_STATUS | BASS_ASYNCFILE,
                 &BassFileStreamImpl::DownloadProc,
                 this));
 #endif
@@ -367,8 +367,6 @@ private:
 
     DsdModes mode_;
     size_t download_size_;
-    CompressorConfig compressor_config_;
-    HFX compressor_fx_;
     BassStreamHandle stream_;
     BassStreamHandle mix_stream_;
     BassStreamHandle limiter_;

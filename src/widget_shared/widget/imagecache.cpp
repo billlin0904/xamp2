@@ -110,7 +110,7 @@ QPixmap ImageCache::scanCoverFromDir(const QString& file_path) {
 			}			
 		}
 
-		return CreateOptional<QPixmap>(
+		return MakeOptional<QPixmap>(
 				image_util::readFileImage(find_cover_path,
 					qTheme.cacheCoverSize(),
 					kImageFormat));

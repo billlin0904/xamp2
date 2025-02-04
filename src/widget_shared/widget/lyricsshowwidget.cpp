@@ -12,6 +12,7 @@
 #include <widget/widget_shared.h>
 #include <widget/lrcparser.h>
 #include <widget/webvttparser.h>
+#include <widget/krcparser.h>
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
 #include <widget/actionmap.h>
@@ -34,11 +35,12 @@ void LyricsShowWidget::resizeFontSize() {
 
 	auto font_size = 16;
 	QFontMetrics lrc_metrics(lrc_font_);
-    const auto itr = std::max_element(lyric_->begin(), lyric_->end(),
-	                                          [&lrc_metrics](const auto &a, const auto &b) {
-		                                          return lrc_metrics.horizontalAdvance(QString::fromStdWString(a.lrc))
-			                                          < lrc_metrics.horizontalAdvance(QString::fromStdWString(b.lrc));
-	                                          });
+    const auto itr 
+		= std::max_element(lyric_->begin(), lyric_->end(),
+	    [&lrc_metrics](const auto &a, const auto &b) {
+		    return lrc_metrics.horizontalAdvance(QString::fromStdWString(a.lrc))
+		        < lrc_metrics.horizontalAdvance(QString::fromStdWString(b.lrc));
+	    });
 	if (itr == lyric_->end()) {
 		lrc_font_.setPointSize(font_size);
 		return;
@@ -306,6 +308,11 @@ bool LyricsShowWidget::loadLrcFile(const QString &file_path) {
 			return MakeAlign<ILrcParser, WebVTTParser>();
 			}
 		},
+		{
+			".krc"_str, []() {
+			return MakeAlign<ILrcParser, KrcParser>();
+			}
+		},
 	};
 
 	for (const auto &parser_pair : lrc_parser_map) {
@@ -400,7 +407,8 @@ void LyricsShowWidget::onSetLrcTime(int32_t stream_time) {
 		return;
 	}
 
-    const auto &ly = lyric_->getLyrics(std::chrono::milliseconds(stream_time));
+    const auto &ly =
+		lyric_->getLyrics(std::chrono::milliseconds(stream_time));
 
 	if (item_ != ly.index && item_offset_ == 0) {
 		mask_length_ = -1000;
@@ -415,7 +423,8 @@ void LyricsShowWidget::onSetLrcTime(int32_t stream_time) {
 		return;
 	}
 
-    const auto &post_ly = lyric_->getLyrics(std::chrono::milliseconds(pos_));
+    const auto &post_ly = 
+		lyric_->getLyrics(std::chrono::milliseconds(pos_));
 
 	const auto text = QString::fromStdWString(post_ly.lrc);
 	const auto interval = post_ly.index;

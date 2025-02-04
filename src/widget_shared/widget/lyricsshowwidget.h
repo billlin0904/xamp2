@@ -44,7 +44,7 @@ public:
 	QString parsedLyrics() const;
 
 public slots:
-	void stop();	
+	void stop();
 
 	void onSetLrc(const QString &lrc, const QString& trlyc = kEmptyString);
 

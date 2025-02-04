@@ -62,7 +62,7 @@ std::optional<DeviceInfo> NullOutputDeviceType::NullOutputDeviceTypeImpl::GetDef
 	info.device_id      = kDeviceId;
 	info.is_support_dsd = true;
 	info.device_type_id = XAMP_UUID_OF(NullOutputDeviceType);
-	return CreateOptional<DeviceInfo>(std::move(info));
+	return MakeOptional<DeviceInfo>(std::move(info));
 }
 
 NullOutputDeviceType::NullOutputDeviceType() noexcept

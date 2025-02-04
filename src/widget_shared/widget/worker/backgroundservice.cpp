@@ -477,11 +477,9 @@ void BackgroundService::onReadWaveformAudioData(size_t frame_per_peek,
             auto read_samples = file_stream->GetSamples(
                 buffer.data(),
                 buffer.size());
-            if (read_samples == 0) {
-                break;
+            if (read_samples > 0) {
+                emit readAudioData(buffer);
             }
-            //XAMP_LOG_DEBUG("Read samples size: {}", buffer.size());
-            emit readAudioData(buffer);
         }
 
         emit readAudioDataCompleted();
@@ -518,7 +516,7 @@ void BackgroundService::onReadSpectrogram(const QSize& widget_size, const Path& 
                 buffer.data(), 
                 buffer.size());
             if (read_samples == 0) {
-                break;
+                continue;
             }
             if (read_samples < buffer.size() / 2) {
                 XAMP_LOG_WARN("read_samples small than buffer size.");

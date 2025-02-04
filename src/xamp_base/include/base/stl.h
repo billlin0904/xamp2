@@ -60,7 +60,7 @@ constexpr size_t CountOf(T const (&)[N]) noexcept {
 }
 
 template <typename T, typename... Args>
-std::optional<T> CreateOptional(Args&&... args) {
+std::optional<T> MakeOptional(Args&&... args) {
 	return std::optional<T>(std::in_place_t{}, std::forward<Args>(args)...);
 }
 

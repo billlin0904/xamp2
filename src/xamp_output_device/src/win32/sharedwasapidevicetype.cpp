@@ -86,7 +86,7 @@ std::optional<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::Ge
 	if (hr == ERROR_NOT_FOUND) {
 		return std::nullopt;
 	}
-	return CreateOptional<DeviceInfo>(helper::GetDeviceInfo(default_output_device, XAMP_UUID_OF(SharedWasapiDeviceType)));
+	return MakeOptional<DeviceInfo>(helper::GetDeviceInfo(default_output_device, XAMP_UUID_OF(SharedWasapiDeviceType)));
 }
 
 Vector<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDeviceInfoList() const {

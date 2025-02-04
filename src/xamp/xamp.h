@@ -262,6 +262,8 @@ private:
 
 	void connectThemeChangedSignal();
 
+	void fetchKrc(const PlayListEntity& keyword);
+
 	bool is_seeking_;
 	bool trigger_upgrade_action_;
 	bool trigger_upgrade_restart_;

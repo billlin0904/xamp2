@@ -139,6 +139,7 @@
     <ClInclude Include="widget\genre_view.h" />
     <QtMoc Include="widget\taglistview.h" />
     <ClInclude Include="widget\httpx.h" />
+    <ClInclude Include="widget\krcparser.h" />
     <ClInclude Include="widget\m3uparser.h" />
     <ClInclude Include="widget\maskwidget.h" />
     <QtMoc Include="widget\tageditpage.h" />
@@ -267,6 +268,7 @@
     <ClCompile Include="widget\httpx.cpp" />
     <ClCompile Include="widget\imagecache.cpp" />
     <ClCompile Include="widget\jsonsettings.cpp" />
+    <ClCompile Include="widget\krcparser.cpp" />
     <ClCompile Include="widget\localelanguage.cpp" />
     <ClCompile Include="widget\lrcpage.cpp" />
     <ClCompile Include="widget\lrcparser.cpp" />

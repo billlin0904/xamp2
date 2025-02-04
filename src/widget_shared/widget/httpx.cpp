@@ -116,7 +116,8 @@ namespace http {
         }
     }
 
-    HttpClient::HttpClient(QNetworkAccessManager* nam, const QString& url, QObject* parent)
+    HttpClient::HttpClient(QNetworkAccessManager* nam,
+        const QString& url, QObject* parent)
         : manager_(nam)
 		, url_(url) {
     	logger_ = XampLoggerFactory.GetLogger(kHttpLoggerName);
@@ -146,7 +147,8 @@ namespace http {
     }
 
     HttpClient& HttpClient::params(const QMultiMap<QString, QVariant>& ps) {
-        for (auto itr = ps.cbegin(); itr != ps.cend(); ++itr) {
+        for (auto itr = ps.cbegin(); 
+            itr != ps.cend(); ++itr) {
             params_.addQueryItem(itr.key(), itr.value().toString());
         }
         return *this;
@@ -162,7 +164,8 @@ namespace http {
         setHeaders(request);
         auto logger = logger_;
         auto* reply = co_await manager_->get(request);
-        logHttpRequest(logger, requestVerb(QNetworkAccessManager::GetOperation, request), request, reply);
+        logHttpRequest(logger, requestVerb(QNetworkAccessManager::GetOperation,
+            request), request, reply);
         co_return processReply(reply);
     }
 
@@ -171,9 +174,11 @@ namespace http {
         QNetworkRequest request(full_url);
         setHeaders(request);
         auto logger = logger_;
-		const auto data = use_json_ ? json_.toUtf8() : params_.toString(QUrl::FullyEncoded).toUtf8();
+		const auto data = use_json_ ? json_.toUtf8()
+    	: params_.toString(QUrl::FullyEncoded).toUtf8();
         auto* reply = co_await manager_->post(request, data);
-        logHttpRequest(logger, requestVerb(QNetworkAccessManager::PostOperation, request), request, reply);
+        logHttpRequest(logger, requestVerb(QNetworkAccessManager::PostOperation,
+            request), request, reply);
         co_return processReply(reply);
     }
 
@@ -187,7 +192,8 @@ namespace http {
         setHeaders(request);
         auto logger = logger_;
         auto* reply = co_await manager_->put(request, data);
-        logHttpRequest(logger, requestVerb(QNetworkAccessManager::PutOperation, request), request, reply);
+        logHttpRequest(logger, requestVerb(QNetworkAccessManager::PutOperation, 
+            request), request, reply);
         co_return processReply(reply);
     }
 
@@ -201,7 +207,8 @@ namespace http {
         setHeaders(request);
         auto logger = logger_;
         auto* reply = co_await manager_->deleteResource(request);
-        logHttpRequest(logger, requestVerb(QNetworkAccessManager::DeleteOperation, request), request, reply);
+        logHttpRequest(logger, requestVerb(QNetworkAccessManager::DeleteOperation,
+            request), request, reply);
         co_return processReply(reply);
     }
 
@@ -215,7 +222,8 @@ namespace http {
         setHeaders(request);
         auto logger = logger_;
         auto* reply = co_await manager_->get(request);
-        logHttpRequest(logger, requestVerb(QNetworkAccessManager::GetOperation, request), request, reply);
+        logHttpRequest(logger, requestVerb(QNetworkAccessManager::GetOperation,
+            request), request, reply);
 		co_return reply->readAll();
     }
 
@@ -240,13 +248,16 @@ namespace http {
 
     void HttpClient::setHeaders(QNetworkRequest& request) {
         if (use_json_) {
-            request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json; charset=utf-8"_str);
+            request.setHeader(QNetworkRequest::ContentTypeHeader, 
+                "application/json; charset=utf-8"_str);
         }
         else {
-            request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded"_str);
+            request.setHeader(QNetworkRequest::ContentTypeHeader, 
+                "application/x-www-form-urlencoded"_str);
         }
 
-        for (auto i = headers_.cbegin(); i != headers_.cend(); ++i) {
+        for (auto i = headers_.cbegin(); 
+            i != headers_.cend(); ++i) {
             request.setRawHeader(i.key().toUtf8(), i.value().toUtf8());
         }
 
@@ -284,7 +295,8 @@ namespace http {
         return data;
     }
 
-    QString HttpClient::processEncoding(QNetworkReply* reply, const QByteArray& content) {
+    QString HttpClient::processEncoding(QNetworkReply* reply,
+        const QByteArray& content) {
         QScopedPointer<QTextStream> in;
         try
         {
@@ -301,7 +313,8 @@ namespace http {
             in.reset(new QTextStream(content));
         }
 
-        const auto content_length_var = reply->header(QNetworkRequest::ContentLengthHeader);
+        const auto content_length_var = 
+            reply->header(QNetworkRequest::ContentLengthHeader);
         auto content_length = kHttpBufferSize;
         if (content_length_var.isValid()) {
             content_length = content_length_var.toLongLong();

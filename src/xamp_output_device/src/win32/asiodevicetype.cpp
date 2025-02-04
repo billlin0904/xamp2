@@ -45,7 +45,7 @@ std::optional<DeviceInfo> AsioDeviceType::AsioDeviceTypeImpl::GetDefaultDeviceIn
 	if (device_info_cache_.empty()) {
 		return std::nullopt;
 	}
-	return CreateOptional<DeviceInfo>(GetDeviceInfo(0));
+	return MakeOptional<DeviceInfo>(GetDeviceInfo(0));
 }
 
 Vector<DeviceInfo> AsioDeviceType::AsioDeviceTypeImpl::GetDeviceInfo() const {

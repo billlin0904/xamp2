@@ -12,6 +12,8 @@
 
 QByteArray gzipDecompress(const QByteArray& data);
 
+bool decompress(const uint8_t* in_data, size_t in_size, std::string& out_data);
+
 #if XAMP_OS_WIN
 class ZipFileReader {
 public:

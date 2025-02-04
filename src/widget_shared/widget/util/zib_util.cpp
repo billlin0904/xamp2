@@ -250,6 +250,16 @@ QByteArray gzipDecompress(const QByteArray& data) {
     return result;
 }
 
+bool decompress(const uint8_t* in_data, size_t in_size, std::string& out_data) {
+	QByteArray data(reinterpret_cast<const char*>(in_data), static_cast<int>(in_size));
+	QByteArray decompressed = gzipDecompress(data);
+	if (decompressed.isEmpty()) {
+		return false;
+	}
+	out_data = decompressed.toStdString();
+	return true;
+}
+
 #else
 QByteArray gzipDecompress(const QByteArray& data) {
     return {};

@@ -44,7 +44,7 @@ namespace dao {
             stats.albums = query.value("albums"_str).toInt();
             stats.tracks = query.value("tracks"_str).toInt();
             stats.durations = query.value("durations"_str).toDouble();
-            return CreateOptional<ArtistStats>(stats);
+            return MakeOptional<ArtistStats>(stats);
         }
 
         return std::nullopt;
