@@ -52,9 +52,9 @@ public slots:
 
 	void onSetLrcFont(const QFont &font);
 
-	void onSetLrcHighLight(const QColor &color);
+	void setHighLightColor(const QColor &color);
 
-	void onSetLrcColor(const QColor& color);
+	void setNormalColor(const QColor& color);
 
 	void onAddFullLrc(const QString& lrc);
 

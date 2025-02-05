@@ -228,6 +228,9 @@ bool KrcParser::parseKrcText(const std::wstring& wtext) {
         entry.index = idx++;
         entry.timestamp = line.start;
         entry.start_time = entry.timestamp;
+		for (auto word : line.words) {
+			entry.lrc += word.content;
+		}
         std::chrono::milliseconds maxEnd(0);
         for (const auto& word : line.words) {
 			entry.words.push_back(

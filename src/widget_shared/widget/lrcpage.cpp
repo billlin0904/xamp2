@@ -207,12 +207,12 @@ void LrcPage::onThemeChangedFinished(ThemeColor theme_color) {
 
 	switch (theme_color) {
 	case ThemeColor::DARK_THEME:
-		lyrics_widget_->onSetLrcColor(Qt::lightGray);
-		lyrics_widget_->onSetLrcHighLight(Qt::white);
+		lyrics_widget_->setNormalColor(Qt::lightGray);
+		lyrics_widget_->setHighLightColor(Qt::white);
 		break;
 	case ThemeColor::LIGHT_THEME:
-		lyrics_widget_->onSetLrcColor(Qt::darkGray);
-		lyrics_widget_->onSetLrcHighLight(Qt::black);
+		lyrics_widget_->setNormalColor(Qt::darkGray);
+		lyrics_widget_->setHighLightColor(Qt::black);
 		break;
 	}
 }

@@ -76,9 +76,8 @@
 #include <widget/youtubedl/ytmusic_disckcache.h>
 #include <widget/audio_embedding/audio_embedding_service.h>
 #include <widget/m3uparser.h>
+#include <widget/krcparser.h>
 #include <widget/chatgpt/waveformwidget.h>
-
-#include "widget/krcparser.h"
 
 namespace {
     constexpr auto kShowProgressDialogMsSecs = 100;
@@ -373,6 +372,7 @@ void Xamp::fetchKrc(const PlayListEntity& keyword) {
             if (citr == candidates.end()) {
                 return;
             }
+            XAMP_LOG_DEBUG("Found candidates size:{}", candidates.size());
             http_client_.setUrl("http://lyrics.kugou.com/download"_str);
             http_client_.param("ver"_str, "1"_str);
             http_client_.param("client"_str, "pc"_str);

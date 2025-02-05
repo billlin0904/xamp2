@@ -422,15 +422,15 @@ void WaveformWidget::setSpectrogramData(const QImage& spectrogramImg) {
 }
 
 void WaveformWidget::onReadAudioData(const std::vector<float> & buffer) {
-    XAMP_LOG_DEBUG("Read audio data {} size frame_per_peak_: {}", buffer.size(), frame_per_peak_);
+    //XAMP_LOG_DEBUG("Read audio data {} size frame_per_peak_: {}", buffer.size(), frame_per_peak_);
     GetChannelPeaksAndRmsSimdAVX2(buffer,
         frame_per_peak_,
         left_peaks_,
         right_peaks_, 
         left_rms_, 
         right_rms_);
-    XAMP_LOG_DEBUG("Update left_peaks size: {} right_peaks size: {}",
-        left_peaks_.size(), right_peaks_.size());
+    //XAMP_LOG_DEBUG("Update left_peaks size: {} right_peaks size: {}",
+    //    left_peaks_.size(), right_peaks_.size());
     update();
 }
 
