@@ -1094,8 +1094,8 @@ void Xamp::onSearchArtistCompleted(const QString& artist, const QByteArray& imag
 }
 
 void Xamp::onSearchLyricsCompleted(int32_t music_id, const QString& lyrics, const QString& trlyrics) {
-    lrc_page_->lyrics()->onSetLrc(lyrics, trlyrics);
-    music_dao_.addOrUpdateLyrics(music_id, lyrics, trlyrics);
+    //lrc_page_->lyrics()->onSetLrc(lyrics, trlyrics);
+    //music_dao_.addOrUpdateLyrics(music_id, lyrics, trlyrics);
 }
 
 void Xamp::shortcutsPressed(const QKeySequence& shortcut) {

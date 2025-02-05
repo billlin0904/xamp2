@@ -186,7 +186,8 @@ bool KrcParser::parse(const uint8_t* buffer, size_t size) {
     }
 
     std::string decompressed;
-    if (!decompress(encoded_data.data(), encoded_data.size(), decompressed)) {
+    if (!decompress(encoded_data.data(), 
+        encoded_data.size(), decompressed)) {
         return false;
     }
 
@@ -223,15 +224,22 @@ bool KrcParser::parseKrcText(const std::wstring& wtext) {
     int32_t idx = 0;
 
     for (const auto& line : lines) {
+        LyricEntry entry;
+        entry.index = idx++;
+        entry.timestamp = line.start;
+        entry.start_time = entry.timestamp;
+        std::chrono::milliseconds maxEnd(0);
         for (const auto& word : line.words) {
-            LyricEntry entry;
-            entry.index = idx++;
-            entry.timestamp = line.start + word.offset;
-            entry.start_time = entry.timestamp;
-            entry.end_time = entry.timestamp + word.length;
-            entry.lrc = word.content;
-            lyrics_.push_back(entry);
+			entry.words.push_back(
+                LyricWord {
+                	word.offset, word.length, 0, word.content });
+            auto wordEnd = word.offset + word.length;
+            if (wordEnd > maxEnd) {
+                maxEnd = wordEnd;
+            }
         }
+        entry.end_time = entry.start_time + maxEnd;
+        lyrics_.push_back(entry);
     }
 
     std::sort(lyrics_.begin(), lyrics_.end(), [](auto& a, auto& b) {

@@ -10,12 +10,24 @@
 #include <vector>
 #include <widget/widget_shared_global.h>
 
+struct XAMP_WIDGET_SHARED_EXPORT LyricWord {
+    // 這個字在此行中的相對起始時間（毫秒）
+    std::chrono::milliseconds offset{ 0 };
+    // 這個字持續時間（毫秒）
+    std::chrono::milliseconds length{ 0 };
+    int extraParam{ 0 };
+    // 實際的文字內容，可能是一個字或一小段詞
+    std::wstring content;
+};
+
 struct XAMP_WIDGET_SHARED_EXPORT LyricEntry {
     int32_t index{ 0 };
     std::chrono::milliseconds timestamp{ 0 };
     std::chrono::milliseconds start_time;
     std::chrono::milliseconds end_time;
     std::wstring lrc;
+	// 這行內部所有逐字資訊, 用來支援 KRC 格式
+	std::vector<LyricWord> words;
 };
 
 class XAMP_WIDGET_SHARED_EXPORT ILrcParser {

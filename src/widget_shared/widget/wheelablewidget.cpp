@@ -30,7 +30,6 @@ void WheelableWidget::setCurrentIndex(const int32_t index) {
 
 void WheelableWidget::paintEvent(QPaintEvent*) {
 	QPainter painter(this);
-
 	painter.setRenderHints(QPainter::Antialiasing, true);
 	painter.setRenderHints(QPainter::SmoothPixmapTransform, true);
 	painter.setRenderHints(QPainter::TextAntialiasing, true);
@@ -38,33 +37,47 @@ void WheelableWidget::paintEvent(QPaintEvent*) {
 	const auto w = width();
 	const auto h = height();
 
+	// 每個 item 高度 (假設 itemHeight() 回傳的是不含額外邊距)
 	const auto iH = itemHeight() + 10;
 	const auto iC = itemCount();
 
+	// ★ 1) 用 qMax(1, ...) 讓繪製範圍至少包含 1
+	const auto halfRange = qMax(1, h / 2 / iH);
+
 	if (iC > 0) {
-		for (auto i = -h / 2 / iH; i <= h / 2 / iH; i++) {
+		// ★ 2) 取消或調整原本 if (!len) return; 之類的條件
+		// 例如直接寫成:
+		// if (halfRange <= 0) {
+		//     // 理論上這不會進來了，因為 halfRange 至少會是 1
+		// }
+
+		// ★ 3) 使用 halfRange 遍歷要繪製的 index offset
+		for (auto i = -halfRange; i <= halfRange; i++) {
 			const auto item_num = item_ + i;
 
+			// 邊界檢查：只有在範圍內才繪
 			if (item_num >= 0 && item_num < iC) {
-				const auto len = h / 2 / iH;
-				auto t = abs(i);
 
-				if (!len) {
-					return;
-				}
+				// 這裡保留原本漸淡計算的程式碼
+				// ---------------------------------------------------
+				// 根據目前的 i 來做透明度或大小變化
+				const auto len = halfRange;
+				auto t = std::abs(i);
+				int alpha = 255 - t * t * 220 / (len * len);
+				if (alpha < 0) alpha = 0;
 
-				t = 255 - t * t * 220 / len / len;
+				painter.setPen(QColor(255, 255, 255, alpha));
 
-				if (t < 0)
-					t = 0;
-
-				painter.setPen(QColor(255, 255, 255, t));
+				// 計算繪製位置
 				QRect rect(0, h / 2 + i * iH - item_offset_, w, iH);
+
+				// 呼叫你的自訂函式繪製此 item
 				paintItem(&painter, item_num, rect);
 			}
 		}
 	}
 
+	// 繪製其他遮罩、框線等
 	paintItemMask(&painter);
 }
 
@@ -113,7 +126,7 @@ bool WheelableWidget::event(QEvent* event) {
 
 			if (do_signal_) {
 				if (scroll_event->scrollState() == QScrollEvent::ScrollStarted) {
-					if (item_ > 1)
+					if (item_ >= 0)
 						is_scrolled_ = true;
 				}
 			}
@@ -141,7 +154,7 @@ bool WheelableWidget::event(QEvent* event) {
 		setFocus();
 		return true;
 	default:
-		return QWidget::event(event);
+		break;
 	}
-	return true;
+	return QWidget::event(event);
 }

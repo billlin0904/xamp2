@@ -55,17 +55,22 @@ void LyricsShowWidget::resizeFontSize() {
 	lrc_font_.setPointSize(font_size);
 
 	lrc_metrics = QFontMetrics(lrc_font_);
-	while (lrc_metrics.horizontalAdvance(max_lrc) > size().width() - 30) {		
-		const auto max_width = lrc_metrics.horizontalAdvance(max_lrc);
+	constexpr int kMinFontSize = 8;
+
+	while (lrc_metrics.horizontalAdvance(max_lrc) > size().width() - 30) {
 		font_size -= 5;
+		if (font_size < kMinFontSize) {
+			font_size = kMinFontSize;
+			break;
+		}
 		lrc_font_.setPointSize(font_size);
 		lrc_metrics = QFontMetrics(lrc_font_);
-		XAMP_LOG_DEBUG("Change font size => {}, width: {}", font_size, max_width);
 	}
 }
 
 void LyricsShowWidget::resizeEvent(QResizeEvent* event) {
 	resizeFontSize();
+	WheelableWidget::resizeEvent(event);
 }
 
 void LyricsShowWidget::initial() {
@@ -146,87 +151,196 @@ void LyricsShowWidget::setCurrentTime(const int32_t time, const bool is_adding) 
 }
 
 void LyricsShowWidget::paintItem(QPainter* painter, const int32_t index, QRect& rect) {
+	// （1）基本檢查
 	if (!lyric_) {
 		return;
 	}
+	// index 超出範圍就不畫
+	const int32_t total_count = lyric_->getSize();
+	if (index < 0 || index >= total_count) {
+		return;
+	}
 
-	const int32_t ih = itemHeight() * 1.2 / 10;
-	const int32_t ch = item_offset_ * 1.2 / 10;
+	// （2）字型微調邏輯 (維持你的原本邏輯，也可用浮點來計算)
+	// ----------------------------------------------------------------------
+	// 先從基底字型出發
+	QFont baseFont = lrc_font_;
+	double baseFontSize = baseFont.pointSizeF();
+	if (baseFontSize <= 0.0) {
+		baseFontSize = 16.0;
+		baseFont.setPointSizeF(baseFontSize);
+	}
 
-    painter->setPen(lrc_color_);
-    painter->setFont(lrc_font_);
+	// 根據 item_ / item_offset_ 來做大小或加粗
+	// 這裡示範一個簡單寫法，可依你的需要再優化
+	double scaleFactor = 0.12; // 相當於舊程式中的 1.2 / 10
+	double ih = itemHeight() * scaleFactor;
+	double ch = static_cast<double>(item_offset_) * scaleFactor;
 
-	if (index == item_) {
+	double newFontSize = baseFontSize;
+	bool isCurrentLine = (index == item_);
+	bool isNextLine = (index == item_ + 1);
+
+	if (isCurrentLine) {
 		if (item_offset_ == 0) {
-			auto font = lrc_font_;
-            font.setBold(true);
-			font.setPointSize(font.pointSize() + ih);
-			painter->setFont(font);            
-			current_roll_rect_ = rect;
-			current_mask_font_ = painter->font();
-			painter->setFont(current_mask_font_);
-			painter->setPen(lrc_highlight_color_);
-		} else {
-			auto font = lrc_font_;
-            font.setBold(true);
-			font.setPointSize(font.pointSize() + ih - ch);
-			painter->setFont(font);
+			newFontSize = baseFontSize + ih;
+		}
+		else {
+			newFontSize = baseFontSize + ih - ch;
 		}
 	}
-
-	if (index == item_ + 1) {
-		auto font = lrc_font_;
-        font.setBold(true);
-		font.setPointSize(font.pointSize() + ch);
-		painter->setFont(font);
+	else if (isNextLine) {
+		// 做較小幅度增大
+		newFontSize = baseFontSize + ch;
+	}
+	// 防止字型縮得太小或過大
+	const double minFontSize = 8.0;
+	const double maxFontSize = 72.0;
+	if (newFontSize < minFontSize) {
+		newFontSize = minFontSize;
+	}
+	else if (newFontSize > maxFontSize) {
+		newFontSize = maxFontSize;
 	}
 
-	const QFontMetrics metrics(painter->font());
-	const auto text = QString::fromStdWString(lyric_->lineAt(index).lrc);
+	// 決定要不要 bold、要不要高亮顏色
+	QFont newFont = baseFont;
+	newFont.setPointSizeF(newFontSize);
+	painter->setFont(newFont);
 
-	if (furiganas_.empty()) {
-		painter->drawText((rect.width() - metrics.horizontalAdvance(text)) / 2,
-			rect.y() + (rect.height() - metrics.height()) / 2,
-			text);
-		return;
+	QColor penColor = lrc_color_;
+	if (isCurrentLine && item_offset_ == 0) {
+		// 正好在中間行、不偏移時，整行可視為高亮
+		penColor = lrc_highlight_color_;
 	}
+	painter->setPen(penColor);
 
-	const auto furigana_result = furiganas_[index];
-	if (furigana_result.empty()) {
-		painter->drawText((rect.width() - metrics.horizontalAdvance(text)) / 2,
-			rect.y() + (rect.height() - metrics.height()) / 2,
-			text);
-		return;
-	}
+	// （3）取得這行對應的 LyricEntry 與逐字資訊
+	const LyricEntry& entry = lyric_->lineAt(index);
+	const auto& words = entry.words;
 
-	auto x = (rect.width() - metrics.horizontalAdvance(text)) / 2;
+	// （4）若沒有逐字資訊，維持原本一次畫完整行
+	if (words.empty()) {
+		// 如果你原本有 Furigana 邏輯，可在這裡直接處理
+		// --- 無 Furigana 或 furiganas_.empty() 時 ---
+		const QFontMetrics metrics(painter->font());
+		const auto text = QString::fromStdWString(entry.lrc);
 
-	QFont kanji_font = painter->font();
-	QFont furigana_font = kanji_font;
-	furigana_font.setPointSize(kanji_font.pointSize() * 0.5);
+		if (furiganas_.empty() || furiganas_[index].empty()) {
+			// 直接畫一整段
+			painter->drawText(
+				(rect.width() - metrics.horizontalAdvance(text)) / 2,
+				rect.y() + (rect.height() - metrics.height()) / 2,
+				text
+			);
+			return;
+		}
+		else {
+			// 與你先前相同的 Furigana 繪製
+			// (此時不做「逐字 partial highlight」，因為 words 為 empty)
+			auto x = (rect.width() - metrics.horizontalAdvance(text)) / 2;
+			QFont kanji_font = newFont;
+			QFont furigana_font = newFont;
+			furigana_font.setPointSizeF(newFont.pointSizeF() * 0.5);
 
-	QFontMetrics furigana_metrics(furigana_font);
+			QFontMetrics furigana_metrics(furigana_font);
+			auto furigana_result = furiganas_[index];
 
-	for (const auto& entity : furigana_result) {
-		auto kanji_width = metrics.horizontalAdvance(QString::fromStdWString(entity.text));
-		auto furigana_length = entity.furigana.size();
+			for (const auto& entity : furigana_result) {
+				auto kanji_text = QString::fromStdWString(entity.text);
+				auto kanji_width = metrics.horizontalAdvance(kanji_text);
+				auto furigana_length = entity.furigana.size();
 
-		if (furigana_length > 0) {
-			auto furigana_char_width = kanji_width / furigana_length;
-			auto furigana_y = rect.y() + (rect.height() - metrics.height()) / 2 - furigana_metrics.height();
-
-			for (auto i = 0; i < furigana_length; ++i) {
-				auto furigana_char = QString::fromStdWString(entity.furigana).mid(i, 1);
-				auto furigana_x = x + i * furigana_char_width;
-
-				painter->setFont(furigana_font);
-				painter->drawText(furigana_x, furigana_y, furigana_char);
+				// 先畫 Furigana
+				if (furigana_length > 0) {
+					painter->setFont(furigana_font);
+					double furigana_char_width = static_cast<double>(kanji_width) / furigana_length;
+					int furigana_y = rect.y()
+						+ (rect.height() - metrics.height()) / 2
+						- furigana_metrics.height();
+					for (int i = 0; i < furigana_length; ++i) {
+						auto furigana_char = QString::fromStdWString(entity.furigana).mid(i, 1);
+						painter->drawText(x + i * furigana_char_width, furigana_y, furigana_char);
+					}
+				}
+				// 再畫漢字
+				painter->setFont(kanji_font);
+				painter->drawText(
+					x,
+					rect.y() + (rect.height() - metrics.height() + 20) / 2,
+					kanji_text
+				);
+				x += kanji_width;
 			}
+			return;
+		}
+	}
+
+	// （5）若該行有逐字資訊，進行「卡拉 OK 式逐字繪製」
+	// -----------------------------------------------------------
+	// 計算該行已經唱了多少毫秒
+	// 假設 pos_ 為「全局播放時間(毫秒)」
+	qint64 globalTime = pos_; // 你的程式可能是 int32_t，也可能是 long long
+	qint64 lineStart = entry.timestamp.count();
+	qint64 delta = globalTime - lineStart;
+	// delta < 0 => 尚未唱到這行
+	// delta > (end_time - start_time) => 已經唱完
+
+	// 算出該行所有 word 總寬度，方便置中
+	QFontMetrics fm(painter->font());
+	int totalWidth = 0;
+	for (auto& w : words) {
+		auto wordText = QString::fromStdWString(w.content);
+		totalWidth += fm.horizontalAdvance(wordText);
+	}
+
+	int x = (rect.width() - totalWidth) / 2;
+	// 建議用基線繪製
+	int baseline = rect.y() + (rect.height() + fm.ascent()) / 2;
+
+	// 如果需要再跟 Furigana 整合，可把這裡拆得更複雜，示範以「逐字文字 content」為主
+	// --------------------------------------------------------------------------
+	for (auto& w : words) {
+		QString wordText = QString::fromStdWString(w.content);
+		int wordWidth = fm.horizontalAdvance(wordText);
+
+		// 此字在行內的開始/結束時間
+		qint64 wStart = w.offset.count();         // 相對該行開頭
+		qint64 wEnd = wStart + w.length.count();
+
+		// 算出目前播放到這個字的「完成度」0~1
+		double fraction = 0.0;
+		if (delta <= wStart) {
+			fraction = 0.0;    // 尚未唱到
+		}
+		else if (delta >= wEnd) {
+			fraction = 1.0;    // 已唱完
+		}
+		else {
+			fraction = double(delta - wStart) / double(wEnd - wStart);
+		}
+		if (fraction < 0.0) fraction = 0.0;
+		if (fraction > 1.0) fraction = 1.0;
+
+		// 先畫「未唱完」顏色 (penColor)
+		painter->setPen(penColor);
+		painter->drawText(x, baseline, wordText);
+
+		// 若 fraction > 0，代表有已唱部分，用 highLight color 疊上去
+		if (fraction > 0.0) {
+			painter->save();
+			//painter->setPen(lrc_highlight_color_);
+			painter->setPen(QColor(77, 208, 225, 200));
+
+			// clipRect: 只顯示字體左側 fraction 區域
+			int highlightWidth = static_cast<int>(wordWidth * fraction);
+			painter->setClipRect(x, rect.y(), highlightWidth, rect.height());
+
+			painter->drawText(x, baseline, wordText);
+			painter->restore();
 		}
 
-		painter->setFont(kanji_font);
-		painter->drawText(x, rect.y() + (rect.height() - metrics.height() + 20) / 2, QString::fromStdWString(entity.text));
-		x += kanji_width;
+		x += wordWidth;
 	}
 }
 
