@@ -4,7 +4,7 @@
 #include <xamp.h>
 
 #include <iostream>
-
+#include <QLoggingCategory>
 #include <base/scopeguard.h>
 #include <base/dll.h>
 #include <base/crashhandler.h>
@@ -22,6 +22,7 @@
 
 #include <QPermissions>
 #include <QSslSocket>
+#include <QProcess>
 #include <fcntl.h>
 
 namespace {

@@ -19,8 +19,3 @@ AccountAuthorizationPage::~AccountAuthorizationPage() {
 	delete ui_;
 }
 
-void AccountAuthorizationPage::setOAuthToken(const OAuthToken& token) {
-	ui_->expiresInTimeLabel->setText(QDateTime::fromSecsSinceEpoch(token.expires_in + token.expires_at).toString());
-	ui_->expiresAtTimeLabel->setText(QDateTime::fromSecsSinceEpoch(token.expires_at).toString());
-	ui_->accountLabel->setIcon(qTheme.fontIcon(Glyphs::ICON_PERSON));
-}

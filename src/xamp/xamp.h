@@ -6,11 +6,10 @@
 #pragma once
 
 #include <QSystemTrayIcon>
-
+#include <QThread>
 #include <optional>
 
 #include <widget/widget_shared.h>
-#include <widget/youtubedl/ytmusicservice.h>
 
 #include <widget/uiplayerstateadapter.h>
 #include <widget/playlistentity.h>
@@ -29,10 +28,10 @@
 #include <xampplayer.h>
 #include <ui_xamp.h>
 
+#include "widget/httpx.h"
+
 class PlaylistTabPage;
 class ProcessIndicator;
-class AudioEmbeddingService;
-class YtMusicHttpService;
 class MusixmatchHttpService;
 struct MbDiscIdInfo;
 struct PlaybackFormat;
@@ -287,7 +286,6 @@ private:
 	QScopedPointer<AlbumCoverService> album_cover_service_;
 	QScopedPointer<FileSystemService> file_system_service_;
 	QScopedPointer<QSystemTrayIcon> tray_icon_;
-	QScopedPointer<AudioEmbeddingService> audio_embedding_service_;
 	QList<QWidget*> widgets_;
     QThread background_service_thread_;
 	QThread album_cover_service_thread_;

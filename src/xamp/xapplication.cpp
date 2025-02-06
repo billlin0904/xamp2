@@ -15,7 +15,6 @@
 #include <widget/jsonsettings.h>
 
 #include <xapplication.h>
-#include <widget/youtubedl/ytmusic_disckcache.h>
 
 constexpr auto kIpcTimeout = 1000;
 
@@ -67,8 +66,6 @@ void XApplication::initial() {
 
 	qAppSettings.loadOrSaveLogConfig();
 	qAppSettings.loadAppSettings();
-
-	qDiskCache.load();   
 }
 
 void XApplication::loadSampleRateConverterConfig() {

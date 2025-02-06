@@ -126,7 +126,6 @@
     <ClInclude Include="widgetframe\windowbutton_p.h" />
     <ClInclude Include="widget\accountauthorizationpage.h" />
     <QtMoc Include="widget\albumviewstyleddelegate.h" />
-    <QtMoc Include="widget\audio_embedding\audio_embedding_service.h" />
     <QtMoc Include="widget\chatgpt\waveformwidget.h" />
     <QtMoc Include="widget\cardwidget.h" />
     <ClInclude Include="widget\dao\albumdao.h" />
@@ -146,7 +145,6 @@
     <QtMoc Include="widget\playlisttabwidget.h" />
     <QtMoc Include="widget\playlisttabbar.h" />
     <QtMoc Include="widget\supereqview.h" />
-    <ClInclude Include="widget\musixmatch\musixmatch.h" />
     <ClInclude Include="widget\networkdiskcache.h" />
     <QtMoc Include="widget\playliststyleditemdelegate.h" />
     <QtMoc Include="widget\slidingstackedwidget.h" />
@@ -165,10 +163,7 @@
     <QtMoc Include="widget\worker\albumcoverservice.h" />
     <ClInclude Include="widget\win32\wintaskbar.h" />
     <ClInclude Include="widget\xmessagebox.h" />
-    <ClInclude Include="widget\youtubedl\ytmusicservice.h" />
-    <QtMoc Include="widget\youtubedl\ytmusicoauth.h" />
     <QtMoc Include="widget\xtooltip.h" />
-    <ClInclude Include="widget\youtubedl\ytmusic_disckcache.h" />
     <ClInclude Include="xampplayer.h" />
     <QtMoc Include="widget\actionmap.h" />
     <QtMoc Include="widget\albumartistpage.h" />
@@ -238,7 +233,6 @@
     <ClCompile Include="widget\appsettings.cpp" />
     <ClCompile Include="widget\artistinfopage.cpp" />
     <ClCompile Include="widget\artistview.cpp" />
-    <ClCompile Include="widget\audio_embedding\audio_embedding_service.cpp" />
     <ClCompile Include="widget\cardwidget.cpp" />
     <ClCompile Include="widget\cdpage.cpp" />
     <ClCompile Include="widget\chatgpt\waveformwidget.cpp" />
@@ -275,7 +269,6 @@
     <ClCompile Include="widget\lyricsshowwidget.cpp" />
     <ClCompile Include="widget\m3uparser.cpp" />
     <ClCompile Include="widget\maskwidget.cpp" />
-    <ClCompile Include="widget\musixmatch\musixmatch.cpp" />
     <ClCompile Include="widget\networkdiskcache.cpp" />
     <ClCompile Include="widget\playlistentity.cpp" />
     <ClCompile Include="widget\playlistpage.cpp" />
@@ -318,9 +311,6 @@
     <ClCompile Include="widget\xmessagebox.cpp" />
     <ClCompile Include="widget\xprogressdialog.cpp" />
     <ClCompile Include="widget\xtooltip.cpp" />
-    <ClCompile Include="widget\youtubedl\ytmusicservice.cpp" />
-    <ClCompile Include="widget\youtubedl\ytmusicoauth.cpp" />
-    <ClCompile Include="widget\youtubedl\ytmusic_disckcache.cpp" />
     <ClCompile Include="xampplayer.cpp" />
   </ItemGroup>
   <ItemGroup>

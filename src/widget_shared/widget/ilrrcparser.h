@@ -23,8 +23,8 @@ struct XAMP_WIDGET_SHARED_EXPORT LyricWord {
 struct XAMP_WIDGET_SHARED_EXPORT LyricEntry {
     int32_t index{ 0 };
     std::chrono::milliseconds timestamp{ 0 };
-    std::chrono::milliseconds start_time;
-    std::chrono::milliseconds end_time;
+    std::chrono::milliseconds start_time{ 0 };
+    std::chrono::milliseconds end_time{ 0 };
     std::wstring lrc;
 	// 這行內部所有逐字資訊, 用來支援 KRC 格式
 	std::vector<LyricWord> words;

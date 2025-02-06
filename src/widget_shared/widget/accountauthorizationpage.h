@@ -8,7 +8,6 @@
 #include <QFrame>
 #include <QDateTime>
 #include <widget/widget_shared_global.h>
-#include <widget/youtubedl/ytmusicoauth.h>
 
 namespace Ui {
 	class AccountAuthorizationPage;
@@ -20,7 +19,6 @@ public:
 
 	virtual ~AccountAuthorizationPage() override;
 
-	void setOAuthToken(const OAuthToken &token);
 private:
 	Ui::AccountAuthorizationPage* ui_;
 };

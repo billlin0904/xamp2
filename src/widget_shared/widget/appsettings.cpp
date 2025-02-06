@@ -17,7 +17,6 @@
 #include <widget/databasefacade.h>
 #include <widget/util/log_util.h>
 #include <widget/playerorder.h>
-#include <widget/youtubedl/ytmusicservice.h>
 #include <widget/playlistentity.h>
 #include <widget/databasecoverid.h>
 
@@ -468,7 +467,6 @@ void AppSettings::registerMetaType() {
 	qRegisterMetaType<Vector<TrackInfo>>("Vector<TrackInfo>");
 	qRegisterMetaType<DriveInfo>("DriveInfo");
 	qRegisterMetaType<std::wstring>("std::wstring");
-	qRegisterMetaType<std::vector<search::SearchResultItem>>("std::vector<search::SearchResultItem>");
 	qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
 	qRegisterMetaType<DatabaseCoverId>("DatabaseCoverId");
 	qRegisterMetaType<AppEQSettings>("AppEQSettings");

@@ -6,6 +6,8 @@
 #include <QToolTip>
 #include <QWidgetAction>
 #include <QMoveEvent>
+#include <QSaveFile>
+#include <QJsonDocument>
 
 #include <set>
 #include <thememanager.h>
@@ -67,14 +69,9 @@
 #include <widget/util/str_util.h>
 #include <widget/util/ui_util.h>
 
-#include <widget/musixmatch/musixmatch.h>
-
 #include <widget/worker/backgroundservice.h>
 #include <widget/worker/filesystemservice.h>
 #include <widget/worker/albumcoverservice.h>
-#include <widget/youtubedl/ytmusicservice.h>
-#include <widget/youtubedl/ytmusic_disckcache.h>
-#include <widget/audio_embedding/audio_embedding_service.h>
 #include <widget/m3uparser.h>
 #include <widget/krcparser.h>
 #include <widget/chatgpt/waveformwidget.h>
@@ -177,7 +174,8 @@ QString Xamp::translateDeviceDescription(const IDeviceType* device_type) {
         { "XAudio2",                 QT_TRANSLATE_NOOP("Xamp", "XAudio2") },
         { "ASIO",                    QT_TRANSLATE_NOOP("Xamp", "ASIO") },
     };
-    const auto str = lut.value(device_type->GetDescription(), fromStdStringView(device_type->GetDescription()));
+    const auto str = lut.value(device_type->GetDescription(),
+        fromStdStringView(device_type->GetDescription()));
     return tr(str.data());
 }
 
@@ -236,11 +234,6 @@ void Xamp::destroy() {
 }
 
 void Xamp::initialAudioEmbeddingService() {
-    if (audio_embedding_service_) {
-        return;
-    }
-
-    audio_embedding_service_.reset(new AudioEmbeddingService());
 }
 
 void Xamp::onActivated(QSystemTrayIcon::ActivationReason reason) {
@@ -349,7 +342,11 @@ void Xamp::fetchKrc(const PlayListEntity& keyword) {
 		// Parse hash
 		auto itr = std::find_if(infos.begin(),
             infos.end(), [this, keyword](const InfoItem& info) {
-			return info.singername == keyword.artist;
+                //XAMP_LOG_DEBUG("{} : {}",
+                //    String::ToUtf8String(info.songname.toStdWString()),
+                //        String::ToUtf8String(info.singername.toStdWString()));
+			return info.singername == keyword.artist
+            	&& info.songname == keyword.title;
 			});
         if (itr == infos.end()) {
             return;
@@ -390,7 +387,8 @@ void Xamp::fetchKrc(const PlayListEntity& keyword) {
                         krc_content->decodedContent.size())) {
                         return;
 					}
-					auto krc_file_name = keyword.parent_path + "\\"_str + keyword.file_name + ".krc"_str;
+					auto krc_file_name =
+                        keyword.parent_path + "\\"_str + keyword.file_name + ".krc"_str;
                     QSaveFile file(krc_file_name);
                     file.open(QIODevice::WriteOnly);
                     file.write(krc_content->decodedContent);
