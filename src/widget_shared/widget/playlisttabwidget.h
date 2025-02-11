@@ -12,7 +12,6 @@
 #include <widget/themecolor.h>
 #include <widget/widget_shared_global.h>
 #include <widget/playlistpage.h>
-#include <widget/dao/playlistdao.h>
 
 class QMouseEvent;
 class QPushButton;
@@ -119,7 +118,6 @@ private:
 	QPushButton* add_tab_button_{ nullptr };
 	PlaylistTabBar* tab_bar_{ nullptr };
 	XTooltip* tooltip_{ nullptr };
-	mutable dao::PlaylistDao playlist_dao_;
 	QElapsedTimer last_click_time_;
 };
 

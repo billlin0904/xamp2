@@ -228,20 +228,20 @@ bool KrcParser::parseKrcText(const std::wstring& wtext) {
         entry.index = idx++;
         entry.timestamp = line.start;
         entry.start_time = entry.timestamp;
-		for (auto word : line.words) {
+		for (const auto& word : line.words) {
 			entry.lrc += word.content;
 		}
-        std::chrono::milliseconds maxEnd(0);
+        std::chrono::milliseconds max_end(0);
         for (const auto& word : line.words) {
 			entry.words.push_back(
                 LyricWord {
                 	word.offset, word.length, 0, word.content });
-            auto wordEnd = word.offset + word.length;
-            if (wordEnd > maxEnd) {
-                maxEnd = wordEnd;
+            auto word_end = word.offset + word.length;
+            if (word_end > max_end) {
+                max_end = word_end;
             }
         }
-        entry.end_time = entry.start_time + maxEnd;
+        entry.end_time = entry.start_time + max_end;
         lyrics_.push_back(entry);
     }
 
@@ -254,25 +254,25 @@ bool KrcParser::parseKrcText(const std::wstring& wtext) {
 
 QList<InfoItem> parseInfoData(const QString& jsonString) {
     QList<InfoItem> results;
-    QJsonParseError jsonError;
-    QJsonDocument doc = QJsonDocument::fromJson(jsonString.toUtf8(), &jsonError);
-    if (jsonError.error != QJsonParseError::NoError) {
+    QJsonParseError json_error;
+    QJsonDocument doc = QJsonDocument::fromJson(jsonString.toUtf8(), &json_error);
+    if (json_error.error != QJsonParseError::NoError) {
 		return results;
     }
     QJsonObject root = doc.object();
     if (!root.contains("data"_str)) {
 		return results;
     }
-    QJsonObject dataObj = root.value("data"_str).toObject();
-    if (!dataObj.contains("info"_str)) {
+    QJsonObject data_obj = root.value("data"_str).toObject();
+    if (!data_obj.contains("info"_str)) {
 		return results;
     }
-    QJsonValue infoValue = dataObj.value("info"_str);
-    if (!infoValue.isArray()) {
+    QJsonValue info_value = data_obj.value("info"_str);
+    if (!info_value.isArray()) {
         return results;
     }
-    QJsonArray infoArray = infoValue.toArray();
-	for (const auto& item : infoArray) {
+    QJsonArray info_array = info_value.toArray();
+	for (const auto& item : info_array) {
 		QJsonObject obj = item.toObject();
 		InfoItem info;
 		info.hash = obj.value("hash"_str).toString();
@@ -296,14 +296,14 @@ QList<Candidate> parseCandidatesFromJson(const QString& jsonString) {
     if (!doc.isObject()) {
         return result;
     }
-    QJsonObject rootObj = doc.object();
-    if (!rootObj.contains("candidates"_str) 
-        || !rootObj.value("candidates"_str).isArray()) {
+    QJsonObject root_obj = doc.object();
+    if (!root_obj.contains("candidates"_str) 
+        || !root_obj.value("candidates"_str).isArray()) {
         return result;
     }
-    QJsonArray cArray = rootObj.value("candidates"_str).toArray();
-    for (int i = 0; i < cArray.size(); ++i) {
-        QJsonValue val = cArray.at(i);
+    QJsonArray c_array = root_obj.value("candidates"_str).toArray();
+    for (int i = 0; i < c_array.size(); ++i) {
+        QJsonValue val = c_array.at(i);
         if (!val.isObject()) {
             continue;
         }
@@ -320,16 +320,16 @@ QList<Candidate> parseCandidatesFromJson(const QString& jsonString) {
 
 std::optional<KrcContent> parseKrcContent(const QString& jsonString) {
     KrcContent result;
-    QJsonParseError parseError;
-    QJsonDocument doc = QJsonDocument::fromJson(jsonString.toUtf8(), &parseError);
-    if (parseError.error != QJsonParseError::NoError) {
+    QJsonParseError parse_error;
+    QJsonDocument doc = QJsonDocument::fromJson(jsonString.toUtf8(), &parse_error);
+    if (parse_error.error != QJsonParseError::NoError) {
         return std::nullopt;
     }
     if (!doc.isObject()) {
         return std::nullopt;
     }
-    QJsonObject rootObj = doc.object();
-    result.base64Content = rootObj.value("content"_str).toString();
+    QJsonObject root_obj = doc.object();
+    result.base64Content = root_obj.value("content"_str).toString();
     result.decodedContent = QByteArray::fromBase64(result.base64Content.toUtf8());
 	return MakeOptional<KrcContent>(result);
 }

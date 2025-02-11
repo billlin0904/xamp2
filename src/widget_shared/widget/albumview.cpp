@@ -38,6 +38,7 @@
 #include <QSqlError>
 #include <QApplication>
 #include <QHeaderView>
+#include <QProgressBar>
 
 AlbumViewPage::AlbumViewPage(QWidget* parent)
     : QFrame(parent) {
@@ -129,12 +130,12 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, con
     page_->playlist()->setAlternatingRowColors(false);
     page_->playlist()->removeAll();
 
-    album_dao_.forEachAlbumMusic(album_id,
+    qDaoFacade.album_dao_.forEachAlbumMusic(album_id,
         [&add_playlist_music_ids](const PlayListEntity& entity) mutable {
             add_playlist_music_ids.push_back(entity.music_id);
         });
 
-    playlist_dao_.addMusicToPlaylist(add_playlist_music_ids,
+    qDaoFacade.playlist_dao_.addMusicToPlaylist(add_playlist_music_ids,
         page_->playlist()->playlistId());
 
     page_->setAlbumId(album_id, album_heart);
@@ -143,7 +144,7 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, con
     page_->title()->setText(album);
     page_->onSetCoverById(cover_id);
 
-    if (const auto album_stats = album_dao_.getAlbumStats(album_id)) {
+    if (const auto album_stats = qDaoFacade.album_dao_.getAlbumStats(album_id)) {
         page_->format()->setText(tr("%1 Songs, %2, %3, %4")
             .arg(QString::number(album_stats.value().songs))
             .arg(formatDuration(album_stats.value().durations))
@@ -166,6 +167,10 @@ AlbumView::AlbumView(QWidget* parent)
     proxy_model_->setSourceModel(&model_);
     setModel(proxy_model_);
 
+	progress_page_ = new ScanFileProgressPage(this);
+	progress_page_->hide();
+    progress_page_->move(0, height() - 80);
+
     setUniformItemSizes(true);
     setDragEnabled(false);
     setSelectionRectVisible(false);
@@ -180,7 +185,7 @@ AlbumView::AlbumView(QWidget* parent)
     setAutoScroll(false);
     viewport()->setAttribute(Qt::WA_StaticContents);
     setMouseTracking(true);    
-    album_dao_.updateAlbumSelectState(kInvalidDatabaseId, false);
+    qDaoFacade.album_dao_.updateAlbumSelectState(kInvalidDatabaseId, false);
 
     (void)QObject::connect(&model_, &QAbstractTableModel::modelReset,
         [this] {
@@ -196,7 +201,7 @@ AlbumView::AlbumView(QWidget* parent)
     (void)QObject::connect(styledDelegate(), &AlbumViewStyledDelegate::editAlbumView, [this](auto index, auto state) {
         auto album = indexValue(index, ALBUM_INDEX_ALBUM).toString();
         auto album_id = indexValue(index, ALBUM_INDEX_ALBUM_ID).toInt();
-        album_dao_.updateAlbumSelectState(album_id, !state);
+        qDaoFacade.album_dao_.updateAlbumSelectState(album_id, !state);
         reload();
         });
 
@@ -255,7 +260,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         // Check all album state
         for (auto index = 0; index < proxy_model_->rowCount(); ++index) {            
             auto album_id = indexValue(proxy_model_->index(index, ALBUM_INDEX_ALBUM_ID), ALBUM_INDEX_ALBUM_ID).toInt();
-            album_dao_.updateAlbumSelectState(album_id, !styledDelegate()->isSelectedMode());
+            qDaoFacade.album_dao_.updateAlbumSelectState(album_id, !styledDelegate()->isSelectedMode());
         }
         styledDelegate()->setSelectedMode(!styledDelegate()->isSelectedMode());
         // Update selected album state
@@ -286,14 +291,14 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         action_map.addAction(action_name, [this]() {
             TransactionScope scope([&]() {
                 if (!styledDelegate()->isSelectedAll()) {
-                    Q_FOREACH(auto album_id, album_dao_.getSelectedAlbums()) {
-                        album_dao_.updateAlbumSelectState(album_id, false);
+                    Q_FOREACH(auto album_id, qDaoFacade.album_dao_.getSelectedAlbums()) {
+                        qDaoFacade.album_dao_.updateAlbumSelectState(album_id, false);
                     }
                 }
                 else {
                     for (auto index = 0; index < proxy_model_->rowCount(); ++index) {
                         auto album_id = indexValue(proxy_model_->index(index, ALBUM_INDEX_ALBUM_ID), ALBUM_INDEX_ALBUM_ID).toInt();
-                        album_dao_.updateAlbumSelectState(album_id, true);
+                        qDaoFacade.album_dao_.updateAlbumSelectState(album_id, true);
                     }
                 }
                 reload();
@@ -304,14 +309,19 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
 
         auto* sub_menu = action_map.addSubMenu(tr("Add albums to playlist"));
         
-        playlist_dao_.forEachPlaylist([sub_menu, this](auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
+        qDaoFacade.playlist_dao_.forEachPlaylist([sub_menu, this](
+            auto playlist_id,
+            auto,
+            auto store_type, 
+            auto cloud_playlist_id,
+            auto name) {
             if (notAddablePlaylist(playlist_id)) {
                 return;
             }
             sub_menu->addAction(name, [playlist_id, this]() {
                 QList<int32_t> add_playlist_music_ids;
-                Q_FOREACH(auto album_id, album_dao_.getSelectedAlbums()) {
-                    album_dao_.forEachAlbumMusic(album_id,
+                Q_FOREACH(auto album_id, qDaoFacade.album_dao_.getSelectedAlbums()) {
+                    qDaoFacade.album_dao_.forEachAlbumMusic(album_id,
                         [&add_playlist_music_ids](const PlayListEntity& entity) mutable {
                             add_playlist_music_ids.push_back(entity.music_id);
                         });                    
@@ -321,8 +331,8 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             });
         action_map.addAction(tr("Add albums to new playlist"), [this]() {
             QList<int32_t> add_playlist_music_ids;
-            Q_FOREACH(auto album_id, album_dao_.getSelectedAlbums()) {
-                album_dao_.forEachAlbumMusic(album_id,
+            Q_FOREACH(auto album_id, qDaoFacade.album_dao_.getSelectedAlbums()) {
+                qDaoFacade.album_dao_.forEachAlbumMusic(album_id,
                     [&add_playlist_music_ids](const PlayListEntity& entity) mutable {
                         add_playlist_music_ids.push_back(entity.music_id);
                     });
@@ -332,7 +342,8 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
 
         action_map.addSeparator();
 
-        auto* remove_selected_album_act = action_map.addAction(tr("Remove selected albums"), [this]() {
+        auto* remove_selected_album_act = action_map.addAction(
+            tr("Remove selected albums"), [this]() {
 			if (!qGuiDb.transaction()) {
 				return;
 			}
@@ -347,11 +358,11 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             int32_t count = 0;
 
             TransactionScope scope([&]() {
-                QList<int32_t> selected_albums = album_dao_.getSelectedAlbums();
+                QList<int32_t> selected_albums = qDaoFacade.album_dao_.getSelectedAlbums();
                 Q_FOREACH(auto album_id, selected_albums) {
                     emit removeSelectedAlbum(album_id);
-                    album_dao_.removeAlbumArtist(album_id);
-                    album_dao_.removeAlbum(album_id);
+                    qDaoFacade.album_dao_.removeAlbumArtist(album_id);
+                    qDaoFacade.album_dao_.removeAlbum(album_id);
                     process_dialog->setValue(count++ * 100 / selected_albums.size() + 1);
                 }
                 process_dialog->setValue(100);
@@ -395,20 +406,20 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         TransactionScope scope([&]() {
             QList<int32_t> albums;
 
-            album_dao_.forEachAlbum([&albums](auto album_id) {
+            qDaoFacade.album_dao_.forEachAlbum([&albums](auto album_id) {
                 albums.push_back(album_id);
                 });
             process_dialog->setRange(0, albums.size() + 1);
             int32_t count = 0;
             Q_FOREACH(const auto album_id, albums) {
-                album_dao_.removeAlbumArtist(album_id);
+                qDaoFacade.album_dao_.removeAlbumArtist(album_id);
             }
             Q_FOREACH(const auto album_id, albums) {
-                album_dao_.removeAlbum(album_id);
+                qDaoFacade.album_dao_.removeAlbum(album_id);
                 process_dialog->setValue(count++ * 100 / albums.size() + 1);
                 qApp->processEvents();
             }
-            artist_dao_.removeAllArtist();
+            qDaoFacade.artist_dao_.removeAllArtist();
             process_dialog->setValue(100);
             emit removeAll();
             qImageCache.clear();
@@ -429,7 +440,13 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         if (dir_name.isEmpty()) {
             return;
         }
+
         append(dir_name);
+
+        progress_page_->show();
+        const auto list_view_rect = this->rect();
+        progress_page_->setFixedSize(QSize(list_view_rect.size().width() - 2, 80));
+        progress_page_->move(0, height() - 80);
         });
     load_dir_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FOLDER));
 
@@ -464,13 +481,13 @@ void AlbumView::showMenu(const QPoint &pt) {
 
     auto* sub_menu = action_map.addSubMenu(tr("Add album to playlist"));
 
-    playlist_dao_.forEachPlaylist([sub_menu, album_id, this](auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
+    qDaoFacade.playlist_dao_.forEachPlaylist([sub_menu, album_id, this](auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
         if (notAddablePlaylist(playlist_id)) {
             return;
         }
         sub_menu->addAction(name, [playlist_id, album_id, this]() {
             QList<int32_t> add_playlist_music_ids;
-            album_dao_.forEachAlbumMusic(album_id,
+            qDaoFacade.album_dao_.forEachAlbumMusic(album_id,
                 [&add_playlist_music_ids](const PlayListEntity& entity) mutable {
                     add_playlist_music_ids.push_back(entity.music_id);
                 });
@@ -492,8 +509,8 @@ void AlbumView::showMenu(const QPoint &pt) {
     const auto remove_select_album_act = action_map.addAction(tr("Remove select album"), [album_id, this]() {
 		TransactionScope scope([&]() {
             emit removeSelectedAlbum(album_id);
-            album_dao_.removeAlbumArtist(album_id);
-            album_dao_.removeAlbum(album_id);
+            qDaoFacade.album_dao_.removeAlbumArtist(album_id);
+            qDaoFacade.album_dao_.removeAlbum(album_id);
             emit removeSelectedAlbum(album_id);
             reload();
 			});
@@ -811,10 +828,114 @@ void AlbumView::resizeEvent(QResizeEvent* event) {
             const auto list_view_rect = this->rect();
             page_->setFixedSize(QSize(list_view_rect.size().width() - 2, list_view_rect.height() - 2));
         }
-    }    
+    }
+
+    if (progress_page_ != nullptr) {
+        if (!progress_page_->isHidden()) {
+            const auto list_view_rect = this->rect();
+            progress_page_->setFixedSize(QSize(list_view_rect.size().width() - 2, 80));
+			progress_page_->move(0, height() - 80);
+        }
+    }
     QListView::resizeEvent(event);
 }
 
 void AlbumView::refreshCover() {
     refresh_cover_timer_.start();
+}
+
+ScanFileProgressPage* AlbumView::progressPage() const {
+    return progress_page_;
+}
+
+ScanFileProgressPage::ScanFileProgressPage(QWidget* parent)
+    : QFrame(parent) {
+    setObjectName("scanFileProgressPage"_str);
+    setFrameStyle(QFrame::StyledPanel);
+
+    progress_bar_ = new QProgressBar(this);
+    progress_bar_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    progress_bar_->setFixedHeight(10);
+
+    auto *close_button_ = new QPushButton(this);
+    close_button_->setObjectName("scanFileProgressPageCloseButton"_str);
+    close_button_->setCursor(Qt::PointingHandCursor);
+    close_button_->setAttribute(Qt::WA_TranslucentBackground);
+    close_button_->setFixedSize(qTheme.titleButtonIconSize());
+    close_button_->setIconSize(qTheme.titleButtonIconSize());
+    close_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_CLOSE_WINDOW,
+        qTheme.themeColor()));
+
+    auto* button_spacer = new QSpacerItem(20,
+        5,
+        QSizePolicy::Expanding,
+        QSizePolicy::Expanding);
+    auto* hbox_layout = new QHBoxLayout();
+    hbox_layout->setSpacing(0);
+    hbox_layout->setContentsMargins(10, 0, 0, 0);
+    hbox_layout->addSpacerItem(button_spacer);
+    hbox_layout->addWidget(close_button_);
+
+    message_text_label_ = new QLabel(this);
+    message_text_label_->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    message_text_label_->setObjectName("messageTextLabel"_str);
+    message_text_label_->setOpenExternalLinks(false);
+    message_text_label_->setFixedHeight(20);
+    message_text_label_->setSizePolicy(QSizePolicy::Expanding,
+        QSizePolicy::Fixed);
+    message_text_label_->setStyleSheet("background: transparent;"_str);
+
+    auto* layout_ = new QVBoxLayout(this);
+    layout_->addLayout(hbox_layout);
+    layout_->addWidget(message_text_label_);
+    layout_->addWidget(progress_bar_);
+    layout_->setSizeConstraint(QLayout::SetNoConstraint);
+    layout_->setSpacing(5);
+    layout_->setContentsMargins(5, 5, 5, 5); // ´î¤ÖÃä¶Z¼vÅT
+
+    setStyleSheet(qFormat(
+        R"(
+           QFrame#scanFileProgressPage {
+		        background-color: %1;
+                border-top-left-radius: 4px;
+				border-top-right-radius: 4px;
+                padding: 5px;
+           }
+        )"
+    ).arg(qTheme.linearGradientStyle()));
+
+    (void)QObject::connect(close_button_, &QPushButton::clicked, [this]() {
+        emit cancelRequested();
+        });
+}
+
+void ScanFileProgressPage::onReadFileProgress(int32_t progress) {
+    progress_bar_->setValue(progress);
+}
+
+void ScanFileProgressPage::onReadCompleted() {
+    hide();
+    progress_bar_->setValue(0);
+}
+
+void ScanFileProgressPage::onRemainingTimeEstimation(size_t total_work,
+    size_t completed_work,
+    int32_t secs) {
+    message_text_label_->setText(
+    qFormat("Remaining Time: %1 seconds, process file total: %2, completed: %3.")
+        .arg(formatDuration(secs))
+        .arg(total_work)
+        .arg(completed_work));
+}
+
+void ScanFileProgressPage::onFoundFileCount(size_t file_count) {
+    message_text_label_->setText(
+        qFormat("Total number of files %1").arg(file_count));
+}
+
+void ScanFileProgressPage::onReadFilePath(const QString& file_path) {
+	message_text_label_->setText(file_path);
+}
+
+void ScanFileProgressPage::onReadFileStart() {
 }

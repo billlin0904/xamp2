@@ -127,14 +127,13 @@
     <ClInclude Include="widget\accountauthorizationpage.h" />
     <QtMoc Include="widget\albumviewstyleddelegate.h" />
     <QtMoc Include="widget\chatgpt\waveformwidget.h" />
-    <QtMoc Include="widget\cardwidget.h" />
     <ClInclude Include="widget\dao\albumdao.h" />
     <ClInclude Include="widget\dao\artistdao.h" />
+    <ClInclude Include="widget\dao\dbfacade.h" />
     <ClInclude Include="widget\dao\musicdao.h" />
     <ClInclude Include="widget\dao\playlistdao.h" />
     <ClInclude Include="widget\databasecoverid.h" />
     <QtMoc Include="widget\encodejobwidget.h" />
-    <QtMoc Include="widget\flowlayout.h" />
     <ClInclude Include="widget\genre_view.h" />
     <QtMoc Include="widget\taglistview.h" />
     <ClInclude Include="widget\httpx.h" />
@@ -233,7 +232,6 @@
     <ClCompile Include="widget\appsettings.cpp" />
     <ClCompile Include="widget\artistinfopage.cpp" />
     <ClCompile Include="widget\artistview.cpp" />
-    <ClCompile Include="widget\cardwidget.cpp" />
     <ClCompile Include="widget\cdpage.cpp" />
     <ClCompile Include="widget\chatgpt\waveformwidget.cpp" />
     <ClCompile Include="widget\clickablelabel.cpp" />
@@ -254,7 +252,6 @@
     <ClCompile Include="widget\equalizerview.cpp" />
     <ClCompile Include="widget\filesystemmodel.cpp" />
     <ClCompile Include="widget\filesystemviewpage.cpp" />
-    <ClCompile Include="widget\flowlayout.cpp" />
     <ClCompile Include="widget\fonticon.cpp" />
     <ClCompile Include="widget\genre_view.cpp" />
     <ClCompile Include="widget\genre_view_page.cpp" />

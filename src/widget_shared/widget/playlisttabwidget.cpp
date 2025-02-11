@@ -6,8 +6,6 @@
 #include <widget/appsettings.h>
 #include <widget/appsettingnames.h>
 #include <widget/xmessagebox.h>
-#include <widget/dao/playlistdao.h>
-#include <widget/dao/musicdao.h>
 #include <widget/xtooltip.h>
 #include <widget/util/str_util.h>
 #include <widget/playlisttabbar.h>
@@ -138,7 +136,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
 
 
     (void)QObject::connect(tab_bar_, &PlaylistTabBar::textChanged, [this](auto index, const auto& name) {
-        playlist_dao_.setPlaylistName(currentPlaylistId(), name);
+        qDaoFacade.playlist_dao_.setPlaylistName(currentPlaylistId(), name);
 		qAppSettings.setValue(kAppSettingLastPlaylistTabIndex, currentPlaylistId());
         });
 
@@ -342,8 +340,8 @@ bool PlaylistTabWidget::removePlaylist(int32_t playlist_id) {
     Transaction scope;
 
     return scope.complete([&]() {
-        playlist_dao_.removePlaylistAllMusic(playlist_id);
-        playlist_dao_.removePlaylist(playlist_id);
+        qDaoFacade.playlist_dao_.removePlaylistAllMusic(playlist_id);
+        qDaoFacade.playlist_dao_.removePlaylist(playlist_id);
         });
 }
 
@@ -366,7 +364,7 @@ void PlaylistTabWidget::toolTipMove(const QPoint& pos) {
     auto global_pos = mapToGlobal(rect.center());
     global_pos.setY(global_pos.y() + 24);
 
-    auto stats = playlist_dao_.getAlbumStats(playlist_page->playlist()->playlistId());
+    auto stats = qDaoFacade.playlist_dao_.getAlbumStats(playlist_page->playlist()->playlistId());
 
     auto tooltip_text = qFormat(tr("%1, %2 Tracks: %3"))
 		.arg(stats.album_count)
@@ -385,7 +383,7 @@ void PlaylistTabWidget::toolTipMove(const QPoint& pos) {
         return;
     }
 
-    auto cover_ids = playlist_dao_.getAlbumCoverIds(playlist_page->playlist()->playlistId());
+    auto cover_ids = qDaoFacade.playlist_dao_.getAlbumCoverIds(playlist_page->playlist()->playlistId());
 
     QList<QPixmap> images;
     Q_FOREACH(auto cover_id, cover_ids) {
@@ -488,13 +486,13 @@ void PlaylistTabWidget::saveTabOrder() const {
     for (auto i = 0; i < tabBar()->count(); ++i) {
         auto* playlist_page = playlistPage(i);
         const auto* playlist = playlist_page->playlist();
-        playlist_dao_.setPlaylistIndex(playlist->playlistId(), i, store_type_);
+        qDaoFacade.playlist_dao_.setPlaylistIndex(playlist->playlistId(), i, store_type_);
         XAMP_LOG_DEBUG("saveTabOrder: {} at {}", tabText(i).toStdString(), i);
     }
 }
 
 void PlaylistTabWidget::restoreTabOrder() {
-    const auto playlist_index = playlist_dao_.getPlaylistIndex(store_type_);
+    const auto playlist_index = qDaoFacade.playlist_dao_.getPlaylistIndex(store_type_);
 
     QList<QString> texts;
     QList<int> new_order;
@@ -597,7 +595,7 @@ void PlaylistTabWidget::closeAllTab() {
         page->deleteLater();
     }
 
-    playlist_dao_.forEachPlaylist([this](auto playlist_id,
+    qDaoFacade.playlist_dao_.forEachPlaylist([this](auto playlist_id,
         auto,
         auto store_type,
         auto,

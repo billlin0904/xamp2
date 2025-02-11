@@ -19,7 +19,7 @@ public:
     
     explicit DatabaseFacade(QObject* parent = nullptr, Database *database = nullptr);
 
-    ~DatabaseFacade();
+    ~DatabaseFacade() override;
 
     void initialUnknownTranslateString();
 
@@ -39,21 +39,16 @@ public:
 
     int32_t unknownAlbumId() const;
 
-	void insertTrackInfo(const ForwardList<TrackInfo>& result,
+	void insertMultipleTrackInfo(const Vector<ForwardList<TrackInfo>>& results,
 	                     int32_t playlist_id,
-	                     StoreType store_type,
-	                     const std::function<void(int32_t, int32_t)>& fetch_cover = nullptr);
+	                     StoreType store_type);
 
+    void insertTrackInfo(const ForwardList<TrackInfo>& result,
+        int32_t playlist_id,
+        StoreType store_type);
 private:    
     void ensureAddUnknownId();
 
-    void addTrackInfo(const ForwardList<TrackInfo>& result,
-        int32_t playlist_id,
-        StoreType store_type,
-        const std::function<void(int32_t, int32_t)>& fetch_cover);
-
-    bool is_stop_{false};
-    
     int32_t kUnknownArtistId{ kInvalidDatabaseId };
     int32_t kUnknownAlbumId{ kInvalidDatabaseId };
     int32_t kVariousArtistsId{ kInvalidDatabaseId };
@@ -64,7 +59,6 @@ private:
     QString unknown_;
     LoggerPtr logger_;
     Database* database_;
-    //QScopedPointer<AudioEmbeddingService> audio_embedding_service_;
 };
 
 #define qDatabaseFacade SharedSingleton<DatabaseFacade>::GetInstance()

@@ -23,7 +23,13 @@ namespace {
 	constexpr size_t kMaxStealBulkSize = 4;
 }
 
-TaskScheduler::TaskScheduler(const std::string_view& name, size_t bulk_size, size_t max_thread, ThreadPriority priority)
+thread_local WorkStealingTaskQueue* TaskScheduler::local_work_queue = nullptr;
+thread_local size_t TaskScheduler::local_work_queue_index = 0;
+
+TaskScheduler::TaskScheduler(const std::string_view& name,
+	size_t max_thread,
+	size_t bulk_size,
+	ThreadPriority priority)
 	: is_stopped_(false)
 	, running_thread_(0)
 	, max_thread_(std::max(max_thread, kMinThreadPoolSize))
@@ -104,29 +110,36 @@ void TaskScheduler::Destroy() noexcept {
 	XAMP_LOG_D(logger_, "Thread pool was destroy.");
 }
 
-size_t TaskScheduler::TryDequeueSharedQueue(Vector<MoveOnlyFunction>& tasks, const std::stop_token& stop_token, std::chrono::milliseconds timeout) {
+size_t TaskScheduler::TryDequeueSharedQueue(Vector<MoveOnlyFunction>& tasks,
+	const std::stop_token& stop_token, 
+	std::chrono::milliseconds timeout) {
 	if (!stop_token.stop_requested()) {
-		MoveOnlyFunction func;
-		if (task_pool_->dequeue(func, timeout)) {
-			tasks.emplace_back(func);
-			return 1;
-		}
-	}
-	return {};
-}
-
-size_t TaskScheduler::TryDequeueSharedQueue(Vector<MoveOnlyFunction>& tasks, const std::stop_token& stop_token) {
-	if (!stop_token.stop_requested()) {
-		MoveOnlyFunction func;
-		if (task_pool_->try_dequeue(func)) {
-			tasks.emplace_back(func);
+		if (task_pool_->dequeue(tasks[0], timeout)) {
+#ifdef _DEBUG
+			XAMP_EXPECTS(tasks[0]);
+#endif
 			return 1;
 		}
 	}
 	return 0;
 }
 
-size_t TaskScheduler::TryLocalPop(Vector<MoveOnlyFunction>& tasks, const std::stop_token& stop_token, WorkStealingTaskQueue* local_queue) const {
+size_t TaskScheduler::TryDequeueSharedQueue(Vector<MoveOnlyFunction>& tasks,
+	const std::stop_token& stop_token) {
+	if (!stop_token.stop_requested()) {
+		if (task_pool_->try_dequeue(tasks[0])) {
+#ifdef _DEBUG
+			XAMP_EXPECTS(tasks[0]);
+#endif
+			return 1;
+		}
+	}
+	return 0;
+}
+
+size_t TaskScheduler::TryLocalPop(Vector<MoveOnlyFunction>& tasks,
+	const std::stop_token& stop_token,
+	WorkStealingTaskQueue* local_queue) const {
 	if (!stop_token.stop_requested()) {
 		auto size = local_queue->try_dequeue_bulk(tasks.begin(), tasks.size());
 		if (size > 0) {
@@ -136,7 +149,10 @@ size_t TaskScheduler::TryLocalPop(Vector<MoveOnlyFunction>& tasks, const std::st
 	return 0;
 }
 
-size_t TaskScheduler::TrySteal(Vector<MoveOnlyFunction>& tasks, const std::stop_token& stop_token, size_t random_start, size_t current_thread_index) {
+size_t TaskScheduler::TrySteal(Vector<MoveOnlyFunction>& tasks,
+	const std::stop_token& stop_token,
+	size_t random_start, 
+	size_t current_thread_index) {
 	if (!stop_token.stop_requested()) {
 		for (size_t attempts = 0; attempts < kMaxAttempts; ++attempts) {
 			size_t random_index = (random_start + attempts) % max_thread_;
@@ -156,14 +172,26 @@ size_t TaskScheduler::TrySteal(Vector<MoveOnlyFunction>& tasks, const std::stop_
 }
 
 void TaskScheduler::SubmitJob(MoveOnlyFunction&& task, ExecuteFlags flags) {
+	if (local_work_queue != nullptr) {
+		if (task_execute_flags_[local_work_queue_index].load(std::memory_order_acquire) != ExecuteFlags::EXECUTE_LONG_RUNNING) {
+			if (local_work_queue->try_enqueue(std::move(task))) {
+				task_execute_flags_[local_work_queue_index] = flags;
+				XAMP_LOG_D(logger_, "TaskScheduler::SubmitJob() enqueue task to local queue.");
+				return;
+			}
+		}
+	}
+
 	XAMP_NO_TLS_GUARDS thread_local PRNG prng;
 	size_t random_start = prng() % max_thread_;
-
 	for (size_t attempts = 0; attempts < kMaxAttempts; ++attempts) {
 		size_t random_index = (random_start + attempts) % max_thread_;
-
+		if (random_index == local_work_queue_index) {
+			continue;
+		}
 		if (task_execute_flags_[random_index].load(std::memory_order_acquire) != ExecuteFlags::EXECUTE_LONG_RUNNING) {
-			if (task_work_queues_.at(random_index)->try_enqueue(std::move(task))) {
+			auto& task_queue = task_work_queues_[random_index];
+			if (task_queue->try_enqueue(std::move(task))) {
 				task_execute_flags_[random_index] = flags;
 				XAMP_LOG_D(logger_, "TaskScheduler::SubmitJob() enqueue task to local queue.");
 				return;
@@ -181,7 +209,10 @@ void TaskScheduler::SetWorkerThreadName(size_t i) {
 	SetThreadName(stream.str());
 }
 
-void TaskScheduler::Execute(Vector<MoveOnlyFunction>& tasks, size_t task_size, size_t current_index, const std::stop_token& stop_token) {
+void TaskScheduler::Execute(Vector<MoveOnlyFunction>& tasks,
+	size_t task_size,
+	size_t current_index,
+	const std::stop_token& stop_token) {
 	for (size_t i = 0; i < task_size; ++i) {
 		auto running_thread = ++running_thread_;
 		std::invoke(tasks[i], stop_token);
@@ -191,11 +222,12 @@ void TaskScheduler::Execute(Vector<MoveOnlyFunction>& tasks, size_t task_size, s
 	task_execute_flags_[current_index] = ExecuteFlags::EXECUTE_NORMAL;
 }
 
-void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {	
+void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
     threads_.emplace_back([i, this, priority](const auto& stop_token) mutable {
-		XAMP_NO_TLS_GUARDS thread_local PRNG prng;
-		auto* local_queue = task_work_queues_[i].get();
+		local_work_queue = task_work_queues_[i].get();
+		local_work_queue_index = i;
 
+		XAMP_NO_TLS_GUARDS thread_local PRNG prng;
 		Stopwatch spinning_watch;
 		XampCrashHandler.SetThreadExceptionHandlers();
 		SetWorkerThreadName(i);
@@ -217,10 +249,10 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) resume.", thread_id, i);
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) start.", thread_id, i);
 
-		Vector<MoveOnlyFunction> tasks(bulk_size_);
-
 		while (!is_stopped_ && !stop_token.stop_requested()) {
-			auto task_size = TryLocalPop(tasks, stop_token, local_queue);
+			Vector<MoveOnlyFunction> tasks(bulk_size_);
+
+			auto task_size = TryLocalPop(tasks, stop_token, local_work_queue);
 
 			if (!task_size) {
 				size_t random_start = prng() % max_thread_;
@@ -248,6 +280,7 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 					backoff_attempts = 1; // Reset backoff when a task is found
 					spinning_watch.Reset();
 					Execute(tasks, task_size, i, stop_token);
+					continue;
 				}
 			}
 

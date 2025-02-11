@@ -150,15 +150,25 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 		process_file(dir);
 	}
 
-	// directory_files 目的是為了將同一個檔案分類再一起, 為了以下進行平行處理資料夾內的檔案, 並將解析後得結果進行track no排序.
+	// directory_files 目的是為了將同一個檔案分類再一起,
+	// 為了以下進行平行處理資料夾內的檔案, 並將解析後得結果進行track no排序.
+
+	FastMutex batch_mutex;
+	Vector<ForwardList<TrackInfo>> batch_track_infos;
+#ifdef _DEBUG
+	constexpr auto kMaxBatchSize = 500;
+#else
+	constexpr auto kMaxBatchSize = 5000;
+#endif
+
 	Executor::ParallelFor(thread_pool_.get(),
-		directory_files, [&](const auto& path_info, const auto& stop_token) {
+		directory_files, [&](auto& path_info, const auto& stop_token) {
 		if (is_stop_) {
 			return;
 		}
 
 		ForwardList<TrackInfo> tracks;
-	 	auto reader = MakeMetadataReader();
+		auto reader = MakeMetadataReader();
 
 		for (const auto& path : path_info.second) {
 			if (stop_token.stop_requested()) {
@@ -181,15 +191,30 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 		tracks.sort([](const auto& first, const auto& last) {
 			return first.track < last.track;
 		});
-		emit readFilePath(qFormat("Extract directory %1 size:%2 completed.")
-			.arg(path_info.first)
-			.arg(path_info.second.size()));
-		emit insertDatabase(tracks, playlist_id);
+
+		std::scoped_lock lock(batch_mutex);
+		batch_track_infos.emplace_back(std::move(tracks));
+
+		if (batch_track_infos.size() > kMaxBatchSize) {
+			emit readFilePath(qFormat("Extract directory %1 size:%2 completed.")
+				.arg(path_info.first)
+				.arg(path_info.second.size()));
+ 			emit batchInsertDatabase(batch_track_infos, playlist_id);
+			batch_track_infos.clear();
+		}		
 	}, stop_source_.get_token());
+
+	if (!batch_track_infos.empty()) {
+		emit readFilePath(qFormat("Extract directory %1 size:%2 completed.")
+			.arg(directory_files.begin()->first)
+			.arg(directory_files.begin()->second.size()));
+		emit batchInsertDatabase(batch_track_infos, playlist_id);
+	}
 }
 
 void FileSystemService::onExtractFile(const QString& file_path, int32_t playlist_id) {
 	is_stop_ = false;
+	stop_source_ = std::stop_source();
 
 	QDirIterator itr(file_path,
 		getTrackInfoFileNameFilter(), 
@@ -228,11 +253,13 @@ void FileSystemService::onExtractFile(const QString& file_path, int32_t playlist
 
 		emit readFileProgress(100);
 		emit readCompleted();
-		XAMP_LOG_D(logger_, "Finish to read track info. ({} secs)", total_time_elapsed_.ElapsedSeconds());
+		XAMP_LOG_D(logger_, "Finish to read track info. ({} secs)", 
+			total_time_elapsed_.ElapsedSeconds());
 	);
 
 	if (total_work == 0) {
-		XAMP_LOG_DEBUG("Not found file: {}", String::ToString(file_path.toStdWString()));
+		XAMP_LOG_DEBUG("Not found file: {}",
+			String::ToString(file_path.toStdWString()));
 		return;
 	}
 
@@ -242,9 +269,6 @@ void FileSystemService::onExtractFile(const QString& file_path, int32_t playlist
 	update_ui_elapsed_.Reset();
 
 	timer_.start(std::chrono::seconds(1));
-
-	// This function is thread safe, reset stop_source_ is thread safe.
-	stop_source_ = std::stop_source();
 
 	for (const auto& path_info : file_count_paths) {
 		if (is_stop_) {
@@ -263,6 +287,10 @@ void FileSystemService::onExtractFile(const QString& file_path, int32_t playlist
 }
 
 void FileSystemService::updateProgress() {
+	if (is_stop_ || stop_source_.stop_requested()) {
+		return;
+	}
+
 	if (update_ui_elapsed_.ElapsedSeconds() < 3.0) {
 		return;
 	}

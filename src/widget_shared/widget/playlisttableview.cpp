@@ -292,14 +292,14 @@ void PlaylistTableView::moveDown() {
 
 void PlaylistTableView::updateIndex(int index, const PlayListEntity& entity) {
     const auto target = item(model_->index(index, 0));
-    auto [playing1, is_checked1] = playlist_dao_.getPlaylistMusic(playlist_id_, entity.playlist_music_id);
-    playlist_dao_.updatePlaylistMusic(target.playlist_music_id, entity.music_id, entity.album_id, playing1, is_checked1);
+    auto [playing1, is_checked1] = qDaoFacade.playlist_dao_.getPlaylistMusic(playlist_id_, entity.playlist_music_id);
+    qDaoFacade.playlist_dao_.updatePlaylistMusic(target.playlist_music_id, entity.music_id, entity.album_id, playing1, is_checked1);
 }
 
 void PlaylistTableView::swapPositions(int row1, int row2) {
 	const auto item1 = item(model_->index(row1, 0));
     const auto item2 = item(model_->index(row2, 0));
-	playlist_dao_.swapPlaylistMusicId(playlist_id_, item1, item2);
+    qDaoFacade.playlist_dao_.swapPlaylistMusicId(playlist_id_, item1, item2);
 }
 
 void PlaylistTableView::selectMovedRows(const QModelIndexList& selectedIndexes, int direction) {
@@ -376,7 +376,7 @@ void PlaylistTableView::setPlaylistId(const int32_t playlist_id, const QString &
     playlist_id_ = playlist_id;
     column_setting_name_ = column_setting_name;
 
-    playlist_dao_.clearNowPlaying(playlist_id_);
+    qDaoFacade.playlist_dao_.clearNowPlaying(playlist_id_);
 
     reload();
 
@@ -696,7 +696,7 @@ void PlaylistTableView::initial() {
                     return;
                 }
 
-                playlist_dao_.removePlaylistAllMusic(playlistId());
+                qDaoFacade.playlist_dao_.removePlaylistAllMusic(playlistId());
             	reload();
                 removePlaying();
                 });
@@ -734,7 +734,7 @@ void PlaylistTableView::initial() {
                     return;
                 }
                 
-                playlist_dao_.removePlaylistAllMusic(playlistId());
+                qDaoFacade.playlist_dao_.removePlaylistAllMusic(playlistId());
                 reload();
                 removePlaying();
             });
@@ -743,7 +743,7 @@ void PlaylistTableView::initial() {
         action_map.addSeparator();
 
         auto* add_music_to_new_playlist_menu = action_map.addSubMenu(tr("Add music to new playlist"));
-        playlist_dao_.forEachPlaylist([add_music_to_new_playlist_menu, this](auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
+        qDaoFacade.playlist_dao_.forEachPlaylist([add_music_to_new_playlist_menu, this](auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
 			if (notAddablePlaylist(playlist_id)) {
 				return;
 			}
@@ -811,7 +811,7 @@ void PlaylistTableView::initial() {
                 const auto rows = selectItemIndex();
                 for (const auto& row : rows) {
 	                const auto entity = this->item(row.second);
-                    playlist_dao_.addMusicToPlaylist(entity.music_id, other_playlist_id.value(), entity.album_id);
+                    qDaoFacade.playlist_dao_.addMusicToPlaylist(entity.music_id, other_playlist_id.value(), entity.album_id);
                 }
             }
             });
@@ -884,7 +884,7 @@ void PlaylistTableView::onReloadEntity(const PlayListEntity& item) {
 
 void PlaylistTableView::pauseItem(const QModelIndex& index) {
     const auto entity = item(index);
-    playlist_dao_.setNowPlayingState(playlistId(), entity.playlist_music_id, PlayingState::PLAY_PAUSE);
+    qDaoFacade.playlist_dao_.setNowPlayingState(playlistId(), entity.playlist_music_id, PlayingState::PLAY_PAUSE);
     update();
 }
 
@@ -930,7 +930,7 @@ void PlaylistTableView::onProcessDatabase(int32_t playlist_id, const QList<PlayL
     }
 
     for (const auto& entity : entities) {
-        playlist_dao_.addMusicToPlaylist(entity.music_id, playlistId(), entity.album_id);
+        qDaoFacade.playlist_dao_.addMusicToPlaylist(entity.music_id, playlistId(), entity.album_id);
     }
     reload();
     emit addPlaylistItemFinished();
@@ -1096,8 +1096,8 @@ void PlaylistTableView::setNowPlaying(const QModelIndex& index) {
     play_index_ = index;
     setCurrentIndex(play_index_);    
     const auto entity = item(play_index_);
-    playlist_dao_.clearNowPlaying(playlist_id_);
-    playlist_dao_.setNowPlayingState(playlist_id_, entity.playlist_music_id, PlayingState::PLAY_PLAYING);
+    qDaoFacade.playlist_dao_.clearNowPlaying(playlist_id_);
+    qDaoFacade.playlist_dao_.setNowPlayingState(playlist_id_, entity.playlist_music_id, PlayingState::PLAY_PLAYING);
     play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());
 }
 
@@ -1109,7 +1109,7 @@ void PlaylistTableView::setNowPlayState(PlayingState playing_state) {
         return;
     }
     const auto entity = item(play_index_);
-    playlist_dao_.setNowPlayingState(playlistId(), entity.playlist_music_id, playing_state);
+    qDaoFacade.playlist_dao_.setNowPlayingState(playlistId(), entity.playlist_music_id, playing_state);
     scrollToIndex(play_index_);
     reload(playing_state != PlayingState::PLAY_CLEAR ? true : false);
     play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());
@@ -1195,12 +1195,12 @@ void PlaylistTableView::onPlayIndex(const QModelIndex& index, bool is_play, bool
 }
 
 void PlaylistTableView::removePlaying() {
-    playlist_dao_.clearNowPlaying(playlist_id_);
+    qDaoFacade.playlist_dao_.clearNowPlaying(playlist_id_);
     reload();
 }
 
 void PlaylistTableView::removeAll() {
-    playlist_dao_.removePlaylistAllMusic(playlistId());
+    qDaoFacade.playlist_dao_.removePlaylistAllMusic(playlistId());
     reload();
 }
 
@@ -1215,15 +1215,15 @@ void PlaylistTableView::removeSelectItems() {
 
     for (auto itr = rows.begin(); itr != rows.end(); ++itr) {
         const auto it = item(itr->second);
-        playlist_dao_.clearNowPlaying(playlist_id_, it.playlist_music_id);
+        qDaoFacade.playlist_dao_.clearNowPlaying(playlist_id_, it.playlist_music_id);
         remove_music_ids.push_back(it.music_id);
     }
 
     const auto count = proxy_model_->rowCount();
 	if (!count) {
-        playlist_dao_.clearNowPlaying(playlist_id_);
+        qDaoFacade.playlist_dao_.clearNowPlaying(playlist_id_);
 	}
     
-    playlist_dao_.removePlaylistMusic(playlist_id_, remove_music_ids);
+    qDaoFacade.playlist_dao_.removePlaylistMusic(playlist_id_, remove_music_ids);
     reload();
 }

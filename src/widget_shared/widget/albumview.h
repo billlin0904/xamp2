@@ -24,9 +24,7 @@
 #include <widget/albumviewstyleddelegate.h>
 #include <widget/playlisttableproxymodel.h>
 
-#include <widget/dao/playlistdao.h>
-#include <widget/dao/artistdao.h>
-#include <widget/dao/albumdao.h>
+#include <widget/dao/dbfacade.h>
 
 class XProgressDialog;
 class DatabaseFacade;
@@ -63,8 +61,31 @@ public slots:
 private:
 	PlaylistPage* page_;
 	QPushButton* close_button_;	
-	dao::PlaylistDao playlist_dao_;
-	dao::AlbumDao album_dao_;
+};
+
+class XAMP_WIDGET_SHARED_EXPORT ScanFileProgressPage : public QFrame {
+	Q_OBJECT
+public:
+	explicit ScanFileProgressPage(QWidget* parent = nullptr);
+
+signals:
+	void cancelRequested();
+
+public slots:
+	void onReadFileProgress(int32_t progress);
+
+	void onReadCompleted();
+
+	void onRemainingTimeEstimation(size_t total_work, size_t completed_work, int32_t secs);
+
+	void onFoundFileCount(size_t file_count);
+
+	void onReadFilePath(const QString& file_path);
+
+	void onReadFileStart();
+private:
+	QProgressBar* progress_bar_;
+	QLabel* message_text_label_;
 };
 
 class XAMP_WIDGET_SHARED_EXPORT AlbumView : public QListView {
@@ -100,11 +121,13 @@ public:
 
 	void setShowMode(ShowModes mode);
 
-	AlbumViewStyledDelegate* styledDelegate();
-
 	void resizeEvent(QResizeEvent* event) override;
 
 	void refreshCover();
+
+	AlbumViewStyledDelegate* styledDelegate();
+
+	ScanFileProgressPage* progressPage() const;
 signals:
     void addPlaylist(int32_t playlist_id, const QList<int32_t> &music_ids);
 
@@ -147,11 +170,9 @@ protected:
 private:
 	QTimer refresh_cover_timer_;
 	AlbumViewPage* page_;
+	ScanFileProgressPage* progress_page_;
 	QPropertyAnimation* animation_;
 	QSqlQueryModel model_;
 	PlayListTableFilterProxyModel* proxy_model_;
-	dao::PlaylistDao playlist_dao_;
-	dao::AlbumDao album_dao_;
-	dao::ArtistDao artist_dao_;
 };
 

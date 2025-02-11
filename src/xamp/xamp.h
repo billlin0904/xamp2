@@ -17,22 +17,16 @@
 #include <widget/driveinfo.h>
 #include <widget/util/str_util.h>
 #include <widget/databasecoverid.h>
-#include <widget/cardwidget.h>
 
-#include <widget/dao/musicdao.h>
-#include <widget/dao/albumdao.h>
-#include <widget/dao/artistdao.h>
-#include <widget/dao/playlistdao.h>
+#include <widget/dao/dbfacade.h>
 #include <widget/encodejobwidget.h>
+#include <widget/httpx.h>
 
 #include <xampplayer.h>
 #include <ui_xamp.h>
 
-#include "widget/httpx.h"
-
 class PlaylistTabPage;
 class ProcessIndicator;
-class MusixmatchHttpService;
 struct MbDiscIdInfo;
 struct PlaybackFormat;
 
@@ -127,23 +121,13 @@ public slots:
 
 	void onUpdateDiscCover(const QString& disc_id, const QString& cover_id);
 
-	void onSearchLyricsCompleted(int32_t music_id, const QString& lyrics, const QString& trlyrics);
-
 	void onSearchArtistCompleted(const QString& artist, const QByteArray& image);
 
 	void onThemeChangedFinished(ThemeColor theme_color);
 
 	void onInsertDatabase(const ForwardList<TrackInfo>& result, int32_t playlist_id);
 
-	void onReadFileProgress(int32_t progress);
-
-	void onReadCompleted();
-
-	void onReadFileStart();
-
-	void onReadFilePath(const QString& file_path);
-
-	void onFoundFileCount(size_t file_count);
+	void onBatchInsertDatabase(const Vector<ForwardList<TrackInfo>>& results, int32_t playlist_id);
 
 	void onSetAlbumCover(int32_t album_id, const QString& cover_id);
 
@@ -154,8 +138,6 @@ public slots:
 	void onRestartApp();
 
 	void onSetThumbnail(const DatabaseCoverId& id, const QString& cover_id);
-
-	void onRemainingTimeEstimation(size_t total_work, size_t completed_work, int32_t secs);
 
 	void onPlaybackError(const QString& message);
 
@@ -170,6 +152,8 @@ public slots:
 	void onActivated(QSystemTrayIcon::ActivationReason reason);
 
 	void onEncodeAlacFiles(const QString& codec_id, const QList<PlayListEntity>& files);
+
+	void onCancelRequested();
 private:
 	void initialUi();
 
@@ -227,7 +211,9 @@ private:
 
 	void resetSeekPosValue();
 
-    void updateUi(const PlayListEntity& entity, const PlaybackFormat& playback_format, bool open_done, bool is_doubleclicked);
+    void updateUi(const PlayListEntity& entity,
+		const PlaybackFormat& playback_format, 
+		bool open_done, bool is_double_clicked);
 
     void setupDsp(const PlayListEntity& item) const;
 
@@ -279,7 +265,7 @@ private:
 	QScopedPointer<LrcPage> lrc_page_;
 	QScopedPointer<PlaylistPage> music_page_;
 	QScopedPointer<CdPage> cd_page_;	
-	QScopedPointer<AlbumArtistPage> music_library_page_;
+	QScopedPointer<AlbumArtistPage> library_page_;
 	QScopedPointer<FileSystemViewPage> file_explorer_page_;
 	QScopedPointer<PlaylistTabPage> playlist_tab_page_;
 	QScopedPointer<BackgroundService> background_service_;
@@ -294,12 +280,7 @@ private:
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
 	std::shared_ptr<IAudioPlayer> player_;
 	QVector<QFrame*> device_type_frame_;
-	QSharedPointer<XProgressDialog> read_progress_dialog_;
 	QElapsedTimer progress_timer_;
-	dao::AlbumDao album_dao_;
-	dao::ArtistDao artist_dao_;
-	dao::MusicDao music_dao_;
-	dao::PlaylistDao playlist_dao_;
 	http::HttpClient http_client_;
     Ui::XampWindow ui_;
 	std::shared_ptr<IThreadPoolExecutor> thread_pool_;

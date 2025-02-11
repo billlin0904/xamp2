@@ -9,7 +9,7 @@
 #include <widget/widget_shared.h>
 #include <widget/database.h>
 
-class PlayListEntity;
+struct PlayListEntity;
 
 namespace dao {
 

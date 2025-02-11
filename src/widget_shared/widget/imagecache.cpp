@@ -22,7 +22,7 @@
 #include <QDirIterator>
 #include <QImageReader>
 
-#include "dao/albumdao.h"
+#include <widget/dao/dbfacade.h>
 
 constexpr size_t kDefaultCacheSize = 24;
 constexpr qint64 kMaxCacheImageSize = 128 * 1024 * 1024;
@@ -318,8 +318,7 @@ QString ImageCache::addImage(const QPixmap& cover, bool save_only) {
 }
 
 void ImageCache::loadCache() const {
-	dao::AlbumDao album_dao(qGuiDb.getDatabase());
-	album_dao.forEachAlbumCover([this](const QString& cover_id) {
+	qDaoFacade.album_dao_.forEachAlbumCover([this](const QString& cover_id) {
 		(void) getOrAddDefault(cover_id);
 		});
 }

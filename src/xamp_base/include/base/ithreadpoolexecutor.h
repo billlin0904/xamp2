@@ -57,7 +57,7 @@ decltype(auto) IThreadPoolExecutor::Spawn(F&& f, Args&&... args, ExecuteFlags fl
     // When Spawn receives f, it effectively only captures a "reference" to the lambda expression,
     // rather than the lambda’s value itself. Therefore, std::forward<Func>(f) will not move f,
     // because f is an lvalue here, and std::forward does not turn an lvalue into an rvalue.
-    static_assert(std::is_lvalue_reference_v<F>, "Func must be l value reference.");
+    //static_assert(std::is_lvalue_reference_v<F>, "Func must be l value reference.");
 
     using ReturnType = std::invoke_result_t<F, const std::stop_token&, Args...>;
 

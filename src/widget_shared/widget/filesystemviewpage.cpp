@@ -207,8 +207,9 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
         DatabaseFacade facade;
         facade.insertTrackInfo(track_infos,
             kFileSystemPlaylistId, 
-            StoreType::LOCAL_STORE,
-            nullptr);
+            StoreType::LOCAL_STORE);
+		// TODO: Read embedded cover in music file.
+
         ui_->page->playlist()->reload();
         });
     (void)QObject::connect(ui_->dirTree,

@@ -296,8 +296,8 @@ namespace dao {
         forEachAlbumMusic(album_id, [this, &entities](auto const& entity) {
             entities.push_back(entity);
             });
-		dao::MusicDao music_dao(db_);
-		dao::PlaylistDao playlist_dao(db_);
+		MusicDao music_dao(db_);
+		PlaylistDao playlist_dao(db_);
         if (!entities.empty()) {
             Q_FOREACH(const auto & entity, entities) {
                 QList<int32_t> playlist_ids;
