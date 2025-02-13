@@ -22,7 +22,10 @@ struct XAMP_WIDGET_SHARED_EXPORT LyricEntry {
     std::chrono::milliseconds timestamp{ 0 };
     std::chrono::milliseconds start_time{ 0 };
     std::chrono::milliseconds end_time{ 0 };
+    // ¥¼Â½Ä¶ºqµü
     std::wstring lrc;
+    // Â½Ä¶«áºqµü
+    std::wstring tlrc;
 	std::vector<LyricWord> words;
 };
 
@@ -51,6 +54,8 @@ public:
     virtual std::vector<LyricEntry>::const_iterator cbegin() const = 0;
 
     virtual void addLrc(const LyricEntry& lrc) = 0;
+
+    virtual bool hasTranslation() const = 0;
 protected:
 	ILrcParser() = default;
 };

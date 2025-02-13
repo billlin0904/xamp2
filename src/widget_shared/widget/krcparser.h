@@ -71,8 +71,10 @@ public:
     std::vector<LyricEntry>::const_iterator cend() const override;
 
     std::vector<LyricEntry>::const_iterator cbegin() const override;
+
+	bool hasTranslation() const override;
 private:
     bool parseKrcText(const std::wstring& wtext);
-
+	bool has_trans_lrc_ = false;
     std::vector<LyricEntry> lyrics_;
 };

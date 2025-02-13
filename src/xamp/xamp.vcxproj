@@ -211,6 +211,7 @@
     <None Include="..\..\.gitignore" />
     <None Include="..\versions\updates.json" />
     <None Include="config.json" />
+    <None Include="fonticon.json" />
     <None Include="Resource\Theme\dark\style.qss" />
     <None Include="Resource\Theme\light\style.qss" />
     <None Include="xamp.ini" />

@@ -103,11 +103,11 @@ signals:
 
 	void readAudioSpectrogram(const QSize& widget_size, const Path& file_path);
 public slots:
-    void onPlayEntity(const PlayListEntity& entity, bool is_doubleclicked, bool is_query_embeddings = false);
+    void onPlayEntity(const PlayListEntity& entity, bool is_double_clicked);
 
 	void ensureLocalOnePlaylistPage();
 
-	void onPlayMusic(int32_t playlist_id, const PlayListEntity& entity, bool is_play, bool is_doubleclicked);
+	void onPlayMusic(int32_t playlist_id, const PlayListEntity& entity, bool is_double_clicked);
 
     void onAddPlaylist(int32_t playlist_id, const QList<int32_t>& music_ids);
 
@@ -277,11 +277,10 @@ private:
 	QThread album_cover_service_thread_;
 	QThread file_system_service_thread_;
 	QMap<DatabaseCoverId, QString> download_thumbnail_pending_;
+	QList<QFrame*> device_type_frame_;
+	http::HttpClient http_client_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
 	std::shared_ptr<IAudioPlayer> player_;
-	QVector<QFrame*> device_type_frame_;
-	QElapsedTimer progress_timer_;
-	http::HttpClient http_client_;
-    Ui::XampWindow ui_;
 	std::shared_ptr<IThreadPoolExecutor> thread_pool_;
+	Ui::XampWindow ui_;
 };

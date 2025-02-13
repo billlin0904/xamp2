@@ -142,6 +142,8 @@ public:
 	void updateIndex(int index, const PlayListEntity &entity);
 
 	void selectMovedRows(const QModelIndexList& selectedIndexes, int direction);
+
+	void setAlbumCoverId(int32_t album_id, const QString &cover_id);
 signals:
 	void updatePlayingState(const PlayListEntity &entity, PlayingState playing_state);
 

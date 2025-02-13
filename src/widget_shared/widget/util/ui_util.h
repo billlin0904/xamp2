@@ -22,6 +22,8 @@ class QFileDialog;
 class QStyleOptionViewItem;
 class QAbstractItemView;
 
+inline constexpr std::string_view kCueFileExtension(".cue");
+
 struct XAMP_WIDGET_SHARED_EXPORT PlaybackFormat {
     bool is_dsd_file{ false };
     bool enable_sample_rate_convert{ false };

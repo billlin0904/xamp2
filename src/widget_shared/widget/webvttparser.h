@@ -38,6 +38,8 @@ public:
     std::vector<LyricEntry>::const_iterator cend() const override;
 
     std::vector<LyricEntry>::const_iterator cbegin() const override;
+
+	bool hasTranslation() const override;
 private:
     std::vector<LyricEntry> lyrics_;
 };

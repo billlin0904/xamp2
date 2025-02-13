@@ -617,14 +617,6 @@ void PlaylistTableView::initial() {
 
             action_map.addSeparator();
 
-            /*auto *add_to_playlist = action_map.addSubMenu(tr("Add to playlist"));
-            QMap<QString, QString> playlist_ids;
-            playlist_dao_.forEachPlaylist([&playlist_ids](auto, auto, auto store_type, auto cloud_playlist_id, auto name) {
-                if (store_type == StoreType::CLOUD_STORE) {
-                    playlist_ids.insert(cloud_playlist_id, name);
-                }
-                });*/
-
             const auto rows = selectItemIndex();
             std::vector<std::string> video_ids;
             std::vector<PlayListEntity> play_list_entities;
@@ -667,26 +659,6 @@ void PlaylistTableView::initial() {
                     }                    
                     });
             }
-
-            /*for (auto itr = playlist_ids.begin(); itr != playlist_ids.end(); ++itr) {
-                const auto& playlist_id = itr.key();
-                
-                add_to_playlist->addAction(qFormat("Add to playlist (%1)").arg(itr.value()), [playlist_id, video_ids, this]() {
-                    QString source_playlist_id;
-                    if (cloudPlaylistId()) {
-                        source_playlist_id = cloudPlaylistId().value();
-                    }
-                    emit addToPlaylist(source_playlist_id, playlist_id, video_ids);
-                    });
-            }*/
-
-            /*action_map.setCallback(action_map.addAction(tr("Cache file")), [this]() {
-                const auto rows = selectItemIndex();
-                for (const auto& row : rows) {
-                    auto play_list_entity = this->item(row.second);
-                    emit downloadFile(play_list_entity);
-                }
-                });*/
             
             auto* remove_all_act = action_map.addAction(tr("Remove all"));
             remove_all_act->setIcon(qTheme.fontIcon(Glyphs::ICON_REMOVE_ALL));
@@ -1099,6 +1071,32 @@ void PlaylistTableView::setNowPlaying(const QModelIndex& index) {
     qDaoFacade.playlist_dao_.clearNowPlaying(playlist_id_);
     qDaoFacade.playlist_dao_.setNowPlayingState(playlist_id_, entity.playlist_music_id, PlayingState::PLAY_PLAYING);
     play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());
+}
+
+void PlaylistTableView::setAlbumCoverId(int32_t album_id, const QString& cover_id) {
+    // 為了避免多次觸發 dataChanged，可以先收集要改的 index
+    QVector<QModelIndex> changed_indexes;
+
+    for (int row = 0; row < proxy_model_->rowCount(); ++row) {
+        auto index = proxy_model_->index(row, PLAYLIST_MUSIC_COVER_ID);
+        auto entity = item(index);
+        // 僅針對同一個 album_id 的列進行更新
+        if (entity.album_id == album_id) {
+            // 若要改變顯示資料(暫時儲存在 model)，直接 setData
+            proxy_model_->setData(index, cover_id);
+            changed_indexes.push_back(index);
+        }
+    }
+
+    // 最後再一次性觸發 dataChanged
+    // 若 changed_indexes 為空就不必通知
+    if (!changed_indexes.isEmpty()) {
+        // 如果這些 row 連續，可一次 dataChanged(first, last)
+        // 若不連續，則可用循環或另一種方式通知
+        const auto first_index = changed_indexes.first();
+        const auto last_index = changed_indexes.last();
+        reload();
+    }
 }
 
 void PlaylistTableView::setNowPlayState(PlayingState playing_state) {

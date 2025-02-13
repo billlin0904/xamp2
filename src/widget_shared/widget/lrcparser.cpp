@@ -266,3 +266,7 @@ const LyricEntry& LrcParser::getLyrics(const std::chrono::milliseconds &time) co
 int32_t LrcParser::getSize() const {
     return static_cast<int32_t>(lyrics_.size());
 }
+
+bool LrcParser::hasTranslation() const {
+    return false;
+}

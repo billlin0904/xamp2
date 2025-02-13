@@ -131,3 +131,7 @@ std::vector<LyricEntry>::const_iterator WebVTTParser::cend() const {
 std::vector<LyricEntry>::const_iterator WebVTTParser::cbegin() const {
     return lyrics_.cbegin();
 }
+
+bool WebVTTParser::hasTranslation() const {
+    return false;
+}

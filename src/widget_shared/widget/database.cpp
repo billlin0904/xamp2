@@ -183,12 +183,9 @@ void Database::open() {
         return;
     }
 
-    (void)db_.exec("PRAGMA auto_vacuum = FULL"_str);
-    (void)db_.exec("PRAGMA foreign_keys = ON"_str);
-    (void)db_.exec("PRAGMA journal_mode = DELETE"_str);
-
     (void)db_.exec("PRAGMA synchronous = OFF"_str);    
     (void)db_.exec("PRAGMA auto_vacuum = FULL"_str);
+    (void)db_.exec("PRAGMA page_size = 40960"_str);
     (void)db_.exec("PRAGMA foreign_keys = ON"_str);
     (void)db_.exec("PRAGMA cache_size = 40960"_str);
     (void)db_.exec("PRAGMA temp_store = MEMORY"_str);

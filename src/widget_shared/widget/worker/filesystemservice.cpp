@@ -11,7 +11,6 @@
 #include <widget/util/ui_util.h>
 
 namespace {
-	constexpr std::string_view kCueFileExtension(".cue");
 	XAMP_DECLARE_LOG_NAME(FileSystemService);
 
 	struct PathInfo {
@@ -71,7 +70,8 @@ namespace {
 
 FileSystemService::FileSystemService()
 	: timer_(this) {
-	(void)QObject::connect(&timer_, &QTimer::timeout, this, &FileSystemService::updateProgress);
+	(void)QObject::connect(&timer_, &QTimer::timeout,
+		this, &FileSystemService::updateProgress);
 	logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(FileSystemService));
 	constexpr auto kThreadPoolSize = 8;
 	thread_pool_ = ThreadPoolBuilder::MakeThreadPool(
@@ -119,14 +119,17 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 		}			
 	};
 
-	auto process_file = [this, &directory_files, playlist_id, process_cue_file](const auto& dir) {
+	auto process_file = [this, &directory_files, 
+		playlist_id, 
+		process_cue_file](const auto& dir) {
 		const auto next_path = toNativeSeparators(dir);
 		const auto path = next_path.toStdWString();
 		const Path test_path(path);
 		if (test_path.extension() != kCueFileExtension) {
 			const auto directory = QFileInfo(dir).dir().path();
 			if (!directory_files.contains(directory)) {
-				directory_files[directory].reserve(kReserveFilePathSize);
+				directory_files[directory].reserve(
+					kReserveFilePathSize);
 			}
 			directory_files[directory].emplace_back(path);
 		}
@@ -144,7 +147,8 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 
 	if (directory_files.empty()) {
 		if (!QFileInfo(dir).isFile()) {
-			XAMP_LOG_DEBUG("Not found file: {}", String::ToString(dir.toStdWString()));
+			XAMP_LOG_DEBUG("Not found file: {}",
+				String::ToString(dir.toStdWString()));
 			return;
 		}
 		process_file(dir);
@@ -155,11 +159,9 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 
 	FastMutex batch_mutex;
 	Vector<ForwardList<TrackInfo>> batch_track_infos;
-#ifdef _DEBUG
 	constexpr auto kMaxBatchSize = 500;
-#else
-	constexpr auto kMaxBatchSize = 5000;
-#endif
+
+	batch_track_infos.reserve(kMaxBatchSize);
 
 	Executor::ParallelFor(thread_pool_.get(),
 		directory_files, [&](auto& path_info, const auto& stop_token) {
@@ -196,7 +198,8 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 		batch_track_infos.emplace_back(std::move(tracks));
 
 		if (batch_track_infos.size() > kMaxBatchSize) {
-			emit readFilePath(qFormat("Extract directory %1 size:%2 completed.")
+			emit readFilePath(
+				qFormat("Extract directory %1 size:%2 completed.")
 				.arg(path_info.first)
 				.arg(path_info.second.size()));
  			emit batchInsertDatabase(batch_track_infos, playlist_id);
@@ -212,7 +215,8 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 	}
 }
 
-void FileSystemService::onExtractFile(const QString& file_path, int32_t playlist_id) {
+void FileSystemService::onExtractFile(const QString& file_path,
+	int32_t playlist_id) {
 	is_stop_ = false;
 	stop_source_ = std::stop_source();
 
@@ -238,8 +242,10 @@ void FileSystemService::onExtractFile(const QString& file_path, int32_t playlist
 	emit readFileStart();
 
 	auto [total_work, file_count_paths] =
-		getPathSortByFileCount(thread_pool_, stop_source_.get_token(), paths, getTrackInfoFileNameFilter(),
-		                       [this](auto total_file_count) {
+		getPathSortByFileCount(thread_pool_, stop_source_.get_token(),
+			paths,
+			getTrackInfoFileNameFilter(),
+			[this](auto total_file_count) {
 		emit foundFileCount(total_file_count);
 	});
 
@@ -299,10 +305,13 @@ void FileSystemService::updateProgress() {
 	emit readFileProgress((completed_work * 100) / total_work_);
 	const auto elapsed_time = total_time_elapsed_.ElapsedSeconds();
 	const double remaining_time = (total_work_ > completed_work)
-		? (static_cast<double>(elapsed_time) / static_cast<double>(completed_work)) *
+		? (static_cast<double>(elapsed_time)
+			/ static_cast<double>(completed_work)) *
 		(total_work_ - completed_work)
 		: 0.0;
-	emit remainingTimeEstimation(total_work_, completed_work, static_cast<int32_t>(remaining_time));
+	emit remainingTimeEstimation(total_work_,
+		completed_work,
+		static_cast<int32_t>(remaining_time));
 	update_ui_elapsed_.Reset();
 }
 

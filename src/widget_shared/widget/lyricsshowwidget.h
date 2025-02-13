@@ -21,6 +21,8 @@ class XAMP_WIDGET_SHARED_EXPORT LyricsShowWidget : public WheelableWidget {
 	Q_OBJECT
 
 public:
+	static constexpr auto kHighLightColor = QColor(77, 208, 225, 255);
+
 	explicit LyricsShowWidget(QWidget *parent = nullptr);
 
 	Q_DISABLE_COPY(LyricsShowWidget)

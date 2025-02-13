@@ -299,7 +299,7 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 
 		// 逐字畫出 Furigana
 		if (furigana_length > 0) {
-			double furigana_char_width = (double)kanji_width / furigana_length;
+			double furigana_char_width = static_cast<double>(kanji_width) / furigana_length;
 			for (int i = 0; i < furigana_length; ++i) {
 				QString fchar = QString::fromStdWString(entity.furigana).mid(i, 1);
 				painter->drawText(x_f + i * furigana_char_width, furigana_y, fchar);
@@ -346,20 +346,53 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 			fraction = 1.0;
 		}
 		else {
-			fraction = double(delta - w_start) / double(w_end - w_start);
+			fraction = static_cast<double>(delta - w_start) / static_cast<double>(w_end - w_start);
 		}
 		fraction = std::clamp(fraction, 0.0, 1.0);
 
 		// 如果 fraction>0 就用 clipRect 疊加高亮
 		if (fraction > 0.0) {
 			painter->save();
-			painter->setPen(QColor(77, 208, 225, 255)); // 你自定義的高亮色
+			painter->setPen(kHighLightColor); // 你自定義的高亮色
 			int highlight_width = static_cast<int>(word_width * fraction);
 			painter->setClipRect(x, rect.y(), highlight_width, rect.height());
 			painter->drawText(x, baseline, word_text);
 			painter->restore();
 		}
 		x += word_width;
+	}
+
+	// 7) 繪製翻譯行 (如果有)
+	if (!entry.tlrc.empty()) {
+		QColor translation_color_ = QColor(Qt::gray);     // 翻譯行字體顏色
+		float  translation_scale_ = 0.8f;                 // 翻譯行字體相對主行大小
+		int    translation_line_spacing_ = 5;             // 主行與翻譯行之間的垂直間距(像素)
+
+		// 取得翻譯文字
+		const QString translation_text = QString::fromStdWString(entry.tlrc);
+
+		// 設定翻譯行字體 (可與主行不同大小)
+		QFont translation_font = lrc_font_;
+		translation_font.setPointSizeF(lrc_font_.pointSizeF()* translation_scale_);
+		painter->setFont(translation_font);
+
+		// 重新計算字體高度
+		QFontMetrics tm(translation_font);
+
+		// 決定翻譯行的基準線(在主行 baseline 再往下移一些)
+		int translation_baseline = baseline
+			+ tm.height()
+			+ translation_line_spacing_; // 加點間距
+
+		// 置中計算 (讓翻譯跟主行都置中)
+		int translation_width = tm.horizontalAdvance(translation_text);
+		double x_trans = (rect.width() - translation_width) / 2.0;
+
+		// 設定顏色(與主行顏色不同也可)
+		painter->setPen(translation_color_);
+
+		// 繪製翻譯文字
+		painter->drawText(x_trans, translation_baseline, translation_text);
 	}
 }
 
@@ -372,7 +405,11 @@ void LyricsShowWidget::paintItemMask(QPainter* painter) {
 
 int32_t LyricsShowWidget::itemHeight() const {
 	const QFontMetrics metrics(lrc_font_);
-    return static_cast<int32_t>(metrics.height() * 1.5);
+	auto ratio = 1.5;
+	if (lyric_->hasTranslation()) {
+		ratio = 2.5;
+	}
+    return static_cast<int32_t>(metrics.height() * ratio);
 }
 
 int32_t LyricsShowWidget::itemCount() const {

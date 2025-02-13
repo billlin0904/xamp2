@@ -11,9 +11,6 @@
 #include <widget/xmainwindow.h>
 #include <widget/widget_shared.h>
 
-#include <widget/appsettings.h>
-#include <widget/appsettingnames.h>
-
 #include <base/workstealingtaskqueue.h>
 
 #include <QDirIterator>
@@ -181,9 +178,13 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
         Executor::ParallelFor(getMainWindow()->threadPool(),
             file_paths, 
             [&track_queue](const auto& path) {
+            const Path file_path(path);
+            if (file_path.extension() == kCueFileExtension) {
+                return;
+            }
             try {
                 auto reader = MakeMetadataReader();
-                reader->Open(path);
+                reader->Open(file_path);
                 track_queue.enqueue(reader->Extract());
             }
             catch (const Exception& e) {
@@ -208,7 +209,6 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
         facade.insertTrackInfo(track_infos,
             kFileSystemPlaylistId, 
             StoreType::LOCAL_STORE);
-		// TODO: Read embedded cover in music file.
 
         ui_->page->playlist()->reload();
         });

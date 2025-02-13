@@ -105,6 +105,7 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
     try {
 	    const auto cover_id = album_dao.getAlbumCoverId(id.second.value());
         if (!isNullOfEmpty(cover_id) && cover_id != qImageCache.unknownCoverId()) {
+			emit setAlbumCover(id.second.value(), cover_id);
             return;
         }
 

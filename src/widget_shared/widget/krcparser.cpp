@@ -37,6 +37,117 @@ namespace {
         std::vector<KrcWord> words;
     };
 
+    struct LyricBlock {
+        // 原始 JSON 裡的 type, language
+        int type{ 0 };
+        int language{ 0 };
+        // 每一小段歌詞是一個「字串陣列」(例如 ["to o ", "ku ", "ma ", ...])
+        std::vector<QStringList> lyricContent;
+    };
+
+    struct LyricTranslation {
+        // JSON 裡的 "version"
+        int version{ 0 };
+        // JSON 裡的 "content" 有多筆，每筆對應一個 LyricBlock
+        std::vector<LyricBlock> contents;
+    };
+
+	struct Krc {
+		std::vector<KrcLine> lines;
+		LyricTranslation lyricContent;
+	};
+
+    LyricTranslation parseLyricContent(const QByteArray& jsonString) {
+        LyricTranslation result; // 最終要回傳的結構
+
+        // 第一步：把字串轉成 QJsonDocument
+        QJsonParseError parseError;
+        QJsonDocument doc = QJsonDocument::fromJson(jsonString, &parseError);
+        if (parseError.error != QJsonParseError::NoError) {
+            // 解析失敗，視需求可拋例外或回傳空值
+            return result;
+        }
+        if (!doc.isObject()) {
+            // 根節點必須是 Object
+            return result;
+        }
+
+        // 取得根物件
+        QJsonObject rootObj = doc.object();
+
+        // 1) 讀取 version
+        //   確認有無 "version" 並取 int
+        if (rootObj.contains("version"_str)
+            && rootObj.value("version"_str).isDouble()) {
+            // 也可用 toInt() 取得
+            result.version = rootObj.value("version"_str).toInt();
+        }
+
+        // 2) 讀取 "content" 陣列
+        if (!rootObj.contains("content"_str) 
+            || !rootObj.value("content"_str).isArray()) {
+            // 若沒有 "content" 或不是陣列，直接回傳(或視需求紀錄錯誤)
+            return result;
+        }
+        QJsonArray contentArray = rootObj.value("content"_str).toArray();
+
+        // content 可能有多筆，每筆都是一個 JSON 物件
+        for (auto&& i : contentArray) {
+            QJsonValue val = i;
+            if (!val.isObject()) {
+                // 如果某一筆不是物件格式，就略過或視需求處理
+                continue;
+            }
+
+            QJsonObject itemObj = val.toObject();
+            LyricBlock block;
+
+            // 2.1) 讀 type
+            if (itemObj.contains("type"_str)
+                && itemObj.value("type"_str).isDouble()) {
+                block.type = itemObj.value("type"_str).toInt();
+            }
+
+            // 2.2) 讀 language
+            if (itemObj.contains("language"_str) 
+                && itemObj.value("language"_str).isDouble()) {
+                block.language = itemObj.value("language"_str).toInt();
+            }
+
+            // 2.3) 讀 "lyricContent": 它是一個「二維陣列」，第一層是每一行，第二層是該行的字詞切分
+            if (itemObj.contains("lyricContent"_str) 
+                && itemObj.value("lyricContent"_str).isArray()) {
+                QJsonArray lyricContentArray = itemObj.value("lyricContent"_str).toArray();
+
+                // 每個 element 又是一個 array (例如 ["to o ", "ku ", "ma ", ...] )
+                for (auto&& lineIdx : lyricContentArray) {
+                    QJsonValue lineVal = lineIdx;
+                    if (!lineVal.isArray()) {
+                        continue;
+                    }
+                    QJsonArray lineArray = lineVal.toArray();
+
+                    // 把每個字串 push 進 QStringList
+                    QStringList lineStrings;
+                    lineStrings.reserve(lineArray.size());
+                    for (auto&& j : lineArray) {
+                        QJsonValue wordVal = j;
+                        if (wordVal.isString()) {
+                            lineStrings << wordVal.toString();
+                        }
+                    }
+                    // lineStrings 就是一行
+                    block.lyricContent.push_back(lineStrings);
+                }
+            }
+
+            // 2.x) 將解析完的 block 放進結果
+            result.contents.push_back(block);
+        }
+
+        return result;
+    }
+
     std::chrono::milliseconds toMillis(const std::wstring& s) {
         return std::chrono::milliseconds(std::stoi(s));
     }
@@ -63,7 +174,7 @@ namespace {
             return krcLine;
         }
 
-        // 在整行裡，把 [xxx,yyy] 之後的部分抓出來，繼續解析 <...>標籤
+    	// 在整行裡，把 [xxx,yyy] 之後的部分抓出來，繼續解析 <...>標籤
         // matchLine[0] 是整個 [xxx,yyy]；我們要取剩餘部分
         auto remainingStart = matchLine.suffix().first;
         auto remainingEnd = line.end();
@@ -84,9 +195,22 @@ namespace {
         return krcLine;
     }
 
+    bool parseLyricContent(const std::wstring& line, LyricTranslation &lyric_content) {
+        static const std::wregex kLanguageTagRegex(LR"(\[language:([^\]]+)\])");
+
+        std::wsmatch match;
+        if (std::regex_search(line, match, kLanguageTagRegex)) {
+            auto base64_wstr = QString::fromStdWString(match[1].str());
+            QByteArray decoded = QByteArray::fromBase64(base64_wstr.toUtf8());
+            lyric_content = parseLyricContent(decoded);
+            return true;
+        }
+		return false;
+    }
+
     // 若整個文件含多行，可逐行解析
-    std::vector<KrcLine> parseKrc(const std::wstring& wtext) {
-        std::vector<KrcLine> krcLines;
+    Krc parseKrc(const std::wstring& wtext) {        
+		Krc result;
         std::wstringstream wss(wtext);
         std::wstring line;
 
@@ -94,15 +218,17 @@ namespace {
             if (!std::getline(wss, line)) break;
             if (line.empty()) continue;
 
+            parseLyricContent(line, result.lyricContent);
+
             KrcLine kline = parseKrcLine(line);
             // 可以檢查 kline 是否為空行（words.size == 0 && length==0之類）
             // 視需求再決定要不要 push_back
             if (!kline.words.empty()) {
-                krcLines.push_back(kline);
+                result.lines.push_back(kline);
             }
         }
 
-        return krcLines;
+        return result;
     }
 }
 
@@ -138,6 +264,10 @@ std::vector<LyricEntry>::const_iterator KrcParser::cend() const {
 
 std::vector<LyricEntry>::const_iterator KrcParser::cbegin() const {
     return lyrics_.cbegin();
+}
+
+bool KrcParser::hasTranslation() const {
+    return has_trans_lrc_;
 }
 
 const LyricEntry& KrcParser::getLyrics(const std::chrono::milliseconds& time) const noexcept {
@@ -213,17 +343,17 @@ bool KrcParser::parseFile(const std::wstring& file_path) {
 }
 
 bool KrcParser::parseKrcText(const std::wstring& wtext) {
-    auto lines = parseKrc(wtext);
+    auto result = parseKrc(wtext);
 
     size_t totalWords = 0;
-    for (auto& line : lines) {
+    for (auto& line : result.lines) {
         totalWords += line.words.size();
     }
 
     lyrics_.reserve(totalWords);
     int32_t idx = 0;
 
-    for (const auto& line : lines) {
+    for (const auto& line : result.lines) {
         LyricEntry entry;
         entry.index = idx++;
         entry.timestamp = line.start;
@@ -243,6 +373,21 @@ bool KrcParser::parseKrcText(const std::wstring& wtext) {
         }
         entry.end_time = entry.start_time + max_end;
         lyrics_.push_back(entry);
+    }
+
+    if (result.lyricContent.contents.size() > 1) {
+		// KRC 檔案裡可能有翻譯歌詞
+		// 這裡假設第二筆是翻譯歌詞, 而且必須要跟原歌詞一樣長度
+        if (lyrics_.size() == result.lyricContent.contents[1].lyricContent.size()) {
+            has_trans_lrc_ = true;
+            for (auto i = 0; i < result.lyricContent.contents[1].lyricContent.size(); ++i) {
+                lyrics_[i].tlrc = result.lyricContent.contents[1].lyricContent[i].join(
+                    L"").toStdWString();
+            }
+        }
+        XAMP_LOG_DEBUG("Krc has a translation!");
+    } else {
+        XAMP_LOG_DEBUG("Krc has no more translation!");
     }
 
     std::sort(lyrics_.begin(), lyrics_.end(), [](auto& a, auto& b) {
@@ -302,8 +447,8 @@ QList<Candidate> parseCandidatesFromJson(const QString& jsonString) {
         return result;
     }
     QJsonArray c_array = root_obj.value("candidates"_str).toArray();
-    for (int i = 0; i < c_array.size(); ++i) {
-        QJsonValue val = c_array.at(i);
+    for (auto&& i : c_array) {
+        QJsonValue val = i;
         if (!val.isObject()) {
             continue;
         }

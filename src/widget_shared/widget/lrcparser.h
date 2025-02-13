@@ -52,6 +52,7 @@ public:
 
     int32_t getSize() const override;
 
+	bool hasTranslation() const override;
 private:
     void parseLrc(std::wstring const & line);
 
