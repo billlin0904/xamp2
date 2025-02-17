@@ -25,8 +25,8 @@ time_t GetTime_t() {
 }
 
 template <typename T, typename C>
-Vector<T> Union(C const& a, C const& b) {
-	Vector<T> result;
+std::vector<T> Union(C const& a, C const& b) {
+	std::vector<T> result;
 	result.reserve(a.size() + b.size());
 	std::set_union(a.begin(), a.end(),
 	               b.begin(), b.end(),
@@ -62,13 +62,13 @@ double Median(C const& v) {
 }
 
 template <typename T>
-T Max(const Vector<T>& v) {
+T Max(const std::vector<T>& v) {
 	return *std::max_element(std::begin(v), std::end(v));
 }
 
 template <template <typename...> typename TMap, typename TKey, typename TValue>
-Vector<TKey> Keys(const TMap<TKey, TValue>& map) {
-	Vector<TKey> keys;
+std::vector<TKey> Keys(const TMap<TKey, TValue>& map) {
+	std::vector<TKey> keys;
 	keys.reserve(map.size());
 	std::transform(map.begin(),
 	               map.end(),
@@ -78,8 +78,8 @@ Vector<TKey> Keys(const TMap<TKey, TValue>& map) {
 }
 
 template <template <typename...> typename TMap, typename TKey, typename TValue>
-Vector<TValue> Values(const TMap<TKey, TValue>& map) {
-	Vector<TValue> keys;
+std::vector<TValue> Values(const TMap<TKey, TValue>& map) {
+	std::vector<TValue> keys;
 	keys.reserve(map.size());
 	std::transform(map.begin(),
 	               map.end(),

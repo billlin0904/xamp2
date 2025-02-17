@@ -39,11 +39,11 @@ public:
 
     int32_t unknownAlbumId() const;
 
-	void insertMultipleTrackInfo(const Vector<ForwardList<TrackInfo>>& results,
+	void insertMultipleTrackInfo(const std::vector<std::forward_list<TrackInfo>>& results,
 	                     int32_t playlist_id,
 	                     StoreType store_type);
 
-    void insertTrackInfo(const ForwardList<TrackInfo>& result,
+    void insertTrackInfo(const std::forward_list<TrackInfo>& result,
         int32_t playlist_id,
         StoreType store_type);
 private:    

@@ -27,15 +27,15 @@ public:
 
 	XAMP_NO_DISCARD std::optional<DeviceInfo> GetDefaultDeviceInfo() const;
 
-	XAMP_NO_DISCARD Vector<DeviceInfo> GetDeviceInfo() const;
+	XAMP_NO_DISCARD std::vector<DeviceInfo> GetDeviceInfo() const;
 
 	ScopedPtr<IOutputDevice> MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::string& device_id);
 
 private:
-	XAMP_NO_DISCARD Vector<DeviceInfo> GetDeviceInfoList() const;
+	XAMP_NO_DISCARD std::vector<DeviceInfo> GetDeviceInfoList() const;
 
 	CComPtr<IMMDeviceEnumerator> enumerator_;
-	Vector<DeviceInfo> device_list_;
+	std::vector<DeviceInfo> device_list_;
 	LoggerPtr logger_;
 };
 
@@ -67,7 +67,7 @@ size_t XAudio2DeviceType::XAudio2DeviceTypeImpl::GetDeviceCount() const {
 	return device_list_.size();
 }
 
-Vector<DeviceInfo> XAudio2DeviceType::XAudio2DeviceTypeImpl::GetDeviceInfo() const {
+std::vector<DeviceInfo> XAudio2DeviceType::XAudio2DeviceTypeImpl::GetDeviceInfo() const {
 	return device_list_;
 }
 
@@ -81,8 +81,8 @@ std::optional<DeviceInfo> XAudio2DeviceType::XAudio2DeviceTypeImpl::GetDefaultDe
 	return MakeOptional<DeviceInfo>(helper::GetDeviceInfo(default_output_device, XAMP_UUID_OF(XAudio2DeviceType)));
 }
 
-Vector<DeviceInfo> XAudio2DeviceType::XAudio2DeviceTypeImpl::GetDeviceInfoList() const {
-	Vector<DeviceInfo> device_list;
+std::vector<DeviceInfo> XAudio2DeviceType::XAudio2DeviceTypeImpl::GetDeviceInfoList() const {
+	std::vector<DeviceInfo> device_list;
 	CComPtr<IMMDeviceCollection> devices;
 	UINT count = 0;
 	std::wstring default_device_name;
@@ -182,7 +182,7 @@ std::optional<DeviceInfo> XAudio2DeviceType::GetDefaultDeviceInfo() const {
 	return impl_->GetDefaultDeviceInfo();
 }
 
-Vector<DeviceInfo> XAudio2DeviceType::GetDeviceInfo() const {
+std::vector<DeviceInfo> XAudio2DeviceType::GetDeviceInfo() const {
 	return impl_->GetDeviceInfo();
 }
 

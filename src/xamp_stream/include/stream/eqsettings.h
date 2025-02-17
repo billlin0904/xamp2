@@ -64,7 +64,7 @@ struct XAMP_STREAM_API EqSettings final {
     }
 
     float preamp{ 0 };
-    Vector<EqBandSetting> bands;
+    std::vector<EqBandSetting> bands;
 };
 
 XAMP_STREAM_NAMESPACE_END

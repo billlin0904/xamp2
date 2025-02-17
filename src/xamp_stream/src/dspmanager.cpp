@@ -95,7 +95,7 @@ bool DSPManager::Contains(const Uuid& type) const noexcept {
         });
 }
 
-void DSPManager::AddOrReplace(ScopedPtr<IAudioProcessor> processor, Vector<ScopedPtr<IAudioProcessor>>& dsp_chain) {
+void DSPManager::AddOrReplace(ScopedPtr<IAudioProcessor> processor, std::vector<ScopedPtr<IAudioProcessor>>& dsp_chain) {
     auto id = processor->GetTypeId();
     const auto itr = std::find_if(dsp_chain.begin(), dsp_chain.end(),
                                           [id](auto const& processor) {

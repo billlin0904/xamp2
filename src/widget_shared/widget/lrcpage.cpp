@@ -3,6 +3,7 @@
 #include <QHBoxLayout>
 #include <QGraphicsDropShadowEffect>
 #include <QPainter>
+#include <QHeaderView>
 
 #include <thememanager.h>
 
@@ -14,6 +15,82 @@
 #include <widget/appsettings.h>
 #include <widget/seekslider.h>
 #include <widget/util/ui_util.h>
+
+LyricsFrame::LyricsFrame(QWidget* parent)
+	: QFrame(parent) {
+	setFrameShape(QFrame::StyledPanel);
+	setFrameShadow(QFrame::Raised);
+
+	lyrc_list_ = new QTableWidget(this);
+
+	QStringList headers;
+	headers << tr("Type") << tr("Lyrics") << tr("Karaoke") << tr("Duration");
+	lyrc_list_->setHorizontalHeaderLabels(headers);
+	lyrc_list_->setColumnCount(headers.count());
+
+	lyrc_list_->setEditTriggers(QTableWidget::NoEditTriggers);
+	lyrc_list_->setSelectionBehavior(QAbstractItemView::SelectRows);
+	lyrc_list_->setSelectionMode(QAbstractItemView::SingleSelection);
+	lyrc_list_->horizontalHeader()->setStretchLastSection(true);
+	lyrc_list_->horizontalHeader()->hide();
+	lyrc_list_->setColumnWidth(1, 400);
+	lyrc_list_->setColumnWidth(2, 100);
+
+	lyrc_list_->verticalHeader()->setVisible(false);
+	lyrc_list_->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+	lyrc_list_->verticalHeader()->setDefaultSectionSize(240);
+
+	QVBoxLayout* layout = new QVBoxLayout(this);
+	layout->addWidget(lyrc_list_);
+	setLayout(layout);
+
+	(void) QObject::connect(lyrc_list_, &QTableWidget::itemDoubleClicked,
+		[this](auto *item) {
+		auto* find_item = lyrc_list_->item(item->row(), 0);
+		auto id = find_item->data(Qt::UserRole).toString();
+		auto parser = parser_map_.value(id);
+		if (parser) {
+			emit changeLyric(parser);
+		}
+		});
+}
+
+void LyricsFrame::setLyrics(const QList<SearchLyricsResult>& results) {
+	lyrc_list_->clearContents();
+
+	for (auto& [info, parsers] : results) {
+		for (auto& [candidate, parser] : parsers) {
+			QString typeStr = tr("Original");
+			if (parser->hasTranslation()) {
+				typeStr = tr("Translation");
+			}
+			if (parser->size() == 0) {
+				continue;
+			}
+			auto* typeItem = new QTableWidgetItem(typeStr);
+			QStringList lyricText;
+			for (auto i = 0; i < 5 && i < parser->size(); ++i) {
+				lyricText << QString::fromStdWString(parser->lineAt(i).lrc);
+				if (parser->hasTranslation()) {
+					lyricText << QString::fromStdWString(parser->lineAt(i).tlrc);
+				}
+			}
+			auto* lyricItem = new QTableWidgetItem(lyricText.join("\r\n"_str));
+			auto* durationItem = new QTableWidgetItem(
+				formatDuration(static_cast<double>(parser->last().timestamp.count()) / 1000.0));
+			auto* karaokeItem = new QTableWidgetItem(
+				parser->isKaraoke() ? tr("Yes") : tr("No"));
+			lyrc_list_->insertRow(lyrc_list_->rowCount());
+			lyrc_list_->setItem(lyrc_list_->rowCount() - 1, 0, typeItem);
+			lyrc_list_->setItem(lyrc_list_->rowCount() - 1, 1, lyricItem);
+			lyrc_list_->setItem(lyrc_list_->rowCount() - 1, 2, karaokeItem);
+			lyrc_list_->setItem(lyrc_list_->rowCount() - 1, 3, durationItem);
+			auto id = QString::fromLatin1(generateUuid());
+			typeItem->setData(Qt::UserRole, id);
+			parser_map_.insert(id, parser);
+		}
+	}
+}
 
 LrcPage::LrcPage(QWidget* parent)
 	: QFrame(parent) {
@@ -49,7 +126,10 @@ void LrcPage::addCoverShadow(bool found_cover) {
 void LrcPage::setCover(const QPixmap& src) {
     cover_ = src.copy();
 	setFullScreen();
+#ifndef _DEBUG
 	addCoverShadow(true);
+#endif
+	lyrics_results_.clear();
 }
 
 QSize LrcPage::coverSize() const {
@@ -77,12 +157,41 @@ void LrcPage::clearBackground() {
 	update();
 }
 
+void LrcPage::onFetchLyricsCompleted(const QList<SearchLyricsResult>& results) {
+	lyrics_results_ = results;
+
+	if (results.isEmpty()) {
+		return;
+	}
+
+	const auto hasTranslation = [](const SearchLyricsResult& res) ->bool {
+		for (auto& lyricsParser : res.parsers) {
+			if (lyricsParser.parser && lyricsParser.parser->hasTranslation()) {
+				return true;
+			}
+		}
+		return false;
+		};
+
+	std::sort(lyrics_results_.begin(), lyrics_results_.end(),
+		[hasTranslation](auto& lhs, auto& rhs) {
+		bool lhsHas = hasTranslation(lhs);
+		bool rhsHas = hasTranslation(rhs);
+		return (lhsHas > rhsHas);
+		});
+
+	for (const auto& [info, parsers] : lyrics_results_) {
+		for (const auto& [candidate, parser] : parsers) {
+			if (parser->hasTranslation()) {
+				lyrics_widget_->loadFromParser(parser);
+				return;
+			}
+		}
+	}
+	lyrics_widget_->loadFromParser(lyrics_results_.first().parsers.first().parser);
+}
+
 void LrcPage::setFullScreen() {
-	/*auto enter = getMainWindow()->isMaximized() || getMainWindow()->isFullScreen();
-	auto size = getMainWindow()->size();
-	if (size.width() > 822 * 2) {
-		enter = true;
-	}*/
 	auto enter = false;
 	auto f = font();
 
@@ -163,7 +272,7 @@ void LrcPage::paintEvent(QPaintEvent*) {
 	}
 
 	painter.setCompositionMode(QPainter::CompositionMode_Overlay);
-
+#ifndef _DEBUG
 	if (!background_image_.isNull()) {
 		painter.setOpacity(current_bg_alpha_ / 255.0);
 		painter.drawImage(rect(), background_image_);
@@ -174,6 +283,7 @@ void LrcPage::paintEvent(QPaintEvent*) {
 		painter.drawImage(rect(), prev_background_image_);
 		painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
 	}
+#endif
 }
 
 void LrcPage::setAppearBgProgress(int x) {
@@ -379,6 +489,32 @@ void LrcPage::initial() {
 	spectrum_->setMinimumSize(QSize(180, 60));
 	spectrum_->setStyleSheet("background-color: transparent"_str);
 	vertical_layout_2->addWidget(spectrum_);
+
+	auto horizontal_layout_11 = new QHBoxLayout();
+	auto* change_lrc_button = new QToolButton(this);
+	change_lrc_button->setText(tr("Change LRC"));
+	(void)QObject::connect(change_lrc_button, &QToolButton::clicked, [this]() {
+		if (lyrics_results_.isEmpty()) {
+			return;
+		}
+		const QScopedPointer<XDialog> dialog(new XDialog(this));
+		const QScopedPointer<LyricsFrame> lyrics_frame(new LyricsFrame(dialog.get()));
+		dialog->setTitle(tr("Change LRC"));
+		lyrics_frame->setLyrics(lyrics_results_);
+		dialog->setContentWidget(lyrics_frame.get());
+		dialog->setFixedSize(QSize(800, 600));
+		dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_SUBTITLE));
+		(void)QObject::connect(lyrics_frame.get(), &LyricsFrame::changeLyric,
+			[this](const QSharedPointer<ILrcParser>& parser) {
+			lyrics_widget_->loadFromParser(parser);
+			});
+		dialog->exec();
+		});
+
+	auto horizontal_spacer_5 = new QSpacerItem(10, 20, QSizePolicy::Expanding, QSizePolicy::Fixed);
+	horizontal_layout_11->addWidget(change_lrc_button);
+	horizontal_layout_11->addSpacerItem(horizontal_spacer_5);
+	vertical_layout_2->addLayout(horizontal_layout_11);
 
 	vertical_layout_2->setStretch(2, 1);
 

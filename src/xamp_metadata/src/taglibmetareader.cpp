@@ -71,7 +71,7 @@ namespace {
         return MakeOptional<ReplayGain>(std::move(replay_gain));
     }
 
-    std::optional<Vector<std::byte>> GetID3V2TagCover(const ID3v2::Tag* tag) {
+    std::optional<std::vector<std::byte>> GetID3V2TagCover(const ID3v2::Tag* tag) {
         if (!tag) {
             return std::nullopt;
         }
@@ -84,19 +84,19 @@ namespace {
         if (!frame) {
             return std::nullopt;
         }
-        Vector<std::byte> buffer;
+        std::vector<std::byte> buffer;
         buffer.resize(frame->picture().size());
         MemoryCopy(buffer.data(), frame->picture().data(), static_cast<int32_t>(frame->picture().size()));
-        return MakeOptional<Vector<std::byte>>(std::move(buffer));
+        return MakeOptional<std::vector<std::byte>>(std::move(buffer));
     }
 
-    std::optional<Vector<std::byte>> GetApeTagCover(const APE::Tag* tag) {
+    std::optional<std::vector<std::byte>> GetApeTagCover(const APE::Tag* tag) {
         auto const& list_map = tag->itemListMap();
 
         if (!list_map.contains("COVER ART (FRONT)")) {
             return std::nullopt;
         }
-        Vector<std::byte> buffer;
+        std::vector<std::byte> buffer;
         const ByteVector null_string_terminator(1, 0);
         auto item = list_map["COVER ART (FRONT)"].binaryData();
         auto pos = item.find(null_string_terminator);	// Skip the filename
@@ -104,13 +104,13 @@ namespace {
             auto pic = item.mid(pos);
             buffer.resize(pic.size());
             MemoryCopy(buffer.data(), pic.data(), static_cast<int32_t>(pic.size()));
-            return MakeOptional<Vector<std::byte>>(std::move(buffer));
+            return MakeOptional<std::vector<std::byte>>(std::move(buffer));
         }
         return std::nullopt;
     }
 
-    std::optional<Vector<std::byte>> GetMp3Cover(File* file) {
-        std::optional<Vector<std::byte>> buffer;
+    std::optional<std::vector<std::byte>> GetMp3Cover(File* file) {
+        std::optional<std::vector<std::byte>> buffer;
         if (auto* mpeg_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
             if (mpeg_file->ID3v2Tag()) {
                 buffer = GetID3V2TagCover(mpeg_file->ID3v2Tag());
@@ -122,7 +122,7 @@ namespace {
         return buffer;
     }
 
-    std::optional<Vector<std::byte>> GetDsfCover(File* file) {
+    std::optional<std::vector<std::byte>> GetDsfCover(File* file) {
         if (const auto* dsd_file = dynamic_cast<TagLib::DSF::File*>(file)) {
             if (dsd_file->tag()) {
                 return GetID3V2TagCover(dsd_file->tag());
@@ -131,7 +131,7 @@ namespace {
         return std::nullopt;
     }
 
-    std::optional<Vector<std::byte>> GetDsdiffCover(File* file) {
+    std::optional<std::vector<std::byte>> GetDsdiffCover(File* file) {
         if (const auto* dsd_file = dynamic_cast<TagLib::DSDIFF::File*>(file)) {
             if (dsd_file->ID3v2Tag()) {
                 return GetID3V2TagCover(dsd_file->ID3v2Tag());
@@ -140,8 +140,8 @@ namespace {
         return std::nullopt;
     }
 
-    std::optional<Vector<std::byte>> GetMp4Cover(File* file) {
-        Vector<std::byte> buffer;
+    std::optional<std::vector<std::byte>> GetMp4Cover(File* file) {
+        std::vector<std::byte> buffer;
 
         if (const auto* mp4_file = dynamic_cast<TagLib::MP4::File*>(file)) {
             auto* tag = mp4_file->tag();
@@ -161,7 +161,7 @@ namespace {
                 buffer.resize(cover_list[0].data().size());
                 MemoryCopy(buffer.data(), cover_list[0].data().data(),
                     static_cast<int32_t>(cover_list[0].data().size()));
-                return MakeOptional<Vector<std::byte>>(std::move(buffer));
+                return MakeOptional<std::vector<std::byte>>(std::move(buffer));
             }
         }
         return std::nullopt;
@@ -242,18 +242,18 @@ namespace {
         return MakeOptional<ReplayGain>(std::move(replay_gain));
     }
 
-    std::optional<Vector<std::byte>> GetFlacCover(File* file) {
+    std::optional<std::vector<std::byte>> GetFlacCover(File* file) {
         if (auto* flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
             const auto picture_list = flac_file->pictureList();
             if (picture_list.isEmpty()) {
                 return std::nullopt;
             }
-            Vector<std::byte> buffer;
+            std::vector<std::byte> buffer;
             for (const auto& picture : picture_list) {
                 if (picture->type() == TagLib::FLAC::Picture::FrontCover) {
                     buffer.resize(picture->data().size());
                     MemoryCopy(buffer.data(), picture->data().data(), picture->data().size());
-                    return MakeOptional<Vector<std::byte>>(std::move(buffer));
+                    return MakeOptional<std::vector<std::byte>>(std::move(buffer));
                 }
             }
         }
@@ -350,8 +350,8 @@ namespace {
         return std::nullopt;
     }
 
-    std::optional<Vector<std::byte>> GetCover(const std::string & ext, File* file) {
-        static const HashMap<std::string_view, std::function<std::optional<Vector<std::byte>> (File*)>>
+    std::optional<std::vector<std::byte>> GetCover(const std::string & ext, File* file) {
+        static const HashMap<std::string_view, std::function<std::optional<std::vector<std::byte>> (File*)>>
             parse_cover_table{
             { ".flac", GetFlacCover },
             { ".mp3",  GetMp3Cover },
@@ -429,7 +429,7 @@ public:
         return track_info;
     }
 
-    std::optional<Vector<std::byte>> ReadEmbeddedCover() const {
+    std::optional<std::vector<std::byte>> ReadEmbeddedCover() const {
 		if (!IsSupported()) {
             return std::nullopt;
 		}
@@ -485,7 +485,7 @@ std::optional<ReplayGain> TaglibMetadataReader::GetReplayGain() {
     return reader_->GetReplayGain();
 }
 
-std::optional<Vector<std::byte>> TaglibMetadataReader::ReadEmbeddedCover() {
+std::optional<std::vector<std::byte>> TaglibMetadataReader::ReadEmbeddedCover() {
     return reader_->ReadEmbeddedCover();
 }
 

@@ -38,7 +38,7 @@ public:
 
     void WriteYear(uint32_t year) override;
 
-    void WriteEmbeddedCover(const Vector<uint8_t> &image) const override;
+    void WriteEmbeddedCover(const std::vector<uint8_t> &image) const override;
 
     void RemoveEmbeddedCover() override;
 

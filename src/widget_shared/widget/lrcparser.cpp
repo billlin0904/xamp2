@@ -184,7 +184,8 @@ bool LrcParser::parseStream(std::wistream &istr) {
 		return false;
 	}
 
-    std::stable_sort(lyrics_.begin(), lyrics_.end(), [](const LyricEntry &a, const LyricEntry &b) {
+    std::stable_sort(lyrics_.begin(), lyrics_.end(),
+        [](const LyricEntry &a, const LyricEntry &b) {
 		return a.timestamp < b.timestamp;
 	});
 
@@ -263,10 +264,14 @@ const LyricEntry& LrcParser::getLyrics(const std::chrono::milliseconds &time) co
     return *lyrics_.cbegin();
 }
 
-int32_t LrcParser::getSize() const {
+int32_t LrcParser::size() const {
     return static_cast<int32_t>(lyrics_.size());
 }
 
 bool LrcParser::hasTranslation() const {
+    return false;
+}
+
+bool LrcParser::isKaraoke() const {
     return false;
 }

@@ -31,7 +31,7 @@ template
     typename Key,
 	typename Value,
     typename SizeOfPolicy = DefaultSizeOfPolicy<Key, Value>,
-	typename KeyList = List<std::pair<Key, Value>>,
+	typename KeyList = std::list<std::pair<Key, Value>>,
     typename SharedMutex = std::shared_mutex
 >
 class XAMP_BASE_API_ONLY_EXPORT LruCache {

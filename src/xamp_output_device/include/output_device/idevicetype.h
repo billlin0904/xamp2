@@ -80,9 +80,9 @@ public:
 	/*
 	* Get device info.
 	* 
-	* @return Vector<DeviceInfo>.
+	* @return std::vector<DeviceInfo>.
 	*/
-	XAMP_NO_DISCARD virtual Vector<DeviceInfo> GetDeviceInfo() const = 0;
+	XAMP_NO_DISCARD virtual std::vector<DeviceInfo> GetDeviceInfo() const = 0;
 
 	/*
 	* Get default device info.

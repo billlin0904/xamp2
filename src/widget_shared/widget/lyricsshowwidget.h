@@ -29,6 +29,8 @@ public:
 
 	bool loadLrcFile(const QString &file_path);
 
+	void loadFromParser(const QSharedPointer<ILrcParser> &parser);
+
 	void setCurrentTime(int32_t time, bool is_adding = true);
 
 	void paintItem(QPainter* painter, int32_t index, QRect &rect) override;
@@ -93,7 +95,7 @@ private:
 	QString lrc_;
 	QString orilyrc_;
 	QString trlyrc_;
-	ScopedPtr<ILrcParser> lyric_;
+	QSharedPointer<ILrcParser> lyric_;
 	Furigana furigana_;
 	std::vector<std::vector<FuriganaEntity>> furiganas_;
 };

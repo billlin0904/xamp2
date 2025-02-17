@@ -62,10 +62,10 @@ public:
         return (*this)(min, max);
     }
 
-    Vector<int8_t> NextBytes(size_t size,
+    std::vector<int8_t> NextBytes(size_t size,
         const int32_t min = (std::numeric_limits<int8_t>::min)(),
         const int32_t max = (std::numeric_limits<int8_t>::max)()) {
-        Vector<int8_t> output(size);
+        std::vector<int8_t> output(size);
         const auto gen = [this, min, max]() noexcept {
             return static_cast<int8_t>(NextInt32(min, max));
         };
@@ -74,10 +74,10 @@ public:
     }
 
     template <typename T>
-	Vector<T> NextBytes(size_t size,
+	std::vector<T> NextBytes(size_t size,
 		const T min = (std::numeric_limits<T>::min)(),
 		const T max = (std::numeric_limits<T>::max)()) {        
-        Vector<T> output(size);
+        std::vector<T> output(size);
         const auto gen = [this, min, max]() noexcept {
             return static_cast<T>((*this)(min, max));
         };
@@ -85,10 +85,10 @@ public:
 		return output;
 	}
 
-    Vector<float> NextSingles(size_t size, 
+    std::vector<float> NextSingles(size_t size, 
         const float min = 0.0f,
         const float max = 1.0f) {
-        Vector<float> output(size);
+        std::vector<float> output(size);
 		const auto gen = [this, min, max]() noexcept {
 			return NextSingle(min, max);
 			};

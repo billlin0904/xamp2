@@ -28,19 +28,19 @@ public:
 
 	XAMP_NO_DISCARD std::optional<DeviceInfo> GetDefaultDeviceInfo() const;
 
-	XAMP_NO_DISCARD Vector<DeviceInfo> GetDeviceInfo() const;
+	XAMP_NO_DISCARD std::vector<DeviceInfo> GetDeviceInfo() const;
 
 	ScopedPtr<IOutputDevice> MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::string& device_id);
 
 private:
 	XAMP_NO_DISCARD CComPtr<IMMDevice> GetDeviceById(const std::wstring& device_id) const;
 
-	XAMP_NO_DISCARD Vector<DeviceInfo> GetDeviceInfoList() const;
+	XAMP_NO_DISCARD std::vector<DeviceInfo> GetDeviceInfoList() const;
 
 	// Device enumerator
 	CComPtr<IMMDeviceEnumerator> enumerator_;
 	// Device list
-	Vector<DeviceInfo> device_list_;
+	std::vector<DeviceInfo> device_list_;
 	// Logger
 	LoggerPtr logger_;
 };
@@ -64,7 +64,7 @@ std::optional<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeIm
 	return MakeOptional<DeviceInfo>(helper::GetDeviceInfo(default_output_device, XAMP_UUID_OF(ExclusiveWasapiDeviceType)));
 }
 
-Vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::GetDeviceInfo() const {
+std::vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::GetDeviceInfo() const {
 	return device_list_;
 }
 
@@ -91,9 +91,9 @@ DeviceInfo ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::GetDeviceIn
 	return (*itr);
 }
 
-Vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::GetDeviceInfoList() const {
+std::vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::GetDeviceInfoList() const {
 	CComPtr<IMMDeviceCollection> devices;
-	Vector<DeviceInfo> device_list;
+	std::vector<DeviceInfo> device_list;
 	std::wstring default_device_name;
 	UINT count = 0;
 
@@ -211,7 +211,7 @@ std::optional<DeviceInfo> ExclusiveWasapiDeviceType::GetDefaultDeviceInfo() cons
 	return impl_->GetDefaultDeviceInfo();
 }
 
-Vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfo() const {
+std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfo() const {
 	return impl_->GetDeviceInfo();
 }
 

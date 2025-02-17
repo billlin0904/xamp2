@@ -82,9 +82,9 @@ public:
 	/*
 	* Get device info
 	*
-	* @return Vector<DeviceInfo>
+	* @return std::vector<DeviceInfo>
 	*/
-	XAMP_NO_DISCARD Vector<DeviceInfo> GetDeviceInfo() const override;
+	XAMP_NO_DISCARD std::vector<DeviceInfo> GetDeviceInfo() const override;
 
 	/*
 	* Make device

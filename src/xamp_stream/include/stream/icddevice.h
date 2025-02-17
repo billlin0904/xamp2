@@ -62,7 +62,7 @@ public:
 
 	XAMP_NO_DISCARD virtual CDText GetCDText() const = 0;
 
-	XAMP_NO_DISCARD virtual Vector<std::wstring> GetTotalTracks() const = 0;
+	XAMP_NO_DISCARD virtual std::vector<std::wstring> GetTotalTracks() const = 0;
 
 	virtual void Release() = 0;
 

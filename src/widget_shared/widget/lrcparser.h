@@ -38,7 +38,7 @@ public:
 
     std::vector<LyricEntry>::const_iterator cbegin() const override;
 
-    LyricEntry last() const;
+    LyricEntry last() const override;
 
     LyricEntry lineAt(int32_t index) const override;
 
@@ -50,9 +50,11 @@ public:
 
     const LyricEntry& getLyrics(const std::chrono::milliseconds &time) const noexcept override;
 
-    int32_t getSize() const override;
+    int32_t size() const override;
 
 	bool hasTranslation() const override;
+
+	bool isKaraoke() const override;
 private:
     void parseLrc(std::wstring const & line);
 

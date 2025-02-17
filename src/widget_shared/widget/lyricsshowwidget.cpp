@@ -20,29 +20,29 @@
 #include <widget/util/str_util.h>
 
 namespace {
-	ScopedPtr<ILrcParser> makeLrcParser(const QString& file_path, QString& lrc_path, bool& use_default) {
+	QSharedPointer<ILrcParser> makeLrcParser(const QString& file_path, QString& lrc_path, bool& use_default) {
 		const QFileInfo file_info(file_path);
 		const QString file_dir = file_info.path();
 		const QString base_name = file_info.completeBaseName();
 		const QString suffix = file_info.completeSuffix();
 
 		lrc_path = file_dir + QDir::separator() + base_name;
-		std::function<ScopedPtr<ILrcParser>()> make_parser_func;
+		std::function<QSharedPointer<ILrcParser>()> make_parser_func;
 
-		const OrderedMap<QString, std::function<ScopedPtr<ILrcParser>()>> lrc_parser_map{
+		const OrderedMap<QString, std::function<QSharedPointer<ILrcParser>()>> lrc_parser_map{
 			{
 				".lrc"_str, []() {
-				return MakeAlign<ILrcParser, LrcParser>();
+				return QSharedPointer<ILrcParser>(new LrcParser());
 				}
 			},
 			{
 				".vtt"_str, []() {
-				return MakeAlign<ILrcParser, WebVTTParser>();
+				return QSharedPointer<ILrcParser>(new WebVTTParser());
 				}
 			},
 			{
 				".krc"_str, []() {
-				return MakeAlign<ILrcParser, KrcParser>();
+				return QSharedPointer<ILrcParser>(new KrcParser());
 				}
 			},
 		};
@@ -65,7 +65,7 @@ namespace {
 		if (!make_parser_func) {
 			// Create default parser, make GUI happy!
 			use_default = true;
-			return MakeAlign<ILrcParser, LrcParser>();
+			return QSharedPointer<ILrcParser>(new LrcParser());
 		}
 		return make_parser_func();
 	}
@@ -129,7 +129,7 @@ void LyricsShowWidget::resizeEvent(QResizeEvent* event) {
 void LyricsShowWidget::initial() {
     lrc_font_ = font();
 	lrc_font_.setPointSize(qAppSettings.valueAsInt(kLyricsFontSize));
-	lyric_ = MakeAlign<ILrcParser, LrcParser>();
+	lyric_.reset(new LrcParser());
 
 	resizeFontSize();
 	setDefaultLrc();
@@ -207,7 +207,7 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 	if (!lyric_ || furiganas_.empty()) {
 		return;
 	}
-	int32_t total_count = lyric_->getSize();
+	int32_t total_count = lyric_->size();
 	if (index < 0 || index >= total_count) {
 		return;
 	}
@@ -416,7 +416,7 @@ int32_t LyricsShowWidget::itemCount() const {
 	if (!lyric_) {
 		return 0;
 	}
-	return lyric_->getSize();
+	return lyric_->size();
 }
 
 void LyricsShowWidget::stop() {
@@ -455,18 +455,8 @@ void LyricsShowWidget::dropEvent(QDropEvent* event) {
 	}
 }
 
-bool LyricsShowWidget::loadLrcFile(const QString &file_path) {
-	stop();
-
-	auto use_default = false;
-	QString lrc_path;
-
-	lyric_ = makeLrcParser(file_path, lrc_path, use_default);
-
-	if (use_default || !lyric_->parseFile(lrc_path.toStdWString())) {
-		setDefaultLrc();
-		return false;
-	}
+void LyricsShowWidget::loadFromParser(const QSharedPointer<ILrcParser>& parser) {
+	lyric_ = parser;
 
 	for (const auto& lrc : *lyric_) {
 		furiganas_.push_back(furigana_.Convert(lrc.lrc));
@@ -474,6 +464,22 @@ bool LyricsShowWidget::loadLrcFile(const QString &file_path) {
 
 	resizeFontSize();
 	update();
+}
+
+bool LyricsShowWidget::loadLrcFile(const QString &file_path) {
+	stop();
+
+	auto use_default = false;
+	QString lrc_path;
+
+	auto parser = makeLrcParser(file_path, lrc_path, use_default);
+
+	if (use_default || !parser->parseFile(lrc_path.toStdWString())) {
+		setDefaultLrc();
+		return false;
+	}
+
+	loadFromParser(parser);
 	return true;
 }
 
@@ -527,7 +533,7 @@ void LyricsShowWidget::onSetLrcTime(int32_t stream_time) {
 	stream_time = stream_time + kScrollTime;
 	pos_ = stream_time;
 
-	if (is_fulled_ || is_scrolled_ || !lyric_->getSize()) {
+	if (is_fulled_ || is_scrolled_ || !lyric_->size()) {
 		update();
 		return;
 	}
@@ -553,7 +559,7 @@ void LyricsShowWidget::onSetLrcTime(int32_t stream_time) {
 
 	const auto text = QString::fromStdWString(post_ly.lrc);
 	const auto interval = post_ly.index;
-	const auto precent = static_cast<float>(post_ly.index) / static_cast<float>(lyric_->getSize());
+	const auto precent = static_cast<float>(post_ly.index) / static_cast<float>(lyric_->size());
 
 	const QFontMetrics metrics(current_mask_font_);
 

@@ -65,7 +65,7 @@ decltype(auto) IThreadPoolExecutor::Spawn(F&& f, Args&&... args, ExecuteFlags fl
     // https://github.com/microsoft/STL/issues/321
     using PackagedTaskType = std::packaged_task<ReturnType(const std::stop_token&)>;
 
-    auto task = MakeSharedPointer<PackagedTaskType>(bind_front(
+    auto task = std::make_shared<PackagedTaskType>(bind_front(
         std::forward<F>(f),
         std::forward<Args>(args)...)
         );

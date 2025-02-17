@@ -263,7 +263,7 @@ public:
 private:
     size_t head_ = -1;
     size_t size_ = 0;
-    Vector<T> data_;
+    std::vector<T> data_;
 
     /*
     * Get the next position.

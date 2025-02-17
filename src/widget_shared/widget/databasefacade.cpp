@@ -114,7 +114,7 @@ int32_t DatabaseFacade::unknownAlbumId() const {
     return kUnknownAlbumId;
 }
 
-void DatabaseFacade::insertTrackInfo(const ForwardList<TrackInfo>& result, 
+void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result, 
     int32_t playlist_id,
     StoreType store_type) {
     if (result.empty()) {
@@ -224,7 +224,7 @@ void DatabaseFacade::insertTrackInfo(const ForwardList<TrackInfo>& result,
 }
 
 void DatabaseFacade::insertMultipleTrackInfo(
-    const Vector<ForwardList<TrackInfo>>& results,
+    const std::vector<std::forward_list<TrackInfo>>& results,
     int32_t playlist_id,
     StoreType store_type) {
     TransactionScope scope([&]() {

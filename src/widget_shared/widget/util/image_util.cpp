@@ -312,7 +312,7 @@ namespace {
 		XAMP_EXPECTS(cores > 0);
 
 		auto div = (radius * 2) + 1;
-		auto stack = Vector<uint8_t>(div * 4 * cores);
+		auto stack = std::vector<uint8_t>(div * 4 * cores);
 
 		const auto width = image.width();
 		const auto height = image.height();
@@ -325,7 +325,7 @@ namespace {
 		}
 		
 		auto blur_job = [&](auto step) {
-			Vector<Task<>> tasks;
+			std::vector<Task<>> tasks;
 			tasks.reserve(cores);
 
 			for (auto i = 0; i < cores; i++) {
@@ -424,7 +424,7 @@ QByteArray image2ByteArray(const QPixmap& source) {
 	return bytes;
 }
 
-Vector<uint8_t> image2Buffer(const QPixmap& source) {
+std::vector<uint8_t> image2Buffer(const QPixmap& source) {
 	QByteArray bytes;
 	QBuffer buffer(&bytes);
 	buffer.open(QIODevice::WriteOnly);

@@ -131,7 +131,7 @@ public:
 
     LoggerPtr GetLogger(const std::string_view& name);
 
-    Vector<LoggerPtr> GetAllLogger();
+    std::vector<LoggerPtr> GetAllLogger();
 
     void SetLevel(LogLevel level);
 
@@ -139,7 +139,7 @@ public:
 private:
     LoggerPtr GetLoggerImpl(const std::string& name);
     FastMutex lock_;
-    Vector<spdlog::sink_ptr> sinks_;
+    std::vector<spdlog::sink_ptr> sinks_;
     LoggerPtr default_logger_;
 };
 

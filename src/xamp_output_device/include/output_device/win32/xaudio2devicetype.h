@@ -70,9 +70,9 @@ public:
 	/*
 	* Get device info
 	*
-	* @return Vector<DeviceInfo>
+	* @return std::vector<DeviceInfo>
 	*/
-	Vector<DeviceInfo> GetDeviceInfo() const override;
+	std::vector<DeviceInfo> GetDeviceInfo() const override;
 
 	/*
 	* Scan new device

@@ -143,7 +143,7 @@ public:
         }
     }
 
-    static Vector<EncodingProfile> GetAvailableEncodingProfile() {
+    static std::vector<EncodingProfile> GetAvailableEncodingProfile() {
         if (profiles_.empty()) {
             InitAudioConverter();
         }
@@ -168,7 +168,7 @@ private:
         if (code || !size) {
             return false;
         }
-        Vector<uint8_t> buffer(size);
+        std::vector<uint8_t> buffer(size);
         code = AudioConverterGetProperty(converter, property, &size,
                                          buffer.data());
         if (code) {
@@ -210,11 +210,11 @@ private:
     BassStreamHandle encoder_;
     std::optional<EncodingProfile> profile_;
     static AudioConverterHandle handle_;
-    static Vector<EncodingProfile> profiles_;
+    static std::vector<EncodingProfile> profiles_;
 };
 
 AudioConverterHandle BassAACFileEncoder::BassAACFileEncoderImpl::handle_;
-Vector<EncodingProfile> BassAACFileEncoder::BassAACFileEncoderImpl::profiles_;
+std::vector<EncodingProfile> BassAACFileEncoder::BassAACFileEncoderImpl::profiles_;
 
 BassAACFileEncoder::BassAACFileEncoder()
     : impl_(MakeAlign<BassAACFileEncoderImpl>()) {
@@ -230,7 +230,7 @@ void BassAACFileEncoder::Encode(std::function<bool(uint32_t)> const& progress) {
     impl_->Encode(progress);
 }
 
-Vector<EncodingProfile> BassAACFileEncoder::GetAvailableEncodingProfile() {
+std::vector<EncodingProfile> BassAACFileEncoder::GetAvailableEncodingProfile() {
     return BassAACFileEncoderImpl::GetAvailableEncodingProfile();
 }
 

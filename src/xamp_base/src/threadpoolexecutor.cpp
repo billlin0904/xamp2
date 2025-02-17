@@ -16,11 +16,10 @@ XAMP_BASE_NAMESPACE_BEGIN
 namespace {
 	constexpr size_t kMaxAttempts = 100;
 	constexpr auto kSpinningTimeout = std::chrono::milliseconds(500);
-	constexpr auto kDequeueTimeout = std::chrono::milliseconds(10);
+	constexpr auto kDequeueTimeout = std::chrono::milliseconds(100);
 	constexpr auto kSharedTaskQueueSize = 4096;
 	constexpr auto kMaxWorkQueueSize = 65536;
 	constexpr size_t kMinThreadPoolSize = 1;
-	constexpr size_t kMaxStealBulkSize = 4;
 }
 
 thread_local WorkStealingTaskQueue* TaskScheduler::local_work_queue = nullptr;
@@ -110,7 +109,7 @@ void TaskScheduler::Destroy() noexcept {
 	XAMP_LOG_D(logger_, "Thread pool was destroy.");
 }
 
-size_t TaskScheduler::TryDequeueSharedQueue(Vector<MoveOnlyFunction>& tasks,
+size_t TaskScheduler::TryDequeueSharedQueue(std::vector<MoveOnlyFunction>& tasks,
 	const std::stop_token& stop_token, 
 	std::chrono::milliseconds timeout) {
 	if (!stop_token.stop_requested()) {
@@ -124,7 +123,7 @@ size_t TaskScheduler::TryDequeueSharedQueue(Vector<MoveOnlyFunction>& tasks,
 	return 0;
 }
 
-size_t TaskScheduler::TryDequeueSharedQueue(Vector<MoveOnlyFunction>& tasks,
+size_t TaskScheduler::TryDequeueSharedQueue(std::vector<MoveOnlyFunction>& tasks,
 	const std::stop_token& stop_token) {
 	if (!stop_token.stop_requested()) {
 		if (task_pool_->try_dequeue(tasks[0])) {
@@ -137,7 +136,7 @@ size_t TaskScheduler::TryDequeueSharedQueue(Vector<MoveOnlyFunction>& tasks,
 	return 0;
 }
 
-size_t TaskScheduler::TryLocalPop(Vector<MoveOnlyFunction>& tasks,
+size_t TaskScheduler::TryLocalPop(std::vector<MoveOnlyFunction>& tasks,
 	const std::stop_token& stop_token,
 	WorkStealingTaskQueue* local_queue) const {
 	if (!stop_token.stop_requested()) {
@@ -149,7 +148,7 @@ size_t TaskScheduler::TryLocalPop(Vector<MoveOnlyFunction>& tasks,
 	return 0;
 }
 
-size_t TaskScheduler::TrySteal(Vector<MoveOnlyFunction>& tasks,
+size_t TaskScheduler::TrySteal(std::vector<MoveOnlyFunction>& tasks,
 	const std::stop_token& stop_token,
 	size_t random_start, 
 	size_t current_thread_index) {
@@ -209,7 +208,7 @@ void TaskScheduler::SetWorkerThreadName(size_t i) {
 	SetThreadName(stream.str());
 }
 
-void TaskScheduler::Execute(Vector<MoveOnlyFunction>& tasks,
+void TaskScheduler::Execute(std::vector<MoveOnlyFunction>& tasks,
 	size_t task_size,
 	size_t current_index,
 	const std::stop_token& stop_token) {
@@ -250,7 +249,7 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) start.", thread_id, i);
 
 		while (!is_stopped_ && !stop_token.stop_requested()) {
-			Vector<MoveOnlyFunction> tasks(bulk_size_);
+			std::vector<MoveOnlyFunction> tasks(bulk_size_);
 
 			auto task_size = TryLocalPop(tasks, stop_token, local_work_queue);
 

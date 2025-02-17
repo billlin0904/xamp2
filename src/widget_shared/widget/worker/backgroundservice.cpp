@@ -11,6 +11,7 @@
 #include <widget/imagecache.h>
 #include <widget/albumview.h>
 #include <widget/tagio.h>
+#include <widget/krcparser.h>
 
 #include <stream/filestream.h>
 #include <stream/fft.h>
@@ -24,6 +25,7 @@
 #include <QDir>
 #include <QJsonValueRef>
 #include <QThread>
+#include <QSaveFile>
 
 XAMP_DECLARE_LOG_NAME(BackgroundService);
 
@@ -353,9 +355,83 @@ void BackgroundService::cancelRequested() {
     is_stop_ = true;
 }
 
-void BackgroundService::onSearchLyrics(int32_t music_id,
-    const QString& title, 
-    const QString& artist) {
+QCoro::Task<QList<SearchLyricsResult>> BackgroundService::downloadKLrc(PlayListEntity keyword, QList<InfoItem> infos) {
+    QList<SearchLyricsResult> results;
+
+    infos.resize(1);
+
+	for (const auto& info : infos) {
+        SearchLyricsResult result;
+
+        http_client_.setUrl("http://krcs.kugou.com/search"_str);
+        http_client_.param("ver"_str, "1"_str);
+        http_client_.param("man"_str, "yes"_str);
+        http_client_.param("client"_str, "mobi"_str);
+        http_client_.param("keyword"_str, ""_str);
+        http_client_.param("duration"_str, ""_str);
+        http_client_.param("hash"_str, info.hash);
+        http_client_.param("album_audio_id"_str, ""_str);
+        http_client_.param("page"_str, "1"_str);
+        http_client_.param("pagesize"_str, "1"_str);
+
+        auto content = co_await http_client_.get();
+        auto candidates = parseCandidatesFromJson(content);
+
+        XAMP_LOG_DEBUG("Found candidates size:{}", candidates.size());
+        result.info = info;
+
+        candidates.resize(5);
+
+        for (const auto& candidate : candidates) {
+            XAMP_LOG_DEBUG("{} {}", candidate.singer.toStdString(),
+                candidate.song.toStdString());
+
+            http_client_.setUrl("http://lyrics.kugou.com/download"_str);
+            http_client_.param("ver"_str, "1"_str);
+            http_client_.param("client"_str, "pc"_str);
+            http_client_.param("id"_str, candidate.id);
+            http_client_.param("accesskey"_str, candidate.accesskey);
+            http_client_.param("fmt"_str, "krc"_str);
+            http_client_.param("charset"_str, "utf8"_str);
+            content = co_await http_client_.get();
+
+            LyricsParser lrc_parser;
+            lrc_parser.candidate = candidate;
+            auto krc_content = parseKrcContent(content);
+            if (krc_content.has_value()) {
+                QSharedPointer<KrcParser> parser(new KrcParser());
+                try {
+                    if (!parser->parse(reinterpret_cast<uint8_t*>(
+                        krc_content->decodedContent.data()),
+                        krc_content->decodedContent.size())) {
+                        continue;
+                    }
+					lrc_parser.parser = parser;
+                    result.parsers.push_back(lrc_parser);
+                }
+                catch (const Exception& e) {
+                    XAMP_LOG_ERROR(e.GetErrorMessage());
+                }
+            }
+        }
+        if (!result.parsers.empty()) {
+            results.push_back(result);
+        }
+	}
+	co_return results;
+}
+
+void BackgroundService::onSearchLyrics(const PlayListEntity& keyword) {
+    http_client_.setUrl("http://mobilecdn.kugou.com/api/v3/search/song"_str);
+    http_client_.param("format"_str, "json"_str);
+    http_client_.param("keyword"_str, keyword.title);
+
+    http_client_.get().then([this, keyword](const auto& content) {
+        auto infos = parseInfoData(content);
+        downloadKLrc(keyword, infos).then([this](const auto& results) {
+			emit fetchLyricsCompleted(results);
+        });
+    });
 }
 
 #if defined(Q_OS_WIN)
@@ -373,7 +449,7 @@ void BackgroundService::onFetchCdInfo(const DriveInfo& drive) {
     }
 
     try {
-        ForwardList<TrackInfo> track_infos;
+        std::forward_list<TrackInfo> track_infos;
         const auto cd = OpenCD(drive.driver_letter);
         cd->SetMaxSpeed();
         const auto tracks = cd->GetTotalTracks();

@@ -23,7 +23,7 @@ public:
 
     LyricEntry lineAt(int32_t index) const override;
 
-    int32_t getSize() const override;
+    int32_t size() const override;
 
     void clear() override;
 
@@ -39,7 +39,11 @@ public:
 
     std::vector<LyricEntry>::const_iterator cbegin() const override;
 
+	LyricEntry last() const override;
+
 	bool hasTranslation() const override;
+
+    bool isKaraoke() const override;
 private:
     std::vector<LyricEntry> lyrics_;
 };

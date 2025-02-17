@@ -37,7 +37,7 @@ public:
 
     virtual bool parse(std::wistream& istr) = 0;
 
-    virtual int32_t getSize() const = 0;
+    virtual int32_t size() const = 0;
 
     virtual void clear() = 0;
 
@@ -53,9 +53,13 @@ public:
 
     virtual std::vector<LyricEntry>::const_iterator cbegin() const = 0;
 
+	virtual LyricEntry last() const = 0;
+
     virtual void addLrc(const LyricEntry& lrc) = 0;
 
     virtual bool hasTranslation() const = 0;
+
+    virtual bool isKaraoke() const = 0;
 protected:
 	ILrcParser() = default;
 };

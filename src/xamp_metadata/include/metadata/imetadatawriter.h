@@ -100,7 +100,7 @@ public:
     * @param[in] path file path.
     * @param[in] image data.
     */
-    virtual void WriteEmbeddedCover(const Vector<uint8_t> & image) const = 0;
+    virtual void WriteEmbeddedCover(const std::vector<uint8_t> & image) const = 0;
 
     /*
     * Remove embedded cover from file.

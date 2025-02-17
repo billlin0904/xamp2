@@ -124,7 +124,6 @@
     <ClInclude Include="widgetframe\windowbar_p.h" />
     <QtMoc Include="widgetframe\windowbutton.h" />
     <ClInclude Include="widgetframe\windowbutton_p.h" />
-    <ClInclude Include="widget\accountauthorizationpage.h" />
     <QtMoc Include="widget\albumviewstyleddelegate.h" />
     <QtMoc Include="widget\chatgpt\waveformwidget.h" />
     <ClInclude Include="widget\dao\albumdao.h" />
@@ -219,7 +218,6 @@
     <ClCompile Include="widgetframe\windowbar.cpp" />
     <ClCompile Include="widgetframe\windowbutton.cpp" />
     <ClCompile Include="widget\aboutpage.cpp" />
-    <ClCompile Include="widget\accountauthorizationpage.cpp" />
     <ClCompile Include="widget\albumartistpage.cpp">
       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
       <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>
@@ -312,7 +310,6 @@
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="aboutdialog.ui" />
-    <QtUic Include="accountauthorizationpage.ui" />
     <QtUic Include="cdpage.ui" />
     <QtUic Include="chatgptwindow.ui" />
     <QtUic Include="createplaylistdialog.ui" />

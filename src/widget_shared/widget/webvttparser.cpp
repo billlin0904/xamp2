@@ -90,7 +90,7 @@ LyricEntry WebVTTParser::lineAt(int32_t index) const {
     return lyrics_[index];
 }
 
-int32_t WebVTTParser::getSize() const {
+int32_t WebVTTParser::size() const {
     return static_cast<int32_t>(lyrics_.size());
 }
 
@@ -132,6 +132,14 @@ std::vector<LyricEntry>::const_iterator WebVTTParser::cbegin() const {
     return lyrics_.cbegin();
 }
 
+LyricEntry WebVTTParser::last() const {
+    return lyrics_.back();
+}
+
 bool WebVTTParser::hasTranslation() const {
+    return false;
+}
+
+bool WebVTTParser::isKaraoke() const {
     return false;
 }

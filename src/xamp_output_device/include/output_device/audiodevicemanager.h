@@ -86,7 +86,7 @@ public:
     *
     * @return available device type
     */
-    XAMP_NO_DISCARD Vector<Uuid> GetAvailableDeviceType() const override;
+    XAMP_NO_DISCARD std::vector<Uuid> GetAvailableDeviceType() const override;
 
     /*
     * Is support asio

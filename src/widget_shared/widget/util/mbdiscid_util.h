@@ -29,7 +29,7 @@ struct XAMP_WIDGET_SHARED_EXPORT MbDiscIdInfo {
 	std::wstring album;
 	std::wstring artist;
 	
-	ForwardList<MbDiscIdTrack> tracks;
+	std::forward_list<MbDiscIdTrack> tracks;
 };
 
 Q_DECLARE_METATYPE(MbDiscIdInfo)

@@ -40,10 +40,10 @@ namespace {
         }
     };
 #else
-    Vector<SharedLibraryHandle> prefetchDll() {
-        Vector<SharedLibraryHandle> preload_module;
+    std::vector<SharedLibraryHandle> prefetchDll() {
+        std::vector<SharedLibraryHandle> preload_module;
 #ifdef Q_OS_WIN
-        const Vector<std::string_view> dll_file_names{
+        const std::vector<std::string_view> dll_file_names{
             R"(C:\Program Files\Bonjour\mdnsNSP.dll)",
         };
         for (const auto& file_name : dll_file_names) {

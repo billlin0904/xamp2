@@ -66,20 +66,20 @@ private:
     /*
     * Try dequeue task from shared queue.
     */
-    size_t TryDequeueSharedQueue(Vector<MoveOnlyFunction>& tasks,
+    size_t TryDequeueSharedQueue(std::vector<MoveOnlyFunction>& tasks,
         const std::stop_token& stop_token);
 
     /*
     * Try dequeue task from shared queue.
     */
-    size_t TryDequeueSharedQueue(Vector<MoveOnlyFunction>& tasks,
+    size_t TryDequeueSharedQueue(std::vector<MoveOnlyFunction>& tasks,
         const std::stop_token& stop_token, 
         std::chrono::milliseconds timeout);
 
     /*
     * Try steal task from other thread.
     */
-    size_t TrySteal(Vector<MoveOnlyFunction> &tasks,
+    size_t TrySteal(std::vector<MoveOnlyFunction> &tasks,
         const std::stop_token& stop_token,
         size_t random_start,
         size_t current_thread_index);
@@ -87,7 +87,7 @@ private:
     /*
     * Try dequeue task from local queue.
     */
-    size_t TryLocalPop(Vector<MoveOnlyFunction>& tasks,
+    size_t TryLocalPop(std::vector<MoveOnlyFunction>& tasks,
         const std::stop_token& stop_token,
         WorkStealingTaskQueue* local_queue) const;
 
@@ -99,7 +99,7 @@ private:
     /*
 	 * Execute task.
 	 */
-    void Execute(Vector<MoveOnlyFunction>& tasks,
+    void Execute(std::vector<MoveOnlyFunction>& tasks,
         size_t task_size,
         size_t current_index,
         const std::stop_token& stop_token);
@@ -112,10 +112,10 @@ private:
     size_t max_thread_;
 	size_t bulk_size_;
     std::string name_;
-    Vector<std::jthread> threads_;
-    Vector<std::atomic<ExecuteFlags>> task_execute_flags_;
+    std::vector<std::jthread> threads_;
+    std::vector<std::atomic<ExecuteFlags>> task_execute_flags_;
     SharedTaskQueuePtr task_pool_;
-    Vector<WorkStealingTaskQueuePtr> task_work_queues_;
+    std::vector<WorkStealingTaskQueuePtr> task_work_queues_;
     std::latch work_done_;
     std::latch start_clean_up_;
     LoggerPtr logger_;

@@ -83,7 +83,7 @@ signals:
 
 	void fetchCdInfo(const DriveInfo& drive);
 
-	void searchLyrics(int32_t music_id, const QString& title, const QString& artist);
+	void searchLyrics(const PlayListEntity& keyword);
 
 	void extractFile(const QString& file_path, int32_t playlist_id, bool is_podcast_mode);	
 
@@ -115,7 +115,7 @@ public slots:
 
 	void onSetCover(const QString& cover_id, PlaylistPage* page);
 
-	void onUpdateCdTrackInfo(const QString& disc_id, const ForwardList<TrackInfo>& track_infos);
+	void onUpdateCdTrackInfo(const QString& disc_id, const std::forward_list<TrackInfo>& track_infos);
 
 	void onUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info);
 
@@ -125,9 +125,9 @@ public slots:
 
 	void onThemeChangedFinished(ThemeColor theme_color);
 
-	void onInsertDatabase(const ForwardList<TrackInfo>& result, int32_t playlist_id);
+	void onInsertDatabase(const std::forward_list<TrackInfo>& result, int32_t playlist_id);
 
-	void onBatchInsertDatabase(const Vector<ForwardList<TrackInfo>>& results, int32_t playlist_id);
+	void onBatchInsertDatabase(const std::vector<std::forward_list<TrackInfo>>& results, int32_t playlist_id);
 
 	void onSetAlbumCover(int32_t album_id, const QString& cover_id);
 
@@ -170,8 +170,6 @@ private:
 	void initialSpectrum();
 
 	void destroy();
-
-	void initialAudioEmbeddingService();
 
 	void drivesChanges(const QList<DriveInfo>& drive_infos) override;
 
@@ -246,8 +244,6 @@ private:
 	void showAbout();
 
 	void connectThemeChangedSignal();
-
-	void fetchKrc(const PlayListEntity& keyword);
 
 	bool is_seeking_;
 	bool trigger_upgrade_action_;

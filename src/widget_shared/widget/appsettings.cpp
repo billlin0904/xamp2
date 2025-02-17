@@ -201,7 +201,7 @@ QString AppSettings::getOrCreateCachePath() {
 	if (!qAppSettings.contains(kAppSettingCachePath)) {
 		auto folder_path = QStandardPaths::standardLocations(QStandardPaths::CacheLocation);
 
-		const List<QString> paths{
+		const QList<QString> paths{
 			QDir::currentPath() + QString("/Cache/"_str),
 			folder_path[0],
 		};
@@ -458,13 +458,13 @@ void AppSettings::registerMetaType() {
 	qRegisterMetaType<PlayerState>("PlayerState");
 	qRegisterMetaType<PlayListEntity>("PlayListEntity");
 	qRegisterMetaType<Errors>("Errors");
-	qRegisterMetaType<Vector<float>>("Vector<float>");
+	qRegisterMetaType<std::vector<float>>("std::vector<float>");
 	qRegisterMetaType<QList<PlayListEntity>>("QList<PlayListEntity>");
 	qRegisterMetaType<size_t>("size_t");
 	qRegisterMetaType<int32_t>("int32_t");
 	qRegisterMetaType<ComplexValarray>("ComplexValarray");
 	qRegisterMetaType<QList<TrackInfo>>("QList<TrackInfo>");
-	qRegisterMetaType<Vector<TrackInfo>>("Vector<TrackInfo>");
+	qRegisterMetaType<std::vector<TrackInfo>>("std::vector<TrackInfo>");
 	qRegisterMetaType<DriveInfo>("DriveInfo");
 	qRegisterMetaType<std::wstring>("std::wstring");
 	qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");

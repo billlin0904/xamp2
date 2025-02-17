@@ -21,7 +21,7 @@ public:
 
 	std::optional<DeviceInfo> GetDefaultDeviceInfo() const;
 
-	Vector<DeviceInfo> GetDeviceInfo() const;
+	std::vector<DeviceInfo> GetDeviceInfo() const;
 
     void ScanNewDevice();
 
@@ -48,8 +48,8 @@ std::optional<DeviceInfo> AsioDeviceType::AsioDeviceTypeImpl::GetDefaultDeviceIn
 	return MakeOptional<DeviceInfo>(GetDeviceInfo(0));
 }
 
-Vector<DeviceInfo> AsioDeviceType::AsioDeviceTypeImpl::GetDeviceInfo() const {
-	Vector<DeviceInfo> device_infos;
+std::vector<DeviceInfo> AsioDeviceType::AsioDeviceTypeImpl::GetDeviceInfo() const {
+	std::vector<DeviceInfo> device_infos;
 	device_infos.reserve(device_info_cache_.size());
 
 	for (const auto& device_info : device_info_cache_) {
@@ -116,7 +116,7 @@ std::optional<DeviceInfo> AsioDeviceType::GetDefaultDeviceInfo() const {
 	return impl_->GetDefaultDeviceInfo();
 }
 
-Vector<DeviceInfo> AsioDeviceType::GetDeviceInfo() const {
+std::vector<DeviceInfo> AsioDeviceType::GetDeviceInfo() const {
 	return impl_->GetDeviceInfo();
 }
 

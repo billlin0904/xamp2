@@ -11,6 +11,7 @@
 #include <iterator>
 #include <forward_list>
 #include <functional>
+#include <memory>
 #include <map>
 
 #include <base/base.h>
@@ -64,75 +65,6 @@ std::optional<T> MakeOptional(Args&&... args) {
 	return std::optional<T>(std::in_place_t{}, std::forward<Args>(args)...);
 }
 
-template <typename T, size_t AlignmentBytes = kMallocAlignSize>
-class XAMP_BASE_API_ONLY_EXPORT AlignedAllocator : public std::allocator<T> {
-public:
-	typedef std::size_t size_type;
-	typedef std::ptrdiff_t difference_type;
-	typedef T* pointer;
-	typedef const T* const_pointer;
-	typedef T& reference;
-	typedef const T& const_reference;
-	typedef T value_type;
-
-	template <typename U>
-	struct rebind {
-		typedef AlignedAllocator<U> other;
-	};
-
-	AlignedAllocator()
-		: std::allocator<T>() {
-	}
-
-	AlignedAllocator(const AlignedAllocator& other)
-		: std::allocator<T>(other) {
-	}
-
-	template <typename U>
-	explicit AlignedAllocator(const AlignedAllocator<U>& other)
-		: std::allocator<T>(other) {
-	}
-
-	~AlignedAllocator() = default;
-
-	template <typename C, typename... Args>
-	void construct(C* c, Args&&... args) {
-		new (reinterpret_cast<void*>(c)) C(std::forward<Args>(args)...);
-	}
-
-	template <typename U, typename V>
-	void construct(U* ptr, V&& value) {
-		::new(reinterpret_cast<void*>(ptr)) U(std::forward<V>(value));
-	}
-
-	template <typename U>
-	void construct(U* ptr) {
-		::new(reinterpret_cast<void*>(ptr)) U();
-	}
-
-	pointer allocate(size_type num, const void* /*hint*/ = nullptr) {
-		return static_cast<pointer>(AlignedMalloc(num * sizeof(T), AlignmentBytes));
-	}
-
-	void deallocate(pointer p, size_type /*num*/) {
-		AlignedFree(p);
-	}
-};
-
-template <typename Type>
-using Vector = std::vector<Type, AlignedAllocator<Type>>;
-
-template <typename Type>
-using ForwardList = std::forward_list<Type, AlignedAllocator<Type>>;
-
-template <typename Type>
-using List = std::list<Type, AlignedAllocator<Type>>;
-
-template <typename T, typename... Args>
-XAMP_BASE_API_ONLY_EXPORT std::shared_ptr<T> MakeSharedPointer(Args&&... args) {
-	return std::allocate_shared<T>(AlignedAllocator<std::remove_const_t<T>>(), std::forward<Args>(args)...);
-}
-
 #ifdef XAMP_USE_STD_MAP
 template <typename T1, typename T2>
 using Pair = std::pair<T1, T2>;
@@ -157,7 +89,7 @@ template <typename K>
 using HashSet = ankerl::unordered_dense::set<K>;
 #endif
 
-template <typename K, typename V, typename P = std::less<K>, typename Alloc = AlignedAllocator<std::pair<const K, V>>>
-using OrderedMap = std::map<K, V, P, Alloc>;
+template <typename K, typename V, typename P = std::less<K>>
+using OrderedMap = std::map<K, V, P>;
 
 XAMP_BASE_NAMESPACE_END

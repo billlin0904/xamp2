@@ -26,19 +26,19 @@ public:
 
 	XAMP_NO_DISCARD std::optional<DeviceInfo> GetDefaultDeviceInfo() const;
 
-	XAMP_NO_DISCARD Vector<DeviceInfo> GetDeviceInfo() const;
+	XAMP_NO_DISCARD std::vector<DeviceInfo> GetDeviceInfo() const;
 
 	ScopedPtr<IOutputDevice> MakeDevice(const std::string& device_id);
 	
 private:
-	XAMP_NO_DISCARD Vector<DeviceInfo> GetDeviceInfoList() const;
+	XAMP_NO_DISCARD std::vector<DeviceInfo> GetDeviceInfoList() const;
 
 	XAMP_NO_DISCARD CComPtr<IMMDevice> GetDeviceById(const std::wstring& device_id) const;
 
 	// Device enumerator
 	CComPtr<IMMDeviceEnumerator> enumerator_;
 	// Device list
-	Vector<DeviceInfo> device_list_;
+	std::vector<DeviceInfo> device_list_;
 	// Logger
 	LoggerPtr logger_;
 };
@@ -75,7 +75,7 @@ size_t SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDeviceCount() cons
 	return device_list_.size();
 }
 
-Vector<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDeviceInfo() const {
+std::vector<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDeviceInfo() const {
 	return device_list_;
 }
 
@@ -89,10 +89,10 @@ std::optional<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::Ge
 	return MakeOptional<DeviceInfo>(helper::GetDeviceInfo(default_output_device, XAMP_UUID_OF(SharedWasapiDeviceType)));
 }
 
-Vector<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDeviceInfoList() const {
+std::vector<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDeviceInfoList() const {
 	CComPtr<IMMDeviceCollection> devices;
 	UINT count = 0;
-	Vector<DeviceInfo> device_list;
+	std::vector<DeviceInfo> device_list;
 	std::wstring default_device_name;
 
 	try {
@@ -190,7 +190,7 @@ std::optional<DeviceInfo> SharedWasapiDeviceType::GetDefaultDeviceInfo() const {
 	return impl_->GetDefaultDeviceInfo();
 }
 
-Vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfo() const {
+std::vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfo() const {
 	return impl_->GetDeviceInfo();
 }
 

@@ -23,7 +23,7 @@ public:
 
 	XAMP_NO_DISCARD std::optional<DeviceInfo> GetDefaultDeviceInfo() const;
 
-	XAMP_NO_DISCARD Vector<DeviceInfo> GetDeviceInfo() const;
+	XAMP_NO_DISCARD std::vector<DeviceInfo> GetDeviceInfo() const;
 
 	ScopedPtr<IOutputDevice> MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::string& device_id);
 	
@@ -50,8 +50,8 @@ size_t NullOutputDeviceType::NullOutputDeviceTypeImpl::GetDeviceCount() const {
 	return 1;
 }
 
-Vector<DeviceInfo> NullOutputDeviceType::NullOutputDeviceTypeImpl::GetDeviceInfo() const {
-	Vector<DeviceInfo> device_info_list;
+std::vector<DeviceInfo> NullOutputDeviceType::NullOutputDeviceTypeImpl::GetDeviceInfo() const {
+	std::vector<DeviceInfo> device_info_list;
 	device_info_list.push_back(GetDefaultDeviceInfo().value());
 	return device_info_list;
 }
@@ -93,7 +93,7 @@ std::optional<DeviceInfo> NullOutputDeviceType::GetDefaultDeviceInfo() const {
 	return impl_->GetDefaultDeviceInfo();
 }
 
-Vector<DeviceInfo> NullOutputDeviceType::GetDeviceInfo() const {
+std::vector<DeviceInfo> NullOutputDeviceType::GetDeviceInfo() const {
 	return impl_->GetDeviceInfo();
 }
 

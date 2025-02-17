@@ -136,8 +136,8 @@ bool Logger::ShouldLog(LogLevel level) const {
 	return logger_->should_log(static_cast<spdlog::level::level_enum>(level));
 }
 
-Vector<LoggerPtr> LoggerManager::GetAllLogger() {
-	Vector<LoggerPtr> loggers;
+std::vector<LoggerPtr> LoggerManager::GetAllLogger() {
+	std::vector<LoggerPtr> loggers;
 	spdlog::details::registry::instance().apply_all([&loggers](auto x) {
 		if (x->name().empty()) {
 			return;

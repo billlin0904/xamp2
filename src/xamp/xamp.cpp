@@ -31,7 +31,6 @@
 #include <stream/idspmanager.h>
 
 #include <widget/aboutpage.h>
-#include <widget/accountauthorizationpage.h>
 #include <widget/actionmap.h>
 #include <widget/albumartistpage.h>
 #include <widget/albumview.h>
@@ -231,9 +230,6 @@ void Xamp::destroy() {
     XampCrashHandler.Cleanup();
 }
 
-void Xamp::initialAudioEmbeddingService() {
-}
-
 void Xamp::onActivated(QSystemTrayIcon::ActivationReason reason) {
     switch (reason) {
     case QSystemTrayIcon::Trigger:
@@ -329,76 +325,6 @@ void Xamp::connectThemeChangedSignal() {
 	                       &AlbumArtistPage::onThemeChangedFinished);
 }
 
-void Xamp::fetchKrc(const PlayListEntity& keyword) {
-	// Search keyword
-	http_client_.setUrl("http://mobilecdn.kugou.com/api/v3/search/song"_str);
-    http_client_.param("format"_str, "json"_str);
-    http_client_.param("keyword"_str, keyword.title);
-
-	http_client_.get().then([this, keyword](const auto& content) {
-        auto infos = parseInfoData(content);
-		// Parse hash
-		auto itr = std::find_if(infos.begin(),
-            infos.end(), [this, keyword](const InfoItem& info) {
-                //XAMP_LOG_DEBUG("{} : {}",
-                //    String::ToUtf8String(info.songname.toStdWString()),
-                //        String::ToUtf8String(info.singername.toStdWString()));
-			return info.singername == keyword.artist
-            	&& info.songname == keyword.title;
-			});
-        if (itr == infos.end()) {
-            return;
-        }
-        http_client_.setUrl("http://krcs.kugou.com/search"_str);
-        http_client_.param("ver"_str, "1"_str);
-        http_client_.param("man"_str, "yes"_str);
-        http_client_.param("client"_str, "mobi"_str);
-        http_client_.param("keyword"_str, ""_str);
-        http_client_.param("duration"_str, ""_str);
-        http_client_.param("hash"_str, itr->hash);
-        http_client_.param("album_audio_id"_str, ""_str);
-		// Search AccessKey
-        http_client_.get().then([this, keyword](const auto& content) {
-            QList<Candidate> candidates = parseCandidatesFromJson(content);
-            auto citr = std::find_if(candidates.begin(),
-                candidates.end(), [keyword](const Candidate& info) {
-                    return info.singer == keyword.artist;
-                });
-            if (citr == candidates.end()) {
-                return;
-            }
-            XAMP_LOG_DEBUG("Found candidates size:{}", candidates.size());
-            http_client_.setUrl("http://lyrics.kugou.com/download"_str);
-            http_client_.param("ver"_str, "1"_str);
-            http_client_.param("client"_str, "pc"_str);
-            http_client_.param("id"_str, citr->id);
-            http_client_.param("accesskey"_str, citr->accesskey);
-            http_client_.param("fmt"_str, "krc"_str);
-            http_client_.param("charset"_str, "utf8"_str);
-            http_client_.get().then([this, keyword](const auto& content) {
-                XAMP_LOG_DEBUG("{}", content.toStdString());
-                std::optional<KrcContent> krc_content = parseKrcContent(content);
-				if (krc_content.has_value()) {
-					KrcParser parser;
-					if (!parser.parse(reinterpret_cast<uint8_t*>(
-                        krc_content->decodedContent.data()),
-                        krc_content->decodedContent.size())) {
-                        return;
-					}
-					auto krc_file_name =
-                        keyword.parent_path + "\\"_str + keyword.file_name + ".krc"_str;
-                    QSaveFile file(krc_file_name);
-                    file.open(QIODevice::WriteOnly);
-                    file.write(krc_content->decodedContent);
-                    if (file.commit()) {
-                        lrc_page_->lyrics()->loadLrcFile(krc_file_name);
-                    }
-				}
-                });
-            });
-		});
-}
-
 void Xamp::setMainWindow(IXMainWindow* main_window) {
     main_window_ = main_window;
     order_ = qAppSettings.valueAsEnum<PlayerOrder>(kAppSettingOrder);
@@ -479,7 +405,6 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     initialPlaylist();
     initialShortcut();
     initialSpectrum();
-    initialAudioEmbeddingService();
 
     last_playlist_tab_ = playlist_tab_page_->tabWidget();
 
@@ -1571,17 +1496,7 @@ void Xamp::updateUi(const PlayListEntity& entity,
  
     if (local_music) {
         if (!lrc_page_->lyrics()->loadLrcFile(entity.file_path)) {
-            /*audio_embedding_service_->embedAndSave(entity.file_path, entity.music_id)
-                .then([this, entity](auto lrc) {
-                lrc_page_->lyrics()->onSetLrc(lrc);
-                const auto save_file_path = entity.parent_path + QDir::separator() + entity.file_name + ".lrc"_str;
-                QFile file(save_file_path);
-                if (file.open(QIODevice::WriteOnly)) {
-                    file.write(lrc.toUtf8());
-                    file.close();
-                }
-            });*/
-			fetchKrc(entity);
+            emit searchLyrics(entity);
         }
     } else {
         lrc_page_->lyrics()->loadLrcFile(kEmptyString);
@@ -1592,13 +1507,13 @@ void Xamp::updateUi(const PlayListEntity& entity,
     lrc_page_->artist()->setText(entity.artist);
     lrc_page_->format()->setText(format2String(playback_format, entity.file_extension));
 
-    if (!local_music) {
+    /*if (!local_music) {
         const auto lyrics_opt = 
             qDaoFacade.music_dao_.getLyrics(entity.music_id);
         if (!lyrics_opt) {
-            emit searchLyrics(entity.music_id, entity.title, entity.artist);
+            emit searchLyrics(entity);
         }
-    }    
+    }*/
 
     qTheme.setHeartButton(ui_.heartButton, current_entity_.value().heart);
 
@@ -1714,7 +1629,7 @@ void Xamp::onUpdateDiscCover(const QString& disc_id,
 }
 
 void Xamp::onUpdateCdTrackInfo(const QString& disc_id,
-    const ForwardList<TrackInfo>& track_infos) {
+    const std::forward_list<TrackInfo>& track_infos) {
     const auto album_id = qDaoFacade.album_dao_.getAlbumIdByDiscId(disc_id);
     qDaoFacade.album_dao_.removeAlbum(album_id);
     qDaoFacade.album_dao_.removeAlbumArtist(album_id);
@@ -2042,6 +1957,11 @@ void Xamp::initialPlaylist() {
         file_explorer_page_->waveformWidget(),
         &WaveformWidget::doneRead);
 
+    (void)QObject::connect(background_service_.get(),
+        &BackgroundService::fetchLyricsCompleted,
+        lrc_page_.get(),
+        &LrcPage::onFetchLyricsCompleted);
+
     (void)QObject::connect(file_explorer_page_->waveformWidget(),
         &WaveformWidget::playAt, [this](auto value) {
         try {
@@ -2256,7 +2176,7 @@ PlaylistPage* Xamp::localPlaylistPage() const {
     return dynamic_cast<PlaylistPage*>(playlist_tab_page_->tabWidget()->currentWidget());
 }
 
-void Xamp::onInsertDatabase(const ForwardList<TrackInfo>& result,
+void Xamp::onInsertDatabase(const std::forward_list<TrackInfo>& result,
     int32_t playlist_id) {
     qDatabaseFacade.insertTrackInfo(result,
         playlist_id,
@@ -2274,7 +2194,7 @@ void Xamp::onCancelRequested() {
     library_page_->reload();
 }
 
-void Xamp::onBatchInsertDatabase(const Vector<ForwardList<TrackInfo>>& results,
+void Xamp::onBatchInsertDatabase(const std::vector<std::forward_list<TrackInfo>>& results,
     int32_t playlist_id) {
     QTimer::singleShot(100, [this, results, playlist_id]() {
         const Stopwatch sw;

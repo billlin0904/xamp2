@@ -40,9 +40,9 @@ public:
     /*
     * Get embedded cover from file.
     * 
-    * @return Vector<std::byte>
+    * @return std::vector<std::byte>
     */
-    virtual std::optional<Vector<std::byte>> ReadEmbeddedCover() = 0;
+    virtual std::optional<std::vector<std::byte>> ReadEmbeddedCover() = 0;
 
     /*
     * Check file is supported.

@@ -21,6 +21,6 @@ protected:
     bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
 
 private:
-    Vector<int32_t> filters_;
+    std::vector<int32_t> filters_;
     QString substring_pattern_;
 };

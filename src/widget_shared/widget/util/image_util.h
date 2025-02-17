@@ -29,7 +29,7 @@ XAMP_WIDGET_SHARED_EXPORT QPixmap roundDarkImage(QSize size, int32_t alpha = kDa
 
 XAMP_WIDGET_SHARED_EXPORT QPixmap resizeImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio = false);
 
-XAMP_WIDGET_SHARED_EXPORT Vector<uint8_t> image2Buffer(const QPixmap& source);
+XAMP_WIDGET_SHARED_EXPORT std::vector<uint8_t> image2Buffer(const QPixmap& source);
 
 XAMP_WIDGET_SHARED_EXPORT QByteArray image2ByteArray(const QPixmap& source);
 

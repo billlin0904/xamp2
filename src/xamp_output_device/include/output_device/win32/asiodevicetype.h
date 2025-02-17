@@ -77,7 +77,7 @@ public:
 	* 
 	* @return Vector<DeviceInfo>
 	*/
-	Vector<DeviceInfo> GetDeviceInfo() const override;
+	std::vector<DeviceInfo> GetDeviceInfo() const override;
 
 	/*
 	* Scan new device

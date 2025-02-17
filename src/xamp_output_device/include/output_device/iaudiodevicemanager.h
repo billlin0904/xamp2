@@ -58,7 +58,7 @@ public:
 	* 
 	* @return available device type.
 	*/
-	XAMP_NO_DISCARD virtual Vector<Uuid> GetAvailableDeviceType() const = 0;
+	XAMP_NO_DISCARD virtual std::vector<Uuid> GetAvailableDeviceType() const = 0;
 
 	/*
 	* Clear all device type.

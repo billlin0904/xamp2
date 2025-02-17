@@ -25,7 +25,7 @@ public:
     
     TrackInfo Extract() override;
 
-    std::optional<Vector<std::byte>> ReadEmbeddedCover() override;
+    std::optional<std::vector<std::byte>> ReadEmbeddedCover() override;
 
     static HashSet<std::string> const & GetSupportFileExtensions();
 

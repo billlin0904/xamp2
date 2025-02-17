@@ -51,14 +51,14 @@ public:
 
     XAMP_NO_DISCARD bool Contains(const Uuid& type) const noexcept override;
 private:
-    void AddOrReplace(ScopedPtr<IAudioProcessor> processor, Vector<ScopedPtr<IAudioProcessor>>& dsp_chain);
+    void AddOrReplace(ScopedPtr<IAudioProcessor> processor, std::vector<ScopedPtr<IAudioProcessor>>& dsp_chain);
 
     bool Process(const float* samples, uint32_t num_samples, AudioBuffer<std::byte>& fifo);
 
     bool DefaultProcess(const float* samples, uint32_t num_samples, AudioBuffer<std::byte>& fifo);
 
-    using DspIterator = Vector<ScopedPtr<IAudioProcessor>>::iterator;
-    using ConstDspIterator = Vector<ScopedPtr<IAudioProcessor>>::const_iterator;
+    using DspIterator = std::vector<ScopedPtr<IAudioProcessor>>::iterator;
+    using ConstDspIterator = std::vector<ScopedPtr<IAudioProcessor>>::const_iterator;
 
     template <typename TDSP>
     DspIterator Find(DspIterator begin,
@@ -123,8 +123,8 @@ private:
         return GetDSP<TDSP>(post_dsp_.begin(), post_dsp_.end());
     }
 
-    Vector<ScopedPtr<IAudioProcessor>> pre_dsp_;
-    Vector<ScopedPtr<IAudioProcessor>> post_dsp_;
+    std::vector<ScopedPtr<IAudioProcessor>> pre_dsp_;
+    std::vector<ScopedPtr<IAudioProcessor>> post_dsp_;
     ScopedPtr<ISampleWriter> sample_writer_;
     Buffer<float> pre_dsp_buffer_;
     Buffer<float> post_dsp_buffer_;

@@ -18,8 +18,21 @@
 #include <widget/util/mbdiscid_util.h>
 #include <widget/httpx.h>
 #include <widget/encodejobwidget.h>
+#include <widget/krcparser.h>
 
 Q_DECLARE_METATYPE(ReplayGain);
+
+struct LyricsParser {
+	Candidate candidate;
+	QSharedPointer<ILrcParser> parser;
+};
+
+struct SearchLyricsResult {
+	InfoItem info;	
+	QList<LyricsParser> parsers;
+};
+
+Q_DECLARE_METATYPE(SearchLyricsResult);
 
 class XAMP_WIDGET_SHARED_EXPORT BackgroundService final : public QObject {
 	Q_OBJECT
@@ -34,11 +47,11 @@ public:
 signals:
 	void blurImage(const QImage& image);
 
-	void readCdTrackInfo(const QString& disc_id, const ForwardList<TrackInfo>& track_infos);
+	void readCdTrackInfo(const QString& disc_id, const std::forward_list<TrackInfo>& track_infos);
 
     void fetchDiscCoverCompleted(const QString& disc_id, const QString& cover_id);
 
-	void fetchLyricsCompleted(int32_t music_id, const QString& lyrics, const QString& trlyrics);
+	void fetchLyricsCompleted(const QList<SearchLyricsResult>& results);
 
 	void translationCompleted(const QString& keyword, const QString& result);
 
@@ -67,13 +80,15 @@ public Q_SLOT:
 	void onFetchCdInfo(const DriveInfo& drive);
 #endif
 
-	void onSearchLyrics(int32_t music_id, const QString& title, const QString& artist);
+	void onSearchLyrics(const PlayListEntity& keyword);
 
 	void onTranslation(const QString& keyword, const QString& from, const QString& to);
 
 	void onReadWaveformAudioData(size_t frame_per_peek, const Path & file_path);
 
 	void onReadSpectrogram(const QSize& widget_size, const Path& file_path);
+
+	QCoro::Task<QList<SearchLyricsResult>> downloadKLrc(PlayListEntity keyword, QList<InfoItem> infos);
 private:
 	bool is_stop_{false};
 	LruCache<QString, QImage> blur_image_cache_;

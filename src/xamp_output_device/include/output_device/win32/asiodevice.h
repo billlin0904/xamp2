@@ -308,7 +308,7 @@ private:
 	mutable FastMutex mutex_;
 	FastConditionVariable condition_;
 	AudioFormat format_;
-	Vector<ASIOClockSource> clock_source_;	
+	std::vector<ASIOClockSource> clock_source_;	
 	IAudioCallback* callback_;
 	std::function<bool(long, double, size_t&)> get_samples_;
 	LoggerPtr logger_;

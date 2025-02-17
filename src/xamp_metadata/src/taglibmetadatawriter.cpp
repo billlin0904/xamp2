@@ -251,7 +251,7 @@ public:
 		}
 	}
 
-	void WriteEmbeddedCover(const Vector<uint8_t> & image) const {
+	void WriteEmbeddedCover(const std::vector<uint8_t> & image) const {
 		CheckFileRef()
 		WriteEmbeddedCover(image.data(), image.size());
     }
@@ -360,7 +360,7 @@ void TaglibMetadataWriter::WriteAlbum(const std::wstring & album) {
     writer_->WriteAlbum(album);
 }
 
-void TaglibMetadataWriter::WriteEmbeddedCover(const Vector<uint8_t> & image) const {
+void TaglibMetadataWriter::WriteEmbeddedCover(const std::vector<uint8_t> & image) const {
 	writer_->WriteEmbeddedCover(image);
 }
 

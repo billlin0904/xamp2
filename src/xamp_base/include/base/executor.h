@@ -106,7 +106,7 @@ void ParallelFor(IThreadPoolExecutor* executor, size_t begin, size_t end, Func&&
     size_t size = end - begin;
     size_t batches = (executor->GetThreadSize() / 2) + 1;
     for (size_t i = 0; i < size;) {
-        Vector<Task<void>> futures((std::min)(size - i, batches));
+        std::vector<Task<void>> futures((std::min)(size - i, batches));
         for (auto& ff : futures) {
             ff = Executor::Spawn(executor, 
                 [func = std::forward<Func>(f), begin, i](const auto& token) -> void {

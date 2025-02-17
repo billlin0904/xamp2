@@ -19,14 +19,14 @@ namespace {
 		QString path;
 	};
 
-	std::pair<size_t, Vector<PathInfo>> getPathSortByFileCount(
+	std::pair<size_t, std::vector<PathInfo>> getPathSortByFileCount(
 		const std::shared_ptr<IThreadPoolExecutor>& thread_pool,
 		const std::stop_token &stop_token,
-		const Vector<QString>& paths,
+		const std::vector<QString>& paths,
 		const QStringList& file_name_filters,
 		std::function<void(size_t)>&& action) {
 		std::atomic<size_t> total_file_count = 0;
-		Vector<PathInfo> path_infos;
+		std::vector<PathInfo> path_infos;
 		path_infos.reserve(paths.size());
 
 		// Calculate file counts and depths in parallel
@@ -90,7 +90,7 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 		QDir::NoDotAndDotDot | QDir::Files,
 	    QDirIterator::Subdirectories);
 
-	FloatMap<QString, Vector<Path>> directory_files;
+	FloatMap<QString, std::vector<Path>> directory_files;
 
 	XAMP_ON_SCOPE_EXIT(
 		for (auto& files : directory_files) {
@@ -102,7 +102,7 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 	// Note: CueLoader has thread safe issue so we need to process not in parallel.
 	auto process_cue_file = [this](const auto &path, auto playlist_id) {
 		try {
-			ForwardList<TrackInfo> tracks;
+			std::forward_list<TrackInfo> tracks;
 			CueLoader loader;
 			for (auto& track : loader.Load(path)) {
 				tracks.push_front(track);
@@ -158,7 +158,7 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 	// 為了以下進行平行處理資料夾內的檔案, 並將解析後得結果進行track no排序.
 
 	FastMutex batch_mutex;
-	Vector<ForwardList<TrackInfo>> batch_track_infos;
+	std::vector<std::forward_list<TrackInfo>> batch_track_infos;
 	constexpr auto kMaxBatchSize = 500;
 
 	batch_track_infos.reserve(kMaxBatchSize);
@@ -169,7 +169,7 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 			return;
 		}
 
-		ForwardList<TrackInfo> tracks;
+		std::forward_list<TrackInfo> tracks;
 		auto reader = MakeMetadataReader();
 
 		for (const auto& path : path_info.second) {
@@ -224,7 +224,7 @@ void FileSystemService::onExtractFile(const QString& file_path,
 		getTrackInfoFileNameFilter(), 
 		QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs);
 
-	Vector<QString> paths;
+	std::vector<QString> paths;
 	paths.reserve(kReserveFilePathSize);
 
 	while (itr.hasNext()) {

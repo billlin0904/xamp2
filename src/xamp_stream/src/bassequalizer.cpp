@@ -97,7 +97,7 @@ private:
 
     HFX preamp_;
     BassStreamHandle stream_;
-    Vector<HFX> fx_handles_;
+    std::vector<HFX> fx_handles_;
     LoggerPtr logger_;
 };
 

@@ -194,7 +194,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
             }
             });
 
-        ForwardList<TrackInfo> track_infos;
+        std::forward_list<TrackInfo> track_infos;
 
         TrackInfo temp;
     	while (track_queue.try_dequeue(temp)) {

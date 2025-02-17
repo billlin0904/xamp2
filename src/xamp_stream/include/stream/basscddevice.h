@@ -38,7 +38,7 @@ public:
 
 	XAMP_NO_DISCARD double GetDuration(uint32_t track) const override;
 
-	XAMP_NO_DISCARD Vector<std::wstring> GetTotalTracks() const override;
+	XAMP_NO_DISCARD std::vector<std::wstring> GetTotalTracks() const override;
 
 	XAMP_NO_DISCARD std::string GetISRC(uint32_t track) const override;
 private:

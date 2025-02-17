@@ -238,7 +238,7 @@ LyricEntry KrcParser::lineAt(int32_t index) const {
     return lyrics_[index];
 }
 
-int32_t KrcParser::getSize() const {
+int32_t KrcParser::size() const {
     return static_cast<int32_t>(lyrics_.size());
 }
 
@@ -266,8 +266,16 @@ std::vector<LyricEntry>::const_iterator KrcParser::cbegin() const {
     return lyrics_.cbegin();
 }
 
+LyricEntry KrcParser::last() const {
+	return lyrics_.back();
+}
+
 bool KrcParser::hasTranslation() const {
     return has_trans_lrc_;
+}
+
+bool KrcParser::isKaraoke() const {
+    return is_karaoke_;
 }
 
 const LyricEntry& KrcParser::getLyrics(const std::chrono::milliseconds& time) const noexcept {
@@ -372,6 +380,7 @@ bool KrcParser::parseKrcText(const std::wstring& wtext) {
             }
         }
         entry.end_time = entry.start_time + max_end;
+        is_karaoke_ = true;
         lyrics_.push_back(entry);
     }
 
@@ -423,7 +432,7 @@ QList<InfoItem> parseInfoData(const QString& jsonString) {
 		info.hash = obj.value("hash"_str).toString();
 		info.sqhash = obj.value("sqhash"_str).toString();
 		info.songname = obj.value("songname"_str).toString();
-		info.albumName = obj.value("albumName"_str).toString();
+		info.albumName = obj.value("album_name"_str).toString();
 		info.singername = obj.value("singername"_str).toString();
 		info.duration = obj.value("duration"_str).toInt();
 		results.push_back(info);

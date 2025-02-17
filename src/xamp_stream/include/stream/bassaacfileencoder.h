@@ -42,7 +42,7 @@ public:
 
     void SetEncodingProfile(const EncodingProfile& profile);
 
-    static Vector<EncodingProfile> GetAvailableEncodingProfile();
+    static std::vector<EncodingProfile> GetAvailableEncodingProfile();
 
 private:
 	class BassAACFileEncoderImpl;
