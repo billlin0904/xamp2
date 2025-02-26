@@ -18,9 +18,7 @@ public:
 
     XAMP_PIMPL(Transliterator)
 
-    std::string TransformToLatin(const std::wstring& name);
-
-    char GetLatinLetter(const std::wstring& name);
+    bool IsJapanese(const std::wstring& name);
 private:
     class TransliteratorImpl;
     ScopedPtr<TransliteratorImpl> impl_;

@@ -23,9 +23,8 @@
 #endif
 
 #include <QDir>
+#include <QFuture>
 #include <QJsonValueRef>
-#include <QThread>
-#include <QSaveFile>
 
 XAMP_DECLARE_LOG_NAME(BackgroundService);
 
@@ -245,8 +244,7 @@ namespace {
 
 BackgroundService::BackgroundService()
     : nam_(this)
-	, http_client_(&nam_, QString(), this)
-    , buffer_pool_(MakeObjectPool<QByteArray>(kBufferPoolSize)) {
+	, http_client_(&nam_, QString(), this) {
     logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(BackgroundService));
     thread_pool_ = ThreadPoolBuilder::MakeBackgroundThreadPool();
 }
@@ -355,70 +353,84 @@ void BackgroundService::cancelRequested() {
     is_stop_ = true;
 }
 
-QCoro::Task<QList<SearchLyricsResult>> BackgroundService::downloadKLrc(PlayListEntity keyword, QList<InfoItem> infos) {
-    QList<SearchLyricsResult> results;
+QCoro::Task<SearchLyricsResult> BackgroundService::downloadSingleKlrc(InfoItem info) {
+    SearchLyricsResult result;
+    result.info = info;
 
-    infos.resize(1);
+    // 1. 搜尋候選列表
+    http::HttpClient http(&nam_, "http://krcs.kugou.com/search"_str, this);
+    http.param("ver"_str, "1"_str);
+    http.param("man"_str, "yes"_str);
+    http.param("client"_str, "mobi"_str);
+    http.param("hash"_str, info.hash);
+    http.param("album_audio_id"_str, ""_str);
+    http.param("page"_str, "1"_str);
+    http.param("pagesize"_str, "1"_str);
 
-	for (const auto& info : infos) {
-        SearchLyricsResult result;
+    auto content = co_await http.get();
+    auto candidates = parseCandidatesFromJson(content);
+    //XAMP_LOG_DEBUG("Found candidates size: {}", candidates.size());
 
-        http_client_.setUrl("http://krcs.kugou.com/search"_str);
-        http_client_.param("ver"_str, "1"_str);
-        http_client_.param("man"_str, "yes"_str);
-        http_client_.param("client"_str, "mobi"_str);
-        http_client_.param("keyword"_str, ""_str);
-        http_client_.param("duration"_str, ""_str);
-        http_client_.param("hash"_str, info.hash);
-        http_client_.param("album_audio_id"_str, ""_str);
-        http_client_.param("page"_str, "1"_str);
-        http_client_.param("pagesize"_str, "1"_str);
+    // 2. 逐一下載 KRC
+    for (auto& candidate : candidates) {
+        // 建立新的 HttpClient 指向下載 API
+        http::HttpClient http_download(&nam_, "http://lyrics.kugou.com/download"_str, this);
+        http_download.param("ver"_str, "1"_str);
+        http_download.param("client"_str, "pc"_str);
+        http_download.param("id"_str, candidate.id);
+        http_download.param("accesskey"_str, candidate.accesskey);
+        http_download.param("fmt"_str, "krc"_str);
+        http_download.param("charset"_str, "utf8"_str);
 
-        auto content = co_await http_client_.get();
-        auto candidates = parseCandidatesFromJson(content);
+        auto krc_data = co_await http_download.get();
 
-        XAMP_LOG_DEBUG("Found candidates size:{}", candidates.size());
-        result.info = info;
+        // 解析
+        LyricsParser lrc_parser;
+        candidate.albumName = info.albumName;
+        lrc_parser.candidate = candidate;
 
-        candidates.resize(5);
+        auto krc_content = parseKrcContent(krc_data);
+        if (!krc_content.has_value()) {
+            continue;
+        }
 
-        for (const auto& candidate : candidates) {
-            XAMP_LOG_DEBUG("{} {}", candidate.singer.toStdString(),
-                candidate.song.toStdString());
-
-            http_client_.setUrl("http://lyrics.kugou.com/download"_str);
-            http_client_.param("ver"_str, "1"_str);
-            http_client_.param("client"_str, "pc"_str);
-            http_client_.param("id"_str, candidate.id);
-            http_client_.param("accesskey"_str, candidate.accesskey);
-            http_client_.param("fmt"_str, "krc"_str);
-            http_client_.param("charset"_str, "utf8"_str);
-            content = co_await http_client_.get();
-
-            LyricsParser lrc_parser;
-            lrc_parser.candidate = candidate;
-            auto krc_content = parseKrcContent(content);
-            if (krc_content.has_value()) {
-                QSharedPointer<KrcParser> parser(new KrcParser());
-                try {
-                    if (!parser->parse(reinterpret_cast<uint8_t*>(
-                        krc_content->decodedContent.data()),
-                        krc_content->decodedContent.size())) {
-                        continue;
-                    }
-					lrc_parser.parser = parser;
-                    result.parsers.push_back(lrc_parser);
-                }
-                catch (const Exception& e) {
-                    XAMP_LOG_ERROR(e.GetErrorMessage());
-                }
+        QSharedPointer<KrcParser> parser(new KrcParser());
+        try {
+            if (!parser->parse(
+                reinterpret_cast<uint8_t*>(krc_content->decodedContent.data()),
+                krc_content->decodedContent.size())) {
+                continue; // 解析失敗，跳過
             }
+            lrc_parser.parser = parser;
+            lrc_parser.content = krc_content->decodedContent;
+            result.parsers.push_back(lrc_parser);
         }
-        if (!result.parsers.empty()) {
-            results.push_back(result);
+        catch (const Exception& e) {
+            XAMP_LOG_ERROR(e.GetErrorMessage());
         }
-	}
-	co_return results;
+    }
+
+    co_return result;
+}
+
+QCoro::Task<QList<SearchLyricsResult>> BackgroundService::downloadKLrc(QList<InfoItem> infos) {
+    std::vector<QCoro::Task<SearchLyricsResult>> tasks;
+    tasks.reserve(infos.size());
+
+    for (const auto& info : infos) {
+        tasks.push_back(downloadSingleKlrc(info));
+    }
+
+    QList<SearchLyricsResult> results;
+    results.reserve(infos.size());
+
+    for (auto& task : tasks) {
+		auto single_result = co_await task;
+        if (!single_result.parsers.empty()) {
+            results.push_back(std::move(single_result));
+        }
+    }
+    co_return results;
 }
 
 void BackgroundService::onSearchLyrics(const PlayListEntity& keyword) {
@@ -428,7 +440,7 @@ void BackgroundService::onSearchLyrics(const PlayListEntity& keyword) {
 
     http_client_.get().then([this, keyword](const auto& content) {
         auto infos = parseInfoData(content);
-        downloadKLrc(keyword, infos).then([this](const auto& results) {
+        downloadKLrc(infos).then([this](const auto& results) {
 			emit fetchLyricsCompleted(results);
         });
     });

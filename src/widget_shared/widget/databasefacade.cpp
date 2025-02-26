@@ -4,7 +4,6 @@
 #include <base/base.h>
 #include <base/threadpoolexecutor.h>
 #include <base/logger_impl.h>
-#include <base/transliterator.h>
 
 #include <widget/util/str_util.h>
 #include <widget/widget_shared.h>

@@ -21,6 +21,8 @@ public:
 	std::string Detect(const std::string &str) {
 		return Detect(str.data(), str.size());
 	}
+
+	bool IsJapanese(const std::wstring& text);
 private:
 	class CharsetDetectorImpl;
 	ScopedPtr<CharsetDetectorImpl> impl_;

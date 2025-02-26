@@ -294,6 +294,15 @@ void WaveformWidget::setSampleRate(uint32_t sample_rate) {
 }
 
 void WaveformWidget::setDrawMode(uint32_t mode) {
+    if (draw_mode_ & kDrawSpectrogram) {
+        if (spectrogram_.isNull()) {
+            emit readAudioSpectrogram(size(), file_path_);
+        }
+    } else {
+        if (left_peaks_.empty() || right_peaks_.empty()) {
+            emit readWaveformAudioData(frame_per_peak_, file_path_);
+        }
+    }
     draw_mode_ = mode;
     updateCachePixmap();
     qAppSettings.setValue(kAppSettingWaveformDrawMode, mode);
@@ -917,6 +926,19 @@ void WaveformWidget::clear() {
 	path_left_played_ = QPainterPath();
     path_right_played_ = QPainterPath();
     update();
+}
+
+void WaveformWidget::setProcessInfo(size_t frame_per_peek, const Path& file_path) {
+	frame_per_peak_ = frame_per_peek;
+	file_path_ = file_path;
+    draw_mode_ = qAppSettings.valueAsInt(kAppSettingWaveformDrawMode);
+	if (draw_mode_ & kDrawSpectrogram) {
+		emit readAudioSpectrogram(size(), file_path_);
+	}
+	else {
+		emit readWaveformAudioData(frame_per_peak_, file_path_);
+	}
+	update();
 }
 
 void WaveformWidget::updateSpectrogramSize() {

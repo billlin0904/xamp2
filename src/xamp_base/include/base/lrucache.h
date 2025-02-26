@@ -43,6 +43,8 @@ public:
 
     void Resize(int64_t capacity);
 
+    bool TryGet(Key const& key, Value &value);
+
     void AddOrUpdate(Key const& key, Value value);
 
     Value GetOrAdd(Key const& key, std::function<Value()> &&value_factory);
@@ -131,6 +133,20 @@ void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::Resize(int64_t ca
         capacity_ = capacity;
     }
     Evict(capacity_);
+}
+
+template<typename Key, typename Value, typename SizeOfPolicy, typename KeyList, typename SharedMutex>
+bool LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::TryGet(Key const& key, Value& value) {
+    std::unique_lock<SharedMutex> write_lock(mutex_);
+    const auto check = cache_.find(key);
+    if (check != cache_.end()) {
+        ++hit_count_;
+        keys_.splice(keys_.begin(), keys_, check->second);
+        value = check->second->second;
+        return true;
+    }
+    ++miss_count_;
+    return false;
 }
 
 template

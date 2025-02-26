@@ -98,10 +98,6 @@ signals:
 	void cancelRequested();
 
 	void addJobs(const QString& dir_name, QList<EncodeJob> jobs);
-
-	void readWaveformAudioData(size_t frame_per_peek, const Path& file_path);
-
-	void readAudioSpectrogram(const QSize& widget_size, const Path& file_path);
 public slots:
     void onPlayEntity(const PlayListEntity& entity, bool is_double_clicked);
 

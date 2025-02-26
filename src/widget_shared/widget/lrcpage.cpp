@@ -4,6 +4,7 @@
 #include <QGraphicsDropShadowEffect>
 #include <QPainter>
 #include <QHeaderView>
+#include <QSaveFile>
 
 #include <thememanager.h>
 
@@ -18,13 +19,20 @@
 
 LyricsFrame::LyricsFrame(QWidget* parent)
 	: QFrame(parent) {
-	setFrameShape(QFrame::StyledPanel);
-	setFrameShadow(QFrame::Raised);
+	setAttribute(Qt::WA_DontCreateNativeAncestors);
+	//setFrameShape(QFrame::StyledPanel);
+	//setFrameShadow(QFrame::Raised);
 
 	lyrc_list_ = new QTableWidget(this);
 
 	QStringList headers;
-	headers << tr("Type") << tr("Lyrics") << tr("Karaoke") << tr("Duration");
+	headers << tr("Type")
+	<< tr("Album")
+	<< tr("Artist")
+	<< tr("Title")
+	<< tr("Lyrics")
+	<< tr("Karaoke")
+	<< tr("Duration");
 	lyrc_list_->setHorizontalHeaderLabels(headers);
 	lyrc_list_->setColumnCount(headers.count());
 
@@ -33,8 +41,8 @@ LyricsFrame::LyricsFrame(QWidget* parent)
 	lyrc_list_->setSelectionMode(QAbstractItemView::SingleSelection);
 	lyrc_list_->horizontalHeader()->setStretchLastSection(true);
 	lyrc_list_->horizontalHeader()->hide();
-	lyrc_list_->setColumnWidth(1, 400);
-	lyrc_list_->setColumnWidth(2, 100);
+	lyrc_list_->setColumnWidth(4, 400);
+	lyrc_list_->setColumnWidth(5, 80);
 
 	lyrc_list_->verticalHeader()->setVisible(false);
 	lyrc_list_->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
@@ -48,46 +56,54 @@ LyricsFrame::LyricsFrame(QWidget* parent)
 		[this](auto *item) {
 		auto* find_item = lyrc_list_->item(item->row(), 0);
 		auto id = find_item->data(Qt::UserRole).toString();
-		auto parser = parser_map_.value(id);
-		if (parser) {
-			emit changeLyric(parser);
-		}
+		auto candidate = parser_map_.value(id);
+		emit changeLyric(candidate);
 		});
+
+	setStyleSheet("background-color: transparent"_str);
+	lyrc_list_->setStyleSheet("background-color: transparent"_str);
 }
 
 void LyricsFrame::setLyrics(const QList<SearchLyricsResult>& results) {
 	lyrc_list_->clearContents();
 
 	for (auto& [info, parsers] : results) {
-		for (auto& [candidate, parser] : parsers) {
+		for (auto& candidate : parsers) {
 			QString typeStr = tr("Original");
-			if (parser->hasTranslation()) {
+			if (candidate.parser->hasTranslation()) {
 				typeStr = tr("Translation");
 			}
-			if (parser->size() == 0) {
+			if (candidate.parser->size() == 0) {
 				continue;
 			}
 			auto* typeItem = new QTableWidgetItem(typeStr);
 			QStringList lyricText;
-			for (auto i = 0; i < 5 && i < parser->size(); ++i) {
-				lyricText << QString::fromStdWString(parser->lineAt(i).lrc);
-				if (parser->hasTranslation()) {
-					lyricText << QString::fromStdWString(parser->lineAt(i).tlrc);
+			for (auto i = 0; i < 5 && i < candidate.parser->size(); ++i) {
+				lyricText << QString::fromStdWString(candidate.parser->lineAt(i).lrc);
+				if (candidate.parser->hasTranslation()) {
+					lyricText << QString::fromStdWString(candidate.parser->lineAt(i).tlrc);
 				}
 			}
 			auto* lyricItem = new QTableWidgetItem(lyricText.join("\r\n"_str));
 			auto* durationItem = new QTableWidgetItem(
-				formatDuration(static_cast<double>(parser->last().timestamp.count()) / 1000.0));
+				formatDuration(
+					static_cast<double>(candidate.parser->last().timestamp.count()) / 1000.0));
 			auto* karaokeItem = new QTableWidgetItem(
-				parser->isKaraoke() ? tr("Yes") : tr("No"));
+				candidate.parser->isKaraoke() ? tr("Yes") : tr("No"));
+			auto* titleItem = new QTableWidgetItem(candidate.candidate.song);
+			auto* artistItem = new QTableWidgetItem(candidate.candidate.singer);
+			auto* albumItem = new QTableWidgetItem(candidate.candidate.albumName);
 			lyrc_list_->insertRow(lyrc_list_->rowCount());
 			lyrc_list_->setItem(lyrc_list_->rowCount() - 1, 0, typeItem);
-			lyrc_list_->setItem(lyrc_list_->rowCount() - 1, 1, lyricItem);
-			lyrc_list_->setItem(lyrc_list_->rowCount() - 1, 2, karaokeItem);
-			lyrc_list_->setItem(lyrc_list_->rowCount() - 1, 3, durationItem);
+			lyrc_list_->setItem(lyrc_list_->rowCount() - 1, 1, albumItem);
+			lyrc_list_->setItem(lyrc_list_->rowCount() - 1, 2, titleItem);
+			lyrc_list_->setItem(lyrc_list_->rowCount() - 1, 3, artistItem);
+			lyrc_list_->setItem(lyrc_list_->rowCount() - 1, 4, lyricItem);
+			lyrc_list_->setItem(lyrc_list_->rowCount() - 1, 5, karaokeItem);
+			lyrc_list_->setItem(lyrc_list_->rowCount() - 1, 6, durationItem);
 			auto id = QString::fromLatin1(generateUuid());
 			typeItem->setData(Qt::UserRole, id);
-			parser_map_.insert(id, parser);
+			parser_map_.insert(id, candidate);
 		}
 	}
 }
@@ -129,6 +145,10 @@ void LrcPage::setCover(const QPixmap& src) {
 #ifndef _DEBUG
 	addCoverShadow(true);
 #endif
+}
+
+void LrcPage::setPlayListEntity(const PlayListEntity& entity) {
+	entity_ = entity;
 	lyrics_results_.clear();
 }
 
@@ -181,14 +201,24 @@ void LrcPage::onFetchLyricsCompleted(const QList<SearchLyricsResult>& results) {
 		});
 
 	for (const auto& [info, parsers] : lyrics_results_) {
-		for (const auto& [candidate, parser] : parsers) {
-			if (parser->hasTranslation()) {
-				lyrics_widget_->loadFromParser(parser);
-				return;
+		for (auto &parser : parsers) {
+			if (parser.parser->hasTranslation()) {
+				if (parser.candidate.song == entity_.title
+					|| parser.candidate.singer == entity_.artist) {
+					lyrics_widget_->loadFromParser(parser.parser);
+					auto krc_file_name = entity_.parent_path
+					+ "\\"_str + entity_.file_name + ".krc"_str;
+					QSaveFile file(krc_file_name);
+					file.open(QIODevice::WriteOnly);
+					file.write(parser.content);
+					if (file.commit()) {
+						lyrics_widget_->loadFile(krc_file_name);
+					}
+					return;
+				}
 			}
 		}
 	}
-	lyrics_widget_->loadFromParser(lyrics_results_.first().parsers.first().parser);
 }
 
 void LrcPage::setFullScreen() {
@@ -502,11 +532,18 @@ void LrcPage::initial() {
 		dialog->setTitle(tr("Change LRC"));
 		lyrics_frame->setLyrics(lyrics_results_);
 		dialog->setContentWidget(lyrics_frame.get());
-		dialog->setFixedSize(QSize(800, 600));
+		dialog->setFixedSize(QSize(1000, 600));
 		dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_SUBTITLE));
-		(void)QObject::connect(lyrics_frame.get(), &LyricsFrame::changeLyric,
-			[this](const QSharedPointer<ILrcParser>& parser) {
-			lyrics_widget_->loadFromParser(parser);
+		(void)QObject::connect(lyrics_frame.get(),
+			&LyricsFrame::changeLyric,
+			[this](const LyricsParser& parser) {
+			auto krc_file_name = entity_.parent_path + "\\"_str + entity_.file_name + ".krc"_str;
+			QSaveFile file(krc_file_name);
+			file.open(QIODevice::WriteOnly);
+			file.write(parser.content);
+			if (file.commit()) {
+				lyrics_widget_->loadFile(krc_file_name);
+			}
 			});
 		dialog->exec();
 		});

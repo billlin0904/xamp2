@@ -54,6 +54,10 @@ public:
 signals:
     void playAt(float sec);
 
+    void readWaveformAudioData(size_t frame_per_peek, const Path& file_path);
+
+    void readAudioSpectrogram(const QSize& widget_size, const Path& file_path);
+
 public slots:
     void onReadAudioData(const std::vector<float> & buffer);
 
@@ -62,6 +66,8 @@ public slots:
     void doneRead();
 
     void clear();
+
+    void setProcessInfo(size_t frame_per_peek, const Path& file_path);
 
 protected:
     void updateSpectrogramSize();
@@ -107,6 +113,7 @@ private:
     std::vector<float> right_peaks_;
     std::vector<float> left_rms_;
     std::vector<float> right_rms_;
+	Path file_path_;
     QPixmap cache_;
     QImage spectrogram_;
     QImage spectrogram_cache_;

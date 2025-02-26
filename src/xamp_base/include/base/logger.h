@@ -97,7 +97,7 @@ struct XAMP_BASE_API SourceLocation {
 #define XampLoggerFactory xamp::base::SharedSingleton<xamp::base::LoggerManager>::GetInstance()
 
 template<typename... Args>
-std::string make_contexpr_string(const std::string& format, Args... args) {
+std::string make_constexpr_string(const std::string& format, Args... args) {
     return fmt::format(format, args...);
 }
 

@@ -1435,8 +1435,6 @@ void Xamp::updateUi(const PlayListEntity& entity,
 
     ensureLocalOnePlaylistPage();
 
-    const auto local_music = entity.isFilePath();
-
     auto* sender_playlist_page = qobject_cast<PlaylistPage*>(sender());   
 
     if (sender_playlist_page != nullptr) {
@@ -1491,29 +1489,20 @@ void Xamp::updateUi(const PlayListEntity& entity,
     const QFontMetrics title_metrics(ui_.titleLabel->font());
     const QFontMetrics artist_metrics(ui_.artistLabel->font());
     
-    ui_.titleLabel->setText(title_metrics.elidedText(entity.title, Qt::ElideRight, ui_.titleLabel->width()));
-    ui_.artistLabel->setText(artist_metrics.elidedText(entity.artist, Qt::ElideRight, ui_.artistLabel->width()));
- 
-    if (local_music) {
-        if (!lrc_page_->lyrics()->loadLrcFile(entity.file_path)) {
-            emit searchLyrics(entity);
-        }
-    } else {
-        lrc_page_->lyrics()->loadLrcFile(kEmptyString);
-    }
+    ui_.titleLabel->setText(title_metrics.elidedText(entity.title,
+        Qt::ElideRight, ui_.titleLabel->width()));
+    ui_.artistLabel->setText(artist_metrics.elidedText(entity.artist,
+        Qt::ElideRight, ui_.artistLabel->width()));
+
+    lrc_page_->lyrics()->loadFile(kEmptyString);
+    lrc_page_->lyrics()->loadFile(entity.file_path);
+    lrc_page_->setPlayListEntity(entity);
+    emit searchLyrics(entity);
 
     lrc_page_->title()->setText(entity.title);
     lrc_page_->album()->setText(entity.album);
     lrc_page_->artist()->setText(entity.artist);
     lrc_page_->format()->setText(format2String(playback_format, entity.file_extension));
-
-    /*if (!local_music) {
-        const auto lyrics_opt = 
-            qDaoFacade.music_dao_.getLyrics(entity.music_id);
-        if (!lyrics_opt) {
-            emit searchLyrics(entity);
-        }
-    }*/
 
     qTheme.setHeartButton(ui_.heartButton, current_entity_.value().heart);
 
@@ -1538,8 +1527,7 @@ void Xamp::updateUi(const PlayListEntity& entity,
 		}
         file_explorer_page_->waveformWidget()->setSampleRate(sampler_rate);
         file_explorer_page_->waveformWidget()->setTotalDuration(entity.duration);
-        emit readWaveformAudioData(frame_per_peak, entity.file_path.toStdWString());
-        emit readAudioSpectrogram(file_explorer_page_->waveformWidget()->size(),
+        file_explorer_page_->waveformWidget()->setProcessInfo(frame_per_peak,
             entity.file_path.toStdWString());
 	} else {
         file_explorer_page_->playlistPage()->playlist()->setNowPlayState(PLAY_CLEAR);
@@ -1932,13 +1920,13 @@ void Xamp::initialPlaylist() {
 
     setCover(kEmptyString);
 
-    (void)QObject::connect(this,
-        &Xamp::readWaveformAudioData,
+    (void)QObject::connect(file_explorer_page_->waveformWidget(),
+        &WaveformWidget::readWaveformAudioData,
         background_service_.get(),
         &BackgroundService::onReadWaveformAudioData);
 
-    (void)QObject::connect(this,
-        &Xamp::readAudioSpectrogram,
+    (void)QObject::connect(file_explorer_page_->waveformWidget(),
+        &WaveformWidget::readAudioSpectrogram,
         background_service_.get(),
         &BackgroundService::onReadSpectrogram);
 
@@ -2010,7 +1998,7 @@ void Xamp::initialPlaylist() {
     (void)QObject::connect(library_page_->album(),
         &AlbumView::removeAll,        
         [this]() {
-            //yt_music_tab_page_->closeAllTab();
+            
         });
 
     (void)QObject::connect(library_page_->album(),

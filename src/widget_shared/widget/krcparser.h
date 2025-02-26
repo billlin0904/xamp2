@@ -18,6 +18,7 @@ struct XAMP_WIDGET_SHARED_EXPORT KrcContent {
 };
 
 struct XAMP_WIDGET_SHARED_EXPORT Candidate {
+    QString albumName;
     QString singer;
     QString song;
     QString id;

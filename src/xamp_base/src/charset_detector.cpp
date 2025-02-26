@@ -4,6 +4,8 @@
 #include <base/dll.h>
 #include <base/logger_impl.h>
 
+#include <cld3/nnet_language_identifier.h>
+
 XAMP_BASE_NAMESPACE_BEGIN
 
 class UcharDectLib final {
@@ -52,7 +54,9 @@ using UcharDetPtr = std::unique_ptr<uchardet, UcharDetDeleter<uchardet>>;
 
 class CharsetDetector::CharsetDetectorImpl {
 public:
-	CharsetDetectorImpl() = default;
+	CharsetDetectorImpl()
+		: indentifier_(0, 1000) {
+	}
 
 	std::string Detect(const char* data, size_t size) {
 		UcharDetPtr detector;
@@ -79,7 +83,14 @@ public:
 		return encoding;
 	}
 
-private:	
+	bool IsJapanese(const std::wstring& text) {
+		static const std::string kJapanese = "ja";
+		const auto result = indentifier_.FindLanguage(String::ToUtf8String(text));
+		return result.is_reliable && result.language == kJapanese;
+	}
+
+private:
+	chrome_lang_id::NNetLanguageIdentifier indentifier_;
 };
 
 CharsetDetector::CharsetDetector() 
@@ -90,6 +101,10 @@ XAMP_PIMPL_IMPL(CharsetDetector)
 
 std::string CharsetDetector::Detect(const char* data, size_t size) {
 	return impl_->Detect(data, size);
+}
+
+bool CharsetDetector::IsJapanese(const std::wstring& text) {
+	return impl_->IsJapanese(text);
 }
 
 void LoadUcharDectLib() {

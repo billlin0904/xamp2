@@ -10,6 +10,8 @@
 #include <QDir>
 #include <QPainterPath>
 
+#include <base/charset_detector.h>
+
 #include <widget/widget_shared.h>
 #include <widget/lrcparser.h>
 #include <widget/webvttparser.h>
@@ -204,7 +206,7 @@ void LyricsShowWidget::setCurrentTime(const int32_t time, const bool is_adding) 
 }
 
 void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) {
-	if (!lyric_ || furiganas_.empty()) {
+	if (!lyric_) {
 		return;
 	}
 	int32_t total_count = lyric_->size();
@@ -242,70 +244,74 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 	// (A) 若沒有逐字資訊 (words.empty())，整行繪製
 	// ------------------------------------------------------------------------
 	if (words.empty()) {
-		double x = (rect.width() - metrics.horizontalAdvance(
-			QString::fromStdWString(entry.lrc))) / 2.0;
+		if (!furiganas_.empty()) {
+			double x = (rect.width() - metrics.horizontalAdvance(
+				QString::fromStdWString(entry.lrc))) / 2.0;
 
-		// Furigana 字體縮小
-		furigana_font.setPointSizeF(lrc_font_.pointSizeF() * 0.5);
-		auto furigana_result = furiganas_[index];
+			// Furigana 字體縮小
+			furigana_font.setPointSizeF(lrc_font_.pointSizeF() * 0.5);
+			auto furigana_result = furiganas_[index];
 
-		for (const auto& entity : furigana_result) {
-			auto kanji_text = QString::fromStdWString(entity.text);
-			int kanji_width = metrics.horizontalAdvance(kanji_text);
-			auto furigana_length = entity.furigana.size();
+			for (const auto& entity : furigana_result) {
+				auto kanji_text = QString::fromStdWString(entity.text);
+				int kanji_width = metrics.horizontalAdvance(kanji_text);
+				auto furigana_length = entity.furigana.size();
 
-			// 先繪製 Furigana (若有)
-			if (furigana_length > 0) {
-				painter->setFont(furigana_font);
-				double furigana_char_width = static_cast<double>(kanji_width) / furigana_length;
-				int furigana_y = rect.y()
-					+ (rect.height() - metrics.height()) / 2
-					- furigana_metrics.height();
-				for (int i = 0; i < static_cast<int>(furigana_length); ++i) {
-					auto furigana_char = QString::fromStdWString(entity.furigana).mid(i, 1);
-					painter->drawText(x + i * furigana_char_width, furigana_y, furigana_char);
+				// 先繪製 Furigana (若有)
+				if (furigana_length > 0) {
+					painter->setFont(furigana_font);
+					double furigana_char_width = static_cast<double>(kanji_width) / furigana_length;
+					int furigana_y = rect.y()
+						+ (rect.height() - metrics.height()) / 2
+						- furigana_metrics.height();
+					for (int i = 0; i < static_cast<int>(furigana_length); ++i) {
+						auto furigana_char = QString::fromStdWString(entity.furigana).mid(i, 1);
+						painter->drawText(x + i * furigana_char_width, furigana_y, furigana_char);
+					}
 				}
+				// 再繪製主字 (Kanji)
+				painter->setFont(kanji_font);
+				painter->drawText(
+					x,
+					rect.y() + (rect.height() - metrics.height()) / 2,
+					kanji_text
+				);
+				x += kanji_width;
 			}
-			// 再繪製主字 (Kanji)
-			painter->setFont(kanji_font);
-			painter->drawText(
-				x,
-				rect.y() + (rect.height() - metrics.height()) / 2,
-				kanji_text
-			);
-			x += kanji_width;
 		}
 		return;
 	}
 
-	// ------------------------------------------------------------------------
-	// (B) 有逐字資訊，則做卡拉OK逐字高亮 + Furigana
-	// ------------------------------------------------------------------------
-	// 5) 先繪製整行 Furigana (不需要對 words 做 1:1 大小)
-	furigana_font.setPointSizeF(lrc_font_.pointSizeF() * 0.5);
-	double x_f = (rect.width() - metrics.horizontalAdvance(
-		QString::fromStdWString(entry.lrc))) / 2.0;
-	auto furigana_result = furiganas_[index];
-	int base_line = rect.y() + (rect.height() + metrics.ascent()) / 2;
+	if (!furiganas_.empty() && index < furiganas_.size()) {
+		// ------------------------------------------------------------------------
+		// (B) 有逐字資訊，則做卡拉OK逐字高亮 + Furigana
+		// ------------------------------------------------------------------------
+		// 5) 先繪製整行 Furigana (不需要對 words 做 1:1 大小)
+		furigana_font.setPointSizeF(lrc_font_.pointSizeF() * 0.5);
+		double x_f = (rect.width() - metrics.horizontalAdvance(
+			QString::fromStdWString(entry.lrc))) / 2.0;
+		auto furigana_result = furiganas_[index];
+		int base_line = rect.y() + (rect.height() + metrics.ascent()) / 2;
 
-	// 先用較小字體繪 Furigana
-	painter->setFont(furigana_font);
-	for (const auto& entity : furigana_result) {
-		auto kanji_text = QString::fromStdWString(entity.text);
-		int kanji_width = metrics.horizontalAdvance(kanji_text);
-		int furigana_length = static_cast<int>(entity.furigana.size());
+		// 先用較小字體繪 Furigana
+		painter->setFont(furigana_font);
+		for (const auto& entity : furigana_result) {
+			auto kanji_text = QString::fromStdWString(entity.text);
+			int kanji_width = metrics.horizontalAdvance(kanji_text);
+			int furigana_length = static_cast<int>(entity.furigana.size());
 
-		int furigana_y = base_line - furigana_metrics.height();
+			int furigana_y = base_line - furigana_metrics.height();
 
-		// 逐字畫出 Furigana
-		if (furigana_length > 0) {
-			double furigana_char_width = static_cast<double>(kanji_width) / furigana_length;
-			for (int i = 0; i < furigana_length; ++i) {
-				QString fchar = QString::fromStdWString(entity.furigana).mid(i, 1);
-				painter->drawText(x_f + i * furigana_char_width, furigana_y, fchar);
+			// 逐字畫出 Furigana
+			if (furigana_length > 0) {
+				double furigana_char_width = static_cast<double>(kanji_width) / furigana_length;
+				for (int i = 0; i < furigana_length; ++i) {
+					QString fchar = QString::fromStdWString(entity.furigana).mid(i, 1);
+					painter->drawText(x_f + i * furigana_char_width, furigana_y, fchar);
+				}
 			}
+			x_f += kanji_width;
 		}
-		x_f += kanji_width;
 	}
 
 	// 6) 再用卡拉OK方式畫主文字
@@ -448,7 +454,7 @@ void LyricsShowWidget::dropEvent(QDropEvent* event) {
 
 	if (mime_data->hasUrls()) {
         Q_FOREACH(auto const& url, mime_data->urls()) {
-			loadLrcFile(url.toLocalFile());
+			loadFile(url.toLocalFile());
 			break;
 		}
 		event->acceptProposedAction();
@@ -457,22 +463,31 @@ void LyricsShowWidget::dropEvent(QDropEvent* event) {
 
 void LyricsShowWidget::loadFromParser(const QSharedPointer<ILrcParser>& parser) {
 	lyric_ = parser;
+	furiganas_.clear();
 
+	CharsetDetector detector;
 	for (const auto& lrc : *lyric_) {
-		furiganas_.push_back(furigana_.Convert(lrc.lrc));
+		if (detector.IsJapanese(lrc.lrc)) {
+			furiganas_.push_back(furigana_.Convert(lrc.lrc));
+		} else {
+			// 這裡要補空的，否則會造成 index 不一致.
+			furiganas_.push_back({});
+		}
 	}
 
 	resizeFontSize();
 	update();
 }
 
-bool LyricsShowWidget::loadLrcFile(const QString &file_path) {
+bool LyricsShowWidget::loadFile(const QString &file_path) {
 	stop();
 
 	auto use_default = false;
 	QString lrc_path;
 
-	auto parser = makeLrcParser(file_path, lrc_path, use_default);
+	auto parser = makeLrcParser(file_path, 
+		lrc_path, 
+		use_default);
 
 	if (use_default || !parser->parseFile(lrc_path.toStdWString())) {
 		setDefaultLrc();
@@ -508,8 +523,14 @@ void LyricsShowWidget::loadLrc(const QString& lrc) {
 	}
 	else {
 		stop_scroll_time_ = false;
+		CharsetDetector detector;
 		for (const auto& lrc : *lyric_) {
-			furiganas_.push_back(furigana_.Convert(lrc.lrc));
+			if (detector.IsJapanese(lrc.lrc)) {
+				furiganas_.push_back(furigana_.Convert(lrc.lrc));
+			} else {
+				// 這裡要補空的，否則會造成 index 不一致.
+				furiganas_.push_back({});
+			}
 		}
 	}
 	resizeFontSize();

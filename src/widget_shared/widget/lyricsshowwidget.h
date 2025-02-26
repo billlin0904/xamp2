@@ -27,7 +27,7 @@ public:
 
 	Q_DISABLE_COPY(LyricsShowWidget)
 
-	bool loadLrcFile(const QString &file_path);
+	bool loadFile(const QString &file_path);
 
 	void loadFromParser(const QSharedPointer<ILrcParser> &parser);
 

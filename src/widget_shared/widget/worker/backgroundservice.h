@@ -10,6 +10,9 @@
 #include <QObject>
 #include <base/object_pool.h>
 #include <base/threadpoolexecutor.h>
+#include <base/lrucache.h>
+
+#include <QSemaphore>
 
 #include <widget/widget_shared.h>
 #include <widget/playlistentity.h>
@@ -25,6 +28,7 @@ Q_DECLARE_METATYPE(ReplayGain);
 struct LyricsParser {
 	Candidate candidate;
 	QSharedPointer<ILrcParser> parser;
+	QByteArray content;
 };
 
 struct SearchLyricsResult {
@@ -32,7 +36,8 @@ struct SearchLyricsResult {
 	QList<LyricsParser> parsers;
 };
 
-Q_DECLARE_METATYPE(SearchLyricsResult);
+Q_DECLARE_METATYPE(LyricsParser)
+Q_DECLARE_METATYPE(SearchLyricsResult)
 
 class XAMP_WIDGET_SHARED_EXPORT BackgroundService final : public QObject {
 	Q_OBJECT
@@ -88,7 +93,10 @@ public Q_SLOT:
 
 	void onReadSpectrogram(const QSize& widget_size, const Path& file_path);
 
-	QCoro::Task<QList<SearchLyricsResult>> downloadKLrc(PlayListEntity keyword, QList<InfoItem> infos);
+	QCoro::Task<QList<SearchLyricsResult>> downloadKLrc(QList<InfoItem> infos);
+
+	QCoro::Task<SearchLyricsResult> downloadSingleKlrc(InfoItem info);
+
 private:
 	bool is_stop_{false};
 	LruCache<QString, QImage> blur_image_cache_;
@@ -96,6 +104,6 @@ private:
 	std::stop_source stop_source_;
 	QNetworkAccessManager nam_;
 	http::HttpClient http_client_;
-	std::shared_ptr<ObjectPool<QByteArray>> buffer_pool_;
+	LruCache<QString, SearchLyricsResult> lyrics_cache_;
 	std::shared_ptr<IThreadPoolExecutor> thread_pool_;
 };

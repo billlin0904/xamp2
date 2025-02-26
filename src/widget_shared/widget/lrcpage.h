@@ -34,11 +34,11 @@ public:
 	void setLyrics(const QList<SearchLyricsResult>& results);
 
 signals:
-	void changeLyric(const QSharedPointer<ILrcParser> &parser);
+	void changeLyric(const LyricsParser &parser);
 
 private:
 	QTableWidget* lyrc_list_;
-	QMap<QString, QSharedPointer<ILrcParser>> parser_map_;
+	QMap<QString, LyricsParser> parser_map_;
 };
 
 class XAMP_WIDGET_SHARED_EXPORT LrcPage : public QFrame {
@@ -57,6 +57,8 @@ public:
 	LyricsShowWidget* lyrics();
 
 	void setCover(const QPixmap& cover);
+
+	void setPlayListEntity(const PlayListEntity& entity);
 
 	void addCoverShadow(bool is_dark = false);
 
@@ -114,5 +116,6 @@ private:
 	QPixmap cover_;
 	QImage background_image_;
 	QImage prev_background_image_;
+	PlayListEntity entity_;
 	QList<SearchLyricsResult> lyrics_results_;
 };

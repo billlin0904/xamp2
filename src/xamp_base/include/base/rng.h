@@ -107,6 +107,4 @@ private:
     Sfc64Engine<> engine_;
 };
 
-Sfc64Engine<> XAMP_BASE_API MakeRandomEngine();
-
 XAMP_BASE_NAMESPACE_END

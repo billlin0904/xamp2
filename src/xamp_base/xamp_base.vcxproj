@@ -78,7 +78,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/unordered_dense/include/;../thirdparty/uchardet/src/;../thirdparty/libiconv/include/;../thirdparty/mecab/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/unordered_dense/include/;../thirdparty/uchardet/src/;../thirdparty/libiconv/include/;../thirdparty/mecab/include/;../thirdparty/cld3/include/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>BASE_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996;4819</DisableSpecificWarnings>
       <BrowseInformation>true</BrowseInformation>
@@ -86,9 +86,9 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>Dbghelp.lib;Synchronization.lib;rpcrt4.lib;Winmm.lib;Bcrypt.lib;icuuc.lib;icuin.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Dbghelp.lib;Synchronization.lib;rpcrt4.lib;Winmm.lib;Bcrypt.lib;icuuc.lib;icuin.lib;cld3.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>../thirdparty/uchardet/msvc/src/Debug/;../thirdparty/libiconv/output/x64/Debug/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../thirdparty/uchardet/msvc/src/Debug/;../thirdparty/libiconv/output/x64/Debug/;../thirdparty/cld3/debug/lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>
@@ -128,7 +128,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/unordered_dense/include/;../thirdparty/uchardet/src/;../thirdparty/libiconv/include/;../thirdparty/mecab/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/unordered_dense/include/;../thirdparty/uchardet/src/;../thirdparty/libiconv/include/;../thirdparty/mecab/include/;../thirdparty/cld3/include/</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PreprocessorDefinitions>BASE_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <OmitFramePointers>true</OmitFramePointers>
@@ -147,8 +147,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Dbghelp.lib;Synchronization.lib;rpcrt4.lib;Winmm.lib;Bcrypt.lib;icuuc.lib;icuin.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Dbghelp.lib;Synchronization.lib;rpcrt4.lib;Winmm.lib;Bcrypt.lib;icuuc.lib;icuin.lib;cld3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../thirdparty/cld3/lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <Bscmake>
@@ -166,7 +166,6 @@
     <ClInclude Include="include\base\charset_detector.h" />
     <ClInclude Include="include\base\encoding_detector_tables.h" />
     <ClInclude Include="include\base\furigana.h" />
-    <ClInclude Include="include\base\transliterator.h" />
     <ClInclude Include="include\base\text_encoding.h" />
     <ClInclude Include="include\base\com_error_category.h" />
     <ClInclude Include="include\base\crashhandler.h" />
@@ -239,7 +238,6 @@
     <ClCompile Include="src\furigana.cpp" />
     <ClCompile Include="src\ithreadpool.cpp" />
     <ClCompile Include="src\memory_mapped_file.cpp" />
-    <ClCompile Include="src\transliterator.cpp" />
     <ClCompile Include="src\shared_singleton.cpp" />
     <ClCompile Include="src\stl.cpp" />
     <ClCompile Include="src\text_encoding.cpp" />

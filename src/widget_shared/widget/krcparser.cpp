@@ -394,9 +394,9 @@ bool KrcParser::parseKrcText(const std::wstring& wtext) {
                     L"").toStdWString();
             }
         }
-        XAMP_LOG_DEBUG("Krc has a translation!");
+        //XAMP_LOG_DEBUG("Krc has a translation!");
     } else {
-        XAMP_LOG_DEBUG("Krc has no more translation!");
+        //XAMP_LOG_DEBUG("Krc has no more translation!");
     }
 
     std::sort(lyrics_.begin(), lyrics_.end(), [](auto& a, auto& b) {

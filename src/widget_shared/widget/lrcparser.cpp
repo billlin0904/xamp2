@@ -249,7 +249,8 @@ void LrcParser::addLrc(const LyricEntry &lrc) {
 }
 
 const LyricEntry& LrcParser::getLyrics(const std::chrono::milliseconds &time) const noexcept {
-    auto itr = BinarySearch(lyrics_.cbegin(), lyrics_.cend(), time, [](const LyricEntry &l, auto time) {
+    auto itr = BinarySearch(lyrics_.cbegin(),
+        lyrics_.cend(), time, [](const LyricEntry &l, auto time) {
         return l.timestamp < time;
     });
     

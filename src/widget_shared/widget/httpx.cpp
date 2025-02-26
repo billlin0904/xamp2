@@ -301,6 +301,7 @@ namespace http {
         try
         {
             if (isZipEncoding(reply)) {
+				XAMP_LOG_D(logger_, "Decompressing gzip content.");
                 const auto data = gzipDecompress(content);
                 in.reset(new QTextStream(data));
             }

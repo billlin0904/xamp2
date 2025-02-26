@@ -15,15 +15,12 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 namespace {
 	constexpr size_t kMaxAttempts = 100;
-	constexpr auto kSpinningTimeout = std::chrono::milliseconds(500);
+	constexpr auto kCheckEwaInterval = std::chrono::milliseconds(500);
 	constexpr auto kDequeueTimeout = std::chrono::milliseconds(100);
 	constexpr auto kSharedTaskQueueSize = 4096;
 	constexpr auto kMaxWorkQueueSize = 65536;
 	constexpr size_t kMinThreadPoolSize = 1;
 }
-
-thread_local WorkStealingTaskQueue* TaskScheduler::local_work_queue = nullptr;
-thread_local size_t TaskScheduler::local_work_queue_index = 0;
 
 TaskScheduler::TaskScheduler(const std::string_view& name,
 	size_t max_thread,
@@ -35,6 +32,8 @@ TaskScheduler::TaskScheduler(const std::string_view& name,
 	, bulk_size_(bulk_size)
 	, name_(name)
 	, task_execute_flags_(max_thread_)
+	, attempt_count_(max_thread_)
+	, success_count_(max_thread_)
 	, work_done_(static_cast<ptrdiff_t>(max_thread_))
 	, start_clean_up_(1) {
 	logger_ = XampLoggerFactory.GetLogger(name);
@@ -42,8 +41,10 @@ TaskScheduler::TaskScheduler(const std::string_view& name,
 	try {
 		task_pool_ = MakeAlign<SharedTaskQueue>(kSharedTaskQueueSize);
 		task_work_queues_.resize(max_thread_);
+		
 		for (size_t i = 0; i < max_thread_; ++i) {
 			task_work_queues_[i] = MakeAlign<WorkStealingTaskQueue>(kMaxWorkQueueSize);
+			ema_list_.emplace_back(0.2);
 		}
 		for (size_t i = 0; i < max_thread_; ++i) {
             AddThread(i, priority);
@@ -136,11 +137,17 @@ size_t TaskScheduler::TryDequeueSharedQueue(std::vector<MoveOnlyFunction>& tasks
 	return 0;
 }
 
+bool TaskScheduler::IsLongRunning(size_t index) const {
+	return task_execute_flags_[index].load(std::memory_order_acquire)
+	== ExecuteFlags::EXECUTE_LONG_RUNNING;
+}
+
 size_t TaskScheduler::TryLocalPop(std::vector<MoveOnlyFunction>& tasks,
 	const std::stop_token& stop_token,
 	WorkStealingTaskQueue* local_queue) const {
 	if (!stop_token.stop_requested()) {
-		auto size = local_queue->try_dequeue_bulk(tasks.begin(), tasks.size());
+		auto size = local_queue->try_dequeue_bulk(tasks.begin(),
+			tasks.size());
 		if (size > 0) {
 			return size;
 		}
@@ -152,18 +159,29 @@ size_t TaskScheduler::TrySteal(std::vector<MoveOnlyFunction>& tasks,
 	const std::stop_token& stop_token,
 	size_t random_start, 
 	size_t current_thread_index) {
+
 	if (!stop_token.stop_requested()) {
+		auto& attempt_count = attempt_count_[current_thread_index];
+
 		for (size_t attempts = 0; attempts < kMaxAttempts; ++attempts) {
+			attempt_count.fetch_add(1, std::memory_order_relaxed);
+
 			size_t random_index = (random_start + attempts) % max_thread_;
 			if (random_index == current_thread_index) {
 				continue;
 			}
 
-			if (task_execute_flags_[random_index].load(std::memory_order_acquire) != ExecuteFlags::EXECUTE_LONG_RUNNING) {
-				auto size = task_work_queues_.at(random_index)->try_dequeue_bulk(tasks.begin(), tasks.size());
-				if (size > 0) {
-					return size;
-				}
+			if (IsLongRunning(random_index)) {
+				continue;
+			}
+
+			auto& queue = task_work_queues_.at(random_index);
+			auto size = queue->try_dequeue_bulk(
+				tasks.begin(), tasks.size());
+			if (size > 0) {
+				success_count_[current_thread_index].fetch_add(1,
+					std::memory_order_relaxed);
+				return size;
 			}
 		}
 	}
@@ -171,24 +189,12 @@ size_t TaskScheduler::TrySteal(std::vector<MoveOnlyFunction>& tasks,
 }
 
 void TaskScheduler::SubmitJob(MoveOnlyFunction&& task, ExecuteFlags flags) {
-	if (local_work_queue != nullptr) {
-		if (task_execute_flags_[local_work_queue_index].load(std::memory_order_acquire) != ExecuteFlags::EXECUTE_LONG_RUNNING) {
-			if (local_work_queue->try_enqueue(std::move(task))) {
-				task_execute_flags_[local_work_queue_index] = flags;
-				XAMP_LOG_D(logger_, "TaskScheduler::SubmitJob() enqueue task to local queue.");
-				return;
-			}
-		}
-	}
-
 	XAMP_NO_TLS_GUARDS thread_local PRNG prng;
 	size_t random_start = prng() % max_thread_;
 	for (size_t attempts = 0; attempts < kMaxAttempts; ++attempts) {
 		size_t random_index = (random_start + attempts) % max_thread_;
-		if (random_index == local_work_queue_index) {
-			continue;
-		}
-		if (task_execute_flags_[random_index].load(std::memory_order_acquire) != ExecuteFlags::EXECUTE_LONG_RUNNING) {
+
+		if (!IsLongRunning(random_index)) {
 			auto& task_queue = task_work_queues_[random_index];
 			if (task_queue->try_enqueue(std::move(task))) {
 				task_execute_flags_[random_index] = flags;
@@ -214,8 +220,16 @@ void TaskScheduler::Execute(std::vector<MoveOnlyFunction>& tasks,
 	const std::stop_token& stop_token) {
 	for (size_t i = 0; i < task_size; ++i) {
 		auto running_thread = ++running_thread_;
-		std::invoke(tasks[i], stop_token);
-		XAMP_LOG_D(logger_, "Execute running {} task", running_thread);
+		try {
+			std::invoke(tasks[i], stop_token);
+			XAMP_LOG_D(logger_, "Execute running {} task", running_thread);
+		}
+		catch (const std::exception& e) {
+			XAMP_LOG_E(logger_, "Execute running {} task failed. Exception:{}", running_thread, e.what());
+		}
+		catch (...) {
+			XAMP_LOG_E(logger_, "Execute running {} task failed. Unknown exception.", running_thread);
+		}
 		--running_thread_;
 	}
 	task_execute_flags_[current_index] = ExecuteFlags::EXECUTE_NORMAL;
@@ -223,11 +237,9 @@ void TaskScheduler::Execute(std::vector<MoveOnlyFunction>& tasks,
 
 void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
     threads_.emplace_back([i, this, priority](const auto& stop_token) mutable {
-		local_work_queue = task_work_queues_[i].get();
-		local_work_queue_index = i;
+		auto * local_work_queue = task_work_queues_[i].get();
 
 		XAMP_NO_TLS_GUARDS thread_local PRNG prng;
-		Stopwatch spinning_watch;
 		XampCrashHandler.SetThreadExceptionHandlers();
 		SetWorkerThreadName(i);
 
@@ -248,56 +260,60 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) resume.", thread_id, i);
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) start.", thread_id, i);
 
+		auto& ema = ema_list_[i];
+
+		Stopwatch check_ewa_watch;
+		std::vector<MoveOnlyFunction> tasks(bulk_size_);
+
 		while (!is_stopped_ && !stop_token.stop_requested()) {
-			std::vector<MoveOnlyFunction> tasks(bulk_size_);
-
 			auto task_size = TryLocalPop(tasks, stop_token, local_work_queue);
-
 			if (!task_size) {
+				double success_rate = ema.GetValue();
 				size_t random_start = prng() % max_thread_;
-				task_size = TrySteal(tasks, stop_token, random_start, i);
-
-				if (!task_size && spinning_watch.Elapsed() >= kSpinningTimeout) {
-					// Implement backoff by adjusting how frequently we check the shared queue
-					static int backoff_attempts = 1;
-
-					for (int attempt = 0; attempt < backoff_attempts; ++attempt) {
-						task_size = TryDequeueSharedQueue(tasks, stop_token, kDequeueTimeout);
-						if (task_size) {
-							break; // Exit early if a task is found
-						}
-						CpuRelax(); // Small CPU relaxation between attempts
-					}
-
-					// Gradually increase the number of attempts if no task was found
+				if (success_rate < 0.1) {
+					task_size = TryDequeueSharedQueue(tasks, stop_token, kDequeueTimeout);
 					if (!task_size) {
-						//backoff_attempts = std::min(backoff_attempts * 2, 32); // Max backoff attempts
-						CpuRelax();
-						continue;
+						task_size = TrySteal(tasks, stop_token, random_start, i);
 					}
-
-					backoff_attempts = 1; // Reset backoff when a task is found
-					spinning_watch.Reset();
-					Execute(tasks, task_size, i, stop_token);
-					continue;
+				}
+				else {
+					task_size = TrySteal(tasks, stop_token, random_start, i);
 				}
 			}
 
-			if (!task_size) {
+			if (task_size > 0) {
+				Execute(tasks, task_size, i, stop_token);
+			} else {
 				CpuRelax();
-				continue;
 			}
 
-			spinning_watch.Reset();
-			Execute(tasks, task_size, i, stop_token);
+			if (check_ewa_watch.Elapsed<std::chrono::milliseconds>() >= kCheckEwaInterval) {
+				size_t attempts = attempt_count_[i].exchange(0);
+				size_t successes = success_count_[i].exchange(0);
+				if (attempts > 0) {
+					double rate = static_cast<double>(successes) / attempts;
+					ema.Update(rate);
+					if (rate > 0.0) {
+						XAMP_LOG_T(logger_, "Thread({}) Update ETA:{:.4f}", i, rate);
+					}
+				}
+				check_ewa_watch.Reset();
+			}
 		}
 
-		XAMP_LOG_D(logger_, "Worker Thread {} is existed.", i);
+		XAMP_LOG_D(logger_, "Worker Thread {} is exited.", i);
         });
 }
 
-ThreadPoolExecutor::ThreadPoolExecutor(const std::string_view& name, uint32_t max_thread, size_t bulk_size, ThreadPriority priority)
-	: IThreadPoolExecutor(MakeAlign<ITaskScheduler, TaskScheduler>(name,max_thread, bulk_size, priority)) {
+ThreadPoolExecutor::ThreadPoolExecutor(const std::string_view& name,
+	uint32_t max_thread,
+	size_t bulk_size,
+	ThreadPriority priority)
+	: IThreadPoolExecutor(MakeAlign<ITaskScheduler, TaskScheduler>(
+		name,
+		max_thread,
+		bulk_size, 
+		priority)) {
 }
 
 ThreadPoolExecutor::~ThreadPoolExecutor() {
