@@ -103,3 +103,5 @@ XAMP_WIDGET_SHARED_EXPORT size_t getFileCount(const QString& dir, const QStringL
 XAMP_WIDGET_SHARED_EXPORT bool isSupportFileExtension(const QString &file_ext);
 
 QList<QModelIndex> getVisibleIndexes(const QAbstractItemView* list_view, int32_t column);
+
+QString applicationPath();

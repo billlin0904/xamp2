@@ -12,7 +12,7 @@
 #include <base/threadpoolexecutor.h>
 #include <base/lrucache.h>
 
-#include <QSemaphore>
+#include <base/charset_detector.h>
 
 #include <widget/widget_shared.h>
 #include <widget/playlistentity.h>

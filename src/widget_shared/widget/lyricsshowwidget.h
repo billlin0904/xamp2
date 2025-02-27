@@ -12,6 +12,7 @@
 
 #include <base/memory.h>
 #include <base/furigana.h>
+#include <base/charset_detector.h>
 
 #include <widget/util/str_util.h>
 
@@ -97,5 +98,6 @@ private:
 	QString trlyrc_;
 	QSharedPointer<ILrcParser> lyric_;
 	Furigana furigana_;
+	OpenCCConvert convert_;
 	std::vector<std::vector<FuriganaEntity>> furiganas_;
 };

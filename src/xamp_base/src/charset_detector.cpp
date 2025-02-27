@@ -4,6 +4,7 @@
 #include <base/dll.h>
 #include <base/logger_impl.h>
 
+#include <opencc.h>
 #include <cld3/nnet_language_identifier.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
@@ -52,6 +53,18 @@ struct UcharDetDeleter<uchardet> {
 
 using UcharDetPtr = std::unique_ptr<uchardet, UcharDetDeleter<uchardet>>;
 
+template <typename T>
+struct OpenCCDetDeleter;
+
+template <>
+struct OpenCCDetDeleter<opencc_t> {
+	void operator()(opencc_t p) const {
+		::opencc_close(p);
+	}
+};
+
+using OpenCCPtr = std::unique_ptr<opencc_t, OpenCCDetDeleter<opencc_t>>;
+
 class CharsetDetector::CharsetDetectorImpl {
 public:
 	CharsetDetectorImpl()
@@ -92,6 +105,54 @@ public:
 private:
 	chrome_lang_id::NNetLanguageIdentifier indentifier_;
 };
+
+class OpenCCConvert::OpenCCConvertImpl {
+public:
+	OpenCCConvertImpl() = default;
+
+	void Load(const std::string &file_name, const std::string &file_path) {
+		try {
+			converter_ = MakeAlign<opencc::SimpleConverter>(file_name,
+				std::vector<std::string>{ { file_path } });
+		}
+		catch (...) {
+		}
+	}
+
+	std::wstring Convert(const std::wstring& text) const {
+		if (text.empty() || !converter_) {
+			return text;
+		}
+
+		try {
+			auto utf8_str = String::ToUtf8String(text);
+			auto result = String::ToStdWString(converter_->Convert(
+				utf8_str.c_str(),
+				utf8_str.length()));
+			return result;
+		}
+		catch (...) {
+		}
+		return text;
+	}
+
+private:
+	ScopedPtr<opencc::SimpleConverter> converter_;
+};
+
+OpenCCConvert::OpenCCConvert()
+	: impl_(MakeAlign<OpenCCConvertImpl>()) {
+}
+
+void OpenCCConvert::Load(const std::string& file_name, const std::string& file_path) {
+	impl_->Load(file_name, file_path);
+}
+
+std::wstring OpenCCConvert::Convert(const std::wstring& text) const {
+	return impl_->Convert(text);
+}
+
+XAMP_PIMPL_IMPL(OpenCCConvert)
 
 CharsetDetector::CharsetDetector() 
 	: impl_(MakeAlign<CharsetDetectorImpl>()) {

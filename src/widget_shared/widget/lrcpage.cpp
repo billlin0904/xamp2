@@ -570,7 +570,7 @@ void LrcPage::initial() {
 
 	//lyrics_widget_->hide();
 	//cover_label_->hide();
-	//spectrum_->hide();
+	spectrum_->hide();
 
 	main_layout->addLayout(horizontal_layout_10);
 	setStyleSheet("background-color: transparent; border: none;"_str);

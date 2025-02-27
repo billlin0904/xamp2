@@ -6,6 +6,7 @@
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
 #include <widget/util/str_util.h>
+#include <widget/util/ui_util.h>
 #include <widget/widget_shared.h>
 #include <stream/eqsettings.h>
 #include <ui_equalizerdialog.h>
@@ -13,7 +14,7 @@
 
 namespace {
 	QMap<QString, EqSettings> getEqPresets() {
-		const auto path = QDir::currentPath() + "/Equalizer Presets/"_str;
+		const auto path = applicationPath() + "/Equalizer Presets/"_str;
 		const auto file_ext = QStringList() << "*.feq"_str;
         QMap<QString, EqSettings> result;
 

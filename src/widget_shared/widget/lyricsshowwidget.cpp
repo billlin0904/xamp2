@@ -20,6 +20,7 @@
 #include <widget/appsettings.h>
 #include <widget/actionmap.h>
 #include <widget/util/str_util.h>
+#include <widget/util/ui_util.h>
 
 namespace {
 	QSharedPointer<ILrcParser> makeLrcParser(const QString& file_path, QString& lrc_path, bool& use_default) {
@@ -129,7 +130,8 @@ void LyricsShowWidget::resizeEvent(QResizeEvent* event) {
 }
 
 void LyricsShowWidget::initial() {
-    lrc_font_ = font();
+    lrc_font_ = qTheme.defaultFont();
+	current_mask_font_ = lrc_font_;
 	lrc_font_.setPointSize(qAppSettings.valueAsInt(kLyricsFontSize));
 	lyric_.reset(new LrcParser());
 
@@ -159,6 +161,9 @@ void LyricsShowWidget::initial() {
 		});
 
 	setAcceptDrops(true);
+
+    const auto opencc_config_path = applicationPath() + "/opencc"_str;
+	convert_.Load("s2tw.json", opencc_config_path.toStdString());
 }
 
 void LyricsShowWidget::setBackgroundColor(QColor color) {
@@ -466,13 +471,14 @@ void LyricsShowWidget::loadFromParser(const QSharedPointer<ILrcParser>& parser) 
 	furiganas_.clear();
 
 	CharsetDetector detector;
-	for (const auto& lrc : *lyric_) {
+	for (auto& lrc : *lyric_) {
 		if (detector.IsJapanese(lrc.lrc)) {
 			furiganas_.push_back(furigana_.Convert(lrc.lrc));
 		} else {
 			// 這裡要補空的，否則會造成 index 不一致.
 			furiganas_.push_back({});
 		}
+		lrc.tlrc = convert_.Convert(lrc.tlrc);
 	}
 
 	resizeFontSize();
@@ -524,12 +530,13 @@ void LyricsShowWidget::loadLrc(const QString& lrc) {
 	else {
 		stop_scroll_time_ = false;
 		CharsetDetector detector;
-		for (const auto& lrc : *lyric_) {
+		for (auto& lrc : *lyric_) {
 			if (detector.IsJapanese(lrc.lrc)) {
 				furiganas_.push_back(furigana_.Convert(lrc.lrc));
 			} else {
 				// 這裡要補空的，否則會造成 index 不一致.
 				furiganas_.push_back({});
+				lrc.tlrc = convert_.Convert(lrc.tlrc);
 			}
 		}
 	}

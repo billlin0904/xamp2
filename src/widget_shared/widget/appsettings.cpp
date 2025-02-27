@@ -16,6 +16,7 @@
 
 #include <widget/databasefacade.h>
 #include <widget/util/log_util.h>
+#include <widget/util/ui_util.h>
 #include <widget/playerorder.h>
 #include <widget/playlistentity.h>
 #include <widget/databasecoverid.h>
@@ -167,7 +168,7 @@ void AppSettings::parseEQPreset(const QFileInfo file_info, QFile& file) {
 void AppSettings::loadEqPreset() {
 	eq_settings_.clear();
 
-	const auto path = QDir::currentPath() + "/eqpresets/"_str;
+	const auto path = applicationPath() + "/eqpresets/"_str;
 	const auto file_ext = QStringList() << "*.*"_str;
 
 	for (QDirIterator itr(path, file_ext, QDir::Files | QDir::NoDotAndDotDot);
@@ -202,7 +203,7 @@ QString AppSettings::getOrCreateCachePath() {
 		auto folder_path = QStandardPaths::standardLocations(QStandardPaths::CacheLocation);
 
 		const QList<QString> paths{
-			QDir::currentPath() + QString("/Cache/"_str),
+			applicationPath() + QString("/Cache/"_str),
 			folder_path[0],
 		};
 
@@ -226,7 +227,7 @@ QString AppSettings::getOrCreateCachePath() {
 		cache_path = qAppSettings.valueAsString(kAppSettingCachePath);
 	}
 #else
-    cache_path = QDir::currentPath() + "/Cache/");
+    cache_path = applicationPath() + "/Cache/");
     const QDir dir(cache_path);
     if (!dir.exists()) {
         if (!dir.mkdir(cache_path)) {

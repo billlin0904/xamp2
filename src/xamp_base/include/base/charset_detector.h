@@ -10,6 +10,20 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
+class XAMP_BASE_API OpenCCConvert {
+public:
+	OpenCCConvert();
+
+	XAMP_PIMPL(OpenCCConvert)
+
+	void Load(const std::string& file_name, const std::string& file_path);
+
+	std::wstring Convert(const std::wstring& text) const;
+private:
+	class OpenCCConvertImpl;
+	ScopedPtr<OpenCCConvertImpl> impl_;
+};
+
 class XAMP_BASE_API CharsetDetector {
 public:
 	CharsetDetector();
@@ -23,6 +37,7 @@ public:
 	}
 
 	bool IsJapanese(const std::wstring& text);
+
 private:
 	class CharsetDetectorImpl;
 	ScopedPtr<CharsetDetectorImpl> impl_;

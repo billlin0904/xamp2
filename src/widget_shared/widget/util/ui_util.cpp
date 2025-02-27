@@ -407,3 +407,7 @@ QList<QModelIndex> getVisibleIndexes(const QAbstractItemView* list_view, int32_t
 
     return index_found;
 }
+
+QString applicationPath() {
+    return QDir::currentPath();
+}
