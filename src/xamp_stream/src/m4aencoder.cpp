@@ -320,8 +320,8 @@ public:
         return true;
     }
 
-    void Encode(const std::stop_token& stop_token,
-        const std::function<bool(uint32_t)>& progress) {
+    void Encode(const std::function<bool(uint32_t)>& progress,
+        const std::stop_token& stop_token) {
         AvPtr<AVFrame> frame;
         frame.reset(LIBAV_LIB.Util->av_frame_alloc());
         frame->nb_samples = codec_context_->frame_size;
@@ -446,9 +446,9 @@ void M4AFileEncoder::Start(const AnyMap& config,
     impl_->Start(config, file);
 }
 
-void M4AFileEncoder::Encode(const std::stop_token& stop_token,
-    std::function<bool(uint32_t)> const& progress) {
-    impl_->Encode(stop_token, progress);
+void M4AFileEncoder::Encode(std::function<bool(uint32_t)> const& progress
+	, const std::stop_token& stop_token) {
+    impl_->Encode(progress, stop_token);
 }
 
 XAMP_STREAM_NAMESPACE_END

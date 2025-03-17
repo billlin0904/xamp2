@@ -121,6 +121,14 @@ namespace dao {
     }
 
     void ArtistDao::updateArtist(int32_t artist_id, const QString& artist)  {
+        SqlQuery query(db_);
+
+        query.prepare("UPDATE artists SET artist = :artist WHERE (artistId = :artistId)"_str);
+
+        query.bindValue(":artist"_str, artist);
+        query.bindValue(":artistId"_str, artist_id);
+
+        DbIfFailedThrow1(query);
     }
 
     void ArtistDao::removeAllArtist() {

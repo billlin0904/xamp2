@@ -488,7 +488,7 @@ void AppSettings::loadAppSettings() {
 	setDefaultValue(kAppSettingMinimizeToTray, true);
 	setDefaultValue(kAppSettingWindowState, false);
 	setDefaultValue(kAppSettingScreenNumber, 1);
-	setDefaultValue(kAppSettingEnableSpectrum, true);
+	setDefaultValue(kAppSettingEnableSpectrum, false);
 	setDefaultValue(kAppSettingEnableShortcut, true);
 	setDefaultValue(kAppSettingEnterFullScreen, false);
 	setDefaultValue(kAppSettingEnableSandboxMode, true);

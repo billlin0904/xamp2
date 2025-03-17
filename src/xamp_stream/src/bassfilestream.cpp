@@ -100,7 +100,7 @@ public:
                     file_path.c_str(),
                     0,
                     0,
-                    flags | BASS_UNICODE | BASS_STREAM_DECODE | BASS_ASYNCFILE));
+                    flags | BASS_UNICODE | BASS_STREAM_DECODE));
                 return;
             }
 
@@ -120,7 +120,7 @@ public:
             stream_.reset(BASS_LIB.BASS_StreamCreateURL(
                 url,
                 0,
-                flags | BASS_STREAM_DECODE | BASS_UNICODE | BASS_STREAM_STATUS | BASS_ASYNCFILE,
+                flags | BASS_STREAM_DECODE | BASS_UNICODE | BASS_STREAM_STATUS,
                 &BassFileStreamImpl::DownloadProc,
                 this));
 #endif

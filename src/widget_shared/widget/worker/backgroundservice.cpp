@@ -1,5 +1,6 @@
 #include <widget/worker/backgroundservice.h>
 
+#include <widget/util/ui_util.h>
 #include <widget/util/str_util.h>
 #include <widget/util/image_util.h>
 #include <widget/database.h>
@@ -29,67 +30,28 @@
 XAMP_DECLARE_LOG_NAME(BackgroundService);
 
 namespace {
-    QString uniqueFileName(const QDir& dir, const QString& originalName) {
-        QFileInfo info(originalName);
-        QString baseName = info.completeBaseName();
-        QString extension = info.suffix().isEmpty() ? ""_str : "."_str + info.suffix();
-
-        QString candidate = originalName;
-        int counter = 1;
-        
-        while (dir.exists(candidate)) {
-            candidate = qFormat("%1(%2)%3").arg(baseName).arg(counter).arg(extension);
-            counter++;
-        }
-        return candidate;
-    }
-
-    QString getValidFileName(QString fileName) {
-        static const QRegularExpression forbidden_pattern(R"([\*\?\"<>:/\\\|])"_str);
-        fileName.replace(forbidden_pattern, " "_str);
-		return fileName;
-    }
-
     constexpr size_t kFFTSize = 4096 * 2;
     constexpr size_t kHopSize = kFFTSize * 0.5;
     constexpr float kPower2FFSize = kFFTSize * kFFTSize;
     constexpr size_t kFreqBins = (kFFTSize / 2);
 
-    constexpr double kMaxDb = 0.0;
+    constexpr double kMaxDb = 0;
     constexpr double kMinDb = -120.0;
     constexpr double kDbRange = kMaxDb - kMinDb;
 
     class ColorTable {
     public:
-        static constexpr int kTableSize = 256;
+        ColorTable() = default;
 
-        ColorTable() {
-            for (int i = 0; i < kTableSize; ++i) {
-                double ratio = static_cast<double>(i)
-            	/ static_cast<double>(kTableSize - 1);
-                lut_[i] = makeSoxrColor(ratio);
-            }
+        QRgb operator[](double dB_val) const {
+            if (dB_val < kMinDb) dB_val = kMinDb;
+            if (dB_val > kMaxDb) dB_val = kMaxDb;
+            const double ratio = (dB_val - kMinDb) / kDbRange;
+            return soxrColor(ratio);
         }
 
-		QRgb operator[](double dB_val) const {
-            if (dB_val < kMinDb)
-                dB_val = kMinDb;
-
-            if (dB_val > kMaxDb)
-                dB_val = kMaxDb;
-
-            double ratio = (dB_val + kDbRange) / kDbRange;
-            int idx = static_cast<int>(ratio * (kTableSize - 1) + 0.5);
-
-            if (idx < 0)
-                idx = 0;
-            else if (idx >= kTableSize) 
-                idx = kTableSize - 1;
-
-			return lut_[idx];
-		}
-
-        static QRgb makeSoxrColor(double level) {
+    private:
+        static QRgb soxrColor(double level) {
             double r = 0.0;
             if (level >= 0.13 && level < 0.73) {
                 r = sin((level - 0.13) / 0.60 * XAMP_PI / 2.0);
@@ -124,77 +86,80 @@ namespace {
 
             return qRgb(rr, gg, bb);
         }
-    private:
-        std::array<QRgb, kTableSize> lut_;
     };
 
-    auto getDb(const std::complex<float>& complex) -> float {
-        float val = (complex.real() * complex.real() 
-            + complex.imag() * complex.imag());
-        if (val != 0.0f) {
-            float dB = 10.0f * log10f(val / kPower2FFSize);
-            return dB;
+    float getDb(const std::complex<float>& c) {
+        // 取得 (實部^2 + 虛部^2)
+        float val = (c.real() * c.real() + c.imag() * c.imag());
+        if (val <= 0.0f) {
+            return kMinDb;
         }
-        return kMinDb;
+        // log10( val / kPower2FFSize ) → dB
+        float dB = 10.0f * std::log10f(val / kPower2FFSize);
+        return dB;
     }
 
-    auto getRealDb(const float real) -> float {
-        if (real != 0.0f) {
-            float dB = 10.0f * log10f((real * real) / kPower2FFSize);
-            return dB;
+    float getRealDb(float real_val) {
+        if (real_val == 0.0f) {
+            return kMinDb;
         }
-        return kMinDb;
+        float dB = 10.0f * std::log10f((real_val * real_val) / kPower2FFSize);
+        return dB;
     }
 
-    auto makePcmFileStream(const Path& file_path) -> ScopedPtr<FileStream> {
-        auto dsd_mode = DsdModes::DSD_MODE_DSD2PCM;
-        if (!IsDsdFile(file_path)) {
-            dsd_mode = DsdModes::DSD_MODE_PCM;
-        }
-        auto file_stream =
-            StreamFactory::MakeFileStream(file_path, dsd_mode);
-        file_stream->OpenFile(file_path);
-        return file_stream;
-    }
+    void fillSpectrogramColumn(
+        QImage& chunk_img,
+        int col,
+        const ComplexValarray& freq_bins
+    ) {
+        // 1) 先準備顏色查表物件 (靜態單例)
+        static ColorTable color_table;
 
-    auto makeImage(double duration_sec, uint32_t sample_rate) -> QImage {
-        size_t max_time_bins = static_cast<size_t>(std::ceil(
-            duration_sec
-            * sample_rate / kHopSize)) + 1;
+        // 2) 取得 QImage 的基本資訊
+        uchar* data = chunk_img.bits();
+        int bytes_per_line = chunk_img.bytesPerLine();
+        int height = chunk_img.height();
+        int n_bins = static_cast<int>(freq_bins.size());
 
-        QSize image_size(max_time_bins, kFreqBins + 1);
-        QImage spec_img(image_size, QImage::Format_RGB888);
-        spec_img.fill(Qt::black);
-        return spec_img;
-    }
-
-    void drawImage(uchar* data,
-        const ComplexValarray& freq_bins,
-        int time_index,
-        int bytes_per_line,
-        int f) {
-        static const ColorTable color_lut;
-        auto dB = 0.0f;
-
-        if (f == 0 || f == freq_bins.size() - 1) {
-            dB = getRealDb(freq_bins[f].real());
-        }
-        else {
-            dB = getDb(freq_bins[f]);
+        // 3) 計算線性縮放比例： freq_bins.size() → 影像高度
+        //    預計 f=0 畫在最底部 (height-1)，f=n_bins-1 畫在最頂 (0)
+        double scale = 1.0;
+        if (n_bins > 1 && height > 1) {
+            scale = double(height - 1) / double(n_bins - 1);
         }
 
-        QRgb color = color_lut[dB];
-        const int y = static_cast<int>(freq_bins.size()) - 1 - static_cast<int>(f);
-        const int x = static_cast<int>(time_index);
+        // 4) 逐一頻率 bin，計算 dB，並繪製到對應的 y
+        for (int f = 0; f < n_bins; ++f) {
+            float dB;
+            if (f == 0 || f == n_bins - 1) {
+                // 端點 bin (DC / Nyquist) 使用實數 dB
+                dB = getRealDb(freq_bins[f].real());
+            }
+            else {
+                // 其他 bin 使用複數幅度 dB
+                dB = getDb(freq_bins[f]);
+            }
 
-        int idx = y * bytes_per_line + x * 3;
-        uchar r = qRed(color);
-        uchar g = qGreen(color);
-        uchar b = qBlue(color);
+            // 透過 color_table 查出對應的 QRgb (SoX 調色)
+            QRgb color = color_table[dB];
 
-        data[idx + 0] = r;
-        data[idx + 1] = g;
-        data[idx + 2] = b;
+            // 將 bin 索引 f => y 座標
+            //   y = (height - 1) - round(f * scale)
+            int scaled_f = static_cast<int>(f * scale + 0.5);
+            int y = (height - 1) - scaled_f;
+
+            // x = col 代表「這一整列」是第幾個時間窗
+            int x = col;
+
+            // 計算此像素在 QImage data 陣列的起始 index
+            // QImage::Format_RGB888 => 每像素 3 bytes (R, G, B)
+            int idx = y * bytes_per_line + x * 3;
+
+            // 寫入 RGB
+            data[idx + 0] = qRed(color);
+            data[idx + 1] = qGreen(color);
+            data[idx + 2] = qBlue(color);
+        }
     }
 }
 
@@ -211,47 +176,64 @@ void BackgroundService::cancelAllJob() {
     stop_source_.request_stop();
 }
 
+void BackgroundService::onTranscribeFile(const QString& file_name) {
+    http_client_.setUrl("http://127.0.0.1:9090/transcribe_file_krc/"_str);
+    http_client_.setTimeout(30000);
+    http_client_.postMultipart(file_name)
+		.then([this](const auto& content) {
+        QSharedPointer<KrcParser> parser(new KrcParser());
+        if (parser->parse(reinterpret_cast<const uint8_t*>(content.data()),
+            content.size())) {
+			emit transcribeFileCompleted(parser);
+        }
+    });
+}
+
 void BackgroundService::onAddJobs(const QString& dir_name,
-    QList<EncodeJob> jobs) {
+    const QList<EncodeJob>& jobs) {
     stop_source_ = std::stop_source();
-    
-    Executor::ParallelFor(thread_pool_.get(),
-        jobs, [dir_name, this](auto &job, const auto &stop_token) {
+
+    Q_FOREACH(auto job, jobs) {
         std::shared_ptr<IFile> file_writer;
         Path output_path;
-        
+
         auto file_name = getValidFileName(job.file.title);
 
-		// Ensure file name is unique.
+        // Ensure file name is unique.
         constexpr auto kMaxRetryTestUniqueFileName = 255;
         auto i = 0;
         for (; i < kMaxRetryTestUniqueFileName; ++i) {
-			try {
+            try {
                 auto unique_save_file_name = uniqueFileName(
                     QDir(dir_name),
                     file_name + ".m4a"_str);
                 //auto unique_save_file_name = uniqueFileName(QDir(dir_name)
                 //, job.file.title + ".wav"_str);
                 auto save_file_name = dir_name
-				+ "/"_str
-				+ unique_save_file_name;
+                    + "/"_str
+                    + unique_save_file_name;
                 output_path = save_file_name.toStdWString();
-				file_writer = MakFileEncodeWriter(output_path);
-				break;
-			}
-			catch (const Exception& e) {
-				XAMP_LOG_ERROR(e.GetErrorMessage());
-				emit jobError(job.job_id, tr("Error"));
-			}
+                file_writer = MakFileEncodeWriter(output_path);
+                break;
+            }
+            catch (const Exception& e) {
+                XAMP_LOG_ERROR(e.GetErrorMessage());
+                emit jobError(job.job_id, tr("Error"));
+            }
         }
-		if (i == kMaxRetryTestUniqueFileName) {
-			XAMP_LOG_ERROR("Failed to create unique file name.");
-			return;
-		}
+        if (i == kMaxRetryTestUniqueFileName) {
+            XAMP_LOG_ERROR("Failed to create unique file name.");
+            return;
+        }
 
         Path input_path(job.file.file_path.toStdWString());
+
+        auto root_name = input_path.root_name().string();
+        //const auto cd = OpenCD(root_name[0]);
+        //cd->SetMaxSpeed();
+
         try {
-            
+
             auto encoder = StreamFactory::MakeM4AEncoder();
 
             AnyMap config;
@@ -261,7 +243,7 @@ void BackgroundService::onAddJobs(const QString& dir_name,
                 output_path);
             config.AddOrReplace(FileEncoderConfig::kCodecId,
                 job.codec_id.toStdString());
-            config.AddOrReplace(FileEncoderConfig::kBitRate, 
+            config.AddOrReplace(FileEncoderConfig::kBitRate,
                 job.bit_rate);
             //config.AddOrReplace(FileEncoderConfig::kCodecId,
             //std::string("pcm"));
@@ -269,7 +251,7 @@ void BackgroundService::onAddJobs(const QString& dir_name,
             //static_cast<uint32_t>(0));
 
             encoder->Start(config, file_writer);
-            encoder->Encode(stop_token, [job, this](auto progress) {
+            encoder->Encode([job, this](auto progress) {
                 if (progress % 10 == 0) {
                     emit updateJobProgress(job.job_id, progress);
                 }
@@ -302,7 +284,7 @@ void BackgroundService::onAddJobs(const QString& dir_name,
             XAMP_LOG_ERROR(e.what());
             emit jobError(job.job_id, tr("Error"));
         }
-        }, stop_source_.get_token());
+    }
 }
 
 void BackgroundService::cancelRequested() {
@@ -320,8 +302,8 @@ QCoro::Task<SearchLyricsResult> BackgroundService::downloadSingleKlrc(InfoItem i
     http.param("client"_str, "mobi"_str);
     http.param("hash"_str, info.hash);
     http.param("album_audio_id"_str, ""_str);
-    http.param("page"_str, "1"_str);
-    http.param("pagesize"_str, "1"_str);
+    //http.param("page"_str, "1"_str);
+    //http.param("pagesize"_str, "1"_str);
 
     auto content = co_await http.get();
     auto candidates = parseCandidatesFromJson(content);
@@ -330,7 +312,9 @@ QCoro::Task<SearchLyricsResult> BackgroundService::downloadSingleKlrc(InfoItem i
     // 2. 逐一下載 KRC
     for (auto& candidate : candidates) {
         // 建立新的 HttpClient 指向下載 API
-        http::HttpClient http_download(&nam_, "http://lyrics.kugou.com/download"_str, this);
+        http::HttpClient http_download(&nam_, 
+            "http://lyrics.kugou.com/download"_str,
+            this);
         http_download.param("ver"_str, "1"_str);
         http_download.param("client"_str, "pc"_str);
         http_download.param("id"_str, candidate.id);
@@ -416,38 +400,40 @@ void BackgroundService::onFetchCdInfo(const DriveInfo& drive) {
         return;
     }
 
-    try {
-        std::forward_list<TrackInfo> track_infos;
-        const auto cd = OpenCD(drive.driver_letter);
-        cd->SetMaxSpeed();
-        const auto tracks = cd->GetTotalTracks();
-
-        auto track_id = 0;
-        for (const auto& track : tracks) {
-            auto track_info = TagIO::getTrackInfo(track);
-            track_info.file_path = tracks[track_id];
-            track_info.duration = cd->GetDuration(track_id++);
-            track_info.sample_rate = 44100;
-            track_info.disc_id = disc_id;
-            track_infos.push_front(track_info);
-        }
-
-        track_infos.sort([](const auto& first, const auto& last) {
-            return first.track < last.track;
-        });
-
-        emit readCdTrackInfo(QString::fromStdString(disc_id), track_infos);
-    }
-    catch (const Exception& e) {
-        XAMP_LOG_DEBUG(e.GetErrorMessage());
-        return;
-    }
-
-    XAMP_LOG_D(logger_, "Start fetch cd information form music brainz.");
+    XAMP_LOG_D(logger_, "Start fetch cd information form musicbrainz.");
 
     http_client_.setUrl(QString::fromStdString(url));
-    http_client_.get().then([this, disc_id](const auto& content) {
+    http_client_.get().then([this, drive, disc_id](const auto& content) {
         auto [image_url, mb_disc_id_info] = parseMbDiscIdXml(content);
+
+        try {
+            std::forward_list<TrackInfo> track_infos;
+            const auto cd = OpenCD(drive.driver_letter);
+            cd->SetMaxSpeed();
+            const auto tracks = cd->GetTotalTracks();
+
+            auto track_id = 0;
+            for (const auto& track : tracks) {
+                auto track_info = TagIO::getTrackInfo(track);
+                track_info.file_path = tracks[track_id];
+                track_info.duration = cd->GetDuration(track_id++);
+                track_info.album = mb_disc_id_info.album;
+                track_info.sample_rate = 44100;
+                track_info.disc_id = disc_id;
+                track_info.track = track_id;
+                track_infos.push_front(track_info);
+            }
+
+            track_infos.sort([](const auto& first, const auto& last) {
+                return first.track < last.track;
+                });
+
+            emit readCdTrackInfo(QString::fromStdString(disc_id), track_infos);
+        }
+        catch (const Exception& e) {
+            XAMP_LOG_DEBUG(e.GetErrorMessage());
+            return;
+        }
 
         mb_disc_id_info.disc_id = disc_id;
         mb_disc_id_info.tracks.sort([](const auto& first, const auto& last) {
@@ -534,66 +520,66 @@ void BackgroundService::onReadWaveformAudioData(size_t frame_per_peek,
 }
 
 void BackgroundService::onReadSpectrogram(const QSize& widget_size, const Path& file_path) {
-    try {
-		auto file_stream = makePcmFileStream(file_path);
-		if (file_stream->GetDurationAsSeconds() <= 0.0) {
-			return;
-		}
+	try {
+        auto file_stream = makePcmFileStream(file_path);
+        if (file_stream->GetDurationAsSeconds() <= 0.0) {
+            return;
+        }
 
-    	STFT fft(kFFTSize, kHopSize);
+        STFT fft(kFFTSize, kHopSize);
         fft.SetWindowType(WindowType::HANN);
 
         Buffer<float> buffer(kFFTSize);
 
-		auto spec_img = makeImage(
-            file_stream->GetDurationAsSeconds(),
-			file_stream->GetFormat().GetSampleRate());
-
-        uchar* data = spec_img.bits();
-        int bytes_per_line = spec_img.bytesPerLine();
         int time_index = 0;
+        auto duration = file_stream->GetDurationAsSeconds();
+        ComplexValarray freq_bins;
+        freq_bins.resize(fft.GetShiftSize() + 1);
 
-        // Read audio data and calculate spectrogram
-        while (!is_stop_ && file_stream->IsActive()) {
-            buffer.Fill(0);
-            auto read_samples = file_stream->GetSamples(
-                buffer.data(), 
+        int kColumnsPerChunk = (std::min)(100u, (file_stream->GetFormat().GetSampleRate() / 44100) * 100);
+
+        while (!is_stop_ && file_stream->IsActive()) {        
+        	QImage chunk_img(kColumnsPerChunk, freq_bins.size(), QImage::Format_RGB888);
+            chunk_img.fill(Qt::black);
+
+	        buffer.Fill(0.0f);
+            auto read_samples = file_stream->GetSamples(buffer.data(),
                 buffer.size());
             if (read_samples == 0) {
-                continue;
-            }
-            if (read_samples < buffer.size() / 2) {
-                XAMP_LOG_WARN("read_samples small than buffer size.");
+                freq_bins = fft.Flush();
+                fillSpectrogramColumn(chunk_img, 0, freq_bins);
+                emit readAudioSpectrogram(duration, chunk_img, time_index);
+                break;
             }
 
-            const auto& freq_bins = fft.Process(
-                buffer.data(), 
-                buffer.size());
+            freq_bins = fft.Process(buffer.data(), buffer.size());
+            fillSpectrogramColumn(chunk_img, 0, freq_bins);
+            int actual_columns = kColumnsPerChunk;
 
-            for (size_t f = 0; f < freq_bins.size(); f++) {
-            	drawImage(data,
-                    freq_bins, 
-                    time_index,
-                    bytes_per_line,
-                    f);
+            for (int col = 1; col < kColumnsPerChunk; col++) {
+                buffer.Fill(0.0f);
+                read_samples = file_stream->GetSamples(buffer.data(), 
+                    buffer.size());
+                if (read_samples == 0) {
+                    actual_columns = col;
+                    freq_bins = fft.Flush();
+                    fillSpectrogramColumn(chunk_img, col, freq_bins);
+                    break;
+                }
+                freq_bins = fft.Process(buffer.data(), buffer.size());
+                fillSpectrogramColumn(chunk_img, col, freq_bins);
             }
-            time_index++;
+
+            emit readAudioSpectrogram(duration, chunk_img, time_index);
+            time_index += actual_columns;
         }
 
-        // Resize image to fit the spectrogram
-        auto final_img = spec_img.copy(0,
-            0,
-            static_cast<int>(time_index),
-            static_cast<int>(kFreqBins + 1)
-        );
-		final_img = final_img.scaled(widget_size, 
-            Qt::KeepAspectRatioByExpanding);
-        emit readAudioSpectrogram(final_img);
-	}
-	catch (const Exception& e) {
-		XAMP_LOG_ERROR(e.GetErrorMessage());
+        emit readAudioDataCompleted();
     }
-	catch (const std::exception& e) {
-		XAMP_LOG_ERROR(e.what());
-	}
+    catch (const Exception& e) {
+        XAMP_LOG_ERROR(e.GetErrorMessage());
+    }
+    catch (const std::exception& e) {
+        XAMP_LOG_ERROR(e.what());
+    }
 }

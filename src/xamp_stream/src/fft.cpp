@@ -20,7 +20,7 @@ XAMP_STREAM_NAMESPACE_BEGIN
 
 namespace {
 	size_t ComplexSize(size_t size) {
-		return (size / 2) + 1;
+		return (size / 2.0) + 1;
 	}
 }
 
@@ -151,14 +151,12 @@ public:
 
 		status = MKL_LIB.DftiSetValue(descriptor_.get(),
 			DFTI_COMPLEX_STORAGE,
-			DFTI_REAL_REAL);
+			DFTI_COMPLEX_COMPLEX);
 		IfFailedThrowMKL(status)
 
 		status = MKL_LIB.DftiCommitDescriptor(descriptor_.get());
 		IfFailedThrowMKL(status)
 
-		real_.resize(frame_size_);
-		imag_.resize(frame_size_);
 		output_.resize(complex_size_);
 	}
 
@@ -170,25 +168,17 @@ public:
 		MKL_LONG status = MKL_LIB.DftiComputeForward(
 			descriptor_.get(),
 			const_cast<float*>(signals),
-			real_.data(),
-			imag_.data()
+			output_.data()
 		);
 		IfFailedThrowMKL(status)
-
-		for (size_t i = 0; i < complex_size_; ++i) {
-			output_[i] = Complex(real_[i], imag_[i]);
-		}
-
 		return output_;
 	}
 
 private:
 	size_t complex_size_{ 0 };
 	size_t frame_size_{ 0 };
-	DftiDescriptor descriptor_;
-	std::vector<float> real_;
-	std::vector<float> imag_;
 	ComplexValarray output_;
+	DftiDescriptor descriptor_;
 };
 #else
 class FFT::FFTImpl {

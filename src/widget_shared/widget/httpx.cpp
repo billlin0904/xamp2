@@ -1,14 +1,18 @@
 #include <widget/httpx.h>
 
 #include <QCoroNetworkReply>
+#include <QFileInfo>
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QUrl>
 #include <QMetaEnum>
+#include <QHttpPart>
 
 #include <widget/networkdiskcache.h>
 #include <widget/util/str_util.h>
 #include <widget/util/zib_util.h>
+
+#include "version.h"
 
 namespace http {
     namespace {
@@ -263,6 +267,8 @@ namespace http {
 
         if (!user_agent_.isEmpty()) {
             request.setRawHeader("User-Agent", user_agent_.toUtf8());
+        } else {
+            request.setRawHeader("User-Agent", "xamp2/0.0.1-alpha");
         }
 
         request.setRawHeader("Accept-Encoding", "gzip");
@@ -289,6 +295,7 @@ namespace http {
             reply->deleteLater();
         }
         else {
+            auto error_response = processEncoding(reply, reply->readAll());
             const auto error_string = reply->errorString();
             reply->deleteLater();
         }
@@ -330,6 +337,89 @@ namespace http {
         }
 
         return result;
+    }
+
+    QCoro::Task<QByteArray> HttpClient::postMultipart(const QString& file_path,
+        const QString& field_name,
+        const QString& mime_type) {
+        QUrl full_url(url_);
+        // 如果原本就有可能帶 query param，可以視需求：
+        if (!params_.isEmpty()) {
+            full_url.setQuery(params_);
+            params_.clear();
+        }
+
+        QNetworkRequest request(full_url);
+        // 設定你要的 headers, e.g. Accept, Cookie, etc. 
+        // 注意：不要自己硬填 Content-Type = "multipart/form-data"，讓 QHttpMultiPart 自己帶。
+        setHeaders(request);
+        request.setRawHeader("Accept", "application/json");
+       
+        // 構建 multiPart
+        auto* multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
+
+        auto file_name = QFileInfo(file_path).fileName();
+        // 準備檔案
+        QHttpPart filePart;
+        filePart.setHeader(QNetworkRequest::ContentDispositionHeader,
+            QVariant(qFormat(R"(form-data; name="%1"; filename="%2")")
+                .arg(field_name)
+                .arg(file_name)));
+        filePart.setHeader(QNetworkRequest::ContentTypeHeader, QVariant(mime_type));
+
+        auto* file = new QFile(file_path);
+        if (!file->open(QIODevice::ReadOnly)) {
+            // 打不開檔案就直接丟錯或回傳失敗
+            file->deleteLater();
+            delete multiPart;
+            // 也可改用 throw std::runtime_error(...) 或 co_return 空字串
+            co_return QByteArray();
+        }
+        filePart.setBodyDevice(file);
+        file->setParent(multiPart); // 生命週期交給 multiPart
+
+        multiPart->append(filePart);
+
+		request.setHeader(QNetworkRequest::ContentTypeHeader,
+			QVariant(qFormat("multipart/form-data; boundary=%1"_str)
+				.arg(QString::fromUtf8(multiPart->boundary()))));
+
+        // 送出
+        auto* reply = co_await manager_->post(request, multiPart);
+        // 記得把 multiPart 的 parent 設成 reply，等 reply 結束後自動清理
+        multiPart->setParent(reply);
+
+        // 你原本的 log
+        logHttpRequest(logger_, "POST"_str, request, reply);
+
+        // 處理錯誤或讀取資料
+        QByteArray response_data;
+        if (reply->error() == QNetworkReply::NoError) {
+            // 讀取回應原始資料
+            response_data = reply->readAll();
+
+            // 假如伺服器回傳 gzip 壓縮，可如原本那樣處理
+            if (isZipEncoding(reply)) {
+                XAMP_LOG_D(logger_, "Decompressing gzip content.");
+                try {
+                    response_data = gzipDecompress(response_data);
+                }
+                catch (...) {
+                    // 解壓時失敗就照原樣保留
+                }
+            }
+        }
+        else {
+            // 讀取錯誤訊息
+            const auto error_string = reply->errorString();
+            XAMP_LOG_E(logger_, "Http Post Multipart failed: {}", error_string.toStdString());
+            // 這邊可考慮:
+            // throw std::runtime_error(error_string.toStdString());
+            // 或只是回傳空 QByteArray()
+        }
+
+        reply->deleteLater();
+        co_return response_data;
     }
 
 }

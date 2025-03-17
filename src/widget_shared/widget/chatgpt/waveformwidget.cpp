@@ -160,6 +160,20 @@ namespace {
             right_rms.push_back(rms_right);
         }
     }
+
+    constexpr size_t kFFTSize = 4096 * 2;
+    constexpr size_t kHopSize = kFFTSize * 0.5;
+
+    auto makeImage(double duration_sec, uint32_t sample_rate, const QImage& chunk) -> QImage {
+        size_t max_time_bins = static_cast<size_t>(std::ceil(
+            duration_sec
+            * sample_rate / kHopSize)) + 1;
+
+        QSize image_size(max_time_bins, chunk.height());
+        QImage spec_img(image_size, QImage::Format_RGB888);
+        spec_img.fill(Qt::black);
+        return spec_img;
+    }
 }
 
 WaveformWidget::WaveformWidget(QWidget *parent)
@@ -272,8 +286,8 @@ void WaveformWidget::setCurrentPosition(float sec) {
         const int play_index = static_cast<int>(std::floor(ratio * peak_count_));
         updatePlayedPaths(play_index);
     }
-    
-	update(drawRect());
+
+    update(drawRect());    
 }
 
 void WaveformWidget::setTotalDuration(float duration) {
@@ -309,10 +323,28 @@ void WaveformWidget::setDrawMode(uint32_t mode) {
 	update();
 }
 
-void WaveformWidget::setSpectrogramData(const QImage& spectrogramImg) {
-    spectrogram_ = spectrogramImg;
+void WaveformWidget::setSpectrogramData(double duration_sec, const QImage& chunk, int time_index) {
+    if (time_index == 0) {
+        spectrogram_ = makeImage(duration_sec, sample_rate_, chunk);
+        spectrogram_.fill(Qt::black);
+    }
+
+    QPainter p(&spectrogram_);
+    p.drawImage(time_index, 0, chunk);
+    p.end();
+
     updateSpectrogramSize();
     update();
+}
+
+void WaveformWidget::updateSpectrogramSize() {
+    if (spectrogram_.isNull())
+        return;
+    if (size() == spectrogram_cache_.size()) {
+        return;
+    }
+    spectrogram_cache_ = spectrogram_.scaled(size(),
+        Qt::KeepAspectRatioByExpanding);
 }
 
 void WaveformWidget::onReadAudioData(const std::vector<float> & buffer) {
@@ -330,8 +362,8 @@ void WaveformWidget::onReadAudioData(const std::vector<float> & buffer) {
 
 QRect WaveformWidget::drawRect() const {
     constexpr int leftMargin = 50;
-    constexpr int rightMargin = 10;
-    constexpr int topMargin = 10;
+    constexpr int rightMargin = 20;
+    constexpr int topMargin = 20;
     constexpr int bottomMargin = 20;
 
     QRect waveform_rect(leftMargin,
@@ -340,6 +372,73 @@ QRect WaveformWidget::drawRect() const {
         height() - topMargin - bottomMargin);
 
     return waveform_rect;
+}
+
+void WaveformWidget::drawCursorIfNeeded(QPainter& painter, const QRegion& region) {
+    if (cursor_ms_ < 0.f || total_ms_ <= 0.f) {
+        return;  // 無需繪製
+    }
+
+    QRect waveformRect = drawRect();
+
+    // 計算cursor的x座標位置
+    float cursor_sec = cursor_ms_ / 1000.f;
+    float x_cursor = timeToX(cursor_sec, waveformRect);
+    int cursor_x = static_cast<int>(x_cursor);
+
+    // 檢查重繪區域是否包含cursor的位置
+    QRect cursorRect(cursor_x - 1, waveformRect.top(), 2, waveformRect.height());
+    if (!region.intersects(cursorRect)) {
+        return; // 若不相交，則不繪製
+    }
+
+    // 繪製cursor線
+    painter.save();
+
+    // 繪製cursor（可自訂樣式）
+    painter.setPen(QPen(QColor(100, 200, 255), 1));
+    painter.drawLine(QPointF(x_cursor, waveformRect.top()),
+        QPointF(x_cursor, waveformRect.bottom()));
+
+    // 繪製時間提示標籤
+    QString time_text = formatDuration(cursor_sec, false);
+
+    const QFontMetrics fm(painter.font());
+    int text_width = fm.horizontalAdvance(time_text);
+    int text_height = fm.height();
+
+    constexpr float kPadding = 4.0f;
+    constexpr float kCornerRadius = 3.0f;
+
+    float box_w = text_width + kPadding * 2;
+    float box_h = text_height + kPadding * 2;
+
+    // 計算標籤位置，避免超出區域
+    float lineGap = 1.0f;
+    float x_text = x_cursor + lineGap;
+
+    if (x_text + box_w > waveformRect.right()) {
+        x_text = x_cursor - lineGap - box_w;
+    }
+
+    if (x_text < waveformRect.left()) {
+        x_text = waveformRect.left();
+    }
+
+    float y_box = waveformRect.top() + 3.f;
+
+    QRectF bg_rect(x_text, y_box, box_w, box_h);
+
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(QColor(50, 50, 200, 200));
+    painter.drawRoundedRect(bg_rect, kCornerRadius, kCornerRadius);
+
+    painter.setPen(Qt::white);
+    float text_baseline_y = y_box + kPadding + (text_height - fm.descent());
+    float text_start_x = x_text + kPadding;
+    painter.drawText(QPointF(text_start_x, text_baseline_y), time_text);
+
+    painter.restore();
 }
 
 void WaveformWidget::updateCachePixmap() {
@@ -660,44 +759,97 @@ void WaveformWidget::updatePlayedPaths(int playIndex) {
 }
 
 void WaveformWidget::drawTimeAxis(QPainter& painter, const QRect& rect) {
-    // 取得總秒數
-    int32_t total_sec = static_cast<int32_t>(total_ms_ / 1000.0f);
+    // 1) 取得音訊總秒數 (int)
+    int total_sec = static_cast<int>(total_ms_ / 1000.f);
     if (total_sec <= 0) return;
 
-    int axisY = rect.bottom();
-    painter.setPen(QPen(Qt::white, 1));
-
+    // 2) 設定字型、計算標籤寬度
+    //    Spek 通常用 "00:00" 作為範例字串，測量文字長度。
     QFont f = painter.font();
-    f.setPointSize(8);
+    f.setPointSize(7); // 你可以調整字型大小
     painter.setFont(f);
     QFontMetrics fm(painter.font());
 
-    bool min_range = (total_sec <= 30);
-    auto min_tick = 5;
-	auto max_tick = 30;
-    if (total_sec > 3600) {
-		min_tick = 60;
-		max_tick = 300;
+    // 假設我們用 "00:00" 來估計字串長度
+    QString sample_label = "00:00"_str;
+    int labelWidth = fm.horizontalAdvance(sample_label);
+    // 給個倍數，確保標籤之間留足空間 (Spek 內用 ~1.5)
+    double spacingFactor = 1.5;
+
+    // 3) 準備 Spek 狀態下常用的 time factor (秒)
+    //    這組清單與 Spek 幾乎一致: 
+    //    1,2,5,10,20,30 秒、1分(60s)、2分(120s)、5分(300s)...等
+    static const int time_factors[] = {
+        1,2,5,10,20,30,
+        60,120,300,600,1200,1800, // 1m,2m,5m,10m,20m,30m
+        // 可再加更大, 3600(1h),7200(2h) ...
+        0 // 結束標記
+    };
+
+    // 4) 計算每「1 秒」對應多少像素
+    double scale = 0.0;
+    if (total_sec > 0) {
+        scale = double(rect.width()) / double(total_sec);
     }
 
-    for (int cur_sec = 0; cur_sec <= total_sec; ++cur_sec) {
-        float ratio = static_cast<float>(cur_sec) / total_sec;
-        float x_tick = rect.left() + ratio * rect.width();
-
-        if (cur_sec % min_tick == 0) {
-            painter.drawLine(QPointF(x_tick, axisY + 1),
-                QPointF(x_tick, axisY + 5));
-        }
-        if (cur_sec % max_tick == 0 || (min_range && cur_sec % 1 == 0)) {
-            painter.drawLine(QPointF(x_tick, axisY + 1),
-                QPointF(x_tick, axisY + 8));
-            QString tick_text = formatDuration(cur_sec); // 例如 "0:30"
-            int tw = fm.horizontalAdvance(tick_text);
-            float x_text = x_tick - tw * 0.5f;
-            float y_text = axisY + fm.height() + 2; // 軸線下方
-            painter.drawText(QPointF(x_text, y_text), tick_text);
+    // 5) 從候選因子中選擇「最小可行」間距
+    //    條件：相鄰標籤間距 >= spacingFactor * labelWidth
+    //    => scale * factor >= spacingFactor * labelWidth
+    //    => factor >= (spacingFactor * labelWidth) / scale
+    int factor = 0;
+    for (int i = 0; time_factors[i] != 0; ++i) {
+        double pixelPerTick = scale * time_factors[i]; // 該刻度間距對應的畫布寬度
+        if (pixelPerTick >= spacingFactor * labelWidth) {
+            factor = time_factors[i];
+            break;
         }
     }
+    // 若都找不到 => total_sec 很大 => 就取最後1個大的 (例如 30分或1小時)
+    if (factor == 0) {
+        factor = 1800; // 你可改為更大的值，如 3600
+    }
+
+    // 6) 準備繪製：包含 0 與終點
+    int min_units = 0;
+    int max_units = total_sec;
+
+    // 7) 開始畫軸
+    int axisY = rect.bottom();
+    painter.setPen(QPen(Qt::white, 1));
+
+    // 先畫最左的 0秒 及最右的 max_units
+    auto drawTickAndLabel = [&](int t) {
+        // t秒 => x座標
+        double ratio = double(t) / double(total_sec);
+        if (ratio > 1.0) ratio = 1.0;
+        float x_tick = float(rect.left() + ratio * rect.width());
+        // 刻度線
+        painter.drawLine(QPointF(x_tick, axisY),
+            QPointF(x_tick, axisY + 4));
+        // 標籤 mm:ss
+        QString label = formatDuration(t);
+        int tw = fm.horizontalAdvance(label);
+        float x_text = x_tick - tw * 0.5f;
+        float y_text = axisY + fm.height() + 2;
+        painter.drawText(QPointF(x_text, y_text), label);
+        };
+
+    // 畫 0
+    drawTickAndLabel(min_units);
+
+    // 8) 中間刻度（factor倍數）。Spek 如果跟終點太近 => 跳出避免重疊
+    for (int tick = min_units + factor; tick < max_units; tick += factor) {
+        // 檢查是否離終點太近
+        // => (max_units - tick)秒 * scale < labelWidth * 1.2
+        double distToEndPx = (max_units - tick) * scale;
+        if (distToEndPx < double(labelWidth) * 1.2) {
+            break;
+        }
+        drawTickAndLabel(tick);
+    }
+
+    // 畫終點
+    drawTickAndLabel(max_units);
 }
 
 void WaveformWidget::drawDuration(QPainter& painter, const QRect& rect) {
@@ -748,42 +900,105 @@ void WaveformWidget::drawDuration(QPainter& painter, const QRect& rect) {
 }
 
 void WaveformWidget::drawFrequencyAxis(QPainter& painter, const QRect& rect) {
-    // 頻率軸畫在 rect 左邊的 margin 區域
-   // x 範圍是 [0, rect.left()]
-    int axisX = 0;
-    int axisWidth = rect.left();
+    // 1) 計算音檔的 Nyquist 頻率 = 取樣率的一半
+    double nyquist = double(sample_rate_) * 0.5;
+    if (nyquist <= 0.0) return;
 
-    // 先畫一條垂直線：top ~ bottom
-    painter.setPen(QPen(Qt::white, 1));
-
-    // 預設 nyquist 頻率
-    float nyquist = static_cast<float>(sample_rate_) * 0.5f;
-    if (nyquist <= 0.f) return;
-
+    // 2) 設定字型，測量標籤寬度
     QFont f = painter.font();
-    f.setPointSize(8);
+    f.setPointSize(7); // 調整字型大小
     painter.setFont(f);
     QFontMetrics fm(painter.font());
 
-    // 每 5 kHz 畫一次刻度(僅示意)
-    constexpr float kStepKHz = 5000.f;
-    for (float freq = 0.f; freq <= nyquist + 1.f; freq += kStepKHz) {
-        float ratio = freq / nyquist; // [0..1]
-        if (ratio > 1.f) ratio = 1.f;
+    // Spek 可能用 "22.0 kHz" 當範例字串 => "22.0 kHz"
+    // 你也可用 "99999 Hz" 之類，以確保最寬
+    QString sample_label = "22.0 kHz"_str;
+    int labelWidth = fm.horizontalAdvance(sample_label);
+    double spacingFactor = 1.5; // 允許標籤間保留 1.5 個字寬
 
-        // 軸上對應的 y 座標 = rect.bottom() - ratio * rect.height()
-        float y_tick = rect.bottom() - ratio * rect.height();
+    // 3) 準備頻率刻度候選 (比時間多/大，從 1Hz ~ 20000Hz 之類)
+    //    下例為簡化示例，可再增刪
+    static const int freq_factors[] = {
+        // 1,2,5,10,20,50,100,200,500, 
+        1000,2000,3000,5000,10000,20000,
+        0
+    };
+    // 你也可從較小開始: 1,2,5,10,20,50,100,200,500,1000,2000...
+    // 若要更細，如 200, 400, 800... 可依需求添加
 
-        // 刻度線
-        painter.drawLine(QPointF(axisWidth - 6, y_tick),
-            QPointF(axisWidth, y_tick));
-
-        // 文字
-        QString label = QString::number(static_cast<int>(freq * 0.001f)) + " kHz"_str;
-        int text_width = fm.horizontalAdvance(label);
-        // 畫在刻度左方 (或更左)
-        painter.drawText(axisWidth - 8 - text_width, y_tick + fm.height() * 0.4f, label);
+    // 4) 計算「1Hz 在畫面上佔幾個像素」
+    //    這裡是「垂直軸」；所以 1Hz = rect.height() / nyquist
+    //    取 linear scale => y = bottom - (freq/nyquist)*height
+    double scale = 0.0;
+    if (nyquist > 0.0) {
+        scale = double(rect.height()) / nyquist;
     }
+
+    // 5) 選擇「最小可行」刻度值 (freq step)
+    int factor = 0;
+    for (int i = 0; freq_factors[i] != 0; ++i) {
+        double pixelPerTick = scale * freq_factors[i];
+        if (pixelPerTick >= spacingFactor * labelWidth) {
+            factor = freq_factors[i];
+            break;
+        }
+    }
+    // 如果一個都找不到 => 代表檔案取樣率極高 => 就取最後(20000)
+    if (factor == 0) {
+        factor = 20000;
+    }
+
+    // 6) 頻率軸通常畫在「rect.left()」左邊一點
+    //    先畫一條主線
+    const int axisRight = rect.left();
+    painter.setPen(Qt::white);
+
+    // 7) 幫你寫個小函式，用來繪製單一 tick
+    auto drawTickAndLabel = [&](double freq) {
+        if (freq < 0.0) freq = 0.0;
+        if (freq > nyquist) freq = nyquist;
+
+        double ratio = freq / nyquist;
+        if (ratio > 1.0) ratio = 1.0;
+        float y_tick = float(rect.bottom() - ratio * rect.height());
+
+        // 繪製小刻度
+        painter.drawLine(QPointF(axisRight - 5, y_tick),
+            QPointF(axisRight, y_tick));
+
+        // 顯示文字: e.g. "2.0 kHz"
+        // freq 若 < 1000 => 顯示 "123 Hz"
+        // freq >= 1000 => 顯示 kHz
+        QString label;
+        if (freq < 999.5) {
+            label = QString::number(freq, 'f', 0) + " Hz"_str;
+        }
+        else {
+            double khz = freq * 1e-3;
+            label = QString::number(khz, 'f', 1) + " kHz"_str;
+        }
+        int tw = fm.horizontalAdvance(label);
+        float y_text = y_tick + fm.ascent() * 0.5f;
+
+        // 左對齊
+        painter.drawText(axisRight - 8 - tw, y_text, label);
+        };
+
+    // 8) 先畫0, 再畫中間刻度, 最後畫 nyquist
+    drawTickAndLabel(0.0);
+
+    // 中間刻度
+    for (int tick = factor; tick < int(nyquist); tick += factor) {
+        // Spek 會檢查是否離nyquist 太近 => 跳過 
+        double distToEndPx = (nyquist - tick) * scale;
+        if (distToEndPx < labelWidth * 1.2) {
+            break;
+        }
+        drawTickAndLabel(double(tick));
+    }
+
+    // 再畫 nyquist
+    drawTickAndLabel(nyquist);
 }
 
 void WaveformWidget::paintEvent(QPaintEvent *event) {
@@ -899,7 +1114,12 @@ void WaveformWidget::mouseReleaseEvent(QMouseEvent* event) {
 void WaveformWidget::resizeEvent(QResizeEvent* event) {
 	QFrame::resizeEvent(event);
     if (draw_mode_ & kDrawSpectrogram) {
-		updateSpectrogramSize();
+		if (file_path_.empty() || is_processing_) {
+			return;
+		}
+        doneRead();
+        is_processing_ = true;
+        emit readAudioSpectrogram(size(), file_path_);
 	} else {
         updateCachePixmap();
 	}
@@ -910,6 +1130,8 @@ void WaveformWidget::doneRead() {
     XAMP_LOG_DEBUG("Done read!");
     updateSpectrogramSize();
     updateCachePixmap();
+    spectrogram_ = QImage();
+    is_processing_ = false;
     update();
 }
 
@@ -925,6 +1147,8 @@ void WaveformWidget::clear() {
 	right_rms_.clear();
 	path_left_played_ = QPainterPath();
     path_right_played_ = QPainterPath();
+    spectrogram_ = QImage();
+    spectrogram_cache_ = QImage();
     update();
 }
 
@@ -939,16 +1163,6 @@ void WaveformWidget::setProcessInfo(size_t frame_per_peek, const Path& file_path
 		emit readWaveformAudioData(frame_per_peak_, file_path_);
 	}
 	update();
-}
-
-void WaveformWidget::updateSpectrogramSize() {
-    if (spectrogram_.isNull())
-        return;
-	if (size() == spectrogram_cache_.size()) {
-        return;
-	}
-    spectrogram_cache_ = spectrogram_.scaled(size(), 
-        Qt::KeepAspectRatioByExpanding);
 }
 
 float WaveformWidget::mapPeakToY(float peakVal, 

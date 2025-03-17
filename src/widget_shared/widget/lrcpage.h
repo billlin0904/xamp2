@@ -37,7 +37,8 @@ signals:
 	void changeLyric(const LyricsParser &parser);
 
 private:
-	QTableWidget* lyrc_list_;
+	QTableView* lyrc_view_;
+	QStandardItemModel* model_;
 	QMap<QString, LyricsParser> parser_map_;
 };
 

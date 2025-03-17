@@ -13,6 +13,7 @@
 #include <memory>
 
 #include <base/object_pool.h>
+#include <widget/util/str_util.h>
 #include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
 
@@ -40,6 +41,10 @@ namespace http {
         QCoro::Task<QString> post();
         QCoro::Task<QString> put(const QByteArray& data);
         QCoro::Task<QString> del();
+
+        QCoro::Task<QByteArray> postMultipart(const QString& file_path,
+            const QString& field_name = "file"_str,
+            const QString& mime_type = "application/octet-stream"_str);
 
 		QCoro::Task<QByteArray> download();
 

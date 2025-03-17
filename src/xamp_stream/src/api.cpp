@@ -224,6 +224,8 @@ ScopedPtr<FileStream> MakeFileStream(const Path& file_path, DsdModes dsd_mode) {
                 break;
             }
             dsd_stream->SetDSDMode(dsd_mode);
+            file_stream->OpenFile(file_path);
+            return file_stream;
         }
     }
 

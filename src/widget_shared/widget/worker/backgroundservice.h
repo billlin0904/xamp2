@@ -66,16 +66,20 @@ signals:
 
 	void jobError(const QString& job_id, const QString &message);
 
-	void readAudioSpectrogram(const QImage& spectrogram);
+	void readAudioSpectrogram(double duration_sec, const QImage& chunk, int timeIndex);
 
 	void readAudioData(const std::vector<float>& interleaved);
 
 	void readAudioDataCompleted();
 
+	void transcribeFileCompleted(const QSharedPointer<ILrcParser>& parser);
+
 public Q_SLOT:
 	void cancelAllJob();
 
-	void onAddJobs(const QString& dir_name, QList<EncodeJob> jobs);
+	void onTranscribeFile(const QString& file_name);
+
+	void onAddJobs(const QString& dir_name, const QList<EncodeJob> &jobs);
 
 	void cancelRequested();
 
@@ -91,7 +95,7 @@ public Q_SLOT:
 
 	void onReadWaveformAudioData(size_t frame_per_peek, const Path & file_path);
 
-	void onReadSpectrogram(const QSize& widget_size, const Path& file_path);
+	void onReadSpectrogram(const QSize &widget_size, const Path& file_path);
 
 	QCoro::Task<QList<SearchLyricsResult>> downloadKLrc(QList<InfoItem> infos);
 

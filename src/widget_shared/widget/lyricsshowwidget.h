@@ -22,7 +22,9 @@ class XAMP_WIDGET_SHARED_EXPORT LyricsShowWidget : public WheelableWidget {
 	Q_OBJECT
 
 public:
-	static constexpr auto kHighLightColor = QColor(77, 208, 225, 255);
+	static constexpr auto kKaraokeHighLightColor = QColor(247, 247, 59, 255);
+	static constexpr auto kNormalColor = QColor(69, 69, 69, 255);
+	static constexpr auto kHighLightColor = QColor(164, 216, 216, 255);
 
 	explicit LyricsShowWidget(QWidget *parent = nullptr);
 
@@ -31,6 +33,8 @@ public:
 	bool loadFile(const QString &file_path);
 
 	void loadFromParser(const QSharedPointer<ILrcParser> &parser);
+
+	bool isValid() const;
 
 	void setCurrentTime(int32_t time, bool is_adding = true);
 
@@ -51,9 +55,9 @@ public:
 public slots:
 	void stop();
 
-	void onSetLrc(const QString &lrc, const QString& trlyc = kEmptyString);
+	void onSetLrc(const QString& lrc, const QString& trlyrc = kEmptyString);
 
-	void onSetLrcTime(int32_t length);
+	void onSetLrcTime(int32_t stream_time);
 
 	void onSetLrcFont(const QFont &font);
 
@@ -82,6 +86,7 @@ private:
 
 	void resizeFontSize();
 
+	bool is_lrc_valid_{ false };
 	bool stop_scroll_time_{ false };
 	bool is_fulled_{ false };
 	int32_t pos_;
@@ -92,6 +97,7 @@ private:
 	QFont current_mask_font_;
 	QColor lrc_color_;
 	QColor lrc_highlight_color_;
+	QColor karaoke_highlight_color_;
 	QColor background_color_;
 	QString lrc_;
 	QString orilyrc_;

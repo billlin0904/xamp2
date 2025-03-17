@@ -29,4 +29,3 @@ void updateButtonState(QToolButton* playButton, PlayerState state);
 
 void setNaviBarMenuButton(Ui::XampWindow& ui);
 
-void setTabViewStyle(QTableView *table_view);

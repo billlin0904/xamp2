@@ -37,7 +37,6 @@ XMainWindow::XMainWindow()
     setAttribute(Qt::WA_DontCreateNativeAncestors);
     setObjectName("XMainWindow"_str);
     setAcceptDrops(true);
-    readDriveInfo();
 }
 
 void XMainWindow::setShortcut(const QKeySequence& shortcut) {
@@ -67,6 +66,7 @@ void XMainWindow::setContentWidget(IXFrame *content_widget) {
     installWindowAgent();
     setCentralWidget(content_widget);
     //ensureInitTaskbar();
+    readDriveInfo();
 }
 
 // QScopedPointer require default destructor.

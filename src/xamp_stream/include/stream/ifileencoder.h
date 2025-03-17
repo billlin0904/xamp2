@@ -48,8 +48,8 @@ public:
 	virtual void Start(const AnyMap& config,
 		const std::shared_ptr<IFile> & file = std::shared_ptr<IFile>()) = 0;
 
-	virtual void Encode(const std::stop_token &stop_token,
-		std::function<bool(uint32_t)> const& progress) = 0;
+	virtual void Encode(std::function<bool(uint32_t)> const& progress = nullptr,
+		const std::stop_token& stop_token = std::stop_token()) = 0;
 
 protected:
 	IFileEncoder() = default;

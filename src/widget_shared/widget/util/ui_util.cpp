@@ -7,11 +7,14 @@
 #include <QScreen>
 #include <QTime>
 #include <QAbstractItemView>
+#include <QHeaderView>
+#include <QScrollBar>
 
 #include <stream/soxresampler.h>
 #include <stream/r8brainresampler.h>
 #include <stream/srcresampler.h>
 #include <stream/idspmanager.h>
+#include <stream/filestream.h>
 
 #include <widget/appsettings.h>
 #include <widget/appsettingnames.h>
@@ -19,6 +22,7 @@
 #include <widget/processindicator.h>
 #include <widget/xmainwindow.h>
 #include <widget/util/str_util.h>
+#include <widget/widget_shared.h>
 
 #include <xampplayer.h>
 #include <version.h>
@@ -118,6 +122,18 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
 
 QSharedPointer<ProcessIndicator> makeProcessIndicator(QWidget* widget) {
     return {new ProcessIndicator(widget), &QObject::deleteLater};
+}
+
+ScopedPtr<FileStream> makePcmFileStream(const Path& file_path) {
+    PrefetchFile(file_path);
+    auto dsd_mode = DsdModes::DSD_MODE_DSD2PCM;
+    if (!IsDsdFile(file_path)) {
+        dsd_mode = DsdModes::DSD_MODE_PCM;
+    }
+    auto file_stream =
+        StreamFactory::MakeFileStream(file_path, dsd_mode);
+    file_stream->OpenFile(file_path);
+    return file_stream;
 }
 
 QSharedPointer<XProgressDialog> makeProgressDialog(QString const& title,
@@ -408,6 +424,97 @@ QList<QModelIndex> getVisibleIndexes(const QAbstractItemView* list_view, int32_t
     return index_found;
 }
 
+QString uniqueFileName(const QDir& dir, const QString& originalName) {
+    QFileInfo info(originalName);
+    QString baseName = info.completeBaseName();
+    QString extension = info.suffix().isEmpty() ? ""_str : "."_str + info.suffix();
+
+    QString candidate = originalName;
+    int counter = 1;
+
+    while (dir.exists(candidate)) {
+        candidate = qFormat("%1(%2)%3").arg(baseName).arg(counter).arg(extension);
+        counter++;
+    }
+    return candidate;
+}
+
+QString getValidFileName(QString fileName) {
+    static const QRegularExpression forbidden_pattern(R"([\*\?\"<>:/\\\|])"_str);
+    fileName.replace(forbidden_pattern, " "_str);
+    return fileName;
+}
+
 QString applicationPath() {
     return QDir::currentPath();
+}
+
+void setTabViewStyle(QTableView* table_view) {
+    table_view->setStyleSheet(qFormat(R"(
+	QTableView {
+		background-color: transparent;
+        border: 1px solid rgba(255, 255, 255, 10);
+		border-radius: 4px;
+	}
+
+	QTableView::item:selected {
+		background-color: rgba(255, 255, 255, 10);
+	}
+    )"));
+
+    table_view->horizontalHeader()->setFixedHeight(30);
+    table_view->horizontalHeader()->setStyleSheet(qFormat(R"(	
+	QHeaderView::section {
+		background-color: transparent;
+		border-bottom: 1px solid rgba(255, 255, 255, 15);
+	}
+
+	QHeaderView::section::horizontal {
+		padding-left: 4px;
+		padding-right: 4px;
+		font-size: 9pt;
+	}
+
+	QHeaderView::section::horizontal::first, QHeaderView::section::horizontal::only-one {
+		border-left: 0px;
+	}
+    )"));
+
+    auto f = table_view->font();
+    f.setPointSize(qTheme.defaultFontSize());
+    table_view->setFont(f);
+
+    table_view->setUpdatesEnabled(true);
+    table_view->setAcceptDrops(true);
+    table_view->setDragEnabled(true);
+    table_view->setShowGrid(false);
+    table_view->setMouseTracking(true);
+    table_view->setAlternatingRowColors(true);
+
+    table_view->setDragDropMode(QAbstractItemView::InternalMove);
+    table_view->setFrameShape(QAbstractItemView::NoFrame);
+    table_view->setFocusPolicy(Qt::NoFocus);
+
+    table_view->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+    table_view->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    table_view->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    table_view->setSelectionBehavior(QAbstractItemView::SelectRows);
+
+    table_view->viewport()->setAttribute(Qt::WA_StaticContents);
+
+    table_view->verticalHeader()->setVisible(false);
+    table_view->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+    table_view->horizontalScrollBar()->setDisabled(true);
+
+    table_view->horizontalHeader()->setVisible(true);
+    table_view->horizontalHeader()->setHighlightSections(false);
+    table_view->horizontalHeader()->setStretchLastSection(false);
+    table_view->horizontalHeader()->setDefaultAlignment(Qt::AlignVCenter | Qt::AlignLeft);
+
+    table_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    table_view->verticalScrollBar()->setStyleSheet(
+        "QScrollBar:vertical { width: 6px; }"_str);
+
+    table_view->verticalHeader()->setSectionsMovable(false);
+    table_view->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
 }

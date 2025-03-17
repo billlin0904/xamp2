@@ -531,7 +531,7 @@ void PlaylistTableView::initial() {
     proxy_model_->setSourceModel(model_);
     setModel(proxy_model_);
 
-    auto f = font();
+    /*auto f = font();
     f.setPointSize(qTheme.defaultFontSize());
     setFont(f);
 
@@ -563,12 +563,21 @@ void PlaylistTableView::initial() {
     horizontalHeader()->setHighlightSections(false);
     horizontalHeader()->setStretchLastSection(false);
     horizontalHeader()->setDefaultAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-    setItemDelegate(new PlaylistStyledItemDelegate(this));
- 
-    installEventFilter(this);
+
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     verticalScrollBar()->setStyleSheet(
         "QScrollBar:vertical { width: 6px; }"_str);
+
+    setEditTriggers(DoubleClicked | SelectedClicked);
+    verticalHeader()->setSectionsMovable(false);
+    horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);*/
+
+    setTabViewStyle(this);
+    verticalHeader()->setDefaultSectionSize(kColumnHeight);
+    setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::SelectedClicked);
+
+    installEventFilter(this);
+    setItemDelegate(new PlaylistStyledItemDelegate(this));
 
     (void)QObject::connect(model_, &QAbstractTableModel::modelReset,
     [this] {
@@ -576,10 +585,6 @@ void PlaylistTableView::initial() {
             model_->fetchMore();
         }
     });
-
-    setEditTriggers(DoubleClicked | SelectedClicked);
-    verticalHeader()->setSectionsMovable(false);
-    horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
 
     (void)QObject::connect(this, &QTableView::doubleClicked, [this](const QModelIndex& index) {
         if (model_->rowCount() > 0) {

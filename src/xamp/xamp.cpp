@@ -78,7 +78,6 @@
 namespace {
     constexpr ConstexprQString kSoftwareUpdateUrl =
         "https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json"_str;
-    constexpr auto kYtMusicSampleRate = 48000;
 
     void showMeMessage(const QString& message) {
         if (qAppSettings.dontShowMeAgain(message)) {
@@ -889,6 +888,7 @@ void Xamp::initialController() {
             || player_->GetDsdModes() == DsdModes::DSD_MODE_NATIVE) {
             return;
         }
+        QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         QScopedPointer<XDialog> dialog(new XDialog(this));
         auto* eq = new EqualizerView(dialog.get());
         dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_EQUALIZER));
@@ -1360,6 +1360,9 @@ void Xamp::onPlayEntity(const PlayListEntity& entity, bool is_double_clicked) {
         entity.file_path.toStdWString(),
         entity.sample_rate,
         target_sample_rate);
+    /*if (!IsPcmAudio(open_dsd_mode)) {
+		target_sample_rate = entity.sample_rate;
+    }*/
 
     try {
 	    PlaybackFormat playback_format;
@@ -1499,6 +1502,8 @@ void Xamp::updateUi(const PlayListEntity& entity,
     lrc_page_->setPlayListEntity(entity);
     emit searchLyrics(entity);
 
+    //emit transcribeFile(entity.file_path);
+
     lrc_page_->title()->setText(entity.title);
     lrc_page_->album()->setText(entity.album);
     lrc_page_->artist()->setText(entity.artist);
@@ -1610,18 +1615,37 @@ void Xamp::onUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
     }
 }
 
+void Xamp::onFetchMbDiscInfoCompleted(const MbDiscIdInfo &mb_disc_id_info) {
+    const auto album_id = qDaoFacade.album_dao_.getAlbumIdByDiscId(
+        QString::fromStdString(mb_disc_id_info.disc_id));
+    if (album_id != kInvalidDatabaseId) {
+        qDaoFacade.album_dao_.forEachAlbumMusic(album_id, [&mb_disc_id_info](const auto &entity) {
+            qDaoFacade.artist_dao_.updateArtist(entity.artist_id, QString::fromStdWString(mb_disc_id_info.artist));
+			auto itr = std::find_if(mb_disc_id_info.tracks.begin(), mb_disc_id_info.tracks.end(),
+                [&entity](const auto& track) {
+                    return entity.track == track.track;
+				});
+            if (itr != mb_disc_id_info.tracks.end()) {
+                qDaoFacade.music_dao_.updateMusicTitle(entity.music_id, 
+                    QString::fromStdWString(itr->title));
+            }
+            });
+    }
+    cd_page_->playlistPage()->playlist()->reload();
+    cd_page_->showPlaylistPage(true);
+    library_page_->reload();
+}
+
 void Xamp::onUpdateDiscCover(const QString& disc_id,
     const QString& cover_id) {
 	const auto album_id = qDaoFacade.album_dao_.getAlbumIdByDiscId(disc_id);
-    qDaoFacade.album_dao_.setAlbumCover(album_id, cover_id);
+    if (album_id != kInvalidDatabaseId) {
+        qDaoFacade.album_dao_.setAlbumCover(album_id, cover_id);
+    }
 }
 
 void Xamp::onUpdateCdTrackInfo(const QString& disc_id,
     const std::forward_list<TrackInfo>& track_infos) {
-    const auto album_id = qDaoFacade.album_dao_.getAlbumIdByDiscId(disc_id);
-    qDaoFacade.album_dao_.removeAlbum(album_id);
-    qDaoFacade.album_dao_.removeAlbumArtist(album_id);
-    cd_page_->playlistPage()->playlist()->removeAll();
     qDatabaseFacade.insertTrackInfo(track_infos,
         kCdPlaylistId, 
         StoreType::LOCAL_STORE);
@@ -1768,7 +1792,7 @@ PlaylistPage* Xamp::newPlaylistPage(PlaylistTabWidget *tab_widget,
         cloud_playlist_id);
     playlist_page->playlist()->setHeaderViewHidden(false);
     playlist_page->pageTitle()->hide();
-    setTabViewStyle(playlist_page->playlist());
+    //setTabViewStyle(playlist_page->playlist());
     connectPlaylistPageSignal(playlist_page);
     onSetCover(kEmptyString, playlist_page);
     tab_widget->createNewTab(name, playlist_page, resize);
@@ -1907,7 +1931,7 @@ void Xamp::initialPlaylist() {
     });
 
     file_explorer_page_.reset(new FileSystemViewPage(this));
-    setTabViewStyle(file_explorer_page_->playlistPage()->playlist());
+    //setTabViewStyle(file_explorer_page_->playlistPage()->playlist());
     connectPlaylistPageSignal(file_explorer_page_->playlistPage());
 
     cd_page_.reset(new CdPage(this));
@@ -1985,6 +2009,12 @@ void Xamp::initialPlaylist() {
         Qt::QueuedConnection);
 
     (void)QObject::connect(background_service_.get(),
+        &BackgroundService::fetchMbDiscInfoCompleted,
+        this,
+        &Xamp::onFetchMbDiscInfoCompleted,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(background_service_.get(),
         &BackgroundService::fetchDiscCoverCompleted,
         this,
         &Xamp::onUpdateDiscCover,
@@ -2017,6 +2047,11 @@ void Xamp::initialPlaylist() {
         &Xamp::searchLyrics,
         background_service_.get(),
         &BackgroundService::onSearchLyrics);
+
+    (void)QObject::connect(this,
+        &Xamp::transcribeFile,
+        background_service_.get(),
+        &BackgroundService::onTranscribeFile);
 
     (void)QObject::connect(library_page_->album(),
         &AlbumView::clickedArtist,

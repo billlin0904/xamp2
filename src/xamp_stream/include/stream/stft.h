@@ -23,6 +23,10 @@ public:
 	void Clear();
 
 	const ComplexValarray& Process(const float* in, size_t length);
+
+	const ComplexValarray& Flush();
+
+	size_t GetShiftSize() const;
 private:
 	size_t frame_size_;
 	size_t shift_size_;

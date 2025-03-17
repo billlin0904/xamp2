@@ -55,4 +55,14 @@ const ComplexValarray& STFT::Process(const float* in, size_t length) {
     return fft_.Forward(out_.data(), frame_size_);
 }
 
+const ComplexValarray& STFT::Flush() {
+    auto leftover_samples = GetShiftSize();
+    std::vector<float> zero_buffer(leftover_samples * AudioFormat::kMaxChannel, 0.0f);
+    return Process(zero_buffer.data(), zero_buffer.size());
+}
+
+size_t STFT::GetShiftSize() const {
+	return shift_size_;
+}
+
 XAMP_STREAM_NAMESPACE_END

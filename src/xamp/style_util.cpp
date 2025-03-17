@@ -270,35 +270,3 @@ void setWidgetStyle(Ui::XampWindow& ui) {
 void updateButtonState(QToolButton* playButton, PlayerState state) {
     qTheme.setPlayOrPauseButton(playButton, state != PlayerState::PLAYER_STATE_PAUSED);
 }
-
-void setTabViewStyle(QTableView* table_view) {
-    table_view->setStyleSheet(qFormat(R"(
-	QTableView {
-		background-color: transparent;
-        border: 1px solid rgba(255, 255, 255, 10);
-		border-radius: 4px;
-	}
-
-	QTableView::item:selected {
-		background-color: rgba(255, 255, 255, 10);
-	}
-    )"));
-
-    table_view->horizontalHeader()->setFixedHeight(30);
-    table_view->horizontalHeader()->setStyleSheet(qFormat(R"(	
-	QHeaderView::section {
-		background-color: transparent;
-		border-bottom: 1px solid rgba(255, 255, 255, 15);
-	}
-
-	QHeaderView::section::horizontal {
-		padding-left: 4px;
-		padding-right: 4px;
-		font-size: 9pt;
-	}
-
-	QHeaderView::section::horizontal::first, QHeaderView::section::horizontal::only-one {
-		border-left: 0px;
-	}
-    )"));
-}

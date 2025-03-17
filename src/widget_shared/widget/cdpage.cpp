@@ -37,6 +37,7 @@ CdPage::CdPage(QWidget* parent)
                                         )"_str);
     ui_->arrowButton->setIcon(qTheme.fontIcon(Glyphs::ICON_LEFT_ARROW));
     ui_->arrowButton->setIconSize(QSize(64, 64));
+    ui_->playlistPage->pageTitle()->hide();
     ui_->playlistPage->hide();
 
     ui_->tipFrame->setStyleSheet("background-color: transparent;"_str);

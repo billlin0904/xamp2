@@ -401,14 +401,16 @@ public:
 	}
 
     XAMP_NO_DISCARD TrackInfo Extract() const {
+        TrackInfo track_info;
+
 		if (!file_ref_opt_) {
-			throw Exception("file was NULL!");
+            SetFileInfo(path_, track_info);
+            ExtractTitleFromFileName(track_info);
+            return track_info;
 		}
 
         const auto& file_ref = *file_ref_opt_;
         const auto* tag = file_ref.tag();
-
-        TrackInfo track_info;
 
         if (tag != nullptr) {
             ExtractTag(path_, tag, file_ref.audioProperties(), track_info);

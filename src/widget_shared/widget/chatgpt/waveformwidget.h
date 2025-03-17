@@ -61,7 +61,7 @@ signals:
 public slots:
     void onReadAudioData(const std::vector<float> & buffer);
 
-    void setSpectrogramData(const QImage& spectrogramImg);
+    void setSpectrogramData(double duration_sec, const QImage& chunk, int time_index);
 
     void doneRead();
 
@@ -103,6 +103,9 @@ private:
 
     QRect drawRect() const;
 
+    void drawCursorIfNeeded(QPainter& painter, const QRegion& region);
+
+    bool is_processing_ = false;
     uint32_t draw_mode_ = kDrawOnlyRightChannel;
     float total_ms_ = 0.f;
     size_t peak_count_ = 0;

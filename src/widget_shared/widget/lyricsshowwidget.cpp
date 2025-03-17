@@ -131,6 +131,7 @@ void LyricsShowWidget::resizeEvent(QResizeEvent* event) {
 
 void LyricsShowWidget::initial() {
     lrc_font_ = qTheme.defaultFont();
+	lrc_font_.setBold(true);
 	current_mask_font_ = lrc_font_;
 	lrc_font_.setPointSize(qAppSettings.valueAsInt(kLyricsFontSize));
 	lyric_.reset(new LrcParser());
@@ -196,6 +197,7 @@ void LyricsShowWidget::setDefaultLrc() {
 	LyricEntry entry;
 	entry.lrc = tr("Not found lyrics").toStdWString();
 	lyric_->addLrc(entry);
+	is_lrc_valid_ = true;
 }
 
 void LyricsShowWidget::setCurrentTime(const int32_t time, const bool is_adding) {
@@ -245,6 +247,9 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 	QFontMetrics furigana_metrics(furigana_font);
 	QFontMetrics metrics(painter->font());
 
+	qint64 global_time = pos_;
+	qint64 line_start = entry.timestamp.count();
+
 	// ------------------------------------------------------------------------
 	// (A) 若沒有逐字資訊 (words.empty())，整行繪製
 	// ------------------------------------------------------------------------
@@ -256,6 +261,15 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 			// Furigana 字體縮小
 			furigana_font.setPointSizeF(lrc_font_.pointSizeF() * 0.5);
 			auto furigana_result = furiganas_[index];
+
+			if (global_time >= line_start) {
+				// 當前行 => 用同一個高亮色
+				painter->setPen(lrc_highlight_color_);
+			}
+			else {
+				// 其他行 => 用正常顏色
+				painter->setPen(lrc_color_);
+			}
 
 			for (const auto& entity : furigana_result) {
 				auto kanji_text = QString::fromStdWString(entity.text);
@@ -298,6 +312,15 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 		auto furigana_result = furiganas_[index];
 		int base_line = rect.y() + (rect.height() + metrics.ascent()) / 2;
 
+		if (global_time >= line_start) {
+			// 當前行 => 用同一個高亮色
+			painter->setPen(lrc_highlight_color_);
+		}
+		else {
+			// 其他行 => 用正常顏色
+			painter->setPen(lrc_color_);
+		}
+
 		// 先用較小字體繪 Furigana
 		painter->setFont(furigana_font);
 		for (const auto& entity : furigana_result) {
@@ -320,8 +343,6 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 	}
 
 	// 6) 再用卡拉OK方式畫主文字
-	qint64 global_time = pos_;
-	qint64 line_start = entry.timestamp.count();
 	qint64 delta = global_time - line_start;
 
 	painter->setFont(lrc_font_);
@@ -364,7 +385,7 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 		// 如果 fraction>0 就用 clipRect 疊加高亮
 		if (fraction > 0.0) {
 			painter->save();
-			painter->setPen(kHighLightColor); // 你自定義的高亮色
+			painter->setPen(kKaraokeHighLightColor); // 你自定義的高亮色
 			int highlight_width = static_cast<int>(word_width * fraction);
 			painter->setClipRect(x, rect.y(), highlight_width, rect.height());
 			painter->drawText(x, baseline, word_text);
@@ -375,7 +396,16 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 
 	// 7) 繪製翻譯行 (如果有)
 	if (!entry.tlrc.empty()) {
-		QColor translation_color_ = QColor(Qt::gray);     // 翻譯行字體顏色
+		QColor translation_color;
+		if (global_time >= line_start) {
+			// 當前行 => 用同一個高亮色
+			translation_color = lrc_highlight_color_;
+		}
+		else {
+			// 其他行 => 用正常顏色
+			translation_color = lrc_color_;
+		}
+
 		float  translation_scale_ = 0.8f;                 // 翻譯行字體相對主行大小
 		int    translation_line_spacing_ = 5;             // 主行與翻譯行之間的垂直間距(像素)
 
@@ -400,7 +430,7 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 		double x_trans = (rect.width() - translation_width) / 2.0;
 
 		// 設定顏色(與主行顏色不同也可)
-		painter->setPen(translation_color_);
+		painter->setPen(translation_color);
 
 		// 繪製翻譯文字
 		painter->drawText(x_trans, translation_baseline, translation_text);
@@ -480,9 +510,13 @@ void LyricsShowWidget::loadFromParser(const QSharedPointer<ILrcParser>& parser) 
 		}
 		lrc.tlrc = convert_.Convert(lrc.tlrc);
 	}
-
+	is_lrc_valid_ = true;
 	resizeFontSize();
 	update();
+}
+
+bool LyricsShowWidget::isValid() const {
+	return is_lrc_valid_;
 }
 
 bool LyricsShowWidget::loadFile(const QString &file_path) {

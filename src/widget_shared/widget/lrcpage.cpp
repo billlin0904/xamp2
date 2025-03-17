@@ -5,6 +5,7 @@
 #include <QPainter>
 #include <QHeaderView>
 #include <QSaveFile>
+#include <QStandardItemModel>
 
 #include <thememanager.h>
 
@@ -16,57 +17,59 @@
 #include <widget/appsettings.h>
 #include <widget/seekslider.h>
 #include <widget/util/ui_util.h>
+#include <xampplayer.h>
 
 LyricsFrame::LyricsFrame(QWidget* parent)
 	: QFrame(parent) {
 	setAttribute(Qt::WA_DontCreateNativeAncestors);
-	//setFrameShape(QFrame::StyledPanel);
-	//setFrameShadow(QFrame::Raised);
+	setFrameShape(QFrame::StyledPanel);
+	setFrameShadow(QFrame::Raised);
 
-	lyrc_list_ = new QTableWidget(this);
+	lyrc_view_ = new QTableView(this);
+	model_ = new QStandardItemModel(this);
 
 	QStringList headers;
 	headers << tr("Type")
 	<< tr("Album")
 	<< tr("Artist")
 	<< tr("Title")
-	<< tr("Lyrics")
-	<< tr("Karaoke")
+	<< tr("Lyric preview")
+	<< tr("Has karaoke")
 	<< tr("Duration");
-	lyrc_list_->setHorizontalHeaderLabels(headers);
-	lyrc_list_->setColumnCount(headers.count());
+	model_->setColumnCount(headers.count());
+	model_->setHorizontalHeaderLabels(headers);
 
-	lyrc_list_->setEditTriggers(QTableWidget::NoEditTriggers);
-	lyrc_list_->setSelectionBehavior(QAbstractItemView::SelectRows);
-	lyrc_list_->setSelectionMode(QAbstractItemView::SingleSelection);
-	lyrc_list_->horizontalHeader()->setStretchLastSection(true);
-	lyrc_list_->horizontalHeader()->hide();
-	lyrc_list_->setColumnWidth(4, 400);
-	lyrc_list_->setColumnWidth(5, 80);
-
-	lyrc_list_->verticalHeader()->setVisible(false);
-	lyrc_list_->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
-	lyrc_list_->verticalHeader()->setDefaultSectionSize(240);
+	lyrc_view_->setModel(model_);
 
 	QVBoxLayout* layout = new QVBoxLayout(this);
-	layout->addWidget(lyrc_list_);
+	layout->addWidget(lyrc_view_);
 	setLayout(layout);
 
-	(void) QObject::connect(lyrc_list_, &QTableWidget::itemDoubleClicked,
-		[this](auto *item) {
-		auto* find_item = lyrc_list_->item(item->row(), 0);
-		auto id = find_item->data(Qt::UserRole).toString();
-		auto candidate = parser_map_.value(id);
+	(void) QObject::connect(lyrc_view_, &QTableView::doubleClicked,
+		[this](const QModelIndex& index) {
+		if (!index.isValid()) {
+			return;
+		}
+		QModelIndex idIndex = model_->index(index.row(), 0);
+		QVariant id = model_->data(idIndex, Qt::UserRole);
+		auto candidate = parser_map_.value(id.toString());
 		emit changeLyric(candidate);
 		});
 
-	setStyleSheet("background-color: transparent"_str);
-	lyrc_list_->setStyleSheet("background-color: transparent"_str);
+	setTabViewStyle(lyrc_view_);
+
+	lyrc_view_->setColumnWidth(4, 400);
+	lyrc_view_->setColumnWidth(5, 80);
+	lyrc_view_->verticalHeader()->setDefaultSectionSize(240);
+	lyrc_view_->setEditTriggers(QTableWidget::NoEditTriggers);
 }
 
 void LyricsFrame::setLyrics(const QList<SearchLyricsResult>& results) {
-	lyrc_list_->clearContents();
+	// 先清理舊資料
+	model_->removeRows(0, model_->rowCount());
+	parser_map_.clear();
 
+	// 遍歷你的 results
 	for (auto& [info, parsers] : results) {
 		for (auto& candidate : parsers) {
 			QString typeStr = tr("Original");
@@ -76,7 +79,8 @@ void LyricsFrame::setLyrics(const QList<SearchLyricsResult>& results) {
 			if (candidate.parser->size() == 0) {
 				continue;
 			}
-			auto* typeItem = new QTableWidgetItem(typeStr);
+
+			// 準備欄位資料
 			QStringList lyricText;
 			for (auto i = 0; i < 5 && i < candidate.parser->size(); ++i) {
 				lyricText << QString::fromStdWString(candidate.parser->lineAt(i).lrc);
@@ -84,25 +88,55 @@ void LyricsFrame::setLyrics(const QList<SearchLyricsResult>& results) {
 					lyricText << QString::fromStdWString(candidate.parser->lineAt(i).tlrc);
 				}
 			}
-			auto* lyricItem = new QTableWidgetItem(lyricText.join("\r\n"_str));
-			auto* durationItem = new QTableWidgetItem(
-				formatDuration(
-					static_cast<double>(candidate.parser->last().timestamp.count()) / 1000.0));
-			auto* karaokeItem = new QTableWidgetItem(
-				candidate.parser->isKaraoke() ? tr("Yes") : tr("No"));
-			auto* titleItem = new QTableWidgetItem(candidate.candidate.song);
-			auto* artistItem = new QTableWidgetItem(candidate.candidate.singer);
-			auto* albumItem = new QTableWidgetItem(candidate.candidate.albumName);
-			lyrc_list_->insertRow(lyrc_list_->rowCount());
-			lyrc_list_->setItem(lyrc_list_->rowCount() - 1, 0, typeItem);
-			lyrc_list_->setItem(lyrc_list_->rowCount() - 1, 1, albumItem);
-			lyrc_list_->setItem(lyrc_list_->rowCount() - 1, 2, titleItem);
-			lyrc_list_->setItem(lyrc_list_->rowCount() - 1, 3, artistItem);
-			lyrc_list_->setItem(lyrc_list_->rowCount() - 1, 4, lyricItem);
-			lyrc_list_->setItem(lyrc_list_->rowCount() - 1, 5, karaokeItem);
-			lyrc_list_->setItem(lyrc_list_->rowCount() - 1, 6, durationItem);
+			QString lyricData = lyricText.join("\r\n"_str);
+
+			QString durationStr = formatDuration(
+				static_cast<double>(candidate.parser->last().timestamp.count()) / 1000.0);
+
+			QString karaokeStr = candidate.parser->isKaraoke() ? tr("Yes") : tr("No");
+			QString titleStr = candidate.candidate.song;
+			QString artistStr = candidate.candidate.singer;
+			QString albumStr = candidate.candidate.albumName;
+
+			// 新增一行
+			int newRow = model_->rowCount();
+			model_->insertRow(newRow);
+
+			// 放進 QStandardItem 裡
 			auto id = QString::fromLatin1(generateUuid());
-			typeItem->setData(Qt::UserRole, id);
+
+			// 第 0 欄: Type (並且把 id 存進 UserRole)
+			auto* typeItem = new QStandardItem(typeStr);
+			typeItem->setData(id, Qt::UserRole);
+
+			// 第 1 欄: Album
+			auto* albumItem = new QStandardItem(albumStr);
+
+			// 第 2 欄: Artist
+			auto* artistItem = new QStandardItem(artistStr);
+
+			// 第 3 欄: Title
+			auto* titleItem = new QStandardItem(titleStr);
+
+			// 第 4 欄: Lyrics
+			auto* lyricItem = new QStandardItem(lyricData);
+
+			// 第 5 欄: Karaoke
+			auto* karaokeItem = new QStandardItem(karaokeStr);
+
+			// 第 6 欄: Duration
+			auto* durationItem = new QStandardItem(durationStr);
+
+			// 將這些 QStandardItem 放入 model
+			model_->setItem(newRow, 0, typeItem);
+			model_->setItem(newRow, 1, albumItem);
+			model_->setItem(newRow, 2, artistItem);
+			model_->setItem(newRow, 3, titleItem);
+			model_->setItem(newRow, 4, lyricItem);
+			model_->setItem(newRow, 5, karaokeItem);
+			model_->setItem(newRow, 6, durationItem);
+
+			// id -> candidate 放入 hash
 			parser_map_.insert(id, candidate);
 		}
 	}
@@ -200,9 +234,13 @@ void LrcPage::onFetchLyricsCompleted(const QList<SearchLyricsResult>& results) {
 		return (lhsHas > rhsHas);
 		});
 
+	if (lyrics_widget_->isValid()) {
+		return;
+	}
+
 	for (const auto& [info, parsers] : lyrics_results_) {
 		for (auto &parser : parsers) {
-			if (parser.parser->hasTranslation()) {
+			if (parser.parser->isKaraoke()) {
 				if (parser.candidate.song == entity_.title
 					|| parser.candidate.singer == entity_.artist) {
 					lyrics_widget_->loadFromParser(parser.parser);
@@ -211,9 +249,7 @@ void LrcPage::onFetchLyricsCompleted(const QList<SearchLyricsResult>& results) {
 					QSaveFile file(krc_file_name);
 					file.open(QIODevice::WriteOnly);
 					file.write(parser.content);
-					if (file.commit()) {
-						lyrics_widget_->loadFile(krc_file_name);
-					}
+					file.commit();
 					return;
 				}
 			}
@@ -347,8 +383,10 @@ void LrcPage::onThemeChangedFinished(ThemeColor theme_color) {
 
 	switch (theme_color) {
 	case ThemeColor::DARK_THEME:
-		lyrics_widget_->setNormalColor(Qt::lightGray);
-		lyrics_widget_->setHighLightColor(Qt::white);
+		//lyrics_widget_->setNormalColor(Qt::lightGray);
+		//lyrics_widget_->setHighLightColor(Qt::white);
+		lyrics_widget_->setNormalColor(LyricsShowWidget::kNormalColor);
+		lyrics_widget_->setHighLightColor(LyricsShowWidget::kHighLightColor);
 		break;
 	case ThemeColor::LIGHT_THEME:
 		lyrics_widget_->setNormalColor(Qt::darkGray);
@@ -522,14 +560,15 @@ void LrcPage::initial() {
 
 	auto horizontal_layout_11 = new QHBoxLayout();
 	auto* change_lrc_button = new QToolButton(this);
-	change_lrc_button->setText(tr("Change LRC"));
+	change_lrc_button->setText(tr("Load LRC"));
 	(void)QObject::connect(change_lrc_button, &QToolButton::clicked, [this]() {
 		if (lyrics_results_.isEmpty()) {
 			return;
 		}
+		QScopedPointer<MaskWidget> mask_widget(new MaskWidget(getMainWindow()));
 		const QScopedPointer<XDialog> dialog(new XDialog(this));
 		const QScopedPointer<LyricsFrame> lyrics_frame(new LyricsFrame(dialog.get()));
-		dialog->setTitle(tr("Change LRC"));
+		dialog->setTitle(tr("Load LRC"));
 		lyrics_frame->setLyrics(lyrics_results_);
 		dialog->setContentWidget(lyrics_frame.get());
 		dialog->setFixedSize(QSize(1000, 600));
@@ -541,9 +580,8 @@ void LrcPage::initial() {
 			QSaveFile file(krc_file_name);
 			file.open(QIODevice::WriteOnly);
 			file.write(parser.content);
-			if (file.commit()) {
-				lyrics_widget_->loadFile(krc_file_name);
-			}
+			file.commit();
+			lyrics_widget_->loadFromParser(parser.parser);
 			});
 		dialog->exec();
 		});

@@ -3,6 +3,8 @@
 #include <regex>
 
 #include <base/text_encoding.h>
+#include <base/algorithm.h>
+
 #include <widget/util/json_util.h>
 #include <widget/util/zib_util.h>
 #include <widget/krcparser.h>
@@ -282,6 +284,9 @@ const LyricEntry& KrcParser::getLyrics(const std::chrono::milliseconds& time) co
     static LyricEntry last_subtitle;
     if (time < lyrics_.at(0).end_time) {
         return lyrics_.at(0);
+    }
+	if (time >= last_subtitle.start_time && time <= last_subtitle.end_time) {
+		return last_subtitle;
     }
     for (const auto& subtitle : lyrics_) {
         if (time >= subtitle.start_time && time <= subtitle.end_time) {

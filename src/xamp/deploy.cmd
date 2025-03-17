@@ -27,9 +27,13 @@ copy %BUILD_DIR%\QWKCore.dll %DEPLOY_DIR%\
 copy %BUILD_DIR%\QWKWidgets.dll %DEPLOY_DIR%\
 copy %BUILD_DIR%\supereq.dll %DEPLOY_DIR%\
 copy %BUILD_DIR%\mecab.dll %DEPLOY_DIR%\
+copy %BUILD_DIR%\opencc.dll %DEPLOY_DIR%\
+copy %BUILD_DIR%\libprotobuf-lite.dll %DEPLOY_DIR%\
 
 REM 拷貝 components 資料夾
 robocopy %BUILD_DIR%\components %DEPLOY_DIR%\components /E
+REM 拷貝 opencc 資料夾
+robocopy %BUILD_DIR%\opencc %DEPLOY_DIR%\opencc /E
 
 REM 複製其餘 DLL、pdb、txt、json 檔案
 copy %BUILD_DIR%\xamp_base.dll %DEPLOY_DIR%\

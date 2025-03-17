@@ -98,6 +98,8 @@ signals:
 	void cancelRequested();
 
 	void addJobs(const QString& dir_name, QList<EncodeJob> jobs);
+
+	void transcribeFile(const QString& file_name);
 public slots:
     void onPlayEntity(const PlayListEntity& entity, bool is_double_clicked);
 
@@ -150,6 +152,8 @@ public slots:
 	void onEncodeAlacFiles(const QString& codec_id, const QList<PlayListEntity>& files);
 
 	void onCancelRequested();
+
+	void onFetchMbDiscInfoCompleted(const MbDiscIdInfo& mb_disc_id_info);
 private:
 	void initialUi();
 

@@ -183,14 +183,11 @@ QFont ThemeManager::loadFonts() {
     QList<QString> en_fonts;
     QList<QString> debug_fonts;
 
-    installFileFonts("NotoSans"_str, mono_fonts);
     installFileFonts("FiraCode-Regular"_str, debug_fonts);
     installFileFont("Karla-Regular.ttf"_str, format_font);
-    //installFileFonts("MiSansTC"), ui_fonts);
-    //installFileFonts("MiSans"), ui_fonts);
-    installFileFonts("HarmonyOS_Sans_TC"_str, ui_fonts);
-    installFileFonts("HarmonyOS_Sans_SC"_str, ui_fonts);
-    installFileFonts("ZenKakuGothicNew"_str, ui_fonts);
+    installFileFonts("NotoSans"_str, mono_fonts);       
+    installFileFonts("Inter_18pt"_str, ui_fonts);
+    installFileFonts("SourceHanSans"_str, ui_fonts);    
 
     sortFontWeight(ui_fonts.begin(), ui_fonts.end());
 
