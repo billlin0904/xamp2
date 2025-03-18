@@ -247,8 +247,8 @@ void Xamp::onActivated(QSystemTrayIcon::ActivationReason reason) {
     }
 }
 
-void Xamp::onEncodeAlacFiles(const QString& codec_id, const QList<PlayListEntity>& files) {
-    getExistingDirectory(this, kEmptyString, [this, codec_id, &files](const auto& dir_name) {
+void Xamp::onEncodeAlacFiles(int32_t encode_type, const QList<PlayListEntity>& files) {
+    getExistingDirectory(this, kEmptyString, [this, encode_type, &files](const auto& dir_name) {
         const QScopedPointer<XDialog> dialog(new XDialog(this));
         const QScopedPointer<EncodeJobWidget> encode_job_widget(new EncodeJobWidget(dialog.get()));
         encode_job_widget->setFixedSize(QSize(1200, 600));
@@ -256,7 +256,7 @@ void Xamp::onEncodeAlacFiles(const QString& codec_id, const QList<PlayListEntity
             encode_job_widget.get(), &EncodeJobWidget::onUpdateProgress);
         (void)QObject::connect(background_service_.get(), &BackgroundService::jobError,
             encode_job_widget.get(), &EncodeJobWidget::onJobError);
-        emit addJobs(dir_name, encode_job_widget->addJobs(codec_id, files));
+        emit addJobs(dir_name, encode_job_widget->addJobs(encode_type, files));
         dialog->setContentWidget(encode_job_widget.get());
         dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_ABOUT));
         dialog->setTitle(tr("Encode batch progress"));
@@ -1648,7 +1648,9 @@ void Xamp::onUpdateCdTrackInfo(const QString& disc_id,
     const std::forward_list<TrackInfo>& track_infos) {
     qDatabaseFacade.insertTrackInfo(track_infos,
         kCdPlaylistId, 
-        StoreType::LOCAL_STORE);
+        StoreType::LOCAL_STORE,
+        disc_id);
+
     cd_page_->playlistPage()->playlist()->reload();
     cd_page_->showPlaylistPage(true);
 }

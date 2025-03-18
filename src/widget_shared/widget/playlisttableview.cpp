@@ -34,6 +34,7 @@
 #include <widget/fonticon.h>
 #include <widget/util/zib_util.h>
 #include <widget/tagio.h>
+#include <widget/encodejobwidget.h>
 
 namespace {
     QString noOrderAlbum(int32_t playlist_id) {
@@ -745,6 +746,17 @@ void PlaylistTableView::initial() {
 
         action_map.addSeparator();
 
+        auto* encode_pcm_file_act = action_map.addAction(tr("Encode to PCM File"));
+        action_map.setCallback(encode_pcm_file_act, [this]() {
+            const auto rows = selectItemIndex();
+            QList<PlayListEntity> entities;
+            for (const auto& row : rows) {
+                const auto entity = this->item(row.second);
+                entities.push_back(entity);
+            }
+            emit encodeAlacFiles(EncodeType::ENCODE_PCM, entities);
+            });
+
         auto* encode_alac_file_act = action_map.addAction(tr("Encode to ALAC File"));
         action_map.setCallback(encode_alac_file_act, [this]() {
             const auto rows = selectItemIndex();
@@ -753,7 +765,7 @@ void PlaylistTableView::initial() {
                 const auto entity = this->item(row.second);
                 entities.push_back(entity);
             }
-            emit encodeAlacFiles("ALAC"_str, entities);
+            emit encodeAlacFiles(EncodeType::ENCODE_ALAC, entities);
             });
 
         auto* encode_aac_file_act = action_map.addAction(tr("Encode to AAC File (256Kbps)"));
@@ -764,7 +776,7 @@ void PlaylistTableView::initial() {
                 const auto entity = this->item(row.second);
                 entities.push_back(entity);
             }
-            emit encodeAlacFiles("AAC"_str, entities);
+            emit encodeAlacFiles(EncodeType::ENCODE_AAC, entities);
             });
 
         action_map.addSeparator();

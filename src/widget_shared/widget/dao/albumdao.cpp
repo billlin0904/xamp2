@@ -380,6 +380,17 @@ namespace dao {
         return kInvalidDatabaseId;
     }
 
+    void AlbumDao::updateAlbumByDiscId(const QString& disc_id, int32_t album_id) {
+        SqlQuery query(db_);
+
+        query.prepare("UPDATE albums SET discId = :discId WHERE (albumId = :albumId)"_str);
+
+        query.bindValue(":albumId"_str, album_id);
+        query.bindValue(":discId"_str, disc_id);
+
+        DbIfFailedThrow1(query);
+    }
+
     void AlbumDao::updateAlbumByDiscId(const QString& disc_id, const QString& album) {
         SqlQuery query(db_);
 

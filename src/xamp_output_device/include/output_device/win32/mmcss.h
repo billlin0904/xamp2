@@ -38,7 +38,8 @@ public:
 	* @param[in] task_name
 	* @param[in] priority
 	*/
-	void BoostPriority(std::wstring_view task_name = kMmcssProfileProAudio, MmcssThreadPriority priority = MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL) noexcept;
+	void BoostPriority(std::wstring_view task_name = kMmcssProfileProAudio,
+		MmcssThreadPriority priority = MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL) noexcept;
 
 	/*
 	* Revert current thread priority.

@@ -4,6 +4,8 @@
 #include <QMouseEvent>
 
 #include <widget/util/str_util.h>
+#include <widget/util/ui_util.h>
+#include <widget/util/image_util.h>
 #include <widget/chatgpt/waveformwidget.h>
 #include <widget/actionmap.h>
 #include <widget/appsettings.h>
@@ -185,6 +187,23 @@ WaveformWidget::WaveformWidget(QWidget *parent)
     (void)QObject::connect(this, &WaveformWidget::customContextMenuRequested, [this](auto pt) {
         ActionMap<WaveformWidget> action_map(this);
 
+        const auto last_dir = qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
+        const auto save_file_name = last_dir + "/"_str + "spectrogram.jpg"_str;
+        action_map.addAction(tr("Save Spectrogram to image"), [this, save_file_name]() {
+            getSaveFileName(this, [this](const QString& file_path) {
+                if (file_path.isEmpty()) {
+                    return;
+                }
+                if (spectrogram_cache_.isNull()) {
+                    return;
+                }
+				auto widget_image = image_util::resizeImage(QPixmap::fromImage(spectrogram_cache_), size() * 4, false);
+                if (!widget_image.save(file_path, "JPG", 100)) {
+                    XAMP_LOG_DEBUG("Failed to save spectrogram to {}", file_path.toStdString());
+                }
+                }, tr("Save Spectrogram to image"), save_file_name, "Image Files (*.png)"_str);
+            });
+
 		auto setting_value = qAppSettings.valueAsInt(kAppSettingWaveformDrawMode);
         auto show_ch_menu = action_map.addSubMenu(tr("Show Channel"));
 
@@ -194,7 +213,7 @@ WaveformWidget::WaveformWidget(QWidget *parent)
 			});
         if (setting_value & kDrawSpectrogram) {
             show_spectrogram_act->setChecked(true);
-        }
+        }        
 
         auto* only_right_ch_act = show_ch_menu->addAction(
             tr("Show Only Right Channel"), [this]() {
@@ -340,10 +359,11 @@ void WaveformWidget::setSpectrogramData(double duration_sec, const QImage& chunk
 void WaveformWidget::updateSpectrogramSize() {
     if (spectrogram_.isNull())
         return;
-    if (size() == spectrogram_cache_.size()) {
+    auto widget_size = drawRect().size();
+    if (widget_size == spectrogram_cache_.size()) {
         return;
     }
-    spectrogram_cache_ = spectrogram_.scaled(size(),
+    spectrogram_cache_ = spectrogram_.scaled(widget_size,
         Qt::KeepAspectRatioByExpanding);
 }
 

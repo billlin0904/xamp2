@@ -204,11 +204,21 @@ void BackgroundService::onAddJobs(const QString& dir_name,
         auto i = 0;
         for (; i < kMaxRetryTestUniqueFileName; ++i) {
             try {
-                auto unique_save_file_name = uniqueFileName(
-                    QDir(dir_name),
-                    file_name + ".m4a"_str);
-                //auto unique_save_file_name = uniqueFileName(QDir(dir_name)
-                //, job.file.title + ".wav"_str);
+                QString unique_save_file_name;
+                switch (job.type) {
+                case EncodeType::ENCODE_AAC:
+                case EncodeType::ENCODE_ALAC:
+                    unique_save_file_name = uniqueFileName(
+                        QDir(dir_name),
+                        file_name + ".m4a"_str);
+                    break;
+                case EncodeType::ENCODE_PCM:
+                    unique_save_file_name = uniqueFileName(
+                        QDir(dir_name)
+                        , job.file.title + ".wav"_str);
+                    break;
+                }
+
                 auto save_file_name = dir_name
                     + "/"_str
                     + unique_save_file_name;
@@ -228,10 +238,6 @@ void BackgroundService::onAddJobs(const QString& dir_name,
 
         Path input_path(job.file.file_path.toStdWString());
 
-        auto root_name = input_path.root_name().string();
-        //const auto cd = OpenCD(root_name[0]);
-        //cd->SetMaxSpeed();
-
         try {
 
             auto encoder = StreamFactory::MakeM4AEncoder();
@@ -245,10 +251,6 @@ void BackgroundService::onAddJobs(const QString& dir_name,
                 job.codec_id.toStdString());
             config.AddOrReplace(FileEncoderConfig::kBitRate,
                 job.bit_rate);
-            //config.AddOrReplace(FileEncoderConfig::kCodecId,
-            //std::string("pcm"));
-            //config.AddOrReplace(FileEncoderConfig::kBitRate,
-            //static_cast<uint32_t>(0));
 
             encoder->Start(config, file_writer);
             encoder->Encode([job, this](auto progress) {
@@ -279,6 +281,10 @@ void BackgroundService::onAddJobs(const QString& dir_name,
             }
 
             emit updateJobProgress(job.job_id, 100);
+        }
+        catch (const Exception& e) {
+            XAMP_LOG_ERROR(e.GetStackTrace());
+            emit jobError(job.job_id, tr("Error"));
         }
         catch (const std::exception& e) {
             XAMP_LOG_ERROR(e.what());

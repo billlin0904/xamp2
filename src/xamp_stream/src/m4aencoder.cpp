@@ -6,8 +6,10 @@
 #include <base/buffer.h>
 #include <base/dataconverter.h>
 #include <base/port.h>
+
 #include <stream/avlib.h>
 #include <stream/api.h>
+#include <stream/icddevice.h>
 #include <stream/filestream.h>
 #include <stream/m4aencoder.h>
 #include <stream/bassfilestream.h>
@@ -123,23 +125,30 @@ public:
                     };
             }
 		}
-        else if (codec_type_ == "pcm") {
-            codec_id = AV_CODEC_ID_PCM_S16LE;
-            sample_format = AV_SAMPLE_FMT_S16;
-            sample_size = 16;
+        else if (codec_type_ == "pcm") {            
             guess_file_name = "output.wav";
-            convert_ = [](const float* input, AVFrame* frame, size_t read_samples) {
-                auto* dst = reinterpret_cast<int16_t*>(frame->data[0]);
-                auto* src = input;
-
-                for (int i = 0; i < read_samples; i += 2) {
-                    float L = src[i + 0] * kFloat16Scale;
-                    float R = src[i + 1] * kFloat16Scale;
-
-                    dst[i + 0] = static_cast<int16_t>(L);
-                    dst[i + 1] = static_cast<int16_t>(R);
-                }
-                };
+            if (input_file_->GetBitDepth() > 16) {
+                codec_id = AV_CODEC_ID_PCM_S24LE;
+                sample_format = AV_SAMPLE_FMT_S32;
+                sample_size = 24;
+                convert_ = [](const float* input, AVFrame* frame, size_t read_samples) {
+                    AudioConvertContext ctx;
+                    ctx.convert_size = read_samples / 2;
+                    DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Convert(
+                        reinterpret_cast<int32_t*>(frame->data[0]), input, ctx);
+                    };
+            }
+            else {
+                codec_id = AV_CODEC_ID_PCM_S16LE;
+                sample_format = AV_SAMPLE_FMT_S16;
+                sample_size = 16;
+                convert_ = [](const float* input, AVFrame* frame, size_t read_samples) {
+                    AudioConvertContext ctx;
+                    ctx.convert_size = read_samples / 2;
+                    DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Convert(
+                        reinterpret_cast<int16_t*>(frame->data[0]), input, ctx);
+                    };
+            }            
         }
 
         if (writer_ != nullptr) {
@@ -202,7 +211,13 @@ public:
         codec_context_->channel_layout = kDefaultChannelLayout;
         codec_context_->sample_rate = format.GetSampleRate();
         codec_context_->sample_fmt = sample_format;
-        codec_context_->frame_size = kFrameSize;
+        if (codec_type_ != "pcm") {
+            codec_context_->frame_size = kFrameSize;
+        }
+        else {
+            // note: 如果是PCM編碼由自行填入大小.
+            codec_context_->frame_size = 0;
+        }
 		codec_context_->bits_per_raw_sample = sample_size;
 
         if (codec_type_ == "aac") {
@@ -216,7 +231,13 @@ public:
         stream_->codecpar->channel_layout = kDefaultChannelLayout;
         stream_->codecpar->channels = format.GetChannels();
         stream_->codecpar->sample_rate = format.GetSampleRate();
-        stream_->codecpar->frame_size = kFrameSize;
+        if (codec_type_ != "pcm") {
+            stream_->codecpar->frame_size = kFrameSize;
+        }
+        else {
+            // note: 如果是PCM編碼由自行填入大小.
+            stream_->codecpar->frame_size = 0;
+        }
         stream_->codecpar->format = sample_format;
         stream_->time_base = AVRational{
         	1, static_cast<int32_t>(format.GetSampleRate()) };
@@ -259,7 +280,8 @@ public:
                 bytestream_put_byte(&buf, 0);
             }
 
-            codec_context_->compression_level = 0;
+            // Don't set compression level!
+            //codec_context_->compression_level = 0;
             AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_open2(
                 codec_context_.get(), av_codec, nullptr));
 		}
@@ -268,7 +290,11 @@ public:
             LIBAV_LIB.Util->av_dict_set(&opts, "profile", "aac_low", 0);
             AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_open2(
                 codec_context_.get(), av_codec, &opts));
-		}
+        }
+        else if (codec_type_ == "pcm") {
+            AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_open2(codec_context_.get(), 
+                av_codec, nullptr));
+        }
 
         AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_parameters_from_context(
             stream_->codecpar, codec_context_.get()));
@@ -323,13 +349,20 @@ public:
     void Encode(const std::function<bool(uint32_t)>& progress,
         const std::stop_token& stop_token) {
         AvPtr<AVFrame> frame;
-        frame.reset(LIBAV_LIB.Util->av_frame_alloc());
-        frame->nb_samples = codec_context_->frame_size;
+        frame.reset(LIBAV_LIB.Util->av_frame_alloc());        
         frame->format = codec_context_->sample_fmt;
         frame->channel_layout = codec_context_->channel_layout;
         frame->sample_rate = codec_context_->sample_rate;
 
-        buffer_.resize(codec_context_->frame_size * 2);
+        if (codec_context_->frame_size > 0) {
+            frame->nb_samples = codec_context_->frame_size;
+            buffer_.resize(codec_context_->frame_size * 2);
+        }
+        else {
+            // note: 如果是PCM編碼由自行填入大小.
+			frame->nb_samples = kFrameSize;
+            buffer_.resize(kFrameSize * 2);
+        }        
 
         auto format = input_file_->GetFormat();
         uint64_t total_samples = static_cast<uint64_t>(
@@ -342,6 +375,10 @@ public:
             AvIfFailedThrow(ret);
         }
 
+        uint32_t percentage = 0;
+        uint32_t read_samples = 0;
+        uint32_t retry_count = 0;
+
         while (!stop_token.stop_requested() && input_file_->IsActive()) {
             ret = LIBAV_LIB.Util->av_frame_make_writable(frame.get());
             if (ret < 0) {
@@ -349,14 +386,24 @@ public:
             }
 
             buffer_.Fill(0.0f);
-
-            const auto read_samples = input_file_->GetSamples(
-                buffer_.data(),
-                codec_context_->frame_size * 2);
+                        
+            while (read_samples == 0 || retry_count++ < 4) {
+                read_samples = input_file_->GetSamples(
+                    buffer_.data(),
+                    buffer_.GetSize());
+                if (read_samples == 0) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                }
+                else {
+                    break;
+                }
+            }            
+            
             if (!read_samples) {
                 break;
             }
 
+            retry_count = 0;
             std::invoke(convert_, buffer_.data(), frame.get(), read_samples);
 
             if (!EncodeFrame(frame.get())) {
@@ -364,8 +411,7 @@ public:
             }
 
             processed_samples += read_samples;
-
-            uint32_t percentage = 0;
+            
             if (total_samples > 0) {
                 percentage = static_cast<uint32_t>(
                     (static_cast<double>(processed_samples) 

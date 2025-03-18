@@ -14,7 +14,14 @@
 #include <widget/widget_shared_global.h>
 #include <widget/playlistentity.h>
 
+enum EncodeType {
+    ENCODE_ALAC,
+    ENCODE_AAC,
+    ENCODE_PCM,
+};
+
 struct XAMP_WIDGET_SHARED_EXPORT EncodeJob {
+    EncodeType type{ ENCODE_AAC };
     uint32_t bit_rate{0};
     QString job_id;
     QString codec_id;
@@ -41,7 +48,7 @@ class XAMP_WIDGET_SHARED_EXPORT EncodeJobWidget : public QWidget {
 public:
     explicit EncodeJobWidget(QWidget* parent = nullptr);
 
-    QList<EncodeJob> addJobs(const QString &encode_name, const QList<PlayListEntity>& files);
+    QList<EncodeJob> addJobs(int32_t encode_type, const QList<PlayListEntity>& files);
 
 public slots:
     void onUpdateProgress(const QString &job_id, int new_progress);

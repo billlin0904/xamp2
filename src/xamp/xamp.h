@@ -149,7 +149,7 @@ public slots:
 
 	void onActivated(QSystemTrayIcon::ActivationReason reason);
 
-	void onEncodeAlacFiles(const QString& codec_id, const QList<PlayListEntity>& files);
+	void onEncodeAlacFiles(int32_t encode_type, const QList<PlayListEntity>& files);
 
 	void onCancelRequested();
 

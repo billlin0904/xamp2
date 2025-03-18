@@ -27,6 +27,10 @@ public:
         Close();
     }
 
+    ~BassFileStreamImpl() {
+        Close();
+    }
+
     void LoadFile(std::wstring const& file_path, DsdModes mode, DWORD flags) {
         if (mode == DsdModes::DSD_MODE_PCM) {
 #ifdef XAMP_OS_MAC
@@ -359,9 +363,14 @@ private:
     uint32_t InternalGetSamples(void* buffer, uint32_t length) const noexcept {
         const auto bytes_read =
             BASS_LIB.BASS_ChannelGetData(GetHStream(), buffer, length);
-        if (bytes_read == kBassError) {
+        if (bytes_read == kBassError) {            
+			auto last_error = BASS_LIB.BASS_ErrorGetCode();
+            if (last_error == BASS_ERROR_ENDED) {
+                return 0;
+            }
+            XAMP_LOG_E(logger_, "BASS_ChannelGetData error: {}", last_error);
             return 0;
-        }
+        }        
         return static_cast<uint32_t>(bytes_read);
     }
 

@@ -115,7 +115,8 @@ int32_t DatabaseFacade::unknownAlbumId() const {
 
 void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result, 
     int32_t playlist_id,
-    StoreType store_type) {
+    StoreType store_type,
+    const QString& dick_id) {
     if (result.empty()) {
         return;
     }
@@ -212,6 +213,9 @@ void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result,
 
         qDaoFacade.album_dao_.addOrUpdateAlbumMusic(album_id, artist_id, music_id);
         qDaoFacade.album_dao_.addOrUpdateAlbumArtist(album_id, artist_id);
+        if (!disc_id.isEmpty()) {
+            qDaoFacade.album_dao_.updateAlbumByDiscId(disc_id, album_id);
+        }        
 
         if (artist_id != kUnknownArtistId) {
             for (const auto& artist : normalizeArtist(artist)) {
@@ -225,7 +229,8 @@ void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result,
 void DatabaseFacade::insertMultipleTrackInfo(
     const std::vector<std::forward_list<TrackInfo>>& results,
     int32_t playlist_id,
-    StoreType store_type) {
+    StoreType store_type,
+    const QString& dick_id) {
     TransactionScope scope([&]() {
         for (const auto& result : results) {
             insertTrackInfo(result,

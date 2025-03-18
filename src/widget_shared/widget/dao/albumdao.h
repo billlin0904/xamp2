@@ -20,7 +20,13 @@ public:
 
     void setAlbumCover(int32_t album_id, const QString& cover_id);
     std::optional<AlbumStats> getAlbumStats(int32_t album_id) const;
-    int32_t addOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, uint32_t year, StoreType store_type, const QString& disc_id = kEmptyString, bool is_hires = false);
+    int32_t addOrUpdateAlbum(const QString& album,
+        int32_t artist_id, 
+        int64_t album_time,
+        uint32_t year,
+        StoreType store_type,
+        const QString& disc_id = kEmptyString,
+        bool is_hires = false);
     void updateAlbum(int32_t album_id, const QString& album);
     void updateAlbumHeart(int32_t album_id, uint32_t heart);
     void updateAlbumPlays(int32_t album_id);
@@ -33,7 +39,8 @@ public:
     void addOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const;
     int32_t getAlbumIdByDiscId(const QString& disc_id) const;
     void updateAlbumByDiscId(const QString& disc_id, const QString& album);
-    void removeAlbumArtist(int32_t album_id);
+    void updateAlbumByDiscId(const QString& disc_id, int32_t album_id);
+    
     std::optional<QString> getAlbumFirstMusicFilePath(int32_t album_id) const;
 
     void removeAlbumMusic(int32_t album_id, int32_t music_id);
@@ -56,7 +63,7 @@ public:
     void forEachAlbumCover(std::function<void(const QString&)>&& fun, int32_t limit = 10);
     void removeAlbumCategory(int32_t album_id);
     void removeAlbumMusicAlbum(int32_t album_id);
-
+    void removeAlbumArtist(int32_t album_id);
     int32_t getRandomMusicId(int32_t album_id, PRNG& rng);
     int32_t getRandomAlbumId(int32_t album_id, PRNG& rng);
 private:

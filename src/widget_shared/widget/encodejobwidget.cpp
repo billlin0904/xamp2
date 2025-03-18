@@ -5,6 +5,7 @@
 
 #include <widget/widget_shared.h>
 #include <widget/encodejobwidget.h>
+#include <thememanager.h>
 
 enum {
 	ENCODE_LIST_JOB_TITLE = 0,
@@ -52,7 +53,7 @@ EncodeJobWidget::EncodeJobWidget(QWidget* parent)
     setupUI();
 }
 
-QList<EncodeJob> EncodeJobWidget::addJobs(const QString& encode_name, const QList<PlayListEntity>& files) {
+QList<EncodeJob> EncodeJobWidget::addJobs(int32_t encode_type, const QList<PlayListEntity>& files) {
     constexpr auto k24Bit441KhzBitRate = 2116.8;
 
     QList<EncodeJob> jobs;
@@ -68,34 +69,49 @@ QList<EncodeJob> EncodeJobWidget::addJobs(const QString& encode_name, const QLis
     model_->appendRow(top_row);
 
     for (const auto& file : files) {
-        auto child0 = new QStandardItem(QString()); // job
-        auto child1 = new QStandardItem(file.file_name);   // file name
-        auto child2 = new QStandardItem(); // format
-        auto child3 = new QStandardItem(); // progress
-        auto child4 = new QStandardItem("Pending"_str); // state
+        auto child0 = new QStandardItem(QString());
+        auto child1 = new QStandardItem(file.file_name);
+        auto child2 = new QStandardItem();
+        auto child3 = new QStandardItem();
+        auto child4 = new QStandardItem("Pending"_str);
 
         QList<QStandardItem*> row_items;
         row_items << child0 << child1 << child2 << child3 << child4;
 
         EncodeJob job;
-        job.job_id = QString::fromStdString(generateUuid().toStdString()); // or ...
+        job.job_id = QString::fromStdString(generateUuid().toStdString());
         job.file = file;
 
-        if (encode_name == "ALAC"_str) {
+        auto bit_depth = file.bit_rate < k24Bit441KhzBitRate ? 16 : 24;
+
+        switch (encode_type) {
+        case EncodeType::ENCODE_ALAC:
             child2->setText(qFormat("%1 | %2 | %3 bit")
-                .arg(encode_name)
+                .arg("ALAC"_str)
                 .arg(formatSampleRate(file.sample_rate))
-                .arg(file.bit_rate < k24Bit441KhzBitRate ? 16 : 24));
+                .arg(bit_depth));
             job.codec_id = "alac"_str;
-        }
-        else {
+            break;
+        case EncodeType::ENCODE_AAC:
             child2->setText(qFormat("%1 | %2 | %3 bit | 256kbps")
-                .arg(encode_name)
+                .arg("AAC"_str)
                 .arg(formatSampleRate(file.sample_rate))
-                .arg(file.bit_rate < k24Bit441KhzBitRate ? 16 : 24));
+                .arg(bit_depth));
             job.bit_rate = 256000;
             job.codec_id = "aac"_str;
+            break;
+        case EncodeType::ENCODE_PCM:
+            child2->setText(qFormat("%1 | %2 | %3 bit")
+                .arg("PCM"_str)
+                .arg(formatSampleRate(file.sample_rate))
+                .arg(bit_depth));
+            job.codec_id = "pcm"_str;
+            break;
+        default:
+            XAMP_LOG_ERROR("Uknown encode type");
+            return {};
         }
+        job.type = (EncodeType)encode_type;
 
         child3->setData(0, Qt::UserRole + 1);
         job_item->appendRow(row_items);
@@ -145,6 +161,11 @@ void EncodeJobWidget::onJobError(const QString& job_id, const QString& message) 
 }
 
 void EncodeJobWidget::setupUI() {
+    auto f = qTheme.defaultFont();
+	f.setPointSize(qTheme.fontSize(9));
+	setFont(f);
+	tree_->setFont(f);
+
     QStringList headers;
     headers << tr("Job") << tr("File Name") << tr("File Format")
         << tr("Progress") << tr("State");
