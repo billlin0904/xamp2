@@ -22,11 +22,13 @@ class XAMP_STREAM_API StreamFactory {
 public:
     StreamFactory() = delete;
 
+    static ScopedPtr<FileStream> MakeFileStream(const Path& filePath);
+
     // Create a file stream object based on the file path and DSD mode
-    static ScopedPtr<FileStream> MakeFileStream(const Path &filePath, DsdModes dsdMode);
+    static ScopedPtr<FileStream> MakeFileStream(const Path& filePath, DsdModes dsdMode);
 
     // Create an AAC encoder object
-    static ScopedPtr<IFileEncoder> MakeM4AEncoder();
+    static ScopedPtr<IFileEncoder> MakeFileEncoder();
 
     // Create an equalizer audio processor object
     static ScopedPtr<IAudioProcessor> MakeEqualizer();

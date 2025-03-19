@@ -189,108 +189,142 @@ void BackgroundService::onTranscribeFile(const QString& file_name) {
     });
 }
 
-void BackgroundService::onAddJobs(const QString& dir_name,
-    const QList<EncodeJob>& jobs) {
-    stop_source_ = std::stop_source();
+std::tuple<std::shared_ptr<IFile>, Path> 
+BackgroundService::getValidFileWriter(const EncodeJob &job,
+    const QString& dir_name,
+    const Path& file_path) {
+    std::shared_ptr<IFile> file_writer;
+    Path output_path;
 
-    Q_FOREACH(auto job, jobs) {
-        std::shared_ptr<IFile> file_writer;
-        Path output_path;
+    auto file_name = getValidFileName(job.file.file_name);
 
-        auto file_name = getValidFileName(job.file.title);
-
-        // Ensure file name is unique.
-        constexpr auto kMaxRetryTestUniqueFileName = 255;
-        auto i = 0;
-        for (; i < kMaxRetryTestUniqueFileName; ++i) {
-            try {
-                QString unique_save_file_name;
-                switch (job.type) {
-                case EncodeType::ENCODE_AAC:
-                case EncodeType::ENCODE_ALAC:
-                    unique_save_file_name = uniqueFileName(
-                        QDir(dir_name),
-                        file_name + ".m4a"_str);
-                    break;
-                case EncodeType::ENCODE_PCM:
-                    unique_save_file_name = uniqueFileName(
-                        QDir(dir_name)
-                        , job.file.title + ".wav"_str);
-                    break;
-                }
-
-                auto save_file_name = dir_name
-                    + "/"_str
-                    + unique_save_file_name;
-                output_path = save_file_name.toStdWString();
-                file_writer = MakFileEncodeWriter(output_path);
-                break;
-            }
-            catch (const Exception& e) {
-                XAMP_LOG_ERROR(e.GetErrorMessage());
-                emit jobError(job.job_id, tr("Error"));
-            }
-        }
-        if (i == kMaxRetryTestUniqueFileName) {
-            XAMP_LOG_ERROR("Failed to create unique file name.");
-            return;
-        }
-
-        Path input_path(job.file.file_path.toStdWString());
-
+    // Ensure file name is unique.
+    constexpr auto kMaxRetryTestUniqueFileName = 255;
+    auto i = 0;
+    for (; i < kMaxRetryTestUniqueFileName; ++i) {
         try {
-
-            auto encoder = StreamFactory::MakeM4AEncoder();
-
-            AnyMap config;
-            config.AddOrReplace(FileEncoderConfig::kInputFilePath,
-                input_path);
-            config.AddOrReplace(FileEncoderConfig::kOutputFilePath,
-                output_path);
-            config.AddOrReplace(FileEncoderConfig::kCodecId,
-                job.codec_id.toStdString());
-            config.AddOrReplace(FileEncoderConfig::kBitRate,
-                job.bit_rate);
-
-            encoder->Start(config, file_writer);
-            encoder->Encode([job, this](auto progress) {
-                if (progress % 10 == 0) {
-                    emit updateJobProgress(job.job_id, progress);
-                }
-                return true;
-                });
-            file_writer.reset();
-            encoder.reset();
-
-            TagIO input_io;
-            input_io.Open(input_path, TAG_IO_READ_MODE);
-
-            TagIO output_io;
-            output_io.Open(output_path, TAG_IO_WRITE_MODE);
-            output_io.writeArtist(job.file.artist);
-            output_io.writeTitle(job.file.title);
-            output_io.writeAlbum(job.file.album);
-            output_io.writeComment(job.file.comment);
-            output_io.writeGenre(job.file.genre);
-            output_io.writeTrack(job.file.track);
-            output_io.writeYear(job.file.year);
-
-            auto cover = input_io.embeddedCover();
-            if (!cover.isNull()) {
-                output_io.writeEmbeddedCover(cover);
+            QString unique_save_file_name;
+            switch (job.type) {
+            case EncodeType::ENCODE_AAC:
+            case EncodeType::ENCODE_ALAC:
+                unique_save_file_name = uniqueFileName(
+                    QDir(dir_name),
+                    file_name + ".m4a"_str);
+                break;
+            case EncodeType::ENCODE_PCM:
+                unique_save_file_name = uniqueFileName(
+                    QDir(dir_name),
+                    file_name + ".wav"_str);
+                break;
+            default:
+                return std::make_tuple(nullptr, "");
             }
 
-            emit updateJobProgress(job.job_id, 100);
+            auto save_file_name = dir_name
+                + "/"_str
+                + unique_save_file_name;
+            output_path = save_file_name.toStdWString();
+            file_writer = MakFileEncodeWriter(output_path);
+            break;
         }
         catch (const Exception& e) {
-            XAMP_LOG_ERROR(e.GetStackTrace());
+            XAMP_LOG_ERROR(e.GetErrorMessage());
             emit jobError(job.job_id, tr("Error"));
-        }
-        catch (const std::exception& e) {
-            XAMP_LOG_ERROR(e.what());
-            emit jobError(job.job_id, tr("Error"));
+            return std::make_tuple(nullptr, "");
         }
     }
+    if (i == kMaxRetryTestUniqueFileName) {
+        XAMP_LOG_ERROR("Failed to create unique file name.");
+        return std::make_tuple(nullptr, "");
+    }
+    return std::make_tuple(file_writer, output_path);
+}
+
+void BackgroundService::SequenceEncode(const QString& dir_name, QList<EncodeJob> jobs) {
+    Q_FOREACH(auto job, jobs) {
+		Encode(dir_name, job);
+    }
+}
+
+void BackgroundService::Encode(const QString& dir_name, const EncodeJob & job) {
+    auto [file_writer, output_path] = getValidFileWriter(job, dir_name,
+        job.file.file_path.toStdWString());
+
+    Path input_path(job.file.file_path.toStdWString());
+
+    try {
+        auto encoder = StreamFactory::MakeFileEncoder();
+
+        AnyMap config;
+        config.AddOrReplace(FileEncoderConfig::kInputFilePath,
+            input_path);
+        config.AddOrReplace(FileEncoderConfig::kOutputFilePath,
+            output_path);
+        config.AddOrReplace(FileEncoderConfig::kCodecId,
+            job.codec_id.toStdString());
+        config.AddOrReplace(FileEncoderConfig::kBitRate,
+            job.bit_rate);
+
+        encoder->Start(config, file_writer);
+        encoder->Encode([job, this](auto progress) {
+            if (progress % 10 == 0) {
+                emit updateJobProgress(job.job_id, progress);
+            }
+            return true;
+            });
+        file_writer.reset();
+        encoder.reset();
+
+        TagIO input_io;
+        input_io.Open(input_path, TAG_IO_READ_MODE);
+
+        TagIO output_io;
+        output_io.Open(output_path, TAG_IO_WRITE_MODE);
+        output_io.writeArtist(job.file.artist);
+        output_io.writeTitle(job.file.title);
+        output_io.writeAlbum(job.file.album);
+        output_io.writeComment(job.file.comment);
+        output_io.writeGenre(job.file.genre);
+        output_io.writeTrack(job.file.track);
+        output_io.writeYear(job.file.year);
+
+        auto cover = input_io.embeddedCover();
+        if (!cover.isNull()) {
+            output_io.writeEmbeddedCover(cover);
+        }
+
+        emit updateJobProgress(job.job_id, 100);
+    }
+    catch (const Exception& e) {
+        XAMP_LOG_ERROR(e.GetStackTrace());
+        emit jobError(job.job_id, tr("Error"));
+    }
+    catch (const std::exception& e) {
+        XAMP_LOG_ERROR(e.what());
+        emit jobError(job.job_id, tr("Error"));
+    }
+}
+
+void BackgroundService::ParallelEncode(const QString& dir_name, QList<EncodeJob> jobs) {
+    Executor::ParallelFor(thread_pool_.get(), jobs, [this, dir_name](const EncodeJob& job) {
+        Encode(dir_name, job);
+        });
+}
+
+void BackgroundService::onAddJobs(const QString& dir_name, const QList<EncodeJob>& jobs) {
+    stop_source_ = std::stop_source();
+
+    QList<EncodeJob> parallel_jobs;
+	Q_FOREACH(auto job, jobs) {
+		if (job.file.disc_id.isEmpty()) {
+			parallel_jobs.push_back(job);
+		}
+		else {
+			SequenceEncode(dir_name, { job });
+		}
+        //SequenceEncode(dir_name, { job });
+    }
+    ParallelEncode(dir_name, parallel_jobs);
 }
 
 void BackgroundService::cancelRequested() {

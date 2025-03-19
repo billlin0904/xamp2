@@ -17,6 +17,7 @@
 
 struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
     bool is_cue_file{ false };
+    bool heart{ false };
     int32_t playing{0};
     int32_t music_id{0};
     int32_t playlist_music_id{0};
@@ -25,8 +26,7 @@ struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
     uint32_t track{0};
     uint32_t bit_rate{0};
     uint32_t sample_rate{0};
-    uint32_t rating{0};
-    bool heart{false};
+    uint32_t rating{0};    
     uint32_t year{0};
     uint64_t file_size{0};
     double duration{0};
@@ -43,12 +43,10 @@ struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
     QString genre;
     QString comment;
     QString lyrc;
-    QString trlyrc;
+    QString trlyrc;    
 
-    std::optional<QString> music_cover_id;
-    
+    std::optional<QString> music_cover_id;    
     std::optional<double> offset;
-
     std::optional<double> album_replay_gain;
     std::optional<double> album_peak;
     std::optional<double> track_replay_gain;

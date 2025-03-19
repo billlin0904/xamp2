@@ -11,6 +11,7 @@
 #include <widget/xmainwindow.h>
 #include <widget/widget_shared.h>
 
+#include <stream/filestream.h>
 #include <base/workstealingtaskqueue.h>
 
 #include <QDirIterator>
@@ -185,7 +186,16 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
             try {
                 auto reader = MakeMetadataReader();
                 reader->Open(file_path);
-                track_queue.enqueue(reader->Extract());
+				auto track_info = reader->Extract();
+				if (track_info.sample_rate == 0) {
+					// Workaround for sample rate is 0
+                    XAMP_LOG_DEBUG("Try read sample use file stream.");
+                    auto file_stream = StreamFactory::MakeFileStream(file_path);
+					file_stream->OpenFile(file_path);
+					auto sampler_rate = file_stream->GetFormat().GetSampleRate();
+					track_info.sample_rate = sampler_rate;
+				}
+                track_queue.enqueue(track_info);                
             }
             catch (const Exception& e) {
                 XAMP_LOG_DEBUG("Failed to extract file: {}", e.GetStackTrace());

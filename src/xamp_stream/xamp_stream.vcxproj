@@ -157,7 +157,7 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="include\stream\m4aencoder.h" />
+    <ClInclude Include="include\stream\libavencoder.h" />
     <ClInclude Include="include\stream\anymap.h" />
     <ClInclude Include="include\stream\avlib.h" />
     <ClInclude Include="include\stream\bassaacfileencoder.h" />
@@ -199,7 +199,7 @@
     <ClInclude Include="include\stream\wavefilewriter.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\m4aencoder.cpp" />
+    <ClCompile Include="src\libavencoder.cpp" />
     <ClCompile Include="src\avlib.cpp" />
     <ClCompile Include="src\bassaacfileencoder.cpp" />
     <ClCompile Include="src\basscddevice.cpp" />

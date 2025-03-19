@@ -126,12 +126,7 @@ QSharedPointer<ProcessIndicator> makeProcessIndicator(QWidget* widget) {
 
 ScopedPtr<FileStream> makePcmFileStream(const Path& file_path) {
     PrefetchFile(file_path);
-    auto dsd_mode = DsdModes::DSD_MODE_DSD2PCM;
-    if (!IsDsdFile(file_path)) {
-        dsd_mode = DsdModes::DSD_MODE_PCM;
-    }
-    auto file_stream =
-        StreamFactory::MakeFileStream(file_path, dsd_mode);
+    auto file_stream = StreamFactory::MakeFileStream(file_path);
     file_stream->OpenFile(file_path);
     return file_stream;
 }

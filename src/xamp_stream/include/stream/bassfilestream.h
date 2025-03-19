@@ -29,6 +29,8 @@ public:
 
 	void Close() noexcept override;
 
+	bool EndOfStream() const;
+
 	XAMP_NO_DISCARD double GetDurationAsSeconds() const override;
 
 	XAMP_NO_DISCARD AudioFormat GetFormat() const override;

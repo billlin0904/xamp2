@@ -20,7 +20,7 @@
 #include <stream/r8brainlib.h>
 #include <stream/soxrlib.h>
 #include <stream/srclib.h>
-#include <stream/m4aencoder.h>
+#include <stream/libavencoder.h>
 #include <stream/discIdlib.h>
 #include <stream/avlib.h>
 #include <stream/api.h>
@@ -122,6 +122,14 @@ bool IsDsdFile(const Path & path) {
     return IsDsdFileChunk(file_chunks);
 }
 
+ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& filePath) {
+    auto dsd_mode = DsdModes::DSD_MODE_DSD2PCM;
+    if (!IsDsdFile(filePath)) {
+        dsd_mode = DsdModes::DSD_MODE_PCM;
+    }
+	return MakeFileStream(filePath, dsd_mode);
+}
+
 ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& file_path, DsdModes dsd_mode) {
     if (!IsCDAFile(file_path)) {
         switch (dsd_mode) {
@@ -137,9 +145,9 @@ ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& file_path, DsdMo
     }
 }
 
-ScopedPtr<IFileEncoder> StreamFactory::MakeM4AEncoder() {
+ScopedPtr<IFileEncoder> StreamFactory::MakeFileEncoder() {
 #ifdef XAMP_OS_WIN
-    return MakeAlign<IFileEncoder, M4AFileEncoder>();
+    return MakeAlign<IFileEncoder, LibAbFileEncoder>();
 #else
     return MakeAlign<IFileEncoder, BassAACFileEncoder>();
 #endif
@@ -190,8 +198,6 @@ IDsdStream* AsDsdStream(FileStream* stream) noexcept {
 }
 
 ScopedPtr<FileStream> MakeFileStream(const Path& file_path, DsdModes dsd_mode) {
-    static const std::string kApeFileExtension = ".ape";
-
     auto file_stream = StreamFactory::MakeFileStream(file_path, dsd_mode);
 
     if (dsd_mode != DsdModes::DSD_MODE_PCM) {

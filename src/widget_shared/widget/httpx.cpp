@@ -297,6 +297,7 @@ namespace http {
         else {
             auto error_response = processEncoding(reply, reply->readAll());
             const auto error_string = reply->errorString();
+            XAMP_LOG_D(logger_, error_string.toStdString());
             reply->deleteLater();
         }
         return data;

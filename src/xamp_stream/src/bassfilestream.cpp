@@ -359,18 +359,21 @@ public:
         return BASS_LIB.BASS_ChannelIsActive(GetHStream()) == BASS_ACTIVE_PLAYING;
     }
 
+    bool EndOfStream() const {
+        auto last_error = BASS_LIB.BASS_ErrorGetCode();
+        if (last_error == BASS_ERROR_ENDED) {
+            return true;
+        }
+        return false;
+    }
+
 private:
     uint32_t InternalGetSamples(void* buffer, uint32_t length) const noexcept {
         const auto bytes_read =
             BASS_LIB.BASS_ChannelGetData(GetHStream(), buffer, length);
-        if (bytes_read == kBassError) {            
-			auto last_error = BASS_LIB.BASS_ErrorGetCode();
-            if (last_error == BASS_ERROR_ENDED) {
-                return 0;
-            }
-            XAMP_LOG_E(logger_, "BASS_ChannelGetData error: {}", last_error);
+        if (bytes_read == kBassError) {            			
             return 0;
-        }        
+        }
         return static_cast<uint32_t>(bytes_read);
     }
 
@@ -396,6 +399,10 @@ void BassFileStream::OpenFile(Path const& file_path)  {
 
 void BassFileStream::Close() noexcept {
     stream_->Close();
+}
+
+bool BassFileStream::EndOfStream() const {
+    return stream_->EndOfStream();
 }
 
 double BassFileStream::GetDurationAsSeconds() const {

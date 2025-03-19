@@ -101,7 +101,14 @@ public Q_SLOT:
 
 	QCoro::Task<SearchLyricsResult> downloadSingleKlrc(InfoItem info);
 
+	void ParallelEncode(const QString& dir_name, QList<EncodeJob> jobs);
+
+	void SequenceEncode(const QString& dir_name, QList<EncodeJob> jobs);
+
+	void Encode(const QString& dir_name, const EncodeJob& job);
 private:
+	std::tuple<std::shared_ptr<IFile>, Path> getValidFileWriter(const EncodeJob& job, const QString& dir_name, const Path& file_path);
+
 	bool is_stop_{false};
 	LruCache<QString, QImage> blur_image_cache_;
 	LoggerPtr logger_;
