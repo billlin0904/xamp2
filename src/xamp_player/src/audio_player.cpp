@@ -811,6 +811,8 @@ void AudioPlayer::ReadSampleLoop(std::byte* buffer,
         return;
     }    
 
+	auto* bass_stream = dynamic_cast<BassFileStream*>(stream_.get());
+
     while (ShouldKeepReading()) {
         const auto num_samples = stream_->GetSamples(buffer, buffer_size);
 
@@ -821,6 +823,15 @@ void AudioPlayer::ReadSampleLoop(std::byte* buffer,
                 continue;
             }
         }
+
+        if (num_samples == 0) {
+            if (bass_stream != nullptr && !bass_stream->EndOfStream()) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                XAMP_LOG_I(logger_, "Player waiting data ...");
+                continue;
+            }
+        }
+
         if (!enable_file_cache_ || !IsAvailableWrite()) {
             break;
         }        

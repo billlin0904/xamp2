@@ -84,6 +84,7 @@ public:
     XAMP_DECLARE_DLL_NAME(av_dump_format);
 	XAMP_DECLARE_DLL_NAME(avio_alloc_context);
     XAMP_DECLARE_DLL_NAME(avio_context_free);
+	XAMP_DECLARE_DLL_NAME(av_find_best_stream);
 };
 
 class AvCodecLib final {
@@ -131,6 +132,7 @@ private:
 
 public:
     XAMP_DECLARE_DLL_NAME(av_free);
+    XAMP_DECLARE_DLL_NAME(av_frame_free);
     XAMP_DECLARE_DLL_NAME(av_frame_unref);
     XAMP_DECLARE_DLL_NAME(av_frame_get_buffer);
     XAMP_DECLARE_DLL_NAME(av_get_bytes_per_sample);
@@ -156,6 +158,9 @@ public:
     XAMP_DECLARE_DLL_NAME(av_opt_set);
     XAMP_DECLARE_DLL_NAME(av_dict_free);
     XAMP_DECLARE_DLL_NAME(av_freep);
+    XAMP_DECLARE_DLL_NAME(av_samples_alloc);
+    XAMP_DECLARE_DLL_NAME(av_opt_set_int);
+    XAMP_DECLARE_DLL_NAME(av_opt_set_sample_fmt);
 };
 
 class AvSwLib final {
@@ -172,6 +177,8 @@ public:
     XAMP_DECLARE_DLL_NAME(swr_convert);
     XAMP_DECLARE_DLL_NAME(swr_init);
     XAMP_DECLARE_DLL_NAME(swr_close);
+	XAMP_DECLARE_DLL_NAME(swr_get_out_samples);
+    XAMP_DECLARE_DLL_NAME(swr_alloc);
 };
 
 class AvLib final {

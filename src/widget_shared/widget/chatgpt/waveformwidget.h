@@ -27,18 +27,18 @@ public:
     static constexpr uint32_t kDrawOnlyLeftChRms = 1 << 7;
     static constexpr uint32_t kDrawBothChannelRms = 1 << 8;
 
-    static constexpr auto kLeftPlayedChannelColor = QColor(50, 255, 50, 180);
-    static constexpr auto kLeftUnPlayedChannelColor = QColor(33, 150, 243);
-    static constexpr auto kRightPlayedChannelColor = QColor(50, 255, 50, 180);
-    static constexpr auto kRightUnPlayedChannelColor = QColor(33, 150, 243);
+    //static constexpr auto kLeftPlayedChannelColor = QColor(50, 255, 50, 180);
+    //static constexpr auto kLeftUnPlayedChannelColor = QColor(33, 150, 243);
+    //static constexpr auto kRightPlayedChannelColor = QColor(50, 255, 50, 180);
+    //static constexpr auto kRightUnPlayedChannelColor = QColor(33, 150, 243);
 
     static constexpr auto kRmsColor = QColor(255, 255, 255, 120);
 
+    //static constexpr uint32_t kFramesPerPeak = 4096;
     static constexpr float kHeadroomFactor = 0.6f;
     static constexpr float kYTextHeight = 20.0f;
     static constexpr float kCornerRadius = 5.0f;
-    static constexpr uint32_t kPadding = 4;
-    static constexpr uint32_t kFramesPerPeak = 4096;
+    static constexpr uint32_t kPadding = 4;    
     static constexpr int kTextOffsetY = -10;
 
     explicit WaveformWidget(QWidget *parent = nullptr);
@@ -54,20 +54,16 @@ public:
 signals:
     void playAt(float sec);
 
-    void readWaveformAudioData(size_t frame_per_peek, const Path& file_path);
-
     void readAudioSpectrogram(const QSize& widget_size, const Path& file_path);
 
 public slots:
-    void onReadAudioData(const std::vector<float> & buffer);
-
     void setSpectrogramData(double duration_sec, const QImage& chunk, int time_index);
 
     void doneRead();
 
     void clear();
 
-    void setProcessInfo(size_t frame_per_peek, const Path& file_path);
+    void loadFile(const Path& file_path);
 
 protected:
     void updateSpectrogramSize();
@@ -83,10 +79,6 @@ protected:
     void resizeEvent(QResizeEvent* event) override;
 
 private:
-    void updateCachePixmap();
-
-    void updatePlayedPaths(int playIndex);
-
     void drawTimeAxis(QPainter& painter, const QRect& rect);
 
     void drawDuration(QPainter& painter, const QRect& rect);
@@ -101,27 +93,26 @@ private:
 
     float mapFreqToY(float freq, const QRect& rect) const;
 
+    void markCacheDirty();
+
+    void updateStaticCache();
+
+    void drawGainColorBar(QPainter& painter, const QRect& barRect);
+
+    void drawGainColorBarTicks(QPainter& painter, const QRect& barRect);
+
+    QRect gainColorBarRect() const;
+
     QRect drawRect() const;
 
-    void drawCursorIfNeeded(QPainter& painter, const QRegion& region);
-
+    bool cache_dirty_ = true;
     bool is_processing_ = false;
-    uint32_t draw_mode_ = kDrawOnlyRightChannel;
+    uint32_t draw_mode_ = kDrawSpectrogram;
     float total_ms_ = 0.f;
-    size_t peak_count_ = 0;
     float cursor_ms_ = -1.f;
-    uint32_t sample_rate_ = 44100;
-	size_t frame_per_peak_ = kFramesPerPeak;
-    std::vector<float> left_peaks_;
-    std::vector<float> right_peaks_;
-    std::vector<float> left_rms_;
-    std::vector<float> right_rms_;
+	uint32_t sample_rate_ = 44100;
 	Path file_path_;
-    QPixmap cache_;
     QImage spectrogram_;
     QImage spectrogram_cache_;
-    QPainterPath path_left_played_;
-    QPainterPath path_right_played_;
-    QPainterPath path_left_rms_played_;
-    QPainterPath path_right_rms_played_;
+    QPixmap static_cache_;
 };

@@ -1500,8 +1500,8 @@ void Xamp::updateUi(const PlayListEntity& entity,
     lrc_page_->lyrics()->loadFile(kEmptyString);
     lrc_page_->lyrics()->loadFile(entity.file_path);
     lrc_page_->setPlayListEntity(entity);
-    emit searchLyrics(entity);
 
+    emit searchLyrics(entity);
     //emit transcribeFile(entity.file_path);
 
     lrc_page_->title()->setText(entity.title);
@@ -1523,17 +1523,10 @@ void Xamp::updateUi(const PlayListEntity& entity,
         else {
             sampler_rate = entity.sample_rate;
         }
-        size_t frame_per_peak = WaveformWidget::kFramesPerPeak;
-        if (entity.duration < 30.0f) {
-            frame_per_peak = 1024;
-		}
-		else if (entity.duration > 60.0f) {
-			frame_per_peak = 4096 * 4;
-		}
+        
+        file_explorer_page_->waveformWidget()->loadFile(entity.file_path.toStdWString());
         file_explorer_page_->waveformWidget()->setSampleRate(sampler_rate);
         file_explorer_page_->waveformWidget()->setTotalDuration(entity.duration);
-        file_explorer_page_->waveformWidget()->setProcessInfo(frame_per_peak,
-            entity.file_path.toStdWString());
 	} else {
         file_explorer_page_->playlistPage()->playlist()->setNowPlayState(PLAY_CLEAR);
 		file_explorer_page_->waveformWidget()->clear();
@@ -1947,11 +1940,6 @@ void Xamp::initialPlaylist() {
     setCover(kEmptyString);
 
     (void)QObject::connect(file_explorer_page_->waveformWidget(),
-        &WaveformWidget::readWaveformAudioData,
-        background_service_.get(),
-        &BackgroundService::onReadWaveformAudioData);
-
-    (void)QObject::connect(file_explorer_page_->waveformWidget(),
         &WaveformWidget::readAudioSpectrogram,
         background_service_.get(),
         &BackgroundService::onReadSpectrogram);
@@ -1960,11 +1948,6 @@ void Xamp::initialPlaylist() {
         &BackgroundService::readAudioSpectrogram,
         file_explorer_page_->waveformWidget(),
 		&WaveformWidget::setSpectrogramData);
-
-    (void)QObject::connect(background_service_.get(),
-        &BackgroundService::readAudioData,
-        file_explorer_page_->waveformWidget(),
-        &WaveformWidget::onReadAudioData);
 
     (void)QObject::connect(background_service_.get(),
         &BackgroundService::readAudioDataCompleted,

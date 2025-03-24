@@ -45,7 +45,7 @@ public:
                 file_path.c_str(),
                 0,
                 0,
-                flags | BASS_STREAM_DECODE | BASS_UNICODE));
+                flags | BASS_STREAM_DECODE | BASS_UNICODE | BASS_ASYNCFILE));
 #endif
         }
         else {
@@ -358,7 +358,7 @@ public:
     XAMP_NO_DISCARD bool IsActive() const noexcept {
         return BASS_LIB.BASS_ChannelIsActive(GetHStream()) == BASS_ACTIVE_PLAYING;
     }
-
+	
     bool EndOfStream() const {
         auto last_error = BASS_LIB.BASS_ErrorGetCode();
         if (last_error == BASS_ERROR_ENDED) {

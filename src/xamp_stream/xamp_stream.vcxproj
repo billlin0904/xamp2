@@ -196,7 +196,6 @@
     <ClInclude Include="include\stream\stream.h" />
     <ClInclude Include="include\stream\api.h" />
     <ClInclude Include="include\stream\supereqequalizer.h" />
-    <ClInclude Include="include\stream\wavefilewriter.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\libavencoder.cpp" />
@@ -222,7 +221,6 @@
     <ClCompile Include="src\srcresampler.cpp" />
     <ClCompile Include="src\stft.cpp" />
     <ClCompile Include="src\supereqequalizer.cpp" />
-    <ClCompile Include="src\wavefilewriter.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

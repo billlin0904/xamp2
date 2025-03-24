@@ -49,7 +49,8 @@ AvFormatLib::AvFormatLib() try
 	, XAMP_LOAD_DLL_API(av_write_trailer)
 	, XAMP_LOAD_DLL_API(av_dump_format)
 	, XAMP_LOAD_DLL_API(avio_alloc_context)
-	, XAMP_LOAD_DLL_API(avio_context_free) {
+	, XAMP_LOAD_DLL_API(avio_context_free)
+	, XAMP_LOAD_DLL_API(av_find_best_stream) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -88,6 +89,7 @@ catch (const Exception& e) {
 AvUtilLib::AvUtilLib() try
     : module_(OpenSharedLibrary("avutil-57"))
 	, XAMP_LOAD_DLL_API(av_free)
+	, XAMP_LOAD_DLL_API(av_frame_free)
 	, XAMP_LOAD_DLL_API(av_frame_unref)
 	, XAMP_LOAD_DLL_API(av_frame_get_buffer)
 	, XAMP_LOAD_DLL_API(av_get_bytes_per_sample)
@@ -112,7 +114,10 @@ AvUtilLib::AvUtilLib() try
 	, XAMP_LOAD_DLL_API(av_dict_get)
 	, XAMP_LOAD_DLL_API(av_opt_set)
 	, XAMP_LOAD_DLL_API(av_dict_free)
-	, XAMP_LOAD_DLL_API(av_freep) {
+	, XAMP_LOAD_DLL_API(av_freep)
+	, XAMP_LOAD_DLL_API(av_samples_alloc)
+	, XAMP_LOAD_DLL_API(av_opt_set_int)
+	, XAMP_LOAD_DLL_API(av_opt_set_sample_fmt) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -124,7 +129,9 @@ AvSwLib::AvSwLib() try
 	, XAMP_LOAD_DLL_API(swr_alloc_set_opts)
 	, XAMP_LOAD_DLL_API(swr_convert)
 	, XAMP_LOAD_DLL_API(swr_init)
-	, XAMP_LOAD_DLL_API(swr_close) {
+	, XAMP_LOAD_DLL_API(swr_close)
+	, XAMP_LOAD_DLL_API(swr_get_out_samples)
+	, XAMP_LOAD_DLL_API(swr_alloc) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());

@@ -15,6 +15,7 @@
 #include <widget/krcparser.h>
 
 #include <stream/filestream.h>
+#include <stream/bassfilestream.h>
 #include <stream/fft.h>
 #include <stream/stft.h>
 #include <base/logger_impl.h>
@@ -160,6 +161,32 @@ namespace {
             data[idx + 1] = qGreen(color);
             data[idx + 2] = qBlue(color);
         }
+    }
+
+    bool getSamples(ScopedPtr<FileStream>& file_stream, Buffer<float>& buffer) {
+        auto retry_count = 0;
+        auto is_readable = true;
+        auto* bass_file_stream = dynamic_cast<BassFileStream*>(file_stream.get());
+        constexpr auto kMaxRetryCount = 4;
+        while (is_readable) {
+            buffer.Fill(0.0f);
+            auto read_samples = file_stream->GetSamples(buffer.data(),
+                buffer.size());
+            if (read_samples == 0) {
+                if (retry_count < kMaxRetryCount) {
+                    if (bass_file_stream != nullptr && !bass_file_stream->EndOfStream()) {
+                        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                        retry_count++;
+                        continue;
+                    }
+                }
+                is_readable = false;
+            }
+            else {
+                break;
+            }
+        }
+        return is_readable;
     }
 }
 
@@ -570,22 +597,21 @@ void BackgroundService::onReadSpectrogram(const QSize& widget_size, const Path& 
         fft.SetWindowType(WindowType::HANN);
 
         Buffer<float> buffer(kFFTSize);
-
+		
         int time_index = 0;
         auto duration = file_stream->GetDurationAsSeconds();
         ComplexValarray freq_bins;
         freq_bins.resize(fft.GetShiftSize() + 1);
 
-        int kColumnsPerChunk = (std::min)(100u, (file_stream->GetFormat().GetSampleRate() / 44100) * 100);
+        auto kColumnsPerChunk = (std::min)(100u, 
+            (file_stream->GetFormat().GetSampleRate() / 44100) * 100);
 
         while (!is_stop_ && file_stream->IsActive()) {        
-        	QImage chunk_img(kColumnsPerChunk, freq_bins.size(), QImage::Format_RGB888);
+        	QImage chunk_img(kColumnsPerChunk, freq_bins.size(),
+                QImage::Format_RGB888);
             chunk_img.fill(Qt::black);
 
-	        buffer.Fill(0.0f);
-            auto read_samples = file_stream->GetSamples(buffer.data(),
-                buffer.size());
-            if (read_samples == 0) {
+            if (!getSamples(file_stream, buffer)) {
                 freq_bins = fft.Flush();
                 fillSpectrogramColumn(chunk_img, 0, freq_bins);
                 emit readAudioSpectrogram(duration, chunk_img, time_index);
@@ -594,20 +620,20 @@ void BackgroundService::onReadSpectrogram(const QSize& widget_size, const Path& 
 
             freq_bins = fft.Process(buffer.data(), buffer.size());
             fillSpectrogramColumn(chunk_img, 0, freq_bins);
-            int actual_columns = kColumnsPerChunk;
 
-            for (int col = 1; col < kColumnsPerChunk; col++) {
-                buffer.Fill(0.0f);
-                read_samples = file_stream->GetSamples(buffer.data(), 
-                    buffer.size());
-                if (read_samples == 0) {
+            int actual_columns = kColumnsPerChunk;
+			
+            for (int col = 1; col < kColumnsPerChunk; col++) {                             
+				if (!getSamples(file_stream, buffer)) {
                     actual_columns = col;
                     freq_bins = fft.Flush();
                     fillSpectrogramColumn(chunk_img, col, freq_bins);
                     break;
                 }
-                freq_bins = fft.Process(buffer.data(), buffer.size());
-                fillSpectrogramColumn(chunk_img, col, freq_bins);
+                else {
+                    freq_bins = fft.Process(buffer.data(), buffer.size());
+                    fillSpectrogramColumn(chunk_img, col, freq_bins);
+                }
             }
 
             emit readAudioSpectrogram(duration, chunk_img, time_index);

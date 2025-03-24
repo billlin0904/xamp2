@@ -29,6 +29,8 @@ public:
 
 	void Close() noexcept override;
 
+	// Check if the stream is at the end.
+	// If read CD or use BASS_ASYNCFILE flag, Must use this function to check.
 	bool EndOfStream() const;
 
 	XAMP_NO_DISCARD double GetDurationAsSeconds() const override;
