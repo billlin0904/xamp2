@@ -45,7 +45,7 @@ public:
                 file_path.c_str(),
                 0,
                 0,
-                flags | BASS_STREAM_DECODE | BASS_UNICODE | BASS_ASYNCFILE));
+                flags | BASS_STREAM_DECODE | BASS_UNICODE));
 #endif
         }
         else {
