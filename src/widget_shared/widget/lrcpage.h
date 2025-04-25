@@ -11,6 +11,7 @@
 #include <QTableWidget>
 #include <QListWidget>
 #include <QLabel>
+#include <QSortFilterProxyModel>
 #include <QVBoxLayout>
 
 #include <widget/themecolor.h>
@@ -25,6 +26,49 @@ class LyricsShowWidget;
 class SpectrumWidget;
 class QPaintEvent;
 
+enum {
+	LRC_PAGE_TAB_ID = 0,
+	LRC_PAGE_TAB_ALBUM,
+	LRC_PAGE_TAB_ARTIST,
+	LRC_PAGE_TAB_TITLE,
+	LRC_PAGE_TAB_LYRICS,
+	LRC_PAGE_TAB_KARAOKE,
+	LRC_PAGE_TAB_DURATION,
+};
+
+class MultiColumnFilterModel : public QSortFilterProxyModel {
+public:
+	using QSortFilterProxyModel::QSortFilterProxyModel;
+
+protected:
+	bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const override {
+		// 取得目前的正則表示式
+		QRegularExpression re = filterRegularExpression();
+		// 如果尚未輸入搜尋字串，則顯示全部
+		if (re.pattern().isEmpty()) {
+			return true;
+		}
+
+		// 設定忽略大小寫（等效於 Qt::CaseInsensitive）
+		// 也可以在 setFilterRegularExpression() 時就設定好 Options
+		QRegularExpression::PatternOptions opts;
+		opts |= QRegularExpression::CaseInsensitiveOption;
+		re.setPatternOptions(opts);
+
+		// 檢查目標欄位是否含有此正則
+		std::array<uint32_t, 3> columns = { LRC_PAGE_TAB_ALBUM, LRC_PAGE_TAB_ARTIST, LRC_PAGE_TAB_TITLE };
+		for (uint32_t col : columns) {
+			QModelIndex index = sourceModel()->index(sourceRow, col, sourceParent);
+			QString dataStr = index.data(Qt::DisplayRole).toString();
+			// 只要有一欄匹配，就顯示
+			if (dataStr.contains(re)) {
+				return true;
+			}
+		}
+		// 都沒有匹配則隱藏該列
+		return false;
+	}
+};
 
 class LyricsFrame : public QFrame {
 	Q_OBJECT
@@ -38,6 +82,7 @@ signals:
 
 private:
 	QTableView* lyrc_view_;
+	MultiColumnFilterModel* filterModel_;
 	QStandardItemModel* model_;
 	QMap<QString, LyricsParser> parser_map_;
 };
@@ -79,6 +124,8 @@ public:
 
 	void setFullScreen();
 
+	void disableLoadLrcButton();
+
 public slots:
 	void onThemeChangedFinished(ThemeColor theme_color);
 
@@ -114,6 +161,10 @@ private:
 	ScrollLabel* artist_;
 	ScrollLabel* title_;
 	SpectrumWidget* spectrum_;
+	QToolButton* change_lrc_button_;
+	QToolButton* change_color_button_;
+	QToolButton* change_highlight_button_;
+	QToolButton* karaoke_highlight_button_;
 	QPixmap cover_;
 	QImage background_image_;
 	QImage prev_background_image_;

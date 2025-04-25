@@ -13,6 +13,7 @@
 #include <QUrl>
 
 #include <widget/util/str_util.h>
+#include <base/assert.h>
 #include <widget/widget_shared_global.h>
 
 struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
@@ -43,7 +44,8 @@ struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
     QString genre;
     QString comment;
     QString lyrc;
-    QString trlyrc;    
+    QString trlyrc;
+    QString yt_music_album_id;
 
     std::optional<QString> music_cover_id;    
     std::optional<double> offset;
@@ -68,6 +70,30 @@ struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
             id = cover_id;
         }
         return id;
+    }
+
+    XAMP_NO_DISCARD PlayListEntity cleanup() const {
+        PlayListEntity temp;
+        auto feat_pos = temp.title.indexOf("feat"_str);
+        if (feat_pos != -1) {
+            temp.title = temp.title.left(feat_pos).trimmed();
+        }
+        if (temp.title.isEmpty()) {
+            temp.title = title;
+        }
+        return temp;
+    }
+
+    XAMP_NO_DISCARD uint32_t getDopSampleRate() const {
+        XAMP_ASSERT(this->sample_rate > 0);
+        uint32_t dop_sample_rate = 0;
+        if (this->sample_rate >= 2822400) {
+            dop_sample_rate = 88200;
+        }
+        else {
+            dop_sample_rate = sample_rate;
+        }
+        return dop_sample_rate;
     }
 };
 

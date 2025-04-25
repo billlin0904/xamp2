@@ -158,23 +158,12 @@ void ImageCache::clearCache() const {
 	cache_.Clear();
 }
 
-QString ImageCache::makeCacheFilePath() const {
-    auto cache_path = qAppSettings.getOrCreateCachePath() + R"(ImageCache\)"_str;
-    const QDir dir(cache_path);
-    if (!dir.exists()) {
-        if (!dir.mkdir(cache_path)) {
-            XAMP_LOG_ERROR("Create cache dir failure!");
-        }
-    }
-    return cache_path;
-}
-
 QString ImageCache::makeImageCachePath(const QString& tag_id) const {
-    return makeCacheFilePath() + tag_id + kCacheFileExtension;
+    return qAppSettings.getOrCreateImageCachePath() + tag_id + kCacheFileExtension;
 }
 
 void ImageCache::clear() const {
-	for (QDirIterator itr(makeCacheFilePath(), cache_ext_, QDir::Files | QDir::NoDotAndDotDot);
+	for (QDirIterator itr(qAppSettings.getOrCreateImageCachePath(), cache_ext_, QDir::Files | QDir::NoDotAndDotDot);
 		itr.hasNext();) {
 		const auto path = itr.next();
 		QFile file(path);
@@ -318,7 +307,7 @@ QString ImageCache::addImage(const QPixmap& cover, bool save_only) {
 }
 
 void ImageCache::loadCache() const {
-	qDaoFacade.album_dao_.forEachAlbumCover([this](const QString& cover_id) {
+	qDaoFacade.album_dao.forEachAlbumCover([this](const QString& cover_id) {
 		(void) getOrAddDefault(cover_id);
 		});
 }

@@ -153,6 +153,10 @@ XAMP_BASE_API bool SetProcessWorkingSetSize(size_t working_set_size);
 XAMP_BASE_API void SetProcessMitigation();
 
 XAMP_BASE_API void SetThreadMitigation();
+
+XAMP_BASE_API bool KillProcessByPidAndChildren(uint64_t pid);
+
+XAMP_BASE_API bool KillProcessByNameAndChildren(const std::string& process_name);
 #endif
 
 XAMP_BASE_NAMESPACE_END

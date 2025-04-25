@@ -1,0 +1,3 @@
+set SSLKEYLOGFILE=
+set PO_TOKEN_VALUE=tv.player+MlvuVCGg0xR6JO5sr3BsMuA3Ea4ZJ3kXGywPnKTQ8gOfurBZJckczX0M9gYlJtSlNposrxplkBmSuTs6i5kYHHAgeswuFHu7ScbnU7Vpw-PwvfwWok7rgIyWWQIA
+start "ytmusic" ytmusic.exe

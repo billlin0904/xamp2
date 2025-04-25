@@ -65,11 +65,9 @@ struct OpenCCDetDeleter<opencc_t> {
 
 using OpenCCPtr = std::unique_ptr<opencc_t, OpenCCDetDeleter<opencc_t>>;
 
-class CharsetDetector::CharsetDetectorImpl {
+class EncodingDetector::EncodingDetectorImpl {
 public:
-	CharsetDetectorImpl()
-		: indentifier_(0, 1000) {
-	}
+	EncodingDetectorImpl() = default;
 
 	std::string Detect(const char* data, size_t size) {
 		UcharDetPtr detector;
@@ -94,6 +92,16 @@ public:
 		// reset detector
 		UCHARDECT_LIB.uchardet_reset(detector.get());
 		return encoding;
+	}	
+
+private:
+	chrome_lang_id::NNetLanguageIdentifier indentifier_;
+};
+
+class LanguageDetector::LanguageDetectorImpl {
+public:
+	LanguageDetectorImpl()
+		: indentifier_(0, 1000) {
 	}
 
 	bool IsJapanese(const std::wstring& text) {
@@ -102,6 +110,11 @@ public:
 		return result.is_reliable && result.language == kJapanese;
 	}
 
+	bool IsChinese(const std::wstring& text) {
+		static const std::string kSimpleChinese = "zh";
+		const auto result = indentifier_.FindLanguage(String::ToUtf8String(text));
+		return result.is_reliable && result.language == kSimpleChinese;
+	}
 private:
 	chrome_lang_id::NNetLanguageIdentifier indentifier_;
 };
@@ -111,12 +124,8 @@ public:
 	OpenCCConvertImpl() = default;
 
 	void Load(const std::string &file_name, const std::string &file_path) {
-		try {
-			converter_ = MakeAlign<opencc::SimpleConverter>(file_name,
-				std::vector<std::string>{ { file_path } });
-		}
-		catch (...) {
-		}
+		converter_ = MakeAlign<opencc::SimpleConverter>(file_name,
+			std::vector<std::string>{ { file_path } });
 	}
 
 	std::wstring Convert(const std::wstring& text) const {
@@ -124,16 +133,11 @@ public:
 			return text;
 		}
 
-		try {
-			auto utf8_str = String::ToUtf8String(text);
-			auto result = String::ToStdWString(converter_->Convert(
-				utf8_str.c_str(),
-				utf8_str.length()));
-			return result;
-		}
-		catch (...) {
-		}
-		return text;
+		auto utf8_str = String::ToUtf8String(text);
+		auto result = String::ToStdWString(converter_->Convert(
+			utf8_str.c_str(),
+			utf8_str.length()));
+		return result;
 	}
 
 private:
@@ -154,18 +158,28 @@ std::wstring OpenCCConvert::Convert(const std::wstring& text) const {
 
 XAMP_PIMPL_IMPL(OpenCCConvert)
 
-CharsetDetector::CharsetDetector() 
-	: impl_(MakeAlign<CharsetDetectorImpl>()) {
+EncodingDetector::EncodingDetector()
+	: impl_(MakeAlign<EncodingDetectorImpl>()) {
 }
 
-XAMP_PIMPL_IMPL(CharsetDetector)
+XAMP_PIMPL_IMPL(EncodingDetector)
 
-std::string CharsetDetector::Detect(const char* data, size_t size) {
+std::string EncodingDetector::Detect(const char* data, size_t size) {
 	return impl_->Detect(data, size);
 }
 
-bool CharsetDetector::IsJapanese(const std::wstring& text) {
+LanguageDetector::LanguageDetector()
+	: impl_(MakeAlign<LanguageDetectorImpl>()) {
+}
+
+XAMP_PIMPL_IMPL(LanguageDetector)
+
+bool LanguageDetector::IsJapanese(const std::wstring& text) {
 	return impl_->IsJapanese(text);
+}
+
+bool LanguageDetector::IsChinese(const std::wstring& text) {
+	return impl_->IsChinese(text);
 }
 
 void LoadUcharDectLib() {

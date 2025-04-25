@@ -89,6 +89,8 @@ XAMP_WIDGET_SHARED_EXPORT QString colorToString(QColor color);
 
 XAMP_WIDGET_SHARED_EXPORT QString formatDuration(const double stream_time, bool full_text = false);
 
+XAMP_WIDGET_SHARED_EXPORT QString formatDurationAsMinutes(const double stream_time);
+
 XAMP_WIDGET_SHARED_EXPORT bool isMoreThan1Hours(const double stream_time);
 
 XAMP_WIDGET_SHARED_EXPORT QString toNativeSeparators(const QString& path);

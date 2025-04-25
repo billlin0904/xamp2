@@ -63,6 +63,13 @@ namespace http {
                 stream << " " << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
             }
 
+            auto fromCache = reply->attribute(QNetworkRequest::SourceIsFromCacheAttribute).toBool();
+			if (fromCache) {
+				stream << " [From Cache]";
+			}
+			else {
+				stream << " [From Network]";
+			}
             stream << " " << url << " Header: { ";
 
             QString content_type;
@@ -286,6 +293,9 @@ namespace http {
             }
             request.setRawHeader("Cookie", cookie_header.toUtf8());
         }
+
+		request.setAttribute(QNetworkRequest::CacheLoadControlAttribute,
+			QNetworkRequest::PreferCache);
     }
 
     QString HttpClient::processReply(QNetworkReply* reply) {

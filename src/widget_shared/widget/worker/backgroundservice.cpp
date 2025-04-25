@@ -13,6 +13,8 @@
 #include <widget/albumview.h>
 #include <widget/tagio.h>
 #include <widget/krcparser.h>
+#include <widget/lrcparser.h>
+#include <widget/neteaseparser.h>
 
 #include <stream/filestream.h>
 #include <stream/bassfilestream.h>
@@ -48,10 +50,55 @@ namespace {
             if (dB_val < kMinDb) dB_val = kMinDb;
             if (dB_val > kMaxDb) dB_val = kMaxDb;
             const double ratio = (dB_val - kMinDb) / kDbRange;
-            return soxrColor(ratio);
+            //return soxrColor(ratio);
+			return danBrutonColor(ratio);
         }
 
     private:
+        static QRgb danBrutonColor(double level) {
+            level *= 0.6625;
+            double r = 0.0, g = 0.0, b = 0.0;
+            if (level >= 0 && level < 0.15) {
+                r = (0.15 - level) / (0.15 + 0.075);
+                g = 0.0;
+                b = 1.0;
+            }
+            else if (level >= 0.15 && level < 0.275) {
+                r = 0.0;
+                g = (level - 0.15) / (0.275 - 0.15);
+                b = 1.0;
+            }
+            else if (level >= 0.275 && level < 0.325) {
+                r = 0.0;
+                g = 1.0;
+                b = (0.325 - level) / (0.325 - 0.275);
+            }
+            else if (level >= 0.325 && level < 0.5) {
+                r = (level - 0.325) / (0.5 - 0.325);
+                g = 1.0;
+                b = 0.0;
+            }
+            else if (level >= 0.5 && level < 0.6625) {
+                r = 1.0;
+                g = (0.6625 - level) / (0.6625 - 0.5f);
+                b = 0.0;
+            }
+
+            // Intensity correction.
+            double cf = 1.0;
+            if (level >= 0.0 && level < 0.1) {
+                cf = level / 0.1;
+            }
+            cf *= 255.0;
+
+            // Pack RGB values into a 32-bit uint.
+            uint32_t rr = (uint32_t)(r * cf + 0.5);
+            uint32_t gg = (uint32_t)(g * cf + 0.5);
+            uint32_t bb = (uint32_t)(b * cf + 0.5);
+
+            return qRgb(rr, gg, bb);
+        }
+
         static QRgb soxrColor(double level) {
             double r = 0.0;
             if (level >= 0.13 && level < 0.73) {
@@ -172,19 +219,17 @@ namespace {
             buffer.Fill(0.0f);
             auto read_samples = file_stream->GetSamples(buffer.data(),
                 buffer.size());
-            if (read_samples == 0) {
-                if (retry_count < kMaxRetryCount) {
-                    if (bass_file_stream != nullptr && !bass_file_stream->EndOfStream()) {
-                        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                        retry_count++;
-                        continue;
-                    }
-                }
-                is_readable = false;
-            }
-            else {
+            if (read_samples > 0) {
                 break;
             }
+            if (retry_count < kMaxRetryCount) {
+                if (bass_file_stream != nullptr && !bass_file_stream->EndOfStream()) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                    retry_count++;
+                    continue;
+                }
+            }
+            is_readable = false;
         }
         return is_readable;
     }
@@ -226,7 +271,7 @@ BackgroundService::getValidFileWriter(const EncodeJob &job,
     auto file_name = getValidFileName(job.file.file_name);
 
     // Ensure file name is unique.
-    constexpr auto kMaxRetryTestUniqueFileName = 255;
+    constexpr auto kMaxRetryTestUniqueFileName = 128;
     auto i = 0;
     for (; i < kMaxRetryTestUniqueFileName; ++i) {
         try {
@@ -349,13 +394,72 @@ void BackgroundService::onAddJobs(const QString& dir_name, const QList<EncodeJob
 		else {
 			SequenceEncode(dir_name, { job });
 		}
-        //SequenceEncode(dir_name, { job });
     }
     ParallelEncode(dir_name, parallel_jobs);
 }
 
 void BackgroundService::cancelRequested() {
     is_stop_ = true;
+}
+
+QCoro::Task<SearchLyricsResult> BackgroundService::downloadSingleNeteaseLrc(NeteaseSong info) {
+    http::HttpClient http(&nam_, "http://music.163.com/api/song/lyric"_str, this);    
+    http.param("id"_str, info.id);
+    http.param("lv"_str, -1);
+    http.param("kv"_str, -1);
+    http.param("tv"_str, -1);
+    auto content = co_await http.get();
+    //XAMP_LOG_DEBUG("Response: {}", content.toStdString());
+
+	auto netease_lrc = parseNeteaseLyric(content);
+    SearchLyricsResult result;
+	if (!netease_lrc.has_value()) {
+		co_return result;
+	}    
+    
+    QSharedPointer<LrcParser> parser(new LrcParser());
+	auto utf8_content = std::wstringstream(netease_lrc->lrc.lyric.toStdWString());
+    if (!parser->parse(utf8_content)) {
+        co_return result;
+    }
+
+    InfoItem info_item;
+	info_item.songname = info.name;
+	info_item.singername = info.artists[0].name;
+	info_item.duration = info.duration;
+
+    LyricsParser lrc_parser;
+    
+	lrc_parser.parser = parser;
+	lrc_parser.candidate.albumName = info.album.name;
+	lrc_parser.candidate.song = info.name;
+	lrc_parser.candidate.singer = info.artists[0].name;
+    lrc_parser.content = netease_lrc->lrc.lyric.toUtf8();
+
+	result.info = info_item;
+	result.parsers.append(lrc_parser);
+
+    co_return result;
+}
+
+QCoro::Task<QList<SearchLyricsResult>> BackgroundService::downloadNeteaseLrc(QList<NeteaseSong> infos) {
+    std::vector<QCoro::Task<SearchLyricsResult>> tasks;
+    tasks.reserve(infos.size());
+
+    for (const auto& info : infos) {
+        tasks.push_back(downloadSingleNeteaseLrc(info));
+    }
+
+    QList<SearchLyricsResult> results;
+    results.reserve(infos.size());
+
+    for (auto& task : tasks) {
+        auto single_result = co_await task;
+        if (!single_result.parsers.empty()) {
+            results.push_back(std::move(single_result));
+        }
+    }
+    co_return results;
 }
 
 QCoro::Task<SearchLyricsResult> BackgroundService::downloadSingleKlrc(InfoItem info) {
@@ -411,9 +515,12 @@ QCoro::Task<SearchLyricsResult> BackgroundService::downloadSingleKlrc(InfoItem i
             lrc_parser.parser = parser;
             lrc_parser.content = krc_content->decodedContent;
             result.parsers.push_back(lrc_parser);
-        }
+        }        
         catch (const Exception& e) {
             XAMP_LOG_ERROR(e.GetErrorMessage());
+        }
+        catch (const std::exception& e) {
+            XAMP_LOG_ERROR(e.what());
         }
     }
 
@@ -440,17 +547,43 @@ QCoro::Task<QList<SearchLyricsResult>> BackgroundService::downloadKLrc(QList<Inf
     co_return results;
 }
 
-void BackgroundService::onSearchLyrics(const PlayListEntity& keyword) {
+QCoro::Task<> BackgroundService::searchKugou(const PlayListEntity& keyword) {
+    //http::HttpClient http_client(&nam_, QString(), this);
     http_client_.setUrl("http://mobilecdn.kugou.com/api/v3/search/song"_str);
     http_client_.param("format"_str, "json"_str);
     http_client_.param("keyword"_str, keyword.title);
 
-    http_client_.get().then([this, keyword](const auto& content) {
-        auto infos = parseInfoData(content);
-        downloadKLrc(infos).then([this](const auto& results) {
-			emit fetchLyricsCompleted(results);
+    auto content = co_await http_client_.get();
+    auto infos = parseInfoData(content);
+    auto results = co_await downloadKLrc(infos);
+    emit fetchLyricsCompleted(results);
+    co_return;
+}
+
+QCoro::Task<> BackgroundService::searchNetease(const PlayListEntity& keyword) {
+	//http::HttpClient http_client(&nam_, QString(), this);
+    http_client_.setUrl("http://music.163.com/api/search/get"_str);
+    http_client_.param("s"_str, keyword.title);
+    http_client_.param("limit"_str, 30);
+    http_client_.param("offset"_str, 0);
+    http_client_.param("type"_str, 1);
+
+    auto content = co_await http_client_.get();
+    std::optional<QList<NeteaseSong>> songs = parseNeteaseSong(content);
+    if (!songs.has_value()) {
+        co_return;
+    }
+    auto results = co_await downloadNeteaseLrc(*songs);
+    emit fetchLyricsCompleted(results);
+	co_return;
+}
+
+void BackgroundService::onSearchLyrics(const PlayListEntity& keyword) {
+    auto temp = keyword.cleanup();
+    searchKugou(temp).then([]() {
+        });    
+    searchNetease(temp).then([]() {
         });
-    });
 }
 
 #if defined(Q_OS_WIN)
@@ -603,10 +736,11 @@ void BackgroundService::onReadSpectrogram(const QSize& widget_size, const Path& 
         ComplexValarray freq_bins;
         freq_bins.resize(fft.GetShiftSize() + 1);
 
-        auto kColumnsPerChunk = (std::min)(100u, 
-            (file_stream->GetFormat().GetSampleRate() / 44100) * 100);
+        auto format = file_stream->GetFormat();
+		auto total_samples = static_cast<uint32_t>(duration * format.GetSampleRate());
+        auto kColumnsPerChunk = (std::max)(100u, static_cast<uint32_t>(total_samples / fft.GetShiftSize()));
 
-        while (!is_stop_ && file_stream->IsActive()) {        
+        while (!is_stop_ && file_stream->IsActive()) {
         	QImage chunk_img(kColumnsPerChunk, freq_bins.size(),
                 QImage::Format_RGB888);
             chunk_img.fill(Qt::black);

@@ -199,6 +199,9 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     auto album_year = indexValue(index, ALBUM_INDEX_ALBUM_YEAR).toInt();
     auto is_hires = indexValue(index, ALBUM_INDEX_IS_HIRES).toBool();
     auto is_selected = indexValue(index, ALBUM_INDEX_IS_SELECTED).toBool();
+    auto store_type = static_cast<StoreType>(indexValue(index, ALBUM_INDEX_STORE_TYPE).toInt());
+
+    album = album.remove(QString::fromStdWString(kYoutubeMusicLibraryAlbumPrefix));
 
     // Process edit album view 
     if (enable_album_view_ && enable_selected_mode_ && is_selected) {
@@ -240,6 +243,11 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     if (is_hires) {
         album_artist_text_width -= kMoreIconSize;
         painter->drawPixmap(hiResIconRect(option, cover_size_), qTheme.hdIcon().pixmap(QSize(kMoreIconSize, kMoreIconSize)));
+    }
+
+    if (store_type == StoreType::CLOUD_STORE) {
+        album_artist_text_width -= kMoreIconSize;
+        painter->drawPixmap(hiResIconRect(option, cover_size_), qTheme.cloudIcon().pixmap(QSize(16, 16)));
     }
 
     QFontMetrics album_metrics(painter->font());

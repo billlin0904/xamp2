@@ -4,6 +4,7 @@
 
 #include <stdexcept>
 
+#include <base/unique_handle.h>
 #include <base/dll.h>
 #include <base/logger_impl.h>
 #include <base/text_encoding.h>
@@ -37,36 +38,27 @@ catch (const Exception& e) {
 
 #define LIBICONV_LIB Singleton<LibIconvLib>::GetInstance()
 
-template <typename T>
-struct IconvDeleter;
-
-template <>
-struct IconvDeleter<void> {
-	void operator()(void* p) const {
-		LIBICONV_LIB.iconv_close(p);
+struct IconvDeleter final {
+	static iconv_t invalid() noexcept {
+		return (iconv_t)(-1);
+	}
+	static void close(iconv_t value) {
+		LIBICONV_LIB.iconv_close(value);
 	}
 };
 
-using IconvPtr = std::unique_ptr<void, IconvDeleter<void>>;
+using IconvPtr = UniqueHandle<iconv_t, IconvDeleter>;
 
 class TextEncoding::TextEncodingImpl {
 public:
 	TextEncodingImpl() = default;
 
-	std::string ConvertToUtf8String(const std::string& input_encoding,
+	std::string ConvertTo8String(
+		const std::string& input_encoding,
 		const std::string& input,
+		const std::string& toencode,
 		size_t buf_size,
 		bool ignore_error) {
-		IconvPtr handle(LIBICONV_LIB.libiconv_open("UTF-8", input_encoding.c_str()));
-		if (!handle) {
-			throw std::runtime_error("unknown error");
-		}
-		if (handle.get() == (iconv_t)(-1)) {
-			throw std::runtime_error("unknown error");
-		}
-
-		std::string output;
-
 		auto check_convert_error = []() {
 			auto check_error = errno;
 			switch (errno) {
@@ -78,6 +70,14 @@ public:
 			}
 			};
 
+		IconvPtr handle(LIBICONV_LIB.libiconv_open(toencode.c_str(),
+			input_encoding.c_str()));
+		if (!handle) {
+			check_convert_error();
+		}
+
+		std::string output;
+
 		// copy the string to a buffer as iconv function requires a non-const char
 		// pointer.
 		std::vector<char> in_buf(input.begin(), input.end());
@@ -85,15 +85,19 @@ public:
 		size_t src_size = input.size();
 
 		std::vector<char> buf(buf_size);
-		std::string dst;		
+		std::string dst;
 
 		while (0 < src_size) {
 			// reset the buffer
 			char* dst_ptr = &buf[0];
-			size_t dst_size = buf.size();			
+			size_t dst_size = buf.size();
 
 			// convert the string
-			size_t res = LIBICONV_LIB.libiconv(handle.get(), &src_ptr, &src_size, &dst_ptr, &dst_size);
+			size_t res = LIBICONV_LIB.libiconv(handle.get(),
+				&src_ptr,
+				&src_size,
+				&dst_ptr,
+				&dst_size);
 			if (res == (size_t)-1) {
 				if (errno == E2BIG) {
 					// ignore this error
@@ -116,17 +120,31 @@ public:
 		dst.swap(output);
 		return output;
 	}
+
+	std::string ConvertToUtf8String(const std::string& input_encoding,
+		const std::string& input,
+		size_t buf_size,
+		bool ignore_error) {
+		return ConvertTo8String(input_encoding,
+			input, 
+			"UTF-8", 
+			buf_size,
+			ignore_error);
+	}
 };
 
 std::string TextEncoding::ToUtf8String(const std::string& input_encoding,
 	const std::string& input,
 	size_t buf_size,
 	bool ignore_error) {
-	return impl_->ConvertToUtf8String(input_encoding, input, buf_size, ignore_error);
+	return impl_->ConvertToUtf8String(input_encoding,
+		input, 
+		buf_size, 
+		ignore_error);
 }
 
 bool TextEncoding::IsUtf8(const std::string& input) {
-	CharsetDetector detector;
+	EncodingDetector detector;
 	const auto encoding_name = detector.Detect(input);
 	if (encoding_name.empty()) {
 		return false;
@@ -134,11 +152,13 @@ bool TextEncoding::IsUtf8(const std::string& input) {
 	return encoding_name == "UTF-8";
 }
 
-std::string TextEncoding::ToUtf8String(const std::string& input, size_t buf_size, bool ignore_error) {
-	CharsetDetector detector;
+std::string TextEncoding::ToUtf8String(const std::string& input,
+	size_t buf_size,
+	bool ignore_error) {
+	EncodingDetector detector;
 	const auto encoding_name = detector.Detect(input);
 	if (encoding_name.empty()) {
-		throw std::runtime_error("detect unknown encoding");
+		throw std::runtime_error("Detect unknown encoding");
 	}
 	if (encoding_name != "UTF-8") {
 		return ToUtf8String(encoding_name, input, buf_size, ignore_error);		

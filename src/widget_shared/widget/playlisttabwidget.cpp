@@ -120,9 +120,29 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
             emit loadPlaylistFile(playlist_page->playlist()->playlistId());
         });
 
+        action_map.addSeparator();
+
+        action_map.addAction(tr("Reload playlist"), [pt, this]() {
+            auto tab_index = tabBar()->tabAt(pt);
+            if (tab_index == -1) {
+                return;
+            }
+            emit reloadPlaylist(tab_index);
+            });
+
+        action_map.addAction(tr("Reload all playlist"), [this]() {
+            emit reloadAllPlaylist();
+            });
+
         XAMP_TRY_LOG(
             action_map.exec(pt);
         );
+        });
+
+    (void)QObject::connect(tab_bar_, &PlaylistTabBar::tabMoved, [this](auto from, auto to) {
+        Q_UNUSED(from);
+        Q_UNUSED(to);
+        updateTabCloseButtons();
         });
 
     (void)QObject::connect(tab_bar_, &PlaylistTabBar::tabBarClicked, [this](auto index) {
@@ -136,7 +156,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
 
 
     (void)QObject::connect(tab_bar_, &PlaylistTabBar::textChanged, [this](auto index, const auto& name) {
-        qDaoFacade.playlist_dao_.setPlaylistName(currentPlaylistId(), name);
+        qDaoFacade.playlist_dao.setPlaylistName(currentPlaylistId(), name);
 		qAppSettings.setValue(kAppSettingLastPlaylistTabIndex, currentPlaylistId());
         });
 
@@ -167,6 +187,8 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
 
 	tooltip_ = new XTooltip();
     tooltip_->hide();
+
+    updateTabCloseButtons();
     onThemeChangedFinished(qTheme.themeColor());
 	setStyleSheet("background-color: transparent; border: none;"_str);
 }
@@ -331,17 +353,17 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
             break;
         }
     }
-    if (tabBar()->count() > 0) {
+    /*if (tabBar()->count() > 0) {
         tabBar()->setTabButton(0, QTabBar::RightSide, nullptr);
-    }
+    }*/
 }
 
 bool PlaylistTabWidget::removePlaylist(int32_t playlist_id) {
     Transaction scope;
 
     return scope.complete([&]() {
-        qDaoFacade.playlist_dao_.removePlaylistAllMusic(playlist_id);
-        qDaoFacade.playlist_dao_.removePlaylist(playlist_id);
+        qDaoFacade.playlist_dao.removePlaylistAllMusic(playlist_id);
+        qDaoFacade.playlist_dao.removePlaylist(playlist_id);
         });
 }
 
@@ -364,7 +386,7 @@ void PlaylistTabWidget::toolTipMove(const QPoint& pos) {
     auto global_pos = mapToGlobal(rect.center());
     global_pos.setY(global_pos.y() + 24);
 
-    auto stats = qDaoFacade.playlist_dao_.getAlbumStats(playlist_page->playlist()->playlistId());
+    auto stats = qDaoFacade.playlist_dao.getAlbumStats(playlist_page->playlist()->playlistId());
 
     auto tooltip_text = qFormat(tr("%1, %2 Tracks: %3"))
 		.arg(stats.album_count)
@@ -372,7 +394,7 @@ void PlaylistTabWidget::toolTipMove(const QPoint& pos) {
 		.arg(formatDuration(stats.total_duration));
 
     tooltip_->setText(tooltip_text);
-	tooltip_->setTextFont(QFont("FormatFont"_str, 10));
+	tooltip_->setTextFont(QFont("FormatFont"_str, 8));
 	tooltip_->setTextAlignment(Qt::AlignCenter);
     tooltip_->move(global_pos - QPoint(rect.size().width() / 4, 0));
     tooltip_->setImageSize(kImageSize);
@@ -383,7 +405,7 @@ void PlaylistTabWidget::toolTipMove(const QPoint& pos) {
         return;
     }
 
-    auto cover_ids = qDaoFacade.playlist_dao_.getAlbumCoverIds(playlist_page->playlist()->playlistId());
+    auto cover_ids = qDaoFacade.playlist_dao.getAlbumCoverIds(playlist_page->playlist()->playlistId());
 
     QList<QPixmap> images;
     Q_FOREACH(auto cover_id, cover_ids) {
@@ -452,6 +474,7 @@ void PlaylistTabWidget::closeTab(int32_t tab_index) {
         playlist_page->deleteLater();
     }
     resizeTabWidth();
+    updateTabCloseButtons();
 }
 
 void PlaylistTabWidget::createNewTab(const QString& name, QWidget* widget, bool resize) {
@@ -467,6 +490,7 @@ void PlaylistTabWidget::createNewTab(const QString& name, QWidget* widget, bool 
     const auto index = addTab(widget, name);
     setTabIcon(index, qTheme.fontIcon(Glyphs::ICON_DRAFT));
     setCurrentIndex(index);
+    updateTabCloseButtons();
 }
 
 int32_t PlaylistTabWidget::currentPlaylistId() const {
@@ -486,13 +510,13 @@ void PlaylistTabWidget::saveTabOrder() const {
     for (auto i = 0; i < tabBar()->count(); ++i) {
         auto* playlist_page = playlistPage(i);
         const auto* playlist = playlist_page->playlist();
-        qDaoFacade.playlist_dao_.setPlaylistIndex(playlist->playlistId(), i, store_type_);
+        qDaoFacade.playlist_dao.setPlaylistIndex(playlist->playlistId(), i, store_type_);
         XAMP_LOG_DEBUG("saveTabOrder: {} at {}", tabText(i).toStdString(), i);
     }
 }
 
 void PlaylistTabWidget::restoreTabOrder() {
-    const auto playlist_index = qDaoFacade.playlist_dao_.getPlaylistIndex(store_type_);
+    const auto playlist_index = qDaoFacade.playlist_dao.getPlaylistIndex(store_type_);
 
     QList<QString> texts;
     QList<int> new_order;
@@ -575,6 +599,29 @@ void PlaylistTabWidget::resizeTabWidth() {
     }
 }
 
+void PlaylistTabWidget::updateTabCloseButtons() {
+    if (!tabsClosable()) {
+        setTabsClosable(true);
+    }
+
+    for (int i = 0; i < tabBar()->count(); ++i) {
+        // 取得 Qt 幫你自動建立的關閉按鈕（位於右側）
+        QWidget* close_btn = tabBar()->tabButton(i, QTabBar::RightSide);
+        if (!close_btn) {
+            continue;
+        }
+
+        // 若是第 0 個 tab，就隱藏關閉按鈕
+        if (i == 0) {
+            close_btn->hide();
+        }
+        else {
+            // 其餘索引大於 0 的 tab，顯示關閉按鈕
+            close_btn->show();
+        }
+    }
+}
+
 void PlaylistTabWidget::resizeEvent(QResizeEvent* event) {
     QTabWidget::resizeEvent(event);
     resizeTabWidth();
@@ -595,7 +642,7 @@ void PlaylistTabWidget::closeAllTab() {
         page->deleteLater();
     }
 
-    qDaoFacade.playlist_dao_.forEachPlaylist([this](auto playlist_id,
+    qDaoFacade.playlist_dao.forEachPlaylist([this](auto playlist_id,
         auto,
         auto store_type,
         auto,

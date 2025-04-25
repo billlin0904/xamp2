@@ -39,6 +39,10 @@ public:
         return Get<Path>(name);
     }
 
+    std::wstring AsStdWString(const std::string_view& name) const {
+        return Get<std::wstring>(name);
+    }
+
     template <typename T>
     T Get(const std::string_view& name) const {
         return std::any_cast<T>(configs_.at(name));

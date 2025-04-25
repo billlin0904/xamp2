@@ -179,6 +179,10 @@ public:
 
 	QString getOrCreateCachePath();
 
+	QString getOrCreateLrcCachePath();
+
+	QString getOrCreateImageCachePath();
+
 	void save();
 
 	QLocale locale() const;

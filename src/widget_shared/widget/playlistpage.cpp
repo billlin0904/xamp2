@@ -267,7 +267,7 @@ void PlaylistPage::hidePlaybackInformation(bool hide) {
 		default_spacer_->changeSize(0, 0);
 		horizontal_spacer_4_->changeSize(0, 0);
 		horizontal_spacer_5_->changeSize(0, 0);
-		horizontal_spacer_9_->changeSize(0, 0);
+		//horizontal_spacer_9_->changeSize(0, 0);
 	}
 }
 

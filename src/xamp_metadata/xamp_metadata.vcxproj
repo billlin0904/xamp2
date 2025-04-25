@@ -139,6 +139,7 @@
       <DisableSpecificWarnings>4996;4819</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <UseDynamicDebugging>false</UseDynamicDebugging>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

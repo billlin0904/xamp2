@@ -25,6 +25,7 @@
 
 #include <bitset>
 #include <thread>
+#include <tlhelp32.h>
 
 #include "base/scopeguard.h"
 
@@ -800,6 +801,88 @@ void Assert(const char* message, const char* file, uint32_t line) {
     const auto utf16_file_name = String::ToStdWString(file);
     _wassert(utf16_message.c_str(), utf16_file_name.c_str(), line);
 #endif
+}
+
+bool KillProcessByNameAndChildren(const std::string& process_name) {
+    // 建立系統中所有進程的快照
+    FileHandle hSnapshot(::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0));
+    if (!hSnapshot) {
+        return false;
+    }
+
+    PROCESSENTRY32 pe;
+    pe.dwSize = sizeof(pe);
+
+    bool killedAny = false;
+
+    // 逐一檢查系統中所有進程
+    if (::Process32First(hSnapshot.get(), &pe)) {
+        do {
+#ifdef UNICODE
+            // 如果是 Unicode Project，pe.szExeFile 為 wchar_t[]
+            // 先轉成 std::string 以跟外部傳進來的 process_name 比較
+            std::wstring wexeFile(pe.szExeFile);
+            std::string exeFileName(wexeFile.begin(), wexeFile.end());
+#else
+            // 若不是 Unicode，pe.szExeFile 為 char[]
+            std::string exeFileName(pe.szExeFile);
+#endif
+            // 以不分大小寫的方式 (_stricmp) 比較名稱
+            if (_stricmp(exeFileName.c_str(), process_name.c_str()) == 0) {
+                // 找到符合名稱的進程，遞迴結束它以及所有子進程
+                bool result = KillProcessByPidAndChildren(pe.th32ProcessID);
+                if (result) {
+                    killedAny = true;
+                }
+            }
+        } while (::Process32Next(hSnapshot.get(), &pe));
+    }
+
+    return killedAny;
+}
+
+
+bool KillProcessByPidAndChildren(uint64_t pid) {
+    std::vector<DWORD> childPids;
+
+    FileHandle snapshot(::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0));
+    if (!snapshot) {
+        XAMP_LOG_DEBUG("Failure to CreateToolhelp32Snapshot");
+        return false;
+    }
+
+    PROCESSENTRY32 pe;
+    pe.dwSize = sizeof(PROCESSENTRY32);
+
+    if (::Process32First(snapshot.get(), &pe)) {
+        do {
+            if (pe.th32ParentProcessID == pid) {
+                childPids.push_back(pe.th32ProcessID);
+            }
+        } while (::Process32Next(snapshot.get(), &pe));
+    }
+
+	snapshot.reset();
+
+    for (DWORD childPid : childPids) {
+        KillProcessByPidAndChildren(childPid);
+    }
+
+    WinHandle hProcess(::OpenProcess(PROCESS_TERMINATE, FALSE, pid));
+    if (hProcess) {
+        BOOL result = ::TerminateProcess(hProcess.get(), 1);
+        hProcess.reset();
+        if (!result) {
+            XAMP_LOG_DEBUG("Failure to TerminateProcess, pid {}", pid);
+            return false;
+        }
+    }
+    else {
+        XAMP_LOG_DEBUG("Failure to OpenProcess, pid {}", pid);
+        return false;
+    }
+
+    return true;
 }
 
 XAMP_BASE_NAMESPACE_END

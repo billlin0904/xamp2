@@ -24,11 +24,11 @@ private:
 	ScopedPtr<OpenCCConvertImpl> impl_;
 };
 
-class XAMP_BASE_API CharsetDetector {
+class XAMP_BASE_API EncodingDetector {
 public:
-	CharsetDetector();
+	EncodingDetector();
 
-	XAMP_PIMPL(CharsetDetector)
+	XAMP_PIMPL(EncodingDetector)
 
 	std::string Detect(const char* data, size_t size);
 
@@ -36,11 +36,23 @@ public:
 		return Detect(str.data(), str.size());
 	}
 
+private:
+	class EncodingDetectorImpl;
+	ScopedPtr<EncodingDetectorImpl> impl_;
+};
+
+class XAMP_BASE_API LanguageDetector {
+public:
+	LanguageDetector();
+
+	XAMP_PIMPL(LanguageDetector)
+
 	bool IsJapanese(const std::wstring& text);
 
+	bool IsChinese(const std::wstring& text);
 private:
-	class CharsetDetectorImpl;
-	ScopedPtr<CharsetDetectorImpl> impl_;
+	class LanguageDetectorImpl;
+	ScopedPtr<LanguageDetectorImpl> impl_;
 };
 
 

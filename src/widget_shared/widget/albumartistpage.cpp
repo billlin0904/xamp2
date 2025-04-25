@@ -156,7 +156,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	f.setBold(true);
 	f.setPointSize(qTheme.fontSize(10));
 
-	auto title_category_list = dao::AlbumDao(qGuiDb.getDatabase()).getCategories();
+	auto title_category_list = qDaoFacade.album_dao.getCategories();
 
 	album_tag_list_widget_ = new TagListView();
 	album_tag_list_widget_->setListViewFixedHeight(70);
@@ -496,13 +496,11 @@ void AlbumArtistPage::reload() {
 	album_view_->reload();
 	artist_view_->reload();
 
-	dao::AlbumDao album_dao(qGuiDb.getDatabase());
-
-	Q_FOREACH(auto category, album_dao.getCategories()) {
+	Q_FOREACH(auto category, qDaoFacade.album_dao.getCategories()) {
 		album_tag_list_widget_->addTag(category);
 	}
 
-	auto years = album_dao.getYears();
+	auto years = qDaoFacade.album_dao.getYears();
     std::sort(years.begin(), years.end());
 	Q_FOREACH(auto year, years) {
 		year_tag_list_widget_->addTag(year, true);

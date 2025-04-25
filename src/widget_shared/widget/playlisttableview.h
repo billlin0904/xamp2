@@ -60,9 +60,7 @@ public:
 		group_ = group;
 	}
 
-	void enableCloudMode(bool mode) {
-		cloud_mode_ = mode;
-	}
+	void enableCloudMode(bool mode);
 
 	XAMP_NO_DISCARD bool isEnableCloudMode() const {
 		return cloud_mode_;
@@ -147,7 +145,7 @@ public:
 signals:
 	void updatePlayingState(const PlayListEntity &entity, PlayingState playing_state);
 
-	void playMusic(int32_t playlist_id, const PlayListEntity& item, bool is_plays, bool is_doubleclicked);
+	void playMusic(int32_t playlist_id, const PlayListEntity& item, bool is_plays);
 
 	void downloadFile(const PlayListEntity& entity);
 
@@ -168,8 +166,10 @@ signals:
 	void addPlaylist(int32_t playlist_id, const QList<PlayListEntity>& entities);
 
 	void encodeAlacFiles(int32_t encode_type, const QList<PlayListEntity>& entities);
+
+	void navigateToAlbumPage(const QString& album, const QString &album_id);
 public slots:
-	void onPlayIndex(const QModelIndex& index, bool is_play = false, bool is_doubleclicked = false);
+	void onPlayIndex(const QModelIndex& index, bool is_play = false);
 
 	void onProcessDatabase(int32_t playlist_id, const QList<PlayListEntity>& entities);
 

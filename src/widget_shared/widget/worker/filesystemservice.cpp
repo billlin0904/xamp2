@@ -159,7 +159,11 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 
 	FastMutex batch_mutex;
 	std::vector<std::forward_list<TrackInfo>> batch_track_infos;
-	constexpr auto kMaxBatchSize = 500;
+#ifdef _DEBUG
+	constexpr auto kMaxBatchSize = 100UL;
+#else
+	constexpr auto kMaxBatchSize = 500UL;
+#endif
 
 	batch_track_infos.reserve(kMaxBatchSize);
 

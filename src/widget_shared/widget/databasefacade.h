@@ -43,12 +43,14 @@ public:
         const std::vector<std::forward_list<TrackInfo>>& results,
 	    int32_t playlist_id,
 	    StoreType store_type,
-        const QString& dick_id = QString());
+        const QString& dick_id = QString(),
+        const std::function<void(int32_t, int32_t)>& fetch_cover = nullptr);
 
     void insertTrackInfo(const std::forward_list<TrackInfo>& result,
         int32_t playlist_id,
         StoreType store_type,
-        const QString &dick_id = QString());
+        const QString &dick_id = QString(),
+        const std::function<void(int32_t, int32_t)>& fetch_cover = nullptr);
 private:    
     void ensureAddUnknownId();
 

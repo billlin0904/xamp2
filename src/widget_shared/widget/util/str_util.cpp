@@ -78,6 +78,19 @@ bool parseVersion(const QString& s, QVersionNumber& version) {
     return true;
 }
 
+QString formatDurationAsMinutes(const double stream_time) {
+    const auto secs = static_cast<int32_t>(stream_time);
+    const auto ms = static_cast<int32_t>(stream_time * 1000.0) % 1000;
+
+    // 時間超過 60 分鐘：以累計分鐘來顯示，不顯示小時部分
+    const auto total_minutes = secs / 60;
+    const auto s = secs % 60;
+    // 補零格式化，確保分鐘和秒數各兩位數
+    return QString("%1:%2"_str)
+        .arg(total_minutes, 2, 10, QLatin1Char('0'))
+        .arg(s, 2, 10, QLatin1Char('0'));
+}
+
 QString formatDuration(const double stream_time, bool full_text) {
     const auto ms = static_cast<int32_t>(stream_time * 1000.0) % 1000;
     const auto secs = static_cast<int32_t>(stream_time);

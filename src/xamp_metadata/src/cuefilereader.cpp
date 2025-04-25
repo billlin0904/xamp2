@@ -60,7 +60,7 @@ public:
 
 		auto *cd_handle = LIBCUE_LIB.cue_parse_string(utf8_text.c_str());
 		if (!cd_handle) {
-			XAMP_LOG_E(logger_, "failed to parse cue file.");
+			XAMP_LOG_E(logger_, "Failed to parse cue file.");
 			return track_infos;
 		}
 
@@ -81,7 +81,7 @@ public:
 		auto* cur = LIBCUE_LIB.cd_get_track(cd.get(), 1);
 		const char* cur_name = cur ? LIBCUE_LIB.track_get_filename(cur) : nullptr;
 		if (!cur_name) {
-			XAMP_LOG_E(logger_, "failed to parse cue file.");
+			XAMP_LOG_E(logger_, "Failed to parse cue file.");
 			return track_infos;
 		}
 		

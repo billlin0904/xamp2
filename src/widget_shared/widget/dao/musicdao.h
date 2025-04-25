@@ -33,7 +33,7 @@ public:
     void removeTrackLoudnessMusicId(int32_t music_id);
     void removeMusic(const QString& file_path);
     void addOrUpdateMusicLoudness(int32_t album_id, int32_t artist_id, int32_t music_id, double track_loudness = 0) const;
-
+    void removeCoverId();
 private:
     QSqlDatabase& db_;
 };

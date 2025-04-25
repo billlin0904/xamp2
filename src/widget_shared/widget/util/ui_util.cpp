@@ -112,11 +112,11 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
     if (!dsd_mode.isEmpty()) {
         result += " | "_str + dsd_mode;
     }
-#if 0
+
     if (playback_format.bit_rate > 0) {
-        result += " | ") + FormatBitRate(playback_format.bit_rate);
+        result += " | "_str + formatBitRate(playback_format.bit_rate);
     }
-#endif
+
     return result;
 }
 

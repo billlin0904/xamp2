@@ -1,4 +1,4 @@
-#include <widget/lyricsshowwidget.h>
+ï»¿#include <widget/lyricsshowwidget.h>
 
 #include <sstream>
 #include <QPainter>
@@ -9,6 +9,7 @@
 #include <QClipboard>
 #include <QDir>
 #include <QPainterPath>
+#include <QtGlobal>
 
 #include <base/charset_detector.h>
 
@@ -76,11 +77,9 @@ namespace {
 
 LyricsShowWidget::LyricsShowWidget(QWidget* parent) 
 	: WheelableWidget(false, parent)
-	, pos_(0)
-	, last_lyric_index_(0)
-	, item_percent_(0)
-	, lrc_color_(Qt::darkGray)
-    , lrc_highlight_color_(Qt::black) {
+    , lrc_color_(kNormalColor)
+    , lrc_highlight_color_(kHighLightColor)
+	, karaoke_highlight_color_(kKaraokeHighLightColor) {
     initial();
 }
 
@@ -221,7 +220,7 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 		return;
 	}
 
-	// 1) ¥ı·Ç³Æ¦r«¬
+	// 1) å…ˆæº–å‚™å­—å‹
 	QFont base_font = lrc_font_;
 	double base_font_size = base_font.pointSizeF();
 	if (base_font_size <= 0.0) {
@@ -230,18 +229,18 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 	}
 	painter->setFont(base_font);
 
-	// 2) ¨M©w¹w³]µ§¦â(­Y¬°·í«e¦æ, ¥i´«°ª«G)
+	// 2) æ±ºå®šé è¨­ç­†è‰²(è‹¥ç‚ºç•¶å‰è¡Œ, å¯æ›é«˜äº®)
 	QColor pen_color = lrc_color_;
 	if ((index == item_) && (item_offset_ == 0)) {
 		pen_color = lrc_highlight_color_;
 	}
 	painter->setPen(pen_color);
 
-	// 3) ¨ú±o¸Ó¦æ¸ê®Æ»P³v¦r¸ê°T
+	// 3) å–å¾—è©²è¡Œè³‡æ–™èˆ‡é€å­—è³‡è¨Š
 	const LyricEntry& entry = lyric_->lineAt(index);
 	const auto& words = entry.words;
 
-	// 4) ·Ç³Æ Furigana »P¤@¯ë¦rÅéªº Metrics
+	// 4) æº–å‚™ Furigana èˆ‡ä¸€èˆ¬å­—é«”çš„ Metrics
 	QFont furigana_font = lrc_font_;
 	QFont kanji_font = lrc_font_;
 	QFontMetrics furigana_metrics(furigana_font);
@@ -251,23 +250,23 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 	qint64 line_start = entry.timestamp.count();
 
 	// ------------------------------------------------------------------------
-	// (A) ­Y¨S¦³³v¦r¸ê°T (words.empty())¡A¾ã¦æÃ¸»s
+	// (A) è‹¥æ²’æœ‰é€å­—è³‡è¨Š (words.empty())ï¼Œæ•´è¡Œç¹ªè£½
 	// ------------------------------------------------------------------------
 	if (words.empty()) {
 		if (!furiganas_.empty()) {
 			double x = (rect.width() - metrics.horizontalAdvance(
 				QString::fromStdWString(entry.lrc))) / 2.0;
 
-			// Furigana ¦rÅéÁY¤p
+			// Furigana å­—é«”ç¸®å°
 			furigana_font.setPointSizeF(lrc_font_.pointSizeF() * 0.5);
 			auto furigana_result = furiganas_[index];
 
 			if (global_time >= line_start) {
-				// ·í«e¦æ => ¥Î¦P¤@­Ó°ª«G¦â
+				// ç•¶å‰è¡Œ => ç”¨åŒä¸€å€‹é«˜äº®è‰²
 				painter->setPen(lrc_highlight_color_);
 			}
 			else {
-				// ¨ä¥L¦æ => ¥Î¥¿±`ÃC¦â
+				// å…¶ä»–è¡Œ => ç”¨æ­£å¸¸é¡è‰²
 				painter->setPen(lrc_color_);
 			}
 
@@ -276,7 +275,7 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 				int kanji_width = metrics.horizontalAdvance(kanji_text);
 				auto furigana_length = entity.furigana.size();
 
-				// ¥ıÃ¸»s Furigana (­Y¦³)
+				// å…ˆç¹ªè£½ Furigana (è‹¥æœ‰)
 				if (furigana_length > 0) {
 					painter->setFont(furigana_font);
 					double furigana_char_width = static_cast<double>(kanji_width) / furigana_length;
@@ -288,7 +287,7 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 						painter->drawText(x + i * furigana_char_width, furigana_y, furigana_char);
 					}
 				}
-				// ¦AÃ¸»s¥D¦r (Kanji)
+				// å†ç¹ªè£½ä¸»å­— (Kanji)
 				painter->setFont(kanji_font);
 				painter->drawText(
 					x,
@@ -303,9 +302,9 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 
 	if (!furiganas_.empty() && index < furiganas_.size()) {
 		// ------------------------------------------------------------------------
-		// (B) ¦³³v¦r¸ê°T¡A«h°µ¥d©ÔOK³v¦r°ª«G + Furigana
+		// (B) æœ‰é€å­—è³‡è¨Šï¼Œå‰‡åšå¡æ‹‰OKé€å­—é«˜äº® + Furigana
 		// ------------------------------------------------------------------------
-		// 5) ¥ıÃ¸»s¾ã¦æ Furigana (¤£»İ­n¹ï words °µ 1:1 ¤j¤p)
+		// 5) å…ˆç¹ªè£½æ•´è¡Œ Furigana (ä¸éœ€è¦å° words åš 1:1 å¤§å°)
 		furigana_font.setPointSizeF(lrc_font_.pointSizeF() * 0.5);
 		double x_f = (rect.width() - metrics.horizontalAdvance(
 			QString::fromStdWString(entry.lrc))) / 2.0;
@@ -313,15 +312,15 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 		int base_line = rect.y() + (rect.height() + metrics.ascent()) / 2;
 
 		if (global_time >= line_start) {
-			// ·í«e¦æ => ¥Î¦P¤@­Ó°ª«G¦â
+			// ç•¶å‰è¡Œ => ç”¨åŒä¸€å€‹é«˜äº®è‰²
 			painter->setPen(lrc_highlight_color_);
 		}
 		else {
-			// ¨ä¥L¦æ => ¥Î¥¿±`ÃC¦â
+			// å…¶ä»–è¡Œ => ç”¨æ­£å¸¸é¡è‰²
 			painter->setPen(lrc_color_);
 		}
 
-		// ¥ı¥Î¸û¤p¦rÅéÃ¸ Furigana
+		// å…ˆç”¨è¼ƒå°å­—é«”ç¹ª Furigana
 		painter->setFont(furigana_font);
 		for (const auto& entity : furigana_result) {
 			auto kanji_text = QString::fromStdWString(entity.text);
@@ -330,7 +329,7 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 
 			int furigana_y = base_line - furigana_metrics.height();
 
-			// ³v¦rµe¥X Furigana
+			// é€å­—ç•«å‡º Furigana
 			if (furigana_length > 0) {
 				double furigana_char_width = static_cast<double>(kanji_width) / furigana_length;
 				for (int i = 0; i < furigana_length; ++i) {
@@ -342,13 +341,13 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 		}
 	}
 
-	// 6) ¦A¥Î¥d©ÔOK¤è¦¡µe¥D¤å¦r
+	// 6) å†ç”¨å¡æ‹‰OKæ–¹å¼ç•«ä¸»æ–‡å­—
 	qint64 delta = global_time - line_start;
 
 	painter->setFont(lrc_font_);
 	QFontMetrics fm(painter->font());
 
-	// ­pºâ¸Ó¦æ©Ò¦³ words ªºÁ`¼e«× (¸m¤¤)
+	// è¨ˆç®—è©²è¡Œæ‰€æœ‰ words çš„ç¸½å¯¬åº¦ (ç½®ä¸­)
 	int total_width = 0;
 	for (auto& w : words) {
 		QString w_text = QString::fromStdWString(w.content);
@@ -357,17 +356,17 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 	double x = (rect.width() - total_width) / 2.0;
 	int baseline = rect.y() + (rect.height() + fm.ascent()) / 2;
 
-	// ³v¦rÃ¸»s + °ª«G
+	// é€å­—ç¹ªè£½ + é«˜äº®
 	for (int i = 0; i < static_cast<int>(words.size()); ++i) {
 		const auto& w = words[i];
 		QString word_text = QString::fromStdWString(w.content);
 		int word_width = fm.horizontalAdvance(word_text);
 
-		// ¥ıµe¡u¥¼«G¡vÃC¦â
+		// å…ˆç•«ã€Œæœªäº®ã€é¡è‰²
 		painter->setPen(pen_color);
 		painter->drawText(x, baseline, word_text);
 
-		// ­pºâ¦¹¦rªº°ª«G fraction
+		// è¨ˆç®—æ­¤å­—çš„é«˜äº® fraction
 		qint64 w_start = w.offset.count();
 		qint64 w_end = w_start + w.length.count();
 		double fraction = 0.0;
@@ -382,10 +381,10 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 		}
 		fraction = std::clamp(fraction, 0.0, 1.0);
 
-		// ¦pªG fraction>0 ´N¥Î clipRect Å|¥[°ª«G
+		// å¦‚æœ fraction>0 å°±ç”¨ clipRect ç–ŠåŠ é«˜äº®
 		if (fraction > 0.0) {
 			painter->save();
-			painter->setPen(kKaraokeHighLightColor); // §A¦Û©w¸qªº°ª«G¦â
+			painter->setPen(karaoke_highlight_color_); // ä½ è‡ªå®šç¾©çš„é«˜äº®è‰²
 			int highlight_width = static_cast<int>(word_width * fraction);
 			painter->setClipRect(x, rect.y(), highlight_width, rect.height());
 			painter->drawText(x, baseline, word_text);
@@ -394,45 +393,45 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 		x += word_width;
 	}
 
-	// 7) Ã¸»sÂ½Ä¶¦æ (¦pªG¦³)
+	// 7) ç¹ªè£½ç¿»è­¯è¡Œ (å¦‚æœæœ‰)
 	if (!entry.tlrc.empty()) {
 		QColor translation_color;
 		if (global_time >= line_start) {
-			// ·í«e¦æ => ¥Î¦P¤@­Ó°ª«G¦â
+			// ç•¶å‰è¡Œ => ç”¨åŒä¸€å€‹é«˜äº®è‰²
 			translation_color = lrc_highlight_color_;
 		}
 		else {
-			// ¨ä¥L¦æ => ¥Î¥¿±`ÃC¦â
+			// å…¶ä»–è¡Œ => ç”¨æ­£å¸¸é¡è‰²
 			translation_color = lrc_color_;
 		}
 
-		float  translation_scale_ = 0.8f;                 // Â½Ä¶¦æ¦rÅé¬Û¹ï¥D¦æ¤j¤p
-		int    translation_line_spacing_ = 5;             // ¥D¦æ»PÂ½Ä¶¦æ¤§¶¡ªº««ª½¶¡¶Z(¹³¯À)
+		float  translation_scale_ = 0.8f;                 // ç¿»è­¯è¡Œå­—é«”ç›¸å°ä¸»è¡Œå¤§å°
+		int    translation_line_spacing_ = 5;             // ä¸»è¡Œèˆ‡ç¿»è­¯è¡Œä¹‹é–“çš„å‚ç›´é–“è·(åƒç´ )
 
-		// ¨ú±oÂ½Ä¶¤å¦r
+		// å–å¾—ç¿»è­¯æ–‡å­—
 		const QString translation_text = QString::fromStdWString(entry.tlrc);
 
-		// ³]©wÂ½Ä¶¦æ¦rÅé (¥i»P¥D¦æ¤£¦P¤j¤p)
+		// è¨­å®šç¿»è­¯è¡Œå­—é«” (å¯èˆ‡ä¸»è¡Œä¸åŒå¤§å°)
 		QFont translation_font = lrc_font_;
 		translation_font.setPointSizeF(lrc_font_.pointSizeF()* translation_scale_);
 		painter->setFont(translation_font);
 
-		// ­«·s­pºâ¦rÅé°ª«×
+		// é‡æ–°è¨ˆç®—å­—é«”é«˜åº¦
 		QFontMetrics tm(translation_font);
 
-		// ¨M©wÂ½Ä¶¦æªº°ò·Ç½u(¦b¥D¦æ baseline ¦A©¹¤U²¾¤@¨Ç)
+		// æ±ºå®šç¿»è­¯è¡Œçš„åŸºæº–ç·š(åœ¨ä¸»è¡Œ baseline å†å¾€ä¸‹ç§»ä¸€äº›)
 		int translation_baseline = baseline
 			+ tm.height()
-			+ translation_line_spacing_; // ¥[ÂI¶¡¶Z
+			+ translation_line_spacing_; // åŠ é»é–“è·
 
-		// ¸m¤¤­pºâ (ÅıÂ½Ä¶¸ò¥D¦æ³£¸m¤¤)
+		// ç½®ä¸­è¨ˆç®— (è®“ç¿»è­¯è·Ÿä¸»è¡Œéƒ½ç½®ä¸­)
 		int translation_width = tm.horizontalAdvance(translation_text);
 		double x_trans = (rect.width() - translation_width) / 2.0;
 
-		// ³]©wÃC¦â(»P¥D¦æÃC¦â¤£¦P¤]¥i)
+		// è¨­å®šé¡è‰²(èˆ‡ä¸»è¡Œé¡è‰²ä¸åŒä¹Ÿå¯)
 		painter->setPen(translation_color);
 
-		// Ã¸»sÂ½Ä¶¤å¦r
+		// ç¹ªè£½ç¿»è­¯æ–‡å­—
 		painter->drawText(x_trans, translation_baseline, translation_text);
 	}
 }
@@ -499,14 +498,20 @@ void LyricsShowWidget::dropEvent(QDropEvent* event) {
 void LyricsShowWidget::loadFromParser(const QSharedPointer<ILrcParser>& parser) {
 	lyric_ = parser;
 	furiganas_.clear();
-
-	CharsetDetector detector;
+	
 	for (auto& lrc : *lyric_) {
-		if (detector.IsJapanese(lrc.lrc)) {
+		if (language_detector_.IsJapanese(lrc.lrc)) {
 			furiganas_.push_back(furigana_.Convert(lrc.lrc));
 		} else {
-			// ³o¸Ì­n¸ÉªÅªº¡A§_«h·|³y¦¨ index ¤£¤@­P.
+			// é€™è£¡è¦è£œç©ºçš„ï¼Œå¦å‰‡æœƒé€ æˆ index ä¸ä¸€è‡´.
 			furiganas_.push_back({});
+		}
+		if (language_detector_.IsChinese(lrc.lrc)) {
+			lrc.lrc = convert_.Convert(lrc.lrc);
+			for (auto& word : lrc.words) {
+				word.content = convert_.Convert(word.content);
+			}
+			lrc.lrc = convert_.Convert(lrc.lrc);
 		}
 		lrc.tlrc = convert_.Convert(lrc.tlrc);
 	}
@@ -563,12 +568,12 @@ void LyricsShowWidget::loadLrc(const QString& lrc) {
 	}
 	else {
 		stop_scroll_time_ = false;
-		CharsetDetector detector;
+		LanguageDetector detector;
 		for (auto& lrc : *lyric_) {
 			if (detector.IsJapanese(lrc.lrc)) {
 				furiganas_.push_back(furigana_.Convert(lrc.lrc));
 			} else {
-				// ³o¸Ì­n¸ÉªÅªº¡A§_«h·|³y¦¨ index ¤£¤@­P.
+				// é€™è£¡è¦è£œç©ºçš„ï¼Œå¦å‰‡æœƒé€ æˆ index ä¸ä¸€è‡´.
 				furiganas_.push_back({});
 				lrc.tlrc = convert_.Convert(lrc.tlrc);
 			}
@@ -585,6 +590,20 @@ void LyricsShowWidget::onSetLrc(const QString &lrc, const QString& trlyrc) {
 	lrc_ = orilyrc_;
 	stop();
 	loadLrc(lrc_);
+}
+
+QRect LyricsShowWidget::itemBoundingRect(int index, int offset) const {
+	const int w = width();
+	const int h = height();
+	const int iH = itemHeight() + 10; // ä½  paintEvent() ä¹Ÿ +10
+
+	// èˆ‡ paintEvent() å…§éƒ¨ä¸€è‡´ï¼š
+	//   "ä¸­å¿ƒè¡Œ" item_ å¤§ç´„ç•«åœ¨ y = h/2 - item_offset_
+	//   => é€™è¡Œèˆ‡ item_ çš„å·® = (index - item_)ï¼Œç„¶å¾Œä¹˜ iH
+	int diff = (index - item_);
+	int lineY = (h / 2) + diff * iH - offset;
+
+	return QRect(0, lineY, w, iH);
 }
 
 void LyricsShowWidget::onSetLrcTime(int32_t stream_time) {
@@ -613,6 +632,9 @@ void LyricsShowWidget::onSetLrcTime(int32_t stream_time) {
 
 	if (item_offset_ != 0) {
 		update();
+		//QRect lineRect = itemBoundingRect(item_, 0);
+		//update(lineRect);
+		update();
 		return;
 	}
 
@@ -635,6 +657,10 @@ void LyricsShowWidget::onSetLrcTime(int32_t stream_time) {
 	}
 
 	item_percent_ = precent;
+	
+	// Only use the last highlight rect
+	QRect lineRect = itemBoundingRect(item_, item_offset_);
+	//update(lineRect);
 	update();
 }
 
@@ -651,5 +677,10 @@ void LyricsShowWidget::setHighLightColor(const QColor & color) {
 
 void LyricsShowWidget::setNormalColor(const QColor& color) {
 	lrc_color_ = color;
+	update();
+}
+
+void LyricsShowWidget::setKaraokeHighlightColor(const QColor& color) {
+	karaoke_highlight_color_ = color;
 	update();
 }

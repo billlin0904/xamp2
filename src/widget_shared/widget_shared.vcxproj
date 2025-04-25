@@ -26,6 +26,7 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <UseDynamicDebugging>false</UseDynamicDebugging>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt_defaults.props')">
@@ -143,6 +144,7 @@
     <QtMoc Include="widget\playlisttabwidget.h" />
     <QtMoc Include="widget\playlisttabbar.h" />
     <QtMoc Include="widget\supereqview.h" />
+    <ClInclude Include="widget\neteaseparser.h" />
     <ClInclude Include="widget\networkdiskcache.h" />
     <QtMoc Include="widget\playliststyleditemdelegate.h" />
     <QtMoc Include="widget\slidingstackedwidget.h" />
@@ -160,6 +162,7 @@
     <QtMoc Include="widget\worker\filesystemservice.h" />
     <QtMoc Include="widget\worker\albumcoverservice.h" />
     <ClInclude Include="widget\win32\wintaskbar.h" />
+    <ClInclude Include="widget\worker\ytmusicservice.h" />
     <ClInclude Include="widget\xmessagebox.h" />
     <QtMoc Include="widget\xtooltip.h" />
     <ClInclude Include="xampplayer.h" />
@@ -264,6 +267,7 @@
     <ClCompile Include="widget\lyricsshowwidget.cpp" />
     <ClCompile Include="widget\m3uparser.cpp" />
     <ClCompile Include="widget\maskwidget.cpp" />
+    <ClCompile Include="widget\neteaseparser.cpp" />
     <ClCompile Include="widget\networkdiskcache.cpp" />
     <ClCompile Include="widget\playlistentity.cpp" />
     <ClCompile Include="widget\playlistpage.cpp" />
@@ -301,6 +305,7 @@
     <ClCompile Include="widget\worker\backgroundservice.cpp" />
     <ClCompile Include="widget\worker\filesystemservice.cpp" />
     <ClCompile Include="widget\worker\albumcoverservice.cpp" />
+    <ClCompile Include="widget\worker\ytmusicservice.cpp" />
     <ClCompile Include="widget\xdialog.cpp" />
     <ClCompile Include="widget\xmainwindow.cpp" />
     <ClCompile Include="widget\xmessagebox.cpp" />

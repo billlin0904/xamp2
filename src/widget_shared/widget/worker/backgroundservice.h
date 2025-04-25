@@ -22,6 +22,7 @@
 #include <widget/httpx.h>
 #include <widget/encodejobwidget.h>
 #include <widget/krcparser.h>
+#include <widget/neteaseparser.h>
 
 Q_DECLARE_METATYPE(ReplayGain);
 
@@ -97,9 +98,13 @@ public Q_SLOT:
 
 	void onReadSpectrogram(const QSize &widget_size, const Path& file_path);
 
-	QCoro::Task<QList<SearchLyricsResult>> downloadKLrc(QList<InfoItem> infos);
-
 	QCoro::Task<SearchLyricsResult> downloadSingleKlrc(InfoItem info);
+
+	QCoro::Task<QList<SearchLyricsResult>> downloadKLrc(QList<InfoItem> infos);	
+
+	QCoro::Task<SearchLyricsResult> downloadSingleNeteaseLrc(NeteaseSong info);
+
+	QCoro::Task<QList<SearchLyricsResult>> downloadNeteaseLrc(QList<NeteaseSong> infos);
 
 	void ParallelEncode(const QString& dir_name, QList<EncodeJob> jobs);
 
@@ -108,6 +113,10 @@ public Q_SLOT:
 	void Encode(const QString& dir_name, const EncodeJob& job);
 private:
 	std::tuple<std::shared_ptr<IFile>, Path> getValidFileWriter(const EncodeJob& job, const QString& dir_name, const Path& file_path);
+
+	QCoro::Task<> searchKugou(const PlayListEntity& keyword);
+
+	QCoro::Task<> searchNetease(const PlayListEntity& keyword);
 
 	bool is_stop_{false};
 	LruCache<QString, QImage> blur_image_cache_;

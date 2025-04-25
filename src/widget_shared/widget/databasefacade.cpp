@@ -23,23 +23,15 @@ namespace {
     constexpr auto k24Bit96KhzBitRate = 4608;
 
     QSet<QString> getAlbumCategories(const QString& album) {
-        static const QStringList categoriesList = {
-        "piano"_str,
-        "vocal"_str,
-        "soundtrack"_str,
-        "best"_str,
-        "complete"_str,
-        "collection"_str,
-        "collections"_str,
-        "edition"_str,
-        "version"_str
-        };
+        const QStringList categoriesList = qDaoFacade.album_dao.getAlbumTags();
 
         QSet<QString> categories;
         for (const QString& category : categoriesList) {
-            QRegularExpression regex(qFormat("\\b%1\\b").arg(QRegularExpression::escape(category)), QRegularExpression::CaseInsensitiveOption);
+            QRegularExpression regex(
+                qFormat("\\b%1\\b").arg(QRegularExpression::escape(category)),
+                QRegularExpression::CaseInsensitiveOption);
             if (regex.match(album).hasMatch()) {
-                categories.insert(category.toLower().trimmed());
+                categories.insert(category);
             }
         }
         return categories;
@@ -116,7 +108,8 @@ int32_t DatabaseFacade::unknownAlbumId() const {
 void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result, 
     int32_t playlist_id,
     StoreType store_type,
-    const QString& dick_id) {
+    const QString& dick_id,
+    const std::function<void(int32_t, int32_t)>& fetch_cover) {
     if (result.empty()) {
         return;
     }
@@ -146,33 +139,33 @@ void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result,
 			artist = unknown_artist_;
 		}
 
-        const auto music_id = qDaoFacade.music_dao_.addOrUpdateMusic(track_info);
+        const auto music_id = qDaoFacade.music_dao.addOrUpdateMusic(track_info);
         XAMP_EXPECTS(music_id != 0);
 
-		auto artist_id = qDaoFacade.artist_dao_.getArtistId(artist);
+		auto artist_id = qDaoFacade.artist_dao.getArtistId(artist);
 
         if (artist_id == kInvalidDatabaseId) {
             if (count_artist > 1) {
                 artist = "Various Artists"_str;
             }
-            artist_id = qDaoFacade.artist_dao_.addOrUpdateArtist(artist,
+            artist_id = qDaoFacade.artist_dao.addOrUpdateArtist(artist,
                 artist.left(1).toUpper());
             XAMP_EXPECTS(artist_id != 0);
         }
 
         auto album_id = kInvalidDatabaseId;
         if (isCloudStore(store_type)) {
-            album_id = qDaoFacade.album_dao_.getAlbumId(album);
+            album_id = qDaoFacade.album_dao.getAlbumId(album);
         }
         else {
             // Avoid cue file album name create new album id.
-            album_id = qDaoFacade.album_dao_.getAlbumIdFromAlbumMusic(music_id);
+            album_id = qDaoFacade.album_dao.getAlbumIdFromAlbumMusic(music_id);
         }
 
         if (album_id == kInvalidDatabaseId) {
             auto is_hires = track_info.bit_rate >= k24Bit96KhzBitRate;
 
-            album_id = qDaoFacade.album_dao_.addOrUpdateAlbum(album,
+            album_id = qDaoFacade.album_dao.addOrUpdateAlbum(album,
                 artist_id,
                 track_info.last_write_time,
                 track_info.year,
@@ -181,46 +174,60 @@ void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result,
                 is_hires);
 
             if (isCloudStore(store_type)) {
-                qDaoFacade.album_dao_.addAlbumCategory(album_id, kYouTubeCategory);
+                qDaoFacade.album_dao.addAlbumCategory(album_id, kYouTubeCategory);
             }
             else {
-                qDaoFacade.album_dao_.addAlbumCategory(album_id, kLocalCategory);
+                qDaoFacade.album_dao.addAlbumCategory(album_id, kLocalCategory);
             }
 
             if (track_info.file_ext() == kDsfFileExtension 
                 || track_info.file_ext() == kDffFileExtension) {
-                qDaoFacade.album_dao_.addAlbumCategory(album_id, kDsdCategory);
+                qDaoFacade.album_dao.addAlbumCategory(album_id, kDsdCategory);
             }
 
             if (is_hires) {
-                qDaoFacade.album_dao_.addAlbumCategory(album_id, kHiResCategory);
+                qDaoFacade.album_dao.addAlbumCategory(album_id, kHiResCategory);
             }
 
             for (const auto& category : getAlbumCategories(album)) {
-                qDaoFacade.album_dao_.addAlbumCategory(album_id, category);
+                qDaoFacade.album_dao.addAlbumCategory(album_id, category);
             }
 
             auto disk = "Disk("_str +
                 QString::fromStdWString(track_info.file_path.root_name().wstring()) + ")"_str;
-            qDaoFacade.album_dao_.addAlbumCategory(album_id, disk);
+            qDaoFacade.album_dao.addAlbumCategory(album_id, disk);
         }
 
         XAMP_EXPECTS(album_id > 0);
 
 		if (playlist_id != kInvalidDatabaseId) {
-            qDaoFacade.playlist_dao_.addMusicToPlaylist(music_id, playlist_id, album_id);
+            qDaoFacade.playlist_dao.addMusicToPlaylist(music_id, playlist_id, album_id);
 		}
 
-        qDaoFacade.album_dao_.addOrUpdateAlbumMusic(album_id, artist_id, music_id);
-        qDaoFacade.album_dao_.addOrUpdateAlbumArtist(album_id, artist_id);
+        qDaoFacade.album_dao.addOrUpdateAlbumMusic(album_id, artist_id, music_id);
+        qDaoFacade.album_dao.addOrUpdateAlbumArtist(album_id, artist_id);
         if (!disc_id.isEmpty()) {
-            qDaoFacade.album_dao_.updateAlbumByDiscId(disc_id, album_id);
+            qDaoFacade.album_dao.updateAlbumByDiscId(disc_id, album_id);
         }        
 
         if (artist_id != kUnknownArtistId) {
             for (const auto& artist : normalizeArtist(artist)) {
-                const auto id = qDaoFacade.artist_dao_.addOrUpdateArtist(artist);
-                qDaoFacade.album_dao_.addOrUpdateAlbumArtist(album_id, id);
+                const auto id = qDaoFacade.artist_dao.addOrUpdateArtist(artist);
+                qDaoFacade.album_dao.addOrUpdateAlbumArtist(album_id, id);
+            }
+        }
+
+        QString cover_id;
+        if (album_id != unknownAlbumId()) {
+            cover_id = qDaoFacade.album_dao.getAlbumCoverId(album_id);
+        }
+        if (isNullOfEmpty(cover_id)) {
+            cover_id = qDaoFacade.music_dao.getMusicCoverId(music_id);
+        }
+
+        if (isNullOfEmpty(cover_id)) {
+            if (fetch_cover != nullptr) {
+                fetch_cover(music_id, album_id);
             }
         }
 	}
@@ -230,12 +237,15 @@ void DatabaseFacade::insertMultipleTrackInfo(
     const std::vector<std::forward_list<TrackInfo>>& results,
     int32_t playlist_id,
     StoreType store_type,
-    const QString& dick_id) {
+    const QString& dick_id,
+    const std::function<void(int32_t, int32_t)>& fetch_cover) {
     TransactionScope scope([&]() {
         for (const auto& result : results) {
             insertTrackInfo(result,
                 playlist_id,
-                store_type);
+                store_type,
+                dick_id,
+                fetch_cover);
         }
     });
 }

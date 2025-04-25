@@ -130,21 +130,25 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, con
     page_->playlist()->setAlternatingRowColors(false);
     page_->playlist()->removeAll();
 
-    qDaoFacade.album_dao_.forEachAlbumMusic(album_id,
+    qDaoFacade.album_dao.forEachAlbumMusic(album_id,
         [&add_playlist_music_ids](const PlayListEntity& entity) mutable {
+            /*if (entity.track == 0 && !entity.yt_music_album_id.isEmpty()) {
+                return;
+            }*/
             add_playlist_music_ids.push_back(entity.music_id);
         });
 
-    qDaoFacade.playlist_dao_.addMusicToPlaylist(add_playlist_music_ids,
+    qDaoFacade.playlist_dao.addMusicToPlaylist(add_playlist_music_ids,
         page_->playlist()->playlistId());
 
     page_->setAlbumId(album_id, album_heart);
+    page_->playlist()->setPlayListGroup(PlayListGroup::PLAYLIST_GROUP_ALBUM);
     page_->playlist()->reload();
     page_->playlist()->disableDelete();
     page_->title()->setText(album);
     page_->onSetCoverById(cover_id);
 
-    if (const auto album_stats = qDaoFacade.album_dao_.getAlbumStats(album_id)) {
+    if (const auto album_stats = qDaoFacade.album_dao.getAlbumStats(album_id)) {
         page_->format()->setText(tr("%1 Songs, %2, %3, %4")
             .arg(QString::number(album_stats.value().songs))
             .arg(formatDuration(album_stats.value().durations))
@@ -185,7 +189,7 @@ AlbumView::AlbumView(QWidget* parent)
     setAutoScroll(false);
     viewport()->setAttribute(Qt::WA_StaticContents);
     setMouseTracking(true);    
-    qDaoFacade.album_dao_.updateAlbumSelectState(kInvalidDatabaseId, false);
+    qDaoFacade.album_dao.updateAlbumSelectState(kInvalidDatabaseId, false);
 
     (void)QObject::connect(&model_, &QAbstractTableModel::modelReset,
         [this] {
@@ -201,7 +205,7 @@ AlbumView::AlbumView(QWidget* parent)
     (void)QObject::connect(styledDelegate(), &AlbumViewStyledDelegate::editAlbumView, [this](auto index, auto state) {
         auto album = indexValue(index, ALBUM_INDEX_ALBUM).toString();
         auto album_id = indexValue(index, ALBUM_INDEX_ALBUM_ID).toInt();
-        qDaoFacade.album_dao_.updateAlbumSelectState(album_id, !state);
+        qDaoFacade.album_dao.updateAlbumSelectState(album_id, !state);
         reload();
         });
 
@@ -260,7 +264,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         // Check all album state
         for (auto index = 0; index < proxy_model_->rowCount(); ++index) {            
             auto album_id = indexValue(proxy_model_->index(index, ALBUM_INDEX_ALBUM_ID), ALBUM_INDEX_ALBUM_ID).toInt();
-            qDaoFacade.album_dao_.updateAlbumSelectState(album_id, !styledDelegate()->isSelectedMode());
+            qDaoFacade.album_dao.updateAlbumSelectState(album_id, !styledDelegate()->isSelectedMode());
         }
         styledDelegate()->setSelectedMode(!styledDelegate()->isSelectedMode());
         // Update selected album state
@@ -291,14 +295,14 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         action_map.addAction(action_name, [this]() {
             TransactionScope scope([&]() {
                 if (!styledDelegate()->isSelectedAll()) {
-                    Q_FOREACH(auto album_id, qDaoFacade.album_dao_.getSelectedAlbums()) {
-                        qDaoFacade.album_dao_.updateAlbumSelectState(album_id, false);
+                    Q_FOREACH(auto album_id, qDaoFacade.album_dao.getSelectedAlbums()) {
+                        qDaoFacade.album_dao.updateAlbumSelectState(album_id, false);
                     }
                 }
                 else {
                     for (auto index = 0; index < proxy_model_->rowCount(); ++index) {
                         auto album_id = indexValue(proxy_model_->index(index, ALBUM_INDEX_ALBUM_ID), ALBUM_INDEX_ALBUM_ID).toInt();
-                        qDaoFacade.album_dao_.updateAlbumSelectState(album_id, true);
+                        qDaoFacade.album_dao.updateAlbumSelectState(album_id, true);
                     }
                 }
                 reload();
@@ -309,7 +313,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
 
         auto* sub_menu = action_map.addSubMenu(tr("Add albums to playlist"));
         
-        qDaoFacade.playlist_dao_.forEachPlaylist([sub_menu, this](
+        qDaoFacade.playlist_dao.forEachPlaylist([sub_menu, this](
             auto playlist_id,
             auto,
             auto store_type, 
@@ -320,8 +324,8 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             }
             sub_menu->addAction(name, [playlist_id, this]() {
                 QList<int32_t> add_playlist_music_ids;
-                Q_FOREACH(auto album_id, qDaoFacade.album_dao_.getSelectedAlbums()) {
-                    qDaoFacade.album_dao_.forEachAlbumMusic(album_id,
+                Q_FOREACH(auto album_id, qDaoFacade.album_dao.getSelectedAlbums()) {
+                    qDaoFacade.album_dao.forEachAlbumMusic(album_id,
                         [&add_playlist_music_ids](const PlayListEntity& entity) mutable {
                             add_playlist_music_ids.push_back(entity.music_id);
                         });                    
@@ -331,8 +335,8 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             });
         action_map.addAction(tr("Add albums to new playlist"), [this]() {
             QList<int32_t> add_playlist_music_ids;
-            Q_FOREACH(auto album_id, qDaoFacade.album_dao_.getSelectedAlbums()) {
-                qDaoFacade.album_dao_.forEachAlbumMusic(album_id,
+            Q_FOREACH(auto album_id, qDaoFacade.album_dao.getSelectedAlbums()) {
+                qDaoFacade.album_dao.forEachAlbumMusic(album_id,
                     [&add_playlist_music_ids](const PlayListEntity& entity) mutable {
                         add_playlist_music_ids.push_back(entity.music_id);
                     });
@@ -344,10 +348,6 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
 
         auto* remove_selected_album_act = action_map.addAction(
             tr("Remove selected albums"), [this]() {
-			if (!qGuiDb.transaction()) {
-				return;
-			}
-
             auto process_dialog = makeProgressDialog(
                 tr("Remove selected album"),
                 kEmptyString,
@@ -358,11 +358,11 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             int32_t count = 0;
 
             TransactionScope scope([&]() {
-                QList<int32_t> selected_albums = qDaoFacade.album_dao_.getSelectedAlbums();
+                QList<int32_t> selected_albums = qDaoFacade.album_dao.getSelectedAlbums();
                 Q_FOREACH(auto album_id, selected_albums) {
                     emit removeSelectedAlbum(album_id);
-                    qDaoFacade.album_dao_.removeAlbumArtist(album_id);
-                    qDaoFacade.album_dao_.removeAlbum(album_id);
+                    qDaoFacade.album_dao.removeAlbumArtist(album_id);
+                    qDaoFacade.album_dao.removeAlbum(album_id);
                     process_dialog->setValue(count++ * 100 / selected_albums.size() + 1);
                 }
                 process_dialog->setValue(100);
@@ -406,20 +406,20 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         TransactionScope scope([&]() {
             QList<int32_t> albums;
 
-            qDaoFacade.album_dao_.forEachAlbum([&albums](auto album_id) {
+            qDaoFacade.album_dao.forEachAlbum([&albums](auto album_id) {
                 albums.push_back(album_id);
                 });
             process_dialog->setRange(0, albums.size() + 1);
             int32_t count = 0;
             Q_FOREACH(const auto album_id, albums) {
-                qDaoFacade.album_dao_.removeAlbumArtist(album_id);
+                qDaoFacade.album_dao.removeAlbumArtist(album_id);
             }
             Q_FOREACH(const auto album_id, albums) {
-                qDaoFacade.album_dao_.removeAlbum(album_id);
+                qDaoFacade.album_dao.removeAlbum(album_id);
                 process_dialog->setValue(count++ * 100 / albums.size() + 1);
                 qApp->processEvents();
             }
-            qDaoFacade.artist_dao_.removeAllArtist();
+            qDaoFacade.artist_dao.removeAllArtist();
             process_dialog->setValue(100);
             emit removeAll();
             qImageCache.clear();
@@ -481,13 +481,14 @@ void AlbumView::showMenu(const QPoint &pt) {
 
     auto* sub_menu = action_map.addSubMenu(tr("Add album to playlist"));
 
-    qDaoFacade.playlist_dao_.forEachPlaylist([sub_menu, album_id, this](auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
+    qDaoFacade.playlist_dao.forEachPlaylist([sub_menu, album_id, this](
+        auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
         if (notAddablePlaylist(playlist_id)) {
             return;
         }
         sub_menu->addAction(name, [playlist_id, album_id, this]() {
             QList<int32_t> add_playlist_music_ids;
-            qDaoFacade.album_dao_.forEachAlbumMusic(album_id,
+            qDaoFacade.album_dao.forEachAlbumMusic(album_id,
                 [&add_playlist_music_ids](const PlayListEntity& entity) mutable {
                     add_playlist_music_ids.push_back(entity.music_id);
                 });
@@ -509,8 +510,8 @@ void AlbumView::showMenu(const QPoint &pt) {
     const auto remove_select_album_act = action_map.addAction(tr("Remove select album"), [album_id, this]() {
 		TransactionScope scope([&]() {
             emit removeSelectedAlbum(album_id);
-            qDaoFacade.album_dao_.removeAlbumArtist(album_id);
-            qDaoFacade.album_dao_.removeAlbum(album_id);
+            qDaoFacade.album_dao.removeAlbumArtist(album_id);
+            qDaoFacade.album_dao.removeAlbum(album_id);
             emit removeSelectedAlbum(album_id);
             reload();
 			});
@@ -574,7 +575,8 @@ SELECT
     albums.year,
     albums.heart,
 	albums.isHiRes,
-    albums.isSelected
+    albums.isSelected,
+	albums.storeType
 FROM
     albums
 LEFT 
@@ -601,7 +603,8 @@ SELECT
     albums.year,
     albums.heart,
 	albums.isHiRes,
-    albums.isSelected
+    albums.isSelected,
+	albums.storeType
 FROM
     albums
 LEFT JOIN
@@ -630,7 +633,8 @@ SELECT
     albums.year,
     albums.heart,
 	albums.isHiRes,
-    albums.isSelected
+    albums.isSelected,
+	albums.storeType
 FROM
     albums
 LEFT JOIN
@@ -655,7 +659,8 @@ SELECT
     albums.year,
     albums.heart,
 	albums.isHiRes,
-    albums.isSelected
+    albums.isSelected,
+	albums.storeType
 FROM
     albums
 LEFT JOIN
@@ -709,7 +714,8 @@ SELECT
     albums.year,
     albums.heart,
     albums.isHiRes,
-    albums.isSelected
+    albums.isSelected,
+	albums.storeType
 FROM
     albums
 LEFT JOIN
@@ -739,7 +745,8 @@ SELECT
     albums.year,
     albums.heart,
 	albums.isHiRes,
-    albums.isSelected
+    albums.isSelected,
+	albums.storeType
 FROM
     albums
 LEFT JOIN

@@ -28,13 +28,33 @@ bool IsFilePath(const Path& file_path) noexcept {
 	return file_path.has_extension();
 }
 
-Path GetTempFileNamePath() {
+std::tuple<std::fstream, Path> GetTempFile() {
 	// Short retry times to avoid cost too much time.
-	constexpr auto kMaxRetryCreateTempFile = 10;
+	constexpr auto kMaxRetryCreateTempFile = 128;
 	const auto temp_path = Fs::temp_directory_path();
 
 	for (auto i = 0; i < kMaxRetryCreateTempFile; ++i) {
-		auto path = temp_path / Fs::path(MakeTempFileName() + ".tmp");
+		auto path = temp_path / Fs::path(GetSequentialUUID() + ".tmp");
+		std::fstream file(path.native(),
+			std::ios::in
+			| std::ios::out
+			| std::ios::binary
+			| std::ios::trunc);
+		if (file.is_open()) {
+			return std::make_tuple(std::move(file), path);
+		}
+		XAMP_LOG_DEBUG("{} {}", path, GetLastErrorMessage());
+	}
+	throw PlatformException("Can't create temp file.");
+}
+
+Path GetTempFileNamePath() {
+	// Short retry times to avoid cost too much time.
+	constexpr auto kMaxRetryCreateTempFile = 128;
+	const auto temp_path = Fs::temp_directory_path();
+
+	for (auto i = 0; i < kMaxRetryCreateTempFile; ++i) {
+		auto path = temp_path / Fs::path(GetSequentialUUID() + ".tmp");
 		std::ofstream file(path.native());
 		if (file.is_open()) {
 			file.close();
@@ -43,15 +63,6 @@ Path GetTempFileNamePath() {
 		XAMP_LOG_DEBUG("{} {}", path, GetLastErrorMessage());
 	}
 	throw PlatformException("Can't create temp file.");
-}
-
-std::string MakeTempFileName() {
-    char buffer[255]{};
-#ifdef XAMP_OS_WIN
-	::GetTempFileNameA(buffer, "xamp", 0, buffer);
-#else
-#endif
-	return buffer;
 }
 
 Path GetApplicationFilePath() {

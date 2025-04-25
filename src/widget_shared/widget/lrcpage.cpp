@@ -1,4 +1,4 @@
-#include <widget/lrcpage.h>
+Ôªø#include <widget/lrcpage.h>
 
 #include <QHBoxLayout>
 #include <QGraphicsDropShadowEffect>
@@ -6,6 +6,10 @@
 #include <QHeaderView>
 #include <QSaveFile>
 #include <QStandardItemModel>
+#include <QColorDialog>
+#include <QDir>
+#include <QSortFilterProxyModel>
+#include <QLineEdit>
 
 #include <thememanager.h>
 
@@ -39,9 +43,18 @@ LyricsFrame::LyricsFrame(QWidget* parent)
 	model_->setColumnCount(headers.count());
 	model_->setHorizontalHeaderLabels(headers);
 
-	lyrc_view_->setModel(model_);
+	QLineEdit* searchEdit = new QLineEdit(this);
+	searchEdit->setPlaceholderText(tr("Search by Album / Artist / Title"));
+	filterModel_ = new MultiColumnFilterModel(this);
+	filterModel_->setSourceModel(model_);
+	// Ëã•Â∏åÊúõÂãïÊÖãÈÅéÊøæ (Ëº∏ÂÖ•Âç≥Êõ¥Êñ∞)
+	filterModel_->setDynamicSortFilter(true);
+
+	//lyrc_view_->setModel(model_);
+	lyrc_view_->setModel(filterModel_);
 
 	QVBoxLayout* layout = new QVBoxLayout(this);
+	layout->addWidget(searchEdit);
 	layout->addWidget(lyrc_view_);
 	setLayout(layout);
 
@@ -50,10 +63,16 @@ LyricsFrame::LyricsFrame(QWidget* parent)
 		if (!index.isValid()) {
 			return;
 		}
-		QModelIndex idIndex = model_->index(index.row(), 0);
+		QModelIndex srcIndex = filterModel_->mapToSource(index);
+		QModelIndex idIndex = model_->index(srcIndex.row(), 0);
 		QVariant id = model_->data(idIndex, Qt::UserRole);
 		auto candidate = parser_map_.value(id.toString());
 		emit changeLyric(candidate);
+		});
+
+	(void)QObject::connect(searchEdit, &QLineEdit::textChanged, this, [this](const QString& text) {
+		QRegularExpression re(text, QRegularExpression::CaseInsensitiveOption);
+		filterModel_->setFilterRegularExpression(re);
 		});
 
 	setTabViewStyle(lyrc_view_);
@@ -65,79 +84,79 @@ LyricsFrame::LyricsFrame(QWidget* parent)
 }
 
 void LyricsFrame::setLyrics(const QList<SearchLyricsResult>& results) {
-	// •˝≤M≤z¬¬∏ÍÆ∆
+	// ÂÖàÊ∏ÖÁêÜËàäË≥áÊñô
 	model_->removeRows(0, model_->rowCount());
 	parser_map_.clear();
 
-	// πMæ˙ßA™∫ results
-	for (auto& [info, parsers] : results) {
-		for (auto& candidate : parsers) {
+	// ÈÅçÊ≠∑‰Ω†ÁöÑ results
+	for (auto& [info, result] : results) {
+		for (auto& lrc_parser : result) {
 			QString typeStr = tr("Original");
-			if (candidate.parser->hasTranslation()) {
+			if (lrc_parser.parser->hasTranslation()) {
 				typeStr = tr("Translation");
 			}
-			if (candidate.parser->size() == 0) {
+			if (lrc_parser.parser->size() == 0) {
 				continue;
 			}
 
-			// ∑«≥∆ƒÊ¶Ï∏ÍÆ∆
+			// Ê∫ñÂÇôÊ¨Ñ‰ΩçË≥áÊñô
 			QStringList lyricText;
-			for (auto i = 0; i < 5 && i < candidate.parser->size(); ++i) {
-				lyricText << QString::fromStdWString(candidate.parser->lineAt(i).lrc);
-				if (candidate.parser->hasTranslation()) {
-					lyricText << QString::fromStdWString(candidate.parser->lineAt(i).tlrc);
+			for (auto i = 0; i < 5 && i < lrc_parser.parser->size(); ++i) {
+				lyricText << QString::fromStdWString(lrc_parser.parser->lineAt(i).lrc);
+				if (lrc_parser.parser->hasTranslation()) {
+					lyricText << QString::fromStdWString(lrc_parser.parser->lineAt(i).tlrc);
 				}
 			}
 			QString lyricData = lyricText.join("\r\n"_str);
 
 			QString durationStr = formatDuration(
-				static_cast<double>(candidate.parser->last().timestamp.count()) / 1000.0);
+				static_cast<double>(lrc_parser.parser->last().timestamp.count()) / 1000.0);
 
-			QString karaokeStr = candidate.parser->isKaraoke() ? tr("Yes") : tr("No");
-			QString titleStr = candidate.candidate.song;
-			QString artistStr = candidate.candidate.singer;
-			QString albumStr = candidate.candidate.albumName;
+			QString karaokeStr = lrc_parser.parser->isKaraoke() ? tr("Yes") : tr("No");
+			QString titleStr = lrc_parser.candidate.song;
+			QString artistStr = lrc_parser.candidate.singer;
+			QString albumStr = lrc_parser.candidate.albumName;
 
-			// ∑sºW§@¶Ê
+			// Êñ∞Â¢û‰∏ÄË°å
 			int newRow = model_->rowCount();
 			model_->insertRow(newRow);
 
-			// ©Ò∂i QStandardItem ∏Ã
+			// ÊîæÈÄ≤ QStandardItem Ë£°
 			auto id = QString::fromLatin1(generateUuid());
 
-			// ≤ƒ 0 ƒÊ: Type (®√•Bß‚ id ¶s∂i UserRole)
+			// Á¨¨ 0 Ê¨Ñ: Type (‰∏¶‰∏îÊää id Â≠òÈÄ≤ UserRole)
 			auto* typeItem = new QStandardItem(typeStr);
 			typeItem->setData(id, Qt::UserRole);
 
-			// ≤ƒ 1 ƒÊ: Album
+			// Á¨¨ 1 Ê¨Ñ: Album
 			auto* albumItem = new QStandardItem(albumStr);
 
-			// ≤ƒ 2 ƒÊ: Artist
+			// Á¨¨ 2 Ê¨Ñ: Artist
 			auto* artistItem = new QStandardItem(artistStr);
 
-			// ≤ƒ 3 ƒÊ: Title
+			// Á¨¨ 3 Ê¨Ñ: Title
 			auto* titleItem = new QStandardItem(titleStr);
 
-			// ≤ƒ 4 ƒÊ: Lyrics
+			// Á¨¨ 4 Ê¨Ñ: Lyrics
 			auto* lyricItem = new QStandardItem(lyricData);
 
-			// ≤ƒ 5 ƒÊ: Karaoke
+			// Á¨¨ 5 Ê¨Ñ: Karaoke
 			auto* karaokeItem = new QStandardItem(karaokeStr);
 
-			// ≤ƒ 6 ƒÊ: Duration
+			// Á¨¨ 6 Ê¨Ñ: Duration
 			auto* durationItem = new QStandardItem(durationStr);
 
-			// ±N≥o®« QStandardItem ©Ò§J model
-			model_->setItem(newRow, 0, typeItem);
-			model_->setItem(newRow, 1, albumItem);
-			model_->setItem(newRow, 2, artistItem);
-			model_->setItem(newRow, 3, titleItem);
-			model_->setItem(newRow, 4, lyricItem);
-			model_->setItem(newRow, 5, karaokeItem);
-			model_->setItem(newRow, 6, durationItem);
+			// Â∞áÈÄô‰∫õ QStandardItem ÊîæÂÖ• model
+			model_->setItem(newRow, LRC_PAGE_TAB_ID, typeItem);
+			model_->setItem(newRow, LRC_PAGE_TAB_ALBUM, albumItem);
+			model_->setItem(newRow, LRC_PAGE_TAB_ARTIST, artistItem);
+			model_->setItem(newRow, LRC_PAGE_TAB_TITLE, titleItem);
+			model_->setItem(newRow, LRC_PAGE_TAB_LYRICS, lyricItem);
+			model_->setItem(newRow, LRC_PAGE_TAB_KARAOKE, karaokeItem);
+			model_->setItem(newRow, LRC_PAGE_TAB_DURATION, durationItem);
 
-			// id -> candidate ©Ò§J hash
-			parser_map_.insert(id, candidate);
+			// id -> lrc_parser ÊîæÂÖ• hash
+			parser_map_.insert(id, lrc_parser);
 		}
 	}
 }
@@ -212,11 +231,18 @@ void LrcPage::clearBackground() {
 }
 
 void LrcPage::onFetchLyricsCompleted(const QList<SearchLyricsResult>& results) {
-	lyrics_results_ = results;
-
 	if (results.isEmpty()) {
 		return;
 	}
+
+	change_lrc_button_->setEnabled(true);
+
+	for (auto& result : results) {
+		if (result.parsers.isEmpty()) {
+			continue;
+		}
+		lyrics_results_.append(result);
+	}	
 
 	const auto hasTranslation = [](const SearchLyricsResult& res) ->bool {
 		for (auto& lyricsParser : res.parsers) {
@@ -234,7 +260,7 @@ void LrcPage::onFetchLyricsCompleted(const QList<SearchLyricsResult>& results) {
 		return (lhsHas > rhsHas);
 		});
 
-	if (lyrics_widget_->isValid()) {
+	/*if (lyrics_widget_->isValid()) {
 		return;
 	}
 
@@ -254,7 +280,7 @@ void LrcPage::onFetchLyricsCompleted(const QList<SearchLyricsResult>& results) {
 				}
 			}
 		}
-	}
+	}*/
 }
 
 void LrcPage::setFullScreen() {
@@ -276,6 +302,10 @@ void LrcPage::setFullScreen() {
     cover_label_->setPixmap(
 		image_util::roundImage(image_util::resizeImage(cover_, coverSizeHint(), false),
 		image_util::kSmallImageRadius));
+}
+
+void LrcPage::disableLoadLrcButton() {
+	change_lrc_button_->setEnabled(false);
 }
 
 QSize LrcPage::coverSizeHint() const {
@@ -331,7 +361,7 @@ void LrcPage::startBackgroundAnimation(const int durationMs) {
 void LrcPage::paintEvent(QPaintEvent*) {
 	QPainter painter(this);
 
-	painter.fillRect(rect(), QColor("#121212"));
+	//painter.fillRect(rect(), qTheme.backgroundColor());
 
 	if (background_image_.isNull()) {
 		return;
@@ -391,11 +421,17 @@ void LrcPage::onThemeChangedFinished(ThemeColor theme_color) {
 	case ThemeColor::LIGHT_THEME:
 		lyrics_widget_->setNormalColor(Qt::darkGray);
 		lyrics_widget_->setHighLightColor(Qt::black);
+		lyrics_widget_->setKaraokeHighlightColor(qTheme.highlightColor());
 		break;
 	}
+	//setStyleSheet(qFormat("background-color: %1; border: none;").arg(
+	//	colorToString(qTheme.backgroundColor())));
 }
 
 void LrcPage::initial() {
+	setObjectName("lrcPage");
+	setFrameShape(QFrame::StyledPanel);
+
 	auto* main_layout = new QVBoxLayout(this);
 	main_layout->setSpacing(0);
 	main_layout->setObjectName(QString::fromUtf8("default_layout"));
@@ -559,9 +595,12 @@ void LrcPage::initial() {
 	vertical_layout_2->addWidget(spectrum_);
 
 	auto horizontal_layout_11 = new QHBoxLayout();
-	auto* change_lrc_button = new QToolButton(this);
-	change_lrc_button->setText(tr("Load LRC"));
-	(void)QObject::connect(change_lrc_button, &QToolButton::clicked, [this]() {
+	change_lrc_button_ = new QToolButton(this);
+	change_lrc_button_->setText(tr("Load LRC"));
+	change_lrc_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_SUBTITLE));
+	change_lrc_button_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	change_lrc_button_->setEnabled(false);
+	(void)QObject::connect(change_lrc_button_, &QToolButton::clicked, [this]() {
 		if (lyrics_results_.isEmpty()) {
 			return;
 		}
@@ -576,18 +615,78 @@ void LrcPage::initial() {
 		(void)QObject::connect(lyrics_frame.get(),
 			&LyricsFrame::changeLyric,
 			[this](const LyricsParser& parser) {
-			auto krc_file_name = entity_.parent_path + "\\"_str + entity_.file_name + ".krc"_str;
+			if (parser.content.isEmpty()) {
+				XAMP_LOG_DEBUG("Lrc content is empty!");
+				return;
+			}
+			QString save_parent_path;
+			if (!entity_.yt_music_album_id.isEmpty()) {
+				save_parent_path = qAppSettings.getOrCreateLrcCachePath();
+			} else {
+				save_parent_path = entity_.parent_path;
+			}
+			auto krc_file_name = save_parent_path
+				+ "\\"_str
+				+ entity_.file_name.trimmed()
+				+ ".krc"_str;
 			QSaveFile file(krc_file_name);
 			file.open(QIODevice::WriteOnly);
 			file.write(parser.content);
-			file.commit();
+			if (!file.commit()) {
+				XAMP_LOG_DEBUG("Save lrc file failure!");
+			}
 			lyrics_widget_->loadFromParser(parser.parser);
 			});
 		dialog->exec();
 		});
 
+	change_color_button_ = new QToolButton(this);
+	change_color_button_->setText(tr("Text color"));
+	change_color_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_SETTINGS));
+	change_color_button_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	(void)QObject::connect(change_color_button_, &QToolButton::clicked, [this]() {
+		QColorDialog color_dialog;
+		color_dialog.setCurrentColor(lyrics_widget_->normalColor());
+		(void)QObject::connect(&color_dialog, &QColorDialog::currentColorChanged, [this](auto color) {
+			lyrics_widget_->setNormalColor(color);
+			});
+		color_dialog.exec();
+		});
+	change_color_button_->hide();
+
+	change_highlight_button_ = new QToolButton(this);
+	change_highlight_button_->setText(tr("Highlight text color"));
+	change_highlight_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_SETTINGS));
+	change_highlight_button_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	(void)QObject::connect(change_highlight_button_, &QToolButton::clicked, [this]() {
+		QColorDialog color_dialog;
+		color_dialog.setCurrentColor(lyrics_widget_->highlightColor());
+		(void)QObject::connect(&color_dialog, &QColorDialog::currentColorChanged, [this](auto color) {
+			lyrics_widget_->setHighLightColor(color);
+			});
+		color_dialog.exec();
+		});
+	change_highlight_button_->hide();
+
+	karaoke_highlight_button_ = new QToolButton(this);
+	karaoke_highlight_button_->setText(tr("Karaoke highlight text color"));
+	karaoke_highlight_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_SETTINGS));
+	karaoke_highlight_button_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	(void)QObject::connect(karaoke_highlight_button_, &QToolButton::clicked, [this]() {
+		QColorDialog color_dialog;
+		color_dialog.setCurrentColor(lyrics_widget_->karaokeHighlightColor());
+		(void)QObject::connect(&color_dialog, &QColorDialog::currentColorChanged, [this](auto color) {
+			lyrics_widget_->setKaraokeHighlightColor(color);
+			});
+		color_dialog.exec();
+		});
+	karaoke_highlight_button_->hide();
+
 	auto horizontal_spacer_5 = new QSpacerItem(10, 20, QSizePolicy::Expanding, QSizePolicy::Fixed);
-	horizontal_layout_11->addWidget(change_lrc_button);
+	horizontal_layout_11->addWidget(change_lrc_button_);
+	horizontal_layout_11->addWidget(change_color_button_);
+	horizontal_layout_11->addWidget(change_highlight_button_);
+	horizontal_layout_11->addWidget(karaoke_highlight_button_);
 	horizontal_layout_11->addSpacerItem(horizontal_spacer_5);
 	vertical_layout_2->addLayout(horizontal_layout_11);
 
@@ -611,5 +710,8 @@ void LrcPage::initial() {
 	spectrum_->hide();
 
 	main_layout->addLayout(horizontal_layout_10);
-	setStyleSheet("background-color: transparent; border: none;"_str);
+	//setStyleSheet("QFrame#lrcPage{ background-color: transparent; border: none; }"_str);
+	//setStyleSheet(qFormat("background-color: %1; border: none;").arg(
+	//	colorToString(qTheme.backgroundColor())));
+	setStyleSheet("QFrame#lrcPage{ background-color: #121212; border: none; }"_str);
 }

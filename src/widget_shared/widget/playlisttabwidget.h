@@ -112,6 +112,8 @@ private:
 
 	void resizeTabWidth();
 
+	void updateTabCloseButtons();
+
 	int32_t hovered_tab_index_{ -1 };
 	QTimer* tooltip_timer_{ nullptr };
 	StoreType store_type_{ StoreType::PLAYLIST_LOCAL_STORE };

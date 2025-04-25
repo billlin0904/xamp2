@@ -17,6 +17,7 @@
 #include <widget/driveinfo.h>
 #include <widget/util/str_util.h>
 #include <widget/databasecoverid.h>
+#include <widget/worker/ytmusicservice.h>
 
 #include <widget/dao/dbfacade.h>
 #include <widget/encodejobwidget.h>
@@ -57,6 +58,7 @@ class GenreViewPage;
 class YtMusicOAuth;
 class QScrollArea;
 class QSystemTrayIcon;
+struct YtMusicServerProcessor;
 
 class Xamp final : public IXFrame {
 	Q_OBJECT
@@ -101,11 +103,11 @@ signals:
 
 	void transcribeFile(const QString& file_name);
 public slots:
-    void onPlayEntity(const PlayListEntity& entity, bool is_double_clicked);
+    void onPlayEntity(PlaylistPage* playlist_page, const PlayListEntity& entity);
 
 	void ensureLocalOnePlaylistPage();
 
-	void onPlayMusic(int32_t playlist_id, const PlayListEntity& entity, bool is_double_clicked);
+	void onPlayMusic(int32_t playlist_id, const PlayListEntity& entity);
 
     void onAddPlaylist(int32_t playlist_id, const QList<int32_t>& music_ids);
 
@@ -154,6 +156,12 @@ public slots:
 	void onCancelRequested();
 
 	void onFetchMbDiscInfoCompleted(const MbDiscIdInfo& mb_disc_id_info);
+
+	void onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std::vector<playlist::Track>& tracks);
+
+	void onNavigateToAlbumPage(const QString& album, const QString& album_id);
+
+	void onPlayCloudVideoId(PlaylistPage* playlist_page, const PlayListEntity& entity);
 private:
 	void initialUi();
 
@@ -209,9 +217,10 @@ private:
 
 	void resetSeekPosValue();
 
-    void updateUi(const PlayListEntity& entity,
-		const PlaybackFormat& playback_format, 
-		bool open_done, bool is_double_clicked);
+    void updateUi(PlaylistPage* playlist_page,
+		const PlayListEntity& entity,
+		const PlaybackFormat& playback_format,
+		bool open_done);
 
     void setupDsp(const PlayListEntity& item) const;
 
@@ -264,19 +273,20 @@ private:
 	QScopedPointer<AlbumArtistPage> library_page_;
 	QScopedPointer<FileSystemViewPage> file_explorer_page_;
 	QScopedPointer<PlaylistTabPage> playlist_tab_page_;
+	QScopedPointer<PlaylistTabPage> yt_music_tab_page_;
 	QScopedPointer<BackgroundService> background_service_;
 	QScopedPointer<AlbumCoverService> album_cover_service_;
 	QScopedPointer<FileSystemService> file_system_service_;
+	QScopedPointer<YtMusicHttpService> ytmusic_service_;
 	QScopedPointer<QSystemTrayIcon> tray_icon_;
 	QList<QWidget*> widgets_;
     QThread background_service_thread_;
 	QThread album_cover_service_thread_;
 	QThread file_system_service_thread_;
-	QMap<DatabaseCoverId, QString> download_thumbnail_pending_;
 	QList<QFrame*> device_type_frame_;
-	http::HttpClient http_client_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
 	std::shared_ptr<IAudioPlayer> player_;
 	std::shared_ptr<IThreadPoolExecutor> thread_pool_;
+	QScopedPointer<YtMusicServerProcessor> yt_music_server_processor_;
 	Ui::XampWindow ui_;
 };

@@ -358,12 +358,56 @@ bool KrcParser::parseFile(const std::wstring& file_path) {
 bool KrcParser::parseKrcText(const std::wstring& wtext) {
     auto result = parseKrc(wtext);
 
-    size_t totalWords = 0;
-    for (auto& line : result.lines) {
-        totalWords += line.words.size();
+    // result.lines 目前包含「實際歌詞行」，沒有「● 行」
+    // 2) 建立一個新的容器，預備放「補完後」的全部行
+    std::vector<KrcLine> newLines;
+    newLines.reserve(result.lines.size());
+
+    // 2.1) 遍歷相鄰行，檢查 gap
+    constexpr auto kGapThreshold = std::chrono::milliseconds(300);
+
+    for (size_t i = 0; i < result.lines.size(); i++) {
+        // 先把當前行放進 newLines
+        newLines.push_back(result.lines[i]);
+
+        if (i + 1 < result.lines.size()) {
+            auto& currLine = result.lines[i];
+            auto& nextLine = result.lines[i + 1];
+
+            // currLine 結束時間 = start + length
+            auto currLineEnd = currLine.start + currLine.length;
+            // nextLine 開始時間
+            auto nextLineStart = nextLine.start;
+            // gap = 下一行開始 - 當前行結束
+            auto gap = nextLineStart - currLineEnd;
+
+            // 若 gap > 門檻，插入一行獨立的 ● 行
+            if (gap > kGapThreshold) {
+                KrcLine dotLine;
+                dotLine.start = currLineEnd; // 從上一行結束開始
+                dotLine.length = gap;        // 這行的持續時間 = gap
+
+                KrcWord word;
+                word.offset = std::chrono::milliseconds(0); // 從 0 開始
+                word.length = gap;                           // 同整行時長
+                word.content = std::wstring(3, 0x266B);      // 只放一顆 ●
+
+                dotLine.words.push_back(word);
+
+                // 插入這個獨立的 ● 行
+                newLines.push_back(dotLine);
+            }
+        }
     }
 
-    lyrics_.reserve(totalWords);
+    // 3) 將 newLines 取代原本 result.lines
+    result.lines = std::move(newLines);
+
+    // 4) 將 result.lines (含 ● 行) 轉成 KrcParser::lyrics_ (LyricEntry)
+    //    (此段你已經在 parseKrcText 中的最後有類似邏輯)
+    lyrics_.clear();
+    lyrics_.reserve(result.lines.size());
+    is_karaoke_ = false;
     int32_t idx = 0;
 
     for (const auto& line : result.lines) {
@@ -378,7 +422,7 @@ bool KrcParser::parseKrcText(const std::wstring& wtext) {
         for (const auto& word : line.words) {
 			entry.words.push_back(
                 LyricWord {
-                	word.offset, word.length, 0, word.content });
+                	0, word.offset, word.length, word.content });
             auto word_end = word.offset + word.length;
             if (word_end > max_end) {
                 max_end = word_end;

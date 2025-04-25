@@ -44,17 +44,20 @@ namespace {
     class LibAvIoContext final : public IFile {
     public:
         explicit LibAvIoContext(const Path& path) {
-            file_.open(path, std::ios::in 
-                | std::ios::out 
-                | std::ios::binary 
-                | std::ios::trunc);
-            if (!file_) {
-				throw FileNotFoundException();
-            }
+			auto [file, temp_path] = GetTempFile();
+            file_ = std::move(file);
+            temp_file_path_ = temp_path;
+            dest_file_path_ = path;
         }
 
         ~LibAvIoContext() override {
-            file_.close();
+            try {
+                file_.close();
+                Fs::rename(temp_file_path_, dest_file_path_);
+            }
+            catch (...) {
+                Fs::remove(temp_file_path_);
+            }            
         }
 
         int64_t Seek(int64_t offset, int whence) override {
@@ -105,6 +108,8 @@ namespace {
         }
     private:
         std::fstream file_;
+        Path dest_file_path_;
+        Path temp_file_path_;
     };
 }
 

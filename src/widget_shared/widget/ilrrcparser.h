@@ -1,4 +1,4 @@
-//=====================================================================================================================
+ï»¿//=====================================================================================================================
 // Copyright (c) 2018-2024 XAMP project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -11,9 +11,9 @@
 #include <widget/widget_shared_global.h>
 
 struct XAMP_WIDGET_SHARED_EXPORT LyricWord {
+    int32_t extraParam{ 0 };
     std::chrono::milliseconds offset{ 0 };
-    std::chrono::milliseconds length{ 0 };
-    int extraParam{ 0 };
+    std::chrono::milliseconds length{ 0 };    
     std::wstring content;
 };
 
@@ -22,9 +22,9 @@ struct XAMP_WIDGET_SHARED_EXPORT LyricEntry {
     std::chrono::milliseconds timestamp{ 0 };
     std::chrono::milliseconds start_time{ 0 };
     std::chrono::milliseconds end_time{ 0 };
-    // ¥¼Â½Ä¶ºqµü
+    // æœªç¿»è­¯æ­Œè©ž
     std::wstring lrc;
-    // Â½Ä¶«áºqµü
+    // ç¿»è­¯å¾Œæ­Œè©ž
     std::wstring tlrc;
 	std::vector<LyricWord> words;
 };

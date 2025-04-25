@@ -27,14 +27,6 @@ public:
     static constexpr uint32_t kDrawOnlyLeftChRms = 1 << 7;
     static constexpr uint32_t kDrawBothChannelRms = 1 << 8;
 
-    //static constexpr auto kLeftPlayedChannelColor = QColor(50, 255, 50, 180);
-    //static constexpr auto kLeftUnPlayedChannelColor = QColor(33, 150, 243);
-    //static constexpr auto kRightPlayedChannelColor = QColor(50, 255, 50, 180);
-    //static constexpr auto kRightUnPlayedChannelColor = QColor(33, 150, 243);
-
-    static constexpr auto kRmsColor = QColor(255, 255, 255, 120);
-
-    //static constexpr uint32_t kFramesPerPeak = 4096;
     static constexpr float kHeadroomFactor = 0.6f;
     static constexpr float kYTextHeight = 20.0f;
     static constexpr float kCornerRadius = 5.0f;
@@ -66,7 +58,7 @@ public slots:
     void loadFile(const Path& file_path);
 
 protected:
-    void updateSpectrogramSize();
+    void resizeSpectrogramSize();
 
     void paintEvent(QPaintEvent *event) override;
 

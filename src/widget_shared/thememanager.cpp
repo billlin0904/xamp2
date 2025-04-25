@@ -130,26 +130,6 @@ void ThemeManager::installFileFont(const QString& file_name, QList<QString> &ui_
     }
 }
 
-void ThemeManager::setSegoeFluentFontIcons() {
-    HashMap<int32_t, uint32_t> glyphs_lut;
-
-    QJsonDocument doc;
-    if (json_util::deserializeFile("fonticon.json"_str, doc)) {
-        auto jsonObject = doc.object();
-        for (auto it = jsonObject.begin(); it != jsonObject.end(); ++it) {
-            auto key = it.key().toStdString();
-            auto value = it.value().toString();
-            Glyphs glyph;
-            if (FindGlyphs(key, glyph)) {
-                glyphs_lut.insert(std::make_pair(static_cast<int32_t>(glyph), value.toUInt(nullptr, 16)));
-            }
-        }
-    }
-
-    qFontIcon.addFont(fontNamePath("FluentSystemIcons-Regular.ttf"_str));
-    qFontIcon.setGlyphs(glyphs_lut);
-}
-
 void ThemeManager::setGoogleMaterialFontIcons() {
     HashMap<int32_t, uint32_t> glyphs_lut;
 
@@ -170,11 +150,6 @@ void ThemeManager::setGoogleMaterialFontIcons() {
     qFontIcon.setGlyphs(glyphs_lut);
 }
 
-ThemeManager& ThemeManager::GetInstance() {
-	static ThemeManager instance;
-	return instance;
-}
-
 QFont ThemeManager::loadFonts() {
     QList<QString> format_font;
     QList<QString> mono_fonts;
@@ -184,13 +159,16 @@ QFont ThemeManager::loadFonts() {
     QList<QString> debug_fonts;
 
     installFileFonts("FiraCode-Regular"_str, debug_fonts);
-    installFileFont("Karla-Regular.ttf"_str, format_font);
-    installFileFonts("NotoSans"_str, mono_fonts);       
+    //installFileFonts("Lato"_str, mono_fonts);
     installFileFonts("Inter_18pt"_str, ui_fonts);
-    installFileFonts("SourceHanSans"_str, ui_fonts);    
+    installFileFonts("NotoSans"_str, mono_fonts);
+    installFileFonts("SourceHanSans"_str, ui_fonts);
 
     sortFontWeight(ui_fonts.begin(), ui_fonts.end());
 
+    if (format_font.isEmpty()) {
+        format_font = mono_fonts;
+    }
     if (display_fonts.isEmpty()) {
         display_fonts = ui_fonts;
     }
@@ -219,13 +197,13 @@ void ThemeManager::setPalette() {
         background_color_ = QColor(250, 250, 250);
     } else {
         palette_.setColor(QPalette::WindowText, QColor(25, 35, 45));
-        background_color_ = QColor(40, 41, 42);
+        background_color_ = QColor(28, 28, 30);
     }
 }
 
 ThemeManager::ThemeManager() {
     cover_size_ = QSize(185, 185);
-    cache_cover_size_ = QSize(350, 350);
+    cache_cover_size_ = QSize(544, 544);
     album_cover_size_ = QSize(206, 206);
     save_cover_art_size_ = QSize(350, 350);
     ui_font_ = loadFonts();
@@ -236,7 +214,6 @@ ThemeManager::ThemeManager() {
 #endif
     ui_font_.setPointSize(defaultFontSize());
     setGoogleMaterialFontIcons();
-    //setSegoeFluentFontIcons();
 }
 
 void ThemeManager::setThemeColor(ThemeColor theme_color) {
@@ -444,6 +421,12 @@ QIcon ThemeManager::hdIcon() const {
     QVariantMap font_options;
     font_options.insert(FontIconOption::kColorAttr, QColor(252, 215, 75));
     return qFontIcon.getIcon(static_cast<int32_t>(Glyphs::ICON_HD_AUDIO), font_options);
+}
+
+QIcon ThemeManager::cloudIcon() const {
+    QVariantMap font_options;
+    font_options.insert(FontIconOption::kColorAttr, QColor(255, 255, 255));
+    return qFontIcon.getIcon(static_cast<int32_t>(Glyphs::ICON_CLOUD), font_options);
 }
 
 QPixmap ThemeManager::githubIcon() const {

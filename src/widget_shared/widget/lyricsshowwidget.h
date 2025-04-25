@@ -52,6 +52,18 @@ public:
 
 	QString parsedLyrics() const;
 
+	QColor normalColor() const {
+		return lrc_color_;
+	}
+
+	QColor highlightColor() const {
+		return lrc_highlight_color_;
+	}
+
+	QColor karaokeHighlightColor() const {
+		return karaoke_highlight_color_;
+	}
+
 public slots:
 	void stop();
 
@@ -64,6 +76,8 @@ public slots:
 	void setHighLightColor(const QColor &color);
 
 	void setNormalColor(const QColor& color);
+
+	void setKaraokeHighlightColor(const QColor& color);
 
 	void onAddFullLrc(const QString& lrc);
 
@@ -86,12 +100,18 @@ private:
 
 	void resizeFontSize();
 
+	QRect itemBoundingRect(int index, int offset) const;
+
 	bool is_lrc_valid_{ false };
 	bool stop_scroll_time_{ false };
 	bool is_fulled_{ false };
-	int32_t pos_;
-    int32_t last_lyric_index_;
-	float item_percent_;
+	int32_t pos_{ 0 };
+    int32_t last_lyric_index_{ 0 };
+	float item_percent_{ 0 };
+	float old_fraction_ = 0.f;
+	float highlightFraction_ = 0.f;
+	QRect lastHighlightRect_;
+	QRect currentHighlightRect_;
 	QSize base_size_;
 	QFont lrc_font_;
 	QFont current_mask_font_;
@@ -105,5 +125,6 @@ private:
 	QSharedPointer<ILrcParser> lyric_;
 	Furigana furigana_;
 	OpenCCConvert convert_;
+	LanguageDetector language_detector_;
 	std::vector<std::vector<FuriganaEntity>> furiganas_;
 };

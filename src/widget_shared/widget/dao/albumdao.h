@@ -66,6 +66,8 @@ public:
     void removeAlbumArtist(int32_t album_id);
     int32_t getRandomMusicId(int32_t album_id, PRNG& rng);
     int32_t getRandomAlbumId(int32_t album_id, PRNG& rng);
+
+    QList<QString> getAlbumTags();
 private:
     QSqlDatabase& db_;
 };

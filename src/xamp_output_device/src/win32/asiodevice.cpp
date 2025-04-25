@@ -759,9 +759,9 @@ long AsioDevice::OnAsioMessagesCallback(long selector, long value, void* message
 	switch (selector) {
 	case kAsioSelectorSupported:
 		if (value == kAsioResetRequest
-			|| value == kAsioEngineVersion
 			|| value == kAsioResyncRequest
 			|| value == kAsioLatenciesChanged
+			|| value == kAsioEngineVersion
 			// The following three were added for ASIO 2.0, you don't
 			// necessarily have to support them.
 			|| value == kAsioSupportsTimeInfo

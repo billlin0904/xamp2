@@ -31,7 +31,7 @@ public:
         Close();
     }
 
-    void LoadFile(std::wstring const& file_path, DsdModes mode, DWORD flags) {
+    void LoadFile(const std::wstring & file_path, DsdModes mode, DWORD flags) {
         if (mode == DsdModes::DSD_MODE_PCM) {
 #ifdef XAMP_OS_MAC
             auto utf8 = String::ToString(file_path);
@@ -156,13 +156,14 @@ public:
 
         XAMP_LOG_D(logger_, "Use DsdModes: {}", mode_);
 
-        const auto is_file_path = IsFilePath(file_path);
+        const auto is_http = file_path.wstring().find(L"http") != std::string::npos
+    		|| file_path.wstring().find(L"https") != std::string::npos;
         XAMP_LOG_D(logger_, "Start open file");
 
         Stopwatch sw;
         sw.Reset();
 
-        LoadFileOrURL(file_path.wstring(), is_file_path, mode_, flags);
+        LoadFileOrURL(file_path.wstring(), !is_http, mode_, flags);
 
         XAMP_LOG_D(logger_, "End open file :{:.2f} secs", sw.ElapsedSeconds());
         info_ = BASS_CHANNELINFO{};
@@ -241,12 +242,14 @@ public:
             auto *ptr = static_cast<char const*>(buffer);
             std::string http_status(ptr);
             XAMP_LOG_D(impl->logger_, "{}", http_status);
-    	} else {                      
-            impl->download_size_ += length;
-            XAMP_LOG_D(impl->logger_,
-                "Downloading {:.2f}% {}",
-                impl->GetReadProgress(),
-                String::FormatBytes(impl->download_size_));
+    	} else {
+            if (impl->download_size_ == 0) {
+                impl->download_size_ += length;
+                XAMP_LOG_D(impl->logger_,
+                    "Downloading {:.2f}% {}",
+                    impl->GetReadProgress(),
+                    String::FormatBytes(impl->download_size_));
+            }            
         }
     }
 

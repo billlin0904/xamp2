@@ -59,6 +59,9 @@ WaveformWidget::WaveformWidget(QWidget *parent)
 }
 
 void WaveformWidget::setCurrentPosition(float sec) {
+	if (total_ms_ <= 0.f) {
+		return;
+	}
     cursor_ms_ = sec * 1000.f;
     update(drawRect());
 }
@@ -92,11 +95,11 @@ void WaveformWidget::setSpectrogramData(double duration_sec, const QImage& chunk
     p.drawImage(time_index, 0, chunk);
     p.end();
 
-    updateSpectrogramSize();
+    resizeSpectrogramSize();
     update();
 }
 
-void WaveformWidget::updateSpectrogramSize() {
+void WaveformWidget::resizeSpectrogramSize() {
     if (spectrogram_.isNull())
         return;
     auto widget_size = drawRect().size();
@@ -210,7 +213,7 @@ void WaveformWidget::drawTimeAxis(QPainter& painter, const QRect& rect) {
         painter.drawLine(QPointF(x_tick, axisY),
             QPointF(x_tick, axisY + 4));
         // 標籤 mm:ss
-        QString label = formatDuration(t);
+        QString label = formatDurationAsMinutes(t);
         int tw = fm.horizontalAdvance(label);
         float x_text = x_tick - tw * 0.5f;
         float y_text = axisY + fm.height() + 2;
@@ -586,7 +589,7 @@ void WaveformWidget::resizeEvent(QResizeEvent* event) {
 
 void WaveformWidget::doneRead() {
     XAMP_LOG_DEBUG("Done read!");
-    updateSpectrogramSize();
+    resizeSpectrogramSize();
     spectrogram_ = QImage();
     is_processing_ = false;
     markCacheDirty();

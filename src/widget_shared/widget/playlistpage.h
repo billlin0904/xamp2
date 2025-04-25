@@ -64,7 +64,7 @@ public:
 	void showCompleter();
 
 signals:
-	void playMusic(int32_t playlist_id, const PlayListEntity& item, bool is_play, bool is_doubleclicked);
+	void playMusic(int32_t playlist_id, const PlayListEntity& item, bool is_play);
 
 	void search(const QString& text, Match match);
 

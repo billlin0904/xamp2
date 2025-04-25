@@ -27,6 +27,8 @@ class QComboBox;
 class XAMP_WIDGET_SHARED_EXPORT ThemeManager final : public QObject {
     Q_OBJECT
 public:
+    ThemeManager();
+
     const QPalette& palette() const {
         return palette_;
     }
@@ -62,6 +64,8 @@ public:
     QIcon playingIcon() const;
 
     QIcon hdIcon() const;
+
+    QIcon cloudIcon() const;
 
     QPixmap githubIcon() const;
 
@@ -157,10 +161,6 @@ public:
 
     void setCancelRecordIcon(QToolButton *cancel_button);
 
-    void setSegoeFluentFontIcons();
-
-    static ThemeManager& GetInstance();
-
 signals:
     void themeChangedFinished(ThemeColor theme_color);
 
@@ -178,8 +178,6 @@ private:
     void setPalette();
 
     void setGoogleMaterialFontIcons();
-
-    ThemeManager();
     
     qreal font_ratio_;
     ThemeColor theme_color_;
@@ -195,5 +193,5 @@ private:
     QPixmap default_size_unknown_cover_;
 };
 
-#define qTheme ThemeManager::GetInstance()
+#define qTheme SharedSingleton<ThemeManager>::GetInstance()
 #define qIconCache SharedSingleton<LruCache<QString, QIcon>>::GetInstance()

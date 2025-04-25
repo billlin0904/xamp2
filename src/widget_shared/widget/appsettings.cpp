@@ -196,6 +196,28 @@ QLocale AppSettings::locale() const {
 	return manager_.locale();
 }
 
+QString AppSettings::getOrCreateLrcCachePath() {
+	auto cache_path = getOrCreateCachePath() + R"(LrcCache\)"_str;
+	const QDir dir(cache_path);
+	if (!dir.exists()) {
+		if (!dir.mkdir(cache_path)) {
+			XAMP_LOG_ERROR("Create cache dir failure!");
+		}
+	}
+	return cache_path;
+}
+
+QString AppSettings::getOrCreateImageCachePath() {
+	auto cache_path = getOrCreateCachePath() + R"(ImageCache\)"_str;
+	const QDir dir(cache_path);
+	if (!dir.exists()) {
+		if (!dir.mkdir(cache_path)) {
+			XAMP_LOG_ERROR("Create cache dir failure!");
+		}
+	}
+	return cache_path;
+}
+
 QString AppSettings::getOrCreateCachePath() {
     QString cache_path;
 #ifdef Q_OS_WIN

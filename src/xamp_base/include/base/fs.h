@@ -31,9 +31,9 @@ XAMP_BASE_API bool IsFilePath(const Path& file_path) noexcept;
 
 XAMP_BASE_API std::string GetSharedLibraryName(const std::string_view &name);
 
-XAMP_BASE_API std::string MakeTempFileName();
-
 XAMP_BASE_API Path GetTempFileNamePath();
+
+XAMP_BASE_API std::tuple<std::fstream, Path> GetTempFile();
 
 XAMP_BASE_API Path GetApplicationFilePath();
 
@@ -78,8 +78,7 @@ private:
     template <typename Func>
     bool TryImpl(Func&& func) {
         // Create temp file path.
-        temp_file_path_ = Fs::temp_directory_path()
-            / Fs::path(MakeTempFileName() + ".tmp");
+        temp_file_path_ = GetTempFileNamePath();
 
         try {
             // Write file.

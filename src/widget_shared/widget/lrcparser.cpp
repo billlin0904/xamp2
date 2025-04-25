@@ -108,26 +108,49 @@ void LrcParser::parseLrc(const std::wstring & line) {
 }
 
 void LrcParser::parseMultiLrc(std::wstring const & line) {
-    std::vector<std::wstring> times;
-    std::wstring time;
-
-    auto temp = line;
+    std::vector<std::chrono::milliseconds> times;
+    std::wstring lrc;         // 這行最終要顯示的歌詞文字
+    std::wstring temp = line; // 複製一份用來刪除 bracket
 
     while (true) {
         auto first = temp.find(L"[");
         auto last = temp.find(L"]");
-        if (first == std::string::npos || last == std::string::npos) {
+
+        if (first == std::wstring::npos || last == std::wstring::npos || last < first) {
+            // 找不到任何 bracket 或 bracket 不成對 -> 結束
             break;
         }
-        time = temp.substr(first + 1, last - first - 1);
-        times.push_back(time);
-        temp.erase(first, last - first + 1);
+
+        // 取出 bracket 的內文 (不含中括號本身)
+        auto bracket_content = temp.substr(first + 1, last - (first + 1));
+
+        // 從 temp 移除這段 bracket（包含中括號）
+        temp.erase(first, (last - first) + 1);
+
+        // 嘗試把 bracket_content 視為時間格式
+        try {
+            auto t = parseTime(bracket_content);
+            times.push_back(t);
+        }
+        catch (const std::invalid_argument&) {
+            // 不是合法時間 => 把它視為「歌詞註解」文字，追加到 lrc
+            lrc.append(L"[" + bracket_content + L"]");
+            XAMP_LOG_DEBUG("invalid_argument => {}", String::ToUtf8String(line));
+        }
     }
 
-    auto lrc = temp;
-    for (auto const &time : times) {
+    // bracket 都處理完後，temp 剩下的就是本行的文字
+    lrc.append(temp);
+
+    // 若這行沒有任何合法時間，則整行視為無效(或你可選擇做其它處理)
+    if (times.empty()) {
+        return;
+    }
+
+    // 若有多個合法時間，為每個 timestamp 建立一筆 LyricEntry
+    for (auto& t : times) {
         LyricEntry entry;
-        entry.timestamp = parseTime(time);
+        entry.timestamp = t;
         entry.lrc = lrc;
         lyrics_.push_back(entry);
     }
@@ -177,8 +200,6 @@ bool LrcParser::parseStream(std::wistream &istr) {
 			start_read_lrc = true;
         }        
 	}
-
-	XAMP_LOG_DEBUG("Total lyrics: {}", lyrics_.size());
 
 	if (lyrics_.empty()) {
 		return false;

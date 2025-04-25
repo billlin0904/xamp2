@@ -40,6 +40,8 @@ namespace dao {
             entity.lyrc = query.value("lyrc"_str).toString();
             entity.trlyrc = query.value("trLyrc"_str).toString();
 
+            entity.yt_music_album_id = query.value("ytMusicAlbumId"_str).toString();
+
             QFileInfo file_info(entity.file_path);
             entity.file_extension = file_info.suffix();
             entity.file_name = file_info.completeBaseName();
@@ -134,7 +136,7 @@ namespace dao {
           FROM 
             albums 
           WHERE 
-            album = :album
+            album = :album AND storeType = :storeType
         ), 
         :album, 
         :artistId, 
@@ -289,6 +291,18 @@ namespace dao {
 
         int32_t random_index = rng.NextInt32(0, album_ids.size() - 1);
         return album_ids[random_index];
+    }
+
+    QList<QString> AlbumDao::getAlbumTags() {
+        SqlQuery query(db_);
+        query.prepare(R"(SELECT tag FROM albumTags)"_str);
+        DbIfFailedThrow1(query);
+
+        QList<QString> tags;
+        while (query.next()) {
+            tags.push_back(query.value("tag"_str).toString());
+        }
+        return tags;
     }
 
     void AlbumDao::removeAlbum(int32_t album_id) {

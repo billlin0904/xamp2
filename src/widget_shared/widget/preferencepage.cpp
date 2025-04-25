@@ -11,6 +11,7 @@
 #include <widget/jsonsettings.h>
 #include <widget/imagecache.h>
 #include <widget/widget_shared.h>
+#include <widget/dao/dbfacade.h>
 
 #include <thememanager.h>
 
@@ -263,6 +264,12 @@ PreferencePage::PreferencePage(QWidget *parent)
 		saveSoxrResampler(ui_->soxrSettingCombo->currentText());
         saveAll();
     });
+
+	(void)QObject::connect(ui_->clearCoverCacheButton, &QPushButton::clicked, [this](auto) {
+		qImageCache.clearCache();
+		qImageCache.clear();
+		qDaoFacade.music_dao.removeCoverId();
+		});
 
 	(void)QObject::connect(ui_->newSoxrSettingBtn, &QRadioButton::clicked, [this](auto checked) {
 		const auto setting_name = QInputDialog::getText(this, tr("New soxr setting"),

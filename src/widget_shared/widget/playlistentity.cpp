@@ -53,6 +53,7 @@ PlayListEntity getEntity(const QModelIndex& index) {
     setEntityValue(entity.track_replay_gain,  indexValue(index, PLAYLIST_TRACK_RG));
     setEntityValue(entity.track_peak,         indexValue(index, PLAYLIST_TRACK_PK));
     setEntityValue(entity.track_loudness,     indexValue(index, PLAYLIST_TRACK_LOUDNESS));
+    entity.yt_music_album_id = indexValue(index, PLAYLIST_YT_MUSIC_ALBUM_ID).toString();
 
     const QFileInfo file_info(entity.file_path);
     entity.file_extension = file_info.suffix();
@@ -60,7 +61,7 @@ PlayListEntity getEntity(const QModelIndex& index) {
     entity.parent_path    = toNativeSeparators(file_info.dir().path());
 
     if (entity.file_extension.isEmpty()) {
-        entity.file_extension = ".m4a"_str;
+        entity.file_extension = ".opus"_str;
     }
 
     return entity;

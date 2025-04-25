@@ -73,3 +73,5 @@ IMPL_APP_SETTING_NAME(AppSettingHideNaviBar, "AppSettings/hideNaviBar");
 
 IMPL_APP_SETTING_NAME(AppSettingLastPlaylistTabIndex, "AppSettings/playlist/lastPlaylistTabIndex");
 IMPL_APP_SETTING_NAME(AppSettingEnableTray, "AppSettings/enableTray");
+
+IMPL_APP_SETTING_NAME(AppSettingYtMusicPoToken, "AppSettings/YtMusic/ptToken");

@@ -28,6 +28,7 @@ IF
 		trLyrc TEXT,
 		coverId TEXT DEFAULT NULL,
 		isCueFile integer,
+		ytMusicAlbumId TEXT,
 		UNIQUE ( path, offset, durationStr ) 
 	);
 	
@@ -57,7 +58,7 @@ IF
 		isSelected integer DEFAULT 0,
 		plays integer DEFAULT 0,
 		FOREIGN KEY ( artistId ) REFERENCES artists ( artistId ),
-		UNIQUE ( albumId, artistId ) 
+		UNIQUE ( albumId, artistId, storeType ) 
 	);
 
 CREATE INDEX IF NOT EXISTS album_name_index ON albums (album);
@@ -129,3 +130,20 @@ IF
 		FOREIGN KEY ( musicId ) REFERENCES musics ( musicId ),
 	    FOREIGN KEY ( albumId ) REFERENCES albums ( albumId ) 
 	);
+
+CREATE TABLE
+IF
+	NOT EXISTS albumTags (
+		tagId integer PRIMARY KEY AUTOINCREMENT,
+		tag TEXT NOT NULL DEFAULT ''
+	);
+
+INSERT INTO albumTags (tag) VALUES ('Piano');
+INSERT INTO albumTags (tag) VALUES ('Vocal');
+INSERT INTO albumTags (tag) VALUES ('Soundtrack');
+INSERT INTO albumTags (tag) VALUES ('Best');
+INSERT INTO albumTags (tag) VALUES ('Complete');
+INSERT INTO albumTags (tag) VALUES ('Collection');
+INSERT INTO albumTags (tag) VALUES ('Collections');
+INSERT INTO albumTags (tag) VALUES ('Edition');
+INSERT INTO albumTags (tag) VALUES ('Version');
