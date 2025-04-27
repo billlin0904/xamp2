@@ -2096,7 +2096,7 @@ void Xamp::initialPlaylist() {
         qTheme.fontIcon(Glyphs::ICON_MUSIC_LIBRARY));    
     ui_.naviBar->addTab(translateText("YouTube playlist"),
         TAB_YT_MUSIC_PLAYLIST,
-        qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
+        qTheme.fontIcon(Glyphs::ICON_YOUTUBE_PLAYLIST));
     ui_.naviBar->addTab(translateText("CD"),
         TAB_CD,
         qTheme.fontIcon(Glyphs::ICON_CD));
@@ -2236,6 +2236,16 @@ void Xamp::initialPlaylist() {
             XAMP_LOG_DEBUG("Get playlist done!");
             onFetchPlaylistTrackCompleted(playlist_page, playlist.tracks);
             });
+        });
+
+    (void)QObject::connect(yt_music_tab_page_->tabWidget(), &PlaylistTabWidget::deletePlaylist, [this](auto text) {
+        last_playlist_page_ = yt_music_tab_page_->tabWidget()->playlistPage(0);
+        last_playlist_tab_ = yt_music_tab_page_->tabWidget();
+        last_playlist_ = last_playlist_page_->playlist();
+        });
+
+    (void)QObject::connect(yt_music_tab_page_->tabWidget(), &PlaylistTabWidget::removeAllPlaylist, [this]() {
+        
         });
 
     file_explorer_page_.reset(new FileSystemViewPage(this));

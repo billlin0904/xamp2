@@ -192,10 +192,11 @@ void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result,
             for (const auto& category : getAlbumCategories(album)) {
                 qDaoFacade.album_dao.addAlbumCategory(album_id, category);
             }
-
-            auto disk = "Disk("_str +
-                QString::fromStdWString(track_info.file_path.root_name().wstring()) + ")"_str;
-            qDaoFacade.album_dao.addAlbumCategory(album_id, disk);
+            if (store_type != StoreType::CLOUD_STORE) {
+                auto disk = "Disk("_str +
+                    QString::fromStdWString(track_info.file_path.root_name().wstring()) + ")"_str;
+                qDaoFacade.album_dao.addAlbumCategory(album_id, disk);
+            }            
         }
 
         XAMP_EXPECTS(album_id > 0);
