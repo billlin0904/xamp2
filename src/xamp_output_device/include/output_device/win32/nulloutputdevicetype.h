@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 XAMP project. All rights reserved.
+// Copyright (c) 2018-2025 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -26,7 +26,7 @@ class NullOutputDeviceType final : public IDeviceType {
 	XAMP_DECLARE_MAKE_CLASS_UUID(NullOutputDeviceType, "6F1223E0-231A-495C-B16A-2AAC851F8D5F")
 
 public:
-	constexpr static auto Description = std::string_view("Null Output");
+	static constexpr auto Description = std::string_view("Null Output");
 
 	/*
 	* Constructor.

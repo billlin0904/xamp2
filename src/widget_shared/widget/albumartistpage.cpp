@@ -401,7 +401,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	year_view_ = new AlbumView();
 	year_tag_list_widget_ = new TagListView();
 	year_tag_list_widget_->setSizePolicy(size_policy_1);
-	Q_FOREACH (auto year, dao::AlbumDao(qGuiDb.getDatabase()).getYears()) {
+	Q_FOREACH (auto year, qDaoFacade.album_dao.getYears()) {
 		year_tag_list_widget_->addTag(year, true);
 	}
 	year_frame_layout->addWidget(year_tag_list_widget_);

@@ -35,7 +35,7 @@ IMPL_APP_SETTING_NAME(AppSettingResamplerEnable, "AppSettings/enableResampler");
 IMPL_APP_SETTING_NAME(AppSettingResamplerType, "AppSettings/resamplerType");
 IMPL_APP_SETTING_NAME(AppSettingFileSystemLastOpenPath, "AppSettings/fileSystemLastOpenPath");
 
-IMPL_APP_SETTING_NAME(AppSettingWaveformDrawMode, "AppSettings/Waveform/drawMode");
+IMPL_APP_SETTING_NAME(AppSettingWaveformColor, "AppSettings/Waveform/color");
 
 IMPL_APP_SETTING_NAME(ResampleSampleRate, "resampleSampleRate");
 IMPL_APP_SETTING_NAME(AppSettingSoxrSettingName, "AppSettings/soxr/userSettingName");

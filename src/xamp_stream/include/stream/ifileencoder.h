@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 XAMP project. All rights reserved.
+// Copyright (c) 2018-2025 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -16,15 +16,15 @@
 XAMP_STREAM_NAMESPACE_BEGIN
 
 namespace FileEncoderConfig {
-    constexpr static auto kInputFilePath =
+	inline constexpr static auto kInputFilePath =
 		std::string_view("InputFilePath");
-    constexpr static auto kOutputFilePath = 
+	inline constexpr static auto kOutputFilePath =
 		std::string_view("OutputFilePath");
-	constexpr static auto kCodecId =
+	inline constexpr static auto kCodecId =
 		std::string_view("CodecId");
-    constexpr static auto kBitRate =
+	inline constexpr static auto kBitRate =
 		std::string_view("BitRate");
-	constexpr static auto kEncodingProfile = 
+	inline constexpr static auto kEncodingProfile =
 		std::string_view("EncodingProfile");
 };
 

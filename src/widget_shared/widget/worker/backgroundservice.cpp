@@ -33,7 +33,7 @@
 XAMP_DECLARE_LOG_NAME(BackgroundService);
 
 namespace {
-    constexpr size_t kFFTSize = 4096 * 2;
+    constexpr size_t kFFTSize = 8192 * 2;
     constexpr size_t kHopSize = kFFTSize * 0.5;
     constexpr float kPower2FFSize = kFFTSize * kFFTSize;
     constexpr size_t kFreqBins = (kFFTSize / 2);
@@ -46,15 +46,23 @@ namespace {
     public:
         ColorTable() = default;
 
+        void setSpectrogramColor(SpectrogramColor color) {
+			color_ = color;
+        }
+
         QRgb operator[](double dB_val) const {
             if (dB_val < kMinDb) dB_val = kMinDb;
             if (dB_val > kMaxDb) dB_val = kMaxDb;
             const double ratio = (dB_val - kMinDb) / kDbRange;
-            //return soxrColor(ratio);
-			return danBrutonColor(ratio);
+            if (color_ == SpectrogramColor::SPECTROGRAM_COLOR_DEFAULT) {
+                return danBrutonColor(ratio);
+            }
+            return soxrColor(ratio);
         }
 
     private:
+		SpectrogramColor color_ = SpectrogramColor::SPECTROGRAM_COLOR_SOX;
+
         static QRgb danBrutonColor(double level) {
             level *= 0.6625;
             double r = 0.0, g = 0.0, b = 0.0;
@@ -92,9 +100,9 @@ namespace {
             cf *= 255.0;
 
             // Pack RGB values into a 32-bit uint.
-            uint32_t rr = (uint32_t)(r * cf + 0.5);
-            uint32_t gg = (uint32_t)(g * cf + 0.5);
-            uint32_t bb = (uint32_t)(b * cf + 0.5);
+            auto rr = static_cast<uint32_t>(r * cf + 0.5);
+            auto gg = static_cast<uint32_t>(g * cf + 0.5);
+            auto bb = static_cast<uint32_t>(b * cf + 0.5);
 
             return qRgb(rr, gg, bb);
         }
@@ -128,9 +136,9 @@ namespace {
             if (b < 0.) b = 0.;
             if (b > 1.) b = 1.;
 
-            uint32_t rr = static_cast<uint32_t>(r * 255.0 + 0.5);
-            uint32_t gg = static_cast<uint32_t>(g * 255.0 + 0.5);
-            uint32_t bb = static_cast<uint32_t>(b * 255.0 + 0.5);
+            auto rr = static_cast<uint32_t>(r * 255.0 + 0.5);
+            auto gg = static_cast<uint32_t>(g * 255.0 + 0.5);
+            auto bb = static_cast<uint32_t>(b * 255.0 + 0.5);
 
             return qRgb(rr, gg, bb);
         }
@@ -155,14 +163,11 @@ namespace {
         return dB;
     }
 
-    void fillSpectrogramColumn(
+    void fillSpectrogramColumn(const ColorTable &color_table,
         QImage& chunk_img,
         int col,
-        const ComplexValarray& freq_bins
-    ) {
+        const ComplexValarray& freq_bins) {
         // 1) 先準備顏色查表物件 (靜態單例)
-        static ColorTable color_table;
-
         // 2) 取得 QImage 的基本資訊
         uchar* data = chunk_img.bits();
         int bytes_per_line = chunk_img.bytesPerLine();
@@ -173,7 +178,7 @@ namespace {
         //    預計 f=0 畫在最底部 (height-1)，f=n_bins-1 畫在最頂 (0)
         double scale = 1.0;
         if (n_bins > 1 && height > 1) {
-            scale = double(height - 1) / double(n_bins - 1);
+            scale = static_cast<double>(height - 1) / static_cast<double>(n_bins - 1);
         }
 
         // 4) 逐一頻率 bin，計算 dB，並繪製到對應的 y
@@ -719,7 +724,7 @@ void BackgroundService::onReadWaveformAudioData(size_t frame_per_peek,
 	}
 }
 
-void BackgroundService::onReadSpectrogram(const QSize& widget_size, const Path& file_path) {
+void BackgroundService::onReadSpectrogram(SpectrogramColor color, const Path& file_path) {
 	try {
         auto file_stream = makePcmFileStream(file_path);
         if (file_stream->GetDurationAsSeconds() <= 0.0) {
@@ -740,6 +745,9 @@ void BackgroundService::onReadSpectrogram(const QSize& widget_size, const Path& 
 		auto total_samples = static_cast<uint32_t>(duration * format.GetSampleRate());
         auto kColumnsPerChunk = (std::max)(100u, static_cast<uint32_t>(total_samples / fft.GetShiftSize()));
 
+        ColorTable color_table;
+        color_table.setSpectrogramColor(color);
+
         while (!is_stop_ && file_stream->IsActive()) {
         	QImage chunk_img(kColumnsPerChunk, freq_bins.size(),
                 QImage::Format_RGB888);
@@ -747,13 +755,13 @@ void BackgroundService::onReadSpectrogram(const QSize& widget_size, const Path& 
 
             if (!getSamples(file_stream, buffer)) {
                 freq_bins = fft.Flush();
-                fillSpectrogramColumn(chunk_img, 0, freq_bins);
-                emit readAudioSpectrogram(duration, chunk_img, time_index);
+                fillSpectrogramColumn(color_table, chunk_img, 0, freq_bins);
+                emit readAudioSpectrogram(duration, kHopSize, chunk_img, time_index);
                 break;
             }
 
             freq_bins = fft.Process(buffer.data(), buffer.size());
-            fillSpectrogramColumn(chunk_img, 0, freq_bins);
+            fillSpectrogramColumn(color_table, chunk_img, 0, freq_bins);
 
             int actual_columns = kColumnsPerChunk;
 			
@@ -761,16 +769,16 @@ void BackgroundService::onReadSpectrogram(const QSize& widget_size, const Path& 
 				if (!getSamples(file_stream, buffer)) {
                     actual_columns = col;
                     freq_bins = fft.Flush();
-                    fillSpectrogramColumn(chunk_img, col, freq_bins);
+                    fillSpectrogramColumn(color_table, chunk_img, col, freq_bins);
                     break;
                 }
                 else {
                     freq_bins = fft.Process(buffer.data(), buffer.size());
-                    fillSpectrogramColumn(chunk_img, col, freq_bins);
+                    fillSpectrogramColumn(color_table, chunk_img, col, freq_bins);
                 }
             }
 
-            emit readAudioSpectrogram(duration, chunk_img, time_index);
+            emit readAudioSpectrogram(duration, kHopSize, chunk_img, time_index);
             time_index += actual_columns;
         }
 

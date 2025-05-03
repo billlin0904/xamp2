@@ -271,7 +271,18 @@ QPixmap ImageCache::getOrAdd(const QString& tag_id, std::function<QPixmap()>&& v
 	return getOrAddDefault(tag_id);
 }
 
-QString ImageCache::addImage(const QPixmap& cover, bool save_only) {
+void ImageCache::addCache(const QString& cover_id, const QPixmap& cover) {
+	const auto buffer = buffer_pool_->Acquire();
+	const auto file_path = makeImageCachePath(cover_id);
+
+	if (!cover.save(file_path, kImageFileFormat)) {
+		XAMP_LOG_DEBUG("Failure to save image cache.");
+	}
+
+	cache_.AddOrUpdate(cover_id, { buffer->size(), cover });
+}
+
+QString ImageCache::addImage(const QPixmap& cover, bool save_only, bool resize) {
 	const auto cover_size = qTheme.cacheCoverSize();
 
 	const auto buffer = buffer_pool_->Acquire();
@@ -279,7 +290,13 @@ QString ImageCache::addImage(const QPixmap& cover, bool save_only) {
 		XAMP_LOG_DEBUG("Failure to create buffer.");
 	}
 
-	auto resize_image = image_util::resizeImage(cover, cover_size, true);
+	QPixmap resize_image;
+	if (resize) {
+		resize_image = image_util::resizeImage(cover, cover_size, true);
+	} else {
+		resize_image = cover;
+	}
+	
 	if (!resize_image.save(buffer.get(), kImageFileFormat)) {
 		XAMP_LOG_DEBUG("Failure to save buffer.");
 	}
@@ -294,13 +311,17 @@ QString ImageCache::addImage(const QPixmap& cover, bool save_only) {
 	if (save_only) {
 		buffer->close();
 		buffer->setData(QByteArray());
-
 		return tag_id;
 	}
 	
 	cache_.AddOrUpdate(tag_id, { buffer->size(), resize_image });
+
+	if (!resize) {
+		return tag_id;
+	}
+
 	buffer->close();
-	buffer->setData(QByteArray());	
+	buffer->setData(QByteArray());
 
 	addOrUpdateCover(kAlbumCacheTag, tag_id, resize_image);
 	return tag_id;

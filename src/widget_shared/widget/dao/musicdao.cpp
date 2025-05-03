@@ -16,9 +16,9 @@ namespace dao {
 
         query.prepare(R"(
     INSERT OR REPLACE INTO musics
-    (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bitRate, sampleRate, offset, dateTime, albumReplayGain, trackReplayGain, albumPeak, trackPeak, genre, comment, fileSize, heart, isCueFile, ytMusicAlbumId)
+    (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bitRate, sampleRate, offset, dateTime, albumReplayGain, trackReplayGain, albumPeak, trackPeak, genre, comment, fileSize, heart, isCueFile, ytMusicAlbumId, ytMusicArtistId)
     VALUES ((SELECT musicId FROM musics WHERE path = :path AND durationStr = :durationStr AND ytMusicAlbumId = :ytMusicAlbumId), 
-      :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitRate, :sampleRate, :offset, :dateTime, :albumReplayGain, :trackReplayGain, :albumPeak, :trackPeak, :genre, :comment, :fileSize, :heart, :isCueFile, :ytMusicAlbumId)
+      :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitRate, :sampleRate, :offset, :dateTime, :albumReplayGain, :trackReplayGain, :albumPeak, :trackPeak, :genre, :comment, :fileSize, :heart, :isCueFile, :ytMusicAlbumId, :ytMusicArtistId)
     )"_str
         );
 
@@ -37,6 +37,7 @@ namespace dao {
         query.bindValue(":heart"_str, track_info.rating ? 1 : 0);
         query.bindValue(":isCueFile"_str, track_info.is_cue_file ? 1 : 0);
         query.bindValue(":ytMusicAlbumId"_str, QString::fromStdString(track_info.yt_album_id));
+        query.bindValue(":ytMusicArtistId"_str, QString::fromStdString(track_info.yt_artist_id));
 
         if (track_info.replay_gain) {
             query.bindValue(":albumReplayGain"_str, track_info.replay_gain.value().album_gain);

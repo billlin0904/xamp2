@@ -102,7 +102,7 @@ void PlaylistPage::initial() {
 	(void)QObject::connect(heart_button_, &QToolButton::clicked, [this]() {
 		if (album_id_) {
 			album_heart_ = !album_heart_;
-			dao::AlbumDao(qGuiDb.getDatabase()).updateAlbumHeart(album_id_.value(), album_heart_);
+			qDaoFacade.album_dao.updateAlbumHeart(album_id_.value(), album_heart_);
 			qTheme.setHeartButton(heart_button_, album_heart_);
 		}
 		});
@@ -285,6 +285,10 @@ void PlaylistPage::addSuggestions(const QString& text) {
 
 void PlaylistPage::showCompleter() {
 	search_line_edit_->completer()->complete();
+}
+
+void PlaylistPage::reload() {
+	playlist()->reload();
 }
 
 void PlaylistPage::setCover(const QPixmap * cover) {

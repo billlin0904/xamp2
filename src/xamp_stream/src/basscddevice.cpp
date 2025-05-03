@@ -1,15 +1,15 @@
 #include <stream/basscddevice.h>
 
-#ifdef XAMP_OS_WIN
-
 #include <stream/basslib.h>
 #include <base/str_utilts.h>
 
-namespace xamp::stream {
+XAMP_STREAM_NAMESPACE_BEGIN
 
-inline constexpr auto kCDSpeedMultiplier = 176.4;
+#ifdef XAMP_OS_WIN
 
 namespace {
+	inline constexpr auto kCDSpeedMultiplier = 176.4;
+
 	DWORD Drive2BassID(char driver_letter) {
 		for (DWORD i = 0; i < 25; i++) {
 			BASS_CD_INFO cdinfo{};
@@ -178,6 +178,6 @@ void BassCDDevice::Release() {
 	impl_->Release();
 }
 
-}
-
 #endif
+
+XAMP_STREAM_NAMESPACE_END

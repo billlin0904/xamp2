@@ -28,9 +28,9 @@ namespace {
 		for (const QJsonValue& artist_value : artists_array) {
 			QJsonObject artist_obj = artist_value.toObject();
 			meta::Artist artist;
-			artist.name = artist_obj["name"_str].toString().toStdString();
+			artist.name = artist_obj["name"_str].toString();
 			if (artist_obj.contains("id"_str)) {
-				artist.id = artist_obj["id"_str].toString().toStdString();
+				artist.id = artist_obj["id"_str].toString();
 			}
 			artists.push_back(artist);
 		}
@@ -42,7 +42,7 @@ namespace {
 		for (const QJsonValue& thumbnail_value : thumbnails_array) {
 			QJsonObject thumbnail_obj = thumbnail_value.toObject();
 			meta::Thumbnail thumbnail;
-			thumbnail.url = thumbnail_obj["url"_str].toString().toStdString();
+			thumbnail.url = thumbnail_obj["url"_str].toString();
 			thumbnail.width = thumbnail_obj["width"_str].toInt();
 			thumbnail.height = thumbnail_obj["height"_str].toInt();
 			thumbnails.push_back(thumbnail);
@@ -55,21 +55,21 @@ namespace {
 		for (const QJsonValue& trackValue : tracksArray) {
 			QJsonObject trackObj = trackValue.toObject();
 			album::Track track;
-			track.title = trackObj["title"_str].toString().toStdString();
+			track.title = trackObj["title"_str].toString();
 			if (trackObj.contains("isExplicit"_str)) {
 				track.is_explicit = trackObj["isExplicit"_str].toBool();
 			}
 			if (trackObj.contains("album"_str)) {
-				track.album = trackObj["album"_str].toString().toStdString();
+				track.album = trackObj["album"_str].toString();
 			}
 			if (trackObj.contains("videoId"_str)) {
-				track.video_id = trackObj["videoId"_str].toString().toStdString();
+				track.video_id = trackObj["videoId"_str].toString();
 			}
 			if (trackObj.contains("duration"_str)) {
-				track.duration = trackObj["duration"_str].toString().toStdString();
+				track.duration = trackObj["duration"_str].toString();
 			}
 			if (trackObj.contains("likeStatus"_str)) {
-				track.like_status = trackObj["likeStatus"_str].toString().toStdString();
+				track.like_status = trackObj["likeStatus"_str].toString();
 			}
 			// ¸ÑªR artists
 			if (trackObj.contains("artists"_str) && trackObj["artists"_str].isArray()) {
@@ -86,18 +86,18 @@ namespace {
 	album::Album parseAlbum(const QJsonObject& album_obj) {
 		album::Album album;
 
-		album.title = album_obj["title"_str].toString().toStdString();
+		album.title = album_obj["title"_str].toString();
 		album.track_count = album_obj["trackCount"_str].toInt();
-		album.duration = album_obj["duration"_str].toString().toStdString();
+		album.duration = album_obj["duration"_str].toString();
 
 		if (album_obj.contains("audioPlaylistId"_str)) {
-			album.audio_playlist_id = album_obj["audioPlaylistId"_str].toString().toStdString();
+			album.audio_playlist_id = album_obj["audioPlaylistId"_str].toString();
 		}
 		if (album_obj.contains("year"_str)) {
-			album.year = album_obj["year"_str].toString().toStdString();
+			album.year = album_obj["year"_str].toString();
 		}
 		if (album_obj.contains("description"_str)) {
-			album.description = album_obj["description"_str].toString().toStdString();
+			album.description = album_obj["description"_str].toString();
 		}
 
 		// ¸ÑªR artists
@@ -122,13 +122,13 @@ namespace {
 		search::Album album;
 
 		if (album_obj.contains("browseId"_str)) {
-			album.browse_id = album_obj["browseId"_str].toString().toStdString();
+			album.browse_id = album_obj["browseId"_str].toString();
 		}
 
-		album.title = album_obj["title"_str].toString().toStdString();
-		album.type = album_obj["type"_str].toString().toStdString();
+		album.title = album_obj["title"_str].toString();
+		album.type = album_obj["type"_str].toString();
 		if (album_obj.contains("year"_str)) {
-			album.year = album_obj["year"_str].toString().toStdString();
+			album.year = album_obj["year"_str].toString();
 		}
 
 		album.is_explicit = album_obj["is_explicit"_str].toBool();
@@ -166,11 +166,11 @@ namespace {
 			QString like_status = track_obj["likeStatus"_str].toString();
 			QString duration = track_obj["duration"_str].toString();
 
-			track.video_id = video_id.toStdString();
-			track.title = track_title.toStdString();
-			track.like_status = like_status.toStdString();
-			track.duration = duration.toStdString();
-			track.set_video_id = track_obj["setVideoId"_str].toString().toStdString();
+			track.video_id = video_id;
+			track.title = track_title;
+			track.like_status = like_status;
+			track.duration = duration;
+			track.set_video_id = track_obj["setVideoId"_str].toString();
 
 			// ¸ÑªR "artists" °}¦C
 			QJsonArray artists_array = track_obj["artists"_str].toArray();
@@ -179,7 +179,7 @@ namespace {
 				QString artistName = artistObj["name"_str].toString();
 
 				meta::Artist artist;
-				artist.name = artistName.toStdString();
+				artist.name = artistName;
 				track.artists.push_back(artist);
 			}
 
@@ -188,8 +188,8 @@ namespace {
 			QString album_name = album_obj["name"_str].toString();
 			QString album_id = album_obj["id"_str].toString();
 			meta::Album album;
-			album.name = album_name.toStdString();
-			album.id = album_id.toStdString();
+			album.name = album_name;
+			album.id = album_id;
 			track.album = album;
 
 			// ¸ÑªR "thumbnails" °}¦C
@@ -200,7 +200,7 @@ namespace {
 				int width = thumbnail_obj["width"_str].toInt();
 				int height = thumbnail_obj["height"_str].toInt();
 				meta::Thumbnail thumbnail;
-				thumbnail.url = thumbnail_url.toStdString();
+				thumbnail.url = thumbnail_url;
 				thumbnail.width = width;
 				thumbnail.height = height;
 				track.thumbnails.push_back(thumbnail);
@@ -208,6 +208,228 @@ namespace {
 
 			playlist.tracks.push_back(track);
 		}
+	}
+
+	artist::Artist parseArtist(const QJsonObject& artistObj) 	{
+		using namespace artist;
+
+		Artist result;
+
+		// subscribed (bool)
+		if (artistObj.contains("subscribed"_str)) {
+			result.subscribed = artistObj["subscribed"_str].toBool();
+		}
+
+		// description (std::optional<std::string>)
+		if (artistObj.contains("description"_str) && !artistObj["description"_str].isNull()) {
+			result.description = artistObj["description"_str].toString();
+		}
+
+		// views (std::optional<std::string>)
+		if (artistObj.contains("views"_str) && !artistObj["views"_str].isNull()) {
+			result.views = artistObj["views"_str].toString();
+		}
+
+		// name (std::string)
+		if (artistObj.contains("name"_str)) {
+			result.name = artistObj["name"_str].toString();
+		}
+
+		// channel_id (std::string)
+		if (artistObj.contains("channel_id"_str)) {
+			result.channel_id = artistObj["channel_id"_str].toString();
+		}
+
+		// subscribers (std::optional<std::string>)
+		if (artistObj.contains("subscribers"_str) && !artistObj["subscribers"_str].isNull()) {
+			result.subscribers = artistObj["subscribers"_str].toString();
+		}
+
+		// thumbnails (std::vector<meta::Thumbnail>)
+		if (artistObj.contains("thumbnails"_str) && artistObj["thumbnails"_str].isArray()) {
+			QJsonArray thumbArray = artistObj["thumbnails"_str].toArray();
+			result.thumbnails = parseThumbnails(thumbArray);
+		}
+
+		auto parseSectionCommon = [&](const QJsonObject& sectionObj,
+			auto& section) {
+				// browseId
+				if (sectionObj.contains("browseId"_str) && !sectionObj["browseId"_str].isNull()) {
+					section.browse_id = sectionObj["browseId"_str].toString();
+				}
+
+				// params
+				if (sectionObj.contains("params"_str) && !sectionObj["params"_str].isNull()) {
+					section.params = sectionObj["params"_str].toString();
+				}
+			};
+
+		if (artistObj.contains("songs"_str) && artistObj["songs"_str].isObject()) {
+			QJsonObject songsObj = artistObj["songs"_str].toObject();
+			Artist::Section<Artist::Song> songsSection;
+
+			parseSectionCommon(songsObj, songsSection);
+
+			if (songsObj.contains("results"_str) && songsObj["results"_str].isArray()) {
+				QJsonArray songArray = songsObj["results"_str].toArray();
+				for (const QJsonValue& val : songArray) {
+					if (!val.isObject()) continue;
+					QJsonObject songObj = val.toObject();
+
+					Artist::Song s;
+					// video_id
+					if (songObj.contains("videoId"_str)) {
+						s.video_id = songObj["videoId"_str].toString();
+					}
+					// title
+					if (songObj.contains("title"_str)) {
+						s.title = songObj["title"_str].toString();
+					}
+					// thumbnails
+					if (songObj.contains("thumbnails"_str) && songObj["thumbnails"_str].isArray()) {
+						QJsonArray stArr = songObj["thumbnails"_str].toArray();						
+						s.thumbnails = parseThumbnails(stArr);
+					}
+					// artist (vector<meta::Artist>)
+					if (songObj.contains("artist"_str) && songObj["artist"_str].isArray()) {
+						QJsonArray artArray = songObj["artist"_str].toArray();
+						s.artist = parseArtists(artArray);
+					}
+					// album (Song::Album)
+					if (songObj.contains("album"_str) && songObj["album"_str].isObject()) {
+						QJsonObject albumObj = songObj["album"_str].toObject();
+						Artist::Song::Album alb;
+						if (albumObj.contains("name"_str)) {
+							alb.name = albumObj["name"_str].toString();
+						}
+						if (albumObj.contains("id"_str)) {
+							alb.id = albumObj["id"_str].toString();
+						}
+						s.album = alb;
+					}
+
+					songsSection.results.push_back(s);
+				}
+			}
+
+			result.songs = songsSection;
+		}
+
+		if (artistObj.contains("albums"_str) && artistObj["albums"_str].isObject()) {
+			QJsonObject albumsObj = artistObj["albums"_str].toObject();
+			Artist::Section<Artist::Album> albumsSection;
+
+			parseSectionCommon(albumsObj, albumsSection);
+
+			if (albumsObj.contains("results"_str) && albumsObj["results"_str].isArray()) {
+				QJsonArray albumArray = albumsObj["results"_str].toArray();
+				for (const QJsonValue& val : albumArray) {
+					if (!val.isObject()) continue;
+					QJsonObject albObj = val.toObject();
+
+					Artist::Album a;
+					// title
+					if (albObj.contains("title"_str)) {
+						a.title = albObj["title"_str].toString();
+					}
+					// thumbnails
+					if (albObj.contains("thumbnails"_str) && albObj["thumbnails"_str].isArray()) {
+						QJsonArray tArr = albObj["thumbnails"_str].toArray();
+						a.thumbnails = parseThumbnails(tArr);
+					}
+					// browse_id
+					if (albObj.contains("browseId"_str)) {
+						a.browse_id = albObj["browseId"_str].toString();
+					}
+					// type
+					if (albObj.contains("type"_str) && !albObj["type"_str].isNull()) {
+						a.type = albObj["type"_str].toString();
+					}
+
+					albumsSection.results.push_back(a);
+				}
+			}
+			result.albums = albumsSection;
+		}
+
+		if (artistObj.contains("singles"_str) && artistObj["singles"_str].isObject()) {
+			QJsonObject singlesObj = artistObj["singles"_str].toObject();
+			Artist::Section<Artist::Single> singlesSection;
+
+			parseSectionCommon(singlesObj, singlesSection);
+
+			if (singlesObj.contains("results"_str) && singlesObj["results"_str].isArray()) {
+				QJsonArray singlesArray = singlesObj["results"_str].toArray();
+				for (const QJsonValue& val : singlesArray) {
+					if (!val.isObject()) continue;
+					QJsonObject sObj = val.toObject();
+
+					Artist::Single s;
+					// title
+					if (sObj.contains("title"_str)) {
+						s.title = sObj["title"_str].toString();
+					}
+					// thumbnails
+					if (sObj.contains("thumbnails"_str) && sObj["thumbnails"_str].isArray()) {
+						QJsonArray stArr = sObj["thumbnails"_str].toArray();
+						s.thumbnails = parseThumbnails(stArr);
+					}
+					// year
+					if (sObj.contains("year"_str)) {
+						s.year = sObj["year"_str].toString();
+					}
+					// browse_id
+					if (sObj.contains("browse_id"_str)) {
+						s.browse_id = sObj["browse_id"_str].toString();
+					}
+
+					singlesSection.results.push_back(s);
+				}
+			}
+			result.singles = singlesSection;
+		}
+
+		if (artistObj.contains("videos"_str) && artistObj["videos"_str].isObject()) {
+			QJsonObject videosObj = artistObj["videos"_str].toObject();
+			Artist::Section<Artist::Video> videosSection;
+
+			parseSectionCommon(videosObj, videosSection);
+
+			if (videosObj.contains("results"_str) && videosObj["results"_str].isArray()) {
+				QJsonArray videoArray = videosObj["results"_str].toArray();
+				for (const QJsonValue& val : videoArray) {
+					if (!val.isObject()) continue;
+					QJsonObject vObj = val.toObject();
+
+					Artist::Video v;
+					// title
+					if (vObj.contains("title"_str)) {
+						v.title = vObj["title"_str].toString();
+					}
+					// thumbnails
+					if (vObj.contains("thumbnails"_str) && vObj["thumbnails"_str].isArray()) {
+						QJsonArray vtArr = vObj["thumbnails"_str].toArray();
+						v.thumbnails = parseThumbnails(vtArr);
+					}
+					// views
+					if (vObj.contains("views"_str) && !vObj["views"_str].isNull()) {
+						v.views = vObj["views"_str].toString();
+					}
+					// video_id
+					if (vObj.contains("videoId"_str)) {
+						v.video_id = vObj["videoId"_str].toString();
+					}
+					// playlist_id
+					if (vObj.contains("playlistId"_str)) {
+						v.playlist_id = vObj["playlistId"_str].toString();
+					}
+
+					videosSection.results.push_back(v);
+				}
+			}
+			result.videos = videosSection;
+		}
+		return result;
 	}
 }
 
@@ -407,4 +629,22 @@ QCoro::Task<QString> YtMusicHttpService::createPlaylist(const QString& title,
 	http_client_.setJson(json);
 	auto content = co_await http_client_.post();
 	co_return content;
+}
+
+QCoro::Task<artist::Artist> YtMusicHttpService::fetchArtist(const QString& channel_id) {
+	http_client_.setUrl(qFormat("%1/fetch_artist").arg(BASE_URL));
+
+	QVariantMap map;
+	map["channel_id"_str] = channel_id;
+	http_client_.setJson(json_util::serialize(map));
+
+	artist::Artist artist;
+	QJsonDocument doc;
+	auto content = co_await http_client_.post();
+	if (!json_util::deserialize(content, doc)) {
+		co_return artist;
+	}
+
+	artist = parseArtist(doc.object());
+	co_return artist;
 }

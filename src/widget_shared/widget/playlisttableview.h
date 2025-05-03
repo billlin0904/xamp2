@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 XAMP project. All rights reserved.
+// Copyright (c) 2018-2025 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -168,6 +168,8 @@ signals:
 	void encodeAlacFiles(int32_t encode_type, const QList<PlayListEntity>& entities);
 
 	void navigateToAlbumPage(const QString& album, const QString &album_id);
+
+	void navigateToArtistPage(int32_t artist_id, const QString& yt_artist_id);
 public slots:
 	void onPlayIndex(const QModelIndex& index, bool is_play = false);
 

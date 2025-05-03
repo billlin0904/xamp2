@@ -16,7 +16,7 @@ XAMP_STREAM_NAMESPACE_BEGIN
 
 namespace {
     XAMP_DECLARE_LOG_NAME(DspManager);
-    constexpr int32_t kDefaultBufSize = 1024 * 1024;
+    inline constexpr int32_t kDefaultBufSize = 1024 * 1024;
 }
 
 DSPManager::DSPManager() {

@@ -259,28 +259,6 @@ void LrcPage::onFetchLyricsCompleted(const QList<SearchLyricsResult>& results) {
 		bool rhsHas = hasTranslation(rhs);
 		return (lhsHas > rhsHas);
 		});
-
-	/*if (lyrics_widget_->isValid()) {
-		return;
-	}
-
-	for (const auto& [info, parsers] : lyrics_results_) {
-		for (auto &parser : parsers) {
-			if (parser.parser->isKaraoke()) {
-				if (parser.candidate.song == entity_.title
-					|| parser.candidate.singer == entity_.artist) {
-					lyrics_widget_->loadFromParser(parser.parser);
-					auto krc_file_name = entity_.parent_path
-					+ "\\"_str + entity_.file_name + ".krc"_str;
-					QSaveFile file(krc_file_name);
-					file.open(QIODevice::WriteOnly);
-					file.write(parser.content);
-					file.commit();
-					return;
-				}
-			}
-		}
-	}*/
 }
 
 void LrcPage::setFullScreen() {

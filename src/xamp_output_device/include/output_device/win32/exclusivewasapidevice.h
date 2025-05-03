@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 XAMP project. All rights reserved.
+// Copyright (c) 2018-2025 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -214,11 +214,9 @@ private:
 	bool raw_mode_;
 	bool ignore_wait_slow_;
 	bool is_2432_format_;
-	bool is_hardware_control_volume_;
 	std::atomic<bool> is_running_;
 	MmcssThreadPriority thread_priority_;
 	uint32_t buffer_frames_;
-	uint32_t buffer_duration_ms_;
 	REFERENCE_TIME buffer_period_;
 	DWORD volume_support_mask_;
 	std::atomic<int64_t> stream_time_;

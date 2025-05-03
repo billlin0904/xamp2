@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 XAMP project. All rights reserved.
+// Copyright (c) 2018-2025 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -39,5 +39,6 @@ enum PlayListColumn {
 	PLAYLIST_OFFSET,
 	PLAYLIST_IS_CUE_FILE,
 	PLAYLIST_YT_MUSIC_ALBUM_ID,
+	PLAYLIST_YT_MUSIC_ARIST_ID,
 	PLAYLIST_MAX_COLUMN,
 };

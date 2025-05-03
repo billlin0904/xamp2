@@ -10,9 +10,9 @@
 
 #include <base/pimplptr.h>
 
-#ifdef XAMP_OS_WIN
-
 XAMP_STREAM_NAMESPACE_BEGIN
+
+#ifdef XAMP_OS_WIN
 
 class BassCDDevice final : public ICDDevice {
 public:
@@ -46,7 +46,7 @@ private:
 	ScopedPtr<BassCDDeviceImpl> impl_;
 };
 
-XAMP_STREAM_NAMESPACE_END
+#endif
 
-#endif // XAMP_OS_WIN
+XAMP_STREAM_NAMESPACE_END
 

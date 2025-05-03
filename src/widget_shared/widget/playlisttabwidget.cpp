@@ -19,6 +19,8 @@
 #include <xampplayer.h>
 #include <widget/util/ui_util.h>
 
+#include "artistinfopage.h"
+
 PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     : QTabWidget(parent) {
     setObjectName("playlistTab");
@@ -149,9 +151,10 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
 		if (index == -1) {
 			return;
 		}
-        auto* playlist_page = dynamic_cast<PlaylistPage*>(widget(index));
-        Q_ASSERT(playlist_page != nullptr);
-        playlist_page->playlist()->reload();
+        auto* page = dynamic_cast<TabPage*>(widget(index));
+        if (page != nullptr) {
+            page->reload();
+        }
         });
 
 
@@ -174,6 +177,13 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
             return;
         }*/
         auto* playlist_page = playlistPage(tab_index);
+        if (!playlist_page) {
+            auto *page = dynamic_cast<ArtistInfoPage*>(widget(tab_index));
+            if (page != nullptr) {
+                page->deleteLater();
+			}
+            return;
+        }
         QString playlist;
         if (playlist_page->playlist()->cloudPlaylistId()) {
             playlist = playlist_page->playlist()->cloudPlaylistId().value();
@@ -383,14 +393,16 @@ void PlaylistTabWidget::leaveEvent(QEvent* event) {
 }
 
 void PlaylistTabWidget::closeTab(int32_t tab_index) {
-    auto* playlist_page = playlistPage(tab_index);
-    const auto* playlist = playlist_page->playlist();
-    if (removePlaylist(playlist->playlistId())) {
-        removeTab(tab_index);
-        playlist_page->deleteLater();
-    }
-    resizeTabWidth();
-    updateTabCloseButtons();
+    auto* p = playlistPage(tab_index);
+    if (p != nullptr) {
+        const auto* playlist = p->playlist();
+        if (removePlaylist(playlist->playlistId())) {
+            removeTab(tab_index);
+            p->deleteLater();
+        }
+        resizeTabWidth();
+        updateTabCloseButtons();
+    }    
 }
 
 void PlaylistTabWidget::createNewTab(const QString& name, QWidget* widget, bool resize) {
@@ -415,19 +427,24 @@ int32_t PlaylistTabWidget::currentPlaylistId() const {
 
 void PlaylistTabWidget::setCurrentTabIndex(int32_t playlist_id) {
 	for (auto i = 0; i < tabBar()->count(); ++i) {
-		if (playlistPage(i)->playlist()->playlistId() == playlist_id) {
-			setCurrentIndex(i);
-			break;
-		}
+        auto* p = playlistPage(i);
+        if (p != nullptr) {
+            if (p->playlist()->playlistId() == playlist_id) {
+                setCurrentIndex(i);
+                break;
+            }
+        }		
 	}
 }
 
 void PlaylistTabWidget::saveTabOrder() const {
     for (auto i = 0; i < tabBar()->count(); ++i) {
-        auto* playlist_page = playlistPage(i);
-        const auto* playlist = playlist_page->playlist();
-        qDaoFacade.playlist_dao.setPlaylistIndex(playlist->playlistId(), i, store_type_);
-        XAMP_LOG_DEBUG("saveTabOrder: {} at {}", tabText(i).toStdString(), i);
+        auto* p = playlistPage(i);
+        if (p != nullptr) {
+            const auto* playlist = p->playlist();
+            qDaoFacade.playlist_dao.setPlaylistIndex(playlist->playlistId(), i, store_type_);
+            XAMP_LOG_DEBUG("saveTabOrder: {} at {}", tabText(i).toStdString(), i);
+        }        
     }
 }
 
@@ -440,15 +457,17 @@ void PlaylistTabWidget::restoreTabOrder() {
     for (auto& [index, playlist_id] : playlist_index) {
         auto found = false;
         for (auto j = 0; j < tabBar()->count(); ++j) {
-            auto* playlist_page = playlistPage(j);
-			playlist_page->playlist()->reload();
-            const auto widget_playlist_id = playlist_page->playlist()->playlistId();
-            if (widget_playlist_id == playlist_id) {
-                XAMP_LOG_DEBUG("restoreTabOrder: {} at {}", widget_playlist_id, j);
-                texts.append(tabText(j));
-                new_order.append(j);
-                found = true;
-                break;
+            auto* p = playlistPage(j);
+            if (p != nullptr) {
+                p->playlist()->reload();
+                const auto widget_playlist_id = p->playlist()->playlistId();
+                if (widget_playlist_id == playlist_id) {
+                    XAMP_LOG_DEBUG("restoreTabOrder: {} at {}", widget_playlist_id, j);
+                    texts.append(tabText(j));
+                    new_order.append(j);
+                    found = true;
+                    break;
+                }
             }
         }
 
@@ -586,16 +605,21 @@ void PlaylistTabWidget::setStoreType(StoreType type) {
 
 void PlaylistTabWidget::reloadAll() {
     for (auto i = 0; i < count(); ++i) {
-        playlistPage(i)->playlist()->reload();
+        auto *p = playlistPage(i);
+        if (p != nullptr) {
+            p->playlist()->reload();
+        }
     }
 }
 
 PlaylistPage* PlaylistTabWidget::findPlaylistPage(int32_t playlist_id) {
     for (auto i = 0; i < count(); ++i) {
-		auto* playlist_page = playlistPage(i);
-        if (playlist_page->playlist()->playlistId() == playlist_id) {
-            return playlist_page;
-        }
+		auto* p = playlistPage(i);
+        if (p != nullptr) {
+            if (p->playlist()->playlistId() == playlist_id) {
+                return p;
+            }
+        }        
     }
     return nullptr;
 }
@@ -613,12 +637,15 @@ void PlaylistTabWidget::setNowPlaying(int32_t playlist_id) {
     auto icon = qTheme.playlistPlayingIcon(PlaylistTabWidget::kTabIconSize, 1.4);
 
     for (auto i = 0; i < count(); ++i) {
-        if (playlistPage(i)->playlist()->playlistId() == playlist_id) {
-            setTabIcon(i, icon);
-        }
-        else {
-            setTabIcon(i, qTheme.fontIcon(Glyphs::ICON_DRAFT));
-        }
+        auto* p = playlistPage(i);
+        if (p != nullptr) {
+            if (p->playlist()->playlistId() == playlist_id) {
+                setTabIcon(i, icon);
+            }
+            else {
+                setTabIcon(i, qTheme.fontIcon(Glyphs::ICON_DRAFT));
+            }
+        }        
     }
 }
 
@@ -640,12 +667,15 @@ void PlaylistTabWidget::setPlayerStateIcon(int32_t playlist_id, PlayerState stat
     }
 
     for (auto i = 0; i < count(); ++i) {
-        if (playlistPage(i)->playlist()->playlistId() == playlist_id) {
-            setTabIcon(i, icon);
-        }
-        else {
-            setTabIcon(i, qTheme.fontIcon(Glyphs::ICON_DRAFT));
-        }
+        auto* p = playlistPage(i);
+        if (p != nullptr) {
+            if (p->playlist()->playlistId() == playlist_id) {
+                setTabIcon(i, icon);
+            }
+            else {
+                setTabIcon(i, qTheme.fontIcon(Glyphs::ICON_DRAFT));
+            }
+        }        
     }
 }
 

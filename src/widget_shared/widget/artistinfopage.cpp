@@ -1,158 +1,285 @@
-#include <widget/artistinfopage.h>
+﻿#include <widget/artistinfopage.h>
 
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QFileDialog>
+#include <QListWidget>
+#include <QPainter>
+#include <QScrollArea>
+#include <algorithm>
 
 #include <widget/dao/artistdao.h>
 #include <thememanager.h>
 
 #include <widget/albumview.h>
+#include <widget/playlisttableview.h>
 #include <widget/actionmap.h>
 #include <widget/util/image_util.h>
 #include <widget/imagecache.h>
 
+AlbumItem::AlbumItem(const QPixmap& cover,
+    const QString& album_title,
+    const QString& year,
+    const QString& video_id,
+    QWidget* parent)
+	: QWidget(parent)
+	, video_id_(video_id) {
+    auto* main_layout = new QVBoxLayout(this);
+    main_layout->setContentsMargins(0, 0, 0, 0);
+    main_layout->setSpacing(0);
+
+    auto f = font();
+    f.setPointSize(8);
+
+    cover_label_ = new QLabel(this);
+    if (!cover.isNull()) {
+        QPixmap scaled_cover = cover.scaled(120, 120,
+            Qt::KeepAspectRatioByExpanding,
+            Qt::SmoothTransformation);
+        cover_label_->setPixmap(scaled_cover);
+    }
+    main_layout->addWidget(cover_label_, 0, Qt::AlignCenter);
+
+    album_title_label_ = new QLabel(album_title, this);
+    album_title_label_->setAlignment(Qt::AlignLeft);
+    album_title_label_->setFont(f);
+    album_title_label_->setFixedHeight(18);
+    main_layout->addWidget(album_title_label_);
+
+    year_label_ = new QLabel(year, this);
+    year_label_->setAlignment(Qt::AlignLeft);
+    year_label_->setFont(f);
+    year_label_->setFixedHeight(18);
+    main_layout->addWidget(year_label_);
+    setLayout(main_layout);
+}
+
+SongItem::SongItem(const QPixmap& album_cover,
+    const QString& song_title,
+    const QString& album_title,
+    const QString& video_id,
+    QWidget* parent)
+    : QWidget(parent)
+    , video_id_(video_id) {
+    auto* main_layout = new QHBoxLayout(this);
+    main_layout->setContentsMargins(5, 5, 5, 5);
+    main_layout->setSpacing(10);
+
+    cover_label_ = new QLabel(this);
+    if (!album_cover.isNull()) {
+        auto scaled_cover = album_cover.scaled(35, 35,
+            Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        cover_label_->setPixmap(scaled_cover);
+    }
+    main_layout->addWidget(cover_label_);
+
+    auto* text_layout = new QHBoxLayout();
+    text_layout->setContentsMargins(0, 0, 0, 0);
+    text_layout->setSpacing(2);
+
+    song_label_ = new QLabel(song_title, this);
+    song_label_->setStyleSheet("font-size: 10px; color: #dddddd;"_str);
+
+    album_label_ = new QLabel(album_title, this);
+    album_label_->setStyleSheet("font-size: 10px; color: #aaaaaa;"_str);
+
+    text_layout->addWidget(song_label_);
+    text_layout->addWidget(album_label_);
+
+    auto* spacer = new QSpacerItem(20, 10, QSizePolicy::Expanding, QSizePolicy::Expanding);
+    text_layout->addSpacerItem(spacer);
+
+    main_layout->addLayout(text_layout);
+
+    setLayout(main_layout);
+}
+
 ArtistInfoPage::ArtistInfoPage(QWidget* parent)
-	: QFrame(parent) {
-	auto* default_layout = new QVBoxLayout(this);
-	default_layout->setSpacing(0);
-	default_layout->setObjectName(QString::fromUtf8("default_layout"));
-	default_layout->setContentsMargins(0, 20, 0, 0);
+    : QFrame(parent) {
+    artist_id_ = 0;
 
-	auto* child_layout = new QHBoxLayout();
-	child_layout->setSpacing(0);
-	child_layout->setObjectName(QString::fromUtf8("horizontalLayout_7"));
-	child_layout->setContentsMargins(20, 0, 20, 0);
+    auto* main_layout = new QVBoxLayout(this);
+    main_layout->setContentsMargins(50, 30, 50, 0);
+    main_layout->setSpacing(0);
 
-	cover_ = new QLabel(this);
-	cover_->setMinimumSize(QSize(120, 120));
-	cover_->setMaximumSize(QSize(120, 120));
+    top_widget_ = new QWidget(this);
+    top_widget_->setFixedHeight(100);
 
-	cover_->setContextMenuPolicy(Qt::CustomContextMenu);
-	(void)connect(cover_, &QLabel::customContextMenuRequested, [this](auto pt) {
-		if (artist_id_ == -1) {
-			return;
-		}
-		ActionMap<ArtistInfoPage> action_map(this);
-		action_map.addAction(tr("Change artist image"), [=]() {
-			const auto file_name = QFileDialog::getOpenFileName(this,
-			                                                    tr("Open file"),
-			                                                    kEmptyString,
-			                                                    tr("Music Files *.jpg *.jpeg *.png"),
-			                                                    nullptr);
-			cover_id_ = qImageCache.addImage(QPixmap(file_name));
-			artist_dao_.updateArtistCoverId(artist_id_, cover_id_);
-			setArtistId(artist_->text(), cover_id_, artist_id_);
-		});
-		action_map.exec(pt);
-	});
+    auto* top_layout = new QVBoxLayout(top_widget_);
+    top_layout->setContentsMargins(50, 0, 50, 0);
+    top_layout->setSpacing(0);
 
-	auto f = font();
-	f.setPointSize(qTheme.fontSize(30));
+    auto f = font();
+
+    title_label_ = new QLabel(top_widget_);
+    f.setPointSize(24);
+    f.setBold(true);
+    title_label_->setFont(f);
+    top_layout->addWidget(title_label_);
+
+    desc_label_ = new QLabel(top_widget_);
+    f.setBold(false);
+    f.setPointSize(8);
+	desc_label_->setFont(f);
+    desc_label_->setMaximumWidth(1000);
+    desc_label_->setWordWrap(true);
+    desc_label_->setAlignment(Qt::AlignLeft);
+    top_layout->addWidget(desc_label_);
+
+    auto* top_spacer = new QSpacerItem(20, 150, QSizePolicy::Expanding, QSizePolicy::Fixed);
+	main_layout->addSpacerItem(top_spacer);
+    main_layout->addWidget(top_widget_);
+
+    auto* scroll_area = new QScrollArea(this);
+    scroll_area->setWidgetResizable(true);
+    auto* scroll_content_widget = new QWidget(scroll_area);
+    auto* scroll_content_layout = new QVBoxLayout(scroll_content_widget);
+    scroll_content_layout->setContentsMargins(50, 0, 0, 0);
+
+    f.setPointSize(16);
 	f.setBold(true);
-	artist_ = new QLabel(this);
-	artist_->setFont(f);
-	artist_->setStyleSheet("background-color: transparent"_str);
 
-	auto* title = new QLabel();
-	title->setStyleSheet("background-color: transparent"_str);
-	title->setObjectName(QString::fromUtf8("label_2"));
-	title->setText(tr("Artists"));
-	f.setPointSize(qTheme.fontSize(35));
-	title->setFont(f);
-	default_layout->addWidget(title);
+    auto* song_section_label = new QLabel(tr("Song"), scroll_content_widget);
+    song_section_label->setFixedHeight(30);
+    song_section_label->setFont(f);
+    scroll_content_layout->addWidget(song_section_label);
 
-	f.setBold(false);
-	f.setPointSize(qTheme.fontSize(20));
+    song_list_ = new QListWidget(scroll_content_widget);
+    song_list_->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    song_list_->setMaximumHeight(1000);
+    scroll_content_layout->addWidget(song_list_);
 
-	albums_ = new QLabel(this);
-	albums_->setFixedSize(QSize(16777215, 64));
-	albums_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
-	albums_->setFont(f);
-	albums_->setStyleSheet("background-color: transparent;"_str);
+    auto* album_section_label = new QLabel(tr("Album"), scroll_content_widget);
+    album_section_label->setFixedHeight(30);
+    album_section_label->setFont(f);
+    scroll_content_layout->addWidget(album_section_label);
 
-	tracks_ = new QLabel(this);
-	tracks_->setFixedSize(QSize(16777215, 64));
-	tracks_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
-	tracks_->setFont(f);
-	tracks_->setStyleSheet("background-color: transparent;"_str);
+    album_list_ = new QListWidget(scroll_content_widget);
+    album_list_->setObjectName("albumList");
+    album_list_->setViewMode(QListView::IconMode);
+    album_list_->setFlow(QListView::LeftToRight);
+    album_list_->setWrapping(true);
+    album_list_->setSpacing(10);
+    album_list_->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	scroll_content_layout->addWidget(album_list_);
 
-	durations_ = new QLabel(this);
-	durations_->setFixedSize(QSize(16777215, 64));
-	durations_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
-	f.setFamily("MonoFont"_str);
-	durations_->setFont(f);
-	durations_->setStyleSheet("background-color: transparent;"_str);
+    scroll_content_widget->setLayout(scroll_content_layout);
 
-	auto* artist_layout = new QHBoxLayout();
-	artist_layout->setSpacing(0);
-	artist_layout->setContentsMargins(0, 0, 0, 0);
+    //scroll_area->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    //scroll_area->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    scroll_area->setWidget(scroll_content_widget);
 
-	artist_layout->addWidget(albums_);
-	artist_layout->addWidget(tracks_);
-	artist_layout->addWidget(durations_);
-	artist_layout->setStretch(0, 0);
-	artist_layout->setStretch(1, 2);
-	artist_layout->setStretch(2, 2);
+    main_layout->addWidget(scroll_area);
 
-	auto* cover_spacer2 = new QSpacerItem(50, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
-
-	child_layout->addWidget(cover_);
-	child_layout->addItem(cover_spacer2);
-	child_layout->addWidget(artist_);
-
-	album_view_ = new AlbumView(this);
-	album_view_->enablePage(false);
-
-	default_layout->addLayout(child_layout);
-	default_layout->addLayout(artist_layout);
-	default_layout->addWidget(album_view_);
-
-	album_view_->hideWidget();
-	setArtistId(kEmptyString, kEmptyString, -1);
-
-	setStyleSheet("background-color: transparent"_str);
-
-	setAlbumCount(0);
-	setTracks(0);
-	setTotalDuration(0);
-
-	title->hide();
-	cover_->hide();
+    setFrameShape(QFrame::StyledPanel);    
+    setLayout(main_layout);
 }
 
-QPixmap ArtistInfoPage::getArtistImage(const QPixmap* cover) const {
-	return image_util::roundImage(image_util::resizeImage(*cover, cover_->size()), image_util::kPlaylistImageRadius);
+void ArtistInfoPage::setTitle(const QString& title) {
+    title_label_->setText(title);
 }
 
-void ArtistInfoPage::setArtistId(const QString& artist, const QString& cover_id, int32_t artist_id) {
-	const QFontMetrics artist_metrics(font());
-
-	artist_->setText(artist_metrics.elidedText(artist, Qt::ElideRight, 300));
-	album_view_->filterByArtistId(artist_id);
-
-	const auto cover = qImageCache.getOrAddDefault(cover_id);
-	const auto small_cover = getArtistImage(&cover);
-	cover_->setPixmap(small_cover);
-
-	artist_id_ = artist_id;
-	cover_id_ = cover_id;
-
-	if (const auto artist_stats = artist_dao_.getArtistStats(artist_id)) {
-		setAlbumCount(artist_stats.value().albums);
-		setTracks(artist_stats.value().tracks);
-		setTotalDuration(artist_stats.value().durations);
-	}
+void ArtistInfoPage::setDescription(const QString& info) {
+    desc_label_->setText(info);
 }
 
-void ArtistInfoPage::setAlbumCount(int32_t album_count) {
-	albums_->setText(tr("%1 Albums").arg(album_count));
+void ArtistInfoPage::setAristImage(const QPixmap& image) {
+    background_ = image;
 }
 
-void ArtistInfoPage::setTracks(int32_t tracks) {
-	tracks_->setText(tr("%1 Songs").arg(tracks));
+void ArtistInfoPage::setArtistId(int32_t artist_id) {
+    artist_id_ = artist_id;
 }
 
-void ArtistInfoPage::setTotalDuration(double durations) {
-	durations_->setText(formatDuration(durations));
+void ArtistInfoPage::insertSong(const QString& album,
+    const QString& title,
+    const QString& video_id,
+    const QPixmap& image) {
+    auto* item_widget = new SongItem(image,
+        title, 
+        album, 
+        video_id,
+        this);
+    auto* list_item = new QListWidgetItem(song_list_);
+    list_item->setSizeHint(QSize(0, 50));
+	song_list_->setItemWidget(list_item, item_widget);
+}
+
+void ArtistInfoPage::insertAlbum(const QString& album_title,
+    const QString& year,
+    const QString& video_id,
+    const QPixmap& image) {
+    auto* album_item = new AlbumItem(
+        image,
+        album_title,
+        year,
+        video_id,
+        this);
+    auto* list_item = new QListWidgetItem(album_list_);
+    list_item->setSizeHint(QSize(150, 180));
+    album_list_->setItemWidget(list_item, album_item);
+}
+
+void ArtistInfoPage::reload() {
+    auto cover_id = qDaoFacade.artist_dao.getArtistCoverId(artist_id_);
+    auto image = qImageCache.getOrDefault(kEmptyString, cover_id);
+    setAristImage(image);
+}
+
+void ArtistInfoPage::paintEvent(QPaintEvent* event) {
+    QFrame::paintEvent(event);
+
+    QPainter painter(this);
+    painter.fillRect(rect(), Qt::black);
+
+    if (background_.isNull()) {
+        return;
+    }
+
+    QRect top_rect = top_widget_->geometry();
+
+    auto w = top_rect.width();
+    auto h = top_rect.height();
+
+    QSize resize(w, h);
+
+    auto scaled_bg = background_.scaled(resize,
+        Qt::KeepAspectRatioByExpanding,
+        Qt::SmoothTransformation);
+
+    while (scaled_bg.width() > 1000) {        
+        scaled_bg = background_.scaled(resize,
+            Qt::KeepAspectRatioByExpanding,
+            Qt::SmoothTransformation);
+        resize.setWidth(resize.width() - 10);
+    }	
+
+    scaled_bg = scaled_bg.copy(0, 0, scaled_bg.width(), 280);
+
+    auto bw = scaled_bg.width();
+    auto bh = scaled_bg.height();
+
+    int x = top_rect.x() + (top_rect.width() - scaled_bg.width()) / 2;
+    int y = top_rect.y() + (top_rect.height() - scaled_bg.height()) / 2;
+    painter.drawPixmap(QPoint(x, 0), scaled_bg);
+
+    constexpr auto kGradientHeight = 10;
+
+    int start_y = top_rect.bottom() - 250 - kGradientHeight;
+
+    QLinearGradient grad(
+        QPointF(0, start_y),
+        QPointF(0, top_rect.bottom())
+    );
+    grad.setColorAt(0.0, QColor(0, 0, 0, 0));
+    grad.setColorAt(1.0, QColor(0, 0, 0, 255));
+
+    QRect gradient_rect(
+        top_rect.x(),
+        start_y,
+        top_rect.width(),
+        top_rect.bottom()
+    );
+
+    painter.fillRect(gradient_rect, grad);
 }

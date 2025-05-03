@@ -29,6 +29,7 @@ IF
 		coverId TEXT DEFAULT NULL,
 		isCueFile integer,
 		ytMusicAlbumId TEXT,
+		ytMusicArtistId TEXT,
 		UNIQUE ( path, offset, durationStr ) 
 	);
 	

@@ -53,7 +53,9 @@ PlayListEntity getEntity(const QModelIndex& index) {
     setEntityValue(entity.track_replay_gain,  indexValue(index, PLAYLIST_TRACK_RG));
     setEntityValue(entity.track_peak,         indexValue(index, PLAYLIST_TRACK_PK));
     setEntityValue(entity.track_loudness,     indexValue(index, PLAYLIST_TRACK_LOUDNESS));
+
     entity.yt_music_album_id = indexValue(index, PLAYLIST_YT_MUSIC_ALBUM_ID).toString();
+    entity.yt_music_artist_id = indexValue(index, PLAYLIST_YT_MUSIC_ARIST_ID).toString();
 
     const QFileInfo file_info(entity.file_path);
     entity.file_extension = file_info.suffix();

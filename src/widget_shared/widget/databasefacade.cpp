@@ -92,7 +92,7 @@ void DatabaseFacade::ensureAddUnknownId() {
         kUnknownArtistId,
         0,
         0,
-        StoreType::CLOUD_STORE);
+        StoreType::PLAYLIST_LOCAL_STORE);
     album.addAlbumCategory(kUnknownAlbumId, kLocalCategory);
     album.setAlbumCover(kUnknownAlbumId, qImageCache.unknownCoverId());
 }
@@ -178,6 +178,9 @@ void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result,
             }
             else {
                 qDaoFacade.album_dao.addAlbumCategory(album_id, kLocalCategory);
+                auto disk = "Disk("_str +
+                    QString::fromStdWString(track_info.file_path.root_name().wstring()) + ")"_str;
+                qDaoFacade.album_dao.addAlbumCategory(album_id, disk);
             }
 
             if (track_info.file_ext() == kDsfFileExtension 
@@ -192,11 +195,6 @@ void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result,
             for (const auto& category : getAlbumCategories(album)) {
                 qDaoFacade.album_dao.addAlbumCategory(album_id, category);
             }
-            if (store_type != StoreType::CLOUD_STORE) {
-                auto disk = "Disk("_str +
-                    QString::fromStdWString(track_info.file_path.root_name().wstring()) + ")"_str;
-                qDaoFacade.album_dao.addAlbumCategory(album_id, disk);
-            }            
         }
 
         XAMP_EXPECTS(album_id > 0);

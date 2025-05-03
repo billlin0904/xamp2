@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 XAMP project. All rights reserved.
+// Copyright (c) 2018-2025 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -12,6 +12,7 @@
 
 #include <widget/playlistentity.h>
 #include <widget/widget_shared_global.h>
+#include <widget/tabpage.h>
 #include <widget/themecolor.h>
 
 class ProcessIndicator;
@@ -28,7 +29,7 @@ enum Match {
 	MATCH_SUGGEST,
 };
 
-class XAMP_WIDGET_SHARED_EXPORT PlaylistPage final : public QFrame {
+class XAMP_WIDGET_SHARED_EXPORT PlaylistPage final : public QFrame, public TabPage {
 	Q_OBJECT
 public:
 	static constexpr auto kMaxCompletionCount = 10;
@@ -63,6 +64,7 @@ public:
 
 	void showCompleter();
 
+	void reload() override;
 signals:
 	void playMusic(int32_t playlist_id, const PlayListEntity& item, bool is_play);
 

@@ -148,6 +148,7 @@
     <ClInclude Include="widget\networkdiskcache.h" />
     <QtMoc Include="widget\playliststyleditemdelegate.h" />
     <QtMoc Include="widget\slidingstackedwidget.h" />
+    <ClInclude Include="widget\tabpage.h" />
     <ClInclude Include="widget\tagio.h" />
     <ClInclude Include="widget\util\image_util.h" />
     <ClInclude Include="widget\util\json_util.h" />
@@ -231,7 +232,12 @@
     <ClCompile Include="widget\albumviewstyleddelegate.cpp" />
     <ClCompile Include="widget\appsettingnames.cpp" />
     <ClCompile Include="widget\appsettings.cpp" />
-    <ClCompile Include="widget\artistinfopage.cpp" />
+    <ClCompile Include="widget\artistinfopage.cpp">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).moc</QtMocFileName>
+    </ClCompile>
     <ClCompile Include="widget\artistview.cpp" />
     <ClCompile Include="widget\cdpage.cpp" />
     <ClCompile Include="widget\chatgpt\waveformwidget.cpp" />

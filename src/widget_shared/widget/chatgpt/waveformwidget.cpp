@@ -10,16 +10,12 @@
 #include <widget/actionmap.h>
 #include <widget/appsettings.h>
 #include <widget/appsettingnames.h>
-#include <thememanager.h>
 
 namespace {
-    constexpr size_t kFFTSize = 4096 * 2;
-    constexpr size_t kHopSize = kFFTSize * 0.5;
-
-    auto makeImage(double duration_sec, uint32_t sample_rate, const QImage& chunk) -> QImage {
+    auto makeImage(double duration_sec, uint32_t sample_rate, size_t hop_size, const QImage& chunk) -> QImage {
         size_t max_time_bins = static_cast<size_t>(std::ceil(
             duration_sec
-            * sample_rate / kHopSize)) + 1;
+            * sample_rate / hop_size)) + 1;
 
         QSize image_size(max_time_bins, chunk.height());
         QImage spec_img(image_size, QImage::Format_RGB888);
@@ -32,10 +28,24 @@ WaveformWidget::WaveformWidget(QWidget *parent)
     : QFrame(parent) {
     setStyleSheet("background-color: transparent; border: none;"_str);
     setContextMenuPolicy(Qt::CustomContextMenu);
-    draw_mode_ = qAppSettings.valueAsInt(kAppSettingWaveformDrawMode);
 
+    color_ = qAppSettings.valueAsEnum<SpectrogramColor>(kAppSettingWaveformColor);
+ 
     (void)QObject::connect(this, &WaveformWidget::customContextMenuRequested, [this](auto pt) {
         ActionMap<WaveformWidget> action_map(this);
+
+        auto *submenu = action_map.addSubMenu(tr("Change Spectrogram color"));
+        submenu->addAction(tr("Default color"), [this]() {
+            color_ = SPECTROGRAM_COLOR_DEFAULT;
+            qAppSettings.setValue(kAppSettingWaveformColor, static_cast<int32_t>(color_));
+            emit readAudioSpectrogram(color_, file_path_);
+            });
+
+        submenu->addAction(tr("SoX color"), [this]() {
+            color_ = SPECTROGRAM_COLOR_SOX;
+            qAppSettings.setValue(kAppSettingWaveformColor, static_cast<int32_t>(color_));
+            emit readAudioSpectrogram(color_, file_path_);
+            });
 
         const auto last_dir = qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
         const auto save_file_name = last_dir + "/"_str + "spectrogram.jpg"_str;
@@ -78,16 +88,14 @@ void WaveformWidget::setSampleRate(uint32_t sample_rate) {
 
 void WaveformWidget::setDrawMode(uint32_t mode) {
     if (spectrogram_.isNull()) {
-        emit readAudioSpectrogram(size(), file_path_);
+        emit readAudioSpectrogram(color_, file_path_);
     }
-    draw_mode_ = mode;
-    qAppSettings.setValue(kAppSettingWaveformDrawMode, mode);
 	update();
 }
 
-void WaveformWidget::setSpectrogramData(double duration_sec, const QImage& chunk, int time_index) {
+void WaveformWidget::setSpectrogramData(double duration_sec, size_t hop_size, const QImage& chunk, int time_index) {
     if (time_index == 0) {
-        spectrogram_ = makeImage(duration_sec, sample_rate_, chunk);
+        spectrogram_ = makeImage(duration_sec, sample_rate_, hop_size, chunk);
         spectrogram_.fill(Qt::black);
     }
 
@@ -321,7 +329,7 @@ void WaveformWidget::drawFrequencyAxis(QPainter& painter, const QRect& rect) {
     //    取 linear scale => y = bottom - (freq/nyquist)*height
     double scale = 0.0;
     if (nyquist > 0.0) {
-        scale = double(rect.height()) / nyquist;
+        scale = static_cast<double>(rect.height()) / nyquist;
     }
 
     // 5) 選擇「最小可行」刻度值 (freq step)
@@ -380,11 +388,11 @@ void WaveformWidget::drawFrequencyAxis(QPainter& painter, const QRect& rect) {
     // 中間刻度
     for (int tick = factor; tick < int(nyquist); tick += factor) {
         // Spek 會檢查是否離nyquist 太近 => 跳過 
-        double distToEndPx = (nyquist - tick) * scale;
-        if (distToEndPx < labelWidth * 1.2) {
+        double dist_to_end_px = (nyquist - tick) * scale;
+        if (dist_to_end_px < labelWidth * 1.2) {
             break;
         }
-        drawTickAndLabel(double(tick));
+        drawTickAndLabel(tick);
     }
 
     // 再畫 nyquist
@@ -459,12 +467,21 @@ void WaveformWidget::drawGainColorBar(QPainter& painter, const QRect& barRect) {
     // barRect: 你要畫漸層條的範圍
     QLinearGradient gradient(barRect.topLeft(), barRect.bottomLeft());
     // top -> 0 dB
-    gradient.setColorAt(0.0, Qt::white);    // 或自行調成某種亮色
-    gradient.setColorAt(0.2, QColor("#ffff00")); // ~ -20 dB
-    gradient.setColorAt(0.4, QColor("#ff0000")); // ~ -40 dB
-    gradient.setColorAt(0.6, QColor("#800080")); // ~ -60 dB
-    gradient.setColorAt(0.8, QColor("#000080")); // ~ -80 dB
-    gradient.setColorAt(1.0, QColor("#000000")); // -120 dB (接近黑)
+    if (color_ == SPECTROGRAM_COLOR_DEFAULT) {
+        gradient.setColorAt(0.0, QColor("#ff0000"));    // 或自行調成某種亮色
+        gradient.setColorAt(0.2, QColor("#ff8000")); // ~ -20 dB
+        gradient.setColorAt(0.4, QColor("#ffff00")); // ~ -40 dB
+        gradient.setColorAt(0.6, QColor("#00ff00")); // ~ -60 dB
+        gradient.setColorAt(0.8, QColor("#0000ff")); // ~ -80 dB
+        gradient.setColorAt(1.0, QColor("#000000")); // -120 dB (接近黑)
+    } else {
+        gradient.setColorAt(0.0, Qt::white);    // 或自行調成某種亮色
+        gradient.setColorAt(0.2, QColor("#ffff00")); // ~ -20 dB
+        gradient.setColorAt(0.4, QColor("#ff0000")); // ~ -40 dB
+        gradient.setColorAt(0.6, QColor("#800080")); // ~ -60 dB
+        gradient.setColorAt(0.8, QColor("#000080")); // ~ -80 dB
+        gradient.setColorAt(1.0, QColor("#000000")); // -120 dB (接近黑)
+    }    
 
     painter.save();
     painter.setPen(Qt::NoPen);
@@ -503,7 +520,7 @@ void WaveformWidget::drawGainColorBarTicks(QPainter& painter, const QRect& barRe
 
     QFontMetrics fm(painter.font());
     for (int dB : dbValues) {
-        float y = dbToY(float(dB));
+        float y = dbToY(static_cast<float>(dB));
         // 畫刻度線(可選)
         painter.drawLine(QPointF(barRect.right() + 2, y), QPointF(barRect.right() + 4, y));
 
@@ -583,7 +600,7 @@ void WaveformWidget::resizeEvent(QResizeEvent* event) {
     }
     doneRead();
     is_processing_ = true;
-    emit readAudioSpectrogram(size(), file_path_);
+    emit readAudioSpectrogram(color_, file_path_);
 	update();
 }
 
@@ -607,7 +624,7 @@ void WaveformWidget::clear() {
 
 void WaveformWidget::loadFile(const Path& file_path) {
 	file_path_ = file_path;
-    emit readAudioSpectrogram(drawRect().size(), file_path_);
+    emit readAudioSpectrogram(color_, file_path_);
 	update();
 }
 

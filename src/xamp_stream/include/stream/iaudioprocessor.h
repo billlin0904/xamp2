@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 XAMP project. All rights reserved.
+// Copyright (c) 2018-2025 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -19,13 +19,13 @@ XAMP_STREAM_NAMESPACE_BEGIN
 * 
 */
 namespace DspConfig {
-    constexpr static auto kInputFormat      = std::string_view("InputFormat");
-    constexpr static auto kDsdMode          = std::string_view("DsdMode");
-    constexpr static auto kOutputFormat     = std::string_view("OutputFormat");
-    constexpr static auto kSampleSize       = std::string_view("SampleSize");
-    constexpr static auto kEQSettings       = std::string_view("EQSettings");
-    constexpr static auto kCompressorConfig = std::string_view("CompressorConfig");
-    constexpr static auto kVolume           = std::string_view("Volume");
+    inline constexpr static auto kInputFormat      = std::string_view("InputFormat");
+    inline constexpr static auto kDsdMode          = std::string_view("DsdMode");
+    inline constexpr static auto kOutputFormat     = std::string_view("OutputFormat");
+    inline constexpr static auto kSampleSize       = std::string_view("SampleSize");
+    inline constexpr static auto kEQSettings       = std::string_view("EQSettings");
+    inline constexpr static auto kCompressorConfig = std::string_view("CompressorConfig");
+    inline constexpr static auto kVolume           = std::string_view("Volume");
 };
 
 /*

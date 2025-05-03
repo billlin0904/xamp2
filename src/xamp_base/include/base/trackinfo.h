@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 XAMP project. All rights reserved.
+// Copyright (c) 2018-2025 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -48,6 +48,7 @@ struct XAMP_BASE_API TrackInfo final {
     std::wstring genre;
     std::wstring comment;
     std::string yt_album_id;
+    std::string yt_artist_id;
     std::optional<ReplayGain> replay_gain;
 
     std::optional<std::wstring> file_name() const {

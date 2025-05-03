@@ -166,7 +166,6 @@
     <ClInclude Include="include\base\blocking_queue.h" />
     <ClInclude Include="include\base\buffer.h" />
     <ClInclude Include="include\base\charset_detector.h" />
-    <ClInclude Include="include\base\encoding_detector_tables.h" />
     <ClInclude Include="include\base\furigana.h" />
     <ClInclude Include="include\base\text_encoding.h" />
     <ClInclude Include="include\base\com_error_category.h" />

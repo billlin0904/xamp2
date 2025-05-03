@@ -194,8 +194,8 @@ ArtistViewPage::ArtistViewPage(QWidget* parent)
 	default_layout->addLayout(all_album_layout);
 	default_layout->setStretch(2, 1);
 
-	auto* fade_effect = new QGraphicsOpacityEffect(this);
-	setGraphicsEffect(fade_effect);
+	//auto* fade_effect = new QGraphicsOpacityEffect(this);
+	//setGraphicsEffect(fade_effect);
 
 	artist_image_->hide();
 	artist_name_->hide();
@@ -280,14 +280,6 @@ ArtistView::ArtistView(QWidget* parent)
 		page_->setFixedSize(QSize(list_view_rect.size().width() - 2, list_view_rect.height()));
 		page_->show();
 		});
-
-	auto* fade_effect = page_->graphicsEffect();
-	animation_ = new QPropertyAnimation(fade_effect, "opacity");
-	QObject::connect(animation_, &QPropertyAnimation::finished, [this]() {
-		if (hide_page_) {
-			page_->hide();
-		}
-		});
 }
 
 void ArtistView::search(const QString& keyword) {
@@ -317,20 +309,10 @@ void ArtistView::resizeEvent(QResizeEvent* event) {
 }
 
 void ArtistView::showPageAnimation() {
-	animation_->setStartValue(0.01);
-	animation_->setEndValue(1.0);
-	animation_->setDuration(kPageAnimationDurationMs);
-	animation_->setEasingCurve(QEasingCurve::OutCubic);
-	animation_->start();
 	hide_page_ = false;
 }
 
 void ArtistView::hidePageAnimation() {
-	animation_->setStartValue(1.0);
-	animation_->setEndValue(0.0);
-	animation_->setDuration(kPageAnimationDurationMs);
-	animation_->setEasingCurve(QEasingCurve::OutCubic);
-	animation_->start();
 	hide_page_ = true;
 }
 

@@ -14,6 +14,8 @@
 #include <widget/tagio.h>
 #include <widget/imagecache.h>
 
+#include "dao/dbfacade.h"
+
 namespace {
 	QString getFileChecksum(const QString& file_name, 
 		const QCryptographicHash::Algorithm hash_algorithm) {
@@ -151,7 +153,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 		}
 
 		try {
-			dao::AlbumDao(qGuiDb.getDatabase()).updateAlbum(entity.album_id, entity.album);
+			qDaoFacade.album_dao.updateAlbum(entity.album_id, entity.album);
 			artist_dao_.updateArtist(entity.artist_id, entity.artist);
 		}
 		catch (...) {

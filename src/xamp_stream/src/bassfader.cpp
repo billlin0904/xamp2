@@ -60,8 +60,8 @@ void BassFader::Initialize(const AnyMap& config) {
     impl_->Start(output_format.GetSampleRate());
 }
 
-void BassFader::SetTime(float current, float target, float fdade_time) {
-    impl_->SetTime(current, target, fdade_time);
+void BassFader::SetTime(float current, float target, float fade_time) {
+    impl_->SetTime(current, target, fade_time);
 }
 
 Uuid BassFader::GetTypeId() const {

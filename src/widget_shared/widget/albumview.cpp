@@ -132,9 +132,6 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, con
 
     qDaoFacade.album_dao.forEachAlbumMusic(album_id,
         [&add_playlist_music_ids](const PlayListEntity& entity) mutable {
-            /*if (entity.track == 0 && !entity.yt_music_album_id.isEmpty()) {
-                return;
-            }*/
             add_playlist_music_ids.push_back(entity.music_id);
         });
 
@@ -149,12 +146,19 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, con
     page_->onSetCoverById(cover_id);
 
     if (const auto album_stats = qDaoFacade.album_dao.getAlbumStats(album_id)) {
-        page_->format()->setText(tr("%1 Songs, %2, %3, %4")
-            .arg(QString::number(album_stats.value().songs))
-            .arg(formatDuration(album_stats.value().durations))
-            .arg(QString::number(album_stats.value().year))
-            .arg(formatBytes(album_stats.value().file_size))
-        );
+        if (album_stats->store_type == StoreType::CLOUD_STORE) {
+            page_->format()->setText(tr("%1 Songs, %2")
+                .arg(QString::number(album_stats.value().songs))
+                .arg(formatDuration(album_stats.value().durations))
+            );
+        } else {
+            page_->format()->setText(tr("%1 Songs, %2, %3, %4")
+                .arg(QString::number(album_stats.value().songs))
+                .arg(formatDuration(album_stats.value().durations))
+                .arg(QString::number(album_stats.value().year))
+                .arg(formatBytes(album_stats.value().file_size))
+            );
+        }        
     }
 
     page_->show();
@@ -164,7 +168,7 @@ AlbumView::AlbumView(QWidget* parent)
     : QListView(parent)
     , refresh_cover_timer_(this)
     , page_(nullptr)
-    , animation_(nullptr)
+    //, animation_(nullptr)
 	, model_(this)
     , proxy_model_(new PlayListTableFilterProxyModel(this)) {
     proxy_model_->addFilterByColumn(ALBUM_INDEX_ALBUM);
@@ -898,7 +902,7 @@ ScanFileProgressPage::ScanFileProgressPage(QWidget* parent)
     layout_->addWidget(progress_bar_);
     layout_->setSizeConstraint(QLayout::SetNoConstraint);
     layout_->setSpacing(5);
-    layout_->setContentsMargins(5, 5, 5, 5); // ´î¤ÖÃä¶Z¼vÅT
+    layout_->setContentsMargins(5, 5, 5, 5);
 
     setStyleSheet(qFormat(
         R"(

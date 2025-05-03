@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 XAMP project. All rights reserved.
+// Copyright (c) 2018-2025 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -30,14 +30,22 @@ public:
 signals:
 	void fetchThumbnailUrlError(const DatabaseCoverId& id, const QString& thumbnail_url);
 
+	void setYoutubeThumbnailUrl(const QString& video_id);
+
 	void setThumbnail(const DatabaseCoverId &id, const QString& cover_id);
+
+	void setAristThumbnail(int32_t artist_id, const QString& cover_id);
 
 	void setAlbumCover(int32_t album_id, const QString& cover_id);
 
 public slots:
 	void onFindAlbumCover(const DatabaseCoverId& id);
 
+	void onFetchYoutubeThumbnailUrl(const QString& video_id, const QString& thumbnail_url);
+
 	void onFetchThumbnailUrl(const DatabaseCoverId& id, const QString& thumbnail_url);
+
+	void onFetchArtistThumbnailUrl(int32_t artist_id, const QString& thumbnail_url);
 
 	void cancelRequested();
 

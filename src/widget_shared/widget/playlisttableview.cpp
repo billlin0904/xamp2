@@ -72,7 +72,8 @@ namespace {
 	musics.coverId as musicCoverId,
     musics.offset,
     musics.isCueFile,
-    musics.ytMusicAlbumId
+    musics.ytMusicAlbumId,
+	musics.ytMusicArtistId
 FROM
 	playlistMusics
 	JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
@@ -121,7 +122,8 @@ WHERE
 	musics.coverId as musicCoverId,
     musics.offset,
     musics.isCueFile,
-	musics.ytMusicAlbumId
+	musics.ytMusicAlbumId,
+	musics.ytMusicArtistId
 FROM
 	playlistMusics
 	JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
@@ -171,7 +173,8 @@ ORDER BY
 	musics.coverId as musicCoverId,
     musics.offset,
 	musics.isCueFile,
-	musics.ytMusicAlbumId
+	musics.ytMusicAlbumId,
+	musics.ytMusicArtistId
 FROM
 	playlistMusics
 	JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
@@ -463,7 +466,9 @@ void PlaylistTableView::setPlaylistId(const int32_t playlist_id, const QString &
             PLAYLIST_COMMENT,
             PLAYLIST_LIKE,
             PLAYLIST_YEAR,
-            PLAYLIST_OFFSET
+            PLAYLIST_OFFSET,
+            PLAYLIST_YT_MUSIC_ALBUM_ID,
+            PLAYLIST_YT_MUSIC_ARIST_ID,
         };
 
         for (const auto column : qAsConst(hidden_columns)) {
@@ -650,6 +655,11 @@ void PlaylistTableView::initial() {
             auto* navigate_to_album_page = action_map.addAction("Navigate To album"_str);
             action_map.setCallback(navigate_to_album_page, [this, entity]() {
                 emit navigateToAlbumPage(entity.album, entity.yt_music_album_id);
+                });
+
+            auto* navigate_to_artist_page = action_map.addAction("Navigate To artist"_str);
+            action_map.setCallback(navigate_to_artist_page, [this, entity]() {
+                emit navigateToArtistPage(entity.artist_id, entity.yt_music_artist_id);
                 });
 
             if (model_->rowCount() > 0 && index.isValid()) {

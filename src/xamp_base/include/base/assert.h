@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 XAMP project. All rights reserved.
+// Copyright (c) 2018-2025 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -26,6 +26,8 @@ namespace xamp {
         }
     }
 }
+
+
 
 #define XAMP_CONTRACT_CHECK(type, cond) \
 	((cond) ? static_cast<void>(0) : xamp::details::terminate())

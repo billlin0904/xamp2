@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 XAMP project. All rights reserved.
+// Copyright (c) 2018-2025 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -11,7 +11,7 @@
 
 #include <widget/widget_shared_global.h>
 #include <widget/widget_shared.h>
-#include <vector>
+#include <widget/worker/backgroundservice.h>
 
 
 class XAMP_WIDGET_SHARED_EXPORT WaveformWidget : public QFrame {
@@ -46,10 +46,10 @@ public:
 signals:
     void playAt(float sec);
 
-    void readAudioSpectrogram(const QSize& widget_size, const Path& file_path);
+    void readAudioSpectrogram(SpectrogramColor color, const Path& file_path);
 
 public slots:
-    void setSpectrogramData(double duration_sec, const QImage& chunk, int time_index);
+    void setSpectrogramData(double duration_sec, size_t hop_size, const QImage& chunk, int time_index);
 
     void doneRead();
 
@@ -99,7 +99,6 @@ private:
 
     bool cache_dirty_ = true;
     bool is_processing_ = false;
-    uint32_t draw_mode_ = kDrawSpectrogram;
     float total_ms_ = 0.f;
     float cursor_ms_ = -1.f;
 	uint32_t sample_rate_ = 44100;
@@ -107,4 +106,5 @@ private:
     QImage spectrogram_;
     QImage spectrogram_cache_;
     QPixmap static_cache_;
+    SpectrogramColor color_ = SpectrogramColor::SPECTROGRAM_COLOR_DEFAULT;
 };

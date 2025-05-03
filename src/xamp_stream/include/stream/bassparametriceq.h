@@ -24,28 +24,10 @@ public:
 
     XAMP_PIMPL(BassParametricEq)
 
-    /**
-    * A function that starts the audio processing with the given sample rate.
-    *
-    * @param sample_rate the sample rate at which the audio processing should occur
-    *
-    * @throws ErrorType if there is an error during the processing
-    */
     void Initialize(const AnyMap& config) override;
 
     void SetEq(const EqSettings& settings);
 
-    /**
-    * ReadStream function processes the input samples using bass_util and returns the result.
-    *
-    * @param samples pointer to the input samples
-    * @param num_samples number of samples to process
-    * @param out reference to the output BufferRef<float>
-    *
-    * @return boolean indicating the success of the process
-    *
-    * @throws None
-    */
     bool Process(float const* samples, size_t num_samples, BufferRef<float>& out) override;
 
     Uuid GetTypeId() const override;

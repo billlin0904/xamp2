@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 XAMP project. All rights reserved.
+// Copyright (c) 2018-2025 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -21,7 +21,7 @@
 
 namespace meta {
 	struct Thumbnail {
-		std::string url;
+		QString url;
 		uint32_t width;
 		uint32_t height;
 
@@ -31,34 +31,34 @@ namespace meta {
 	};
 
 	struct Artist {
-		std::string name;
-		std::optional<std::string> id;
+		QString name;
+		std::optional<QString> id;
 	};
 
 	struct Album {
-		std::string name;
-		std::optional<std::string> id;
+		QString name;
+		std::optional<QString> id;
 	};
 }
 
 namespace search {
 	struct Media {
-		std::string video_id;
-		std::string title;
+		QString video_id;
+		QString title;
 		std::vector<meta::Artist> artists;
-		std::optional<std::string> duration;
+		std::optional<QString> duration;
 		std::vector<meta::Thumbnail> thumbnails;
 	};
 
 	struct Video : Media {
-		std::optional<std::string> views;
+		std::optional<QString> views;
 	};
 
 	struct Playlist {
-		std::string browse_id;
-		std::string title;
-		std::optional<std::string> author;
-		std::string item_count;
+		QString browse_id;
+		QString title;
+		std::optional<QString> author;
+		QString item_count;
 		std::vector<meta::Thumbnail> thumbnails;
 	};
 
@@ -68,34 +68,34 @@ namespace search {
 	};
 
 	struct Album {
-		std::optional<std::string> browse_id;
-		std::string title;
-		std::string type;
+		std::optional<QString> browse_id;
+		QString title;
+		QString type;
 		std::vector<meta::Artist> artists;
-		std::optional<std::string> year;
+		std::optional<QString> year;
 		bool is_explicit;
 		std::vector<meta::Thumbnail> thumbnails;
 	};
 
 	struct Artist {
-		std::string browse_id;
-		std::string artist;
-		std::optional<std::string> shuffle_id;
-		std::optional<std::string> radio_id;
+		QString browse_id;
+		QString artist;
+		std::optional<QString> shuffle_id;
+		std::optional<QString> radio_id;
 		std::vector<meta::Thumbnail> thumbnails;
 	};
 
 	struct TopResult {
-		std::string category;
-		std::string result_type;
-		std::optional<std::string> video_id;
-		std::optional<std::string> title;
+		QString category;
+		QString result_type;
+		std::optional<QString> video_id;
+		std::optional<QString> title;
 		std::vector<meta::Artist> artists;
 		std::vector<meta::Thumbnail> thumbnails;
 	};
 
 	struct Profile {
-		std::string profile;
+		QString profile;
 	};
 
 	using SearchResultItem = std::variant<Video, Playlist, Song, Album, Artist, TopResult, Profile>;
@@ -106,53 +106,52 @@ namespace artist {
 	struct Artist {
 		template<typename T>
 		struct Section {
-			std::optional<std::string> browse_id;
+			std::optional<QString> browse_id;
 			std::vector<T> results;
-			std::optional<std::string> params;
+			std::optional<QString> params;
 		};
 
 		struct Song {
 			struct Album {
-				std::string name;
-				std::string id;
+				QString name;
+				QString id;
 			};
 
-			std::string video_id;
-			std::string title;
+			QString video_id;
+			QString title;
 			std::vector<meta::Thumbnail> thumbnails;
 			std::vector<meta::Artist> artist;
 			Album album;
 		};
 
 		struct Album {
-			std::string title;
+			QString title;
 			std::vector<meta::Thumbnail> thumbnails;
-			std::optional<std::string> year;
-			std::string browse_id;
-			std::optional<std::string> type;
+			QString browse_id;
+			QString type;
 		};
 
 		struct Video {
-			std::string title;
+			QString title;
 			std::vector<meta::Thumbnail> thumbnails;
-			std::optional<std::string> views;
-			std::string video_id;
-			std::string playlist_id;
+			std::optional<QString> views;
+			QString video_id;
+			QString playlist_id;
 		};
 
 		struct Single {
-			std::string title;
+			QString title;
 			std::vector<meta::Thumbnail> thumbnails;
-			std::string year;
-			std::string browse_id;
+			QString year;
+			QString browse_id;
 		};
 
 		bool subscribed;
-		std::optional<std::string> description;
-		std::optional<std::string> views;
-		std::string name;
-		std::string channel_id;
-		std::optional<std::string> subscribers;
+		QString description;
+		std::optional<QString> views;
+		QString name;
+		QString channel_id;
+		std::optional<QString> subscribers;
 		std::vector<meta::Thumbnail> thumbnails;
 		std::optional<Section<Song>> songs;
 		std::optional<Section<Album>> albums;
@@ -164,13 +163,13 @@ namespace artist {
 namespace album {
 	struct Track {
 		uint32_t track = 0;
-		std::string title;
+		QString title;
 		std::optional<bool> is_explicit;
 		std::vector<meta::Artist> artists;
-		std::optional<std::string> album;
-		std::optional<std::string> video_id;
-		std::optional<std::string> duration;
-		std::optional<std::string> like_status;
+		std::optional<QString> album;
+		std::optional<QString> video_id;
+		std::optional<QString> duration;
+		std::optional<QString> like_status;
 	};
 
 	struct Album {
@@ -180,12 +179,12 @@ namespace album {
 			uint32_t day;
 		};
 
-		std::string title;
+		QString title;
 		uint32_t track_count;
-		std::string duration;
-		std::string audio_playlist_id;
-		std::optional<std::string> year;
-		std::optional<std::string> description;
+		QString duration;
+		QString audio_playlist_id;
+		std::optional<QString> year;
+		std::optional<QString> description;
 		std::vector<meta::Thumbnail> thumbnails;
 		std::vector<Track> tracks;
 		std::vector<meta::Artist> artists;
@@ -198,13 +197,14 @@ namespace song {
 			std::vector<meta::Thumbnail> thumbnails;
 		};
 
-		std::string artist() {
+		QString artist() {
 			const char* const delim = ", ";
 
-			std::ostringstream imploded;
+			/*std::ostringstream imploded;
 			std::copy(artists.begin(), artists.end(),
 				std::ostream_iterator<std::string>(imploded, delim));
-			return imploded.str();
+			return imploded.str();*/
+			return kEmptyString;
 		}
 
 		bool is_owner_viewer;
@@ -212,38 +212,38 @@ namespace song {
 		bool is_private;
 		bool is_unplugged_corpus;
 		bool is_live_content;
-		std::string view_count;
-		std::string author;
-		std::string video_id;
-		std::string title;
-		std::string length;
-		std::string channel_id;
+		QString view_count;
+		QString author;
+		QString video_id;
+		QString title;
+		QString length;
+		QString channel_id;
 		Thumbnail thumbnail;
-		std::vector<std::string> artists;
+		std::vector<QString> artists;
 	};
 }
 
 namespace playlist {
 	struct Track {
 		bool is_available;
-		std::string title;
+		QString title;
 		std::vector<meta::Artist> artists;
 		std::optional<meta::Album> album;
-		std::optional<std::string> duration;
-		std::optional<std::string> like_status;
+		std::optional<QString> duration;
+		std::optional<QString> like_status;
 		std::vector<meta::Thumbnail> thumbnails;
 		std::optional<bool> is_explicit;
-		std::optional<std::string> set_video_id;
-		std::optional<std::string> video_id;
+		std::optional<QString> set_video_id;
+		std::optional<QString> video_id;
 	};
 
 	struct Playlist {
 		uint32_t track_count;
-		std::string id;
-		std::string privacy;
-		std::string title;
-		std::string duration;
-		std::optional<std::string> year;
+		QString id;
+		QString privacy;
+		QString title;
+		QString duration;
+		std::optional<QString> year;
 		std::vector<Track> tracks;
 		std::vector<meta::Thumbnail> thumbnails;
 		meta::Artist author;
@@ -262,13 +262,17 @@ XAMP_MAKE_ENUM(SongRating,
 
 inline std::wstring makeYtMusicPath(const playlist::Track& track) {
 	if (!track.set_video_id) {
-		return String::ToString(track.video_id.value() + " ");
+		return QString(track.video_id.value() + " "_str).toStdWString();
 	}
-	return String::ToString(track.video_id.value() + " " + track.set_video_id.value());
+	return QString(track.video_id.value() + " "_str + track.set_video_id.value()).toStdWString();
+}
+
+inline std::wstring makeYtMusicPath(const artist::Artist::Song& track) {
+	return QString(track.video_id + " "_str).toStdWString();
 }
 
 inline std::wstring makeYtMusicPath(const album::Track& track) {
-	return String::ToString(track.video_id.value() + " ");
+	return QString(track.video_id.value() + " "_str).toStdWString();
 }
 
 /*
@@ -286,9 +290,9 @@ inline std::pair<QString, QString> parseYtMusicPath(const QString& id) {
 namespace video_info {
 	struct Format {
 		std::optional<float> quality;
-		std::string url;
-		std::string vcodec;
-		std::string acodec;
+		QString url;
+		QString vcodec;
+		QString acodec;
 		float abr;
 
 		// More, but not interesting for us right now
@@ -296,7 +300,7 @@ namespace video_info {
 			if (!quality) {
 				return false;
 			}
-			if (acodec == "none") {
+			if (acodec == "none"_str) {
 				return false;
 			}
 			return other.quality < quality;
@@ -304,12 +308,12 @@ namespace video_info {
 	};
 
 	struct VideoInfo {
-		std::string id;
-		std::string title;
-		std::string artist;
-		std::string channel;
+		QString id;
+		QString title;
+		QString artist;
+		QString channel;
 		std::vector<Format> formats;
-		std::string thumbnail;
+		QString thumbnail;
 
 		// More, but not interesting for us right now
 	};
@@ -318,12 +322,12 @@ namespace video_info {
 namespace watch {
 	struct Playlist {
 		struct Track {
-			std::string title;
-			std::optional<std::string> length;
-			std::string video_id;
-			std::optional<std::string> playlistId;
+			QString title;
+			std::optional<QString> length;
+			QString video_id;
+			std::optional<QString> playlistId;
 			std::vector<meta::Thumbnail> thumbnail;
-			std::optional<std::string> like_status;
+			std::optional<QString> like_status;
 			std::vector<meta::Artist> artists;
 			std::optional<meta::Album> album;
 		};
@@ -335,26 +339,26 @@ namespace watch {
 
 namespace library {
 	struct Playlist {
-		std::string playlistId;
-		std::string title;
+		QString playlistId;
+		QString title;
 		std::vector<meta::Thumbnail> thumbnail;
 	};
 }
 
 namespace edit {
 	struct MultiSelectData {
-		std::string multi_select_params;
-		std::string multi_select_item;
+		QString multi_select_params;
+		QString multi_select_item;
 	};
 
 	struct PlaylistEditResultData {
-		std::optional<std::string> videoId;
-		std::optional<std::string> setVideoId;
+		std::optional<QString> videoId;
+		std::optional<QString> setVideoId;
 		MultiSelectData multi_select_data;
 	};
 
 	struct PlaylistEditResults {
-		std::string status;
+		QString status;
 		std::vector<PlaylistEditResultData> result_data;
 	};
 }
@@ -403,6 +407,8 @@ public:
 	QCoro::Task<QList<search::Album>> searchAlbum(const QString& query);
 
 	QCoro::Task<album::Album> fetchAlbum(const QString& browse_id);
+
+	QCoro::Task<artist::Artist> fetchArtist(const QString& channel_id);
 private:
 	http::HttpClient http_client_;
 };

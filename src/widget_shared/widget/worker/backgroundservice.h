@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 XAMP project. All rights reserved.
+// Copyright (c) 2018-2025 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -40,6 +40,11 @@ struct SearchLyricsResult {
 Q_DECLARE_METATYPE(LyricsParser)
 Q_DECLARE_METATYPE(SearchLyricsResult)
 
+enum SpectrogramColor {
+	SPECTROGRAM_COLOR_DEFAULT = 0,
+	SPECTROGRAM_COLOR_SOX,
+};
+
 class XAMP_WIDGET_SHARED_EXPORT BackgroundService final : public QObject {
 	Q_OBJECT
 
@@ -67,7 +72,7 @@ signals:
 
 	void jobError(const QString& job_id, const QString &message);
 
-	void readAudioSpectrogram(double duration_sec, const QImage& chunk, int timeIndex);
+	void readAudioSpectrogram(double duration_sec, size_t hop_size, const QImage& chunk, int timeIndex);
 
 	void readAudioData(const std::vector<float>& interleaved);
 
@@ -96,7 +101,7 @@ public Q_SLOT:
 
 	void onReadWaveformAudioData(size_t frame_per_peek, const Path & file_path);
 
-	void onReadSpectrogram(const QSize &widget_size, const Path& file_path);
+	void onReadSpectrogram(SpectrogramColor color, const Path& file_path);
 
 	QCoro::Task<SearchLyricsResult> downloadSingleKlrc(InfoItem info);
 

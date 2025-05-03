@@ -5,12 +5,13 @@
 
 #pragma once
 
-#include <QFileSystemModel>
 #include <widget/widget_shared_global.h>
 
-class FileSystemModel : public QFileSystemModel {
+class XAMP_WIDGET_SHARED_EXPORT TabPage {
 public:
-	explicit FileSystemModel(QObject* parent = nullptr);
-
-	QVariant data(const QModelIndex& index, int role) const override;
+	virtual ~TabPage() = default;
+	virtual void reload() = 0;
+protected:
+	TabPage() = default;
 };
+

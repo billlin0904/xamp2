@@ -1,5 +1,5 @@
 ﻿//=====================================================================================================================
-// Copyright (c) 2018-2025 XAMP project. All rights reserved.
+// Copyright (c) 2018-2025 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -46,6 +46,7 @@ struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
     QString lyrc;
     QString trlyrc;
     QString yt_music_album_id;
+    QString yt_music_artist_id;
 
     std::optional<QString> music_cover_id;    
     std::optional<double> offset;

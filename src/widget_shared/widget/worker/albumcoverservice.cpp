@@ -19,6 +19,50 @@ void AlbumCoverService::cleaup() {
     database_ptr_.reset();
 }
 
+void AlbumCoverService::onFetchArtistThumbnailUrl(int32_t artist_id, const QString& thumbnail_url) {
+    if (is_stop_) {
+        return;
+    }
+
+    if (pending_requests_.contains(thumbnail_url)) {
+        return;
+    }
+
+    http_client_.setUrl(thumbnail_url);
+    http_client_.download().then([thumbnail_url, artist_id, this](const auto& content) {
+        QPixmap image;
+        if (!image.loadFromData(content)) {
+            return;
+        }
+        auto cover_id = qImageCache.addImage(image, false, false);
+        emit setAristThumbnail(artist_id, cover_id);
+        pending_requests_.erase(thumbnail_url);
+        });
+    pending_requests_.insert(thumbnail_url);
+}
+
+void AlbumCoverService::onFetchYoutubeThumbnailUrl(const QString& video_id, const QString& thumbnail_url) {
+    if (is_stop_) {
+        return;
+    }
+
+    if (pending_requests_.contains(thumbnail_url)) {
+        return;
+    }
+
+    http_client_.setUrl(thumbnail_url);
+    http_client_.download().then([thumbnail_url, video_id, this](const auto& content) {
+        QPixmap image;
+        if (!image.loadFromData(content)) {
+            return;
+        }
+        qImageCache.addCache(video_id, image);
+        emit setYoutubeThumbnailUrl(video_id);
+        pending_requests_.erase(thumbnail_url);
+        });
+    pending_requests_.insert(thumbnail_url);
+}
+
 void AlbumCoverService::onFetchThumbnailUrl(const DatabaseCoverId& id, const QString& thumbnail_url) {
     if (is_stop_) {
         return;

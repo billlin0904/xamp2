@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 XAMP project. All rights reserved.
+// Copyright (c) 2018-2025 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -59,13 +59,6 @@ public:
     }\
     } while (false)
 
-struct XAMP_WIDGET_SHARED_EXPORT AlbumStats {
-	int32_t songs{ 0 };
-	double durations{ 0 };
-	int32_t year{ 0 };
-	size_t file_size{ 0 };
-};
-
 struct XAMP_WIDGET_SHARED_EXPORT ArtistStats {
 	int32_t albums{ 0 };
 	int32_t tracks{ 0 };
@@ -82,6 +75,7 @@ enum PlaylistId {
 	kAlbumPlaylistId,
 	kCdPlaylistId,
 	kFileSystemPlaylistId,
+	kArtistSongPlaylistId,
 	kMaxExistPlaylist,
 };
 
@@ -102,6 +96,14 @@ enum class StoreType {
 	LOCAL_STORE,
 	PLAYLIST_LOCAL_STORE,
 	CLOUD_STORE,
+};
+
+struct XAMP_WIDGET_SHARED_EXPORT AlbumStats {
+	int32_t songs{ 0 };
+	double durations{ 0 };
+	int32_t year{ 0 };
+	size_t file_size{ 0 };
+	StoreType store_type{ StoreType::PLAYLIST_LOCAL_STORE };
 };
 
 XAMP_WIDGET_SHARED_EXPORT inline bool isCloudStore(StoreType store_type) {

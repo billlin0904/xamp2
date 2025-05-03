@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 XAMP project. All rights reserved.
+// Copyright (c) 2018-2025 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -22,7 +22,7 @@ class XAudio2DeviceType final : public IDeviceType {
 	XAMP_DECLARE_MAKE_CLASS_UUID(XAudio2DeviceType, "3B5452A1-7747-456E-80D4-E04929B05F66")
 
 public:
-	constexpr static auto Description = std::string_view("XAudio2");
+	static constexpr auto Description = std::string_view("XAudio2");
 
 	/*
 	* Constructor

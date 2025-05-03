@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 XAMP project. All rights reserved.
+// Copyright (c) 2018-2025 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -95,6 +95,10 @@ signals:
 
 	void fetchThumbnailUrl(const DatabaseCoverId &id, const QString& thumbnail_url);
 
+	void fetchYoutubeThumbnailUrl(const QString& video_id, const QString& thumbnail_url);
+
+	void fetchArtistThumbnailUrl(int32_t artist_id, const QString& thumbnail_url);
+
 	void findAlbumCover(const DatabaseCoverId& id);
 
 	void cancelRequested();
@@ -139,6 +143,10 @@ public slots:
 
 	void onSetThumbnail(const DatabaseCoverId& id, const QString& cover_id);
 
+	void onSetAristThumbnail(int32_t artist_id, const QString& cover_id);
+
+	void onSetYoutubeThumbnailUrl(const QString& video_id);
+
 	void onPlaybackError(const QString& message);
 
 	void onRetranslateUi();
@@ -159,7 +167,9 @@ public slots:
 
 	void onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std::vector<playlist::Track>& tracks);
 
-	void onNavigateToAlbumPage(const QString& album, const QString& album_id);
+	void onNavigateToAlbumPage(const QString& album, const QString& yt_album_id);
+
+	void onNavigateToArtistPage(int32_t artist_id, const QString& yt_artist_id);
 
 	void onPlayCloudVideoId(PlaylistPage* playlist_page, const PlayListEntity& entity);
 private:

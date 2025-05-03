@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 XAMP project. All rights reserved.
+// Copyright (c) 2018-2025 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -36,6 +36,7 @@ struct ImageCacheSizeOfPolicy {
 class QTimerEvent;
 
 inline constexpr ConstexprQString kAlbumCacheTag("album_thumbnail_"_str);
+inline constexpr ConstexprQString kArtistCacheTag("artist_thumbnail_"_str);
 
 class XAMP_WIDGET_SHARED_EXPORT ImageCache final : public QObject {
 public:
@@ -70,7 +71,9 @@ public:
 
 	void clearCache() const;
 
-	QString addImage(const QPixmap& cover, bool save_only = false);
+	void addCache(const QString& cover_id, const QPixmap& cover);
+
+	QString addImage(const QPixmap& cover, bool save_only = false, bool resize = true);
 
 	QPixmap getOrAdd(const QString& tag_id, std::function<QPixmap()>&& value_factory);
 

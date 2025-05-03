@@ -1,7 +1,6 @@
 #include <base/furigana.h>
 #include <base/str_utilts.h>
 #include <base/unique_handle.h>
-#include <base/encoding_detector_tables.h>
 #include <sstream>
 
 #include <icu.h>
@@ -9,20 +8,6 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 namespace {
-    struct UCharsetDetectorDeleter final {
-        static UCharsetDetector* invalid() noexcept {
-            return nullptr;
-        }
-
-        static void close(UCharsetDetector* value) {
-            if (value != nullptr) {
-                ucsdet_close(value);
-            }
-        }
-    };
-
-    using UCharsetDetectorHandle = UniqueHandle<UCharsetDetector*, UCharsetDetectorDeleter>;
-
     struct UTransliteratorDeleter final {
         static UTransliterator* invalid() noexcept {
             return nullptr;
@@ -30,242 +15,18 @@ namespace {
 
         static void close(UTransliterator* value) {
             if (value != nullptr) {
-                utrans_close(value);
+                ::utrans_close(value);
             }
         }
     };
 
     using UTransliteratorHandle = UniqueHandle<UTransliterator*, UTransliteratorDeleter>;
 
-    class CharsetDetector {
-    public:
-		CharsetDetector() {
-			UErrorCode status = U_ZERO_ERROR;
-			UCharsetDetector* detector = ucsdet_open(&status);
-			if (U_FAILURE(status)) {
-				throw std::runtime_error("Failed to create UCharsetDetector");
-			}
-			detector_handle_.reset(detector);
-		}
-
-        bool IsFrequent(const uint16_t* values, uint32_t c) {
-            int start = 0;
-            int end = 511; // All the tables have 512 entries
-            int mid = (start + end) / 2;
-            while (start <= end) {
-                if (c == values[mid]) {
-                    return true;
-                }
-                else if (c > values[mid]) {
-                    start = mid + 1;
-                }
-                else {
-                    end = mid - 1;
-                }
-                mid = (start + end) / 2;
-            }
-            return false;
-        }
-
-        const UCharsetMatch* GetPreferred(
-            const char* input, size_t len,
-            const UCharsetMatch** ucma, size_t nummatches,
-            bool* goodmatch, int* highestmatch) {
-            *goodmatch = false;
-            std::vector<const UCharsetMatch*> matches;
-            UErrorCode status = U_ZERO_ERROR;
-            for (size_t i = 0; i < nummatches; i++) {
-                const char* encname = ucsdet_getName(ucma[i], &status);
-                int confidence = ucsdet_getConfidence(ucma[i], &status);
-                matches.push_back(ucma[i]);
-            }
-            size_t num = matches.size();
-            if (num == 0) {
-                return nullptr;
-            }
-            if (num == 1) {
-                int confidence = ucsdet_getConfidence(matches[0], &status);
-                if (confidence > 15) {
-                    *goodmatch = true;
-                }
-                return matches[0];
-            }
-            // keep track of how many "special" characters result when converting the input using each
-            // encoding
-            std::vector<int> newconfidence;
-            for (size_t i = 0; i < num; i++) {
-                const uint16_t* freqdata = nullptr;
-                float freqcoverage = 0;
-                status = U_ZERO_ERROR;
-                const char* encname = ucsdet_getName(matches[i], &status);
-                int confidence = ucsdet_getConfidence(matches[i], &status);
-                if (!strcmp("GB18030", encname)) {
-                    freqdata = frequent_zhCN;
-                    freqcoverage = frequent_zhCN_coverage;
-                }
-                else if (!strcmp("Big5", encname)) {
-                    freqdata = frequent_zhTW;
-                    freqcoverage = frequent_zhTW_coverage;
-                }
-                else if (!strcmp("EUC-KR", encname)) {
-                    freqdata = frequent_ko;
-                    freqcoverage = frequent_ko_coverage;
-                }
-                else if (!strcmp("EUC-JP", encname)) {
-                    freqdata = frequent_ja;
-                    freqcoverage = frequent_ja_coverage;
-                }
-                else if (!strcmp("Shift_JIS", encname)) {
-                    freqdata = frequent_ja;
-                    freqcoverage = frequent_ja_coverage;
-                }
-                status = U_ZERO_ERROR;
-                UConverter* conv = ucnv_open(encname, &status);
-                int demerit = 0;
-                if (U_FAILURE(status)) {
-                    confidence = 0;
-                    demerit += 1000;
-                }
-                const char* source = input;
-                const char* sourceLimit = input + len;
-                status = U_ZERO_ERROR;
-                int frequentchars = 0;
-                int totalchars = 0;
-                while (true) {
-                    // demerit the current encoding for each "special" character found after conversion.
-                    // The amount of demerit is somewhat arbitrarily chosen.
-                    UChar32 c = ucnv_getNextUChar(conv, &source, sourceLimit, &status);
-                    if (!U_SUCCESS(status)) {
-                        break;
-                    }
-                    if (c < 0x20 || (c >= 0x7f && c <= 0x009f)) {
-                        demerit += 100;
-                    }
-                    else if ((c == 0xa0)                      // no-break space
-                        || (c >= 0xa2 && c <= 0xbe)         // symbols, superscripts
-                        || (c == 0xd7) || (c == 0xf7)       // multiplication and division signs
-                        || (c >= 0x2000 && c <= 0x209f)) {  // punctuation, superscripts
-                        demerit += 10;
-                    }
-                    else if (c >= 0xe000 && c <= 0xf8ff) {
-                        demerit += 30;
-                    }
-                    else if (c >= 0x2190 && c <= 0x2bff) {
-                        // this range comprises various symbol ranges that are unlikely to appear in
-                        // music file metadata.
-                        demerit += 10;
-                    }
-                    else if (c == 0xfffd) {
-                        demerit += 50;
-                    }
-                    else if (c >= 0xfff0 && c <= 0xfffc) {
-                        demerit += 50;
-                    }
-                    else if (freqdata != nullptr) {
-                        totalchars++;
-                        if (IsFrequent(freqdata, c)) {
-                            frequentchars++;
-                        }
-                    }
-                }
-                if (freqdata != nullptr && totalchars != 0) {
-                    int myconfidence = 10 + float((100 * frequentchars) / totalchars) / freqcoverage;
-                    if (myconfidence > 100) myconfidence = 100;
-                    if (myconfidence < 0) myconfidence = 0;
-                    confidence = myconfidence;
-                }
-
-                newconfidence.push_back(confidence - demerit);
-                ucnv_close(conv);
-                if (i == 0 && (confidence - demerit) == 100) {
-                    // no need to check any further, we'll end up using this match anyway
-                    break;
-                }
-            }
-            // find match with highest confidence after adjusting for unlikely characters
-            int highest = newconfidence[0];
-            size_t highestidx = 0;
-            int runnerup = -10000;
-            int runnerupidx = -10000;
-            num = newconfidence.size();
-            for (size_t i = 1; i < num; i++) {
-                if (newconfidence[i] > highest) {
-                    runnerup = highest;
-                    runnerupidx = highestidx;
-                    highest = newconfidence[i];
-                    highestidx = i;
-                }
-                else if (newconfidence[i] > runnerup) {
-                    runnerup = newconfidence[i];
-                    runnerupidx = i;
-                }
-            }
-
-            status = U_ZERO_ERROR;
-
-            if (runnerupidx < 0) {
-                if (highest > 15) {
-                    *goodmatch = true;
-                }
-            }
-            else {
-                if (runnerup < 0) {
-                    runnerup = 0;
-                }
-                if ((highest - runnerup) > 15) {
-                    *goodmatch = true;
-                }
-            }
-            *highestmatch = highest;
-            return matches[highestidx];
-        }
-
-		void Detect(const std::string_view& text) {
-			UErrorCode status = U_ZERO_ERROR;
-			ucsdet_setText(detector_handle_.get(), text.data(), text.size(), &status);
-			if (U_FAILURE(status)) {
-				throw std::runtime_error("Failed to set text to UCharsetDetector");
-			}
-            int32_t matches;
-			const auto** match = ucsdet_detectAll(detector_handle_.get(), &matches, &status);
-			if (U_FAILURE(status)) {
-				throw std::runtime_error("Failed to detect charset");
-			}
-
-            bool goodmatch = true;
-            int highest = 0;
-            auto *hiest_match = GetPreferred(text.data(), text.length(), match, matches, &goodmatch, &highest);
-
-            charset_ = ucsdet_getName(hiest_match, &status);
-            if (U_FAILURE(status)) {
-                throw std::runtime_error("Failed to get charset name");
-            }
-
-            lang_ = ucsdet_getLanguage(hiest_match, &status);
-            if (U_FAILURE(status)) {
-                throw std::runtime_error("Failed to get language");
-            }
-		}
-
-		std::string GetCharset() const {
-			return charset_;
-		}
-
-		std::string GetLanguage() const {
-			return lang_;
-		}
-
-    private:
-        std::string charset_;
-		std::string lang_;
-        UCharsetDetectorHandle detector_handle_;
-    };
-
     class Kata2HiraConverter {
     public:
         Kata2HiraConverter() {
             UErrorCode status = U_ZERO_ERROR;
-            UTransliterator* trans = utrans_openU(
+            UTransliterator* trans = ::utrans_openU(
                 u"Katakana-Hiragana",
                 -1,
                 UTRANS_FORWARD,
@@ -286,7 +47,7 @@ namespace {
             // Convert std::wstring to UChar*
             std::vector<UChar> buffer(name.length());
             int32_t dest_len = 0;
-            u_strFromWCS(buffer.data(), buffer.size(), &dest_len, name.data(), name.length(), &status);
+            ::u_strFromWCS(buffer.data(), buffer.size(), &dest_len, name.data(), name.length(), &status);
             if (U_FAILURE(status)) {
                 throw std::runtime_error("Failed to convert name to UChar*");
             }
@@ -297,24 +58,24 @@ namespace {
             const int32_t capacity = static_cast<int32_t>(unicode_name.size() * 4 + 10);
             std::vector<UChar> result(capacity);
             int32_t result_length = static_cast<int32_t>(unicode_name.size());
-            u_memcpy(result.data(), reinterpret_cast<const UChar*>(unicode_name.data()), result_length);
+            ::u_memcpy(result.data(), reinterpret_cast<const UChar*>(unicode_name.data()), result_length);
 
             int32_t limit = result_length;
-            utrans_transUChars(trans_.get(), result.data(), &result_length, capacity, 0, &limit, &status);
+            ::utrans_transUChars(trans_.get(), result.data(), &result_length, capacity, 0, &limit, &status);
             if (U_FAILURE(status)) {
                 throw std::runtime_error("Failed to transliterate name");
             }
 
             // Convert the result to UTF-8
             int32_t utf8_length = 0;
-            u_strToUTF8(nullptr, 0, &utf8_length, result.data(), result_length, &status);
+            ::u_strToUTF8(nullptr, 0, &utf8_length, result.data(), result_length, &status);
             if (status != U_BUFFER_OVERFLOW_ERROR && U_FAILURE(status)) {
                 throw std::runtime_error("Failed to get UTF-8 length");
             }
 
             status = U_ZERO_ERROR;
             std::string utf8_result(utf8_length, '\0');
-            u_strToUTF8(utf8_result.data(), utf8_length, nullptr, result.data(), result_length, &status);
+            ::u_strToUTF8(utf8_result.data(), utf8_length, nullptr, result.data(), result_length, &status);
             if (U_FAILURE(status)) {
                 throw std::runtime_error("Failed to convert result to UTF-8");
             }
@@ -375,7 +136,7 @@ public:
         tagger_->parse(""); // Initializes MeCab parser
 	}
 
-    std::vector<FuriganaEntity> ConvertV3(const std::wstring& text, bool trim_overlapping = false) {
+    std::vector<FuriganaEntity> Convert(const std::wstring& text, bool trim_overlapping = false) {
         if (text.empty()) {
             return {};
         }
@@ -444,7 +205,6 @@ public:
     }
 
     Kata2HiraConverter converter_;
-	CharsetDetector detector_;
 	std::unique_ptr<MeCab::Tagger> tagger_;
 };
 
@@ -455,7 +215,7 @@ Furigana::Furigana()
 XAMP_PIMPL_IMPL(Furigana)
 
 std::vector<FuriganaEntity> Furigana::Convert(const std::wstring& text) {
-	return impl_->ConvertV3(text, true);
+	return impl_->Convert(text, true);
 }
 
 XAMP_BASE_NAMESPACE_END

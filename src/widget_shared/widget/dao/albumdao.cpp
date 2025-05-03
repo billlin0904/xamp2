@@ -80,7 +80,8 @@ namespace dao {
         SUM(musics.duration) AS durations,
         MAX(year) AS year,
         (SELECT COUNT( * ) AS tracks FROM albumMusic WHERE albumMusic.albumId = :albumId) AS tracks,
-        SUM(musics.fileSize) AS fileSize
+        SUM(musics.fileSize) AS fileSize,
+		albums.storeType
     FROM
         albumMusic
     JOIN albums ON albums.albumId = albumMusic.albumId
@@ -98,6 +99,7 @@ namespace dao {
             stats.year = query.value("year"_str).toInt();
             stats.durations = query.value("durations"_str).toDouble();
             stats.file_size = query.value("fileSize"_str).toULongLong();
+            stats.store_type = static_cast<StoreType>(query.value("storeType"_str).toInt());
             return MakeOptional<AlbumStats>(std::move(stats));
         }
 

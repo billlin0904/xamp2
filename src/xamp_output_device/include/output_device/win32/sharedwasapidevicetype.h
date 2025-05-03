@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 XAMP project. All rights reserved.
+// Copyright (c) 2018-2025 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -25,7 +25,7 @@ class XAMP_OUTPUT_DEVICE_API SharedWasapiDeviceType final : public IDeviceType {
 	XAMP_DECLARE_MAKE_CLASS_UUID(SharedWasapiDeviceType, "07885EDF-7CCB-4FA6-962D-B66A759978B1")
 
 public:
-	constexpr static auto Description = std::string_view("WASAPI (Shared Mode)");
+	static constexpr auto Description = std::string_view("WASAPI (Shared Mode)");
 
 	/*
 	 * Constructor
