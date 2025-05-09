@@ -7,8 +7,6 @@
 
 #include <QAbstractNativeEventFilter>
 
-#if defined(Q_OS_WIN)
-
 #include <atlcomcli.h>
 #include <shobjidl_core.h>
 
@@ -57,19 +55,23 @@ public:
 
     void setRange(int progress_minimum, int progress_maximum);
 
+private:
     bool nativeEventFilter(const QByteArray& event_type, void* message, qintptr* result) override;
 
+    void updateThumbnailButton(UINT iId, HICON hIcon, LPCWSTR tooltip);
+
+    void addThumbnailButtons();
+
+    void setWindow(QWidget* window);
+
+    struct ButtonIcon;
+
+    TaskbarProgressState state_{ TaskbarProgressState::TASKBAR_PROCESS_STATE_NO_PROCESS };
     QIcon play_icon;
     QIcon pause_icon;
     QIcon stop_play_icon;
     QIcon seek_forward_icon;
     QIcon seek_backward_icon;
-private:
-    void createToolbarImages();
-
-    void setWindow(QWidget* window);
-
-    TaskbarProgressState state_{ TaskbarProgressState::TASKBAR_PROCESS_STATE_NO_PROCESS };
     int32_t process_max_{ 0 };
     int32_t process_min_{ 0 };
     int32_t process_value_{ 0 };
@@ -79,13 +81,6 @@ private:
     QString overlay_accessible_description_;
     QPixmap thumbnail_;
     CComPtr<ITaskbarList4> taskbar_list_;
+	ScopedPtr<ButtonIcon> button_icons_;
 };
 
-#else
-
-class WinTaskbar : public QObject {
-public:
-    WinTaskbar(XMainWindow* window, IXFrame* frame);
-};
-
-#endif

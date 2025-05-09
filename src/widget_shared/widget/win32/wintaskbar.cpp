@@ -75,47 +75,6 @@ namespace {
 		WCA_LAST = 30
 	} WINDOWCOMPOSITIONATTRIB;
 
-	typedef struct _WINDOWCOMPOSITIONATTRIBDATA
-	{
-		WINDOWCOMPOSITIONATTRIB Attribute;
-		PVOID Data;
-		SIZE_T SizeOfData;
-	} WINDOWCOMPOSITIONATTRIBDATA;
-
-	typedef enum _ACCENT_STATE
-	{
-		ACCENT_DISABLED = 0,
-		ACCENT_ENABLE_GRADIENT = 1,
-		ACCENT_ENABLE_TRANSPARENTGRADIENT = 2,
-		ACCENT_ENABLE_BLURBEHIND = 3,
-		ACCENT_ENABLE_ACRYLICBLURBEHIND = 4,
-		ACCENT_ENABLE_HOSTBACKDROP = 5,
-		ACCENT_INVALID_STATE = 6
-	} ACCENT_STATE;
-
-	typedef enum DWM_SYSTEMBACKDROP_TYPE {
-		DWMSBT_AUTO,
-		DWMSBT_NONE,
-		DWMSBT_MAINWINDOW,
-		DWMSBT_TRANSIENTWINDOW,
-		DWMSBT_TABBEDWINDOW
-	} DWM_SYSTEMBACKDROP_TYPE;
-
-	typedef struct _ACCENT_POLICY
-	{
-		ACCENT_STATE AccentState;
-		DWORD AccentFlags;
-		DWORD GradientColor;
-		DWORD AnimationId;
-	} ACCENT_POLICY;
-
-	WINUSERAPI
-	BOOL
-	WINAPI
-	SetWindowCompositionAttribute(
-		_In_ HWND hWnd,
-		_Inout_ WINDOWCOMPOSITIONATTRIBDATA* pAttrData);
-
 	struct GdiDeleter final {
 		static HBITMAP invalid() noexcept {
 			return nullptr;
@@ -178,10 +137,6 @@ namespace {
 		return TBPF_NOPROGRESS;
 	}
 
-	int32_t getWin32IconSize() {
-		return ::GetSystemMetrics(SM_CXSMICON);
-	}
-
 #define DWM_DLL Singleton<DwmapiLib>::GetInstance()
 #define IDTB_FIRST 3000
 
@@ -224,14 +179,14 @@ namespace {
 		auto width_ratio = static_cast<float>(aero_peak_size.width()) / src_width;
 		auto height_ratio = static_cast<float>(aero_peak_size.height()) / src_height;
 
+		XAMP_LOG_DEBUG("thumbnail size: {}x{}", src_width, src_height);
+
 		int thumbnail_width = src_width;
 		int thumbnail_height = src_height;
-		if (width_ratio > height_ratio) {
-			thumbnail_width = src_width * height_ratio;
-		}
-		else {
-			thumbnail_height = src_height * width_ratio;
-		}
+
+		float scale = (std::min)(width_ratio, height_ratio);
+		thumbnail_width = static_cast<int>(src_width * scale);
+		thumbnail_height = static_cast<int>(src_height * scale);
 
 		const QSize resize_size(thumbnail_width, thumbnail_height);
 
@@ -256,11 +211,26 @@ namespace {
 		}
 	}
 
-	const auto kIconSize = getWin32IconSize();
+	constexpr UINT ID_BACKWARD   = 3001;
+	constexpr UINT ID_PLAY_PAUSE = 3002;
+	constexpr UINT ID_STOP       = 3003;
+	constexpr UINT ID_FORWARD    = 3004;
 }
 
+struct WinTaskbar::ButtonIcon {
+	int32_t getIconSize() const {
+		return ::GetSystemMetrics(SM_CXSMICON);
+	}
 
-WinTaskbar::WinTaskbar(XMainWindow* window, IXFrame* frame) {
+	HIconHandle play_icon;
+	HIconHandle pause_icon;
+	HIconHandle stop_play_icon;
+	HIconHandle seek_forward_icon;
+	HIconHandle seek_backward_icon;
+};
+
+WinTaskbar::WinTaskbar(XMainWindow* window, IXFrame* frame)
+	: button_icons_(MakeAlign<ButtonIcon>()) {
 	auto hr = ::CoCreateInstance(CLSID_TaskbarList,
 		nullptr,
 		CLSCTX_INPROC_SERVER,
@@ -310,6 +280,7 @@ void WinTaskbar::setWindow(QWidget* window) {
 	if (window_->isVisible()) {
 		updateProgressIndicator();
 		updateOverlay();
+		addThumbnailButtons();
 	}
 
 	constexpr BOOL enable = TRUE;
@@ -317,7 +288,6 @@ void WinTaskbar::setWindow(QWidget* window) {
 
 	DWM_DLL.DwmSetWindowAttribute(hwnd, DWMWA_HAS_ICONIC_BITMAP, &enable, sizeof(enable));
 	DWM_DLL.DwmSetWindowAttribute(hwnd, DWMWA_FORCE_ICONIC_REPRESENTATION, &enable, sizeof(enable));
-	DWM_DLL.DwmSetWindowAttribute(hwnd, DWMWA_DISALLOW_PEEK, &enable, sizeof(enable));
 	DWM_DLL.DwmInvalidateIconicBitmaps(hwnd);
 }
 
@@ -397,10 +367,15 @@ void WinTaskbar::updateOverlay() {
 		description = overlay_accessible_description_.toStdWString();
 
 	if (!overlay_icon_.isNull()) {
-		icon_handle.reset(overlay_icon_.pixmap(kIconSize).toImage().toHICON());
+		icon_handle.reset(overlay_icon_.pixmap(button_icons_->getIconSize()).toImage().toHICON());
 
 		if (!icon_handle) {
-			icon_handle.reset(static_cast<HICON>(::LoadImage(nullptr, IDI_APPLICATION, IMAGE_ICON, SM_CXSMICON, SM_CYSMICON, LR_SHARED)));
+			icon_handle.reset(static_cast<HICON>(::LoadImage(nullptr,
+				IDI_APPLICATION,
+				IMAGE_ICON,
+				SM_CXSMICON, 
+				SM_CYSMICON, 
+				LR_SHARED)));
 		}
 	}
 
@@ -409,6 +384,45 @@ void WinTaskbar::updateOverlay() {
 		if (FAILED(hr)) {
 			XAMP_LOG_ERROR("UpdateOverlay return failure! {}", GetPlatformErrorMessage(hr));
 		}
+	}
+}
+
+void WinTaskbar::addThumbnailButtons() {
+	if (!taskbar_list_ || !window_) {
+		return;
+	}
+
+	HWND hwnd = reinterpret_cast<HWND>(window_->winId());
+	button_icons_->seek_backward_icon.reset(seek_backward_icon.pixmap(button_icons_->getIconSize()).toImage().toHICON());
+	button_icons_->play_icon.reset(play_icon.pixmap(button_icons_->getIconSize()).toImage().toHICON());
+	button_icons_->pause_icon.reset(pause_icon.pixmap(button_icons_->getIconSize()).toImage().toHICON());
+	button_icons_->stop_play_icon.reset(stop_play_icon.pixmap(button_icons_->getIconSize()).toImage().toHICON());
+	button_icons_->seek_forward_icon.reset(seek_forward_icon.pixmap(button_icons_->getIconSize()).toImage().toHICON());
+
+	std::array<THUMBBUTTON, 3> buttons{};
+
+	auto init_thumb_button = [&](THUMBBUTTON& btn,
+		UINT iId,
+		HICON hIcon,
+		LPCWSTR tip) {
+			btn.dwMask = THB_ICON | THB_TOOLTIP | THB_FLAGS;
+			btn.dwFlags = THBF_ENABLED;
+			btn.iId = iId;
+			btn.hIcon = hIcon;
+			wcsncpy_s(btn.szTip, tip, _TRUNCATE);
+		};
+
+	// Default play icon
+	auto play_icon = button_icons_->play_icon.get();
+
+	init_thumb_button(buttons[0], ID_BACKWARD,button_icons_->seek_backward_icon.get(), L"Backward");
+	init_thumb_button(buttons[1], ID_PLAY_PAUSE, play_icon, L"Play");
+	init_thumb_button(buttons[2], ID_FORWARD, button_icons_->seek_forward_icon.get(), L"Forward");
+
+	HRESULT hr = taskbar_list_->ThumbBarAddButtons(hwnd, buttons.size(),
+	                                               buttons.data());
+	if (FAILED(hr)) {
+		XAMP_LOG_ERROR("ThumbBarAddButtons failed: {}", GetPlatformErrorMessage(hr));
 	}
 }
 
@@ -421,6 +435,29 @@ bool WinTaskbar::nativeEventFilter(const QByteArray& event_type, void* message, 
 	}
 
 	switch (msg->message) {
+	case WM_COMMAND: {
+		const auto id = LOWORD(msg->wParam);
+		switch (id) {
+		case ID_BACKWARD:
+			frame_->playPrevious();
+			break;
+		case ID_PLAY_PAUSE:
+			frame_->playOrPause();
+			break;
+		case ID_STOP:
+			frame_->stopPlay();
+			break;
+		case ID_FORWARD:
+			frame_->playNext();
+			break;
+		default:
+			break;
+		}
+		if (result != nullptr) {
+			*result = 0;
+		}
+		return true;
+	}
 	case WM_DWMSENDICONICTHUMBNAIL: {
 		const int requested_width = LOWORD(msg->lParam);
 		const int requested_height = HIWORD(msg->lParam);
@@ -430,16 +467,41 @@ bool WinTaskbar::nativeEventFilter(const QByteArray& event_type, void* message, 
 		}
 		QSize target_size(requested_width, requested_height);
 		updateIconicThumbnail(target_size, msg->hwnd, thumbnail_);
+		if (result != nullptr) {
+			*result = 0;
+		}
 		return true;
 	}
 	case WM_DWMSENDICONICLIVEPREVIEWBITMAP: 
 		XAMP_LOG_DEBUG("WM_DWMSENDICONICLIVEPREVIEWBITMAP");
 		updateLiveThumbnail(msg->hwnd, window_->grab());
+		if (result != nullptr) {
+			*result = 0;
+		}
 		return true;
 	default:
 		break;
 	}
 	return false;
+}
+
+void WinTaskbar::updateThumbnailButton(UINT iId, HICON hIcon, LPCWSTR tooltip) {
+	if (!taskbar_list_ || !window_) {
+		return;
+	}
+
+	THUMBBUTTON btn{};
+	btn.dwMask = THB_FLAGS | THB_ICON | THB_TOOLTIP;
+	btn.dwFlags = THBF_ENABLED;
+	btn.iId = iId;
+	btn.hIcon = hIcon;
+	wcsncpy_s(btn.szTip, tooltip, _TRUNCATE);
+
+	HWND hwnd = reinterpret_cast<HWND>(window_->winId());
+	HRESULT hr = taskbar_list_->ThumbBarUpdateButtons(hwnd, 1, &btn);
+	if (FAILED(hr)) {
+		XAMP_LOG_ERROR("ThumbBarUpdateButtons failed: {}", GetPlatformErrorMessage(hr));
+	}
 }
 
 void WinTaskbar::setTaskbarProgress(const int32_t process) {
@@ -463,7 +525,10 @@ void WinTaskbar::resetTaskbarProgress() {
 void WinTaskbar::setTaskbarPlayingResume() {
 	overlay_icon_ = play_icon;
 	state_ = TASKBAR_PROCESS_STATE_NORMAL;
+	updateProgressIndicator();
 	updateOverlay();
+	button_icons_->pause_icon.reset(pause_icon.pixmap(button_icons_->getIconSize()).toImage().toHICON());
+	updateThumbnailButton(ID_PLAY_PAUSE, button_icons_->pause_icon.get(), L"Pause");
 }
 
 void WinTaskbar::setTaskbarPlayerPaused() {
@@ -471,6 +536,8 @@ void WinTaskbar::setTaskbarPlayerPaused() {
 	state_ = TASKBAR_PROCESS_STATE_PAUSED;
 	updateProgressIndicator();
 	updateOverlay();
+	button_icons_->play_icon.reset(play_icon.pixmap(button_icons_->getIconSize()).toImage().toHICON());
+	updateThumbnailButton(ID_PLAY_PAUSE, button_icons_->play_icon.get(), L"Play");
 }
 
 void WinTaskbar::setTaskbarPlayerPlaying() {

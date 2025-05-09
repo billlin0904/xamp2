@@ -333,6 +333,13 @@ void ImageCache::loadCache() const {
 		});
 }
 
+bool ImageCache::contains(const QString& tag_id) const {
+	if (tag_id.isEmpty()) {
+		return false;
+	}
+	return cache_.Contains(tag_id);
+}
+
 QPixmap ImageCache::getOrAddDefault(const QString& tag_id, bool not_found_use_default) const {
 	const auto [size, image] = cache_.GetOrAdd(tag_id, [tag_id, this]() {
 		XAMP_LOG_D(logger_, "Load tag:{}", tag_id.toStdString());

@@ -54,9 +54,7 @@ EncodeJobWidget::EncodeJobWidget(QWidget* parent)
 }
 
 QList<EncodeJob> EncodeJobWidget::addJobs(int32_t encode_type, const QList<PlayListEntity>& files) {
-    constexpr auto k24Bit441KhzBitRate = 2116.8;
-
-    QList<EncodeJob> jobs;
+	QList<EncodeJob> jobs;
 
     auto* job_item = new QStandardItem(qFormat("%1 Files").arg(files.size()));
 
@@ -69,7 +67,9 @@ QList<EncodeJob> EncodeJobWidget::addJobs(int32_t encode_type, const QList<PlayL
     model_->appendRow(top_row);
 
     for (const auto& file : files) {
-        auto child0 = new QStandardItem(QString());
+	    constexpr auto k24Bit441KhzBitRate = 2116.8;
+
+	    auto child0 = new QStandardItem(QString());
         auto child1 = new QStandardItem(file.file_name);
         auto child2 = new QStandardItem();
         auto child3 = new QStandardItem();
@@ -108,10 +108,10 @@ QList<EncodeJob> EncodeJobWidget::addJobs(int32_t encode_type, const QList<PlayL
             job.codec_id = "pcm"_str;
             break;
         default:
-            XAMP_LOG_ERROR("Uknown encode type");
+            XAMP_LOG_ERROR("Unknown encode type");
             return {};
         }
-        job.type = (EncodeType)encode_type;
+        job.type = static_cast<EncodeType>(encode_type);
 
         child3->setData(0, Qt::UserRole + 1);
         job_item->appendRow(row_items);
@@ -178,7 +178,7 @@ void EncodeJobWidget::setupUI() {
 
     tree_->setItemDelegateForColumn(ENCODE_LIST_PROGRESS, progress_delegate_);
  
-    auto layout = new QVBoxLayout(this);
+    auto* layout = new QVBoxLayout(this);
     layout->addWidget(tree_);
     setLayout(layout);
 

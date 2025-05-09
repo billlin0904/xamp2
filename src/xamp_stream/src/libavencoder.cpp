@@ -451,7 +451,8 @@ public:
 
             // 讀取樣本，若一時讀不到就重試 (最多4次)，中間sleep 100ms
             if (bass_file_stream != nullptr) {
-                while (read_samples == 0 && retry_count < 4) {
+	            constexpr uint64_t kReadRetryCount = 4;
+	            while (read_samples == 0 && retry_count < kReadRetryCount) {
                     read_samples = input_file_->GetSamples(buffer_.data(), buffer_.GetSize());
                     if (read_samples == 0 && !bass_file_stream->EndOfStream()) {
                         std::this_thread::sleep_for(kWaitCDReadTime);

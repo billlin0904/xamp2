@@ -45,12 +45,26 @@ enum SpectrogramColor {
 	SPECTROGRAM_COLOR_SOX,
 };
 
+class ColorTable {
+public:
+	ColorTable();
+
+	void setSpectrogramColor(SpectrogramColor color);
+
+	QRgb operator[](double dB_val) const noexcept;
+
+private:
+	SpectrogramColor color_ = SpectrogramColor::SPECTROGRAM_COLOR_SOX;
+
+	static QRgb danBrutonColor(double level) noexcept;
+
+	static QRgb soxrColor(double level) noexcept;
+};
+
 class XAMP_WIDGET_SHARED_EXPORT BackgroundService final : public QObject {
 	Q_OBJECT
 
 public:
-	static constexpr size_t kBufferPoolSize = 256;
-
 	BackgroundService();
 
 	~BackgroundService() override;
@@ -117,7 +131,7 @@ public Q_SLOT:
 
 	void Encode(const QString& dir_name, const EncodeJob& job);
 private:
-	std::tuple<std::shared_ptr<IFile>, Path> getValidFileWriter(const EncodeJob& job, const QString& dir_name, const Path& file_path);
+	std::tuple<std::shared_ptr<IFile>, Path> getValidFileWriter(const EncodeJob& job, const QString& dir_name);
 
 	QCoro::Task<> searchKugou(const PlayListEntity& keyword);
 
@@ -129,6 +143,7 @@ private:
 	std::stop_source stop_source_;
 	QNetworkAccessManager nam_;
 	http::HttpClient http_client_;
+	ColorTable color_table_;
 	LruCache<QString, SearchLyricsResult> lyrics_cache_;
 	std::shared_ptr<IThreadPoolExecutor> thread_pool_;
 };

@@ -513,3 +513,16 @@ void setTabViewStyle(QTableView* table_view) {
     table_view->verticalHeader()->setSectionsMovable(false);
     table_view->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
 }
+
+void showMeMessage(const QString& message) {
+    if (qAppSettings.dontShowMeAgain(message)) {
+        auto [button, checked] = XMessageBox::showCheckBoxInformation(
+            message,
+            qApp->tr("Ok, and don't show again."),
+            kApplicationTitle,
+            false);
+        if (checked) {
+            qAppSettings.addDontShowMeAgain(message);
+        }
+    }
+}

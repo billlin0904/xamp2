@@ -10,6 +10,7 @@
 #include <widget/tabpage.h>
 #include <widget/dao/artistdao.h>
 
+class QPushButton;
 class QListWidget;
 class PlaylistTableView;
 class AlbumView;
@@ -20,14 +21,27 @@ class SongItem : public QWidget {
 public:
     explicit SongItem(const QPixmap& album_cover,
         const QString& song_title,
+        const QString& artist,
         const QString& album_title,
 		const QString& video_id,
         QWidget* parent = nullptr);
 
+    QString videoId() const {
+        return video_id_;
+    }
+
+    QString artist() const {
+        return artist_;
+    }
+
+    QString albumTitle() const;
+
+	QString songTitle() const;
 private:
     QLabel* cover_label_;
     QLabel* song_label_;
     QLabel* album_label_;
+	QString artist_;
     QString video_id_;
 };
 
@@ -39,6 +53,15 @@ public:
         const QString& year,
         const QString& video_id,
         QWidget* parent = nullptr);
+
+    QString videoId() const {
+        return video_id_;
+	}
+
+    QString albumTitle() const;
+
+    void setCover(const QPixmap& cover);
+
 private:
     QLabel* cover_label_;
     QLabel* album_title_label_;
@@ -55,12 +78,13 @@ public:
 
     void setDescription(const QString& info);
 
-    void setAristImage(const QPixmap &image);
+    void setArtistImage(const QPixmap &image);
 
     void setArtistId(int32_t artist_id);
 
     void insertSong(const QString &album, 
         const QString& title,
+        const QString& artist,
         const QString& video_id,
         const QPixmap &image = QPixmap());
 
@@ -78,15 +102,23 @@ public:
     }
 
     void reload() override;
+
+signals:
+    void browseAlbum(const QString &album, const QString& video_id);
+
 protected:
     void paintEvent(QPaintEvent* event) override;
 
 private:
+    bool is_expanded_{ false };
     int32_t artist_id_;
     QWidget* top_widget_;
     QLabel* title_label_;
     QLabel* desc_label_;
     QListWidget* song_list_;
     QListWidget* album_list_;
+    QPushButton* toggle_btn_;
+    QString full_description_;
+    QString short_description_;
     QPixmap background_;
 };

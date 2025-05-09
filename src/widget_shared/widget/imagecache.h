@@ -49,6 +49,8 @@ public:
 
 	void loadUnknownCover();
 
+	bool contains(const QString& tag_id) const;
+
 	QPixmap scanCoverFromDir(const QString& file_path);
 
 	QPixmap findImageFromDir(const PlayListEntity& item);

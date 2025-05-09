@@ -54,12 +54,25 @@ AlbumItem::AlbumItem(const QPixmap& cover,
     setLayout(main_layout);
 }
 
+void AlbumItem::setCover(const QPixmap& cover) {
+    QPixmap scaled_cover = cover.scaled(120, 120,
+        Qt::KeepAspectRatioByExpanding,
+        Qt::SmoothTransformation);
+    cover_label_->setPixmap(scaled_cover);
+}
+
+QString AlbumItem::albumTitle() const {
+    return album_title_label_->text();
+}
+
 SongItem::SongItem(const QPixmap& album_cover,
     const QString& song_title,
+    const QString& artist,
     const QString& album_title,
     const QString& video_id,
     QWidget* parent)
     : QWidget(parent)
+	, artist_(artist)
     , video_id_(video_id) {
     auto* main_layout = new QHBoxLayout(this);
     main_layout->setContentsMargins(5, 5, 5, 5);
@@ -94,16 +107,26 @@ SongItem::SongItem(const QPixmap& album_cover,
     setLayout(main_layout);
 }
 
+QString SongItem::albumTitle() const {
+    return album_label_->text();
+}
+
+QString SongItem::songTitle() const {
+    return song_label_->text();
+}
+
 ArtistInfoPage::ArtistInfoPage(QWidget* parent)
     : QFrame(parent) {
     artist_id_ = 0;
+
+    toggle_btn_ = new QPushButton(tr(" Show More"), this);
+    toggle_btn_->setVisible(false);
 
     auto* main_layout = new QVBoxLayout(this);
     main_layout->setContentsMargins(50, 30, 50, 0);
     main_layout->setSpacing(0);
 
     top_widget_ = new QWidget(this);
-    top_widget_->setFixedHeight(100);
 
     auto* top_layout = new QVBoxLayout(top_widget_);
     top_layout->setContentsMargins(50, 0, 50, 0);
@@ -117,6 +140,10 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
     title_label_->setFont(f);
     top_layout->addWidget(title_label_);
 
+    auto* desc_layout = new QVBoxLayout();
+    desc_layout->setContentsMargins(0, 0, 0, 0);
+    desc_layout->setSpacing(2);
+
     desc_label_ = new QLabel(top_widget_);
     f.setBold(false);
     f.setPointSize(8);
@@ -124,9 +151,17 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
     desc_label_->setMaximumWidth(1000);
     desc_label_->setWordWrap(true);
     desc_label_->setAlignment(Qt::AlignLeft);
-    top_layout->addWidget(desc_label_);
 
-    auto* top_spacer = new QSpacerItem(20, 150, QSizePolicy::Expanding, QSizePolicy::Fixed);
+    toggle_btn_->setFont(f);
+
+    desc_layout->addWidget(desc_label_);
+    desc_layout->addWidget(toggle_btn_, 0, Qt::AlignLeft);
+
+	//top_layout->addWidget(desc_label_);
+    //top_layout->addWidget(toggle_btn_);
+    top_layout->addLayout(desc_layout);
+
+    auto* top_spacer = new QSpacerItem(20, 280, QSizePolicy::Expanding, QSizePolicy::Fixed);
 	main_layout->addSpacerItem(top_spacer);
     main_layout->addWidget(top_widget_);
 
@@ -165,11 +200,31 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 
     scroll_content_widget->setLayout(scroll_content_layout);
 
-    //scroll_area->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    //scroll_area->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     scroll_area->setWidget(scroll_content_widget);
 
     main_layout->addWidget(scroll_area);
+
+    (void)QObject::connect(album_list_, &QListWidget::itemDoubleClicked, [this](QListWidgetItem* item) {
+		auto* album_item = qobject_cast<AlbumItem*>(album_list_->itemWidget(item));
+        auto title = album_item->albumTitle();
+        auto video_id = album_item->videoId();
+		emit browseAlbum(title, video_id);
+        });
+
+    (void)QObject::connect(toggle_btn_, &QPushButton::clicked, [this]() {
+        if (!is_expanded_) {
+            desc_label_->setText(full_description_);
+            toggle_btn_->setText(tr(" Show Less"));
+            is_expanded_ = true;
+        } else {
+            desc_label_->setText(short_description_);
+            toggle_btn_->setText(tr(" Show More"));
+            is_expanded_ = false;
+        }
+        });
+
+    song_section_label->hide();
+    song_list_->hide();
 
     setFrameShape(QFrame::StyledPanel);    
     setLayout(main_layout);
@@ -180,10 +235,24 @@ void ArtistInfoPage::setTitle(const QString& title) {
 }
 
 void ArtistInfoPage::setDescription(const QString& info) {
-    desc_label_->setText(info);
+    full_description_ = info;
+    constexpr auto kMaxTextLimit = 200;
+
+    if (full_description_.size() > kMaxTextLimit) {
+        short_description_ = full_description_.left(kMaxTextLimit) + "..."_str;
+        desc_label_->setText(short_description_);
+        toggle_btn_->setVisible(true);
+        is_expanded_ = false;
+        toggle_btn_->setText(tr(" Show More"));
+    } else {
+        short_description_ = info;
+        desc_label_->setText(info);
+        toggle_btn_->setVisible(false);
+        is_expanded_ = false;
+    }
 }
 
-void ArtistInfoPage::setAristImage(const QPixmap& image) {
+void ArtistInfoPage::setArtistImage(const QPixmap& image) {
     background_ = image;
 }
 
@@ -193,10 +262,12 @@ void ArtistInfoPage::setArtistId(int32_t artist_id) {
 
 void ArtistInfoPage::insertSong(const QString& album,
     const QString& title,
+    const QString& artist,
     const QString& video_id,
     const QPixmap& image) {
     auto* item_widget = new SongItem(image,
-        title, 
+        title,
+        artist,
         album, 
         video_id,
         this);
@@ -223,7 +294,14 @@ void ArtistInfoPage::insertAlbum(const QString& album_title,
 void ArtistInfoPage::reload() {
     auto cover_id = qDaoFacade.artist_dao.getArtistCoverId(artist_id_);
     auto image = qImageCache.getOrDefault(kEmptyString, cover_id);
-    setAristImage(image);
+    setArtistImage(image);
+    for (auto i = 0; i < album_list_->count(); ++i) {
+        auto *widget = dynamic_cast<AlbumItem*>(album_list_->itemWidget(album_list_->item(i)));
+        if (widget) {
+            auto image = qImageCache.getOrDefault(kEmptyString, widget->videoId());
+            widget->setCover(image);
+		}
+    }
 }
 
 void ArtistInfoPage::paintEvent(QPaintEvent* event) {
@@ -236,50 +314,35 @@ void ArtistInfoPage::paintEvent(QPaintEvent* event) {
         return;
     }
 
-    QRect top_rect = top_widget_->geometry();
+    constexpr auto kBackgroundHeight = 450;
 
-    auto w = top_rect.width();
-    auto h = top_rect.height();
+    // 建立一個繪製範圍 topAreaRect
+    QRect topAreaRect(0, 0, width(), kBackgroundHeight);
 
-    QSize resize(w, h);
-
-    auto scaled_bg = background_.scaled(resize,
+    // 將圖縮放到這個 topAreaRect (或 KeepAspectRatioByExpanding 之類)
+    auto scaledBg = background_.scaled(
+        topAreaRect.size(),
         Qt::KeepAspectRatioByExpanding,
-        Qt::SmoothTransformation);
+        Qt::SmoothTransformation
+    );
 
-    while (scaled_bg.width() > 1000) {        
-        scaled_bg = background_.scaled(resize,
-            Qt::KeepAspectRatioByExpanding,
-            Qt::SmoothTransformation);
-        resize.setWidth(resize.width() - 10);
-    }	
+    // 若想只取前面 280px 高度，可做 copy，但要確保 scaledBg 足夠大
+    scaledBg = scaledBg.copy(0, 0, scaledBg.width(), kBackgroundHeight);
 
-    scaled_bg = scaled_bg.copy(0, 0, scaled_bg.width(), 280);
+    // 水平置中: 讓 x 往左 or 往右偏移
+    int x = (width() - scaledBg.width()) / 2;
+    painter.drawPixmap(QPoint(x, 0), scaledBg);
 
-    auto bw = scaled_bg.width();
-    auto bh = scaled_bg.height();
-
-    int x = top_rect.x() + (top_rect.width() - scaled_bg.width()) / 2;
-    int y = top_rect.y() + (top_rect.height() - scaled_bg.height()) / 2;
-    painter.drawPixmap(QPoint(x, 0), scaled_bg);
-
-    constexpr auto kGradientHeight = 10;
-
-    int start_y = top_rect.bottom() - 250 - kGradientHeight;
+    constexpr int kGradientHeight = kBackgroundHeight;
+    int startY = kBackgroundHeight - kGradientHeight;
 
     QLinearGradient grad(
-        QPointF(0, start_y),
-        QPointF(0, top_rect.bottom())
+        QPointF(0, startY),
+        QPointF(0, kBackgroundHeight)
     );
-    grad.setColorAt(0.0, QColor(0, 0, 0, 0));
-    grad.setColorAt(1.0, QColor(0, 0, 0, 255));
+    grad.setColorAt(0.0, QColor(0, 0, 0, 0));   // 從透明
+    grad.setColorAt(1.0, QColor(0, 0, 0, 255)); // 漸變到黑
 
-    QRect gradient_rect(
-        top_rect.x(),
-        start_y,
-        top_rect.width(),
-        top_rect.bottom()
-    );
-
-    painter.fillRect(gradient_rect, grad);
+    QRect gradientRect(0, startY, width(), kGradientHeight);
+    painter.fillRect(gradientRect, grad);
 }

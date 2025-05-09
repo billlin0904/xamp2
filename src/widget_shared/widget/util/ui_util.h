@@ -117,3 +117,5 @@ XAMP_WIDGET_SHARED_EXPORT QString uniqueFileName(const QDir& dir,
 XAMP_WIDGET_SHARED_EXPORT QString getValidFileName(QString fileName);
 
 XAMP_WIDGET_SHARED_EXPORT QString applicationPath();
+
+XAMP_WIDGET_SHARED_EXPORT void showMeMessage(const QString& message);

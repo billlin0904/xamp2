@@ -464,7 +464,7 @@ QCoro::Task<SongInfo> YtMusicHttpService::fetchSongInfo(const QString& video_id)
 	co_return song_info;
 }
 
-QCoro::Task<QList<LibraryPlaylist>> YtMusicHttpService::fetchLibraryPlaylists() {
+QCoro::Task<std::optional<QList<LibraryPlaylist>>> YtMusicHttpService::fetchLibraryPlaylists() {
 	http_client_.setUrl(qFormat("%1/fetch_library_playlists").arg(BASE_URL));
 	http_client_.addAcceptJsonHeader();
 	auto content = co_await http_client_.get();
@@ -472,7 +472,7 @@ QCoro::Task<QList<LibraryPlaylist>> YtMusicHttpService::fetchLibraryPlaylists() 
 	QList<LibraryPlaylist> results;
 	QJsonDocument doc;
 	if (!json_util::deserialize(content, doc)) {
-		co_return results;
+		co_return std::nullopt;
 	}
 
 	const auto json_array = doc.array();
@@ -485,7 +485,7 @@ QCoro::Task<QList<LibraryPlaylist>> YtMusicHttpService::fetchLibraryPlaylists() 
 		results.push_back(playlist);
 	}
 
-	co_return results;
+	co_return MakeOptional<QList<LibraryPlaylist>>(std::move(results));
 }
 
 QCoro::Task<QString> YtMusicHttpService::fetchLyrics(const QString& video_id) {
@@ -529,23 +529,6 @@ QCoro::Task<QList<search::Album>> YtMusicHttpService::searchAlbum(const QString&
 	}
 
 	co_return result;
-}
-
-QCoro::Task<album::Album> YtMusicHttpService::fetchAlbum(const QString& browse_id) {
-	http_client_.setUrl(qFormat("%1/get_album").arg(BASE_URL));
-
-	QVariantMap map;
-	map["browse_id"_str] = browse_id;
-	http_client_.setJson(json_util::serialize(map));
-
-	auto content = co_await http_client_.post();
-	album::Album album;
-	QJsonDocument doc;
-	if (!json_util::deserialize(content, doc)) {
-		co_return album;
-	}
-	album = parseAlbum(doc.object());
-	co_return album;
 }
 
 QCoro::Task<QList<QString>> YtMusicHttpService::searchSuggestions(const QString& query) {
@@ -631,20 +614,35 @@ QCoro::Task<QString> YtMusicHttpService::createPlaylist(const QString& title,
 	co_return content;
 }
 
-QCoro::Task<artist::Artist> YtMusicHttpService::fetchArtist(const QString& channel_id) {
+QCoro::Task<std::optional<album::Album>> YtMusicHttpService::fetchAlbum(const QString& browse_id) {
+	http_client_.setUrl(qFormat("%1/get_album").arg(BASE_URL));
+
+	QVariantMap map;
+	map["browse_id"_str] = browse_id;
+	http_client_.setJson(json_util::serialize(map));
+
+	auto content = co_await http_client_.post();
+	QJsonDocument doc;
+	if (!json_util::deserialize(content, doc)) {
+		co_return std::nullopt;
+	}
+	auto album = parseAlbum(doc.object());
+	co_return MakeOptional<album::Album>(std::move(album));
+}
+
+QCoro::Task<std::optional<artist::Artist>> YtMusicHttpService::fetchArtist(const QString& channel_id) {
 	http_client_.setUrl(qFormat("%1/fetch_artist").arg(BASE_URL));
 
 	QVariantMap map;
 	map["channel_id"_str] = channel_id;
 	http_client_.setJson(json_util::serialize(map));
 
-	artist::Artist artist;
 	QJsonDocument doc;
 	auto content = co_await http_client_.post();
 	if (!json_util::deserialize(content, doc)) {
-		co_return artist;
+		co_return std::nullopt;
 	}
 
-	artist = parseArtist(doc.object());
-	co_return artist;
+	auto artist = parseArtist(doc.object());
+	co_return MakeOptional<artist::Artist>(std::move(artist));
 }

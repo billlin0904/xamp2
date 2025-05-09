@@ -117,7 +117,8 @@ AvUtilLib::AvUtilLib() try
 	, XAMP_LOAD_DLL_API(av_freep)
 	, XAMP_LOAD_DLL_API(av_samples_alloc)
 	, XAMP_LOAD_DLL_API(av_opt_set_int)
-	, XAMP_LOAD_DLL_API(av_opt_set_sample_fmt) {
+	, XAMP_LOAD_DLL_API(av_opt_set_sample_fmt)
+	, XAMP_LOAD_DLL_API(av_get_sample_fmt_name) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());

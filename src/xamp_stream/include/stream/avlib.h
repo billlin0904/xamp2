@@ -161,6 +161,7 @@ public:
     XAMP_DECLARE_DLL_NAME(av_samples_alloc);
     XAMP_DECLARE_DLL_NAME(av_opt_set_int);
     XAMP_DECLARE_DLL_NAME(av_opt_set_sample_fmt);
+    XAMP_DECLARE_DLL_NAME(av_get_sample_fmt_name);
 };
 
 class AvSwLib final {

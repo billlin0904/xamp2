@@ -30,8 +30,6 @@ public:
 signals:
 	void fetchThumbnailUrlError(const DatabaseCoverId& id, const QString& thumbnail_url);
 
-	void setYoutubeThumbnailUrl(const QString& video_id);
-
 	void setThumbnail(const DatabaseCoverId &id, const QString& cover_id);
 
 	void setAristThumbnail(int32_t artist_id, const QString& cover_id);

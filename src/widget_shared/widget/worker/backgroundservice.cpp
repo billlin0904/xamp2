@@ -42,108 +42,6 @@ namespace {
     constexpr double kMinDb = -120.0;
     constexpr double kDbRange = kMaxDb - kMinDb;
 
-    class ColorTable {
-    public:
-        ColorTable() = default;
-
-        void setSpectrogramColor(SpectrogramColor color) {
-			color_ = color;
-        }
-
-        QRgb operator[](double dB_val) const {
-            if (dB_val < kMinDb) dB_val = kMinDb;
-            if (dB_val > kMaxDb) dB_val = kMaxDb;
-            const double ratio = (dB_val - kMinDb) / kDbRange;
-            if (color_ == SpectrogramColor::SPECTROGRAM_COLOR_DEFAULT) {
-                return danBrutonColor(ratio);
-            }
-            return soxrColor(ratio);
-        }
-
-    private:
-		SpectrogramColor color_ = SpectrogramColor::SPECTROGRAM_COLOR_SOX;
-
-        static QRgb danBrutonColor(double level) {
-            level *= 0.6625;
-            double r = 0.0, g = 0.0, b = 0.0;
-            if (level >= 0 && level < 0.15) {
-                r = (0.15 - level) / (0.15 + 0.075);
-                g = 0.0;
-                b = 1.0;
-            }
-            else if (level >= 0.15 && level < 0.275) {
-                r = 0.0;
-                g = (level - 0.15) / (0.275 - 0.15);
-                b = 1.0;
-            }
-            else if (level >= 0.275 && level < 0.325) {
-                r = 0.0;
-                g = 1.0;
-                b = (0.325 - level) / (0.325 - 0.275);
-            }
-            else if (level >= 0.325 && level < 0.5) {
-                r = (level - 0.325) / (0.5 - 0.325);
-                g = 1.0;
-                b = 0.0;
-            }
-            else if (level >= 0.5 && level < 0.6625) {
-                r = 1.0;
-                g = (0.6625 - level) / (0.6625 - 0.5f);
-                b = 0.0;
-            }
-
-            // Intensity correction.
-            double cf = 1.0;
-            if (level >= 0.0 && level < 0.1) {
-                cf = level / 0.1;
-            }
-            cf *= 255.0;
-
-            // Pack RGB values into a 32-bit uint.
-            auto rr = static_cast<uint32_t>(r * cf + 0.5);
-            auto gg = static_cast<uint32_t>(g * cf + 0.5);
-            auto bb = static_cast<uint32_t>(b * cf + 0.5);
-
-            return qRgb(rr, gg, bb);
-        }
-
-        static QRgb soxrColor(double level) {
-            double r = 0.0;
-            if (level >= 0.13 && level < 0.73) {
-                r = sin((level - 0.13) / 0.60 * XAMP_PI / 2.0);
-            }
-            else if (level >= 0.73) {
-                r = 1.0;
-            }
-
-            double g = 0.0;
-            if (level >= 0.6 && level < 0.91) {
-                g = sin((level - 0.6) / 0.31 * XAMP_PI / 2.0);
-            }
-            else if (level >= 0.91) {
-                g = 1.0;
-            }
-
-            double b = 0.0;
-            if (level < 0.60) {
-                b = 0.5 * sin(level / 0.6 * XAMP_PI);
-            }
-            else if (level >= 0.78) {
-                b = (level - 0.78) / 0.22;
-            }
-
-            // clamp b
-            if (b < 0.) b = 0.;
-            if (b > 1.) b = 1.;
-
-            auto rr = static_cast<uint32_t>(r * 255.0 + 0.5);
-            auto gg = static_cast<uint32_t>(g * 255.0 + 0.5);
-            auto bb = static_cast<uint32_t>(b * 255.0 + 0.5);
-
-            return qRgb(rr, gg, bb);
-        }
-    };
-
     float getDb(const std::complex<float>& c) {
         // 取得 (實部^2 + 虛部^2)
         float val = (c.real() * c.real() + c.imag() * c.imag());
@@ -240,6 +138,102 @@ namespace {
     }
 }
 
+ColorTable::ColorTable() = default;
+
+void ColorTable::setSpectrogramColor(SpectrogramColor color) {
+    color_ = color;
+}
+
+QRgb ColorTable::operator[](double dB_val) const noexcept {
+    if (dB_val < kMinDb) dB_val = kMinDb;
+    if (dB_val > kMaxDb) dB_val = kMaxDb;
+    const double ratio = (dB_val - kMinDb) / kDbRange;
+    if (color_ == SpectrogramColor::SPECTROGRAM_COLOR_DEFAULT) {
+        return danBrutonColor(ratio);
+    }
+    return soxrColor(ratio);
+}
+
+QRgb ColorTable::danBrutonColor(double level) noexcept {
+    level *= 0.6625;
+    double r = 0.0, g = 0.0, b = 0.0;
+    if (level >= 0 && level < 0.15) {
+        r = (0.15 - level) / (0.15 + 0.075);
+        g = 0.0;
+        b = 1.0;
+    }
+    else if (level >= 0.15 && level < 0.275) {
+        r = 0.0;
+        g = (level - 0.15) / (0.275 - 0.15);
+        b = 1.0;
+    }
+    else if (level >= 0.275 && level < 0.325) {
+        r = 0.0;
+        g = 1.0;
+        b = (0.325 - level) / (0.325 - 0.275);
+    }
+    else if (level >= 0.325 && level < 0.5) {
+        r = (level - 0.325) / (0.5 - 0.325);
+        g = 1.0;
+        b = 0.0;
+    }
+    else if (level >= 0.5 && level < 0.6625) {
+        r = 1.0;
+        g = (0.6625 - level) / (0.6625 - 0.5f);
+        b = 0.0;
+    }
+
+    // Intensity correction.
+    double cf = 1.0;
+    if (level >= 0.0 && level < 0.1) {
+        cf = level / 0.1;
+    }
+    cf *= 255.0;
+
+    // Pack RGB values into a 32-bit uint.
+    auto rr = static_cast<uint32_t>(r * cf + 0.5);
+    auto gg = static_cast<uint32_t>(g * cf + 0.5);
+    auto bb = static_cast<uint32_t>(b * cf + 0.5);
+
+    return qRgb(rr, gg, bb);
+}
+
+QRgb ColorTable::soxrColor(double level) noexcept {
+    double r = 0.0;
+    if (level >= 0.13 && level < 0.73) {
+        r = sin((level - 0.13) / 0.60 * XAMP_PI / 2.0);
+    }
+    else if (level >= 0.73) {
+        r = 1.0;
+    }
+
+    double g = 0.0;
+    if (level >= 0.6 && level < 0.91) {
+        g = sin((level - 0.6) / 0.31 * XAMP_PI / 2.0);
+    }
+    else if (level >= 0.91) {
+        g = 1.0;
+    }
+
+    double b = 0.0;
+    if (level < 0.60) {
+        b = 0.5 * sin(level / 0.6 * XAMP_PI);
+    }
+    else if (level >= 0.78) {
+        b = (level - 0.78) / 0.22;
+    }
+
+    // clamp b
+    if (b < 0.) b = 0.;
+    if (b > 1.) b = 1.;
+
+    auto rr = static_cast<uint32_t>(r * 255.0 + 0.5);
+    auto gg = static_cast<uint32_t>(g * 255.0 + 0.5);
+    auto bb = static_cast<uint32_t>(b * 255.0 + 0.5);
+
+    return qRgb(rr, gg, bb);
+}
+
 BackgroundService::BackgroundService()
     : nam_(this)
 	, http_client_(&nam_, QString(), this) {
@@ -268,8 +262,7 @@ void BackgroundService::onTranscribeFile(const QString& file_name) {
 
 std::tuple<std::shared_ptr<IFile>, Path> 
 BackgroundService::getValidFileWriter(const EncodeJob &job,
-    const QString& dir_name,
-    const Path& file_path) {
+    const QString& dir_name) {
     std::shared_ptr<IFile> file_writer;
     Path output_path;
 
@@ -324,10 +317,17 @@ void BackgroundService::SequenceEncode(const QString& dir_name, QList<EncodeJob>
 }
 
 void BackgroundService::Encode(const QString& dir_name, const EncodeJob & job) {
-    auto [file_writer, output_path] = getValidFileWriter(job, dir_name,
-        job.file.file_path.toStdWString());
+    auto [file_writer, output_path] = getValidFileWriter(
+        job,
+        dir_name);
+
+    if (file_writer == nullptr || output_path.empty()) {
+        emit jobError(job.job_id, tr("Encode error"));
+        return;
+    }
 
     Path input_path(job.file.file_path.toStdWString());
+    auto stop_token = stop_source_.get_token();
 
     try {
         auto encoder = StreamFactory::MakeFileEncoder();
@@ -343,17 +343,24 @@ void BackgroundService::Encode(const QString& dir_name, const EncodeJob & job) {
             job.bit_rate);
 
         encoder->Start(config, file_writer);
-        encoder->Encode([job, this](auto progress) {
+        encoder->Encode([job, &stop_token, this](auto progress) {
+            if (stop_token.stop_requested()) {
+                return false;
+            }
             if (progress % 10 == 0) {
                 emit updateJobProgress(job.job_id, progress);
-            }
+            }            
             return true;
             });
         file_writer.reset();
         encoder.reset();
 
-        TagIO input_io;
-        input_io.Open(input_path, TAG_IO_READ_MODE);
+        if (stop_token.stop_requested()) {
+            Fs::remove(output_path);
+            XAMP_LOG_DEBUG("Encode job canceled.");
+            emit jobError(job.job_id, tr("Canceled"));
+			return;
+        }
 
         TagIO output_io;
         output_io.Open(output_path, TAG_IO_WRITE_MODE);
@@ -365,6 +372,8 @@ void BackgroundService::Encode(const QString& dir_name, const EncodeJob & job) {
         output_io.writeTrack(job.file.track);
         output_io.writeYear(job.file.year);
 
+        TagIO input_io;
+        input_io.Open(input_path, TAG_IO_READ_MODE);
         auto cover = input_io.embeddedCover();
         if (!cover.isNull()) {
             output_io.writeEmbeddedCover(cover);
@@ -374,18 +383,20 @@ void BackgroundService::Encode(const QString& dir_name, const EncodeJob & job) {
     }
     catch (const Exception& e) {
         XAMP_LOG_ERROR(e.GetStackTrace());
-        emit jobError(job.job_id, tr("Error"));
+        emit jobError(job.job_id, tr("Encode error"));
     }
     catch (const std::exception& e) {
         XAMP_LOG_ERROR(e.what());
-        emit jobError(job.job_id, tr("Error"));
+        emit jobError(job.job_id, tr("Encode error"));
     }
 }
 
 void BackgroundService::ParallelEncode(const QString& dir_name, QList<EncodeJob> jobs) {
-    Executor::ParallelFor(thread_pool_.get(), jobs, [this, dir_name](const EncodeJob& job) {
+    auto stop_token = stop_source_.get_token();
+    Executor::ParallelFor(thread_pool_.get(), jobs,
+        [this, dir_name](const EncodeJob& job) {
         Encode(dir_name, job);
-        });
+        }, stop_token);
 }
 
 void BackgroundService::onAddJobs(const QString& dir_name, const QList<EncodeJob>& jobs) {
@@ -553,7 +564,6 @@ QCoro::Task<QList<SearchLyricsResult>> BackgroundService::downloadKLrc(QList<Inf
 }
 
 QCoro::Task<> BackgroundService::searchKugou(const PlayListEntity& keyword) {
-    //http::HttpClient http_client(&nam_, QString(), this);
     http_client_.setUrl("http://mobilecdn.kugou.com/api/v3/search/song"_str);
     http_client_.param("format"_str, "json"_str);
     http_client_.param("keyword"_str, keyword.title);
@@ -566,7 +576,6 @@ QCoro::Task<> BackgroundService::searchKugou(const PlayListEntity& keyword) {
 }
 
 QCoro::Task<> BackgroundService::searchNetease(const PlayListEntity& keyword) {
-	//http::HttpClient http_client(&nam_, QString(), this);
     http_client_.setUrl("http://music.163.com/api/search/get"_str);
     http_client_.param("s"_str, keyword.title);
     http_client_.param("limit"_str, 30);
@@ -586,8 +595,10 @@ QCoro::Task<> BackgroundService::searchNetease(const PlayListEntity& keyword) {
 void BackgroundService::onSearchLyrics(const PlayListEntity& keyword) {
     auto temp = keyword.cleanup();
     searchKugou(temp).then([]() {
+        XAMP_LOG_DEBUG("Search kugou lyrics completed!");
         });    
     searchNetease(temp).then([]() {
+        XAMP_LOG_DEBUG("Search Netease lyrics completed!");
         });
 }
 
@@ -745,8 +756,7 @@ void BackgroundService::onReadSpectrogram(SpectrogramColor color, const Path& fi
 		auto total_samples = static_cast<uint32_t>(duration * format.GetSampleRate());
         auto kColumnsPerChunk = (std::max)(100u, static_cast<uint32_t>(total_samples / fft.GetShiftSize()));
 
-        ColorTable color_table;
-        color_table.setSpectrogramColor(color);
+        color_table_.setSpectrogramColor(color);
 
         while (!is_stop_ && file_stream->IsActive()) {
         	QImage chunk_img(kColumnsPerChunk, freq_bins.size(),
@@ -755,13 +765,13 @@ void BackgroundService::onReadSpectrogram(SpectrogramColor color, const Path& fi
 
             if (!getSamples(file_stream, buffer)) {
                 freq_bins = fft.Flush();
-                fillSpectrogramColumn(color_table, chunk_img, 0, freq_bins);
+                fillSpectrogramColumn(color_table_, chunk_img, 0, freq_bins);
                 emit readAudioSpectrogram(duration, kHopSize, chunk_img, time_index);
                 break;
             }
 
             freq_bins = fft.Process(buffer.data(), buffer.size());
-            fillSpectrogramColumn(color_table, chunk_img, 0, freq_bins);
+            fillSpectrogramColumn(color_table_, chunk_img, 0, freq_bins);
 
             int actual_columns = kColumnsPerChunk;
 			
@@ -769,12 +779,12 @@ void BackgroundService::onReadSpectrogram(SpectrogramColor color, const Path& fi
 				if (!getSamples(file_stream, buffer)) {
                     actual_columns = col;
                     freq_bins = fft.Flush();
-                    fillSpectrogramColumn(color_table, chunk_img, col, freq_bins);
+                    fillSpectrogramColumn(color_table_, chunk_img, col, freq_bins);
                     break;
                 }
                 else {
                     freq_bins = fft.Process(buffer.data(), buffer.size());
-                    fillSpectrogramColumn(color_table, chunk_img, col, freq_bins);
+                    fillSpectrogramColumn(color_table_, chunk_img, col, freq_bins);
                 }
             }
 

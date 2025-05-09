@@ -17,8 +17,7 @@
 #include <QPropertyAnimation>
 
 XDialog::XDialog(QWidget* parent, bool modal)
-    : QDialog(parent) {
-    setAttribute(Qt::WA_DontCreateNativeAncestors);
+    : QDialog(parent) {    
     setObjectName("XDialog");
     auto* default_layout = new QVBoxLayout(this);
     default_layout->setSpacing(0);
@@ -46,6 +45,8 @@ void XDialog::setContent(QWidget* content) {
 }
 
 void XDialog::installWindowAgent() {
+    setAttribute(Qt::WA_DontCreateNativeAncestors);
+
     window_agent_ = new QWK::WidgetWindowAgent(this);
     window_agent_->setup(this);
 

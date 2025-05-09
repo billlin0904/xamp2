@@ -109,49 +109,65 @@ void LrcParser::parseLrc(const std::wstring & line) {
 
 void LrcParser::parseMultiLrc(std::wstring const & line) {
     std::vector<std::chrono::milliseconds> times;
-    std::wstring lrc;         // 這行最終要顯示的歌詞文字
-    std::wstring temp = line; // 複製一份用來刪除 bracket
 
-    while (true) {
-        auto first = temp.find(L"[");
-        auto last = temp.find(L"]");
+    // 這個 lrc_text 用來暫存「純文字 + 非時間中括號」的部分
+    std::wstring lrc_text;
 
-        if (first == std::wstring::npos || last == std::wstring::npos || last < first) {
-            // 找不到任何 bracket 或 bracket 不成對 -> 結束
+    size_t pos = 0;
+    while (pos < line.size()) {
+        // 嘗試尋找下一個 '['
+        size_t open_bracket = line.find(L'[', pos);
+        if (open_bracket == std::wstring::npos) {
+            // 如果找不到，就把剩餘的文字全部接到 lrc_text
+            lrc_text.append(line.substr(pos));
             break;
         }
 
-        // 取出 bracket 的內文 (不含中括號本身)
-        auto bracket_content = temp.substr(first + 1, last - (first + 1));
+        // 先把 '[' 之前的文字加入 lrc_text
+        lrc_text.append(line.substr(pos, open_bracket - pos));
 
-        // 從 temp 移除這段 bracket（包含中括號）
-        temp.erase(first, (last - first) + 1);
+        // 嘗試找對應的 ']'
+        size_t close_bracket = line.find(L']', open_bracket + 1);
+        if (close_bracket == std::wstring::npos) {
+            // 找不到 ']': 就把從 '[' 開始到結尾都當作普通文字
+            lrc_text.append(line.substr(open_bracket));
+            break;
+        }
 
-        // 嘗試把 bracket_content 視為時間格式
+        // 取 bracket 裡的內容 (不含中括號本身)
+        auto bracket_content = line.substr(open_bracket + 1, close_bracket - (open_bracket + 1));
+
+        // 準備移動掃描指針到 ']' 之後
+        pos = close_bracket + 1;
+
+        // 嘗試 parseTime
         try {
             auto t = parseTime(bracket_content);
+            // 如果是時間，先記下來
             times.push_back(t);
         }
         catch (const std::invalid_argument&) {
-            // 不是合法時間 => 把它視為「歌詞註解」文字，追加到 lrc
-            lrc.append(L"[" + bracket_content + L"]");
-            XAMP_LOG_DEBUG("invalid_argument => {}", String::ToUtf8String(line));
+            // 如果不是時間，就把整個 bracket 當作一般文字
+            lrc_text.append(L"[" + bracket_content + L"]");
+            XAMP_LOG_DEBUG("invalid_argument => {}", String::ToString(line));
         }
     }
 
-    // bracket 都處理完後，temp 剩下的就是本行的文字
-    lrc.append(temp);
+    // 如果 pos 還沒到行尾，就把剩餘的文字也加入 lrc_text
+    if (pos < line.size()) {
+        lrc_text.append(line.substr(pos));
+    }
 
-    // 若這行沒有任何合法時間，則整行視為無效(或你可選擇做其它處理)
+    // 如果沒有任何有效時間 => 這行不加入 lyrics
     if (times.empty()) {
         return;
     }
 
-    // 若有多個合法時間，為每個 timestamp 建立一筆 LyricEntry
+    // 對於所有合法時間，都用同一段 lrc_text
     for (auto& t : times) {
         LyricEntry entry;
         entry.timestamp = t;
-        entry.lrc = lrc;
+        entry.lrc = lrc_text;
         lyrics_.push_back(entry);
     }
 }

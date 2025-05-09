@@ -57,7 +57,6 @@ void AlbumCoverService::onFetchYoutubeThumbnailUrl(const QString& video_id, cons
             return;
         }
         qImageCache.addCache(video_id, image);
-        emit setYoutubeThumbnailUrl(video_id);
         pending_requests_.erase(thumbnail_url);
         });
     pending_requests_.insert(thumbnail_url);

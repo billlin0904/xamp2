@@ -386,7 +386,7 @@ public:
 
 	QCoro::Task<SongInfo> fetchSongInfo(const QString& video_id);
 
-	QCoro::Task<QList<LibraryPlaylist>> fetchLibraryPlaylists();
+	QCoro::Task<std::optional<QList<LibraryPlaylist>>> fetchLibraryPlaylists();
 
 	QCoro::Task<LibraryPlaylist> fetchPlaylist(const QString& playlist_id);
 
@@ -406,9 +406,9 @@ public:
 
 	QCoro::Task<QList<search::Album>> searchAlbum(const QString& query);
 
-	QCoro::Task<album::Album> fetchAlbum(const QString& browse_id);
+	QCoro::Task<std::optional<album::Album>> fetchAlbum(const QString& browse_id);
 
-	QCoro::Task<artist::Artist> fetchArtist(const QString& channel_id);
+	QCoro::Task<std::optional<artist::Artist>> fetchArtist(const QString& channel_id);
 private:
 	http::HttpClient http_client_;
 };

@@ -38,7 +38,7 @@ void NullOutputDevice::SetAudioCallback(IAudioCallback* callback) noexcept {
 }
 
 void NullOutputDevice::StopStream(bool wait_for_stop_stream) {
-	XAMP_LOG_DEBUG("NullOutputDevice stop stream.");
+	XAMP_LOG_D(logger_, "NullOutputDevice stop stream.");
 
 	if (!is_running_) {
 		return;
@@ -50,17 +50,17 @@ void NullOutputDevice::StopStream(bool wait_for_stop_stream) {
 		render_task_.get();
 	}
 
-	XAMP_LOG_DEBUG("NullOutputDevice stop stream done.");
+	XAMP_LOG_D(logger_, "NullOutputDevice stop stream done.");
 	is_running_ = false;
 }
 
 void NullOutputDevice::CloseStream() {
-	XAMP_LOG_DEBUG("NullOutputDevice close stream.");
+	XAMP_LOG_D(logger_, "NullOutputDevice close stream.");
 	render_task_ = Task<void>();
 }
 
 void NullOutputDevice::OpenStream(AudioFormat const & output_format) {
-	XAMP_LOG_DEBUG("NullOutputDevice open stream.");
+	XAMP_LOG_D(logger_, "NullOutputDevice open stream.");
 
 	static constexpr auto kDefaultBufferFrame = 432; // 10ms
 
@@ -75,7 +75,7 @@ void NullOutputDevice::OpenStream(AudioFormat const & output_format) {
 	wait_time_ = std::chrono::milliseconds((buffer_frames_ *
 		kMicrosecondsPerSecond /
 		output_format.GetSampleRate()) / 1000);
-    XAMP_LOG_DEBUG("Wait time:{} ms", wait_time_.count());
+	XAMP_LOG_D(logger_, "Wait time:{} ms", wait_time_.count());
 }
 
 bool NullOutputDevice::IsMuted() const {
@@ -112,7 +112,7 @@ double NullOutputDevice::GetStreamTime() const noexcept {
 }
 
 void NullOutputDevice::StartStream() {
-	XAMP_LOG_DEBUG("NullOutputDevice start stream.");
+	XAMP_LOG_D(logger_, "NullOutputDevice start stream.");
 	is_playing_ = false;
 	is_stopped_ = false;
 
@@ -127,7 +127,7 @@ void NullOutputDevice::StartStream() {
 #endif
 
 		is_playing_ = true;
-		XAMP_LOG_DEBUG("NullOutputDevice start render.");
+		XAMP_LOG_D(logger_, "NullOutputDevice start render.");
 
 		while (!is_stopped_ && !stop_token.stop_requested()) {
 			const auto stream_time = stream_time_ + buffer_frames_;
@@ -142,7 +142,7 @@ void NullOutputDevice::StartStream() {
 			std::this_thread::sleep_for(wait_time_);
 		}
 
-		XAMP_LOG_DEBUG("NullOutputDevice stop render.");
+		XAMP_LOG_D(logger_, "NullOutputDevice stop render.");
 
 		}, ExecuteFlags::EXECUTE_LONG_RUNNING);
 }
