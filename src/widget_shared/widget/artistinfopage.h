@@ -62,11 +62,13 @@ public:
 
     void setCover(const QPixmap& cover);
 
+    QPixmap cover() const;
 private:
     QLabel* cover_label_;
     QLabel* album_title_label_;
     QLabel* year_label_;
     QString video_id_;
+    QPixmap cover_;
 };
 
 class XAMP_WIDGET_SHARED_EXPORT ArtistInfoPage : public QFrame, public TabPage {
@@ -104,7 +106,7 @@ public:
     void reload() override;
 
 signals:
-    void browseAlbum(const QString &album, const QString& video_id);
+    void browseAlbum(const QPixmap &album_cover, const QString& video_id);
 
 protected:
     void paintEvent(QPaintEvent* event) override;

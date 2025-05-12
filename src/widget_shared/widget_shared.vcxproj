@@ -167,6 +167,7 @@
     <ClInclude Include="widget\worker\ytmusicservice.h" />
     <ClInclude Include="widget\xmessagebox.h" />
     <QtMoc Include="widget\xtooltip.h" />
+    <ClInclude Include="widget\ytmusicserverprocessor.h" />
     <ClInclude Include="xampplayer.h" />
     <QtMoc Include="widget\actionmap.h" />
     <QtMoc Include="widget\albumartistpage.h" />
@@ -319,6 +320,7 @@
     <ClCompile Include="widget\xmessagebox.cpp" />
     <ClCompile Include="widget\xprogressdialog.cpp" />
     <ClCompile Include="widget\xtooltip.cpp" />
+    <ClCompile Include="widget\ytmusicserverprocessor.cpp" />
     <ClCompile Include="xampplayer.cpp" />
   </ItemGroup>
   <ItemGroup>

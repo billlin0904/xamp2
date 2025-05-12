@@ -28,6 +28,12 @@ enum PlayListGroup {
 	PLAYLIST_GROUP_NONE,
 };
 
+enum NavigationViewMode {
+	NAVIGATION_VIEW_NONE,
+	NAVIGATION_VIEW_ALBUM,
+	NAVIGATION_VIEW_ALBUM_AND_ARTIST,
+};
+
 class XAMP_WIDGET_SHARED_EXPORT PlaylistTableView final : public QTableView {
 	Q_OBJECT
 public:
@@ -58,6 +64,10 @@ public:
 
 	void setPlayListGroup(PlayListGroup group) {
 		group_ = group;
+	}
+
+	void setNavigationViewMode(NavigationViewMode mode) {
+		navigation_view_mode_ = mode;
 	}
 
 	void enableCloudMode(bool mode);
@@ -167,7 +177,7 @@ signals:
 
 	void encodeAlacFiles(int32_t encode_type, const QList<PlayListEntity>& entities);
 
-	void navigateToAlbumPage(const QString& album, const QString &album_id);
+	void navigateToAlbumPage(const PlayListEntity& entity);
 
 	void navigateToArtistPage(int32_t artist_id, const QString& yt_artist_id);
 public slots:
@@ -184,7 +194,7 @@ public slots:
 private:
 	PlayListEntity item(const QModelIndex& index) const;
 
-	void playItem(const QModelIndex& index, bool is_doubleclicked);
+	void playItem(const QModelIndex& index);
 
 	void pauseItem(const QModelIndex& index);
 
@@ -207,6 +217,7 @@ protected:
 	int32_t hover_column_{ -1 };
 	int32_t playlist_id_{ -1 };
 	PlayListGroup group_{ PlayListGroup::PLAYLIST_GROUP_NONE };
+	NavigationViewMode navigation_view_mode_{ NavigationViewMode::NAVIGATION_VIEW_NONE };
 	std::optional<int32_t> other_playlist_id_;
 	std::optional<QString> cloud_playlist_id_;
 	QModelIndex play_index_;

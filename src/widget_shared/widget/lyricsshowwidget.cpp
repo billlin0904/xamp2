@@ -174,11 +174,11 @@ QString LyricsShowWidget::parsedLyrics() const {
 	std::wostringstream ostr;
 	for (auto itr = lyric_->cbegin(); itr != lyric_->cend(); ++itr) {
 		auto s = itr->lrc;
-		auto pos = itr->lrc.find(L"\r");
+		auto pos = itr->lrc.find(L'\r');
 		if (pos != std::wstring::npos) {
 			s.erase(pos, 1);
 		}
-		pos = itr->lrc.find(L"\n");
+		pos = itr->lrc.find(L'\n');
 		if (pos != std::wstring::npos) {
 			s.erase(pos, 1);
 		}
@@ -197,18 +197,6 @@ void LyricsShowWidget::setDefaultLrc() {
 	entry.lrc = tr("Not found lyrics").toStdWString();
 	lyric_->addLrc(entry);
 	is_lrc_valid_ = true;
-}
-
-void LyricsShowWidget::setCurrentTime(const int32_t time, const bool is_adding) {
-	auto time2 = time;
-
-	if (!is_adding) {
-	    time2 = (-time2);
-	}
-
-	for (auto& lrc : *lyric_) {
-	    lrc.timestamp += std::chrono::milliseconds(time2);
-	}
 }
 
 void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) {
@@ -248,6 +236,45 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 
 	qint64 global_time = pos_;
 	qint64 line_start = entry.timestamp.count();
+
+	if (is_fulled_) {
+		const QString text = QString::fromStdWString(entry.lrc);
+
+		// 置中計算 (以行寬 - 文字寬) / 2
+		const int text_width = metrics.horizontalAdvance(text);
+		const double x = (rect.width() - text_width) / 2.0;
+		// y 基準線：在該行矩形的垂直置中
+		const int baseline = rect.y() + (rect.height() + metrics.ascent()) / 2;
+
+		// 繪製主行歌詞
+		painter->drawText(x, baseline, text);
+
+		// 如果此行還有翻譯 (tlrc)，就再畫一行
+		if (!entry.tlrc.empty()) {
+			// 可依需求縮小翻譯字體
+			QFont translation_font = base_font;
+			const float translation_scale = 0.8f;
+			translation_font.setPointSizeF(base_font.pointSizeF() * translation_scale);
+			painter->setFont(translation_font);
+
+			QFontMetrics tm(translation_font);
+			const QString tr_text = QString::fromStdWString(entry.tlrc);
+			const int tr_width = tm.horizontalAdvance(tr_text);
+
+			// 下方再留個行距，比如 5
+			const int translation_baseline = baseline
+				+ tm.height()
+				+ 5;
+
+			const double x_tr = (rect.width() - tr_width) / 2.0;
+			painter->setPen(pen_color);
+			painter->drawText(x_tr, translation_baseline, tr_text);
+
+			// 記得恢復原字體
+			painter->setFont(base_font);
+		}
+		return;
+	}
 
 	// ------------------------------------------------------------------------
 	// (A) 若沒有逐字資訊 (words.empty())，整行繪製
@@ -504,7 +531,7 @@ void LyricsShowWidget::loadFromParser(const QSharedPointer<ILrcParser>& parser) 
 			furiganas_.push_back(furigana_.Convert(lrc.lrc));
 		} else {
 			// 這裡要補空的，否則會造成 index 不一致.
-			furiganas_.push_back({});
+			furiganas_.emplace_back();
 		}
 		if (language_detector_.IsChinese(lrc.lrc)) {
 			lrc.lrc = convert_.Convert(lrc.lrc);
@@ -516,6 +543,7 @@ void LyricsShowWidget::loadFromParser(const QSharedPointer<ILrcParser>& parser) 
 		lrc.tlrc = convert_.Convert(lrc.tlrc);
 	}
 	is_lrc_valid_ = true;
+	is_fulled_ = false;
 	resizeFontSize();
 	update();
 }
@@ -543,20 +571,51 @@ bool LyricsShowWidget::loadFile(const QString &file_path) {
 	return true;
 }
 
-void LyricsShowWidget::onAddFullLrc(const QString& lrc) {
+void LyricsShowWidget::setFullLrc(const QString& lrc, double duration) {
+	// 1) 停止並清空舊歌詞資料
 	stop();
 
-    auto i = 0;
-	const auto lyrics = lrc.split("\n"_str);
+	// 2) 以換行分割整段文字，可視需求是否跳過空行
+	//    這裡如果要顯示空行，也可以改成 Qt::KeepEmptyParts
+	const auto lines = lrc.split(L'\n', Qt::KeepEmptyParts);
 
-	for (const auto &ly : lyrics) {
-		LyricEntry l;
-		l.index = i++;
-		l.lrc = ly.toStdWString();
-		lyric_->addLrc(l);
+	// 若沒有任何行，則顯示預設「無歌詞」
+	if (lines.isEmpty()) {
+		setDefaultLrc();
+		return;
 	}
 
+	// 3) 可依照傳進來的 duration，計算每行要分配的「模擬時間」(可選)
+	//    若只想所有行都同時顯示，可直接都設定 timestamp = 0
+	double time_per_line = 0.0;
+	if (duration > 0.0 && lines.size() > 1) {
+		time_per_line = duration / lines.size();
+	}
+
+	double current_time_sec = 0.0;
+
+	// 4) 建立每一行的 LyricEntry，沒有實際時間戳則可以全設 0
+	for (int i = 0; i < lines.size(); ++i) {
+		LyricEntry entry;
+		entry.index = i;
+		entry.lrc = lines.at(i).toStdWString();
+
+		// 若想完全無時間戳，就用 0；若想模擬有時間序，則可使用下列寫法
+		/*entry.timestamp = std::chrono::milliseconds(
+			static_cast<int>(current_time_sec * 1000.0)
+		);*/
+
+		// 加入容器
+		lyric_->addLrc(entry);
+
+		// 下行若要模擬遞增，可再累加
+		current_time_sec += time_per_line;
+	}
+
+	// 5) 標記為「純文字模式」
 	is_fulled_ = true;
+
+	// 6) 重新繪製
 	update();
 }
 
@@ -574,17 +633,17 @@ void LyricsShowWidget::loadLrc(const QString& lrc) {
 				furiganas_.push_back(furigana_.Convert(lrc.lrc));
 			} else {
 				// 這裡要補空的，否則會造成 index 不一致.
-				furiganas_.push_back({});
+				furiganas_.emplace_back();
 				lrc.tlrc = convert_.Convert(lrc.tlrc);
 			}
 		}
 	}
 	resizeFontSize();
-	onSetLrcTime(0);
+	setLrcTime(0);
 	update();
 }
 
-void LyricsShowWidget::onSetLrc(const QString &lrc, const QString& trlyrc) {
+void LyricsShowWidget::setLrc(const QString &lrc, const QString& trlyrc) {
 	orilyrc_ = lrc;
 	trlyrc_ = trlyrc;
 	lrc_ = orilyrc_;
@@ -603,10 +662,10 @@ QRect LyricsShowWidget::itemBoundingRect(int index, int offset) const {
 	int diff = (index - item_);
 	int lineY = (h / 2) + diff * iH - offset;
 
-	return QRect(0, lineY, w, iH);
+	return {0, lineY, w, iH};
 }
 
-void LyricsShowWidget::onSetLrcTime(int32_t stream_time) {
+void LyricsShowWidget::setLrcTime(int32_t stream_time) {
 	if (stop_scroll_time_) {
 		return;
 	}
@@ -631,7 +690,6 @@ void LyricsShowWidget::onSetLrcTime(int32_t stream_time) {
 	}
 
 	if (item_offset_ != 0) {
-		update();
 		//QRect lineRect = itemBoundingRect(item_, 0);
 		//update(lineRect);
 		update();
@@ -659,12 +717,12 @@ void LyricsShowWidget::onSetLrcTime(int32_t stream_time) {
 	item_percent_ = precent;
 	
 	// Only use the last highlight rect
-	QRect lineRect = itemBoundingRect(item_, item_offset_);
+	//QRect lineRect = itemBoundingRect(item_, item_offset_);
 	//update(lineRect);
 	update();
 }
 
-void LyricsShowWidget::onSetLrcFont(const QFont & font) {
+void LyricsShowWidget::setLrcFont(const QFont & font) {
 	lrc_font_ = font;
 	current_mask_font_ = font;
 	update();

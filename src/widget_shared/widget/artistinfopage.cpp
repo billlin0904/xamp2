@@ -59,6 +59,11 @@ void AlbumItem::setCover(const QPixmap& cover) {
         Qt::KeepAspectRatioByExpanding,
         Qt::SmoothTransformation);
     cover_label_->setPixmap(scaled_cover);
+    cover_ = cover;
+}
+
+QPixmap AlbumItem::cover() const {
+    return cover_;
 }
 
 QString AlbumItem::albumTitle() const {
@@ -206,9 +211,8 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 
     (void)QObject::connect(album_list_, &QListWidget::itemDoubleClicked, [this](QListWidgetItem* item) {
 		auto* album_item = qobject_cast<AlbumItem*>(album_list_->itemWidget(item));
-        auto title = album_item->albumTitle();
         auto video_id = album_item->videoId();
-		emit browseAlbum(title, video_id);
+		emit browseAlbum(album_item->cover(), video_id);
         });
 
     (void)QObject::connect(toggle_btn_, &QPushButton::clicked, [this]() {
@@ -236,10 +240,27 @@ void ArtistInfoPage::setTitle(const QString& title) {
 
 void ArtistInfoPage::setDescription(const QString& info) {
     full_description_ = info;
-    constexpr auto kMaxTextLimit = 200;
+    auto max_text_limit = 0;
 
-    if (full_description_.size() > kMaxTextLimit) {
-        short_description_ = full_description_.left(kMaxTextLimit) + "..."_str;
+    constexpr QChar ideographic_full_stop_char(0x3002);
+    constexpr QChar full_stop_char(0x002e);
+    constexpr QChar corner_bracket_char(0x300f);
+
+    auto pos = full_description_.indexOf(ideographic_full_stop_char);
+    if (pos == -1) {
+        pos = full_description_.indexOf(full_stop_char);
+    }
+
+    if (pos != -1) {
+        pos = full_description_.indexOf(corner_bracket_char);
+    }
+
+    if (pos != -1) {
+        max_text_limit = pos + 1;
+    }
+
+    if (max_text_limit != 0) {
+        short_description_ = full_description_.left(max_text_limit);
         desc_label_->setText(short_description_);
         toggle_btn_->setVisible(true);
         is_expanded_ = false;

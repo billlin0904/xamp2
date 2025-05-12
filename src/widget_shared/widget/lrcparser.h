@@ -20,6 +20,8 @@ class LrcParser : public ILrcParser {
 public:
 	LrcParser();
 
+    virtual ~LrcParser();
+
     XAMP_DISABLE_COPY(LrcParser)
 
     bool parseFile(const std::wstring &file_path) override;

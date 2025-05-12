@@ -214,7 +214,7 @@ namespace {
             main_window.setShortcut(QKeySequence(Qt::Key_VolumeDown));
             main_window.setShortcut(QKeySequence(Qt::Key_VolumeMute));
             main_window.setShortcut(QKeySequence(Qt::Key_F10));
-            main_window.setShortcut(QKeySequence(Qt::Key_F11));
+            main_window.setShortcut(QKeySequence(Qt::Key_F1));
         }
 
         return app.exec();

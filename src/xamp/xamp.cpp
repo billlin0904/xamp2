@@ -1,19 +1,13 @@
 ﻿#include <Audioclient.h>
 #include <QImageReader>
 #include <QInputDialog>
-#include <QJsonObject>
 #include <QShortcut>
 #include <QSimpleUpdater.h>
 #include <QToolTip>
 #include <QWidgetAction>
 #include <QMoveEvent>
-#include <QSaveFile>
-#include <QJsonDocument>
 #include <QCoreApplication>
-#include <QProcess>
-#include <QCoroTask>
 #include <QCoroProcess>
-#include <QScrollArea>
 
 #include <set>
 #include <thememanager.h>
@@ -78,10 +72,10 @@
 #include <widget/worker/filesystemservice.h>
 #include <widget/worker/albumcoverservice.h>
 #include <widget/m3uparser.h>
-#include <widget/krcparser.h>
 #include <widget/chatgpt/waveformwidget.h>
-
-#include "widget/artistinfopage.h"
+#include <widget/artistinfopage.h>
+#include <widget/logview.h>
+#include <widget/ytmusicserverprocessor.h>
 
 namespace {
     constexpr ConstexprQString kSoftwareUpdateUrl =
@@ -94,19 +88,6 @@ namespace {
         QString modified_url = url;
         modified_url.replace("w120-h120-l90-rj"_str, "w544-h544-l90-rj"_str);
         return modified_url;
-    }
-
-    void showMeMessage(const QString& message) {
-        if (qAppSettings.dontShowMeAgain(message)) {
-            auto [button, checked] = XMessageBox::showCheckBoxInformation(
-                message,
-                qApp->tr("Ok, and don't show again."),
-                kApplicationTitle,
-                false);
-            if (checked) {
-                qAppSettings.addDontShowMeAgain(message);
-            }
-        }
     }
 
     DsdModes getDsdModes(const DeviceInfo& device_info,
@@ -154,70 +135,6 @@ namespace {
         return playlist_page;
     }
 }
-
-struct YtMusicServerProcessor {
-    ~YtMusicServerProcessor() {
-        auto pid = proc_.processId();
-        KillProcessByPidAndChildren(pid);
-
-        if (proc_.state() != QProcess::NotRunning) {
-            if (!proc_.waitForFinished(2000)) {
-                proc_.terminate();
-                proc_.kill();
-            }
-        }
-    }
-
-    QCoro::Task<int> start() {
-        if (KillProcessByNameAndChildren("ytmusic.exe")) {
-            XAMP_LOG_DEBUG("Kill ytmusic.exe process");
-        }
-
-        auto workDir = qFormat(applicationPath()
-            + QDir::separator()
-            + "ytmusic"_str
-            + QDir::separator());
-        auto program = qFormat(workDir + "ytmusic.exe"_str);
-
-        QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-        env.insert("SSLKEYLOGFILE"_str, ""_str);
-
-        auto poToken = qAppSettings.valueAsString(kAppSettingYtMusicPoToken);
-        if (poToken.isEmpty()) {
-            XAMP_LOG_DEBUG("Can't no find po token.");
-            co_return -1;
-        }
-
-        env.insert("PO_TOKEN_VALUE"_str, poToken);
-        proc_.setWorkingDirectory(workDir);
-        proc_.setProgram(program);
-        proc_.setProcessEnvironment(env);
-        proc_.setProcessChannelMode(QProcess::MergedChannels);
-
-        auto cProc = qCoro(proc_);
-
-        bool started = co_await cProc.start();
-        if (!started) {
-            XAMP_LOG_DEBUG("Process failed to start.");
-            co_return -1;
-        }
-
-        while (proc_.state() == QProcess::Running) {
-            if (co_await cProc.waitForReadyRead(500)) {
-                const QByteArray chunk = proc_.readAllStandardOutput();
-                auto msg = QString::fromLocal8Bit(chunk);
-                auto newline = msg.indexOf("\r\n"_str);
-                msg = msg.remove(newline, 2);
-                XAMP_LOG_DEBUG(msg.toStdString());
-            }
-        }
-
-        co_await cProc.waitForFinished();
-        co_return proc_.exitCode();
-    }
-
-    QProcess proc_;
-};
 
 Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
     : IXFrame(parent)
@@ -537,11 +454,6 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         &AlbumCoverService::setThumbnail,
         this,
         &Xamp::onSetThumbnail);
-
-    (void)QObject::connect(album_cover_service_.get(),
-        &AlbumCoverService::setYoutubeThumbnailUrl,
-        this,
-        &Xamp::onSetYoutubeThumbnailUrl);
 
     (void)QObject::connect(album_cover_service_.get(),
         &AlbumCoverService::setAristThumbnail,
@@ -994,16 +906,26 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(ui_.eqButton, &QToolButton::clicked, [this]() {
-        if (player_->GetDsdModes() == DsdModes::DSD_MODE_DOP
+        /*if (player_->GetDsdModes() == DsdModes::DSD_MODE_DOP
             || player_->GetDsdModes() == DsdModes::DSD_MODE_NATIVE) {
             return;
         }
         QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         QScopedPointer<XDialog> dialog(new XDialog(this));
-        auto* eq = new EqualizerView(dialog.get());
+        QScopedPointer< EqualizerView> eq(new EqualizerView(dialog.get()));
         dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_EQUALIZER));
         dialog->setTitle(tr("Equalizer"));
-        dialog->setContentWidget(eq, false);
+        dialog->setContentWidget(eq.get(), false);
+        dialog->exec();*/
+
+        QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
+        const QScopedPointer<XDialog> dialog(new XDialog(this));
+        dialog->setTitle(tr("Log Viewer"));
+        QScopedPointer<LogView> log_view(new LogView(dialog.get()));
+        log_view->loadLogFile("logs/xamp.log"_str);
+        log_view->setFixedSize(QSize(1200, 600));
+        dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_REPORT_BUG));
+        dialog->setContentWidget(log_view.get(), false);
         dialog->exec();
     });
 
@@ -1275,7 +1197,7 @@ void Xamp::setSeekPosValue(double stream_time) {
         ui_.seekSlider->setValue(stream_time_as_ms);
         ui_.startPosLabel->setText(formatDuration(stream_time, full_text));
         main_window_->setTaskbarProgress(static_cast<int32_t>(100.0 * ui_.seekSlider->value() / ui_.seekSlider->maximum()));
-        lrc_page_->lyrics()->onSetLrcTime(stream_time_as_ms);
+        lrc_page_->lyrics()->setLrcTime(stream_time_as_ms);
         file_explorer_page_->waveformWidget()->setCurrentPosition(stream_time);
     }
 }
@@ -1412,10 +1334,6 @@ void Xamp::onSetAristThumbnail(int32_t artist_id, const QString& cover_id) {
     qDaoFacade.artist_dao.updateArtistCoverId(artist_id, cover_id);
 }
 
-void Xamp::onSetYoutubeThumbnailUrl(const QString& video_id) {
-    
-}
-
 void Xamp::onSetThumbnail(const DatabaseCoverId& id, const QString& cover_id) {
     if (id.isAlbumIdValid()) {
         qDaoFacade.album_dao.setAlbumCover(id.get(), cover_id);
@@ -1456,7 +1374,7 @@ void Xamp::onPlayEntity(PlaylistPage* playlist_page,
     player_->Stop();
     player_->EnableFadeOut(qAppSettings.valueAsBool(kAppSettingEnableFadeOut));
 
-	// Setup bluetooth device or shared output device (ex: Windows WASAPI) sample rate converter.
+	// Setup blue tooth device or shared output device (ex: Windows WASAPI) sample rate converter.
     if (player_->GetAudioDeviceManager()->IsSharedDevice(device_info_.value().device_type_id)) {
         AudioFormat default_format;
         if (device_info_.value().default_format) {
@@ -1531,14 +1449,18 @@ void Xamp::onPlayEntity(PlaylistPage* playlist_page,
             entity,
             playback_format,
             open_done);
-        playlist_page->spinner()->stopAnimation();
+        if (playlist_page != nullptr) {
+            playlist_page->spinner()->stopAnimation();
+        }        
         return;
     }
     catch (...) {
         open_done = false;
         player_->Stop(false, true);
         logAndShowMessage(std::current_exception());
-        playlist_page->spinner()->stopAnimation();
+        if (playlist_page != nullptr) {
+            playlist_page->spinner()->stopAnimation();
+        }
     }
     
     if (last_playlist_page_ != nullptr) {
@@ -1597,28 +1519,37 @@ void Xamp::updateUi(PlaylistPage* playlist_page,
     lrc_page_->disableLoadLrcButton();
     //emit transcribeFile(entity.file_path);
 
-    playlist_page->format()->setText(
-        format2String(playback_format, entity.file_extension));
+    if (playlist_page != nullptr) {
+        playlist_page->format()->setText(
+            format2String(playback_format, entity.file_extension));
+    }
+    
     lrc_page_->title()->setText(entity.title);
     lrc_page_->album()->setText(entity.album);
     lrc_page_->artist()->setText(entity.artist);
     lrc_page_->format()->setText(format2String(playback_format, entity.file_extension));
 
-    qTheme.setHeartButton(ui_.heartButton, current_entity_.value().heart);      
+    if (current_entity_.has_value()) {
+        qTheme.setHeartButton(ui_.heartButton, current_entity_.value().heart);
+    }    
 
-	if (playlist_page == file_explorer_page_->playlistPage()) {
-        file_explorer_page_->waveformWidget()->loadFile(entity.file_path.toStdWString());
-        file_explorer_page_->waveformWidget()->setSampleRate(entity.getDopSampleRate());
-        file_explorer_page_->waveformWidget()->setTotalDuration(entity.duration);
-        setPlaylistPageCover(nullptr, playlist_page);
-	} else {
-        file_explorer_page_->playlistPage()->playlist()->setNowPlayState(PLAY_CLEAR);
-		file_explorer_page_->waveformWidget()->clear();
-        onSetCover(entity.validCoverId(), playlist_page);
-        if (!entity.isHttpUrl()) {
-            emit findAlbumCover(DatabaseCoverId(entity.music_id, entity.album_id));
+    if (playlist_page != nullptr) {
+        if (playlist_page == file_explorer_page_->playlistPage()) {
+            file_explorer_page_->waveformWidget()->loadFile(entity.file_path.toStdWString());
+            file_explorer_page_->waveformWidget()->setSampleRate(entity.getDopSampleRate());
+            file_explorer_page_->waveformWidget()->setTotalDuration(entity.duration);
+            setPlaylistPageCover(nullptr, playlist_page);
+            onSetCover(entity.validCoverId(), nullptr);
         }
-	}
+        else {
+            file_explorer_page_->playlistPage()->playlist()->setNowPlayState(PLAY_CLEAR);
+            file_explorer_page_->waveformWidget()->clear();
+            onSetCover(entity.validCoverId(), playlist_page);
+            if (!entity.isHttpUrl()) {
+                emit findAlbumCover(DatabaseCoverId(entity.music_id, entity.album_id));
+            }
+        }
+    }	
 
     qDaoFacade.music_dao.updateMusicPlays(entity.music_id);
     qDaoFacade.album_dao.updateAlbumPlays(entity.album_id);
@@ -1792,23 +1723,47 @@ void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std:
 
 void Xamp::onNavigateToArtistPage(int32_t artist_id, const QString& yt_artist_id) {
     if (yt_artist_id.isEmpty()) {
+        XMessageBox::showInformation(tr("Not found artist."));
         return;
     }
 
     ytmusic_service_->fetchArtist(
         yt_artist_id)
-        .then([this, artist_id](const artist::Artist& artist) {
+        .then([this, artist_id](const std::optional<artist::Artist>& artist_opt) {
+        if (!artist_opt.has_value()) {
+            XMessageBox::showInformation(tr("Not found artist."));
+            return;
+		}
+
+		auto artist = artist_opt.value();
+        if (!artist.songs.has_value() || artist.songs.value().results.empty()) {
+            XMessageBox::showInformation(tr("Not found artist."));
+            return;
+        }
+
+        if (!artist.albums.has_value() || artist.albums.value().results.empty()) {
+            XMessageBox::showInformation(tr("Not found artist."));
+            return;
+        }
+
         auto tab_title = artist.name;
         auto* artist_info_page = new ArtistInfoPage(yt_music_tab_page_->tabWidget());
         artist_info_page->setTitle(tab_title);
         artist_info_page->setArtistId(artist_id);
 
-        auto cover_id = qDaoFacade.artist_dao.getArtistCoverId(artist_id);
-        auto image = qImageCache.getOrDefault(kEmptyString, cover_id);
+        (void)QObject::connect(artist_info_page, 
+            &ArtistInfoPage::browseAlbum,
+            this, 
+            &Xamp::onNavigateToArtistAlbumPage);
 
-        artist_info_page->setAristImage(image);
-        artist_info_page->setDescription(QString(artist.description).replace("\n"_str, ""_str));
-        //artist_info_page->setDescription(QString::fromStdString(artist.description));
+        auto cover_id = qDaoFacade.artist_dao.getArtistCoverId(artist_id);
+
+        QPixmap image;
+        if (qImageCache.contains(cover_id)) {
+            image = qImageCache.getOrDefault(kEmptyString, cover_id);
+        }
+        artist_info_page->setArtistImage(image);
+        artist_info_page->setDescription(artist.description);
 
         yt_music_tab_page_->tabWidget()->createNewTab(tab_title, artist_info_page);
 
@@ -1818,6 +1773,7 @@ void Xamp::onNavigateToArtistPage(int32_t artist_id, const QString& yt_artist_id
             artist_info_page->insertSong(
                 song.album.name,
                 song.title,
+                artist.name,
                 song.video_id,
                 cover);
             emit fetchYoutubeThumbnailUrl(song.video_id,
@@ -1842,8 +1798,42 @@ void Xamp::onNavigateToArtistPage(int32_t artist_id, const QString& yt_artist_id
         });
 }
 
-void Xamp::onNavigateToAlbumPage(const QString& album, const QString& yt_album_id) {
-    ytmusic_service_->fetchAlbum(yt_album_id).then([this, yt_album_id](const album::Album& album) {
+void Xamp::cacheAristPageImage(int32_t artist_id, const QString& yt_artist_id) {
+    ytmusic_service_->fetchArtist(
+        yt_artist_id)
+        .then([this, artist_id](const std::optional<artist::Artist>& artist_opt) {
+        if (!artist_opt.has_value()) {
+            return;
+        }
+        auto artist = artist_opt.value();
+        if (!artist.songs.has_value() || artist.songs.value().results.empty()) {
+            return;
+        }
+        if (!artist.albums.has_value() || artist.albums.value().results.empty()) {
+            return;
+        }
+        for (const auto& song : artist.songs.value().results) {
+            emit fetchYoutubeThumbnailUrl(song.video_id,
+                song.thumbnails.front().url);
+        }
+        for (const auto& album : artist.albums.value().results) {
+            emit fetchYoutubeThumbnailUrl(album.browse_id,
+                album.thumbnails.front().url);
+        }
+        auto thumbnail_url = artist.thumbnails.back().url;
+        emit fetchArtistThumbnailUrl(artist_id,
+            thumbnail_url);
+		});
+}
+
+void Xamp::onNavigateToArtistAlbumPage(const QPixmap& album_cover, const QString& yt_music_album_id) {
+    ytmusic_service_->fetchAlbum(yt_music_album_id).then([this, album_cover, yt_music_album_id](const std::optional<album::Album>& album_opt) {
+        if (!album_opt.has_value()) {
+            XMessageBox::showInformation(tr("Not found album."));
+            return;
+        }
+
+        auto album = album_opt.value();
         std::wstring prev_album;
 
         auto title = album.title;
@@ -1868,7 +1858,7 @@ void Xamp::onNavigateToAlbumPage(const QString& album, const QString& yt_album_i
 
         std::string yt_artist_id;
         if (!album.artists.empty() && album.artists.front().id) {
-            yt_artist_id = album.artists.front().id.value().toStdString();
+            yt_artist_id = album.artists.front().id.value().toStdString();            
         }
 
         for (const auto& track : album.tracks) {
@@ -1913,7 +1903,115 @@ void Xamp::onNavigateToAlbumPage(const QString& album, const QString& yt_album_i
             track_info.file_path = makeYtMusicPath(track);
             track_info.rating = track.like_status.value() == QString("LIKE"_str);
             track_info.sample_rate = kYtMusicSampleRate;
-            track_info.yt_album_id = yt_album_id.toStdString();
+            track_info.yt_album_id = yt_music_album_id.toStdString();
+            track_info.yt_artist_id = yt_artist_id;
+
+            const std::forward_list<TrackInfo> track_infos{ track_info };
+            qDatabaseFacade.insertTrackInfo(track_infos,
+                playlist_page->playlist()->playlistId(),
+                StoreType::CLOUD_STORE,
+                kEmptyString, [thumbnail_url, is_unknown_album, album_cover, this](auto music_id, auto album_id) {
+                    if (thumbnail_url.isEmpty()) {
+                        return;
+                    }
+                    DatabaseCoverId id;
+                    id.first = music_id;
+                    if (!is_unknown_album) {
+                        id.second = album_id;
+                    }
+                    if (!album_cover.isNull()) {
+                        auto cover_id = qImageCache.addImage(album_cover);
+                        qDaoFacade.album_dao.setAlbumCover(album_id, cover_id);
+                    } else {
+                        auto big_thumbnail_url = make544xh544Image(thumbnail_url);
+                        emit fetchThumbnailUrl(id, big_thumbnail_url);
+                    }
+                });
+        }
+        playlist_page->playlist()->reload();
+        });
+}
+
+void Xamp::onNavigateToAlbumPage(const PlayListEntity& entity) {
+    ytmusic_service_->fetchAlbum(entity.yt_music_album_id).then([this, entity](const std::optional<album::Album>& album_opt) {
+        if (!album_opt.has_value()) {
+            XMessageBox::showInformation(tr("Not found album."));
+            return;
+        }
+
+        auto album = album_opt.value();
+        std::wstring prev_album;
+
+        auto title = album.title;
+
+        auto tab_index = yt_music_tab_page_->tabWidget()->count();
+
+        const auto playlist_id =
+            qDaoFacade.playlist_dao.addPlaylist(title,
+                tab_index,
+                StoreType::CLOUD_STORE);
+
+        auto* playlist_page = newPlaylistPage(yt_music_tab_page_->tabWidget(),
+            playlist_id,
+            kEmptyString,
+            title);
+
+        playlist_page->pageTitle()->hide();
+        playlist_page->hidePlaybackInformation(true);
+        playlist_page->playlist()->setPlayListGroup(PLAYLIST_GROUP_NONE);
+        playlist_page->playlist()->setNavigationViewMode(NAVIGATION_VIEW_ALBUM_AND_ARTIST);
+        playlist_page->playlist()->enableCloudMode(true);
+        playlist_page->playlist()->reload();
+
+        std::string yt_artist_id;
+        if (!album.artists.empty() && album.artists.front().id) {
+            yt_artist_id = album.artists.front().id.value().toStdString();
+            cacheAristPageImage(entity.artist_id, QString::fromStdString(yt_artist_id));
+        }
+
+        for (const auto& track : album.tracks) {
+            TrackInfo track_info;
+            auto is_unknown_album = false;
+
+            track_info.title = track.title.toStdWString();
+
+            track_info.album = qDatabaseFacade.unknownAlbum().toStdWString();
+            if (track.album) {
+                track_info.album = track.album.value().toStdWString();
+            }
+
+            if (prev_album != track_info.album) {
+                prev_album = track_info.album;
+            }
+            track_info.track = track.track;
+
+            auto thumbnail_url = album.thumbnails.back().url;
+
+            track_info.artist = qDatabaseFacade.unknownArtist().toStdWString();
+            if (!track.artists.empty()) {
+                track_info.artist = track.artists.front().name.toStdWString();
+            }
+
+            if (track.duration) {
+                track_info.duration = parseDuration(track.duration.value().toStdString());
+            }
+            else {
+                track_info.duration = 0;
+            }
+
+            if (track_info.album == qDatabaseFacade.unknownAlbum().toStdWString()) {
+                track_info.track = 0;
+                is_unknown_album = true;
+            }
+
+            if (!track.video_id) {
+                continue;
+            }
+
+            track_info.file_path = makeYtMusicPath(track);
+            track_info.rating = track.like_status.value() == QString("LIKE"_str);
+            track_info.sample_rate = kYtMusicSampleRate;
+            track_info.yt_album_id = entity.yt_music_album_id.toStdString();
             track_info.yt_artist_id = yt_artist_id;
 
             const std::forward_list<TrackInfo> track_infos{ track_info };
@@ -1983,20 +2081,15 @@ void Xamp::onSetCover(const QString& cover_id, PlaylistPage* page) {
         found_cover = true;
     }
 
-    if (!found_cover) {
-        setPlaylistPageCover(nullptr, page);
-    } else {
-        setPlaylistPageCover(&cover, page);
-        emit blurImage(cover_id, cover, QSize(500, 500));
+    if (page != nullptr) {
+        if (!found_cover) {
+            setPlaylistPageCover(nullptr, page);
+        }
+        else {
+            setPlaylistPageCover(&cover, page);
+            emit blurImage(cover_id, cover, QSize(500, 500));
+        }
     }
-
-    /*if (lrc_page_ != nullptr) {
-        lrc_page_->clearBackground();
-        lrc_page_->setCover(image_util::resizeImage(cover,
-            lrc_page_->cover()->size(), true));
-        lrc_page_->addCoverShadow(found_cover);        
-    }*/
-
     main_window_->setIconicThumbnail(cover);
 }
 
@@ -2027,7 +2120,11 @@ void Xamp::onPlayMusic(int32_t playlist_id, const PlayListEntity& entity) {
         last_playlist_->removePlaying();
         playlist_page->playlist()->setNowPlayState(PlayingState::PLAY_PLAYING);
         playlist_page->playlist()->reload(false);
-	}
+    }
+    else {
+        XAMP_LOG_DEBUG("Not found any playlist page");
+        return;
+    }
 
     auto *playlist_tab_widget = qobject_cast<PlaylistTabWidget*>(
         playlist_page->parent()->parent());
@@ -2047,7 +2144,7 @@ void Xamp::onPlayCloudVideoId(PlaylistPage* playlist_page, const PlayListEntity&
     auto [video_id, setVideoId] = parseYtMusicPath(entity.file_path);
 
     ytmusic_service_->fetchSongInfo(video_id).then([this, playlist_page, temp = entity](const
-	    auto& song_info) {
+        SongInfo& song_info) {
         auto temp1 = temp;
         temp1.file_path = song_info.download_url;
         if (playlist_page != nullptr) {
@@ -2066,8 +2163,10 @@ void Xamp::onPlayCloudVideoId(PlaylistPage* playlist_page, const PlayListEntity&
             qDaoFacade.album_dao.setAlbumCover(temp1.album_id, qImageCache.addImage(image));
             lrc_page_->setCover(image_util::resizeImage(image, lrc_page_->coverSizeHint(), true));
         }
-
         onPlayEntity(playlist_page, temp1);
+        if (!lrc_page_->lyrics()->isValid()) {
+            lrc_page_->lyrics()->setFullLrc(song_info.lyrics, temp1.duration);
+        }
         });
 }
 
@@ -2233,6 +2332,7 @@ void Xamp::initialPlaylist() {
             if (yt_music_tab_page_->tabWidget()->count() == 1) {
                 playlist_page->playlist()->hideColumn(PLAYLIST_TRACK);
             }
+            playlist_page->playlist()->setNavigationViewMode(NAVIGATION_VIEW_ALBUM);
             playlist_page->playlist()->enableCloudMode(true);
             playlist_page->playlist()->reload();
         }
@@ -2505,7 +2605,17 @@ void Xamp::initialCloudPlaylist() {
     process_dialog->show();
     cloud_playlist_process_count_ = 0;
 
-    QCoro::connect(ytmusic_service_->fetchLibraryPlaylists(), this, [process_dialog, this](const auto& playlists) {
+    QCoro::connect(ytmusic_service_->fetchLibraryPlaylists(), 
+        this, 
+        [process_dialog, this](const std::optional<QList<LibraryPlaylist>>& playlists_opt) {
+        if (!playlists_opt.has_value()) {
+            process_dialog->close();
+			XMessageBox::showInformation("Not found any playlist."_str);
+            return;
+		}
+
+        auto playlists = playlists_opt.value();
+
         static constexpr auto kEpisodesForLaterName("Episodes for Later"_str);
         int32_t index = 1;
         for (const auto& playlist : playlists) {
@@ -2520,6 +2630,7 @@ void Xamp::initialCloudPlaylist() {
             playlist_page->playlist()->setCloudPlaylistId(playlist.playlist_id);
             playlist_page->playlist()->enableCloudMode(true);
             playlist_page->playlist()->hideColumn(PLAYLIST_TRACK);
+            playlist_page->playlist()->setNavigationViewMode(NAVIGATION_VIEW_ALBUM);
             playlist_page->playlist()->reload();
             QCoro::connect(ytmusic_service_->fetchPlaylist(playlist.playlist_id),
                 this, [this, playlists, playlist_page, process_dialog](const auto& playlist) {

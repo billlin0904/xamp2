@@ -36,8 +36,6 @@ public:
 
 	bool isValid() const;
 
-	void setCurrentTime(int32_t time, bool is_adding = true);
-
 	void paintItem(QPainter* painter, int32_t index, QRect &rect) override;
 
 	void paintItemMask(QPainter* painter) override;
@@ -67,11 +65,11 @@ public:
 public slots:
 	void stop();
 
-	void onSetLrc(const QString& lrc, const QString& trlyrc = kEmptyString);
+	void setLrc(const QString& lrc, const QString& trlyrc = kEmptyString);
 
-	void onSetLrcTime(int32_t stream_time);
+	void setLrcTime(int32_t stream_time);
 
-	void onSetLrcFont(const QFont &font);
+	void setLrcFont(const QFont &font);
 
 	void setHighLightColor(const QColor &color);
 
@@ -79,7 +77,7 @@ public slots:
 
 	void setKaraokeHighlightColor(const QColor& color);
 
-	void onAddFullLrc(const QString& lrc);
+	void setFullLrc(const QString& lrc, double duration);
 
 private:
 	void dragEnterEvent(QDragEnterEvent* event) override;
@@ -109,8 +107,8 @@ private:
     int32_t last_lyric_index_{ 0 };
 	float item_percent_{ 0 };
 	float old_fraction_ = 0.f;
-	float highlightFraction_ = 0.f;
-	QRect lastHighlightRect_;
+	float highlight_fraction_ = 0.f;
+	QRect last_highlight_rect_;
 	QRect currentHighlightRect_;
 	QSize base_size_;
 	QFont lrc_font_;

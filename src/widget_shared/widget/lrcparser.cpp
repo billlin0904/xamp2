@@ -71,6 +71,8 @@ LrcParser::LrcParser()
 	, pattern_(LR"(\[\d{2}:\d{2}(?::\d{2}(?:\.\d{2,3})?|\.\d{2,3})?\] ?[^\[]*)") {
 }
 
+LrcParser::~LrcParser() = default;
+
 bool LrcParser::parse(std::wistream &istr) {
     return parseStream(istr);
 }

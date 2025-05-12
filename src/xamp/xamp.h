@@ -145,8 +145,6 @@ public slots:
 
 	void onSetAristThumbnail(int32_t artist_id, const QString& cover_id);
 
-	void onSetYoutubeThumbnailUrl(const QString& video_id);
-
 	void onPlaybackError(const QString& message);
 
 	void onRetranslateUi();
@@ -167,11 +165,14 @@ public slots:
 
 	void onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std::vector<playlist::Track>& tracks);
 
-	void onNavigateToAlbumPage(const QString& album, const QString& yt_album_id);
+	void onNavigateToAlbumPage(const PlayListEntity& entity);
+
+	void onNavigateToArtistAlbumPage(const QPixmap& album_cover, const QString& yt_music_album_id);
 
 	void onNavigateToArtistPage(int32_t artist_id, const QString& yt_artist_id);
 
 	void onPlayCloudVideoId(PlaylistPage* playlist_page, const PlayListEntity& entity);
+
 private:
 	void initialUi();
 
@@ -263,6 +264,8 @@ private:
 	void showAbout();
 
 	void connectThemeChangedSignal();
+
+	void cacheAristPageImage(int32_t artist_id, const QString& yt_artist_id);
 
 	bool is_seeking_;
 	bool trigger_upgrade_action_;

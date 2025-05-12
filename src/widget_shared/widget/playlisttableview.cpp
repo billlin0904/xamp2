@@ -560,7 +560,7 @@ void PlaylistTableView::initial() {
 
     (void)QObject::connect(this, &QTableView::doubleClicked, [this](const QModelIndex& index) {
         if (model_->rowCount() > 0) {
-            playItem(index, true);
+            playItem(index);
         }
     });
 
@@ -631,7 +631,7 @@ void PlaylistTableView::initial() {
             like_song_act->setIcon(like_icon);
             if (!play_list_entities.empty()) {
                 action_map.setCallback(like_song_act, [this, &play_list_entity, play_list_entities]() {
-                    for (auto entity : play_list_entities) {
+                    for (const auto &entity : play_list_entities) {
                         emit likeSong(play_list_entity.heart, entity);
                     }                    
                     });
@@ -650,17 +650,20 @@ void PlaylistTableView::initial() {
                 removePlaying();
                 });
 
-            action_map.addSeparator();
+            if (navigation_view_mode_ != NavigationViewMode::NAVIGATION_VIEW_NONE) {
+                action_map.addSeparator();
 
-            auto* navigate_to_album_page = action_map.addAction("Navigate To album"_str);
-            action_map.setCallback(navigate_to_album_page, [this, entity]() {
-                emit navigateToAlbumPage(entity.album, entity.yt_music_album_id);
-                });
-
-            auto* navigate_to_artist_page = action_map.addAction("Navigate To artist"_str);
-            action_map.setCallback(navigate_to_artist_page, [this, entity]() {
-                emit navigateToArtistPage(entity.artist_id, entity.yt_music_artist_id);
-                });
+                auto* navigate_to_album_page = action_map.addAction("Navigate To album"_str);
+                action_map.setCallback(navigate_to_album_page, [this, entity]() {
+                    emit navigateToAlbumPage(entity);
+                    });
+                if (navigation_view_mode_ == NavigationViewMode::NAVIGATION_VIEW_ALBUM_AND_ARTIST) {
+                    auto* navigate_to_artist_page = action_map.addAction("Navigate To artist"_str);
+                    action_map.setCallback(navigate_to_artist_page, [this, entity]() {
+                        emit navigateToArtistPage(entity.artist_id, entity.yt_music_artist_id);
+                        });
+                }
+            }
 
             if (model_->rowCount() > 0 && index.isValid()) {
                 XAMP_TRY_LOG(
@@ -864,7 +867,7 @@ PlayListEntity PlaylistTableView::item(const QModelIndex& index) const {
     return getEntity(index);
 }
 
-void PlaylistTableView::playItem(const QModelIndex& index, bool is_doubleclicked) {
+void PlaylistTableView::playItem(const QModelIndex& index) {
     setNowPlaying(index);
     if (!play_index_.isValid()) {
         return;
