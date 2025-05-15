@@ -33,7 +33,7 @@ AlbumItem::AlbumItem(const QPixmap& cover,
 
     cover_label_ = new QLabel(this);
     if (!cover.isNull()) {
-        QPixmap scaled_cover = cover.scaled(120, 120,
+        QPixmap scaled_cover = cover.scaled(kCoverSize,
             Qt::KeepAspectRatioByExpanding,
             Qt::SmoothTransformation);
         cover_label_->setPixmap(scaled_cover);
@@ -55,7 +55,7 @@ AlbumItem::AlbumItem(const QPixmap& cover,
 }
 
 void AlbumItem::setCover(const QPixmap& cover) {
-    QPixmap scaled_cover = cover.scaled(120, 120,
+    QPixmap scaled_cover = cover.scaled(kCoverSize,
         Qt::KeepAspectRatioByExpanding,
         Qt::SmoothTransformation);
     cover_label_->setPixmap(scaled_cover);
@@ -85,7 +85,7 @@ SongItem::SongItem(const QPixmap& album_cover,
 
     cover_label_ = new QLabel(this);
     if (!album_cover.isNull()) {
-        auto scaled_cover = album_cover.scaled(35, 35,
+        auto scaled_cover = album_cover.scaled(kCoverSize,
             Qt::KeepAspectRatio, Qt::SmoothTransformation);
         cover_label_->setPixmap(scaled_cover);
     }
@@ -337,33 +337,29 @@ void ArtistInfoPage::paintEvent(QPaintEvent* event) {
 
     constexpr auto kBackgroundHeight = 450;
 
-    // 建立一個繪製範圍 topAreaRect
-    QRect topAreaRect(0, 0, width(), kBackgroundHeight);
+    QRect top_area_rect(0, 0, width(), kBackgroundHeight);
 
-    // 將圖縮放到這個 topAreaRect (或 KeepAspectRatioByExpanding 之類)
-    auto scaledBg = background_.scaled(
-        topAreaRect.size(),
+    auto scaled_bg = background_.scaled(
+        top_area_rect.size(),
         Qt::KeepAspectRatioByExpanding,
         Qt::SmoothTransformation
     );
 
-    // 若想只取前面 280px 高度，可做 copy，但要確保 scaledBg 足夠大
-    scaledBg = scaledBg.copy(0, 0, scaledBg.width(), kBackgroundHeight);
+    scaled_bg = scaled_bg.copy(0, 0, scaled_bg.width(), kBackgroundHeight);
 
-    // 水平置中: 讓 x 往左 or 往右偏移
-    int x = (width() - scaledBg.width()) / 2;
-    painter.drawPixmap(QPoint(x, 0), scaledBg);
+    int x = (width() - scaled_bg.width()) / 2;
+    painter.drawPixmap(QPoint(x, 0), scaled_bg);
 
     constexpr int kGradientHeight = kBackgroundHeight;
-    int startY = kBackgroundHeight - kGradientHeight;
+    const int start_y = kBackgroundHeight - kGradientHeight;
 
     QLinearGradient grad(
-        QPointF(0, startY),
+        QPointF(0, start_y),
         QPointF(0, kBackgroundHeight)
     );
-    grad.setColorAt(0.0, QColor(0, 0, 0, 0));   // 從透明
-    grad.setColorAt(1.0, QColor(0, 0, 0, 255)); // 漸變到黑
+    grad.setColorAt(0.0, QColor(0, 0, 0, 0));
+    grad.setColorAt(1.0, QColor(0, 0, 0, 255));
 
-    QRect gradientRect(0, startY, width(), kGradientHeight);
-    painter.fillRect(gradientRect, grad);
+    QRect gradient_rect(0, start_y, width(), kGradientHeight);
+    painter.fillRect(gradient_rect, grad);
 }

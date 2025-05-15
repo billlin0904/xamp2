@@ -10,8 +10,7 @@
 #include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
 #include <widget/database.h>
-
-class AudioEmbeddingService;
+#include <widget/dao/dbfacade.h>
 
 class XAMP_WIDGET_SHARED_EXPORT DatabaseFacade final : public QObject {
 public:
@@ -64,6 +63,7 @@ private:
     QString unknown_;
     LoggerPtr logger_;
     Database* database_;
+    QScopedPointer<dao::DatabaseFacade> database_facade_;
 };
 
 #define qDatabaseFacade SharedSingleton<DatabaseFacade>::GetInstance()

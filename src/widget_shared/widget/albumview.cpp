@@ -168,7 +168,6 @@ AlbumView::AlbumView(QWidget* parent)
     : QListView(parent)
     , refresh_cover_timer_(this)
     , page_(nullptr)
-    //, animation_(nullptr)
 	, model_(this)
     , proxy_model_(new PlayListTableFilterProxyModel(this)) {
     proxy_model_->addFilterByColumn(ALBUM_INDEX_ALBUM);
@@ -226,7 +225,7 @@ AlbumView::AlbumView(QWidget* parent)
 
         const auto list_view_rect = this->rect();
         page_->setPlaylistMusic(album, album_id, cover_id, album_heart);
-        page_->setFixedSize(QSize(list_view_rect.size().width() - 2, list_view_rect.height()));
+        page_->setFixedSize(QSize(list_view_rect.size().width() - 5, list_view_rect.height()));
 
         if (enable_page_) {
             page_->show();

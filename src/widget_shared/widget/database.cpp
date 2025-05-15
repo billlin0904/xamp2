@@ -136,6 +136,8 @@ const char* SqlException::what() const noexcept {
     return message_.c_str();
 }
 
+constexpr auto kGuiDatabaseName = "UI"_str;
+
 XAMP_DECLARE_LOG_NAME(Database);
 
 Database::Database(const QString& name) {
@@ -150,7 +152,7 @@ Database::Database(const QString& name) {
 }
 
 Database::Database()
-	: Database("UI"_str) {
+	: Database(kGuiDatabaseName) {
 }
 
 QSqlDatabase& Database::database() {
@@ -163,13 +165,13 @@ Database::~Database() {
 
 void Database::close() {
     if (db_.isOpen()) {
-        db_.close();
+    	db_.close();
         XAMP_LOG_I(logger_, "Database {} closed.", connection_name_.toStdString());
         logger_.reset();
     }
 }
 
-void Database::open() {    
+void Database::open() {
     db_.setDatabaseName("xamp.db"_str);
 
     if (!db_.open()) {
@@ -179,18 +181,28 @@ void Database::open() {
     XAMP_LOG_I(logger_, "Database {} opened, SQlite version: {}.",
         connection_name_.toStdString(), getVersion().toStdString());
 
-    if (connection_name_ != "UI"_str) {
-        return;
+    //if (connection_name_ != kGuiDatabaseName) {
+    //    return;
+    //}
+
+
+#define CHECK_EXE(expr) \
+	if (!(expr)) {\
+		XAMP_LOG_ERROR("Failed execute database command: {}", #expr);\
     }
 
-    (void)db_.exec("PRAGMA synchronous = OFF"_str);    
-    (void)db_.exec("PRAGMA auto_vacuum = FULL"_str);
-    (void)db_.exec("PRAGMA page_size = 40960"_str);
-    (void)db_.exec("PRAGMA foreign_keys = ON"_str);
-    (void)db_.exec("PRAGMA cache_size = 40960"_str);
-    (void)db_.exec("PRAGMA temp_store = MEMORY"_str);
-    (void)db_.exec("PRAGMA mmap_size = 40960"_str);
-    (void)db_.exec("PRAGMA busy_timeout = 1000"_str);
+    SqlQuery query(db_);
+    CHECK_EXE(query.exec("PRAGMA auto_vacuum = FULL"_str))
+    CHECK_EXE(query.exec("PRAGMA page_size = 40960"_str))
+    CHECK_EXE(query.exec("PRAGMA foreign_keys = ON"_str))
+    CHECK_EXE(query.exec("PRAGMA cache_size = 40960"_str))
+    CHECK_EXE(query.exec("PRAGMA temp_store = MEMORY"_str))
+    CHECK_EXE(query.exec("PRAGMA mmap_size = 40960"_str))
+    CHECK_EXE(query.exec("PRAGMA busy_timeout = 5000"_str))
+
+    CHECK_EXE(query.exec("PRAGMA journal_mode = WAL"_str))
+    CHECK_EXE(query.exec("PRAGMA SYNCHRONOUS = NORMAL"_str))
+    CHECK_EXE(query.exec("PRAGMA wal_autocheckpoint = 5000"_str))
 
     createTableIfNotExist();
 }
@@ -203,8 +215,8 @@ bool Database::commit() {
     return db_.commit();
 }
 
-void Database::rollback() {
-    db_.rollback();
+bool Database::rollback() {
+    return db_.rollback();
 }
 
 QString Database::getVersion() const {

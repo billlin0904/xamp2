@@ -12,8 +12,8 @@ namespace {
     XAMP_DECLARE_LOG_NAME(GUIThreadPool);
 }
 
-IThreadPoolExecutor* IXMainWindow::threadPool() const {
-	return thread_pool_.get();
+std::shared_ptr<IThreadPoolExecutor> IXMainWindow::threadPool() const {
+	return thread_pool_;
 }
 
 IXMainWindow::IXMainWindow()

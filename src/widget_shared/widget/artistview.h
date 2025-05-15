@@ -54,6 +54,7 @@ public:
 	AlbumView* album() const {
 		return album_view_;
 	}
+
 private:
 	QLabel* artist_name_;
 	QLabel* artist_image_;

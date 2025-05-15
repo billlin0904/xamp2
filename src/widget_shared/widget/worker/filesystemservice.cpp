@@ -99,8 +99,12 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 		}
 	);
 
+	auto database_pool = getPooledDatabase(1);
+	auto database_ptr = database_pool->Acquire();
+	DatabaseFacade facade(nullptr, database_ptr.get());
+
 	// Note: CueLoader has thread safe issue so we need to process not in parallel.
-	auto process_cue_file = [this](const auto &path, auto playlist_id) {
+	auto process_cue_file = [this, &facade](const auto &path, auto playlist_id) {
 		try {
 			std::forward_list<TrackInfo> tracks;
 			CueLoader loader;
@@ -110,6 +114,17 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 			tracks.sort([](const auto& first, const auto& last) {
 				return first.track < last.track;
 				});
+			try {
+				facade.insertTrackInfo(tracks, playlist_id, StoreType::LOCAL_STORE);
+			}
+			catch (const Exception& e) {
+				XAMP_LOG_DEBUG("Failed to insert database: {}", e.what());
+			}
+			catch (const std::exception& e) {
+				XAMP_LOG_DEBUG("Failed to insert database: {}", e.what());
+			}
+			catch (...) {
+			}
 			emit insertDatabase(tracks, playlist_id);
 		}
 		catch (const std::exception &e) {
@@ -206,6 +221,18 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 				qFormat("Extract directory %1 size:%2 completed.")
 				.arg(path_info.first)
 				.arg(path_info.second.size()));
+			try {
+				facade.insertMultipleTrackInfo(batch_track_infos, playlist_id, StoreType::LOCAL_STORE);
+			}
+			catch (const Exception& e) {
+				XAMP_LOG_DEBUG("Failed to insert database: {}", e.what());
+			}
+			catch (const std::exception& e) {
+				XAMP_LOG_DEBUG("Failed to insert database: {}", e.what());
+			}
+			catch (...) {
+			}
+			
  			emit batchInsertDatabase(batch_track_infos, playlist_id);
 			batch_track_infos.clear();
 		}		
@@ -215,6 +242,17 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 		emit readFilePath(qFormat("Extract directory %1 size:%2 completed.")
 			.arg(directory_files.begin()->first)
 			.arg(directory_files.begin()->second.size()));
+		try {
+			facade.insertMultipleTrackInfo(batch_track_infos, playlist_id, StoreType::LOCAL_STORE);
+		}
+		catch (const Exception& e) {
+			XAMP_LOG_DEBUG("Failed to insert database: {}", e.what());
+		}
+		catch (const std::exception& e) {
+			XAMP_LOG_DEBUG("Failed to insert database: {}", e.what());
+		}
+		catch (...) {
+		}
 		emit batchInsertDatabase(batch_track_infos, playlist_id);
 	}
 }

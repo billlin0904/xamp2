@@ -20,6 +20,13 @@ namespace dao {
 			, music_dao(qGuiDb.getDatabase()) {
 		}
 
+		explicit DatabaseFacade(Database *database)
+			: playlist_dao(database->database())
+			, album_dao(database->database())
+			, artist_dao(database->database())
+			, music_dao(database->database()) {
+		}
+
 		PlaylistDao playlist_dao;
 		AlbumDao album_dao;
 		ArtistDao artist_dao;

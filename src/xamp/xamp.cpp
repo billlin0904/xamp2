@@ -7,7 +7,6 @@
 #include <QWidgetAction>
 #include <QMoveEvent>
 #include <QCoreApplication>
-#include <QCoroProcess>
 
 #include <set>
 #include <thememanager.h>
@@ -377,12 +376,12 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     file_system_service_->moveToThread(&file_system_service_thread_);
     file_system_service_thread_.start(QThread::LowestPriority);
 
-    /*yt_music_server_processor_.reset(new YtMusicServerProcessor());
+    yt_music_server_processor_.reset(new YtMusicServerProcessor());
     yt_music_server_processor_->start().then([this](int exit_code) {
         if (exit_code != 0) {
             XAMP_LOG_ERROR("ytmusic server process exit with code: " + std::to_string(exit_code));
         }
-        });*/
+        });
 
     if (background_service_ != nullptr) {
         (void)QObject::connect(this, &Xamp::cancelRequested, 
@@ -1009,7 +1008,6 @@ void Xamp::setCurrentTab(int32_t table_id) {
             yt_music_tab_page_->tabWidget()->setCurrentIndex(0);
         }
         yt_music_tab_page_->tabWidget()->reloadAll();
-        //initialCloudPlaylist();
         break;
     }
     if (widgets_.size() > table_id) {
@@ -1335,12 +1333,23 @@ void Xamp::onSetAristThumbnail(int32_t artist_id, const QString& cover_id) {
 }
 
 void Xamp::onSetThumbnail(const DatabaseCoverId& id, const QString& cover_id) {
-    if (id.isAlbumIdValid()) {
-        qDaoFacade.album_dao.setAlbumCover(id.get(), cover_id);
+    try {
+        if (id.isAlbumIdValid()) {
+            qDaoFacade.album_dao.setAlbumCover(id.get(), cover_id);
+        }
+        else {
+            qDaoFacade.music_dao.setMusicCover(id.get(), cover_id);
+        }
     }
-    else {
-        qDaoFacade.music_dao.setMusicCover(id.get(), cover_id);
+    catch (const Exception& e) {
+        XAMP_LOG_DEBUG("Failed to insert database: {}", e.what());
     }
+    catch (const std::exception& e) {
+        XAMP_LOG_DEBUG("Failed to insert database: {}", e.what());
+    }
+    catch (...) {
+    }
+    
 }
 
 void Xamp::onPlayEntity(PlaylistPage* playlist_page, 
@@ -2352,10 +2361,6 @@ void Xamp::initialPlaylist() {
         qDaoFacade.playlist_dao.addPlaylist(tr("FileSystem Playlist"),
             0, StoreType::LOCAL_STORE);
     }
-    /*if (!qDaoFacade.playlist_dao.isPlaylistExist(kArtistSongPlaylistId)) {
-        qDaoFacade.playlist_dao.addPlaylist(tr("ArtistSong Playlist"),
-            0, StoreType::LOCAL_STORE);
-    }*/
     
     playlist_tab_page_->tabWidget()->restoreTabOrder();
     playlist_tab_page_->tabWidget()->setCurrentTabIndex(
@@ -2754,15 +2759,6 @@ PlaylistPage* Xamp::localPlaylistPage() const {
     return dynamic_cast<PlaylistPage*>(playlist_tab_page_->tabWidget()->currentWidget());
 }
 
-void Xamp::onInsertDatabase(const std::forward_list<TrackInfo>& result,
-    int32_t playlist_id) {
-    qDatabaseFacade.insertTrackInfo(result,
-        playlist_id,
-        StoreType::PLAYLIST_LOCAL_STORE);
-    ensureLocalOnePlaylistPage();
-    localPlaylistPage()->playlist()->reload();
-}
-
 void Xamp::onCancelRequested() {
     file_system_service_->cancelRequested();
     library_page_->album()->progressPage()->hide();
@@ -2772,25 +2768,32 @@ void Xamp::onCancelRequested() {
     library_page_->reload();
 }
 
+void Xamp::onInsertDatabase(const std::forward_list<TrackInfo>& result,
+    int32_t playlist_id) {
+    /*qDatabaseFacade.insertTrackInfo(result,
+        playlist_id,
+        StoreType::PLAYLIST_LOCAL_STORE);
+    ensureLocalOnePlaylistPage();
+    localPlaylistPage()->playlist()->reload();*/
+}
+
 void Xamp::onBatchInsertDatabase(const std::vector<std::forward_list<TrackInfo>>& results,
     int32_t playlist_id) {
-    const Stopwatch sw;
+    /*
     qDatabaseFacade.insertMultipleTrackInfo(results,
         playlist_id,
         StoreType::PLAYLIST_LOCAL_STORE);
     ensureLocalOnePlaylistPage();
-    localPlaylistPage()->playlist()->reload();
-    if (sw.ElapsedSeconds() > 0.3) {
-        XAMP_LOG_DEBUG("Insert database time: {} seconds.", sw.ElapsedSeconds());
-    }
+    localPlaylistPage()->playlist()->reload();    
     if (playlist_tab_page_->tabWidget()->count() > 0) {
         localPlaylistPage()->playlist()->reload();
     }
-    library_page_->reload();
+    library_page_->reload();*/
 }
 
 void Xamp::onSetAlbumCover(int32_t album_id, const QString& cover_id) {
     qDaoFacade.album_dao.setAlbumCover(album_id, cover_id);
+
     library_page_->artist()->artistViewPage()->album()->refreshCover();
     library_page_->album()->refreshCover();
     library_page_->year()->refreshCover();

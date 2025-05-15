@@ -54,7 +54,7 @@ public:
 
     virtual void setTheme() = 0;
 
-	IThreadPoolExecutor* threadPool() const;
+    std::shared_ptr<IThreadPoolExecutor> threadPool() const;
 protected:
     IXMainWindow();
 

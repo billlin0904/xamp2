@@ -19,6 +19,8 @@ class QLabel;
 class SongItem : public QWidget {
     Q_OBJECT
 public:
+    static constexpr QSize kCoverSize = QSize(35, 35);
+
     explicit SongItem(const QPixmap& album_cover,
         const QString& song_title,
         const QString& artist,
@@ -48,6 +50,8 @@ private:
 class AlbumItem : public QWidget {
     Q_OBJECT
 public:
+    static constexpr QSize kCoverSize = QSize(120, 120);
+
     explicit AlbumItem(const QPixmap& cover,
         const QString& album_title,
         const QString& year,

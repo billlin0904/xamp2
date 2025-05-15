@@ -176,7 +176,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
 			file_paths.push_back(path_str);
         }
 
-        Executor::ParallelFor(getMainWindow()->threadPool(),
+        Executor::ParallelFor(getMainWindow()->threadPool().get(),
             file_paths, 
             [&track_queue](const auto& path) {
             const Path file_path(path);

@@ -136,7 +136,7 @@ public:
 
 	bool commit();
 
-	void rollback();
+	bool rollback();
 
 	bool dropAllTable();
 
@@ -167,6 +167,7 @@ private:
 };
 
 using PooledDatabasePtr = std::shared_ptr<ObjectPool<Database, DatabaseFactory>>;
+using DatabasePtr = ObjectPool<Database, DatabaseFactory>::return_ptr_type;
 
 XAMP_WIDGET_SHARED_EXPORT PooledDatabasePtr getPooledDatabase(int32_t pool_size = kMaxDatabasePoolSize);
 
@@ -175,47 +176,67 @@ XAMP_WIDGET_SHARED_EXPORT PooledDatabasePtr getPooledDatabase(int32_t pool_size 
 template <typename Func>
 class TransactionScope final {
 public:
-    explicit TransactionScope(Func&& action)
+    explicit TransactionScope(Func&& action, Database *database = nullptr)
 		: action_(std::forward<Func>(action)) {
-		result_ = qGuiDb.transaction();
+		if (!database) {
+			database_ = &qGuiDb;
+		} else {
+			database_ = database;
+		}
+		result_ = database_->transaction();
 	}
 
 	~TransactionScope() {
 		if (!result_) {
+			XAMP_LOG_DEBUG("Failure to transaction");
 			return;
 		}
 
 		try {
 			action_();
-			qGuiDb.commit();
+			if (!database_->commit()) {
+				XAMP_LOG_DEBUG("Failure to commit");
+			}
 		}
 		catch (...) {
-			qGuiDb.rollback();			
+			if (!database_->rollback()) {
+				XAMP_LOG_DEBUG("Failure to rollback");
+			}
 		}
 	}
 
 private:
 	bool result_{ false };
 	Func action_;
+	Database* database_;
 };
 
 struct Transaction final {
 	template <typename Func>
-	bool complete(Func&& action) {
-		if (!qGuiDb.transaction()) {
+	bool complete(Func&& action, Database* database = nullptr) {
+		if (!database) {
+			database_ = &qGuiDb;
+		}
+		else {
+			database_ = database;
+		}
+
+		if (!database_->transaction()) {
 			return false;
 		}
 
 		try {
 			action();
-			qGuiDb.commit();
+			database_->commit();
 			return true;
 		}
 		catch (...) {
-			qGuiDb.rollback();
+			database_->rollback();
 			logAndShowMessage(std::current_exception());			
 		}
 		return false;
 	}
+
+	Database* database_;
 };
 

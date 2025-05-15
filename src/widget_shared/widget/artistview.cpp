@@ -3,6 +3,7 @@
 #include <widget/database.h>
 #include <widget/playlistentity.h>
 #include <widget/taglistview.h>
+#include <widget/util/ui_util.h>
 
 #include <thememanager.h>
 
@@ -16,6 +17,8 @@
 #include <QMouseEvent>
 #include <QLabel>
 #include <QPropertyAnimation>
+
+#include "xampplayer.h"
 
 enum {
 	ARTIST_INDEX_ARTIST,
@@ -135,10 +138,10 @@ ArtistViewPage::ArtistViewPage(QWidget* parent)
 	default_layout->setSpacing(0);
 	default_layout->setContentsMargins(0, 5, 0, 0);
 
-	artist_image_ = new QLabel(this);
-	artist_image_->setObjectName(QString::fromUtf8("artistImage"));
-	artist_image_->setFixedHeight(300);
-	artist_image_->setAlignment(Qt::AlignCenter);
+	//artist_image_ = new QLabel(this);
+	//artist_image_->setObjectName(QString::fromUtf8("artistImage"));
+	//artist_image_->setFixedHeight(300);
+	//artist_image_->setAlignment(Qt::AlignCenter);
 
 	auto* album_title_layout = new QVBoxLayout();
 	album_title_layout->setSpacing(0);
@@ -161,16 +164,16 @@ ArtistViewPage::ArtistViewPage(QWidget* parent)
 	artist_name_->setMaximumSize(QSize(16777215, 80));
 
 	auto* top_spacer = new QSpacerItem(20, 40, QSizePolicy::Expanding, QSizePolicy::Fixed);
-	auto* artist_spacer = new QSpacerItem(20, 10, QSizePolicy::Expanding, QSizePolicy::Expanding);
+	//auto* artist_spacer = new QSpacerItem(20, 1000, QSizePolicy::Expanding, QSizePolicy::Fixed);
 
 	album_title_layout->addSpacerItem(top_spacer);
+	//album_title_layout->addSpacerItem(artist_spacer);
 	album_title_layout->addWidget(artist);
 	album_title_layout->addWidget(artist_name_);
-	album_title_layout->addSpacerItem(artist_spacer);
 	album_title_layout->setStretch(2, 1);
 
 	auto* hbox_layout = new QHBoxLayout();
-	hbox_layout->addWidget(artist_image_);
+	//hbox_layout->addWidget(artist_image_);
 	hbox_layout->addLayout(album_title_layout);
 
 	auto* all_album_layout = new QVBoxLayout();
@@ -184,7 +187,7 @@ ArtistViewPage::ArtistViewPage(QWidget* parent)
 	album_view_ = new AlbumView(this);
 	album_view_->setObjectName(QString::fromUtf8("albumView"));
 	album_view_->styledDelegate()->enableAlbumView(false);
-
+	
 	all_album_layout->addWidget(all_album);
 	all_album_layout->addWidget(album_view_);
 	all_album_layout->setStretch(1, 1);
@@ -197,13 +200,47 @@ ArtistViewPage::ArtistViewPage(QWidget* parent)
 	//auto* fade_effect = new QGraphicsOpacityEffect(this);
 	//setGraphicsEffect(fade_effect);
 
-	artist_image_->hide();
-	artist_name_->hide();
-	artist->hide();
+	//artist_image_->hide();
+	//artist_name_->hide();
+	//artist->hide();
 }
 
 void ArtistViewPage::paintEvent(QPaintEvent* event) {
 	QPainter painter(this);
+
+	painter.fillRect(rect(), Qt::black);
+
+	if (cover_.isNull()) {
+		return;
+	}
+
+	constexpr auto kBackgroundHeight = 450;
+
+	QRect top_area_rect(0, 0, width(), kBackgroundHeight);
+
+	auto scaled_bg = cover_.scaled(
+		top_area_rect.size(),
+		Qt::KeepAspectRatioByExpanding,
+		Qt::SmoothTransformation
+	);
+
+	scaled_bg = scaled_bg.copy(0, 0, scaled_bg.width(), kBackgroundHeight);
+
+	int x = (width() - scaled_bg.width()) / 2;
+	painter.drawPixmap(QPoint(x, 0), scaled_bg);
+
+	constexpr int kGradientHeight = kBackgroundHeight;
+	const int start_y = kBackgroundHeight - kGradientHeight;
+
+	QLinearGradient grad(
+		QPointF(0, start_y),
+		QPointF(0, kBackgroundHeight)
+	);
+	grad.setColorAt(0.0, QColor(0, 0, 0, 0));
+	grad.setColorAt(1.0, QColor(0, 0, 0, 255));
+
+	QRect gradient_rect(0, start_y, width(), kGradientHeight);
+	painter.fillRect(gradient_rect, grad);
 }
 
 void ArtistViewPage::onThemeChangedFinished(ThemeColor theme_color) {
@@ -224,13 +261,14 @@ void ArtistViewPage::setArtist(const QString& artist, int32_t artist_id, const Q
 	const auto artist_cover = qImageCache.getOrDefault(ArtistStyledItemDelegate::kArtistCacheTag, artist_cover_id);
 	const auto round_image = image_util::roundImage(artist_cover, artist_cover.width() / 2);	
 	artist_name_->setText(artist);
-	artist_image_->setPixmap(round_image);
+	//artist_image_->setPixmap(round_image);
 	album_view_->filterByArtistId(artist_id);
+	album_view_->setShowMode(SHOW_NORMAL);
 	album_view_->reload();
 	cover_ = qImageCache.getOrAddDefault(artist_cover_id, false);
-	/*if (!cover_.isNull()) {
-		cover_ = QPixmap::fromImage(image_util::blurImage(cover_, size()));
-	}*/
+	if (!cover_.isNull()) {
+		cover_ = QPixmap::fromImage(image_util::blurImage(getMainWindow()->threadPool(), cover_, size()));
+	}
 }
 
 ArtistView::ArtistView(QWidget* parent)
