@@ -18,8 +18,10 @@ public:
     explicit MusicDao(QSqlDatabase& db);
 
     int32_t addOrUpdateMusic(const TrackInfo& track_info);
+    std::optional<int32_t> getMusicId(const QString& file_path) const;
     void updateMusic(int32_t music_id, const TrackInfo& track_info);
     void updateMusicFilePath(int32_t music_id, const QString& file_path);
+    void updateMusicReplayGain(int32_t music_id, double album_gain, double album_peak, double track_gain, double track_peak);
     void addOrUpdateLyrics(int32_t music_id, const QString& lyrc, const QString& trlyrc);
     std::optional<std::tuple<QString, QString>> getLyrics(int32_t music_id);
     void updateMusicRating(int32_t music_id, int32_t rating);

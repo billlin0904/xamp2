@@ -44,7 +44,6 @@ TaskScheduler::TaskScheduler(const std::string_view& name,
 		
 		for (size_t i = 0; i < max_thread_; ++i) {
 			task_work_queues_[i] = MakeAlign<WorkStealingTaskQueue>(kMaxWorkQueueSize);
-			ema_list_.emplace_back(0.2);
 		}
 		for (size_t i = 0; i < max_thread_; ++i) {
             AddThread(i, priority);
@@ -260,7 +259,7 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) resume.", thread_id, i);
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) start.", thread_id, i);
 
-		auto& ema = ema_list_[i];
+		ExponentialMovingAverage ema;
 
 		Stopwatch check_ewa_watch;
 		std::vector<MoveOnlyFunction> tasks(bulk_size_);

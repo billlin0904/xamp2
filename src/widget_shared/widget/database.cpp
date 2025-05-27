@@ -6,6 +6,7 @@
 #include <QSqlRecord>
 #include <QDateTime>
 #include <QDir>
+#include <QRegularExpressionMatchIterator>
 #include <QThread>
 
 #include <base/logger.h>
@@ -113,6 +114,35 @@ namespace {
     }
 }
 
+
+QString lastExecutedQuery(const QSqlQuery& query) {
+    QString sql = query.executedQuery();
+    const auto boundValues = query.boundValues();
+
+    static const QRegularExpression placeholderPattern{ "(:\\w+)"_str };
+    QRegularExpressionMatchIterator it = placeholderPattern.globalMatch(sql);
+
+    int valueIndex{ 0 };
+    while (it.hasNext() && valueIndex < boundValues.size()) {
+        const QRegularExpressionMatch match = it.next();
+        const QString placeholder = match.captured(1);
+        const QString value = boundValues.at(valueIndex).toString();
+
+        if (!value.isEmpty()) {
+            const QRegularExpression exactPlaceholderPattern{ QRegularExpression::escape(placeholder) + "\\b"_str };
+            sql.replace(exactPlaceholderPattern, value);
+        }
+
+        ++valueIndex;
+    }
+
+    return sql;
+}
+
+QString SqlQuery::lastQuery() const {
+    return lastExecutedQuery(*this);
+}
+
 QString DatabaseFactory::getDatabaseId() {
     return "xamp_db_"_str + QString::number(reinterpret_cast<quint64>(QThread::currentThread()), 16);
 }
@@ -121,9 +151,17 @@ PooledDatabasePtr getPooledDatabase(int32_t pool_size) {
     return std::make_shared<ObjectPool<Database, DatabaseFactory>>(pool_size);
 }
 
+QScopedPointer<Database> makeDatabaseConnection() {
+    DatabaseFactory factory;
+    return QScopedPointer<Database>(factory.Create());
+}
+
 SqlException::SqlException(const SqlQuery& query) 
     : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, query.lastQuery().toStdString()) {
-    XAMP_LOG_DEBUG("SqlException: {}\r\n{}\r\n{}", query.lastError().text().toStdString(), query.lastQuery().toStdString(), GetStackTrace());
+    XAMP_LOG_DEBUG("SqlException: {}\r\n{}\r\n{}",
+        query.lastError().text().toStdString(),
+        query.lastQuery().toStdString(),
+        GetStackTrace());
 }
 
 SqlException::SqlException(QSqlError error)
@@ -188,7 +226,7 @@ void Database::open() {
 
 #define CHECK_EXE(expr) \
 	if (!(expr)) {\
-		XAMP_LOG_ERROR("Failed execute database command: {}", #expr);\
+		XAMP_LOG_ERROR("Failed to execute database command: {}", #expr);\
     }
 
     SqlQuery query(db_);
@@ -197,12 +235,10 @@ void Database::open() {
     CHECK_EXE(query.exec("PRAGMA foreign_keys = ON"_str))
     CHECK_EXE(query.exec("PRAGMA cache_size = 40960"_str))
     CHECK_EXE(query.exec("PRAGMA temp_store = MEMORY"_str))
-    CHECK_EXE(query.exec("PRAGMA mmap_size = 40960"_str))
-    CHECK_EXE(query.exec("PRAGMA busy_timeout = 5000"_str))
+    CHECK_EXE(query.exec("PRAGMA mmap_size = 40960"_str))    
 
-    CHECK_EXE(query.exec("PRAGMA journal_mode = WAL"_str))
-    CHECK_EXE(query.exec("PRAGMA SYNCHRONOUS = NORMAL"_str))
-    CHECK_EXE(query.exec("PRAGMA wal_autocheckpoint = 5000"_str))
+    //CHECK_EXE(query.exec("PRAGMA journal_mode = WAL"_str))
+    //CHECK_EXE(query.exec("PRAGMA busy_timeout = 5000"_str))
 
     createTableIfNotExist();
 }

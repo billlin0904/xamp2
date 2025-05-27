@@ -22,7 +22,7 @@
 XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 
 /*
-* IAudioPlayer is a interface that plays audio files. It is responsible for reading audio files,
+* IAudioPlayer is an interface that plays audio files. It is responsible for reading audio files,
 * 
 */
 class XAMP_PLAYER_API XAMP_NO_VTABLE IAudioPlayer {

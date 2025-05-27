@@ -177,9 +177,10 @@ namespace {
 			for (const QJsonValue& artist_value : artists_array) {
 				QJsonObject artistObj = artist_value.toObject();
 				QString artistName = artistObj["name"_str].toString();
-
+				QString artistId = artistObj["id"_str].toString();
 				meta::Artist artist;
 				artist.name = artistName;
+				artist.id = artistId;
 				track.artists.push_back(artist);
 			}
 

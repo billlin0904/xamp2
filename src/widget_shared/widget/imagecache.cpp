@@ -45,9 +45,6 @@ ImageCache::ImageCache()
 	startTimer(kTrimImageSizeSeconds);	
 }
 
-void ImageCache::onThemeChangedFinished(ThemeColor theme_color) {
-}
-
 void ImageCache::loadUnknownCover() {
 	auto unknown_cover = qTheme.unknownCover();	
 	const auto file_path = makeImageCachePath(kAlbumCacheTag + unknown_cover_id_);

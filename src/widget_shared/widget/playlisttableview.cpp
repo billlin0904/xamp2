@@ -779,6 +779,19 @@ void PlaylistTableView::initial() {
 
         action_map.addSeparator();
 
+        auto* scan_select_item_replay_gain_act = action_map.addAction(tr("Scan EBU R128 select items"));
+        action_map.setCallback(scan_select_item_replay_gain_act, [this]() {
+            QList<PlayListEntity> entities;
+            const auto rows = selectItemIndex();
+            for (const auto& row : rows) {
+                const auto entity = this->item(row.second);
+                entities.push_back(entity);
+            }
+            emit scanReplayGain(playlist_id_, entities);
+            });
+
+        action_map.addSeparator();
+
         auto* add_to_playlist_act = action_map.addAction(tr("Add file to playlist"));
         add_to_playlist_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FILE_CIRCLE_PLUS));
         action_map.setCallback(add_to_playlist_act, [this]() {

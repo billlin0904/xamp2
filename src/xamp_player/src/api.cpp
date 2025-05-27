@@ -49,6 +49,9 @@ void LoadComponentSharedLibrary() {
     LoadMBDiscIdLib();
     XAMP_LOG_DEBUG("Load mbdiscid lib success.");
 #endif
+
+    LoadEbur128Lib();
+    XAMP_LOG_DEBUG("Load ebur128 lib success.");
 }
 
 #ifdef XAMP_OS_WIN

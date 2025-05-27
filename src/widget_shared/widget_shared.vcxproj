@@ -151,6 +151,7 @@
     <QtMoc Include="widget\slidingstackedwidget.h" />
     <ClInclude Include="widget\tabpage.h" />
     <ClInclude Include="widget\tagio.h" />
+    <ClInclude Include="widget\util\hash_util.h" />
     <ClInclude Include="widget\util\image_util.h" />
     <ClInclude Include="widget\util\json_util.h" />
     <ClInclude Include="widget\util\log_util.h" />
@@ -326,8 +327,6 @@
   <ItemGroup>
     <QtUic Include="aboutdialog.ui" />
     <QtUic Include="cdpage.ui" />
-    <QtUic Include="chatgptwindow.ui" />
-    <QtUic Include="createplaylistdialog.ui" />
     <QtUic Include="equalizerdialog.ui" />
     <QtUic Include="filesystemviewpage.ui" />
     <QtUic Include="logview.ui" />

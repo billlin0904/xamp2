@@ -21,7 +21,7 @@ public:
 
 	void Open(const Path& path) override;
 
-	std::optional<ReplayGain> GetReplayGain() override;
+	std::optional<ReplayGain> ReadReplayGain() override;
     
     TrackInfo Extract() override;
 

@@ -180,6 +180,8 @@ signals:
 	void navigateToAlbumPage(const PlayListEntity& entity);
 
 	void navigateToArtistPage(int32_t artist_id, const QString& yt_artist_id);
+
+	void scanReplayGain(int32_t playlist_id, const QList<PlayListEntity>& entities);
 public slots:
 	void onPlayIndex(const QModelIndex& index, bool is_play = false);
 

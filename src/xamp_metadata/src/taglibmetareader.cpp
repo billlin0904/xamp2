@@ -18,7 +18,7 @@
 
 XAMP_METADATA_NAMESPACE_BEGIN
 namespace {
-    double ParseStringList(const std::string & s, bool string_dummy = true) {
+    double ParseStringList(const std::string& s, bool string_dummy = true) {
         std::stringstream ss;
         ss << s;
         if (string_dummy) {
@@ -28,47 +28,6 @@ namespace {
         double d = 0;
         ss >> d;
         return d;
-    }
-
-    std::optional<ReplayGain> GetMp3ReplayGain(File* file) {
-        ReplayGain replay_gain;
-        bool found = false;
-        if (auto* mp3_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
-            if (const auto* tag = mp3_file->ID3v2Tag(false)) {
-                const auto& frame_list = tag->frameList("TXXX");
-                for (auto* it : frame_list) {
-                    auto* fr = dynamic_cast<TagLib::ID3v2::UserTextIdentificationFrame*>(it);
-                    if (fr) {
-                        const auto desc = fr->description().upper();
-                        const auto value = ParseStringList(fr->fieldList().toString().to8Bit());
-                        if (desc == kReplaygainAlbumGain) {
-                            replay_gain.album_gain = value;
-                            found = true;
-                        }
-                        else if (desc == kReplaygainTrackGain) {
-                            replay_gain.track_gain = value;
-                            found = true;
-                        }
-                        else if (desc == kReplaygainAlbumPeak) {
-                            replay_gain.album_peak = value;
-                            found = true;
-                        }
-                        else if (desc == kReplaygainTrackPeak) {
-                            replay_gain.track_peak = value;
-                            found = true;
-                        }
-                        else if (desc == kReplaygainReferenceLoudness) {
-                            replay_gain.ref_loudness = value;
-                            found = true;
-                        }
-                    }
-                }
-            }
-        }
-        if (!found) {
-            return std::nullopt;
-        }
-        return MakeOptional<ReplayGain>(std::move(replay_gain));
     }
 
     std::optional<std::vector<std::byte>> GetID3V2TagCover(const ID3v2::Tag* tag) {
@@ -109,145 +68,240 @@ namespace {
         return std::nullopt;
     }
 
-    std::optional<std::vector<std::byte>> GetMp3Cover(File* file) {
-        std::optional<std::vector<std::byte>> buffer;
-        if (auto* mpeg_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
-            if (mpeg_file->ID3v2Tag()) {
-                buffer = GetID3V2TagCover(mpeg_file->ID3v2Tag());
-            }
-            if (!buffer && mpeg_file->APETag()) {
-                buffer = GetApeTagCover(mpeg_file->APETag());
-            }
-        }
-        return buffer;
-    }
+    struct XAMP_NO_VTABLE IFileTagReader {
+        virtual ~IFileTagReader() = default;
+        virtual std::optional<ReplayGain> ReadReplayGain(File* file) = 0;
+        virtual std::optional<std::vector<std::byte>> ReadEmbeddedCover(File* file) = 0;
+    };
 
-    std::optional<std::vector<std::byte>> GetDsfCover(File* file) {
-        if (const auto* dsd_file = dynamic_cast<TagLib::DSF::File*>(file)) {
-            if (dsd_file->tag()) {
-                return GetID3V2TagCover(dsd_file->tag());
+    struct Mp3TagReader : public IFileTagReader {
+        std::optional<ReplayGain> ReadReplayGain(File* file) override {
+            ReplayGain replay_gain;
+            bool found = false;
+            if (auto* mp3_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
+                if (const auto* tag = mp3_file->ID3v2Tag(false)) {
+                    const auto& frame_list = tag->frameList("TXXX");
+                    for (auto* it : frame_list) {
+                        auto* fr = dynamic_cast<TagLib::ID3v2::UserTextIdentificationFrame*>(it);
+                        if (fr) {
+                            const auto desc = fr->description().upper();
+                            const auto value = ParseStringList(fr->fieldList().toString().to8Bit());
+                            if (desc == kReplaygainAlbumGain) {
+                                replay_gain.album_gain = value;
+                                found = true;
+                            }
+                            else if (desc == kReplaygainTrackGain) {
+                                replay_gain.track_gain = value;
+                                found = true;
+                            }
+                            else if (desc == kReplaygainAlbumPeak) {
+                                replay_gain.album_peak = value;
+                                found = true;
+                            }
+                            else if (desc == kReplaygainTrackPeak) {
+                                replay_gain.track_peak = value;
+                                found = true;
+                            }
+                            else if (desc == kReplaygainReferenceLoudness) {
+                                replay_gain.ref_loudness = value;
+                                found = true;
+                            }
+                        }
+                    }
+                }
             }
-        }
-        return std::nullopt;
-    }
-
-    std::optional<std::vector<std::byte>> GetDsdiffCover(File* file) {
-        if (const auto* dsd_file = dynamic_cast<TagLib::DSDIFF::File*>(file)) {
-            if (dsd_file->ID3v2Tag()) {
-                return GetID3V2TagCover(dsd_file->ID3v2Tag());
-            }
-        }
-        return std::nullopt;
-    }
-
-    std::optional<std::vector<std::byte>> GetMp4Cover(File* file) {
-        std::vector<std::byte> buffer;
-
-        if (const auto* mp4_file = dynamic_cast<TagLib::MP4::File*>(file)) {
-            auto* tag = mp4_file->tag();
-            if (!tag) {
+            if (!found) {
                 return std::nullopt;
             }
-
-            if (!tag->itemMap().contains("covr")) {
-                return std::nullopt;
-            }
-
-            auto cover_list = tag->itemMap()["covr"].toCoverArtList();
-            if (cover_list.isEmpty()) {
-                return std::nullopt;
-            }
-            if (cover_list[0].data().size() > 0) {
-                buffer.resize(cover_list[0].data().size());
-                MemoryCopy(buffer.data(), cover_list[0].data().data(),
-                    static_cast<int32_t>(cover_list[0].data().size()));
-                return MakeOptional<std::vector<std::byte>>(std::move(buffer));
-            }
+            return MakeOptional<ReplayGain>(replay_gain);
         }
-        return std::nullopt;
-    }
 
-    std::optional<ReplayGain> GetMp4ReplayGain(File* file) {
-        ReplayGain replay_gain;
-        auto found = false;
-        if (const auto* mp4_file = dynamic_cast<TagLib::MP4::File*>(file)) {
-            if (const auto* tag = mp4_file->tag()) {
-                auto const& dict = tag->itemMap();
-                const auto track_gain = kITunesReplaygainTrackGain;
-                if (dict.contains(track_gain)) {
-                    replay_gain.track_gain = ParseStringList(dict[track_gain].toStringList()[0].to8Bit(), false);
-                    found = true;
+        std::optional<std::vector<std::byte>> ReadEmbeddedCover(File* file) override {
+            std::optional<std::vector<std::byte>> buffer;
+            if (auto* mpeg_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
+                if (mpeg_file->ID3v2Tag()) {
+                    buffer = GetID3V2TagCover(mpeg_file->ID3v2Tag());
                 }
-                const auto track_peak = kITunesReplaygainTrackPeak;
-                if (dict.contains(track_peak)) {
-                    replay_gain.track_peak = ParseStringList(dict[track_peak].toStringList()[0].to8Bit(), false);
-                    found = true;
-                }
-                const auto album_gain = kITunesReplaygainAlbumGain;
-                if (dict.contains(album_gain)) {
-                    replay_gain.album_gain = ParseStringList(dict[album_gain].toStringList()[0].to8Bit(), false);
-                    found = true;
-                }
-                const auto album_peak = kITunesReplaygainAlbumPeak;
-                if (dict.contains(String::AsStdString(album_peak))) {
-                    replay_gain.album_peak = ParseStringList(dict[album_peak].toStringList()[0].to8Bit(), false);
-                    found = true;
-                }
-                const auto reference_loudness = kITunesReplaygainReferenceLoudness;
-                if (dict.contains(reference_loudness)) {
-                    replay_gain.album_peak = ParseStringList(dict[reference_loudness].toStringList()[0].to8Bit(), false);
-                    found = true;
+                if (!buffer && mpeg_file->APETag()) {
+                    buffer = GetApeTagCover(mpeg_file->APETag());
                 }
             }
+            return buffer;
         }
-        if (!found) {
+    };
+
+    struct DsfTagReader : public IFileTagReader {
+        std::optional<std::vector<std::byte>> ReadEmbeddedCover(File* file) override {
+            if (const auto* dsd_file = dynamic_cast<TagLib::DSF::File*>(file)) {
+                if (dsd_file->tag()) {
+                    return GetID3V2TagCover(dsd_file->tag());
+                }
+            }
             return std::nullopt;
         }
-        return MakeOptional<ReplayGain>(std::move(replay_gain));
-    }
 
-    std::optional<ReplayGain> GetFlacReplayGain(File* file) {
-        ReplayGain replay_gain;
-        bool found = false;
-        if (auto* const flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
-            if (const auto* xiph_comment = flac_file->xiphComment()) {
-                auto field_map = xiph_comment->fieldListMap();
-                for (auto& field : field_map) {
-                    if (field.first == kReplaygainAlbumGain) {
-                        replay_gain.album_gain = std::stod(field.second[0].to8Bit());
+        std::optional<ReplayGain> ReadReplayGain(File* file) override {
+            return std::nullopt;
+        }
+    };
+
+    struct DiffTagReader : public IFileTagReader {
+        std::optional<std::vector<std::byte>> ReadEmbeddedCover(File* file) override {
+            if (const auto* dsd_file = dynamic_cast<TagLib::DSDIFF::File*>(file)) {
+                if (dsd_file->ID3v2Tag()) {
+                    return GetID3V2TagCover(dsd_file->ID3v2Tag());
+                }
+            }
+            return std::nullopt;
+        }
+
+        std::optional<ReplayGain> ReadReplayGain(File* file) override {
+            return std::nullopt;
+        }
+    };
+
+    struct Mp4TagReader : public IFileTagReader {
+        std::optional<std::vector<std::byte>> ReadEmbeddedCover(File* file) override {
+            std::vector<std::byte> buffer;
+
+            if (const auto* mp4_file = dynamic_cast<TagLib::MP4::File*>(file)) {
+                auto* tag = mp4_file->tag();
+                if (!tag) {
+                    return std::nullopt;
+                }
+
+                if (!tag->itemMap().contains("covr")) {
+                    return std::nullopt;
+                }
+
+                auto cover_list = tag->itemMap()["covr"].toCoverArtList();
+                if (cover_list.isEmpty()) {
+                    return std::nullopt;
+                }
+                if (cover_list[0].data().size() > 0) {
+                    buffer.resize(cover_list[0].data().size());
+                    MemoryCopy(buffer.data(), cover_list[0].data().data(),
+                        static_cast<int32_t>(cover_list[0].data().size()));
+                    return MakeOptional<std::vector<std::byte>>(std::move(buffer));
+                }
+            }
+            return std::nullopt;
+        }
+
+        std::optional<ReplayGain> ReadReplayGain(File* file) override {
+            ReplayGain replay_gain;
+            auto found = false;
+            if (const auto* mp4_file = dynamic_cast<TagLib::MP4::File*>(file)) {
+                if (const auto* tag = mp4_file->tag()) {
+                    auto const& dict = tag->itemMap();
+                    const auto track_gain = kITunesReplaygainTrackGain;
+                    if (dict.contains(track_gain)) {
+                        replay_gain.track_gain = ParseStringList(dict[track_gain].toStringList()[0].to8Bit(), false);
                         found = true;
                     }
-                    else if (field.first == kReplaygainTrackPeak) {
-                        replay_gain.track_peak = std::stod(field.second[0].to8Bit());
+                    const auto track_peak = kITunesReplaygainTrackPeak;
+                    if (dict.contains(track_peak)) {
+                        replay_gain.track_peak = ParseStringList(dict[track_peak].toStringList()[0].to8Bit(), false);
                         found = true;
                     }
-                    else if (field.first == kReplaygainAlbumPeak) {
-                        replay_gain.album_peak = std::stod(field.second[0].to8Bit());
+                    const auto album_gain = kITunesReplaygainAlbumGain;
+                    if (dict.contains(album_gain)) {
+                        replay_gain.album_gain = ParseStringList(dict[album_gain].toStringList()[0].to8Bit(), false);
                         found = true;
                     }
-                    else if (field.first == kReplaygainTrackGain) {
-                        replay_gain.track_gain = std::stod(field.second[0].to8Bit());
+                    const auto album_peak = kITunesReplaygainAlbumPeak;
+                    if (dict.contains(String::AsStdString(album_peak))) {
+                        replay_gain.album_peak = ParseStringList(dict[album_peak].toStringList()[0].to8Bit(), false);
                         found = true;
                     }
-                    else if (field.first == kReplaygainReferenceLoudness) {
-                        replay_gain.ref_loudness = std::stod(field.second[0].to8Bit());
+                    const auto reference_loudness = kITunesReplaygainReferenceLoudness;
+                    if (dict.contains(reference_loudness)) {
+                        replay_gain.album_peak = ParseStringList(dict[reference_loudness].toStringList()[0].to8Bit(), false);
                         found = true;
                     }
                 }
             }
+            if (!found) {
+                return std::nullopt;
+            }
+            return MakeOptional<ReplayGain>(replay_gain);
         }
-        if (!found) {
+
+    };
+
+    struct FlacTagReader : public IFileTagReader {
+        std::optional<std::vector<std::byte>> ReadEmbeddedCover(File* file) override {
+            if (auto* flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
+                const auto picture_list = flac_file->pictureList();
+                if (picture_list.isEmpty()) {
+                    return std::nullopt;
+                }
+                std::vector<std::byte> buffer;
+                for (const auto& picture : picture_list) {
+                    if (picture->type() == TagLib::FLAC::Picture::FrontCover) {
+                        buffer.resize(picture->data().size());
+                        MemoryCopy(buffer.data(), picture->data().data(), picture->data().size());
+                        return MakeOptional<std::vector<std::byte>>(std::move(buffer));
+                    }
+                }
+            }
             return std::nullopt;
         }
-        return MakeOptional<ReplayGain>(std::move(replay_gain));
-    }
 
-    std::optional<std::vector<std::byte>> GetFlacCover(File* file) {
-        if (auto* flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
-            const auto picture_list = flac_file->pictureList();
+        std::optional<ReplayGain> ReadReplayGain(File* file) override {
+            ReplayGain replay_gain;
+            bool found = false;
+            if (auto* const flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
+                if (const auto* xiph_comment = flac_file->xiphComment()) {
+                    auto field_map = xiph_comment->fieldListMap();
+                    for (auto& field : field_map) {
+                        if (field.first == kReplaygainAlbumGain) {
+                            replay_gain.album_gain = std::stod(field.second[0].to8Bit());
+                            found = true;
+                        }
+                        else if (field.first == kReplaygainTrackPeak) {
+                            replay_gain.track_peak = std::stod(field.second[0].to8Bit());
+                            found = true;
+                        }
+                        else if (field.first == kReplaygainAlbumPeak) {
+                            replay_gain.album_peak = std::stod(field.second[0].to8Bit());
+                            found = true;
+                        }
+                        else if (field.first == kReplaygainTrackGain) {
+                            replay_gain.track_gain = std::stod(field.second[0].to8Bit());
+                            found = true;
+                        }
+                        else if (field.first == kReplaygainReferenceLoudness) {
+                            replay_gain.ref_loudness = std::stod(field.second[0].to8Bit());
+                            found = true;
+                        }
+                    }
+                }
+            }
+            if (!found) {
+                return std::nullopt;
+            }
+            return MakeOptional<ReplayGain>(replay_gain);
+        }
+    };
+
+    struct OpusTagReader : public IFileTagReader {
+        std::optional<std::vector<std::byte>> ReadEmbeddedCover(File* file) override {
+            auto* opus_file = dynamic_cast<TagLib::Ogg::Opus::File*>(file);
+            if (!opus_file || !opus_file->isValid()) {
+                return std::nullopt;
+            }
+
+            auto* comment = opus_file->tag();
+            if (!comment) {
+                return std::nullopt;
+            }
+
+            auto picture_list = comment->pictureList();
             if (picture_list.isEmpty()) {
                 return std::nullopt;
             }
+
             std::vector<std::byte> buffer;
             for (const auto& picture : picture_list) {
                 if (picture->type() == TagLib::FLAC::Picture::FrontCover) {
@@ -256,8 +310,69 @@ namespace {
                     return MakeOptional<std::vector<std::byte>>(std::move(buffer));
                 }
             }
+            return std::nullopt;
         }
-        return std::nullopt;
+
+        std::optional<ReplayGain> ReadReplayGain(File* file) override {
+            auto* opus_file = dynamic_cast<TagLib::Ogg::Opus::File*>(file);
+            if (!opus_file || !opus_file->isValid()) {
+                return std::nullopt;
+            }
+
+            auto* xiph_comment = opus_file->tag();
+            if (!xiph_comment) {
+                return std::nullopt;
+            }
+
+            auto found = false;
+            auto field_map = xiph_comment->fieldListMap();
+            ReplayGain replay_gain;
+            for (auto& field : field_map) {
+                if (field.first == kReplaygainAlbumGain) {
+                    replay_gain.album_gain = std::stod(field.second[0].to8Bit());
+                    found = true;
+                }
+                else if (field.first == kReplaygainTrackPeak) {
+                    replay_gain.track_peak = std::stod(field.second[0].to8Bit());
+                    found = true;
+                }
+                else if (field.first == kReplaygainAlbumPeak) {
+                    replay_gain.album_peak = std::stod(field.second[0].to8Bit());
+                    found = true;
+                }
+                else if (field.first == kReplaygainTrackGain) {
+                    replay_gain.track_gain = std::stod(field.second[0].to8Bit());
+                    found = true;
+                }
+                else if (field.first == kReplaygainReferenceLoudness) {
+                    replay_gain.ref_loudness = std::stod(field.second[0].to8Bit());
+                    found = true;
+                }
+            }
+            if (!found) {
+                return std::nullopt;
+            }
+            return MakeOptional<ReplayGain>(replay_gain);
+        }
+    };
+
+    const HashMap<std::string_view, std::function<ScopedPtr<IFileTagReader>()>>
+        kFileTagReaderLut{
+        { ".flac", [] { return MakeAlign<IFileTagReader, FlacTagReader>(); } },
+        { ".mp3",  [] { return MakeAlign<IFileTagReader, Mp3TagReader>(); } },
+        { ".m4a",  [] { return MakeAlign<IFileTagReader, Mp4TagReader>(); } },
+        { ".mp4",  [] { return MakeAlign<IFileTagReader, Mp4TagReader>(); } },
+	    { ".opus", [] { return MakeAlign<IFileTagReader, OpusTagReader>(); } },
+        { ".dff",  [] { return MakeAlign<IFileTagReader, DiffTagReader>(); } },
+		{ ".dsf",  [] { return MakeAlign<IFileTagReader, DsfTagReader>(); } }
+    };
+
+    ScopedPtr<IFileTagReader> MakeFileTagReader(const std::string& ext) {
+        const auto itr = kFileTagReaderLut.find(ext);
+        if (itr != kFileTagReaderLut.end()) {
+            return itr->second();
+        }
+        return nullptr;
     }
 
     void SetFileInfo(const Path& path, TrackInfo& track_info) {
@@ -334,38 +449,6 @@ namespace {
         SetFileInfo(path, track_info);
         SetAudioProperties(audio_properties, track_info);
     }
-
-    std::optional<ReplayGain> GetReplayGainFromFile(const std::string & ext, File* file) {
-        static const HashMap<std::string_view, std::function<std::optional<ReplayGain>(File*)>>
-            parse_replay_gain_table{
-            { ".flac", GetFlacReplayGain },
-            { ".mp3",  GetMp3ReplayGain },
-            { ".m4a",  GetMp4ReplayGain },
-            { ".mp4",  GetMp4ReplayGain },
-        };
-        const auto itr = parse_replay_gain_table.find(ext);
-        if (itr != parse_replay_gain_table.end()) {
-            return std::invoke(itr->second, file);
-        }
-        return std::nullopt;
-    }
-
-    std::optional<std::vector<std::byte>> GetCover(const std::string & ext, File* file) {
-        static const HashMap<std::string_view, std::function<std::optional<std::vector<std::byte>> (File*)>>
-            parse_cover_table{
-            { ".flac", GetFlacCover },
-            { ".mp3",  GetMp3Cover },
-            { ".m4a",  GetMp4Cover },
-            { ".mp4",  GetMp4Cover },
-            { ".dff",  GetDsdiffCover },
-            { ".dsf",  GetDsfCover }
-        };
-        auto itr = parse_cover_table.find(ext);
-        if (itr != parse_cover_table.end()) {
-            return std::invoke(itr->second, file);
-        }
-		return std::nullopt;
-    }
 }
 
 class TaglibHelper {
@@ -376,10 +459,9 @@ public:
 		return support_file_extensions_;
 	}
 
-	XAMP_NO_DISCARD bool IsSupported(const Path & path) const noexcept {
-		const auto file_ext = String::ToLower(path.extension().string());
+    XAMP_NO_DISCARD bool IsSupported(const std::string& file_ext) const noexcept {
         return support_file_extensions_.find(file_ext) != support_file_extensions_.end();
-	}
+    }
 
 protected:
 	TaglibHelper() {
@@ -396,20 +478,30 @@ private:
 class TaglibMetadataReader::TaglibMetadataReaderImpl {
 public:
 	void Open(const Path& path) {
-		file_ref_opt_ = TryGetFileRef(path);
+#ifdef XAMP_OS_WIN
+        FileRef fileref(path.wstring().c_str(), true, TagLib::AudioProperties::Fast);
+#else
+        FileRef fileref(path.string().c_str(), true, TagLib::AudioProperties::Fast);
+#endif
+        if (fileref.isNull()) {
+            throw Exception("TaglibMetadataReader", "FileRef is null");
+        }
+        fileref_opt_ = fileref;
         path_ = path;
+        file_ext_ = String::ToLower(path_.extension().string());
+        tag_reader_ = MakeFileTagReader(file_ext_);
 	}
 
     XAMP_NO_DISCARD TrackInfo Extract() const {
         TrackInfo track_info;
 
-		if (!file_ref_opt_) {
+		if (!fileref_opt_) {
             SetFileInfo(path_, track_info);
             ExtractTitleFromFileName(track_info);
             return track_info;
 		}
 
-        const auto& file_ref = *file_ref_opt_;
+        const auto& file_ref = *fileref_opt_;
         const auto* tag = file_ref.tag();
 
         if (tag != nullptr) {
@@ -425,9 +517,7 @@ public:
                 ExtractTitleFromFileName(track_info);
             }
         }
-
-        const auto ext = String::ToLower(path_.extension().string());
-        track_info.replay_gain = GetReplayGainFromFile(ext, file_ref.file());
+        track_info.replay_gain = ReadReplayGain(file_ref.file());
         return track_info;
     }
 
@@ -436,37 +526,42 @@ public:
             return std::nullopt;
 		}
 
-        if (!file_ref_opt_ || !file_ref_opt_->tag()) {
+        if (!fileref_opt_ || !fileref_opt_->tag()) {
             return std::nullopt;
         }
-        const auto ext = String::ToLower(path_.extension().string());
-        return GetCover(ext, file_ref_opt_->file());
+        return ReadEmbeddedCover(fileref_opt_->file());
     }
 
     XAMP_ALWAYS_INLINE bool IsSupported() const noexcept {
-		return Singleton<TaglibHelper>::GetInstance().IsSupported(path_);
+		return Singleton<TaglibHelper>::GetInstance().IsSupported(file_ext_);
     }
 
-    std::optional<ReplayGain> GetReplayGain() const {
-        if (!file_ref_opt_) {
+    std::optional<ReplayGain> ReadReplayGain() const {
+        if (!fileref_opt_) {
             return std::nullopt;
         }
-        const auto ext = String::ToLower(path_.extension().string());
-        return GetReplayGainFromFile(ext, file_ref_opt_->file());
+        return ReadReplayGain(fileref_opt_->file());
     }
 
 private:
-    static std::optional<FileRef> TryGetFileRef(const Path& path) {
-#ifdef XAMP_OS_WIN
-        FileRef ref(path.wstring().c_str(), true, TagLib::AudioProperties::Fast);
-#else
-        FileRef ref(path.string().c_str(), true, TagLib::AudioProperties::Fast);
-#endif
-        return ref.isNull() ? std::nullopt : MakeOptional<FileRef>(std::move(ref));
+    std::optional<ReplayGain> ReadReplayGain(File* file) const {
+        if (tag_reader_ != nullptr) {
+            return tag_reader_->ReadReplayGain(file);
+        }
+        return std::nullopt;
     }
 
+    std::optional<std::vector<std::byte>> ReadEmbeddedCover(File* file) const {
+        if (tag_reader_ != nullptr) {
+            return tag_reader_->ReadEmbeddedCover(file);
+        }
+        return std::nullopt;
+    }
+
+    std::string file_ext_;
     Path path_;
-    std::optional<FileRef> file_ref_opt_;
+    std::optional<FileRef> fileref_opt_;
+    ScopedPtr<IFileTagReader> tag_reader_;
 };
 
 XAMP_PIMPL_IMPL(TaglibMetadataReader)
@@ -483,8 +578,8 @@ TrackInfo TaglibMetadataReader::Extract() {
     return reader_->Extract();
 }
 
-std::optional<ReplayGain> TaglibMetadataReader::GetReplayGain() {
-    return reader_->GetReplayGain();
+std::optional<ReplayGain> TaglibMetadataReader::ReadReplayGain() {
+    return reader_->ReadReplayGain();
 }
 
 std::optional<std::vector<std::byte>> TaglibMetadataReader::ReadEmbeddedCover() {

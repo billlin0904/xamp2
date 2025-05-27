@@ -22,40 +22,36 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-/********************************************************************
- * ExponentialMovingAverage: 指數移動平均 (EMA)
- ********************************************************************/
+/*
+ * ExponentialMovingAverage
+ */
  class ExponentialMovingAverage {
  public:
-     // 建構子: 指定平滑係數 alpha (default=0.2)
      explicit ExponentialMovingAverage(double alpha = 0.2)
          : has_value_(false)
          , alpha_(alpha)
          , ema_value_(0.0) {
      }
 
-     // 更新 EMA
      void Update(double new_value) noexcept {
          if (!has_value_) {
-             // 第一次直接設定
              ema_value_ = new_value;
              has_value_ = true;
          }
          else {
-             // EMA公式：ema_new = alpha * x_new + (1 - alpha) * ema_old
+             // ema_new = alpha * x_new + (1 - alpha) * ema_old
              ema_value_ = alpha_ * new_value + (1.0 - alpha_) * ema_value_;
          }
      }
 
-     // 取得目前的 EMA 值
-     double GetValue() const noexcept {
+     [[nodiscard]] double GetValue() const noexcept {
          return ema_value_;
      }
 
  private:
-     bool has_value_;    // 是否已初始化過
-     double alpha_;      // 平滑係數(0<alpha<=1)
-     double ema_value_;  // 當前的 EMA 結果
+     bool has_value_;
+     double alpha_;
+     double ema_value_;
 };
 
 
@@ -154,7 +150,6 @@ private:
     std::vector<std::atomic<size_t>> success_count_;
     SharedTaskQueuePtr task_pool_;
     std::vector<WorkStealingTaskQueuePtr> task_work_queues_;
-    std::vector<ExponentialMovingAverage> ema_list_;
     std::latch work_done_;
     std::latch start_clean_up_;
     LoggerPtr logger_;

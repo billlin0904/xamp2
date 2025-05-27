@@ -176,6 +176,20 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
 			file_paths.push_back(path_str);
         }
 
+        QList<int32_t> file_music_id;
+        for (const auto& file_path: file_paths) {
+            auto music_id = qDaoFacade.music_dao.getMusicId(QString::fromStdWString(file_path));
+            if (music_id.has_value()) {
+                file_music_id.push_back(music_id.value());
+            }
+        }
+
+		if (!file_music_id.empty()) {
+            qDaoFacade.playlist_dao.addMusicToPlaylist(file_music_id, kFileSystemPlaylistId);
+            ui_->page->playlist()->reload();
+            return;
+		}
+
         Executor::ParallelFor(getMainWindow()->threadPool().get(),
             file_paths, 
             [&track_queue](const auto& path) {

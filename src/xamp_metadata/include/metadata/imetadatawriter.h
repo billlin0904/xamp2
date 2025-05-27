@@ -13,7 +13,7 @@
 XAMP_METADATA_NAMESPACE_BEGIN
 
 /*
-* IMetadataWriter is a interface for writing metadata to file.
+* IMetadataWriter is an interface for writing metadata to file.
 * 
 */
 class XAMP_METADATA_API XAMP_NO_VTABLE IMetadataWriter {

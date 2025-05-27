@@ -66,12 +66,14 @@ DatabaseFacade::DatabaseFacade(QObject* parent, Database* database)
     logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(DatabaseFacade));
     if (!database) {
         database_ = &qGuiDb;
+        dao_facade_.reset(new dao::DatabaseFacade(database_));
+        initialUnknownTranslateString();
+        ensureAddUnknownId();
     } else {
+        initialUnknownTranslateString();
         database_ = database;
-    }
-    database_facade_.reset(new dao::DatabaseFacade(database_));
-    initialUnknownTranslateString();
-    ensureAddUnknownId();
+        dao_facade_.reset(new dao::DatabaseFacade(database_));
+    }    
 }
 
 DatabaseFacade::~DatabaseFacade() = default;
@@ -140,33 +142,33 @@ void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result,
 			artist = unknown_artist_;
 		}
 
-        const auto music_id = database_facade_->music_dao.addOrUpdateMusic(track_info);
+        const auto music_id = dao_facade_->music_dao.addOrUpdateMusic(track_info);
         XAMP_EXPECTS(music_id != 0);
 
-		auto artist_id = database_facade_->artist_dao.getArtistId(artist);
+		auto artist_id = dao_facade_->artist_dao.getArtistId(artist);
 
         if (artist_id == kInvalidDatabaseId) {
             if (count_artist > 1) {
                 artist = QString::fromStdWString(kVariousArtists);
             }
-            artist_id = database_facade_->artist_dao.addOrUpdateArtist(artist,
+            artist_id = dao_facade_->artist_dao.addOrUpdateArtist(artist,
                 artist.left(1).toUpper());
             XAMP_EXPECTS(artist_id != 0);
         }
 
         auto album_id = kInvalidDatabaseId;
         if (isCloudStore(store_type)) {
-            album_id = database_facade_->album_dao.getAlbumId(album);
+            album_id = dao_facade_->album_dao.getAlbumId(album);
         }
         else {
             // Avoid cue file album name create new album id.
-            album_id = database_facade_->album_dao.getAlbumIdFromAlbumMusic(music_id);
+            album_id = dao_facade_->album_dao.getAlbumIdFromAlbumMusic(music_id);
         }
 
         if (album_id == kInvalidDatabaseId) {
             auto is_hires = track_info.bit_rate >= k24Bit96KhzBitRate;
 
-            album_id = database_facade_->album_dao.addOrUpdateAlbum(album,
+            album_id = dao_facade_->album_dao.addOrUpdateAlbum(album,
                 artist_id,
                 track_info.last_write_time,
                 track_info.year,
@@ -175,54 +177,54 @@ void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result,
                 is_hires);
 
             if (isCloudStore(store_type)) {
-                database_facade_->album_dao.addAlbumCategory(album_id, kYouTubeCategory);
+                dao_facade_->album_dao.addAlbumCategory(album_id, kYouTubeCategory);
             }
             else {
-                database_facade_->album_dao.addAlbumCategory(album_id, kLocalCategory);
+                dao_facade_->album_dao.addAlbumCategory(album_id, kLocalCategory);
                 auto disk = "Disk("_str +
                     QString::fromStdWString(track_info.file_path.root_name().wstring()) + ")"_str;
-                database_facade_->album_dao.addAlbumCategory(album_id, disk);
+                dao_facade_->album_dao.addAlbumCategory(album_id, disk);
             }
 
             if (track_info.file_ext() == kDsfFileExtension 
                 || track_info.file_ext() == kDffFileExtension) {
-                database_facade_->album_dao.addAlbumCategory(album_id, kDsdCategory);
+                dao_facade_->album_dao.addAlbumCategory(album_id, kDsdCategory);
             }
 
             if (is_hires) {
-                database_facade_->album_dao.addAlbumCategory(album_id, kHiResCategory);
+                dao_facade_->album_dao.addAlbumCategory(album_id, kHiResCategory);
             }
 
-            for (const auto& category : getAlbumCategories(album, database_facade_->album_dao)) {
-                database_facade_->album_dao.addAlbumCategory(album_id, category);
+            for (const auto& category : getAlbumCategories(album, dao_facade_->album_dao)) {
+                dao_facade_->album_dao.addAlbumCategory(album_id, category);
             }
         }
 
         XAMP_EXPECTS(album_id > 0);
 
 		if (playlist_id != kInvalidDatabaseId) {
-            database_facade_->playlist_dao.addMusicToPlaylist(music_id, playlist_id, album_id);
+            dao_facade_->playlist_dao.addMusicToPlaylist(music_id, playlist_id, album_id);
 		}
 
-        database_facade_->album_dao.addOrUpdateAlbumMusic(album_id, artist_id, music_id);
-        database_facade_->album_dao.addOrUpdateAlbumArtist(album_id, artist_id);
+        dao_facade_->album_dao.addOrUpdateAlbumMusic(album_id, artist_id, music_id);
+        dao_facade_->album_dao.addOrUpdateAlbumArtist(album_id, artist_id);
         if (!disc_id.isEmpty()) {
-            database_facade_->album_dao.updateAlbumByDiscId(disc_id, album_id);
+            dao_facade_->album_dao.updateAlbumByDiscId(disc_id, album_id);
         }        
 
         if (artist_id != kUnknownArtistId) {
             for (const auto& artist : normalizeArtist(artist)) {
-                const auto id = database_facade_->artist_dao.addOrUpdateArtist(artist);
-                database_facade_->album_dao.addOrUpdateAlbumArtist(album_id, id);
+                const auto id = dao_facade_->artist_dao.addOrUpdateArtist(artist);
+                dao_facade_->album_dao.addOrUpdateAlbumArtist(album_id, id);
             }
         }
 
         QString cover_id;
         if (album_id != unknownAlbumId()) {
-            cover_id = database_facade_->album_dao.getAlbumCoverId(album_id);
+            cover_id = dao_facade_->album_dao.getAlbumCoverId(album_id);
         }
         if (isNullOfEmpty(cover_id)) {
-            cover_id = database_facade_->music_dao.getMusicCoverId(music_id);
+            cover_id = dao_facade_->music_dao.getMusicCoverId(music_id);
         }
 
         if (isNullOfEmpty(cover_id)) {
@@ -239,7 +241,6 @@ void DatabaseFacade::insertMultipleTrackInfo(
     StoreType store_type,
     const QString& dick_id,
     const std::function<void(int32_t, int32_t)>& fetch_cover) {
-    const Stopwatch sw;
     TransactionScope scope([&]() {
         for (const auto& result : results) {
             insertTrackInfo(result,
@@ -249,7 +250,4 @@ void DatabaseFacade::insertMultipleTrackInfo(
                 fetch_cover);
         }
     }, database_);
-    if (sw.ElapsedSeconds() > 0.3) {
-        XAMP_LOG_DEBUG("Insert database time: {} seconds.", sw.ElapsedSeconds());
-    }
 }

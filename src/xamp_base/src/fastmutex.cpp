@@ -5,13 +5,16 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
+#if 0
+
 class SRWMutex::SRWMutexImpl {
 public:
     SRWMutexImpl() = default;
 
     void lock() noexcept {
-        while (!lock_.try_lock()) {            
-        }
+        //while (!lock_.try_lock()) {            
+        //}
+        lock_.lock();
     }
 
     void unlock() noexcept {
@@ -42,5 +45,7 @@ void SRWMutex::unlock() noexcept {
 bool SRWMutex::try_lock() noexcept {
     return impl_->try_lock();
 }
+
+#endif
 
 XAMP_BASE_NAMESPACE_END

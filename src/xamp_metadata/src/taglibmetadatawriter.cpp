@@ -63,7 +63,186 @@ namespace {
 		}
 		txxx_frame->setText(value);
 	}
-	
+
+	struct XAMP_NO_VTABLE IFileTagWriter {
+		virtual ~IFileTagWriter() = default;
+		virtual void WriteReplayGain(const ReplayGain& replay_gain, File* file) = 0;
+		virtual void WriteEmbeddedCover(File* file, const TagLib::ByteVector& image_data) = 0;
+		virtual void RemoveEmbeddedCover(File* file) = 0;
+	};
+
+	struct FlacTagWriter : public IFileTagWriter {
+		void WriteReplayGain(const ReplayGain& replay_gain, File* file) override {
+			if (auto* const flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
+				Ogg::XiphComment* comment = nullptr;
+				if (!flac_file->hasXiphComment()) {
+					comment = flac_file->xiphComment(true);
+				}
+				else {
+					comment = flac_file->xiphComment(false);
+				}
+				comment->addField(kReplaygainAlbumGain, std::to_string(replay_gain.album_gain));
+				comment->addField(kReplaygainTrackGain, std::to_string(replay_gain.track_gain));
+				comment->addField(kReplaygainAlbumPeak, std::to_string(replay_gain.album_peak));
+				comment->addField(kReplaygainTrackPeak, std::to_string(replay_gain.track_peak));
+				comment->addField(kReplaygainReferenceLoudness, std::to_string(replay_gain.ref_loudness));
+			}
+		}
+
+		void WriteEmbeddedCover(File* file, const TagLib::ByteVector& image_data) override {
+			if (auto* const flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
+				flac_file->removePictures();
+				auto* picture = new TagLib::FLAC::Picture();
+				picture->setMimeType("image/jpeg");
+				picture->setData(image_data);
+				picture->setType(TagLib::FLAC::Picture::FrontCover);
+				flac_file->addPicture(picture);
+			}
+		}
+
+		void RemoveEmbeddedCover(File* file) override {
+			if (auto* const flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
+				flac_file->removePictures();
+			}
+		}
+	};
+
+	struct Mp3TagWriter : public IFileTagWriter {
+		void WriteReplayGain(const ReplayGain& replay_gain, File* file) override {
+			if (auto* mp3_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
+				if (auto* mp3_tag = mp3_file->ID3v2Tag(true)) {
+					auto version = mp3_tag->header()->majorVersion();
+					while (ClearTxxTag(mp3_tag, kReplaygainAlbumGain)) {}
+					while (ClearTxxTag(mp3_tag, kReplaygainTrackGain)) {}
+					while (ClearTxxTag(mp3_tag, kReplaygainAlbumPeak)) {}
+					while (ClearTxxTag(mp3_tag, kReplaygainTrackPeak)) {}
+					while (ClearTxxTag(mp3_tag, kReplaygainReferenceLoudness)) {}
+					SetTxxTag(mp3_tag, kReplaygainAlbumGain, std::to_string(replay_gain.album_gain));
+					SetTxxTag(mp3_tag, kReplaygainTrackGain, std::to_string(replay_gain.track_gain));
+					SetTxxTag(mp3_tag, kReplaygainAlbumPeak, std::to_string(replay_gain.album_peak));
+					SetTxxTag(mp3_tag, kReplaygainTrackPeak, std::to_string(replay_gain.track_peak));
+					SetTxxTag(mp3_tag, kReplaygainReferenceLoudness, std::to_string(replay_gain.ref_loudness));
+				}
+			}
+		}
+
+		void WriteEmbeddedCover(File* file, const TagLib::ByteVector& image_data) override {
+			if (auto* mp3_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
+				if (auto* mp3_tag = mp3_file->ID3v2Tag(true)) {
+					const auto frame_list = mp3_tag->frameList("APIC");
+					for (auto* it : frame_list) {
+						auto* frame = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(it);
+						if (frame != nullptr) {
+							mp3_tag->removeFrame(frame, true);
+						}
+					}
+					auto* frame = new TagLib::ID3v2::AttachedPictureFrame("APIC");
+					frame->setType(TagLib::ID3v2::AttachedPictureFrame::FrontCover);
+					frame->setMimeType("image/jpeg");
+					frame->setPicture(image_data);
+					mp3_tag->addFrame(frame);
+				}
+			}
+		}
+
+		void RemoveEmbeddedCover(File* file) override {
+			if (auto* mp3_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
+				if (auto* mp3_tag = mp3_file->ID3v2Tag(true)) {
+					const auto frame_list = mp3_tag->frameList("APIC");
+					for (auto* it : frame_list) {
+						auto* frame = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(it);
+						if (frame != nullptr) {
+							mp3_tag->removeFrame(frame, true);
+						}
+					}
+				}
+			}
+		}
+	};
+
+	struct Mp4TagWriter : public IFileTagWriter {
+		void WriteReplayGain(const ReplayGain& replay_gain, File* file) override {
+			if (auto* mp4_tag = dynamic_cast<TagLib::MP4::Tag*>(file->tag())) {
+				mp4_tag->setItem(kITunesReplaygainTrackGain,
+					TagLib::StringList(std::to_string(replay_gain.track_gain)));
+				mp4_tag->setItem(kITunesReplaygainTrackPeak,
+					TagLib::StringList(std::to_string(replay_gain.track_peak)));
+				mp4_tag->setItem(kITunesReplaygainAlbumGain,
+					TagLib::StringList(std::to_string(replay_gain.album_gain)));
+				mp4_tag->setItem(kITunesReplaygainAlbumPeak,
+					TagLib::StringList(std::to_string(replay_gain.album_peak)));
+				mp4_tag->setItem(kITunesReplaygainReferenceLoudness,
+					TagLib::StringList(std::to_string(replay_gain.ref_loudness)));
+			}
+		}
+
+		void WriteEmbeddedCover(File* file, const TagLib::ByteVector& image_data) override {
+			TagLib::MP4::CoverArt cover_art(static_cast<TagLib::MP4::CoverArt::Format>(0x0D), image_data);
+
+			if (auto* mp4_tag = dynamic_cast<TagLib::MP4::Tag*>(file->tag())) {
+				TagLib::MP4::CoverArtList cover_art_list;
+				cover_art_list.append(cover_art);
+				const TagLib::MP4::Item cover_item(cover_art_list);
+				mp4_tag->setItem("covr", cover_item);
+			}
+		}
+
+		void RemoveEmbeddedCover(File* file) override {
+			if (auto* mp4_file = dynamic_cast<TagLib::MP4::File*>(file)) {
+				auto cover_art_list = mp4_file->tag()->item("covr").toCoverArtList();
+				if (!cover_art_list.isEmpty()) {
+					mp4_file->tag()->removeItem("covr");
+				}
+			}
+		}
+	};
+
+	struct OpusTagWriter : public IFileTagWriter {
+		void WriteReplayGain(const ReplayGain& replay_gain, File* file) override {
+		}
+
+		void WriteEmbeddedCover(File* file, const TagLib::ByteVector& image_data) override {
+			auto* opus_file = dynamic_cast<TagLib::Ogg::Opus::File*>(file);
+			if (!opus_file || !opus_file->isValid()) {
+				return;
+			}
+
+			auto* tag = opus_file->tag();
+			tag->removeFields("METADATA_BLOCK_PICTURE");
+
+			TagLib::FLAC::Picture picture;
+			picture.setMimeType("image/jpeg");
+			picture.setType(TagLib::FLAC::Picture::FrontCover);
+			picture.setData(image_data);
+
+			const auto rendered = picture.render();
+			tag->addField("METADATA_BLOCK_PICTURE", rendered.toBase64());
+		}
+
+		void RemoveEmbeddedCover(File* file) override {
+			if (auto* const opus_file = dynamic_cast<TagLib::Ogg::Opus::File*>(file)) {
+				auto* tag = opus_file->tag();
+				tag->removeFields("METADATA_BLOCK_PICTURE");
+			}
+		}
+	};
+
+	const HashMap<std::string_view, std::function<ScopedPtr<IFileTagWriter>()>>
+		kFileTagWriterLut{
+		{ ".flac", [] { return MakeAlign<IFileTagWriter, FlacTagWriter>(); } },
+		{ ".mp3",  [] { return MakeAlign<IFileTagWriter, Mp3TagWriter>(); } },
+		{ ".m4a",  [] { return MakeAlign<IFileTagWriter, Mp4TagWriter>(); } },
+		{ ".mp4",  [] { return MakeAlign<IFileTagWriter, Mp4TagWriter>(); } },
+			{ ".opus",  [] { return MakeAlign<IFileTagWriter, OpusTagWriter>(); } }
+	};
+
+	ScopedPtr<IFileTagWriter> MakeFileTagWriter(const std::string &ext) {
+		const auto itr = kFileTagWriterLut.find(ext);
+		if (itr != kFileTagWriterLut.end()) {
+			return itr->second();
+		}
+		return nullptr;
+	}
 }
 
 
@@ -72,6 +251,7 @@ namespace {
 		XAMP_LOG_ERROR("file ref is null!");\
 		return;\
 		}
+
 
 class TaglibMetadataWriter::TaglibMetadataWriterImpl {
 public:
@@ -97,6 +277,8 @@ public:
 		}
 		fileref_opt_ = fileref;
 		path_ = path;
+		const auto ext = String::ToLower(path_.extension().string());
+		tag_writer_ = MakeFileTagWriter(ext);
 	}
 
     void Write(const TrackInfo &track_info) const {
@@ -153,101 +335,21 @@ public:
 
 	void WriteReplayGain(const ReplayGain & replay_gain) {
 		CheckFileRef()
-		const auto ext = String::ToLower(path_.extension().string());
-		auto* tag = fileref_opt_->tag();
+
 		auto* file = fileref_opt_->file();
-		if (ext == ".flac") {
-			if (auto* const flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
-				Ogg::XiphComment* comment = nullptr;
-				if (!flac_file->hasXiphComment()) {
-					comment = flac_file->xiphComment(true);
-				}
-				else {
-					comment = flac_file->xiphComment(false);
-				}
-				comment->addField(kReplaygainAlbumGain, std::to_string(replay_gain.album_gain));
-				comment->addField(kReplaygainTrackGain, std::to_string(replay_gain.track_gain));
-				comment->addField(kReplaygainAlbumPeak, std::to_string(replay_gain.album_peak));
-				comment->addField(kReplaygainTrackPeak, std::to_string(replay_gain.track_peak));
-				comment->addField(kReplaygainReferenceLoudness, std::to_string(replay_gain.ref_loudness));
-			}
-		}
-		else if (ext == ".mp3") {
-			if (auto* mp3_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
-				if (auto* mp3_tag = mp3_file->ID3v2Tag(true)) {
-					auto version = mp3_tag->header()->majorVersion();
-					while (ClearTxxTag(mp3_tag, kReplaygainAlbumGain)) {}
-					while (ClearTxxTag(mp3_tag, kReplaygainTrackGain)) {}
-					while (ClearTxxTag(mp3_tag, kReplaygainAlbumPeak)) {}
-					while (ClearTxxTag(mp3_tag, kReplaygainTrackPeak)) {}
-					while (ClearTxxTag(mp3_tag, kReplaygainReferenceLoudness)) {}
-					SetTxxTag(mp3_tag, kReplaygainAlbumGain, std::to_string(replay_gain.album_gain));
-					SetTxxTag(mp3_tag, kReplaygainTrackGain, std::to_string(replay_gain.track_gain));
-					SetTxxTag(mp3_tag, kReplaygainAlbumPeak, std::to_string(replay_gain.album_peak));
-					SetTxxTag(mp3_tag, kReplaygainTrackPeak, std::to_string(replay_gain.track_peak));
-					SetTxxTag(mp3_tag, kReplaygainReferenceLoudness, std::to_string(replay_gain.ref_loudness));
-				}
-			}
-		}
-		else if (ext == ".m4a" || ext == ".mp4") {
-			if (auto* mp4_tag = dynamic_cast<TagLib::MP4::Tag*>(tag)) {
-				mp4_tag->setItem(kITunesReplaygainTrackGain,
-					TagLib::StringList(std::to_string(replay_gain.track_gain)));
-				mp4_tag->setItem(kITunesReplaygainTrackPeak,
-					TagLib::StringList(std::to_string(replay_gain.track_peak)));
-				mp4_tag->setItem(kITunesReplaygainAlbumGain,
-					TagLib::StringList(std::to_string(replay_gain.album_gain)));
-				mp4_tag->setItem(kITunesReplaygainAlbumPeak,
-					TagLib::StringList(std::to_string(replay_gain.album_peak)));
-				mp4_tag->setItem(kITunesReplaygainReferenceLoudness,
-					TagLib::StringList(std::to_string(replay_gain.ref_loudness)));
-			}
+		if (tag_writer_ != nullptr) {
+			tag_writer_->WriteReplayGain(replay_gain, file);
 		}
 	}
 
 	void WriteEmbeddedCover(const uint8_t *image, size_t image_size) const {
 		CheckFileRef()
-		const auto ext = String::ToLower(path_.extension().string());
-		const TagLib::ByteVector image_data(reinterpret_cast<const char*>(image), image_size);
-		auto* tag = fileref_opt_->tag();
-		auto* file = fileref_opt_->file();
-		if (ext == ".m4a" || ext == ".mp4") {
-			TagLib::MP4::CoverArt cover_art(static_cast<TagLib::MP4::CoverArt::Format>(0x0D), image_data);
+		const auto ext = String::ToLower(path_.extension().string());		
 
-			if (auto* mp4_tag = dynamic_cast<TagLib::MP4::Tag*>(tag)) {
-				TagLib::MP4::CoverArtList cover_art_list;
-				cover_art_list.append(cover_art);
-				const TagLib::MP4::Item cover_item(cover_art_list);
-				mp4_tag->setItem("covr", cover_item);
-			}
-		}
-		else if (ext == ".mp3") {
-			if (auto* mp3_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
-				if (auto* mp3_tag = mp3_file->ID3v2Tag(true)) {
-					const auto frame_list = mp3_tag->frameList("APIC");
-					for (auto* it : frame_list) {
-						auto* frame = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(it);
-						if (frame != nullptr) {
-							mp3_tag->removeFrame(frame, true);
-						}
-					}
-					auto* frame = new TagLib::ID3v2::AttachedPictureFrame("APIC");
-					frame->setType(TagLib::ID3v2::AttachedPictureFrame::FrontCover);
-					frame->setMimeType("image/jpeg");
-					frame->setPicture(image_data);
-					mp3_tag->addFrame(frame);
-				}
-			}
-		}
-		else if (ext == ".flac") {
-			if (auto* const flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
-				flac_file->removePictures();
-				auto* picture = new TagLib::FLAC::Picture();
-				picture->setMimeType("image/jpeg");
-				picture->setData(image_data);
-				picture->setType(TagLib::FLAC::Picture::FrontCover);
-				flac_file->addPicture(picture);
-			}
+		const TagLib::ByteVector image_data(reinterpret_cast<const char*>(image), image_size);
+		auto* file = fileref_opt_->file();
+		if (tag_writer_ != nullptr) {
+			tag_writer_->WriteEmbeddedCover(file, image_data);
 		}
 	}
 
@@ -258,46 +360,15 @@ public:
 
 	void RemoveEmbeddedCover() {
 		CheckFileRef()
-		const auto ext = String::ToLower(path_.extension().string());
-		auto* tag = fileref_opt_->tag();
 		auto* file = fileref_opt_->file();
-		if (ext == ".m4a" || ext == ".mp4") {
-			if (auto* mp4_file = dynamic_cast<TagLib::MP4::File*>(file)) {
-				auto cover_art_list = mp4_file->tag()->item("covr").toCoverArtList();
-				if (!cover_art_list.isEmpty()) {
-					mp4_file->tag()->removeItem("covr");
-				}
-			}
-		}
-		else if (ext == ".flac") {
-			if (auto* const flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
-				flac_file->removePictures();
-			}
-		}
-		else if (ext == ".mp3") {
-			if (auto* mp3_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
-				if (auto* mp3_tag = mp3_file->ID3v2Tag(true)) {
-					const auto frame_list = mp3_tag->frameList("APIC");
-					for (auto* it : frame_list) {
-						auto* frame = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(it);
-						if (frame != nullptr) {
-							mp3_tag->removeFrame(frame, true);
-						}
-					}
-				}
-			}
+		if (tag_writer_ != nullptr) {
+			tag_writer_->RemoveEmbeddedCover(file);
 		}
 	}
 
 	XAMP_NO_DISCARD bool CanWriteEmbeddedCover() const {
 		const auto ext = String::ToLower(path_.extension().string());
-		static const HashSet<std::string> support_ext{
-			".m4a",
-			".mp4",
-			".mp3",
-			".flac",
-		};
-        return support_ext.find(ext) != support_ext.end();
+        return kFileTagWriterLut.find(ext) != kFileTagWriterLut.end();
 	}
 private:
 	void Save() {
@@ -312,6 +383,7 @@ private:
 
 	Path path_;
 	std::optional<FileRef> fileref_opt_;
+	ScopedPtr<IFileTagWriter> tag_writer_;
 };
 
 XAMP_PIMPL_IMPL(TaglibMetadataWriter)

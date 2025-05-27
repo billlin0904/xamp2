@@ -89,44 +89,6 @@ namespace {
 
 #define SYMBOL_LOADER Singleton<SymLoader>::GetInstance()
 
-    size_t WalkStack(CONTEXT const* context, CaptureStackAddress& addrlist) noexcept {
-        addrlist.fill(nullptr);
-
-        STACKFRAME64 stack_frame{};
-
-        stack_frame.AddrPC.Offset = context->Rip;
-        stack_frame.AddrPC.Mode = AddrModeFlat;
-        stack_frame.AddrStack.Offset = context->Rsp;
-        stack_frame.AddrStack.Mode = AddrModeFlat;
-        stack_frame.AddrFrame.Offset = context->Rbp;
-        stack_frame.AddrFrame.Mode = AddrModeFlat;
-
-        WinHandle thread(::GetCurrentThread());
-        size_t frame_count = 0;
-
-        for (auto& address : addrlist) {
-            const auto result = ::StackWalk64(IMAGE_FILE_MACHINE_IA64,
-                SYMBOL_LOADER.GetCurrentProcess(),
-                thread.get(),
-                &stack_frame,
-                &context,
-                nullptr,
-                ::SymFunctionTableAccess64,
-                ::SymGetModuleBase64,
-                nullptr);
-            if (!result) {
-                address = nullptr;
-                break;
-            }
-            if (stack_frame.AddrFrame.Offset == 0) {
-                break;
-            }
-            address = reinterpret_cast<void*>(stack_frame.AddrPC.Offset);
-            ++frame_count;
-        }
-        return frame_count;
-    }
-
     void WriteLog(std::ostringstream& ostr, size_t frame_count, CaptureStackAddress& addrlist) {
         ostr.str("");
         ostr.clear();

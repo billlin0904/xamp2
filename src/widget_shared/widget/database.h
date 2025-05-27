@@ -34,6 +34,8 @@ public:
 		QSqlQuery::finish();
 		QSqlQuery::clear();
 	}
+
+	QString lastQuery() const;
 };
 
 class SqlException final : public Exception {
@@ -171,6 +173,8 @@ using DatabasePtr = ObjectPool<Database, DatabaseFactory>::return_ptr_type;
 
 XAMP_WIDGET_SHARED_EXPORT PooledDatabasePtr getPooledDatabase(int32_t pool_size = kMaxDatabasePoolSize);
 
+XAMP_WIDGET_SHARED_EXPORT QScopedPointer<Database> makeDatabaseConnection();
+
 #define qGuiDb SharedSingleton<Database>::GetInstance()
 
 template <typename Func>
@@ -188,19 +192,19 @@ public:
 
 	~TransactionScope() {
 		if (!result_) {
-			XAMP_LOG_DEBUG("Failure to transaction");
+			XAMP_LOG_DEBUG("Transaction failed");
 			return;
 		}
 
 		try {
 			action_();
 			if (!database_->commit()) {
-				XAMP_LOG_DEBUG("Failure to commit");
+				XAMP_LOG_DEBUG("Failed to commit");
 			}
 		}
 		catch (...) {
 			if (!database_->rollback()) {
-				XAMP_LOG_DEBUG("Failure to rollback");
+				XAMP_LOG_DEBUG("Failed to rollback");
 			}
 		}
 	}

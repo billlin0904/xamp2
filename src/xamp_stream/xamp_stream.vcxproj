@@ -158,6 +158,7 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\stream\ebur128scanner.h" />
     <ClInclude Include="include\stream\libavencoder.h" />
     <ClInclude Include="include\stream\anymap.h" />
     <ClInclude Include="include\stream\avlib.h" />
@@ -199,6 +200,7 @@
     <ClInclude Include="include\stream\supereqequalizer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\ebur128scanner.cpp" />
     <ClCompile Include="src\libavencoder.cpp" />
     <ClCompile Include="src\avlib.cpp" />
     <ClCompile Include="src\bassaacfileencoder.cpp" />

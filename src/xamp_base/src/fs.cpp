@@ -12,6 +12,7 @@
 #ifdef XAMP_OS_WIN
 #include <codecvt>
 #include <base/windows_handle.h>
+#include <winioctl.h>
 #else
 #include <codecvt>
 #include <libgen.h>
@@ -94,6 +95,51 @@ std::string GetSharedLibraryName(const std::string_view& name) {
 Path GetComponentsFilePath() {
 	return GetApplicationFilePath() / Path("components");
 }
+
+#ifdef XAMP_OS_WIN
+HANDLE GetVolumeHandleForFile(const wchar_t* filePath) {
+	wchar_t volume_path[MAX_PATH];
+	if (!::GetVolumePathNameW(filePath, volume_path, ARRAYSIZE(volume_path)))
+		return nullptr;
+
+	wchar_t volume_name[MAX_PATH];
+	if (!::GetVolumeNameForVolumeMountPointW(volume_path,
+		volume_name, ARRAYSIZE(volume_name)))
+		return nullptr;
+
+	auto length = wcslen(volume_name);
+	if (length && volume_name[length - 1] == L'\\')
+		volume_name[length - 1] = L'\0';
+
+	return ::CreateFileW(volume_name, 0,
+		FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+		nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
+}
+
+bool IsFileOnSsd(const Path& path) {
+	FileHandle volume(GetVolumeHandleForFile(path.wstring().c_str()));
+	if (!volume) {
+		return false;
+	}
+
+	STORAGE_PROPERTY_QUERY query{};
+	query.PropertyId = StorageDeviceSeekPenaltyProperty;
+	query.QueryType = PropertyStandardQuery;
+	DWORD count;
+	bool is_ssd{ false };
+	DEVICE_SEEK_PENALTY_DESCRIPTOR result{};
+	if (::DeviceIoControl(volume.get(), IOCTL_STORAGE_QUERY_PROPERTY,
+		&query, sizeof(query), &result, sizeof(result), &count, nullptr)) {
+		is_ssd = !result.IncursSeekPenalty;
+	}
+	return is_ssd;
+}
+
+#else
+bool IsFileOnSsd(const Path& path) {
+	return true;
+}
+#endif
 
 bool IsCDAFile(Path const& path) {
 	return path.extension() == ".cda";

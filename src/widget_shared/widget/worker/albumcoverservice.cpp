@@ -19,6 +19,10 @@ void AlbumCoverService::cleaup() {
     database_ptr_.reset();
 }
 
+void AlbumCoverService::enableFetchThumbnail(bool enable) {
+    enable_ = enable;
+}
+
 void AlbumCoverService::onFetchArtistThumbnailUrl(int32_t artist_id, const QString& thumbnail_url) {
     if (is_stop_) {
         return;
@@ -28,16 +32,19 @@ void AlbumCoverService::onFetchArtistThumbnailUrl(int32_t artist_id, const QStri
         return;
     }
 
-    http_client_.setUrl(thumbnail_url);
-    http_client_.download().then([thumbnail_url, artist_id, this](const auto& content) {
-        QPixmap image;
-        if (!image.loadFromData(content)) {
-            return;
-        }
-        auto cover_id = qImageCache.addImage(image, false, false);
-        emit setAristThumbnail(artist_id, cover_id);
-        pending_requests_.erase(thumbnail_url);
-        });
+    if (enable_) {
+        http_client_.setUrl(thumbnail_url);
+        http_client_.download().then([thumbnail_url, artist_id, this](const auto& content) {
+            QPixmap image;
+            if (!image.loadFromData(content)) {
+                return;
+            }
+            auto cover_id = qImageCache.addImage(image, false, false);
+            emit setAristThumbnail(artist_id, cover_id);
+            pending_requests_.erase(thumbnail_url);
+            });
+    }
+    
     pending_requests_.insert(thumbnail_url);
 }
 
@@ -50,15 +57,18 @@ void AlbumCoverService::onFetchYoutubeThumbnailUrl(const QString& video_id, cons
         return;
     }
 
-    http_client_.setUrl(thumbnail_url);
-    http_client_.download().then([thumbnail_url, video_id, this](const auto& content) {
-        QPixmap image;
-        if (!image.loadFromData(content)) {
-            return;
-        }
-        qImageCache.addCache(video_id, image);
-        pending_requests_.erase(thumbnail_url);
-        });
+    if (enable_) {
+        http_client_.setUrl(thumbnail_url);
+        http_client_.download().then([thumbnail_url, video_id, this](const auto& content) {
+            QPixmap image;
+            if (!image.loadFromData(content)) {
+                return;
+            }
+            qImageCache.addCache(video_id, image);
+            pending_requests_.erase(thumbnail_url);
+            });
+    }
+    
     pending_requests_.insert(thumbnail_url);
 }
 
@@ -71,15 +81,18 @@ void AlbumCoverService::onFetchThumbnailUrl(const DatabaseCoverId& id, const QSt
         return;
     }
 
-	http_client_.setUrl(thumbnail_url);
-    http_client_.download().then([thumbnail_url, id, this](const auto& content) {
-        QPixmap image;
-        if (!image.loadFromData(content)) {
-            return;
-        }
-        emit setThumbnail(id, qImageCache.addImage(image));
-        pending_requests_.erase(thumbnail_url);
-        });
+    if (enable_) {
+        http_client_.setUrl(thumbnail_url);
+        http_client_.download().then([thumbnail_url, id, this](const auto& content) {
+            QPixmap image;
+            if (!image.loadFromData(content)) {
+                return;
+            }
+            emit setThumbnail(id, qImageCache.addImage(image));
+            pending_requests_.erase(thumbnail_url);
+            });
+    }
+	
     pending_requests_.insert(thumbnail_url);
 }
 
@@ -140,6 +153,10 @@ void AlbumCoverService::mergeUnknownAlbumCover() {
 
 void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
     is_stop_ = false;
+
+    if (!enable_) {
+        return;
+    }
 
     auto db = database_ptr_->Acquire();
     dao::AlbumDao album_dao(db->getDatabase());

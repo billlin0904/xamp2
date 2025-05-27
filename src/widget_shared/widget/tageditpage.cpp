@@ -13,8 +13,7 @@
 #include <widget/xmessagebox.h>
 #include <widget/tagio.h>
 #include <widget/imagecache.h>
-
-#include "dao/dbfacade.h"
+#include <widget/dao/dbfacade.h>
 
 namespace {
 	QString getFileChecksum(const QString& file_name, 
@@ -154,7 +153,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 
 		try {
 			qDaoFacade.album_dao.updateAlbum(entity.album_id, entity.album);
-			artist_dao_.updateArtist(entity.artist_id, entity.artist);
+			qDaoFacade.artist_dao.updateArtist(entity.artist_id, entity.artist);
 		}
 		catch (...) {
 			XMessageBox::showError(tr("Failure to update database!"));
@@ -248,6 +247,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 			const auto resize_image = image_util::resizeImage(temp_image_, ui_->coverLabel->size());
 
 			setImageLabel(resize_image, image_size, image_file_size);
+			update();
 			};
 
 		getOpenFileName(parent,
@@ -320,7 +320,7 @@ void TagEditPage::readEmbeddedCover(const PlayListEntity& entity) {
 	QSize image_size(0, 0);
 	size_t image_file_size = 0;
 	QPixmap image;
-	tag_io.Open(entity.file_path.toStdWString());
+	tag_io.Open(entity.file_path.toStdWString(), TAG_IO_READ_MODE);
 	if (tag_io.embeddedCover(image, image_file_size)) {
 		image_size = image.size();
 		image = image_util::resizeImage(image, ui_->coverLabel->size());

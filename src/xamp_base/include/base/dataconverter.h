@@ -12,7 +12,6 @@
 #include <base/assert.h>
 #include <base/int24.h>
 #include <base/memory.h>
-#include <base/simd.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
 

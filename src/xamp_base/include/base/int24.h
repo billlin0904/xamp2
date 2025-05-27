@@ -7,7 +7,6 @@
 
 #include <array>
 #include <base/base.h>
-#include <base/simd.h>
 #include <base/memory.h>
 
 XAMP_BASE_NAMESPACE_BEGIN

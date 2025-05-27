@@ -41,13 +41,13 @@ public:
 	void insertMultipleTrackInfo(
         const std::vector<std::forward_list<TrackInfo>>& results,
 	    int32_t playlist_id,
-	    StoreType store_type,
+	    StoreType store_type = StoreType::LOCAL_STORE,
         const QString& dick_id = QString(),
         const std::function<void(int32_t, int32_t)>& fetch_cover = nullptr);
 
     void insertTrackInfo(const std::forward_list<TrackInfo>& result,
         int32_t playlist_id,
-        StoreType store_type,
+        StoreType store_type = StoreType::LOCAL_STORE,
         const QString &dick_id = QString(),
         const std::function<void(int32_t, int32_t)>& fetch_cover = nullptr);
 private:    
@@ -63,7 +63,7 @@ private:
     QString unknown_;
     LoggerPtr logger_;
     Database* database_;
-    QScopedPointer<dao::DatabaseFacade> database_facade_;
+    QScopedPointer<dao::DatabaseFacade> dao_facade_;
 };
 
 #define qDatabaseFacade SharedSingleton<DatabaseFacade>::GetInstance()

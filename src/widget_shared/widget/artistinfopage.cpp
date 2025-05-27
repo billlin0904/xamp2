@@ -247,12 +247,16 @@ void ArtistInfoPage::setDescription(const QString& info) {
     constexpr QChar corner_bracket_char(0x300f);
 
     auto pos = full_description_.indexOf(ideographic_full_stop_char);
+
     if (pos == -1) {
         pos = full_description_.indexOf(full_stop_char);
     }
 
     if (pos != -1) {
-        pos = full_description_.indexOf(corner_bracket_char);
+        auto corner_bracket_char_pos = full_description_.indexOf(corner_bracket_char);
+        if (corner_bracket_char_pos != -1) {
+            pos = corner_bracket_char_pos;
+        }
     }
 
     if (pos != -1) {

@@ -14,7 +14,6 @@
 #include <base/singleton.h>
 #include <base/platform.h>
 #include <base/stopwatch.h>
-#include <base/simd.h>
 
 #include <output_device/win32/mmcss.h>
 #include <output_device/win32/asiodevice.h>
@@ -104,6 +103,7 @@ namespace {
 }
 
 inline constexpr int32_t kClockSourceSize = 32;
+inline constexpr int32_t kMinimalLatencyMs = 15;
 
 XAMP_DECLARE_LOG_NAME(AsioDevice);
 
@@ -730,14 +730,14 @@ void AsioDevice::OnBufferSwitchCallback(long index, ASIOBool processNow) {
 	if (::ASIOGetSamplePosition(&time_info.timeInfo.samplePosition, &time_info.timeInfo.systemTime) == ASE_OK) {
 		time_info.timeInfo.flags = kSystemTimeValid | kSamplePositionValid;
 	}
-	
-	the_driver_context.device->OnBufferSwitchTimeInfoCallback(&time_info, index, processNow);
+
+	OnBufferSwitchTimeInfoCallback(&time_info, index, processNow);
 	double sample_time = 0;
 	if (time_info.timeInfo.flags & kSamplePositionValid) {
 		sample_time = ASIO64toDouble(time_info.timeInfo.samplePosition)
 		/ the_driver_context.device->format_.GetSampleRate();
 	}
-	constexpr auto kMinimalLatencyMs = 15;
+	
 	const auto elapsed = the_driver_context.buffer_switch_stopwatch.Elapsed<std::chrono::milliseconds>().count();
 	if (the_driver_context.device->latency_ > kMinimalLatencyMs) {
 		if (elapsed > the_driver_context.device->latency_) {
@@ -766,8 +766,32 @@ long AsioDevice::OnAsioMessagesCallback(long selector, long value, void* message
 			// necessarily have to support them.
 			|| value == kAsioSupportsTimeInfo
 			|| value == kAsioSupportsTimeCode
-			|| value == kAsioSupportsInputMonitor)
+			|| value == kAsioSupportsInputMonitor) {
+			switch (value) {
+			case kAsioResetRequest:
+				XAMP_LOG_INFO("Receive select kAsioResetRequest!");
+				break;
+			case kAsioResyncRequest:
+				XAMP_LOG_INFO("Receive select kAsioResyncRequest!");
+				break;
+			case kAsioLatenciesChanged:
+				XAMP_LOG_INFO("Receive select kAsioLatenciesChanged!");
+				break;
+			case kAsioEngineVersion:
+				XAMP_LOG_INFO("Receive select kAsioEngineVersion!");
+				break;
+			case kAsioSupportsTimeInfo:
+				XAMP_LOG_INFO("Receive select kAsioSupportsTimeInfo!");
+				break;
+			case kAsioSupportsTimeCode:
+				XAMP_LOG_INFO("Receive select kAsioSupportsTimeCode!");
+				break;
+			case kAsioSupportsInputMonitor:
+				XAMP_LOG_INFO("Receive select kAsioSupportsInputMonitor!");
+				break;
+			}
 			ret = 1L;
+		}
 		break;
 	case kAsioResetRequest:
 		// Defer the task and perform the reset of the driver during the

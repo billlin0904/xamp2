@@ -20,16 +20,6 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 namespace Executor {
 
-XAMP_DECLARE_LOG_NAME(DefaultThreadPoollExecutor);
-
-/*
-* Spawn a task.
-* 
-* @param[in] executor
-* @param[in] f
-* @param[in] args
-* @return Task<decltype(f(args...))>
-*/
 template <typename F, typename ... Args>
 decltype(auto) Spawn(IThreadPoolExecutor *executor,
     F&& f, 
@@ -39,26 +29,12 @@ decltype(auto) Spawn(IThreadPoolExecutor *executor,
     return executor->Spawn(f, std::forward<Args>(args) ..., flags);
 }
 
-/*
-* Parallel for.
-* 
-* @param[in] items
-* @param[in] f
-* @param[in] batches
-* @return void
-*/
-template <typename C, typename Func>
-void ParallelFor(C& items, Func&& f) {
-    auto executor =
-        ThreadPoolBuilder::MakeThreadPool(kDefaultThreadPoollExecutorLoggerName);
-    ParallelFor(executor.get(), items, f);
-}
-
 template <typename C, typename Func>
 void ParallelFor(IThreadPoolExecutor* executor,
     C& items,
     Func&& f,
-    const std::stop_token& stop_token = std::stop_token()) {
+    const std::stop_token& stop_token = std::stop_token(),
+    size_t worker_count = 0) {
     using ValueType = typename C::value_type;
 
     if (items.empty()) {
@@ -88,7 +64,9 @@ void ParallelFor(IThreadPoolExecutor* executor,
         }
         };
 
-    const size_t worker_count = executor->GetThreadSize();
+    if (worker_count == 0) {
+        worker_count = executor->GetThreadSize();
+    }    
     std::vector<SharedTask<void>> futures;
     futures.reserve(worker_count);
 
@@ -102,7 +80,7 @@ void ParallelFor(IThreadPoolExecutor* executor,
 }
 
 template <typename Func>
-void ParallelFor(IThreadPoolExecutor* executor, size_t begin, size_t end, Func&& f) {
+void ParallelForIndex(IThreadPoolExecutor* executor, size_t begin, size_t end, Func&& f) {
     size_t size = end - begin;
     size_t batches = (executor->GetThreadSize() / 2) + 1;
     for (size_t i = 0; i < size;) {
@@ -121,6 +99,42 @@ void ParallelFor(IThreadPoolExecutor* executor, size_t begin, size_t end, Func&&
         }
     }
 }
+
+template <typename C, typename Func>
+void ParallelForSimple(IThreadPoolExecutor* executor,
+    C& items,
+    Func&& f) {
+    using ValueType = typename C::value_type;
+
+    if (items.empty()) {
+        return;
+    }
+
+    auto begin = std::begin(items);
+    auto size = std::distance(begin, std::end(items));
+
+    constexpr bool can_call_with_stop =
+        std::is_invocable_v<Func, ValueType&, const std::stop_token&>;
+
+    std::vector<Task<void>> futures;
+    futures.reserve(size);
+
+    auto i = 0;
+    for (auto& item : items) {        
+        futures.push_back(Executor::Spawn(executor, [ff = std::forward<Func>(f), begin, i](const auto& stop_token) -> void {
+            if constexpr (can_call_with_stop) {
+                ff(*(begin + i), stop_token);
+            }
+            else {
+                ff(*(begin + i));
+            }
+        }));
+    }
+    for (auto& ff : futures) {
+        ff.wait();
+    }
+}
+
 	
 }
 

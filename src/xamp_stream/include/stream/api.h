@@ -87,4 +87,6 @@ XAMP_STREAM_API void LoadSrcLib();
 
 XAMP_STREAM_API void LoadBassLib();
 
+XAMP_STREAM_API void LoadEbur128Lib();
+
 XAMP_STREAM_NAMESPACE_END

@@ -32,7 +32,6 @@
     <ClCompile Include="src\com_error_category.cpp" />
     <ClCompile Include="src\charset_detector.cpp" />
     <ClCompile Include="src\text_encoding.cpp" />
-    <ClCompile Include="src\transliterator.cpp" />
     <ClCompile Include="src\furigana.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -55,10 +54,8 @@
     <ClInclude Include="include\base\executor.h" />
     <ClInclude Include="include\base\sfc64.h" />
     <ClInclude Include="include\base\shared_singleton.h" />
-    <ClInclude Include="include\base\simd.h" />
     <ClInclude Include="include\base\scopeguard.h" />
     <ClInclude Include="include\base\singleton.h" />
-    <ClInclude Include="include\base\spinlock.h" />
     <ClInclude Include="include\base\stl.h" />
     <ClInclude Include="include\base\audiobuffer.h" />
     <ClInclude Include="include\base\audioformat.h" />
@@ -91,14 +88,11 @@
     <ClInclude Include="include\base\windows_handle.h" />
     <ClInclude Include="include\base\workstealingtaskqueue.h" />
     <ClInclude Include="include\base\algorithm.h" />
-    <ClInclude Include="include\base\mpmc_queue.h" />
     <ClInclude Include="include\base\lazy_storage.h" />
     <ClInclude Include="include\base\port.h" />
     <ClInclude Include="include\base\com_error_category.h" />
     <ClInclude Include="include\base\charset_detector.h" />
     <ClInclude Include="include\base\text_encoding.h" />
-    <ClInclude Include="include\base\transliterator.h" />
     <ClInclude Include="include\base\furigana.h" />
-    <ClInclude Include="include\base\encoding_detector_tables.h" />
   </ItemGroup>
 </Project>

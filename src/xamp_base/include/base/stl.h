@@ -80,7 +80,7 @@ using HashSet = std::unordered_set<T, H, E, Alloc>;
 #else
 
 template <typename K, typename V>
-using FloatMap = ankerl::unordered_dense::map<K, V>;
+using FloatMap = ankerl::unordered_dense::segmented_map<K, V>;
 
 template <typename K, typename V>
 using HashMap = ankerl::unordered_dense::map<K, V>;

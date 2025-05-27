@@ -178,7 +178,6 @@
     <ClInclude Include="include\base\int24.h" />
     <ClInclude Include="include\base\lazy_storage.h" />
     <ClInclude Include="include\base\logger_impl.h" />
-    <ClInclude Include="include\base\mpmc_queue.h" />
     <ClInclude Include="include\base\object_pool.h" />
     <ClInclude Include="include\base\pimplptr.h" />
     <ClInclude Include="include\base\platfrom_handle.h" />
@@ -188,10 +187,8 @@
     <ClInclude Include="include\base\port.h" />
     <ClInclude Include="include\base\sfc64.h" />
     <ClInclude Include="include\base\shared_singleton.h" />
-    <ClInclude Include="include\base\simd.h" />
     <ClInclude Include="include\base\scopeguard.h" />
     <ClInclude Include="include\base\singleton.h" />
-    <ClInclude Include="include\base\spinlock.h" />
     <ClInclude Include="include\base\stl.h" />
     <ClInclude Include="include\base\audiobuffer.h" />
     <ClInclude Include="include\base\audioformat.h" />

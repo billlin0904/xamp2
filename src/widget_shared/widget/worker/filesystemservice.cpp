@@ -8,10 +8,13 @@
 #include <metadata/cueloader.h>
 
 #include <widget/albumview.h>
+#include <widget/database.h>
+#include <widget/util/hash_util.h>
 #include <widget/util/ui_util.h>
 
 namespace {
 	XAMP_DECLARE_LOG_NAME(FileSystemService);
+	XAMP_DECLARE_LOG_NAME(FileSystemServiceThreadPool);
 
 	struct PathInfo {
 		size_t file_count;
@@ -69,20 +72,20 @@ namespace {
 }
 
 FileSystemService::FileSystemService()
-	: timer_(this) {
+	: timer_(this)
+	, database_(makeDatabaseConnection()) {
 	(void)QObject::connect(&timer_, &QTimer::timeout,
 		this, &FileSystemService::updateProgress);
 	logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(FileSystemService));
 	constexpr auto kThreadPoolSize = 8;
 	thread_pool_ = ThreadPoolBuilder::MakeThreadPool(
-		XAMP_LOG_NAME(FileSystemService),
+		XAMP_LOG_NAME(FileSystemServiceThreadPool),
 		kThreadPoolSize,
 		1,
 		ThreadPriority::PRIORITY_BACKGROUND);
 }
 
-FileSystemService::~FileSystemService() {
-}
+FileSystemService::~FileSystemService() = default;
 
 void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 	QDirIterator itr(dir,
@@ -91,56 +94,21 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 	    QDirIterator::Subdirectories);
 
 	FloatMap<QString, std::vector<Path>> directory_files;
+	std::vector<Path> cue_files;
+
+	directory_files.reserve(1024);
+	cue_files.reserve(1024);
 
 	XAMP_ON_SCOPE_EXIT(
-		for (auto& files : directory_files) {
-			files.second.clear();
-			files.second.shrink_to_fit();
+		for (auto& pair_entry : directory_files) {
+			pair_entry.second.clear();
+			pair_entry.second.shrink_to_fit();
 		}
 	);
 
-	auto database_pool = getPooledDatabase(1);
-	auto database_ptr = database_pool->Acquire();
-	DatabaseFacade facade(nullptr, database_ptr.get());
-
-	// Note: CueLoader has thread safe issue so we need to process not in parallel.
-	auto process_cue_file = [this, &facade](const auto &path, auto playlist_id) {
-		try {
-			std::forward_list<TrackInfo> tracks;
-			CueLoader loader;
-			for (auto& track : loader.Load(path)) {
-				tracks.push_front(track);
-			}
-			tracks.sort([](const auto& first, const auto& last) {
-				return first.track < last.track;
-				});
-			try {
-				facade.insertTrackInfo(tracks, playlist_id, StoreType::LOCAL_STORE);
-			}
-			catch (const Exception& e) {
-				XAMP_LOG_DEBUG("Failed to insert database: {}", e.what());
-			}
-			catch (const std::exception& e) {
-				XAMP_LOG_DEBUG("Failed to insert database: {}", e.what());
-			}
-			catch (...) {
-			}
-			emit insertDatabase(tracks, playlist_id);
-		}
-		catch (const std::exception &e) {
-			XAMP_LOG_DEBUG("Failed to extract cue file: {}", e.what());
-		}
-		catch (...) {	
-		}			
-	};
-
-	auto process_file = [this, &directory_files, 
-		playlist_id, 
-		process_cue_file](const auto& dir) {
-		const auto next_path = toNativeSeparators(dir);
-		const auto path = next_path.toStdWString();
-		const Path test_path(path);
-		if (test_path.extension() != kCueFileExtension) {
+	auto collect_files = [this, &directory_files, &cue_files](const auto& dir) {
+		const Path path(toNativeSeparators(dir).toStdWString());
+		if (path.extension() != kCueFileExtension) {
 			const auto directory = QFileInfo(dir).dir().path();
 			if (!directory_files.contains(directory)) {
 				directory_files[directory].reserve(
@@ -149,7 +117,7 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 			directory_files[directory].emplace_back(path);
 		}
 		else {
-			process_cue_file(test_path, playlist_id);
+			cue_files.push_back(path);
 		}
 		};
 
@@ -157,7 +125,7 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 		if (is_stop_) {
 			return;
 		}
-		process_file(itr.next());
+		collect_files(itr.next());
 	}
 
 	if (directory_files.empty()) {
@@ -166,21 +134,17 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 				String::ToString(dir.toStdWString()));
 			return;
 		}
-		process_file(dir);
+		collect_files(dir);
 	}
 
 	// directory_files 目的是為了將同一個檔案分類再一起,
 	// 為了以下進行平行處理資料夾內的檔案, 並將解析後得結果進行track no排序.
-
-	FastMutex batch_mutex;
 	std::vector<std::forward_list<TrackInfo>> batch_track_infos;
-#ifdef _DEBUG
-	constexpr auto kMaxBatchSize = 100UL;
-#else
-	constexpr auto kMaxBatchSize = 500UL;
-#endif
 
-	batch_track_infos.reserve(kMaxBatchSize);
+	constexpr auto kMaxBatchTrackSize = 250UL;
+
+	size_t worker_count = IsFileOnSsd(dir.toStdWString()) ? 0 : 2;
+	size_t track_count = 0;
 
 	Executor::ParallelFor(thread_pool_.get(),
 		directory_files, [&](auto& path_info, const auto& stop_token) {
@@ -206,6 +170,7 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 			catch (...) {
 			}
 			++completed_work_;
+			++track_count;
 			updateProgress();
 		}
 
@@ -213,48 +178,77 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 			return first.track < last.track;
 		});
 
-		std::scoped_lock lock(batch_mutex);
+		/*std::vector<Ebur128Scanner> ebur128_scanners;
+
+		ebur128_scanners.reserve(path_info.second.size());
+		double album_peak = -100;
+
+		for (auto& track : tracks) {
+			auto scanner = readFileLoudness(track.file_path);
+			ReplayGain replay_gain;
+			replay_gain.track_gain = scanner.GetLoudness();
+			replay_gain.track_peak = scanner.GetTruePeek();
+			track.replay_gain = replay_gain;
+			album_peak = (std::max)(album_peak, replay_gain.track_peak);
+			ebur128_scanners.push_back(std::move(scanner));
+		}
+
+		auto album_gain = Ebur128Scanner::GetMultipleLoudness(ebur128_scanners);
+		for (auto& track : tracks) {
+			auto& replay_gain = track.replay_gain.value();
+			replay_gain.album_gain = album_gain;
+			replay_gain.album_peak = album_peak;
+		}*/
+
+		std::scoped_lock lock(batch_mutex_);
 		batch_track_infos.emplace_back(std::move(tracks));
 
-		if (batch_track_infos.size() > kMaxBatchSize) {
+		if (track_count > kMaxBatchTrackSize) {
 			emit readFilePath(
 				qFormat("Extract directory %1 size:%2 completed.")
 				.arg(path_info.first)
 				.arg(path_info.second.size()));
-			try {
-				facade.insertMultipleTrackInfo(batch_track_infos, playlist_id, StoreType::LOCAL_STORE);
-			}
-			catch (const Exception& e) {
-				XAMP_LOG_DEBUG("Failed to insert database: {}", e.what());
-			}
-			catch (const std::exception& e) {
-				XAMP_LOG_DEBUG("Failed to insert database: {}", e.what());
-			}
-			catch (...) {
-			}
-			
  			emit batchInsertDatabase(batch_track_infos, playlist_id);
 			batch_track_infos.clear();
-		}		
-	}, stop_source_.get_token());
+			track_count = 0;
+		}
+	}, stop_source_.get_token(), worker_count);
 
 	if (!batch_track_infos.empty()) {
 		emit readFilePath(qFormat("Extract directory %1 size:%2 completed.")
 			.arg(directory_files.begin()->first)
 			.arg(directory_files.begin()->second.size()));
-		try {
-			facade.insertMultipleTrackInfo(batch_track_infos, playlist_id, StoreType::LOCAL_STORE);
-		}
-		catch (const Exception& e) {
-			XAMP_LOG_DEBUG("Failed to insert database: {}", e.what());
-		}
-		catch (const std::exception& e) {
-			XAMP_LOG_DEBUG("Failed to insert database: {}", e.what());
-		}
-		catch (...) {
-		}
 		emit batchInsertDatabase(batch_track_infos, playlist_id);
 	}
+
+	Executor::ParallelFor(thread_pool_.get(),
+		cue_files, [&](auto& files_path, const auto& stop_token) {
+		if (stop_token.stop_requested()) {
+			return;
+		}
+
+		try {
+			std::forward_list<TrackInfo> tracks;
+			{
+				std::scoped_lock lock(batch_mutex_);
+				CueLoader loader;
+				for (auto& track : loader.Load(files_path)) {
+					tracks.push_front(track);
+				}
+			}
+			tracks.sort([](const auto& first, const auto& last) {
+				return first.track < last.track;
+				});
+			if (!tracks.empty()) {
+				emit insertDatabase(tracks, playlist_id);
+			}
+		}
+		catch (const std::exception& e) {
+			XAMP_LOG_DEBUG("Failed to extract cue file: {}", e.what());
+		}		
+		catch (...) {
+		}
+		});
 }
 
 void FileSystemService::onExtractFile(const QString& file_path,
@@ -311,7 +305,9 @@ void FileSystemService::onExtractFile(const QString& file_path,
 		return;
 	}
 
+	playlist_id_ = playlist_id;
 	completed_work_ = 0;
+	last_completed_work_ = 0;
 	total_work_ = total_work;
 	total_time_elapsed_.Reset();
 	update_ui_elapsed_.Reset();
@@ -341,11 +337,18 @@ void FileSystemService::updateProgress() {
 
 	if (update_ui_elapsed_.ElapsedSeconds() < 3.0) {
 		return;
-	}
+	}	
 
 	const auto completed_work = completed_work_.load();
 	emit readFileProgress((completed_work * 100) / total_work_);
 	const auto elapsed_time = total_time_elapsed_.ElapsedSeconds();
+
+	size_t diff_work = completed_work - last_completed_work_;
+	if (elapsed_time > 0.0) {
+		double files_per_second = static_cast<double>(diff_work) / elapsed_time;
+		XAMP_LOG_DEBUG("Speed: {:.2f} files/sec", files_per_second);
+	}
+
 	const double remaining_time = (total_work_ > completed_work)
 		? (static_cast<double>(elapsed_time)
 			/ static_cast<double>(completed_work)) *
@@ -354,6 +357,8 @@ void FileSystemService::updateProgress() {
 	emit remainingTimeEstimation(total_work_,
 		completed_work,
 		static_cast<int32_t>(remaining_time));
+
+	last_completed_work_ = completed_work;
 	update_ui_elapsed_.Reset();
 }
 

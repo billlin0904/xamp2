@@ -17,6 +17,7 @@
 #include <flac/flacpicture.h>
 #include <flac/flacproperties.h>
 #include <ogg/xiphcomment.h>
+#include <ogg/opus/opusfile.h>
 
 #include <dsdiff/dsdifffile.h>
 #include <dsf/dsffile.h>

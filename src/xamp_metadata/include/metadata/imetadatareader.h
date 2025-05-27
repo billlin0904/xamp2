@@ -14,7 +14,7 @@
 XAMP_METADATA_NAMESPACE_BEGIN
 
 /*
-* IMetadataReader is a interface for reading metadata from file.
+* IMetadataReader is an interface for reading metadata from file.
 * 
 */
 class XAMP_METADATA_API XAMP_NO_VTABLE IMetadataReader {
@@ -35,7 +35,7 @@ public:
     * 
     * @return ReplayGain
     */
-    virtual std::optional<ReplayGain> GetReplayGain() = 0;
+    virtual std::optional<ReplayGain> ReadReplayGain() = 0;
  
     /*
     * Get embedded cover from file.

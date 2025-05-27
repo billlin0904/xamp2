@@ -9,7 +9,11 @@
 #include <base/memory.h>
 #include <base/pimplptr.h>
 
+#include <shared_mutex>
+
 XAMP_BASE_NAMESPACE_BEGIN
+
+#if 0
 
 class XAMP_BASE_API SRWMutex final {
 public:
@@ -28,6 +32,12 @@ private:
 };
 
 using FastMutex = SRWMutex;
+
+#else
+
+using FastMutex = std::shared_mutex;
+
+#endif
 	
 XAMP_BASE_NAMESPACE_END
 

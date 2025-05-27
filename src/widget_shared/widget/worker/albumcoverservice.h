@@ -25,7 +25,7 @@ public:
 
 	void mergeUnknownAlbumCover();
 
-	void cleaup();
+	void cleaup();	
 
 signals:
 	void fetchThumbnailUrlError(const DatabaseCoverId& id, const QString& thumbnail_url);
@@ -37,6 +37,8 @@ signals:
 	void setAlbumCover(int32_t album_id, const QString& cover_id);
 
 public slots:
+	void enableFetchThumbnail(bool enable);
+
 	void onFindAlbumCover(const DatabaseCoverId& id);
 
 	void onFetchYoutubeThumbnailUrl(const QString& video_id, const QString& thumbnail_url);
@@ -49,6 +51,7 @@ public slots:
 
 private:
 	bool is_stop_{ false };	
+	bool enable_{ true };
 	PooledDatabasePtr database_ptr_;
 	QNetworkAccessManager nam_;
 	http::HttpClient http_client_;

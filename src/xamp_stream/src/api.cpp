@@ -23,6 +23,7 @@
 #include <stream/libavencoder.h>
 #include <stream/discIdlib.h>
 #include <stream/avlib.h>
+#include <stream/ebur128scanner.h>
 #include <stream/api.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
@@ -309,6 +310,10 @@ void LoadSoxrLib() {
 
 void LoadSrcLib() {
     SharedSingleton<SrcLib>::GetInstance();
+}
+
+void LoadEbur128Lib() {
+    Ebur128Scanner::LoadEbur128Lib();
 }
 
 XAMP_STREAM_NAMESPACE_END

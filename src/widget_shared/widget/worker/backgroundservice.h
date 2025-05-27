@@ -94,6 +94,9 @@ signals:
 
 	void transcribeFileCompleted(const QSharedPointer<ILrcParser>& parser);
 
+	void scanReplayGainCompleted(int32_t playlist_id, const QList<PlayListEntity>& entities);
+
+	void scanReplayGainError();
 public Q_SLOT:
 	void cancelAllJob();
 
@@ -125,13 +128,15 @@ public Q_SLOT:
 
 	QCoro::Task<QList<SearchLyricsResult>> downloadNeteaseLrc(QList<NeteaseSong> infos);
 
-	void ParallelEncode(const QString& dir_name, QList<EncodeJob> jobs);
+	void parallelEncode(const QString& dir_name, QList<EncodeJob> jobs);
 
-	void SequenceEncode(const QString& dir_name, QList<EncodeJob> jobs);
+	void sequenceEncode(const QString& dir_name, QList<EncodeJob> jobs);
 
-	void Encode(const QString& dir_name, const EncodeJob& job);
+	void executeEncodeJob(const QString& dir_name, const EncodeJob& job);
+
+	void scanReplayGain(int32_t playlist_id, const QList<PlayListEntity> &entities);
 private:
-	std::tuple<std::shared_ptr<IFile>, Path> getValidFileWriter(const EncodeJob& job, const QString& dir_name);
+	std::tuple<std::shared_ptr<IFile>, Path> makeFile(const EncodeJob& job, const QString& dir_name);
 
 	QCoro::Task<> searchKugou(const PlayListEntity& keyword);
 

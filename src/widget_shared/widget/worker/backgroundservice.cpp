@@ -20,6 +20,8 @@
 #include <stream/bassfilestream.h>
 #include <stream/fft.h>
 #include <stream/stft.h>
+#include <stream/ebur128scanner.h>
+
 #include <base/logger_impl.h>
 
 #if defined(Q_OS_WIN)
@@ -135,6 +137,60 @@ namespace {
             is_readable = false;
         }
         return is_readable;
+    }
+
+    void readAll(Path const& file_path,
+        std::function<bool(uint32_t)> const& progress,
+        std::function<void(AudioFormat const&)> const& prepare,
+        std::function<void(float const*, uint32_t)> const& dsp_process,
+        uint64_t max_duration = (std::numeric_limits<uint64_t>::max)()) {
+        constexpr auto kReadSampleSize = 8192;
+
+        const auto file_stream = makePcmFileStream(file_path);
+        file_stream->OpenFile(file_path.wstring());
+
+        const auto source_format = file_stream->GetFormat();
+        const AudioFormat input_format = AudioFormat::ToFloatFormat(source_format);
+
+        const auto buffer_size = 1024 + kReadSampleSize * input_format.GetChannels();
+        auto buffer = MakeBuffer<float>(buffer_size);
+        uint32_t num_samples = 0;
+
+        prepare(input_format);
+
+        if (max_duration == (std::numeric_limits<uint64_t>::max)()) {
+            max_duration = static_cast<uint64_t>(file_stream->GetDurationAsSeconds());
+        }
+
+        while (num_samples / input_format.GetSampleRate() < max_duration && file_stream->IsActive()) {
+            const auto read_size = file_stream->GetSamples(buffer.get(),
+                kReadSampleSize) / input_format.GetChannels();
+
+            num_samples += read_size;
+            if (progress != nullptr) {
+                const auto percent = static_cast<uint32_t>((num_samples / input_format.GetSampleRate() * 100) / max_duration);
+                if (!progress(percent)) {
+                    break;
+                }
+            }
+
+            dsp_process(buffer.get(), read_size * input_format.GetChannels());
+        }
+    }
+
+    Ebur128Scanner readFileLoudness(const Path& file_path) {
+        std::optional<Ebur128Scanner> scanner;
+        auto prepare = [&scanner](AudioFormat const& input_format) {
+            scanner = Ebur128Scanner(input_format.GetSampleRate());
+            };
+        auto dsp_process = [&scanner](auto const* samples, auto sample_size) {
+            scanner.value().Process(samples, sample_size);
+            };
+        auto progress = [](uint32_t) {
+            return true;
+            };
+        readAll(file_path, progress, prepare, dsp_process);
+        return std::move(scanner.value());
     }
 }
 
@@ -261,7 +317,7 @@ void BackgroundService::onTranscribeFile(const QString& file_name) {
 }
 
 std::tuple<std::shared_ptr<IFile>, Path> 
-BackgroundService::getValidFileWriter(const EncodeJob &job,
+BackgroundService::makeFile(const EncodeJob &job,
     const QString& dir_name) {
     std::shared_ptr<IFile> file_writer;
     Path output_path;
@@ -310,19 +366,19 @@ BackgroundService::getValidFileWriter(const EncodeJob &job,
     return std::make_tuple(file_writer, output_path);
 }
 
-void BackgroundService::SequenceEncode(const QString& dir_name, QList<EncodeJob> jobs) {
+void BackgroundService::sequenceEncode(const QString& dir_name, QList<EncodeJob> jobs) {
     Q_FOREACH(auto job, jobs) {
-		Encode(dir_name, job);
+		executeEncodeJob(dir_name, job);
     }
 }
 
-void BackgroundService::Encode(const QString& dir_name, const EncodeJob & job) {
-    auto [file_writer, output_path] = getValidFileWriter(
+void BackgroundService::executeEncodeJob(const QString& dir_name, const EncodeJob & job) {
+    auto [file_writer, output_path] = makeFile(
         job,
         dir_name);
 
     if (file_writer == nullptr || output_path.empty()) {
-        emit jobError(job.job_id, tr("Encode error"));
+        emit jobError(job.job_id, tr("executeEncodeJob error"));
         return;
     }
 
@@ -357,7 +413,7 @@ void BackgroundService::Encode(const QString& dir_name, const EncodeJob & job) {
 
         if (stop_token.stop_requested()) {
             Fs::remove(output_path);
-            XAMP_LOG_DEBUG("Encode job canceled.");
+            XAMP_LOG_DEBUG("executeEncodeJob job canceled.");
             emit jobError(job.job_id, tr("Canceled"));
 			return;
         }
@@ -383,19 +439,63 @@ void BackgroundService::Encode(const QString& dir_name, const EncodeJob & job) {
     }
     catch (const Exception& e) {
         XAMP_LOG_ERROR(e.GetStackTrace());
-        emit jobError(job.job_id, tr("Encode error"));
+        emit jobError(job.job_id, tr("executeEncodeJob error"));
     }
     catch (const std::exception& e) {
         XAMP_LOG_ERROR(e.what());
-        emit jobError(job.job_id, tr("Encode error"));
+        emit jobError(job.job_id, tr("executeEncodeJob error"));
     }
 }
 
-void BackgroundService::ParallelEncode(const QString& dir_name, QList<EncodeJob> jobs) {
+void BackgroundService::scanReplayGain(int32_t playlist_id, const QList<PlayListEntity>& entities) {
+    auto copy_entities = entities;
+    std::vector<std::optional<Ebur128Scanner>> scanner_opts;
+    FastMutex mutex;
+
+    scanner_opts.resize(copy_entities.size());
+
+    auto stop_token = stop_source_.get_token();
+    Executor::ParallelForIndex(thread_pool_.get(), 0, copy_entities.size(),
+        [&](auto index) {
+        if (stop_token.stop_requested()) {
+        	return;
+        }
+        std::scoped_lock lock(mutex);
+        scanner_opts[index] = readFileLoudness(copy_entities[index].file_path.toStdWString());
+        });
+
+    if (stop_token.stop_requested()) {
+        return;
+    }
+
+    try {
+	    std::vector<Ebur128Scanner> scanners;
+	    double album_peak = -255;
+        for (auto i = 0; i < copy_entities.size(); ++i) {
+            copy_entities[i].track_peak        = scanner_opts[i]->GetTruePeek();
+            copy_entities[i].track_replay_gain = scanner_opts[i]->GetLoudness();
+            album_peak = (std::max)(album_peak, copy_entities[i].track_peak.value());
+            scanners.push_back(std::move(scanner_opts[i].value()));
+        }
+
+        auto album_replay_gain = Ebur128Scanner::GetMultipleLoudness(scanners);
+        for (auto& copy_entity : copy_entities) {
+            copy_entity.album_peak = album_peak;
+            copy_entity.album_replay_gain = album_replay_gain;
+        }
+
+        emit scanReplayGainCompleted(playlist_id, copy_entities);
+    } catch (const Exception &e) {
+        XAMP_LOG_ERROR(e.GetErrorMessage());
+        emit scanReplayGainError();
+    }    
+}
+
+void BackgroundService::parallelEncode(const QString& dir_name, QList<EncodeJob> jobs) {
     auto stop_token = stop_source_.get_token();
     Executor::ParallelFor(thread_pool_.get(), jobs,
         [this, dir_name](const EncodeJob& job) {
-        Encode(dir_name, job);
+        executeEncodeJob(dir_name, job);
         }, stop_token);
 }
 
@@ -408,10 +508,10 @@ void BackgroundService::onAddJobs(const QString& dir_name, const QList<EncodeJob
 			parallel_jobs.push_back(job);
 		}
 		else {
-			SequenceEncode(dir_name, { job });
+			sequenceEncode(dir_name, { job });
 		}
     }
-    ParallelEncode(dir_name, parallel_jobs);
+    parallelEncode(dir_name, parallel_jobs);
 }
 
 void BackgroundService::cancelRequested() {

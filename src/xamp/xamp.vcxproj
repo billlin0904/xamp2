@@ -213,6 +213,7 @@
     <None Include="..\versions\updates.json" />
     <None Include="config.json" />
     <None Include="fonticon.json" />
+    <None Include="migrations\2024-01-12-093210_init\up.sql" />
     <None Include="Resource\Theme\dark\style.qss" />
     <None Include="Resource\Theme\light\style.qss" />
     <None Include="xamp.ini" />

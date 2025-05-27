@@ -63,6 +63,29 @@ namespace dao {
         return music_id;
     }
 
+    void MusicDao::updateMusicReplayGain(int32_t music_id, double album_gain, double album_peak, double track_gain, double track_peak) {
+        SqlQuery query(db_);
+
+        query.prepare(R"(
+			UPDATE musics SET
+	        albumReplayGain= :albumReplayGain,
+	        trackReplayGain= :trackReplayGain, 
+	        albumPeak= :albumPeak,
+	        trackPeak= :trackPeak
+	        WHERE musicId = :musicId
+        )"_str
+        );
+
+        query.bindValue(":albumReplayGain"_str, album_gain);
+        query.bindValue(":trackReplayGain"_str, track_gain);
+        query.bindValue(":albumPeak"_str, album_peak);
+        query.bindValue(":trackPeak"_str, track_peak);
+
+        query.bindValue(":musicId"_str, music_id);
+
+        DbIfFailedThrow1(query);
+    }
+
     void MusicDao::updateMusic(int32_t music_id, const TrackInfo& track_info) {
         SqlQuery query(db_);
 
@@ -226,6 +249,22 @@ namespace dao {
         DbIfFailedThrow1(query);
     }
 
+    std::optional<int32_t> MusicDao::getMusicId(const QString& file_path) const {
+        SqlQuery query(db_);
+
+        query.prepare("SELECT musicId FROM musics WHERE path = (:path)"_str);
+        query.bindValue(":path"_str, file_path);
+
+        DbIfFailedThrow1(query);
+
+        const auto index = query.record().indexOf("musicId"_str);
+        if (query.next()) {
+            auto music_id = query.value(index).toInt();
+            return music_id;
+        }
+        return std::nullopt;
+    }
+
     QString MusicDao::getMusicCoverId(int32_t music_id) const {
         SqlQuery query(db_);
 
@@ -296,9 +335,7 @@ namespace dao {
         if (query.next()) {
             const auto music_id = query.value("musicId"_str).toInt();
             playlist.removePlaylistMusic(1, QVector<int32_t>{ music_id });
-            //removeAlbumMusicId(music_id);
             removeTrackLoudnessMusicId(music_id);
-            //removeAlbumArtistId(music_id);
             removeMusic(music_id);
             return;
         }

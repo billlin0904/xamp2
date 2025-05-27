@@ -25,6 +25,8 @@
 #include <QProcess>
 #include <fcntl.h>
 
+#include "widget/imagecache.h"
+
 namespace {
 #ifdef Q_OS_MAC
     class QDebugSink : public spdlog::sinks::base_sink<LoggerMutex> {
@@ -189,6 +191,9 @@ namespace {
             XMessageBox::showBug(e);
             return -1;
         }
+
+        qImageCache.loadUnknownCover();
+
         XAMP_LOG_DEBUG("Database init success.");
 
         XAMP_LOG_DEBUG("Start XAMP window...");

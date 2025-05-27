@@ -41,6 +41,5 @@ private:
 	QString temp_file_path_;
 	QPixmap temp_image_;
 	QList<PlayListEntity> entities_;
-	dao::ArtistDao artist_dao_;
 	Ui::TagEditPage *ui_;
 };

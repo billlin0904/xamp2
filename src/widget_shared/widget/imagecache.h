@@ -92,8 +92,7 @@ public:
 	QIcon uniformIcon(const QIcon &icon, QSize size) const;
 
 public slots:
-	void onThemeChangedFinished(ThemeColor theme_color);
-
+	
 protected:
 	ImageCache();
 
