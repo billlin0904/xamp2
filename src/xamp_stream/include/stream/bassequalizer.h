@@ -32,11 +32,11 @@ public:
 
     bool Process(const float* samples, size_t num_samples, BufferRef<float>& out) override;
 
-    XAMP_NO_DISCARD Uuid GetTypeId() const override;
+    [[nodiscard]] Uuid GetTypeId() const override;
 
     void SetPreamp(float preamp);
 
-    XAMP_NO_DISCARD std::string_view GetDescription() const noexcept override;
+    [[nodiscard]] std::string_view GetDescription() const noexcept override;
 
 private:
     class BassEqualizerImpl;

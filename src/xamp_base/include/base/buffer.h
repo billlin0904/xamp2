@@ -50,19 +50,19 @@ public:
         return ptr_.get();
     }
 
-    XAMP_NO_DISCARD const T* Get() const noexcept {
+    [[nodiscard]] const T* Get() const noexcept {
         return ptr_.get();
     }
 
-    XAMP_NO_DISCARD const T* data() const noexcept {
+    [[nodiscard]] const T* data() const noexcept {
         return ptr_.get();
     }
 
-    XAMP_NO_DISCARD size_t GetSize() const noexcept {
+    [[nodiscard]] size_t GetSize() const noexcept {
         return size_;
     }
 
-    XAMP_NO_DISCARD size_t GetByteSize() const noexcept {
+    [[nodiscard]] size_t GetByteSize() const noexcept {
         return size_ * sizeof(T);
     }
 
@@ -88,7 +88,7 @@ public:
         return ptr_[i]; 
     }
 
-    XAMP_NO_DISCARD size_t size() const noexcept {
+    [[nodiscard]] size_t size() const noexcept {
         return size_;
     }
 
@@ -216,7 +216,7 @@ struct XAMP_BASE_API_ONLY_EXPORT BufferRef {
         return buffer_ + size_;
     }
 
-    XAMP_NO_DISCARD bool empty() const noexcept {
+    [[nodiscard]] bool empty() const noexcept {
         return size_ == 0;
     }
 
@@ -228,11 +228,11 @@ struct XAMP_BASE_API_ONLY_EXPORT BufferRef {
         return buffer_;
     }
 
-    XAMP_NO_DISCARD size_t size() const noexcept {
+    [[nodiscard]] size_t size() const noexcept {
         return size_;
     }
 
-    XAMP_NO_DISCARD size_t GetByteSize() const noexcept {
+    [[nodiscard]] size_t GetByteSize() const noexcept {
         return size_ * sizeof(T);
     }
 

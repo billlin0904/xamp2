@@ -41,4 +41,6 @@ catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 }
 
+#define LIBR8_DLL SharedSingleton<R8brainLib>::GetInstance()
+
 XAMP_STREAM_NAMESPACE_END

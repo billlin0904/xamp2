@@ -19,17 +19,17 @@ public:
 
     XAMP_PIMPL(TaglibMetadataReader)
 
-	void Open(const Path& path) override;
+    void Open(const Path& path) override;
 
-	std::optional<ReplayGain> ReadReplayGain() override;
+    std::expected<ReplayGain, ParseMetadataError> ReadReplayGain() override;
     
-    TrackInfo Extract() override;
+    std::expected<TrackInfo, ParseMetadataError> Extract() override;
 
-    std::optional<std::vector<std::byte>> ReadEmbeddedCover() override;
+    std::expected<std::vector<std::byte>, ParseMetadataError> ReadEmbeddedCover() override;
 
     static HashSet<std::string> const & GetSupportFileExtensions();
 
-    XAMP_NO_DISCARD bool IsSupported() const override;
+    [[nodiscard]] bool IsSupported() const override;
 private:
     class TaglibMetadataReaderImpl;
     ScopedPtr<TaglibMetadataReaderImpl> reader_;

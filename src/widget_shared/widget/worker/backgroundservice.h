@@ -23,6 +23,7 @@
 #include <widget/encodejobwidget.h>
 #include <widget/krcparser.h>
 #include <widget/neteaseparser.h>
+#include <widget/util/colortable.h>
 
 Q_DECLARE_METATYPE(ReplayGain);
 
@@ -39,27 +40,6 @@ struct SearchLyricsResult {
 
 Q_DECLARE_METATYPE(LyricsParser)
 Q_DECLARE_METATYPE(SearchLyricsResult)
-
-enum SpectrogramColor {
-	SPECTROGRAM_COLOR_DEFAULT = 0,
-	SPECTROGRAM_COLOR_SOX,
-};
-
-class ColorTable {
-public:
-	ColorTable();
-
-	void setSpectrogramColor(SpectrogramColor color);
-
-	QRgb operator[](double dB_val) const noexcept;
-
-private:
-	SpectrogramColor color_ = SpectrogramColor::SPECTROGRAM_COLOR_SOX;
-
-	static QRgb danBrutonColor(double level) noexcept;
-
-	static QRgb soxrColor(double level) noexcept;
-};
 
 class XAMP_WIDGET_SHARED_EXPORT BackgroundService final : public QObject {
 	Q_OBJECT
@@ -93,10 +73,7 @@ signals:
 	void readAudioDataCompleted();
 
 	void transcribeFileCompleted(const QSharedPointer<ILrcParser>& parser);
-
-	void scanReplayGainCompleted(int32_t playlist_id, const QList<PlayListEntity>& entities);
-
-	void scanReplayGainError();
+	
 public Q_SLOT:
 	void cancelAllJob();
 
@@ -116,8 +93,6 @@ public Q_SLOT:
 
 	void onTranslation(const QString& keyword, const QString& from, const QString& to);
 
-	void onReadWaveformAudioData(size_t frame_per_peek, const Path & file_path);
-
 	void onReadSpectrogram(SpectrogramColor color, const Path& file_path);
 
 	QCoro::Task<SearchLyricsResult> downloadSingleKlrc(InfoItem info);
@@ -132,9 +107,9 @@ public Q_SLOT:
 
 	void sequenceEncode(const QString& dir_name, QList<EncodeJob> jobs);
 
-	void executeEncodeJob(const QString& dir_name, const EncodeJob& job);
+	void executeEncodeJob(const QString& dir_name, const EncodeJob& job);	
 
-	void scanReplayGain(int32_t playlist_id, const QList<PlayListEntity> &entities);
+	QCoro::Task<> fetchMusicBrainzRecording(const PlayListEntity& entity);
 private:
 	std::tuple<std::shared_ptr<IFile>, Path> makeFile(const EncodeJob& job, const QString& dir_name);
 

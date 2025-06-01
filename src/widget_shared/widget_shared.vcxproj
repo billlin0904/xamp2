@@ -62,8 +62,8 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>./;../xamp_base/include/;../xamp_metadata/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/;../thirdparty/zlib/;../thirdparty/rapidxml/;./xamp/;../thirdparty/qcoro/msvc/qcoro/core/;../thirdparty/qcoro/msvc/qcoro/network/;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/msvc/qcoro/network/QCoro;../thirdparty/qcoro/msvc/qcoro/QCoro;../thirdparty/qcoro/qcoro/network/;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;../thirdparty/qwindowkit/msvc/include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>./;../xamp_base/include/;../xamp_metadata/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/;../thirdparty/zlib/;../thirdparty/rapidxml/;./xamp/;../thirdparty/qcoro/msvc/qcoro/core/;../thirdparty/qcoro/msvc/qcoro/network/;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/msvc/qcoro/network/QCoro;../thirdparty/qcoro/msvc/qcoro/QCoro;../thirdparty/qcoro/qcoro/network/;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;../thirdparty/qwindowkit/msvc/include/;../thirdparty/libdeflate/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4828;4996;</DisableSpecificWarnings>
       <WarningVersion>
       </WarningVersion>
@@ -79,8 +79,8 @@
       <AdditionalLibraryDirectories>../xamp/x64/Release/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/qtautoupdater/msvc2019_64/lib/;../thirdparty/framelesshelper/msvc/lib/Release/;../thirdparty/zlib/contrib/vstudio/vc14/x64/ZlibStatRelease/;../thirdparty/qcoro/msvc/qcoro/core/Release/;../thirdparty/qcoro/msvc/qcoro/network/Release/;../thirdparty/qwindowkit/msvc/out-amd64-Release/lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(Qt_INCLUDEPATH_);./;../xamp_base/include/;../xamp_metadata/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/;../thirdparty/zlib/;../thirdparty/rapidxml/;./xamp/;../thirdparty/qcoro/msvc/qcoro/core/;../thirdparty/qcoro/msvc/qcoro/network/;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/msvc/qcoro/network/QCoro;../thirdparty/qcoro/msvc/qcoro/QCoro;../thirdparty/qcoro/qcoro/network/;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;../thirdparty/qwindowkit/msvc/include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(Qt_INCLUDEPATH_);./;../xamp_base/include/;../xamp_metadata/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/;../thirdparty/zlib/;../thirdparty/rapidxml/;./xamp/;../thirdparty/qcoro/msvc/qcoro/core/;../thirdparty/qcoro/msvc/qcoro/network/;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/msvc/qcoro/network/QCoro;../thirdparty/qcoro/msvc/qcoro/QCoro;../thirdparty/qcoro/qcoro/network/;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;../thirdparty/qwindowkit/msvc/include/;../thirdparty/libdeflate/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
@@ -120,7 +120,6 @@
     <QtMoc Include="widget\preferencepage.h" />
     <QtMoc Include="widget\artistview.h" />
     <QtMoc Include="widget\genre_view_page.h" />
-    <QtMoc Include="widget\createplaylistview.h" />
     <QtMoc Include="widgetframe\windowbar.h" />
     <ClInclude Include="widgetframe\windowbar_p.h" />
     <QtMoc Include="widgetframe\windowbutton.h" />
@@ -145,17 +144,21 @@
     <QtMoc Include="widget\playlisttabwidget.h" />
     <QtMoc Include="widget\playlisttabbar.h" />
     <QtMoc Include="widget\supereqview.h" />
+    <ClInclude Include="widget\musicbrainzparser.h" />
     <ClInclude Include="widget\neteaseparser.h" />
     <ClInclude Include="widget\networkdiskcache.h" />
     <QtMoc Include="widget\playliststyleditemdelegate.h" />
     <QtMoc Include="widget\slidingstackedwidget.h" />
+    <QtMoc Include="widget\scanfileprogresspage.h" />
     <ClInclude Include="widget\tabpage.h" />
     <ClInclude Include="widget\tagio.h" />
+    <ClInclude Include="widget\util\colortable.h" />
     <ClInclude Include="widget\util\hash_util.h" />
     <ClInclude Include="widget\util\image_util.h" />
     <ClInclude Include="widget\util\json_util.h" />
     <ClInclude Include="widget\util\log_util.h" />
     <ClInclude Include="widget\util\mbdiscid_util.h" />
+    <ClInclude Include="widget\util\read_util.h" />
     <ClInclude Include="widget\util\str_util.h" />
     <ClInclude Include="widget\util\ui_util.h" />
     <ClInclude Include="widget\util\zib_util.h" />
@@ -245,7 +248,6 @@
     <ClCompile Include="widget\cdpage.cpp" />
     <ClCompile Include="widget\chatgpt\waveformwidget.cpp" />
     <ClCompile Include="widget\clickablelabel.cpp" />
-    <ClCompile Include="widget\createplaylistview.cpp" />
     <ClCompile Include="widget\dao\albumdao.cpp" />
     <ClCompile Include="widget\dao\artistdao.cpp" />
     <ClCompile Include="widget\dao\musicdao.cpp" />
@@ -277,6 +279,7 @@
     <ClCompile Include="widget\lyricsshowwidget.cpp" />
     <ClCompile Include="widget\m3uparser.cpp" />
     <ClCompile Include="widget\maskwidget.cpp" />
+    <ClCompile Include="widget\musicbrainzparser.cpp" />
     <ClCompile Include="widget\neteaseparser.cpp" />
     <ClCompile Include="widget\networkdiskcache.cpp" />
     <ClCompile Include="widget\playlistentity.cpp" />
@@ -290,6 +293,7 @@
     <ClCompile Include="widget\preferencepage.cpp" />
     <ClCompile Include="widget\processindicator.cpp" />
     <ClCompile Include="widget\qetag.cpp" />
+    <ClCompile Include="widget\scanfileprogresspage.cpp" />
     <ClCompile Include="widget\scrolllabel.cpp" />
     <ClCompile Include="widget\seekslider.cpp" />
     <ClCompile Include="widget\slidingstackedwidget.cpp" />
@@ -300,9 +304,11 @@
     <ClCompile Include="widget\tagio.cpp" />
     <ClCompile Include="widget\taglistview.cpp" />
     <ClCompile Include="widget\uiplayerstateadapter.cpp" />
+    <ClCompile Include="widget\util\colortable.cpp" />
     <ClCompile Include="widget\util\image_util.cpp" />
     <ClCompile Include="widget\util\log_util.cpp" />
     <ClCompile Include="widget\util\mbdiscid_util.cpp" />
+    <ClCompile Include="widget\util\read_util.cpp" />
     <ClCompile Include="widget\util\str_util.cpp" />
     <ClCompile Include="widget\util\ui_util.cpp" />
     <ClCompile Include="widget\util\zib_util.cpp" />

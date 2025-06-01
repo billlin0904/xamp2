@@ -35,6 +35,7 @@
 #include <widget/util/zib_util.h>
 #include <widget/tagio.h>
 #include <widget/encodejobwidget.h>
+#include <widget/scanfileprogresspage.h>
 
 namespace {
     QString noOrderAlbum(int32_t playlist_id) {
@@ -544,6 +545,10 @@ void PlaylistTableView::initial() {
     proxy_model_->setSourceModel(model_);
     setModel(proxy_model_);
 
+    progress_page_ = new ScanFileProgressPage(this);
+    progress_page_->hide();
+    progress_page_->move(0, height() - 80);
+
     setTabViewStyle(this);
     verticalHeader()->setDefaultSectionSize(kColumnHeight);
     setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::SelectedClicked);
@@ -685,6 +690,7 @@ void PlaylistTableView::initial() {
             if (dir_name.isEmpty()) {
                 return;
             }
+            showProgressPage();
             append(dir_name);
             });
         load_dir_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FOLDER_OPEN));
@@ -787,7 +793,8 @@ void PlaylistTableView::initial() {
                 const auto entity = this->item(row.second);
                 entities.push_back(entity);
             }
-            emit scanReplayGain(playlist_id_, entities);
+            showProgressPage();
+            emit scanReplayGain(entities);
             });
 
         action_map.addSeparator();
@@ -860,13 +867,23 @@ void PlaylistTableView::initial() {
     setFocusPolicy(Qt::StrongFocus);
 }
 
+void PlaylistTableView::showProgressPage() {
+    progress_page_->show();
+    const auto list_view_rect = this->rect();
+    progress_page_->setFixedSize(QSize(list_view_rect.size().width() - 2, 80));
+    progress_page_->move(0, height() - 80);
+}
+
 void PlaylistTableView::onReloadEntity(const PlayListEntity& item) {
     dao::MusicDao music_dao(qGuiDb.getDatabase());
 
     XAMP_TRY_LOG(
-        music_dao.addOrUpdateMusic(TagIO::getTrackInfo(item.file_path.toStdWString()));
-        reload();
-        play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());
+        auto track_info = TagIO::getTrackInfo(item.file_path.toStdWString());
+        if (track_info) {
+            music_dao.addOrUpdateMusic(track_info.value());
+            reload();
+            play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());
+        }        
         );
 }
 
@@ -890,6 +907,19 @@ void PlaylistTableView::playItem(const QModelIndex& index) {
 }
 
 void PlaylistTableView::onRetranslateUi() {
+}
+
+void PlaylistTableView::updateReplayGain(const QList<PlayListEntity>& entities) {
+    for (const auto& entity : entities) {
+        if (entity.replay_gain) {
+            qDaoFacade.music_dao.updateMusicReplayGain(entity.music_id,
+                entity.replay_gain.value().album_gain,
+                entity.replay_gain.value().album_peak,
+                entity.replay_gain.value().track_gain,
+                entity.replay_gain.value().track_peak);
+        }
+    }
+    reload();
 }
 
 void PlaylistTableView::keyPressEvent(QKeyEvent *event) {
@@ -932,6 +962,14 @@ void PlaylistTableView::onProcessTrackInfo(int32_t total_album, int32_t total_tr
 void PlaylistTableView::resizeEvent(QResizeEvent* event) {
     QTableView::resizeEvent(event);
     resizeColumn();
+
+    if (progress_page_ != nullptr) {
+        if (!progress_page_->isHidden()) {
+            const auto list_view_rect = this->rect();
+            progress_page_->setFixedSize(QSize(list_view_rect.size().width() - 2, 80));
+            progress_page_->move(0, height() - 80);
+        }
+    }
 }
 
 void PlaylistTableView::mouseMoveEvent(QMouseEvent* event) {
@@ -1113,6 +1151,10 @@ void PlaylistTableView::setAlbumCoverId(int32_t album_id, const QString& cover_i
         const auto last_index = changed_indexes.last();
         reload();
     }
+}
+
+ScanFileProgressPage* PlaylistTableView::progressPage() const {
+    return progress_page_;
 }
 
 void PlaylistTableView::setNowPlayState(PlayingState playing_state) {

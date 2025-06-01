@@ -1,4 +1,4 @@
-#include <widget/worker/backgroundservice.h>
+Ôªø#include <widget/worker/backgroundservice.h>
 
 #include <widget/util/ui_util.h>
 #include <widget/util/str_util.h>
@@ -15,6 +15,11 @@
 #include <widget/krcparser.h>
 #include <widget/lrcparser.h>
 #include <widget/neteaseparser.h>
+#include <widget/util/json_util.h>
+#include <widget/musicbrainzparser.h>
+
+#include <widget/util/read_util.h>
+#include <widget/util/colortable.h>
 
 #include <stream/filestream.h>
 #include <stream/bassfilestream.h>
@@ -32,32 +37,28 @@
 #include <QFuture>
 #include <QJsonValueRef>
 
-XAMP_DECLARE_LOG_NAME(BackgroundService);
-
 namespace {
-    constexpr size_t kFFTSize = 8192 * 2;
+    XAMP_DECLARE_LOG_NAME(BackgroundService);
+
+    constexpr size_t kFFTSize = 2048 * 2;
     constexpr size_t kHopSize = kFFTSize * 0.5;
     constexpr float kPower2FFSize = kFFTSize * kFFTSize;
     constexpr size_t kFreqBins = (kFFTSize / 2);
-
-    constexpr double kMaxDb = 0;
-    constexpr double kMinDb = -120.0;
-    constexpr double kDbRange = kMaxDb - kMinDb;
-
+   
     float getDb(const std::complex<float>& c) {
-        // ®˙±o (πÍ≥°^2 + µÍ≥°^2)
+        // ÂèñÂæó (ÂØ¶ÈÉ®^2 + ËôõÈÉ®^2)
         float val = (c.real() * c.real() + c.imag() * c.imag());
         if (val <= 0.0f) {
-            return kMinDb;
+            return ColorTable::kMinDb;
         }
-        // log10( val / kPower2FFSize ) °˜ dB
+        // log10( val / kPower2FFSize ) ‚Üí dB
         float dB = 10.0f * std::log10f(val / kPower2FFSize);
         return dB;
     }
 
     float getRealDb(float real_val) {
         if (real_val == 0.0f) {
-            return kMinDb;
+            return ColorTable::kMinDb;
         }
         float dB = 10.0f * std::log10f((real_val * real_val) / kPower2FFSize);
         return dB;
@@ -67,48 +68,48 @@ namespace {
         QImage& chunk_img,
         int col,
         const ComplexValarray& freq_bins) {
-        // 1) •˝∑«≥∆√C¶‚¨d™Ì™´•Û (¿R∫A≥Ê®“)
-        // 2) ®˙±o QImage ™∫∞Ú•ª∏Í∞T
+        // 1) ÂÖàÊ∫ñÂÇôÈ°èËâ≤Êü•Ë°®Áâ©‰ª∂ (ÈùúÊÖãÂñÆ‰æã)
+        // 2) ÂèñÂæó QImage ÁöÑÂü∫Êú¨Ë≥áË®ä
         uchar* data = chunk_img.bits();
         int bytes_per_line = chunk_img.bytesPerLine();
         int height = chunk_img.height();
         int n_bins = static_cast<int>(freq_bins.size());
 
-        // 3) ≠p∫‚Ωu© ¡Y©Ò§Ò®“°G freq_bins.size() °˜ ºvπ≥∞™´◊
-        //    πw≠p f=0 µe¶b≥Ã©≥≥° (height-1)°Af=n_bins-1 µe¶b≥Ã≥ª (0)
+        // 3) Ë®àÁÆóÁ∑öÊÄßÁ∏ÆÊîæÊØî‰æãÔºö freq_bins.size() ‚Üí ÂΩ±ÂÉèÈ´òÂ∫¶
+        //    È†êË®à f=0 Áï´Âú®ÊúÄÂ∫ïÈÉ® (height-1)Ôºåf=n_bins-1 Áï´Âú®ÊúÄÈ†Ç (0)
         double scale = 1.0;
         if (n_bins > 1 && height > 1) {
             scale = static_cast<double>(height - 1) / static_cast<double>(n_bins - 1);
         }
 
-        // 4) ≥v§@¿W≤v bin°A≠p∫‚ dB°A®√√∏ªs®ÏπÔ¿≥™∫ y
+        // 4) ÈÄê‰∏ÄÈ†ªÁéá binÔºåË®àÁÆó dBÔºå‰∏¶Áπ™Ë£ΩÂà∞Â∞çÊáâÁöÑ y
         for (int f = 0; f < n_bins; ++f) {
             float dB;
             if (f == 0 || f == n_bins - 1) {
-                // ∫›¬I bin (DC / Nyquist) ®œ•ŒπÍº∆ dB
+                // Á´ØÈªû bin (DC / Nyquist) ‰ΩøÁî®ÂØ¶Êï∏ dB
                 dB = getRealDb(freq_bins[f].real());
             }
             else {
-                // ®‰•L bin ®œ•ŒΩ∆º∆¥T´◊ dB
+                // ÂÖ∂‰ªñ bin ‰ΩøÁî®Ë§áÊï∏ÂπÖÂ∫¶ dB
                 dB = getDb(freq_bins[f]);
             }
 
-            // ≥zπL color_table ¨d•XπÔ¿≥™∫ QRgb (SoX Ω’¶‚)
+            // ÈÄèÈÅé color_table Êü•Âá∫Â∞çÊáâÁöÑ QRgb (SoX Ë™øËâ≤)
             QRgb color = color_table[dB];
 
-            // ±N bin Ø¡§ﬁ f => y Æyº–
+            // Â∞á bin Á¥¢Âºï f => y Â∫ßÊ®ô
             //   y = (height - 1) - round(f * scale)
             int scaled_f = static_cast<int>(f * scale + 0.5);
             int y = (height - 1) - scaled_f;
 
-            // x = col •N™Ì°u≥o§@æ„¶C°v¨O≤ƒ¥X≠”Æ…∂°µ°
+            // x = col ‰ª£Ë°®„ÄåÈÄô‰∏ÄÊï¥Âàó„ÄçÊòØÁ¨¨ÂπæÂÄãÊôÇÈñìÁ™ó
             int x = col;
 
-            // ≠p∫‚¶ππ≥Ø¿¶b QImage data ∞}¶C™∫∞_©l index
-            // QImage::Format_RGB888 => ®Cπ≥Ø¿ 3 bytes (R, G, B)
+            // Ë®àÁÆóÊ≠§ÂÉèÁ¥†Âú® QImage data Èô£ÂàóÁöÑËµ∑Âßã index
+            // QImage::Format_RGB888 => ÊØèÂÉèÁ¥† 3 bytes (R, G, B)
             int idx = y * bytes_per_line + x * 3;
 
-            // ºg§J RGB
+            // ÂØ´ÂÖ• RGB
             data[idx + 0] = qRed(color);
             data[idx + 1] = qGreen(color);
             data[idx + 2] = qBlue(color);
@@ -119,6 +120,9 @@ namespace {
         auto retry_count = 0;
         auto is_readable = true;
         auto* bass_file_stream = dynamic_cast<BassFileStream*>(file_stream.get());
+        if (!bass_file_stream) {
+            return false;
+        }
         constexpr auto kMaxRetryCount = 4;
         while (is_readable) {
             buffer.Fill(0.0f);
@@ -128,7 +132,7 @@ namespace {
                 break;
             }
             if (retry_count < kMaxRetryCount) {
-                if (bass_file_stream != nullptr && !bass_file_stream->EndOfStream()) {
+                if (!bass_file_stream->EndOfStream()) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(100));
                     retry_count++;
                     continue;
@@ -137,157 +141,7 @@ namespace {
             is_readable = false;
         }
         return is_readable;
-    }
-
-    void readAll(Path const& file_path,
-        std::function<bool(uint32_t)> const& progress,
-        std::function<void(AudioFormat const&)> const& prepare,
-        std::function<void(float const*, uint32_t)> const& dsp_process,
-        uint64_t max_duration = (std::numeric_limits<uint64_t>::max)()) {
-        constexpr auto kReadSampleSize = 8192;
-
-        const auto file_stream = makePcmFileStream(file_path);
-        file_stream->OpenFile(file_path.wstring());
-
-        const auto source_format = file_stream->GetFormat();
-        const AudioFormat input_format = AudioFormat::ToFloatFormat(source_format);
-
-        const auto buffer_size = 1024 + kReadSampleSize * input_format.GetChannels();
-        auto buffer = MakeBuffer<float>(buffer_size);
-        uint32_t num_samples = 0;
-
-        prepare(input_format);
-
-        if (max_duration == (std::numeric_limits<uint64_t>::max)()) {
-            max_duration = static_cast<uint64_t>(file_stream->GetDurationAsSeconds());
-        }
-
-        while (num_samples / input_format.GetSampleRate() < max_duration && file_stream->IsActive()) {
-            const auto read_size = file_stream->GetSamples(buffer.get(),
-                kReadSampleSize) / input_format.GetChannels();
-
-            num_samples += read_size;
-            if (progress != nullptr) {
-                const auto percent = static_cast<uint32_t>((num_samples / input_format.GetSampleRate() * 100) / max_duration);
-                if (!progress(percent)) {
-                    break;
-                }
-            }
-
-            dsp_process(buffer.get(), read_size * input_format.GetChannels());
-        }
-    }
-
-    Ebur128Scanner readFileLoudness(const Path& file_path) {
-        std::optional<Ebur128Scanner> scanner;
-        auto prepare = [&scanner](AudioFormat const& input_format) {
-            scanner = Ebur128Scanner(input_format.GetSampleRate());
-            };
-        auto dsp_process = [&scanner](auto const* samples, auto sample_size) {
-            scanner.value().Process(samples, sample_size);
-            };
-        auto progress = [](uint32_t) {
-            return true;
-            };
-        readAll(file_path, progress, prepare, dsp_process);
-        return std::move(scanner.value());
-    }
-}
-
-ColorTable::ColorTable() = default;
-
-void ColorTable::setSpectrogramColor(SpectrogramColor color) {
-    color_ = color;
-}
-
-QRgb ColorTable::operator[](double dB_val) const noexcept {
-    if (dB_val < kMinDb) dB_val = kMinDb;
-    if (dB_val > kMaxDb) dB_val = kMaxDb;
-    const double ratio = (dB_val - kMinDb) / kDbRange;
-    if (color_ == SpectrogramColor::SPECTROGRAM_COLOR_DEFAULT) {
-        return danBrutonColor(ratio);
-    }
-    return soxrColor(ratio);
-}
-
-QRgb ColorTable::danBrutonColor(double level) noexcept {
-    level *= 0.6625;
-    double r = 0.0, g = 0.0, b = 0.0;
-    if (level >= 0 && level < 0.15) {
-        r = (0.15 - level) / (0.15 + 0.075);
-        g = 0.0;
-        b = 1.0;
-    }
-    else if (level >= 0.15 && level < 0.275) {
-        r = 0.0;
-        g = (level - 0.15) / (0.275 - 0.15);
-        b = 1.0;
-    }
-    else if (level >= 0.275 && level < 0.325) {
-        r = 0.0;
-        g = 1.0;
-        b = (0.325 - level) / (0.325 - 0.275);
-    }
-    else if (level >= 0.325 && level < 0.5) {
-        r = (level - 0.325) / (0.5 - 0.325);
-        g = 1.0;
-        b = 0.0;
-    }
-    else if (level >= 0.5 && level < 0.6625) {
-        r = 1.0;
-        g = (0.6625 - level) / (0.6625 - 0.5f);
-        b = 0.0;
-    }
-
-    // Intensity correction.
-    double cf = 1.0;
-    if (level >= 0.0 && level < 0.1) {
-        cf = level / 0.1;
-    }
-    cf *= 255.0;
-
-    // Pack RGB values into a 32-bit uint.
-    auto rr = static_cast<uint32_t>(r * cf + 0.5);
-    auto gg = static_cast<uint32_t>(g * cf + 0.5);
-    auto bb = static_cast<uint32_t>(b * cf + 0.5);
-
-    return qRgb(rr, gg, bb);
-}
-
-QRgb ColorTable::soxrColor(double level) noexcept {
-    double r = 0.0;
-    if (level >= 0.13 && level < 0.73) {
-        r = sin((level - 0.13) / 0.60 * XAMP_PI / 2.0);
-    }
-    else if (level >= 0.73) {
-        r = 1.0;
-    }
-
-    double g = 0.0;
-    if (level >= 0.6 && level < 0.91) {
-        g = sin((level - 0.6) / 0.31 * XAMP_PI / 2.0);
-    }
-    else if (level >= 0.91) {
-        g = 1.0;
-    }
-
-    double b = 0.0;
-    if (level < 0.60) {
-        b = 0.5 * sin(level / 0.6 * XAMP_PI);
-    }
-    else if (level >= 0.78) {
-        b = (level - 0.78) / 0.22;
-    }
-
-    // clamp b
-    if (b < 0.) b = 0.;
-    if (b > 1.) b = 1.;
-
-    auto rr = static_cast<uint32_t>(r * 255.0 + 0.5);
-    auto gg = static_cast<uint32_t>(g * 255.0 + 0.5);
-    auto bb = static_cast<uint32_t>(b * 255.0 + 0.5);
-
-    return qRgb(rr, gg, bb);
+    }    
 }
 
 BackgroundService::BackgroundService()
@@ -447,48 +301,44 @@ void BackgroundService::executeEncodeJob(const QString& dir_name, const EncodeJo
     }
 }
 
-void BackgroundService::scanReplayGain(int32_t playlist_id, const QList<PlayListEntity>& entities) {
-    auto copy_entities = entities;
-    std::vector<std::optional<Ebur128Scanner>> scanner_opts;
-    FastMutex mutex;
-
-    scanner_opts.resize(copy_entities.size());
-
-    auto stop_token = stop_source_.get_token();
-    Executor::ParallelForIndex(thread_pool_.get(), 0, copy_entities.size(),
-        [&](auto index) {
-        if (stop_token.stop_requested()) {
-        	return;
-        }
-        std::scoped_lock lock(mutex);
-        scanner_opts[index] = readFileLoudness(copy_entities[index].file_path.toStdWString());
-        });
-
-    if (stop_token.stop_requested()) {
-        return;
+QCoro::Task<> BackgroundService::fetchMusicBrainzRecording(const PlayListEntity& entity) {
+    PlayListEntity temp = entity;
+    http_client_.setUrl("https://api.acoustid.org/v2/lookup"_str);
+    http_client_.param("client"_str, "J0OsCydP14"_str);
+    http_client_.param("format"_str, "json"_str);
+    http_client_.param("meta"_str, "recordings+releasegroups+releases+tracks+compress"_str);
+    http_client_.param("duration"_str, static_cast<uint32_t>(Round(entity.duration)));
+    http_client_.param("fingerprint"_str, readChromaprint(entity.file_path.toStdWString()));
+    auto content = co_await http_client_.get();
+    auto resp = acoustid::parseAcoustidResponse(content);
+    std::optional<acoustid::Recording> search_recording;
+    if (!resp) {
+        co_return;
     }
-
-    try {
-	    std::vector<Ebur128Scanner> scanners;
-	    double album_peak = -255;
-        for (auto i = 0; i < copy_entities.size(); ++i) {
-            copy_entities[i].track_peak        = scanner_opts[i]->GetTruePeek();
-            copy_entities[i].track_replay_gain = scanner_opts[i]->GetLoudness();
-            album_peak = (std::max)(album_peak, copy_entities[i].track_peak.value());
-            scanners.push_back(std::move(scanner_opts[i].value()));
+    for (const auto& result : resp.value().results) {
+        for (const auto& recording : result.recordings) {
+            if (temp.title.contains(recording.title)) {
+                search_recording = recording;
+                break;
+            }
         }
-
-        auto album_replay_gain = Ebur128Scanner::GetMultipleLoudness(scanners);
-        for (auto& copy_entity : copy_entities) {
-            copy_entity.album_peak = album_peak;
-            copy_entity.album_replay_gain = album_replay_gain;
-        }
-
-        emit scanReplayGainCompleted(playlist_id, copy_entities);
-    } catch (const Exception &e) {
-        XAMP_LOG_ERROR(e.GetErrorMessage());
-        emit scanReplayGainError();
-    }    
+    }
+    if (!search_recording) {
+        co_return;
+    }
+    http_client_.setUrl("https://musicbrainz.org/ws/2/recording/"_str + search_recording.value().id);
+    http_client_.param("inc"_str, "artist-credits+tags+genres"_str);
+    http_client_.param("fmt"_str, "json"_str);
+    content = co_await http_client_.get();
+    auto root_recording = musicbrain::parseRootRecording(content);
+    if (!root_recording) {
+        co_return;
+    }
+    QList<QString> genres;
+    for (const auto& tag : root_recording.value().genres) {
+        genres.append(tag.name);
+    }
+    co_return;
 }
 
 void BackgroundService::parallelEncode(const QString& dir_name, QList<EncodeJob> jobs) {
@@ -582,7 +432,7 @@ QCoro::Task<SearchLyricsResult> BackgroundService::downloadSingleKlrc(InfoItem i
     SearchLyricsResult result;
     result.info = info;
 
-    // 1. ∑j¥M≠‘øÔ¶C™Ì
+    // 1. ÊêúÂ∞ãÂÄôÈÅ∏ÂàóË°®
     http::HttpClient http(&nam_, "http://krcs.kugou.com/search"_str, this);
     http.param("ver"_str, "1"_str);
     http.param("man"_str, "yes"_str);
@@ -596,9 +446,9 @@ QCoro::Task<SearchLyricsResult> BackgroundService::downloadSingleKlrc(InfoItem i
     auto candidates = parseCandidatesFromJson(content);
     //XAMP_LOG_DEBUG("Found candidates size: {}", candidates.size());
 
-    // 2. ≥v§@§U∏¸ KRC
+    // 2. ÈÄê‰∏Ä‰∏ãËºâ KRC
     for (auto& candidate : candidates) {
-        // ´ÿ•ﬂ∑s™∫ HttpClient ´¸¶V§U∏¸ API
+        // Âª∫Á´ãÊñ∞ÁöÑ HttpClient ÊåáÂêë‰∏ãËºâ API
         http::HttpClient http_download(&nam_, 
             "http://lyrics.kugou.com/download"_str,
             this);
@@ -611,7 +461,7 @@ QCoro::Task<SearchLyricsResult> BackgroundService::downloadSingleKlrc(InfoItem i
 
         auto krc_data = co_await http_download.get();
 
-        // ∏—™R
+        // Ëß£Êûê
         LyricsParser lrc_parser;
         candidate.albumName = info.albumName;
         lrc_parser.candidate = candidate;
@@ -664,12 +514,16 @@ QCoro::Task<QList<SearchLyricsResult>> BackgroundService::downloadKLrc(QList<Inf
 }
 
 QCoro::Task<> BackgroundService::searchKugou(const PlayListEntity& keyword) {
+    constexpr auto kMaxDownloadSize = 10;
+
     http_client_.setUrl("http://mobilecdn.kugou.com/api/v3/search/song"_str);
     http_client_.param("format"_str, "json"_str);
     http_client_.param("keyword"_str, keyword.title);
 
     auto content = co_await http_client_.get();
     auto infos = parseInfoData(content);
+    infos.resize(kMaxDownloadSize);
+
     auto results = co_await downloadKLrc(infos);
     emit fetchLyricsCompleted(results);
     co_return;
@@ -678,7 +532,7 @@ QCoro::Task<> BackgroundService::searchKugou(const PlayListEntity& keyword) {
 QCoro::Task<> BackgroundService::searchNetease(const PlayListEntity& keyword) {
     http_client_.setUrl("http://music.163.com/api/search/get"_str);
     http_client_.param("s"_str, keyword.title);
-    http_client_.param("limit"_str, 30);
+    http_client_.param("limit"_str, 20);
     http_client_.param("offset"_str, 0);
     http_client_.param("type"_str, 1);
 
@@ -695,8 +549,8 @@ QCoro::Task<> BackgroundService::searchNetease(const PlayListEntity& keyword) {
 void BackgroundService::onSearchLyrics(const PlayListEntity& keyword) {
     auto temp = keyword.cleanup();
     searchKugou(temp).then([]() {
-        XAMP_LOG_DEBUG("Search kugou lyrics completed!");
-        });    
+        XAMP_LOG_DEBUG("Search Kugou lyrics completed!");
+        });
     searchNetease(temp).then([]() {
         XAMP_LOG_DEBUG("Search Netease lyrics completed!");
         });
@@ -722,34 +576,34 @@ void BackgroundService::onFetchCdInfo(const DriveInfo& drive) {
     http_client_.get().then([this, drive, disc_id](const auto& content) {
         auto [image_url, mb_disc_id_info] = parseMbDiscIdXml(content);
 
-        try {
-            std::forward_list<TrackInfo> track_infos;
-            const auto cd = OpenCD(drive.driver_letter);
-            cd->SetMaxSpeed();
-            const auto tracks = cd->GetTotalTracks();
+        std::forward_list<TrackInfo> track_infos;
+        const auto cd = OpenCD(drive.driver_letter);
+        cd->SetMaxSpeed();
+        const auto tracks = cd->GetTotalTracks();
 
-            auto track_id = 0;
-            for (const auto& track : tracks) {
-                auto track_info = TagIO::getTrackInfo(track);
-                track_info.file_path = tracks[track_id];
-                track_info.duration = cd->GetDuration(track_id++);
-                track_info.album = mb_disc_id_info.album;
-                track_info.sample_rate = 44100;
-                track_info.disc_id = disc_id;
-                track_info.track = track_id;
-                track_infos.push_front(track_info);
+        auto track_id = 0;
+        for (const auto& track : tracks) {
+            auto track_info = TagIO::getTrackInfo(track);
+            if (track_info) {
+                track_info.value().file_path = tracks[track_id];
+                track_info.value().duration = cd->GetDuration(track_id++);
+                track_info.value().album = mb_disc_id_info.album;
+                track_info.value().sample_rate = 44100;
+                track_info.value().disc_id = disc_id;
+                track_info.value().track = track_id;
+                track_infos.push_front(track_info.value());
             }
-
-            track_infos.sort([](const auto& first, const auto& last) {
-                return first.track < last.track;
-                });
-
-            emit readCdTrackInfo(QString::fromStdString(disc_id), track_infos);
+            else {
+                XAMP_LOG_D(logger_, "Failed to extract track info.");
+                return;
+            }
         }
-        catch (const Exception& e) {
-            XAMP_LOG_DEBUG(e.GetErrorMessage());
-            return;
-        }
+
+        track_infos.sort([](const auto& first, const auto& last) {
+            return first.track < last.track;
+            });
+
+        emit readCdTrackInfo(QString::fromStdString(disc_id), track_infos);
 
         mb_disc_id_info.disc_id = disc_id;
         mb_disc_id_info.tracks.sort([](const auto& first, const auto& last) {
@@ -809,32 +663,6 @@ void BackgroundService::onTranslation(const QString& keyword,
         });
 }
 
-void BackgroundService::onReadWaveformAudioData(size_t frame_per_peek,
-    const Path& file_path) {
-
-    try {
-        auto file_stream = makePcmFileStream(file_path);
-
-        std::vector<float> buffer(
-            frame_per_peek * file_stream->GetFormat().GetChannels());
-
-        while (!is_stop_ && file_stream->IsActive()) {
-            std::fill(buffer.begin(), buffer.end(), 0.0f);
-            auto read_samples = file_stream->GetSamples(
-                buffer.data(),
-                buffer.size());
-            if (read_samples > 0) {
-                emit readAudioData(buffer);
-            }
-        }
-
-        emit readAudioDataCompleted();
-    }
-	catch (const Exception& e) {
-		XAMP_LOG_ERROR(e.GetErrorMessage());
-	}
-}
-
 void BackgroundService::onReadSpectrogram(SpectrogramColor color, const Path& file_path) {
 	try {
         auto file_stream = makePcmFileStream(file_path);
@@ -854,12 +682,13 @@ void BackgroundService::onReadSpectrogram(SpectrogramColor color, const Path& fi
 
         auto format = file_stream->GetFormat();
 		auto total_samples = static_cast<uint32_t>(duration * format.GetSampleRate());
-        auto kColumnsPerChunk = (std::max)(100u, static_cast<uint32_t>(total_samples / fft.GetShiftSize()));
+        auto kColumnsPerChunk = (std::min)(100u, static_cast<uint32_t>(total_samples / fft.GetShiftSize()));
 
         color_table_.setSpectrogramColor(color);
 
         while (!is_stop_ && file_stream->IsActive()) {
-        	QImage chunk_img(kColumnsPerChunk, freq_bins.size(),
+        	QImage chunk_img(kColumnsPerChunk, 
+                freq_bins.size(),
                 QImage::Format_RGB888);
             chunk_img.fill(Qt::black);
 
@@ -887,7 +716,6 @@ void BackgroundService::onReadSpectrogram(SpectrogramColor color, const Path& fi
                     fillSpectrogramColumn(color_table_, chunk_img, col, freq_bins);
                 }
             }
-
             emit readAudioSpectrogram(duration, kHopSize, chunk_img, time_index);
             time_index += actual_columns;
         }

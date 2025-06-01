@@ -21,11 +21,11 @@ struct XAMP_WIDGET_SHARED_EXPORT DatabaseCoverId : public std::pair<int32_t, std
 		second = album_id;
 	}
 
-	XAMP_NO_DISCARD bool isAlbumIdValid() const {
+	[[nodiscard]] bool isAlbumIdValid() const {
 		return second.has_value();
 	}
 
-	XAMP_NO_DISCARD int32_t get() const {
+	[[nodiscard]] int32_t get() const {
 		if (second) {
 			return second.value();
 		}

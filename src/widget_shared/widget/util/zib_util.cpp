@@ -4,212 +4,64 @@
 #include <base/scopeguard.h>
 
 #include <fstream>
+#include <QtEndian>
+#include <QScopeGuard>
+
+#define USE_ZLIB 0
+
+#if USE_ZLIB
 
 #include <zlib.h>
 #include <contrib/minizip/unzip.h>
 
-#if XAMP_OS_WIN
 namespace {
-    inline constexpr auto kReadZipBufferSize = 4096;
-
-    struct UzFileHandleTraits final {
-        static unzFile invalid() noexcept {
-            return nullptr;
-        }
-
-        static void close(unzFile value) noexcept {
-            unzClose(value);
-        }
-    };
-
-    voidpf fopen64_file_func(voidpf opaque, const void* filename, int mode) {
-        FILE* file = nullptr;
-        const wchar_t* mode_fopen = nullptr;
-
-        if ((mode & ZLIB_FILEFUNC_MODE_READWRITEFILTER) == ZLIB_FILEFUNC_MODE_READ)
-            mode_fopen = L"rb";
-        else
-            if (mode & ZLIB_FILEFUNC_MODE_EXISTING)
-                mode_fopen = L"r+b";
-            else
-                if (mode & ZLIB_FILEFUNC_MODE_CREATE)
-                    mode_fopen = L"wb";
-#ifdef XAMP_OS_WIN
-        if ((filename != nullptr) && (mode_fopen != nullptr))
-            _wfopen_s(&file, static_cast<const wchar_t*>(filename), mode_fopen);
-#else
-            if ((filename != nullptr) && (mode_fopen != nullptr)) {
-                file = fopen(String::ToString(static_cast<const wchar_t*>(filename)).c_str(), mode_fopen);
-            }
-#endif
-        return file;
-    }
-
-
-    uLong fread_file_func(voidpf opaque, voidpf stream, void* buf, uLong size) {
-        uLong ret;
-        ret = static_cast<uLong>(fread(buf, 1, (size_t)size, static_cast<FILE*>(stream)));
-        return ret;
-    }
-
-    uLong fwrite_file_func(voidpf opaque, voidpf stream, const void* buf, uLong size) {
-        uLong ret;
-        ret = static_cast<uLong>(fwrite(buf, 1, (size_t)size, static_cast<FILE*>(stream)));
-        return ret;
-    }
-
-    ZPOS64_T ftell64_file_func(voidpf opaque, voidpf stream) {
-        ZPOS64_T ret;
-        ret = _ftelli64(static_cast<FILE*>(stream));
-        return ret;
-    }
-
-    long fseek64_file_func(voidpf opaque, voidpf stream, ZPOS64_T offset, int origin) {
-        int fseek_origin = 0;
-        long ret;
-
-        switch (origin)
-        {
-        case ZLIB_FILEFUNC_SEEK_CUR:
-            fseek_origin = SEEK_CUR;
-            break;
-        case ZLIB_FILEFUNC_SEEK_END:
-            fseek_origin = SEEK_END;
-            break;
-        case ZLIB_FILEFUNC_SEEK_SET:
-            fseek_origin = SEEK_SET;
-            break;
-        default: return -1;
-        }
-
-        ret = 0;
-
-        if (_fseeki64(static_cast<FILE*>(stream), offset, fseek_origin) != 0)
-            ret = -1;
-
-        return ret;
-    }
-
-    int fclose_file_func(voidpf opaque, voidpf stream) {
-        int ret;
-        ret = fclose(static_cast<FILE*>(stream));
-        return ret;
-    }
-
-    int ferror_file_func(voidpf opaque, voidpf stream) {
-        int ret;
-        ret = ferror(static_cast<FILE*>(stream));
-        return ret;
-    }
-}
-
-XAMP_PIMPL_IMPL(ZipFileReader)
-
-class ZipFileReader::ZipFileReaderImpl {
-public:
-    ZipFileReaderImpl() = default;
-    
-    std::vector<std::wstring> OpenFile(const std::wstring& file) {
-        zlib_filefunc64_def func_def{};
-        func_def.zopen64_file = fopen64_file_func;
-        func_def.zread_file = fread_file_func;
-        func_def.zwrite_file = fwrite_file_func;
-        func_def.ztell64_file = ftell64_file_func;
-        func_def.zseek64_file = fseek64_file_func;
-        func_def.zclose_file = fclose_file_func;
-        func_def.zerror_file = ferror_file_func;
-        func_def.opaque = nullptr;
-
-        handle_.reset(::unzOpen2_64(file.c_str(), &func_def));
-
-        std::vector<std::wstring> track_infos;
-
-        unz_global_info zip_file_info{};
-        if (::unzGetGlobalInfo(handle_.get(), &zip_file_info) != UNZ_OK) {
-            throw Exception();
-        }
-
-        for (uint32_t i = 0; i < zip_file_info.number_entry; i++) {
-            char file_name[MAX_PATH]{};
-            unz_file_info file_info{};
-            const auto ret = ::unzGetCurrentFileInfo(handle_.get(),
-                                                   &file_info, 
-                                                   file_name, 
-                                                   MAX_PATH, 
-                                                   nullptr, 
-                                                   0,
-                                                   nullptr,
-                                                   0);
-            if (ret != UNZ_OK) {
-                throw Exception();
-            }
-            
-            const size_t filename_length = strlen(file_name);
-            if (file_name[filename_length - 1] != '/') {
-                XAMP_LOG_DEBUG("File {}", file_name);
-                Path filename_path(String::ToString(file_name));
-                auto ext = filename_path.extension().string();
-                if (GetSupportFileExtensions().contains(ext)) {
-                    track_infos.push_back(ExtractCurrentFile());
-                }                              
-            }
-            else {
-                XAMP_LOG_DEBUG("Directory {}", file_name);
-            }
-            unzGoToNextFile(handle_.get());
-        }
-
-        return track_infos;
-    }
-
-    std::wstring ExtractCurrentFile() const {
-        if (::unzOpenCurrentFile(handle_.get()) != UNZ_OK) {
-            throw Exception();
-        }
-
-        const auto temp_file_path = GetTempFileNamePath();
-
-        XAMP_ON_SCOPE_FAIL(
-            ::unzCloseCurrentFile(handle_.get());            
-        );
-        
-        std::ofstream out(temp_file_path, std::ios::binary);        
-        if (!out.is_open()) {            
-            throw Exception();
-        }
-        
-        int error = UNZ_OK;
-        do {
-            char output[kReadZipBufferSize]{};
-            
-            error = ::unzReadCurrentFile(handle_.get(), output, kReadZipBufferSize);
-
-            if (error < 0) {
-                throw Exception();
-            }
-            out.write(output, error);
-        } while (error > 0);
-
-        out.close();
-        return temp_file_path.wstring();
-    }
-
-    using UzFileHandle = UniqueHandle<unzFile, UzFileHandleTraits>;
-    UzFileHandle handle_;
-};
-
-ZipFileReader::ZipFileReader()
-    : impl_(MakeAlign<ZipFileReaderImpl>()) {
-}
-
-std::vector<std::wstring> ZipFileReader::openFile(const std::wstring& file) {
-    return impl_->OpenFile(file);
-}
-
-QByteArray gzipDecompress(const QByteArray& data) {
 #define XAMP_inflateInit2(strm, windowBits) \
           ::inflateInit2_((strm), (windowBits), ZLIB_VERSION, \
                         (int)sizeof(z_stream))
+
+#define XAMP_deflateInit2(strm, level, windowBits) \
+        ::deflateInit2_((strm), (level), Z_DEFLATED, (windowBits), 8, Z_DEFAULT_STRATEGY, ZLIB_VERSION, sizeof(z_stream))
+
+    constexpr auto kZipBufferSize = 4096;
+}
+
+std::expected<QByteArray, GzipDecompressError> gzipCompress(const QByteArray& data) {
+    if (data.isEmpty())
+        return std::unexpected(GzipDecompressError::GZIP_COMPRESS_ERROR_EMPTY_INPUT);
+
+    z_stream stream{};
+    stream.next_in = reinterpret_cast<Bytef*>(const_cast<char*>(data.data()));
+    stream.avail_in = data.size();
+
+    int level = Z_DEFAULT_COMPRESSION;
+
+    // windowBits = 15 | 16 -> 15+16=31 表示產生 gzip 包裝
+    if (XAMP_deflateInit2(&stream, level, 31) != Z_OK)
+        return std::unexpected(GzipDecompressError::GZIP_COMPRESS_ERROR_UNKNOWN);
+
+    XAMP_ON_SCOPE_EXIT(
+        ::deflateEnd(&stream);
+    );
+
+    QByteArray out;
+    int ret = 0;
+    char buffer[kZipBufferSize]{ };
+
+    do {
+        stream.avail_out = kZipBufferSize;
+        stream.next_out = reinterpret_cast<Bytef*>(buffer);
+
+        ret = ::deflate(&stream, stream.avail_in ? Z_NO_FLUSH : Z_FINISH);
+        if (ret == Z_STREAM_ERROR)
+            return std::unexpected(GzipDecompressError::GZIP_COMPRESS_ERROR_UNKNOWN);
+
+        out.append(buffer, kZipBufferSize - stream.avail_out);
+    } while (ret != Z_STREAM_END);
+
+    return out;
+}
+
+std::expected<QByteArray, GzipDecompressError> gzipDecompress(const QByteArray& data) {
     QByteArray result;
     z_stream zlib_stream;
 
@@ -221,16 +73,16 @@ QByteArray gzipDecompress(const QByteArray& data) {
 
     auto ret = XAMP_inflateInit2(&zlib_stream, 15 + 32); // gzip decoding
     if (ret != Z_OK) {
-        return result;
+        return std::unexpected(GzipDecompressError::GZIP_COMPRESS_ERROR_UNKNOWN);
     }
 
     XAMP_ON_SCOPE_EXIT(
         ::inflateEnd(&zlib_stream);
-        );
-
+    );
+    
     do {
-        char output[kReadZipBufferSize]{ };
-        zlib_stream.avail_out = kReadZipBufferSize;
+        char output[kZipBufferSize]{ };
+        zlib_stream.avail_out = kZipBufferSize;
         zlib_stream.next_out = reinterpret_cast<Bytef*>(output);
 
         ret = ::inflate(&zlib_stream, Z_NO_FLUSH);
@@ -238,31 +90,219 @@ QByteArray gzipDecompress(const QByteArray& data) {
 
         switch (ret) {
         case Z_NEED_DICT:
-            ret = Z_DATA_ERROR;     // and fall through
-        case Z_DATA_ERROR:
+            ret = Z_DATA_ERROR;     // and fall through            
+        case Z_DATA_ERROR:                        
         case Z_MEM_ERROR:
-            throw Exception("Date error");
+            return std::unexpected(GzipDecompressError::GZIP_COMPRESS_ERROR_UNKNOWN);
         }
 
-        result.append(output, kReadZipBufferSize - zlib_stream.avail_out);
+        result.append(output, kZipBufferSize - zlib_stream.avail_out);
     } while (zlib_stream.avail_out == 0);
 
     return result;
 }
 
-bool decompress(const uint8_t* in_data, size_t in_size, std::string& out_data) {
-	QByteArray data(reinterpret_cast<const char*>(in_data), static_cast<int>(in_size));
-	QByteArray decompressed = gzipDecompress(data);
-	if (decompressed.isEmpty()) {
-		return false;
-	}
-	out_data = decompressed.toStdString();
-	return true;
+std::expected<std::string, GzipDecompressError> gzipDecompress(const uint8_t* in_data, size_t in_size) {
+    std::string out_data;
+    QByteArray data(reinterpret_cast<const char*>(in_data), static_cast<int>(in_size));
+    auto decompressed = gzipDecompress(data);
+    if (!decompressed) {
+        return std::unexpected(decompressed.error());
+    }
+    return decompressed.value().toStdString();
 }
 
 #else
-QByteArray gzipDecompress(const QByteArray& data) {
-    return {};
+#include <libdeflate.h>
+
+namespace {
+    class LibdeflateLib final {
+    public:
+        LibdeflateLib();
+
+        XAMP_DISABLE_COPY(LibdeflateLib)
+
+    private:
+        SharedLibraryHandle module_;
+
+    public:
+        XAMP_DECLARE_DLL_NAME(libdeflate_alloc_compressor);
+        XAMP_DECLARE_DLL_NAME(libdeflate_alloc_compressor_ex);
+        XAMP_DECLARE_DLL_NAME(libdeflate_free_compressor);
+        XAMP_DECLARE_DLL_NAME(libdeflate_alloc_decompressor);
+        XAMP_DECLARE_DLL_NAME(libdeflate_alloc_decompressor_ex);
+        XAMP_DECLARE_DLL_NAME(libdeflate_free_decompressor);
+        XAMP_DECLARE_DLL_NAME(libdeflate_gzip_decompress);
+        XAMP_DECLARE_DLL_NAME(libdeflate_zlib_decompress);
+        XAMP_DECLARE_DLL_NAME(libdeflate_gzip_decompress_ex);
+        XAMP_DECLARE_DLL_NAME(libdeflate_gzip_compress_bound);
+        XAMP_DECLARE_DLL_NAME(libdeflate_gzip_compress);
+        XAMP_DECLARE_DLL_NAME(libdeflate_deflate_compress);
+        XAMP_DECLARE_DLL_NAME(libdeflate_deflate_compress_bound);
+    };
+
+    inline LibdeflateLib::LibdeflateLib() try
+        : module_(OpenSharedLibrary("libdeflate"))
+        , XAMP_LOAD_DLL_API(libdeflate_alloc_compressor)
+            , XAMP_LOAD_DLL_API(libdeflate_alloc_compressor_ex)
+            , XAMP_LOAD_DLL_API(libdeflate_free_compressor)
+            , XAMP_LOAD_DLL_API(libdeflate_alloc_decompressor)
+            , XAMP_LOAD_DLL_API(libdeflate_alloc_decompressor_ex)
+            , XAMP_LOAD_DLL_API(libdeflate_free_decompressor)
+            , XAMP_LOAD_DLL_API(libdeflate_gzip_decompress)
+            , XAMP_LOAD_DLL_API(libdeflate_zlib_decompress)
+            , XAMP_LOAD_DLL_API(libdeflate_gzip_decompress_ex)
+            , XAMP_LOAD_DLL_API(libdeflate_gzip_compress_bound)
+            , XAMP_LOAD_DLL_API(libdeflate_gzip_compress)
+            , XAMP_LOAD_DLL_API(libdeflate_deflate_compress)
+            , XAMP_LOAD_DLL_API(libdeflate_deflate_compress_bound) {
+        }
+        catch (const Exception& e) {
+            XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+        }
+
+#define LIBDEFLATE_LIB SharedSingleton<LibdeflateLib>::GetInstance()
+
+        std::optional<quint32> gzipTrailerSize(const QByteArray& data) {
+            if (data.size() < 4)
+                return std::nullopt;
+            quint32 isize = 0;
+            memcpy(&isize, data.constData() + data.size() - 4, 4);
+            return qFromLittleEndian(isize);
+        }
+
+        struct LibdeflateDecompressorHandleTraits final {
+            static libdeflate_decompressor* invalid() noexcept {
+                return nullptr;
+            }
+
+            static void close(libdeflate_decompressor* value) noexcept {
+                LIBDEFLATE_LIB.libdeflate_free_decompressor(value);
+            }
+        };
+
+        struct LibdeflateCompressorHandleTraits final {
+            static libdeflate_compressor* invalid() noexcept {
+                return nullptr;
+            }
+
+            static void close(libdeflate_compressor* value) noexcept {
+                LIBDEFLATE_LIB.libdeflate_free_compressor(value);
+            }
+        };
+
+        using LibdeflateDecompressorHandle = UniqueHandle<libdeflate_decompressor*, LibdeflateDecompressorHandleTraits>;
+        using LibdeflateCompressorHandle = UniqueHandle<libdeflate_compressor*, LibdeflateCompressorHandleTraits>;
 }
 
+std::expected<QByteArray, GzipDecompressError> gzipCompress(const QByteArray& data, CompressType compress_type) {
+    if (data.isEmpty()) {
+        return std::unexpected(GzipDecompressError::GZIP_COMPRESS_ERROR_EMPTY_INPUT);
+    }
+
+    // 預設壓縮等級： 0~12 (libdeflate v1.20)；6 為 zlib 預設的平衡值
+    constexpr int kDefaultLevel = 6;
+
+    LibdeflateCompressorHandle handle(LIBDEFLATE_LIB.libdeflate_alloc_compressor(kDefaultLevel)); // 6: Default
+    if (!handle) {
+        return std::unexpected(GzipDecompressError::GZIP_COMPRESS_ERROR_UNKNOWN);
+    }
+
+    QByteArray out;
+    size_t bound;
+    size_t actual;
+
+    if (compress_type != CompressType::COMPRESS_DEFLATE) {
+        bound = LIBDEFLATE_LIB.libdeflate_gzip_compress_bound(handle.get(), data.size());
+        out.resize(static_cast<int>(bound));
+        actual = LIBDEFLATE_LIB.libdeflate_gzip_compress(
+            handle.get(),
+            data.constData(), data.size(),
+            out.data(),
+            bound);
+    }
+    else {
+        bound = LIBDEFLATE_LIB.libdeflate_deflate_compress_bound(handle.get(), data.size());
+        out.resize(static_cast<int>(bound));
+        actual = LIBDEFLATE_LIB.libdeflate_deflate_compress(
+            handle.get(),
+            data.constData(), data.size(),
+            out.data(),
+            bound);
+    }
+
+    if (actual == 0) {
+        return std::unexpected(GzipDecompressError::GZIP_COMPRESS_ERROR_UNKNOWN);
+    }
+    out.truncate(static_cast<int>(actual));
+    return out;
+}
+
+std::expected<QByteArray, GzipDecompressError> gzipDecompress(const QByteArray& data) {
+    if (data.isEmpty()) {
+        return std::unexpected(GzipDecompressError::GZIP_COMPRESS_ERROR_EMPTY_INPUT);
+    }
+
+    LibdeflateDecompressorHandle handle(LIBDEFLATE_LIB.libdeflate_alloc_decompressor());
+    if (!handle) {
+        return std::unexpected(GzipDecompressError::GZIP_COMPRESS_ERROR_UNKNOWN);
+    }
+
+    const size_t kDefaultBufferSize = 40960;
+    size_t guestDecompressSize = gzipTrailerSize(data).value_or(data.size() * 3);
+
+    if (guestDecompressSize > kDefaultBufferSize)
+        guestDecompressSize = kDefaultBufferSize;
+
+    QByteArray out;
+    size_t actual = 0;
+    libdeflate_result res;
+    while (true) {
+        out.resize(static_cast<int>(guestDecompressSize));
+
+        auto isGzip = (data.size() > 2)
+            && ((uint8_t)data[0] == 0x1F) 
+            && ((uint8_t)data[1] == 0x8B);
+
+        if (isGzip) {
+            res = LIBDEFLATE_LIB.libdeflate_gzip_decompress(
+                handle.get(),
+                data.constData(), data.size(),
+                out.data(), guestDecompressSize,
+                &actual);
+        }
+        else {
+            res = LIBDEFLATE_LIB.libdeflate_zlib_decompress(
+                handle.get(),
+                data.constData(), data.size(),
+                out.data(), guestDecompressSize,
+                &actual);
+        }        
+
+        if (res == LIBDEFLATE_SUCCESS) {
+            out.resize(static_cast<int>(actual));
+            break;
+        }
+
+        if (res == LIBDEFLATE_INSUFFICIENT_SPACE) {
+            guestDecompressSize *= 2;
+            continue;
+        }
+
+        out.clear();
+        return std::unexpected(GzipDecompressError::GZIP_COMPRESS_ERROR_BAD_DATA);
+    }
+
+    return out;
+}
+
+std::expected<std::string, GzipDecompressError> gzipDecompress(const uint8_t* in_data, size_t in_size) {
+    std::string out_data;
+    QByteArray data(reinterpret_cast<const char*>(in_data), static_cast<int>(in_size));
+    auto decompressed = gzipDecompress(data);
+    if (!decompressed) {
+        return std::unexpected(decompressed.error());
+    }
+    return decompressed.value().toStdString();  
+}
 #endif

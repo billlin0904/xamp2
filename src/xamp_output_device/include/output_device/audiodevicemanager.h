@@ -58,14 +58,14 @@ public:
     *
     * @return default device type
     */
-    XAMP_NO_DISCARD ScopedPtr<IDeviceType> CreateDefaultDeviceType() const override;
+    [[nodiscard]] ScopedPtr<IDeviceType> CreateDefaultDeviceType() const override;
 
     /*
     * Create device type
     *
     * @param id: device type id
     */
-    XAMP_NO_DISCARD ScopedPtr<IDeviceType> Create(Uuid const& id) const override;
+    [[nodiscard]] ScopedPtr<IDeviceType> Create(Uuid const& id) const override;
 
     /*
     * Begin iterator
@@ -86,14 +86,14 @@ public:
     *
     * @return available device type
     */
-    XAMP_NO_DISCARD std::vector<Uuid> GetAvailableDeviceType() const override;
+    [[nodiscard]] std::vector<Uuid> GetAvailableDeviceType() const override;
 
     /*
     * Is support asio
     * 
     * @return true if support asio
     */
-    XAMP_NO_DISCARD bool IsSupportAsio() const noexcept;
+    [[nodiscard]] bool IsSupportAsio() const noexcept;
 
     /*
     * Is device type exist
@@ -101,14 +101,14 @@ public:
     * @param id: device type id
     * @return true if device type exist
     */
-    XAMP_NO_DISCARD bool IsDeviceTypeExist(const Uuid& id) const noexcept;
+    [[nodiscard]] bool IsDeviceTypeExist(const Uuid& id) const noexcept;
 
     /*
     * Is shared device
     * 
     * @param type: device type
     */
-    XAMP_NO_DISCARD bool IsSharedDevice(const Uuid& type) const noexcept override;
+    [[nodiscard]] bool IsSharedDevice(const Uuid& type) const noexcept override;
 
     /*
     * Shutdown global device resource.

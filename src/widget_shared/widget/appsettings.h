@@ -63,6 +63,7 @@ enum class ReplayGainMode {
 	RG_ALBUM_MODE,
 	RG_TRACK_MODE,
 	RG_NONE_MODE,
+	RG_MAX_MODE,
 };
 
 enum class ReplayGainScanMode {
@@ -160,7 +161,7 @@ public:
 		return valueAs(key).toString();
 	}
 
-	XAMP_NO_DISCARD bool contains(const QString& key) const {
+	[[nodiscard]] bool contains(const QString& key) const {
 		XAMP_EXPECTS(settings_ != nullptr);
 		return settings_->contains(key);
 	}

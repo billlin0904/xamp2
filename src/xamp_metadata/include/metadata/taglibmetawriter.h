@@ -18,7 +18,7 @@ public:
 
     XAMP_PIMPL(TaglibMetadataWriter)
 
-	void Open(const Path& path) override;
+    void Open(const Path& path) override;
 
     void WriteReplayGain(const ReplayGain& replay_gain) override;
    
@@ -42,7 +42,7 @@ public:
 
     void RemoveEmbeddedCover() override;
 
-    XAMP_NO_DISCARD bool CanWriteEmbeddedCover() const override;
+    [[nodiscard]] bool CanWriteEmbeddedCover() const override;
 private:
     class TaglibMetadataWriterImpl;
     ScopedPtr<TaglibMetadataWriterImpl> writer_;

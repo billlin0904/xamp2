@@ -44,21 +44,21 @@ public:
 	* 
 	* @return default device type.
 	*/
-	XAMP_NO_DISCARD virtual ScopedPtr<IDeviceType> CreateDefaultDeviceType() const = 0;
+	[[nodiscard]] virtual ScopedPtr<IDeviceType> CreateDefaultDeviceType() const = 0;
 
 	/*
 	* Create device type.
 	* 
 	* @param id: device type id.
 	*/
-	XAMP_NO_DISCARD virtual ScopedPtr<IDeviceType> Create(const Uuid& id) const = 0;
+	[[nodiscard]] virtual ScopedPtr<IDeviceType> Create(const Uuid& id) const = 0;
 
 	/*
 	* Get available device type.
 	* 
 	* @return available device type.
 	*/
-	XAMP_NO_DISCARD virtual std::vector<Uuid> GetAvailableDeviceType() const = 0;
+	[[nodiscard]] virtual std::vector<Uuid> GetAvailableDeviceType() const = 0;
 
 	/*
 	* Clear all device type.
@@ -90,7 +90,7 @@ public:
 	*
 	* @param type: device type
 	*/
-	XAMP_NO_DISCARD virtual bool IsSharedDevice(const Uuid& type) const noexcept = 0;
+	[[nodiscard]] virtual bool IsSharedDevice(const Uuid& type) const noexcept = 0;
 protected:
 	/*
 	* Constructor.

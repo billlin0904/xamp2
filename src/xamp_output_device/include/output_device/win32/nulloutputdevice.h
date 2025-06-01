@@ -163,7 +163,7 @@ public:
 	*
 	* @return DsdIoFormat
 	*/
-	XAMP_NO_DISCARD virtual DsdIoFormat GetIoFormat() const override;
+	[[nodiscard]] virtual DsdIoFormat GetIoFormat() const override;
 
 private:
 	bool is_running_;

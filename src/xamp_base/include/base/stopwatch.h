@@ -17,11 +17,11 @@ public:
 	void Reset() noexcept;
 
 	template <typename Resolution = std::chrono::microseconds>
-	XAMP_NO_DISCARD Resolution Elapsed() const noexcept {
+	[[nodiscard]] Resolution Elapsed() const noexcept {
 		return std::chrono::duration_cast<Resolution>(Clock::now() - start_time_);
 	}
 
-	XAMP_NO_DISCARD double ElapsedSeconds() const noexcept {		
+	[[nodiscard]] double ElapsedSeconds() const noexcept {		
 		return static_cast<double>(Elapsed<std::chrono::milliseconds>().count()) / 1000.0;
 	}
 

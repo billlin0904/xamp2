@@ -14,6 +14,8 @@
 
 #include <widget/util/str_util.h>
 #include <base/assert.h>
+#include <base/trackinfo.h>
+#include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
 
 struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
@@ -50,22 +52,18 @@ struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
 
     std::optional<QString> music_cover_id;    
     std::optional<double> offset;
-    std::optional<double> album_replay_gain;
-    std::optional<double> album_peak;
-    std::optional<double> track_replay_gain;
-    std::optional<double> track_peak;
-    std::optional<double> track_loudness;
+    std::optional<ReplayGain> replay_gain;
 
-    XAMP_NO_DISCARD bool isHttpUrl() const {
+    [[nodiscard]] bool isHttpUrl() const {
         const auto scheme = QUrl(file_path).scheme();
         return scheme == "https"_str || scheme == "http"_str;
     }
 
-    XAMP_NO_DISCARD bool isFilePath() const {
+    [[nodiscard]] bool isFilePath() const {
         return !QFileInfo(file_path).suffix().isEmpty();
     }
 
-    XAMP_NO_DISCARD QString validCoverId() const {
+    [[nodiscard]] QString validCoverId() const {
         auto id = music_cover_id ? music_cover_id.value() : kEmptyString;
         if (id.isEmpty() || id.isNull()) {
             id = cover_id;
@@ -73,8 +71,8 @@ struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
         return id;
     }
 
-    XAMP_NO_DISCARD PlayListEntity cleanup() const {
-        PlayListEntity temp;
+    [[nodiscard]] PlayListEntity cleanup() const {
+        PlayListEntity temp = *this;
         auto feat_pos = temp.title.indexOf("feat"_str);
         if (feat_pos != -1) {
             temp.title = temp.title.left(feat_pos).trimmed();
@@ -85,7 +83,7 @@ struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
         return temp;
     }
 
-    XAMP_NO_DISCARD uint32_t getDopSampleRate() const {
+    [[nodiscard]] uint32_t getDopSampleRate() const {
         XAMP_ASSERT(this->sample_rate > 0);
         uint32_t dop_sample_rate = 0;
         if (this->sample_rate >= 2822400) {

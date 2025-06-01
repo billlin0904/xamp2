@@ -22,7 +22,7 @@ public:
 	virtual void Initialize(const AnyMap& config) = 0;
 
     // note: return true (fetch more data).
-    XAMP_NO_DISCARD virtual bool ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<std::byte>& fifo) = 0;
+    [[nodiscard]] virtual bool ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<std::byte>& fifo) = 0;
 
     virtual void AddPreDSP(ScopedPtr<IAudioProcessor> processor) = 0;
 
@@ -44,11 +44,11 @@ public:
 
     virtual void SetSampleWriter(ScopedPtr<ISampleWriter> writer = nullptr) = 0;
 
-    XAMP_NO_DISCARD virtual bool IsEnableSampleRateConverter() const = 0;
+    [[nodiscard]] virtual bool IsEnableSampleRateConverter() const = 0;
 
-    XAMP_NO_DISCARD virtual bool CanProcess() const noexcept = 0;
+    [[nodiscard]] virtual bool CanProcess() const noexcept = 0;
 
-    XAMP_NO_DISCARD virtual bool Contains(const Uuid &type) const noexcept = 0;
+    [[nodiscard]] virtual bool Contains(const Uuid &type) const noexcept = 0;
 
 protected:
     IDSPManager() = default;

@@ -25,7 +25,7 @@ public:
 	
 	void unlock() noexcept;
 
-	XAMP_NO_DISCARD bool try_lock() noexcept;
+	[[nodiscard]] bool try_lock() noexcept;
 private:
 	class SRWMutexImpl;
 	ScopedPtr<SRWMutexImpl> impl_;

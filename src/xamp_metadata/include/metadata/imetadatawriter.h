@@ -114,7 +114,7 @@ public:
     * 
     * @param[in] path file path.
     */
-    XAMP_NO_DISCARD virtual bool CanWriteEmbeddedCover() const = 0;
+    [[nodiscard]] virtual bool CanWriteEmbeddedCover() const = 0;
 protected:
     IMetadataWriter() = default;
 };

@@ -24,7 +24,7 @@ public:
     * IsFile return true.
     * 
     */
-    XAMP_NO_DISCARD bool IsFile() const noexcept override {
+    [[nodiscard]] bool IsFile() const noexcept override {
 		return true;
 	}
 

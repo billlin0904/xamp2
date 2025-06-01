@@ -7,24 +7,21 @@
 
 #include <QByteArray>
 #include <vector>
+#include <expected>
 
 #include <widget/widget_shared.h>
 
-QByteArray gzipDecompress(const QByteArray& data);
+XAMP_MAKE_ENUM(GzipDecompressError,
+	GZIP_COMPRESS_ERROR_UNKNOWN,
+	GZIP_COMPRESS_ERROR_EMPTY_INPUT,
+	GZIP_COMPRESS_ERROR_BAD_DATA)
 
-bool decompress(const uint8_t* in_data, size_t in_size, std::string& out_data);
+XAMP_MAKE_ENUM(CompressType,
+	COMPRESS_GZIP,
+	COMPRESS_DEFLATE)
 
-#if XAMP_OS_WIN
-class ZipFileReader {
-public:
-	ZipFileReader();
+std::expected<QByteArray, GzipDecompressError> gzipCompress(const QByteArray& data, CompressType compress_type = CompressType::COMPRESS_DEFLATE);
 
-	XAMP_PIMPL(ZipFileReader)
+std::expected<QByteArray, GzipDecompressError> gzipDecompress(const QByteArray& data);
 
-	std::vector<std::wstring> openFile(const std::wstring& file);
-
-private:
-	class ZipFileReaderImpl;
-	ScopedPtr<ZipFileReaderImpl> impl_;
-};
-#endif
+std::expected<std::string, GzipDecompressError> gzipDecompress(const uint8_t* in_data, size_t in_size);

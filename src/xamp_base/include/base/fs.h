@@ -8,6 +8,8 @@
 #include <base/base.h>
 #include <base/exception.h>
 
+#include <base/text_encoding.h>
+#include <expected>
 #include <filesystem>
 
 XAMP_BASE_NAMESPACE_BEGIN
@@ -23,7 +25,7 @@ inline constexpr auto kIteratorOptions{
 	std::filesystem::directory_options::skip_permission_denied
 };
 
-XAMP_BASE_API inline XAMP_NO_DISCARD bool IsFileReadOnly(const Path& path) {
+XAMP_BASE_API inline [[nodiscard]] bool IsFileReadOnly(const Path& path) {
     return (Fs::status(path).permissions() & Fs::perms::owner_read) != Fs::perms::none;
 }
 
@@ -43,7 +45,7 @@ XAMP_BASE_API bool IsCDAFile(const Path& path);
 
 XAMP_BASE_API bool IsFileOnSsd(const Path& path);
 
-XAMP_BASE_API std::string ReadFileToUtf8String(const Path& path);
+XAMP_BASE_API std::expected<std::string, TextEncodeingError> ReadFileToUtf8String(const Path& path);
 
 /*
 * Exception safe file.

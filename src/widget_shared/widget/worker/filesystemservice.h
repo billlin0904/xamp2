@@ -44,7 +44,13 @@ signals:
 
     void enableFetchThumbnail(bool enable);
 
+    void scanReplayGainCompleted(const QList<PlayListEntity>& entities);
+
+    void scanReplayGainError();
+
 public slots:
+    void scanReplayGain(const QList<PlayListEntity>& entities);
+
     void onExtractFile(const QString& file_path, int32_t playlist_id);
 
     void cancelRequested();

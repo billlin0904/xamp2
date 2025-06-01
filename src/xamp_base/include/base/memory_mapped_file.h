@@ -21,9 +21,9 @@ public:
 
     void Open(std::wstring const &file_path, bool is_module = false);
 
-    XAMP_NO_DISCARD void const * GetData() const noexcept;
+    [[nodiscard]] void const * GetData() const noexcept;
 
-    XAMP_NO_DISCARD size_t GetLength() const;
+    [[nodiscard]] size_t GetLength() const;
 
 	void Close() noexcept;
 

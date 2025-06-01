@@ -21,18 +21,18 @@ public:
 
 	void ScanNewDevice();
 
-	XAMP_NO_DISCARD size_t GetDeviceCount() const;
+	[[nodiscard]] size_t GetDeviceCount() const;
 
-	XAMP_NO_DISCARD DeviceInfo GetDeviceInfo(uint32_t device) const;
+	[[nodiscard]] DeviceInfo GetDeviceInfo(uint32_t device) const;
 
-	XAMP_NO_DISCARD std::optional<DeviceInfo> GetDefaultDeviceInfo() const;
+	[[nodiscard]] std::optional<DeviceInfo> GetDefaultDeviceInfo() const;
 
-	XAMP_NO_DISCARD std::vector<DeviceInfo> GetDeviceInfo() const;
+	[[nodiscard]] std::vector<DeviceInfo> GetDeviceInfo() const;
 
 	ScopedPtr<IOutputDevice> MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::string& device_id);
 
 private:
-	XAMP_NO_DISCARD std::vector<DeviceInfo> GetDeviceInfoList() const;
+	[[nodiscard]] std::vector<DeviceInfo> GetDeviceInfoList() const;
 
 	CComPtr<IMMDeviceEnumerator> enumerator_;
 	std::vector<DeviceInfo> device_list_;

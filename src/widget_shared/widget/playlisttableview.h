@@ -22,6 +22,7 @@
 
 class PlayListSqlQueryTableModel;
 class PlayListTableFilterProxyModel;
+class ScanFileProgressPage;
 
 enum PlayListGroup {
 	PLAYLIST_GROUP_ALBUM,
@@ -72,7 +73,7 @@ public:
 
 	void enableCloudMode(bool mode);
 
-	XAMP_NO_DISCARD bool isEnableCloudMode() const {
+	[[nodiscard]] bool isEnableCloudMode() const {
 		return cloud_mode_;
 	}
 
@@ -89,7 +90,7 @@ public:
 
 	void setPlaylistId(const int32_t playlist_id, const QString& column_setting_name);
 
-	XAMP_NO_DISCARD int32_t playlistId() const;
+	[[nodiscard]] int32_t playlistId() const;
 
 	void reload(bool is_scroll_to = false, bool order_by = true);
 
@@ -152,6 +153,8 @@ public:
 	void selectMovedRows(const QModelIndexList& selectedIndexes, int direction);
 
 	void setAlbumCoverId(int32_t album_id, const QString &cover_id);
+	
+	ScanFileProgressPage* progressPage() const;
 signals:
 	void updatePlayingState(const PlayListEntity &entity, PlayingState playing_state);
 
@@ -181,7 +184,7 @@ signals:
 
 	void navigateToArtistPage(int32_t artist_id, const QString& yt_artist_id);
 
-	void scanReplayGain(int32_t playlist_id, const QList<PlayListEntity>& entities);
+	void scanReplayGain(const QList<PlayListEntity>& entities);	
 public slots:
 	void onPlayIndex(const QModelIndex& index, bool is_play = false);
 
@@ -193,6 +196,7 @@ public slots:
 
 	void onRetranslateUi();
 
+	void updateReplayGain(const QList<PlayListEntity>& entities);
 private:
 	PlayListEntity item(const QModelIndex& index) const;
 
@@ -211,6 +215,8 @@ private:
 	void initial();
 
 protected:
+	void showProgressPage();
+
 	bool cloud_mode_{ false };
 	bool enable_delete_{ true };
 	bool enable_load_file_{ true };
@@ -230,6 +236,7 @@ protected:
 	QString column_setting_name_;
 	QList<int32_t> always_hidden_columns_;
 	QHash<int32_t, QList<int32_t>> album_songs_id_cache_;
+	ScanFileProgressPage* progress_page_;
 };
 
 

@@ -1,4 +1,4 @@
-//=====================================================================================================================
+ï»¿//=====================================================================================================================
 // Copyright (c) 2018-2025 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -42,30 +42,30 @@ public:
 
 protected:
 	bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const override {
-		// ¨ú±o¥Ø«eªº¥¿«hªí¥Ü¦¡
+		// å–å¾—ç›®å‰çš„æ­£å‰‡è¡¨ç¤ºå¼
 		QRegularExpression re = filterRegularExpression();
-		// ¦pªG©|¥¼¿é¤J·j´M¦r¦ê¡A«hÅã¥Ü¥ş³¡
+		// å¦‚æœå°šæœªè¼¸å…¥æœå°‹å­—ä¸²ï¼Œå‰‡é¡¯ç¤ºå…¨éƒ¨
 		if (re.pattern().isEmpty()) {
 			return true;
 		}
 
-		// ³]©w©¿²¤¤j¤p¼g¡]µ¥®Ä©ó Qt::CaseInsensitive¡^
-		// ¤]¥i¥H¦b setFilterRegularExpression() ®É´N³]©w¦n Options
+		// è¨­å®šå¿½ç•¥å¤§å°å¯«ï¼ˆç­‰æ•ˆæ–¼ Qt::CaseInsensitiveï¼‰
+		// ä¹Ÿå¯ä»¥åœ¨ setFilterRegularExpression() æ™‚å°±è¨­å®šå¥½ Options
 		QRegularExpression::PatternOptions opts;
 		opts |= QRegularExpression::CaseInsensitiveOption;
 		re.setPatternOptions(opts);
 
-		// ÀË¬d¥Ø¼ĞÄæ¦ì¬O§_§t¦³¦¹¥¿«h
+		// æª¢æŸ¥ç›®æ¨™æ¬„ä½æ˜¯å¦å«æœ‰æ­¤æ­£å‰‡
 		std::array<uint32_t, 3> columns = { LRC_PAGE_TAB_ALBUM, LRC_PAGE_TAB_ARTIST, LRC_PAGE_TAB_TITLE };
 		for (uint32_t col : columns) {
 			QModelIndex index = sourceModel()->index(sourceRow, col, sourceParent);
 			QString dataStr = index.data(Qt::DisplayRole).toString();
-			// ¥u­n¦³¤@Äæ¤Ç°t¡A´NÅã¥Ü
+			// åªè¦æœ‰ä¸€æ¬„åŒ¹é…ï¼Œå°±é¡¯ç¤º
 			if (dataStr.contains(re)) {
 				return true;
 			}
 		}
-		// ³£¨S¦³¤Ç°t«hÁôÂÃ¸Ó¦C
+		// éƒ½æ²’æœ‰åŒ¹é…å‰‡éš±è—è©²åˆ—
 		return false;
 	}
 };

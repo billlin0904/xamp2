@@ -77,9 +77,13 @@ bool WebVTTParser::parse(std::wistream& file) {
 
 bool WebVTTParser::parseFile(const std::wstring& file_path) {
     try {
-        auto wide_str = String::ToStdWString(ReadFileToUtf8String(file_path));
-        std::wstringstream file(wide_str);
-        return parse(file);
+        auto utf8_text = ReadFileToUtf8String(file_path);
+        if (utf8_text) {
+            auto wide_str = String::ToStdWString(utf8_text.value());
+            std::wstringstream file(wide_str);
+            return parse(file);
+        }  
+        return false;
     }
     catch (...) {
 		return false;

@@ -23,7 +23,7 @@ public:
 
 	void Open(const Path& path, TagIOMode mode = TAG_IO_WRITE_MODE);
 
-    static TrackInfo getTrackInfo(const Path& path);
+    static std::expected<TrackInfo, ParseMetadataError> getTrackInfo(const Path& path);
 
     void writeArtist(const QString& artist);
 
@@ -47,7 +47,7 @@ public:
 
     void writeEmbeddedCover(const QPixmap& image);
 
-    XAMP_NO_DISCARD bool canWriteEmbeddedCover() const;
+    [[nodiscard]] bool canWriteEmbeddedCover() const;
 
 private:
     ScopedPtr<IMetadataReader> reader_;

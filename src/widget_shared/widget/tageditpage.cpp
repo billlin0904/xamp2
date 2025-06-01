@@ -286,17 +286,17 @@ void TagEditPage::setCurrentInfo(int32_t index) {
 
 	auto set_replay_gain = [&](auto* editor, const auto& opt_value) {
 		if (opt_value) {
-			editor->setText(formatDb(opt_value.value()));
+			editor->setText(formatDb(opt_value));
 		}
 		else {
 			editor->setText(tr("Not set"));
 		}
 		};
 
-	set_replay_gain(ui_->albumPeakLineEdit, entities_[index].album_peak);
-	set_replay_gain(ui_->albumReplayGainLineEdit, entities_[index].album_replay_gain);
-	set_replay_gain(ui_->trackPeakLineEdit, entities_[index].track_peak);
-	set_replay_gain(ui_->trackReplayGainLineEdit, entities_[index].track_replay_gain);
+	set_replay_gain(ui_->albumPeakLineEdit, entities_[index].replay_gain.value().album_peak);
+	set_replay_gain(ui_->albumReplayGainLineEdit, entities_[index].replay_gain.value().album_gain);
+	set_replay_gain(ui_->trackPeakLineEdit, entities_[index].replay_gain.value().track_peak);
+	set_replay_gain(ui_->trackReplayGainLineEdit, entities_[index].replay_gain.value().track_gain);
 
 	ui_->fileSizeLineEdit->setText(stringFormat("{} ({})",
 		entities_[index].file_size,

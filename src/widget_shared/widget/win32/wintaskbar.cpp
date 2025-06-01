@@ -261,6 +261,7 @@ WinTaskbar::WinTaskbar(XMainWindow* window, IXFrame* frame)
 	setTheme(theme);
 	setWindow(window);
 	frame_ = frame;
+	setRange(0, 100);
 }
 
 WinTaskbar::~WinTaskbar() = default;

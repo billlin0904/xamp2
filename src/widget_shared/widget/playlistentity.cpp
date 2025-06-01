@@ -48,11 +48,12 @@ PlayListEntity getEntity(const QModelIndex& index) {
 
     setEntityValue(entity.offset, indexValue(index, PLAYLIST_OFFSET));
 
-    setEntityValue(entity.album_replay_gain,  indexValue(index, PLAYLIST_ALBUM_RG));
-    setEntityValue(entity.album_peak,         indexValue(index, PLAYLIST_ALBUM_PK));
-    setEntityValue(entity.track_replay_gain,  indexValue(index, PLAYLIST_TRACK_RG));
-    setEntityValue(entity.track_peak,         indexValue(index, PLAYLIST_TRACK_PK));
-    setEntityValue(entity.track_loudness,     indexValue(index, PLAYLIST_TRACK_LOUDNESS));
+    entity.replay_gain = ReplayGain();
+    entity.replay_gain.value().album_gain = indexValue(index, PLAYLIST_ALBUM_RG).toDouble();
+    entity.replay_gain.value().album_peak = indexValue(index, PLAYLIST_ALBUM_PK).toDouble();
+    entity.replay_gain.value().track_gain = indexValue(index, PLAYLIST_TRACK_RG).toDouble();
+    entity.replay_gain.value().track_peak = indexValue(index, PLAYLIST_TRACK_PK).toDouble();
+    entity.replay_gain.value().track_loudness = indexValue(index, PLAYLIST_TRACK_LOUDNESS).toDouble();
 
     entity.yt_music_album_id = indexValue(index, PLAYLIST_YT_MUSIC_ALBUM_ID).toString();
     entity.yt_music_artist_id = indexValue(index, PLAYLIST_YT_MUSIC_ARIST_ID).toString();

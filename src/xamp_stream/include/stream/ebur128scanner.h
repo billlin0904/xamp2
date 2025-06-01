@@ -15,7 +15,13 @@ XAMP_STREAM_NAMESPACE_BEGIN
 
 class XAMP_STREAM_API Ebur128Scanner final {
 public:
+	static constexpr auto kReferenceLoudness = -16.0;
+
+	Ebur128Scanner();
+
 	explicit Ebur128Scanner(uint32_t sample_rate);
+
+	void SetSampleRate(uint32_t sample_rate);
 
 	XAMP_PIMPL(Ebur128Scanner)
 
@@ -28,6 +34,8 @@ public:
 	[[nodiscard]] double GetSamplePeak() const;
 
 	[[nodiscard]] void* GetNativeHandle() const;
+
+	[[nodiscard]] bool IsValid() const;
 
 	static double GetMultipleLoudness(std::vector<Ebur128Scanner>& scanners);
 

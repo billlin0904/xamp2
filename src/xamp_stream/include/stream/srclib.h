@@ -49,4 +49,6 @@ catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 }
 
+#define LIBSRC_LIB SharedSingleton<SrcLib>::GetInstance()
+
 XAMP_STREAM_NAMESPACE_END

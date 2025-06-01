@@ -60,7 +60,7 @@ public:
 	XAMP_DECLARE_DLL(DftiErrorMessage) DftiErrorMessage;
 };
 
-#define MKL_LIB Singleton<MKLLib>::GetInstance()
+#define MKL_LIB SharedSingleton<MKLLib>::GetInstance()
 
 #endif
 

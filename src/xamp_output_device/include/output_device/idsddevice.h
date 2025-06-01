@@ -45,7 +45,7 @@ public:
     * 
     * @return DsdIoFormat
     */
-    XAMP_NO_DISCARD virtual DsdIoFormat GetIoFormat() const = 0;
+    [[nodiscard]] virtual DsdIoFormat GetIoFormat() const = 0;
 
 protected:
     /*

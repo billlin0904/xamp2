@@ -151,12 +151,6 @@
 #define XAMP_VECTOR_CALL __attribute__((vectorcall))
 #endif
 
-#ifdef XAMP_OS_WIN
-#define XAMP_NO_DISCARD [[nodiscard]]
-#else
-#define XAMP_NO_DISCARD
-#endif
-
 XAMP_BASE_NAMESPACE_BEGIN
 
 /*

@@ -145,12 +145,12 @@ bool IsCDAFile(Path const& path) {
 	return path.extension() == ".cda";
 }
 
-std::string ReadFileToUtf8String(const Path& path) {
+std::expected<std::string, TextEncodeingError> ReadFileToUtf8String(const Path& path) {
 	std::ifstream file;
 	file.open(path, std::ios::binary);
 
 	if (!file.is_open()) {
-		return {};
+		return std::unexpected(TextEncodeingError::TEXT_ENCODING_NOT_FOUND_FILE);
 	}
 
 	file.seekg(0, std::ios::end);
@@ -158,7 +158,7 @@ std::string ReadFileToUtf8String(const Path& path) {
 	file.seekg(0, std::ios::beg);
 
 	if (length <= 0) {
-		return {};
+		return std::unexpected(TextEncodeingError::TEXT_ENCODING_EMPTY_FILE);
 	}
 
 	std::vector<char> buffer(length);

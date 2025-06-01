@@ -1,3 +1,4 @@
+#include <base/dataconverter.h>
 #include <metadata/chromaprintlib.h>
 #include <metadata/chromaprint.h>
 
@@ -18,6 +19,15 @@ public:
 		CHROMAPRINT_LIB.chromaprint_start(handle_.get(),
 			static_cast<int32_t>(sample_rate),
 			static_cast<int32_t>(AudioFormat::kMaxChannel));
+	}
+
+	int32_t Process(const float* data, uint32_t size) const {
+		AudioConvertContext ctx;
+		ctx.convert_size = size / 2;
+		std::vector<int16_t> buffer(size);
+		DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Convert(
+			reinterpret_cast<int16_t*>(buffer.data()), data, ctx);
+		return Process(buffer.data(), buffer.size());
 	}
 
 	int32_t Process(int16_t const* data, uint32_t size) const {
@@ -93,6 +103,10 @@ void Chromaprint::SetSampleRate(uint32_t sample_rate) {
 }
 
 int32_t Chromaprint::Process(int16_t const* data, uint32_t size) const {
+	return impl_->Process(data, size);
+}
+
+int32_t Chromaprint::Process(const float* data, uint32_t size) const {
 	return impl_->Process(data, size);
 }
 

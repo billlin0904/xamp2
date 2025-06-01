@@ -21,13 +21,13 @@ public:
 
 	XAMP_PIMPL(MBDiscId)
 
-	XAMP_NO_DISCARD std::string GetDiscId(const std::string& drive) const;
+	[[nodiscard]] std::string GetDiscId(const std::string& drive) const;
 
-	XAMP_NO_DISCARD std::string GetFreeDBId(const std::string & drive) const;
+	[[nodiscard]] std::string GetFreeDBId(const std::string & drive) const;
 
-	XAMP_NO_DISCARD std::string GetSubmissionUrl(const std::string& drive) const;
+	[[nodiscard]] std::string GetSubmissionUrl(const std::string& drive) const;
 
-	XAMP_NO_DISCARD std::string GetDiscIdLookupUrl(const std::string& drive) const;
+	[[nodiscard]] std::string GetDiscIdLookupUrl(const std::string& drive) const;
 private:
 	class MBDiscIdImpl;
 	ScopedPtr<MBDiscIdImpl> impl_;

@@ -124,13 +124,6 @@ QSharedPointer<ProcessIndicator> makeProcessIndicator(QWidget* widget) {
     return {new ProcessIndicator(widget), &QObject::deleteLater};
 }
 
-ScopedPtr<FileStream> makePcmFileStream(const Path& file_path) {
-    PrefetchFile(file_path);
-    auto file_stream = StreamFactory::MakeFileStream(file_path);
-    file_stream->OpenFile(file_path);
-    return file_stream;
-}
-
 QSharedPointer<XProgressDialog> makeProgressDialog(QString const& title,
     QString const& text, 
     QString const& cancel,

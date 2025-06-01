@@ -26,11 +26,11 @@ public:
 
     void Initialize(const AnyMap& config) override;
 
-    XAMP_NO_DISCARD bool Process(float const* samples, size_t num_samples, BufferRef<float>& output) override;
+    [[nodiscard]] bool Process(float const* samples, size_t num_samples, BufferRef<float>& output) override;
 
-    XAMP_NO_DISCARD Uuid GetTypeId() const override;
+    [[nodiscard]] Uuid GetTypeId() const override;
 
-    XAMP_NO_DISCARD std::string_view GetDescription() const noexcept override;
+    [[nodiscard]] std::string_view GetDescription() const noexcept override;
 
 private:
     class R8brainSampleRateConverterImpl;

@@ -48,21 +48,21 @@ public:
 	*
 	* @return std::string_view
 	*/
-	XAMP_NO_DISCARD std::string_view GetDescription() const override;
+	[[nodiscard]] std::string_view GetDescription() const override;
 
 	/*
 	* Get device type id
 	*
 	* @return Uuid
 	*/
-	XAMP_NO_DISCARD Uuid GetTypeId() const override;
+	[[nodiscard]] Uuid GetTypeId() const override;
 
 	/*
 	* Get device count
 	*
 	* @return size_t
 	*/
-	XAMP_NO_DISCARD size_t GetDeviceCount() const override;
+	[[nodiscard]] size_t GetDeviceCount() const override;
 
 	/*
 	* Get device info
@@ -70,21 +70,21 @@ public:
 	* @param device: device index
 	* @return DeviceInfo
 	*/
-	XAMP_NO_DISCARD DeviceInfo GetDeviceInfo(uint32_t device) const override;
+	[[nodiscard]] DeviceInfo GetDeviceInfo(uint32_t device) const override;
 
 	/*
 	* Get default device info
 	*
 	* @return std::optional<DeviceInfo>
 	*/
-	XAMP_NO_DISCARD std::optional<DeviceInfo> GetDefaultDeviceInfo() const override;
+	[[nodiscard]] std::optional<DeviceInfo> GetDefaultDeviceInfo() const override;
 
 	/*
 	* Get device info
 	*
 	* @return std::vector<DeviceInfo>
 	*/
-	XAMP_NO_DISCARD std::vector<DeviceInfo> GetDeviceInfo() const override;
+	[[nodiscard]] std::vector<DeviceInfo> GetDeviceInfo() const override;
 
 	/*
 	* Make device

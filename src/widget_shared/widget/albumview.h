@@ -23,6 +23,7 @@
 #include <widget/widget_shared_global.h>
 #include <widget/albumviewstyleddelegate.h>
 #include <widget/playlisttableproxymodel.h>
+#include <widget/scanfileprogresspage.h>
 
 #include <widget/dao/dbfacade.h>
 
@@ -61,31 +62,6 @@ public slots:
 private:
 	PlaylistPage* page_;
 	QPushButton* close_button_;	
-};
-
-class XAMP_WIDGET_SHARED_EXPORT ScanFileProgressPage : public QFrame {
-	Q_OBJECT
-public:
-	explicit ScanFileProgressPage(QWidget* parent = nullptr);
-
-signals:
-	void cancelRequested();
-
-public slots:
-	void onReadFileProgress(int32_t progress);
-
-	void onReadCompleted();
-
-	void onRemainingTimeEstimation(size_t total_work, size_t completed_work, int32_t secs);
-
-	void onFoundFileCount(size_t file_count);
-
-	void onReadFilePath(const QString& file_path);
-
-	void onReadFileStart();
-private:
-	QProgressBar* progress_bar_;
-	QLabel* message_text_label_;
 };
 
 class XAMP_WIDGET_SHARED_EXPORT AlbumView : public QListView {

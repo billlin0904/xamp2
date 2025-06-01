@@ -83,9 +83,6 @@ namespace {
     constexpr auto kEpisodesForLaterName("Episodes for Later"_str);
 
     QString make544xh544Image(const QString &url) {
-        //QString prefix = url.section(L'=', 0, 0);
-        //QString newParam = "w544-h544-l90-rj"_str;
-        //auto result = prefix + "=" + newParam;
         QString modified_url = url;
         modified_url.replace("w120-h120-l90-rj"_str, "w544-h544-l90-rj"_str);
         return modified_url;
@@ -1287,8 +1284,28 @@ void Xamp::setupDsp(const PlayListEntity& item) const {
         }
     }
     else {
-        player_->GetDspManager()->RemoveEqualizer();
-        player_->GetDspManager()->RemoveParametricEq();
+        float replay_gain = 0;
+        auto mode = qAppSettings.valueAsEnum<ReplayGainMode>(kAppSettingReplayGainMode);
+        if (mode == ReplayGainMode::RG_TRACK_MODE) {
+            if (item.replay_gain) {
+                EqSettings eq_settings;
+                eq_settings.preamp = item.replay_gain.value().track_gain;
+                player_->GetDspConfig().AddOrReplace(DspConfig::kEQSettings, eq_settings);
+                player_->GetDspManager()->AddParametricEq();
+            }
+        }
+        else if (mode == ReplayGainMode::RG_TRACK_MODE) {
+            if (item.replay_gain) {
+                EqSettings eq_settings;
+                eq_settings.preamp = item.replay_gain.value().album_gain;
+                player_->GetDspConfig().AddOrReplace(DspConfig::kEQSettings, eq_settings);
+                player_->GetDspManager()->AddParametricEq();
+            }
+        }        
+    	else {
+            player_->GetDspManager()->RemoveEqualizer();
+            player_->GetDspManager()->RemoveParametricEq();
+        }
     }
 }
 
@@ -2754,25 +2771,16 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
 
     (void)QObject::connect(playlist_page->playlist(),
         &PlaylistTableView::scanReplayGain,
-        background_service_.get(),
-        &BackgroundService::scanReplayGain);
+        file_system_service_.get(),
+        &FileSystemService::scanReplayGain);
+    
+    (void)QObject::connect(file_system_service_.get(),
+        &FileSystemService::scanReplayGainCompleted,
+        playlist_page->playlist(),
+        &PlaylistTableView::updateReplayGain);
 
-    auto* playlist = playlist_page->playlist();
-    (void)QObject::connect(background_service_.get(),
-        &BackgroundService::scanReplayGainCompleted,
-        [playlist](int32_t playlist_id, const QList<PlayListEntity>& entities) {
-            for (const auto &entity : entities) {
-                qDaoFacade.music_dao.updateMusicReplayGain(entity.music_id,
-                    entity.album_replay_gain.value(),
-                    entity.album_peak.value(),
-                    entity.track_replay_gain.value(),
-                    entity.track_peak.value());
-            }
-        	playlist->reload();
-        });
-
-    (void)QObject::connect(background_service_.get(),
-        &BackgroundService::scanReplayGainError, [this]() {
+    (void)QObject::connect(file_system_service_.get(),
+        &FileSystemService::scanReplayGainError, [this]() {
 	        
         });
 
@@ -2813,6 +2821,42 @@ void Xamp::connectPlaylistPageSignal(PlaylistPage* playlist_page) {
         &ThemeManager::themeChangedFinished,
         playlist_page,
         &PlaylistPage::onThemeChangedFinished);
+
+    (void)QObject::connect(file_system_service_.get(),
+        &FileSystemService::foundFileCount,
+        playlist_page->playlist()->progressPage(),
+        &ScanFileProgressPage::onFoundFileCount,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(file_system_service_.get(),
+        &FileSystemService::readFilePath,
+        playlist_page->playlist()->progressPage(),
+        &ScanFileProgressPage::onReadFilePath,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(file_system_service_.get(),
+        &FileSystemService::readFileStart,
+        playlist_page->playlist()->progressPage(),
+        &ScanFileProgressPage::onReadFileStart,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(file_system_service_.get(),
+        &FileSystemService::readCompleted,
+        playlist_page->playlist()->progressPage(),
+        &ScanFileProgressPage::onReadCompleted,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(file_system_service_.get(),
+        &FileSystemService::readFileProgress,
+        playlist_page->playlist()->progressPage(),
+        &ScanFileProgressPage::onReadFileProgress,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(file_system_service_.get(),
+        &FileSystemService::remainingTimeEstimation,
+        playlist_page->playlist()->progressPage(),
+        &ScanFileProgressPage::onRemainingTimeEstimation,
+        Qt::QueuedConnection);
 }
 
 void Xamp::addDropFileItem(const QUrl& url) {

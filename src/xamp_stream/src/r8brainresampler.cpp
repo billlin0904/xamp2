@@ -8,9 +8,7 @@
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
-namespace {
-	#define LIBR8_DLL SharedSingleton<R8brainLib>::GetInstance()
-
+namespace {	
 	inline const std::string_view R8B_Description = "R8brain " R8B_VERSION;
 }
 

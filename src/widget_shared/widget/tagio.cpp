@@ -1,7 +1,7 @@
 #include <widget/tagio.h>
 #include <widget/util/image_util.h>
 
-TrackInfo TagIO::getTrackInfo(const Path& path) {
+std::expected<TrackInfo, ParseMetadataError> TagIO::getTrackInfo(const Path& path) {
     const auto reader = MakeMetadataReader();
 	reader->Open(path);
     return reader->Extract();
@@ -55,8 +55,8 @@ bool TagIO::embeddedCover(QPixmap& image, size_t& image_size) const {
     auto buffer = reader_->ReadEmbeddedCover();
     image_size = 0;
     if (buffer) {
-        image.loadFromData(reinterpret_cast<uchar*>(buffer->data()), buffer->size());
-        image_size = buffer->size();
+        image.loadFromData(reinterpret_cast<uchar*>(buffer.value().data()), buffer.value().size());
+        image_size = buffer.value().size();
         return true;
     }
     return false;
@@ -66,7 +66,7 @@ QPixmap TagIO::embeddedCover() const {
     QPixmap pixmap;
     auto buffer = reader_->ReadEmbeddedCover();
     if (buffer) {
-        pixmap.loadFromData(reinterpret_cast<uchar*>(buffer->data()), buffer->size());
+        pixmap.loadFromData(reinterpret_cast<uchar*>(buffer.value().data()), buffer.value().size());
     }
     return pixmap;
 }

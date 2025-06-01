@@ -50,6 +50,8 @@ catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 }
 
+#define DiscIdDLL SharedSingleton<DiscIdLib>::GetInstance()
+
 XAMP_STREAM_NAMESPACE_END
 
 #endif

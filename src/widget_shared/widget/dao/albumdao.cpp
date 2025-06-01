@@ -27,11 +27,13 @@ namespace dao {
             entity.sample_rate = query.value("sampleRate"_str).toUInt();
             entity.cover_id = query.value("coverId"_str).toString();
             entity.rating = query.value("rating"_str).toUInt();
-            entity.album_replay_gain = query.value("albumReplayGain"_str).toDouble();
-            entity.album_peak = query.value("albumPeak"_str).toDouble();
-            entity.track_replay_gain = query.value("trackReplayGain"_str).toDouble();
-            entity.track_peak = query.value("trackPeak"_str).toDouble();
-            entity.track_loudness = query.value("trackLoudness"_str).toDouble();
+            ReplayGain replay_gain;
+            replay_gain.album_gain = query.value("albumReplayGain"_str).toDouble();
+            replay_gain.album_peak = query.value("albumPeak"_str).toDouble();
+            replay_gain.track_gain = query.value("trackReplayGain"_str).toDouble();
+            replay_gain.track_peak = query.value("trackPeak"_str).toDouble();
+            replay_gain.track_loudness = query.value("trackLoudness"_str).toDouble();
+            entity.replay_gain = replay_gain;
 
             entity.genre = query.value("genre"_str).toString();
             entity.comment = query.value("comment"_str).toString();

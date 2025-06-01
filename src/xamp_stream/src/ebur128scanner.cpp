@@ -7,6 +7,7 @@
 #include <base/dll.h>
 #include <base/audioformat.h>
 
+#include <stream/ebur128lib.h>
 #include <stream/ebur128scanner.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
@@ -26,47 +27,15 @@ static double Loudness2power(double loudness) {
 	return pow(10, (loudness + 0.691) / 10.);
 }
 
-class Ebur128Lib final {
-public:
-	Ebur128Lib();
-
-private:
-	SharedLibraryHandle module_;
-
-public:
-	XAMP_DECLARE_DLL_NAME(ebur128_init);
-	XAMP_DECLARE_DLL_NAME(ebur128_destroy);
-	XAMP_DECLARE_DLL_NAME(ebur128_set_channel);
-	XAMP_DECLARE_DLL_NAME(ebur128_add_frames_float);
-	XAMP_DECLARE_DLL_NAME(ebur128_true_peak);
-	XAMP_DECLARE_DLL_NAME(ebur128_sample_peak);
-	XAMP_DECLARE_DLL_NAME(ebur128_loudness_global);
-	XAMP_DECLARE_DLL_NAME(ebur128_loudness_global_multiple);
-};
-
-Ebur128Lib::Ebur128Lib()
-#ifdef XAMP_OS_WIN
-	: module_(LoadSharedLibrary("ebur128.dll"))
-#else
-	: module_(LoadSharedLibrary("libebur128.dylib"))
-#endif
-	, XAMP_LOAD_DLL_API(ebur128_init)
-	, XAMP_LOAD_DLL_API(ebur128_destroy)
-	, XAMP_LOAD_DLL_API(ebur128_set_channel)
-	, XAMP_LOAD_DLL_API(ebur128_add_frames_float)
-	, XAMP_LOAD_DLL_API(ebur128_true_peak)
-	, XAMP_LOAD_DLL_API(ebur128_sample_peak)
-	, XAMP_LOAD_DLL_API(ebur128_loudness_global)
-	, XAMP_LOAD_DLL_API(ebur128_loudness_global_multiple) {
-}
-
-#define EBUR128_LIB SharedSingleton<Ebur128Lib>::GetInstance()
-
-constexpr auto kReferenceLoudness = -23.0;
-
 class Ebur128Scanner::Ebur128ScannerImpl {
 public:
+	Ebur128ScannerImpl() = default;
+	
 	explicit Ebur128ScannerImpl(uint32_t sample_rate) {
+		SetSampleRate(sample_rate);
+	}
+
+	void SetSampleRate(uint32_t sample_rate) {
 		state_.reset(EBUR128_LIB.ebur128_init(AudioFormat::kMaxChannel,
 			sample_rate,
 			EBUR128_MODE_I | EBUR128_MODE_TRUE_PEAK | EBUR128_MODE_SAMPLE_PEAK));
@@ -92,13 +61,17 @@ public:
 		double right_sample_peek = 0;
 		IfFailThrow(EBUR128_LIB.ebur128_sample_peak(state_.get(), 0, &left_sample_peek));
 		IfFailThrow(EBUR128_LIB.ebur128_sample_peak(state_.get(), 1, &right_sample_peek));
-		return kReferenceLoudness - Round((std::max)(left_sample_peek, right_sample_peek), 2);
+		return Ebur128Scanner::kReferenceLoudness - Round((std::max)(left_sample_peek, right_sample_peek), 2);
 	}
 
 	[[nodiscard]] double GetLoudness() const {
 		double loudness = 0;
 		IfFailThrow(EBUR128_LIB.ebur128_loudness_global(state_.get(), &loudness));
-		return kReferenceLoudness - Round(loudness, 2);
+		return Ebur128Scanner::kReferenceLoudness - Round(loudness, 2);
+	}
+
+	bool IsValid() const {
+		return state_.is_valid();
 	}
 
 	void* GetNativeHandle() const {
@@ -113,7 +86,7 @@ public:
 		}
 		double loudness = 0;
 		IfFailThrow(EBUR128_LIB.ebur128_loudness_global_multiple(handles.data(), handles.size(), &loudness));
-		return kReferenceLoudness - Round(loudness, 2);
+		return Ebur128Scanner::kReferenceLoudness - Round(loudness, 2);
 	}
 
 private:
@@ -129,11 +102,19 @@ private:
 	UniqueHandle<ebur128_state*, Ebur128Deleter> state_;
 };
 
+Ebur128Scanner::Ebur128Scanner()
+	: impl_(MakeAlign<Ebur128ScannerImpl>()) {
+}
+
 Ebur128Scanner::Ebur128Scanner(uint32_t sample_rate)
 	: impl_(MakeAlign<Ebur128ScannerImpl>(sample_rate)) {
 }
 
 XAMP_PIMPL_IMPL(Ebur128Scanner)
+
+void Ebur128Scanner::SetSampleRate(uint32_t sample_rate) {
+	impl_->SetSampleRate(sample_rate);
+}
 
 void Ebur128Scanner::Process(float const* samples, size_t num_sample) {
 	impl_->Process(samples, num_sample);
@@ -153,6 +134,10 @@ double Ebur128Scanner::GetTruePeek() const {
 
 void* Ebur128Scanner::GetNativeHandle() const {
 	return impl_->GetNativeHandle();
+}
+
+bool Ebur128Scanner::IsValid() const {
+	return impl_ != nullptr && impl_->IsValid();
 }
 
 double Ebur128Scanner::GetMultipleLoudness(std::vector<Ebur128Scanner>& scanners) {

@@ -38,8 +38,6 @@ namespace {
 	long SecondToFrame(double second) {
 		return second * 75;
 	}
-
-	//FastMutex libcue_mutex;
 }
 
 XAMP_DECLARE_LOG_NAME(CueLoader);
@@ -50,17 +48,17 @@ public:
 		: logger_(XampLoggerFactory.GetLogger(kCueLoaderLoggerName)) {
 	}
 
-	std::vector<TrackInfo> Load(const Path& path) {
+	std::expected<std::vector<TrackInfo>, ParseCueError> Load(const Path& path) {
 		std::vector<TrackInfo> track_infos;
 
 		auto utf8_text = ReadFileToUtf8String(path);
+		if (!utf8_text) {
+			return std::unexpected(ParseCueError::PARSE_ERROR_UNKNOWN_ENCODING);
+		}
 
-		// NOTE: libcue is not thread-safe so we need to lock it.
-		//std::lock_guard<FastMutex> lock{ libcue_mutex };
-
-		auto *cd_handle = LIBCUE_LIB.cue_parse_string(utf8_text.c_str());
+		auto *cd_handle = LIBCUE_LIB.cue_parse_string(utf8_text.value().c_str());
 		if (!cd_handle) {
-			throw Exception("CueLoader", "Failed to parse cue file");
+			return std::unexpected(ParseCueError::PARSE_ERROR);
 		}
 
 		CdPtr cd(cd_handle);
@@ -80,7 +78,7 @@ public:
 		auto* cur = LIBCUE_LIB.cd_get_track(cd.get(), 1);
 		const char* cur_name = cur ? LIBCUE_LIB.track_get_filename(cur) : nullptr;
 		if (!cur_name) {
-			throw Exception("CueLoader", "Failed to parse cue file (get file name)");
+			return std::unexpected(ParseCueError::PARSE_ERROR_NOT_FOUND_FILE_NAME);
 		}
 		
 		bool same_file = false;
@@ -92,14 +90,22 @@ public:
 				if (path.has_root_path()) {
 					auto file_path = path.parent_path() / Path(wide_cur_name);
 					reader->Open(file_path);
-					track_info = reader->Extract();
+					auto temp = reader->Extract();
+					if (!temp) {
+						return std::unexpected(ParseCueError::PARSE_ERROR_READ_TRACK_INFO);
+					}
+					track_info = temp.value();
 					file_duration = track_info.duration;
 				}
 				else {
 					reader->Open(Path(wide_cur_name));
-					track_info = reader->Extract();
+					auto temp = reader->Extract();
+					if (!temp) {
+						return std::unexpected(ParseCueError::PARSE_ERROR_READ_TRACK_INFO);
+					}
+					track_info = temp.value();
 					file_duration = track_info.duration;
-				}		
+				}
 				track_info.is_cue_file = true;
 				track_info.album = album;
 				auto* cd_text = LIBCUE_LIB.cd_get_cdtext(cd.get());
@@ -216,7 +222,7 @@ CueLoader::CueLoader()
 
 XAMP_PIMPL_IMPL(CueLoader)
 
-std::vector<TrackInfo> CueLoader::Load(const Path& path) {
+std::expected<std::vector<TrackInfo>, ParseCueError> CueLoader::Load(const Path& path) {
 	return impl_->Load(path);
 }
 

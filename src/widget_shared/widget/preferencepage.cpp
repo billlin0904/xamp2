@@ -253,6 +253,25 @@ PreferencePage::PreferencePage(QWidget *parent)
         saveAll();
 		});
 
+	auto replayGainMode = qAppSettings.valueAsEnum<ReplayGainMode>(kAppSettingReplayGainMode);
+	if (replayGainMode < ReplayGainMode::RG_MAX_MODE) {
+		ui_->replayGainModeCombo->setCurrentIndex(std::bit_cast<int32_t>(replayGainMode));
+	}
+
+	(void)QObject::connect(ui_->replayGainModeCombo, static_cast<void (QComboBox::*)(int32_t)>(&QComboBox::activated), [this](auto const& index) {
+		switch (index) {
+		case 0: // Album
+			qAppSettings.setEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_ALBUM_MODE);
+			break;
+		case 1: // Track
+			qAppSettings.setEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_TRACK_MODE);
+			break;
+		case 2: // None
+			qAppSettings.setEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_NONE_MODE);
+			break;
+		}
+		});
+
     (void)QObject::connect(ui_->soxrPassbandSlider, &QSlider::valueChanged, [this](auto) {
         ui_->soxrPassbandValue->setText(qFormat("%0%").arg(ui_->soxrPassbandSlider->value()));
 		saveSoxrResampler(ui_->soxrSettingCombo->currentText());

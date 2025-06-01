@@ -49,8 +49,6 @@ XAMP_WIDGET_SHARED_EXPORT QString formatSampleRate(const AudioFormat& format);
 
 XAMP_WIDGET_SHARED_EXPORT QString format2String(const PlaybackFormat& playback_format, const QString& file_ext);
 
-XAMP_WIDGET_SHARED_EXPORT ScopedPtr<FileStream> makePcmFileStream(const Path& file_path);
-
 XAMP_WIDGET_SHARED_EXPORT QSharedPointer<XProgressDialog> makeProgressDialog(QString const& title,
     QString const& text, 
     QString const& cancel,

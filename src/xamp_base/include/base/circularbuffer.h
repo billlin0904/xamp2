@@ -153,7 +153,7 @@ public:
     * 
     * @return true if the buffer is empty, false otherwise.     
     */
-    XAMP_NO_DISCARD bool empty() const noexcept {
+    [[nodiscard]] bool empty() const noexcept {
         return size_ == 0;
     }
 
@@ -162,7 +162,7 @@ public:
     * 
     * @return true if the buffer is full, false otherwise.
     */
-    XAMP_NO_DISCARD bool full() const noexcept {
+    [[nodiscard]] bool full() const noexcept {
         return size_ == data_.size();
     }
 
@@ -171,7 +171,7 @@ public:
     * 
     * @return The capacity of the buffer.     
     */
-    XAMP_NO_DISCARD size_t capacity() const noexcept { 
+    [[nodiscard]] size_t capacity() const noexcept { 
         return data_.size();
     }
 
@@ -180,7 +180,7 @@ public:
     * 
     * @return The size of the buffer.
     */
-    XAMP_NO_DISCARD size_t size() const noexcept { 
+    [[nodiscard]] size_t size() const noexcept { 
         return size_;
     }
 
@@ -215,7 +215,7 @@ public:
     /*
      * Get the front item in the buffer.
      */
-    XAMP_NO_DISCARD T& front() {
+    [[nodiscard]] T& front() {
         if (empty()) {
             throw std::runtime_error("empty buffer");
         }
@@ -225,7 +225,7 @@ public:
     /*
 	 * Get the front item in the buffer.
 	 */
-    XAMP_NO_DISCARD const T& front() const {
+    [[nodiscard]] const T& front() const {
         if (empty()) {
             throw std::runtime_error("empty buffer");
         }
@@ -247,7 +247,7 @@ public:
     * 
     * @return The begin iterator.
     */
-    XAMP_NO_DISCARD const_iterator begin() const {
+    [[nodiscard]] const_iterator begin() const {
         return const_iterator(*this, first_pos(), empty());
     }
 
@@ -256,7 +256,7 @@ public:
     * 
     * @return The end iterator.
     */
-    XAMP_NO_DISCARD const_iterator end() const {
+    [[nodiscard]] const_iterator end() const {
         return const_iterator(*this, next_pos(), true);
     }
 
@@ -270,7 +270,7 @@ private:
     * 
     * @return The next position.
     */
-    XAMP_NO_DISCARD size_t next_pos() const noexcept {
+    [[nodiscard]] size_t next_pos() const noexcept {
         return size_ == 0 ? 0 : (head_ + 1) % data_.size(); 
     }
 
@@ -279,7 +279,7 @@ private:
     * 
     * @return The first position.
     */
-    XAMP_NO_DISCARD size_t first_pos() const noexcept {
+    [[nodiscard]] size_t first_pos() const noexcept {
         return size_ == 0 ? 0 : (head_ + data_.size() - size_ + 1) % data_.size(); 
     }
 

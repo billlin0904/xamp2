@@ -366,7 +366,7 @@ public:
 		}
 	}
 
-	XAMP_NO_DISCARD bool CanWriteEmbeddedCover() const {
+	[[nodiscard]] bool CanWriteEmbeddedCover() const {
 		const auto ext = String::ToLower(path_.extension().string());
         return kFileTagWriterLut.find(ext) != kFileTagWriterLut.end();
 	}

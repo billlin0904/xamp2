@@ -168,6 +168,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
             QDir::NoDotAndDotDot | QDir::Files);
 
         std::vector<std::wstring> file_paths;
+        std::vector<std::wstring> extract_file_paths;
         file_paths.reserve(20);
 
     	while (itr.hasNext()) {
@@ -182,39 +183,37 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
             if (music_id.has_value()) {
                 file_music_id.push_back(music_id.value());
             }
+            else {
+                extract_file_paths.push_back(file_path);
+            }
         }
 
-		if (!file_music_id.empty()) {
+		if (file_music_id.size() == file_paths.size()) {
             qDaoFacade.playlist_dao.addMusicToPlaylist(file_music_id, kFileSystemPlaylistId);
             ui_->page->playlist()->reload();
             return;
 		}
 
         Executor::ParallelFor(getMainWindow()->threadPool().get(),
-            file_paths, 
+            extract_file_paths,
             [&track_queue](const auto& path) {
             const Path file_path(path);
             if (file_path.extension() == kCueFileExtension) {
                 return;
             }
-            try {
-                auto reader = MakeMetadataReader();
-                reader->Open(file_path);
-				auto track_info = reader->Extract();
-				if (track_info.sample_rate == 0) {
-					// Workaround for sample rate is 0
+            auto reader = MakeMetadataReader();
+            reader->Open(file_path);
+            auto track_info = reader->Extract();
+            if (track_info) {
+                if (track_info.value().sample_rate == 0) {
+                    // Workaround for sample rate is 0
                     XAMP_LOG_DEBUG("Try read sample use file stream.");
                     auto file_stream = StreamFactory::MakeFileStream(file_path);
-					file_stream->OpenFile(file_path);
-					auto sampler_rate = file_stream->GetFormat().GetSampleRate();
-					track_info.sample_rate = sampler_rate;
-				}
-                track_queue.enqueue(track_info);                
-            }
-            catch (const Exception& e) {
-                XAMP_LOG_DEBUG("Failed to extract file: {}", e.GetStackTrace());
-            }
-            catch (...) {
+                    file_stream->OpenFile(file_path);
+                    auto sampler_rate = file_stream->GetFormat().GetSampleRate();
+                    track_info.value().sample_rate = sampler_rate;
+                }
+                track_queue.enqueue(track_info.value());
             }
             });
 
@@ -233,7 +232,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
         facade.insertTrackInfo(track_infos,
             kFileSystemPlaylistId, 
             StoreType::LOCAL_STORE);
-
+        qDaoFacade.playlist_dao.addMusicToPlaylist(file_music_id, kFileSystemPlaylistId);
         ui_->page->playlist()->reload();
         });
     (void)QObject::connect(ui_->dirTree,

@@ -43,14 +43,14 @@ public:
 	* 
 	* @return std::string_view
 	*/
-	XAMP_NO_DISCARD virtual std::string_view GetDescription() const = 0;
+	[[nodiscard]] virtual std::string_view GetDescription() const = 0;
 
 	/*
 	* Get device type id.
 	* 
 	* @return type id.
 	*/
-	XAMP_NO_DISCARD virtual Uuid GetTypeId() const = 0;
+	[[nodiscard]] virtual Uuid GetTypeId() const = 0;
 
 	/*
 	* Make device.
@@ -66,7 +66,7 @@ public:
 	* 
 	* @return size_t
 	*/
-	XAMP_NO_DISCARD virtual size_t GetDeviceCount() const = 0;
+	[[nodiscard]] virtual size_t GetDeviceCount() const = 0;
 
 	/*
 	* Get device info.
@@ -75,21 +75,21 @@ public:
 	* 
 	* @return DeviceInfo
 	*/
-	XAMP_NO_DISCARD virtual DeviceInfo GetDeviceInfo(uint32_t device) const = 0;
+	[[nodiscard]] virtual DeviceInfo GetDeviceInfo(uint32_t device) const = 0;
 
 	/*
 	* Get device info.
 	* 
 	* @return std::vector<DeviceInfo>.
 	*/
-	XAMP_NO_DISCARD virtual std::vector<DeviceInfo> GetDeviceInfo() const = 0;
+	[[nodiscard]] virtual std::vector<DeviceInfo> GetDeviceInfo() const = 0;
 
 	/*
 	* Get default device info.
 	* 
 	* @return std::optional<DeviceInfo>
 	*/
-	XAMP_NO_DISCARD virtual std::optional<DeviceInfo> GetDefaultDeviceInfo() const = 0;	
+	[[nodiscard]] virtual std::optional<DeviceInfo> GetDefaultDeviceInfo() const = 0;	
 
 protected:
 	/*

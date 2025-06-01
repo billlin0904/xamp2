@@ -70,11 +70,11 @@ public:
 
     void SetLevel(LogLevel level);
 
-    XAMP_NO_DISCARD LogLevel GetLevel() const;
+    [[nodiscard]] LogLevel GetLevel() const;
 
-    XAMP_NO_DISCARD const std::string & GetName() const;
+    [[nodiscard]] const std::string & GetName() const;
 
-    XAMP_NO_DISCARD bool ShouldLog(LogLevel level) const;
+    [[nodiscard]] bool ShouldLog(LogLevel level) const;
 
     template <typename T>
     void Log(LogLevel level, const SourceLocation& source_location, const T &message) {
@@ -125,7 +125,7 @@ public:
 
     LoggerManager& AddSink(spdlog::sink_ptr sink);
 
-    XAMP_NO_DISCARD Logger* GetDefaultLogger() const noexcept {
+    [[nodiscard]] Logger* GetDefaultLogger() const noexcept {
         return default_logger_.get();
     }
 

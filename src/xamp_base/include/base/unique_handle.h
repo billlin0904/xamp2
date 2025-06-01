@@ -31,7 +31,7 @@ public:
 
 	XAMP_DISABLE_COPY(UniqueHandle)
 
-	XAMP_NO_DISCARD T get() const noexcept {
+	[[nodiscard]] T get() const noexcept {
 		return value_;
 	}
 
@@ -42,13 +42,13 @@ public:
 		}
 	}
 
-	XAMP_NO_DISCARD T release() noexcept {
+	[[nodiscard]] T release() noexcept {
 		auto value = value_;
 		value_ = Traits::invalid();
 		return value;
 	}
 
-	XAMP_NO_DISCARD bool is_valid() const noexcept {
+	[[nodiscard]] bool is_valid() const noexcept {
 		return value_ != Traits::invalid();
 	}
 

@@ -11,7 +11,7 @@
 
 #include <widget/widget_shared_global.h>
 #include <widget/widget_shared.h>
-#include <widget/worker/backgroundservice.h>
+#include <widget/util/colortable.h>
 
 
 class XAMP_WIDGET_SHARED_EXPORT WaveformWidget : public QFrame {
@@ -76,8 +76,6 @@ private:
     void drawDuration(QPainter& painter, const QRect& rect);
 
     void drawFrequencyAxis(QPainter& painter, const QRect& rect);
-
-    float mapPeakToY(float peakVal, int top, int height, bool isPositive) const;
 
     float xToTime(float x, const QRect& rect) const;
 

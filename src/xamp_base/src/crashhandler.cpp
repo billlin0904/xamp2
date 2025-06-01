@@ -264,13 +264,14 @@ public:
         // http://msdn.microsoft.com/en-us/library/t6fk7h29.aspx
         ::set_terminate(TerminateHandler);
 
+#if 0 // C++17 removed
         // Catch unexpected() calls.
         // In a multithreaded environment, unexpected functions are maintained 
         // separately for each thread. Each new thread needs to install its own 
         // unexpected function. Thus, each thread is in charge of its own unexpected handling.
         // http://msdn.microsoft.com/en-us/library/h46t5b69.aspx  
         ::set_unexpected(UnexpectedHandler);
-
+#endif
         (void)::signal(SIGFPE, reinterpret_cast<_crt_signal_t>(SigfpeHandler));
 
         // Catch an illegal instruction

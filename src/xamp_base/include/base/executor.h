@@ -83,14 +83,21 @@ template <typename Func>
 void ParallelForIndex(IThreadPoolExecutor* executor, size_t begin, size_t end, Func&& f) {
     size_t size = end - begin;
     size_t batches = (executor->GetThreadSize() / 2) + 1;
+
+    constexpr bool can_call_with_stop =
+        std::is_invocable_v<Func, size_t, const std::stop_token&>;
+
     for (size_t i = 0; i < size;) {
         std::vector<Task<void>> futures((std::min)(size - i, batches));
         for (auto& ff : futures) {
             ff = Executor::Spawn(executor, 
                 [func = std::forward<Func>(f), begin, i](const auto& token) -> void {
-                if (!token.stop_requested()) {
+                if constexpr (can_call_with_stop) {
+                    func(begin + i, token);
+                }
+                else {
                     func(begin + i);
-                }                
+                }             
                 });
             ++i;
         }

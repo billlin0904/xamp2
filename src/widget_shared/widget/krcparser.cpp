@@ -329,16 +329,26 @@ bool KrcParser::parse(const uint8_t* buffer, size_t size) {
     }
 
     std::string decompressed;
-    if (!decompress(encoded_data.data(), 
-        encoded_data.size(), decompressed)) {
+    auto result = gzipDecompress(encoded_data.data(), encoded_data.size());
+    if (!result) {
         return false;
     }
+    decompressed = result.value();
 
     TextEncoding encoding;
+    std::wstring wtext;
     auto utf8_str = encoding.ToUtf8String(decompressed,
-        decompressed.length(), false);
-    const auto wtext = String::ToStdWString(utf8_str);
-    return parseKrcText(wtext);
+        decompressed.length(),
+        false);
+    if (utf8_str) {
+        wtext = String::ToStdWString(utf8_str.value());
+        return parseKrcText(wtext);
+    }
+    else if (utf8_str.error() == TextEncodeingError::TEXT_ENCODING_INPUT_STRING_UTF8) {
+        wtext = String::ToStdWString(decompressed);
+        return parseKrcText(wtext);
+    }    
+    return false;
 }
 
 bool KrcParser::parseFile(const std::wstring& file_path) {

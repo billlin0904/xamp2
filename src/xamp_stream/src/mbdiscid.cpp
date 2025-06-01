@@ -13,8 +13,6 @@
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
-#define DiscIdDLL SharedSingleton<DiscIdLib>::GetInstance()
-
 struct DiscIdDeleter final {
 	static DiscId* invalid() noexcept {
 		return nullptr;

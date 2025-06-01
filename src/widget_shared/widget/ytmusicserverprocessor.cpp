@@ -9,6 +9,10 @@
 
 YtMusicServerProcessor::~YtMusicServerProcessor() {
     auto pid = proc_.processId();
+    if (pid == 0) {
+        return;
+    }
+
     KillProcessByPidAndChildren(pid);
 
     if (proc_.state() != QProcess::NotRunning) {

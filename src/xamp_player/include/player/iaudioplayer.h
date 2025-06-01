@@ -126,21 +126,21 @@ public:
     *
     * @return The volume.
     */
-    XAMP_NO_DISCARD virtual uint32_t GetVolume() const = 0;
+    [[nodiscard]] virtual uint32_t GetVolume() const = 0;
 
     /*
     * Is hardware control volume.
     *
     * @return True if hardware control volume.
     */
-    XAMP_NO_DISCARD virtual bool IsHardwareControlVolume() const = 0;
+    [[nodiscard]] virtual bool IsHardwareControlVolume() const = 0;
 
     /*
     * Is mute.
     *
     * @return True if mute.
     */
-    XAMP_NO_DISCARD virtual bool IsMute() const = 0;
+    [[nodiscard]] virtual bool IsMute() const = 0;
 
     /*
     * Set mute.
@@ -161,56 +161,56 @@ public:
     *
     * @return True if playing.
     */
-    XAMP_NO_DISCARD virtual bool IsPlaying() const noexcept = 0;
+    [[nodiscard]] virtual bool IsPlaying() const noexcept = 0;
 
     /*
     * Get dsd modes.
     *
     * @return The dsd modes.
     */
-    XAMP_NO_DISCARD virtual DsdModes GetDsdModes() const noexcept = 0;
+    [[nodiscard]] virtual DsdModes GetDsdModes() const noexcept = 0;
 
     /*
     * Is dsd file.
     *
     * @return True if dsd file.
     */
-    XAMP_NO_DISCARD virtual bool IsDsdFile() const = 0;
+    [[nodiscard]] virtual bool IsDsdFile() const = 0;
 
     /*
     * Get dsd speed.
     *
     * @return The dsd speed.
     */
-    XAMP_NO_DISCARD virtual std::optional<uint32_t> GetDsdSpeed() const = 0;
+    [[nodiscard]] virtual std::optional<uint32_t> GetDsdSpeed() const = 0;
 
     /*
     * Get media duration.
     *
     * @return The media duration.
     */
-    XAMP_NO_DISCARD virtual double GetDuration() const = 0;
+    [[nodiscard]] virtual double GetDuration() const = 0;
 
     /*
     * Get player state.
     *
     * @return The player state.
     */
-    XAMP_NO_DISCARD virtual PlayerState GetState() const noexcept = 0;
+    [[nodiscard]] virtual PlayerState GetState() const noexcept = 0;
 
     /*
     * Get input format.
     *
     * @return The input format.
     */
-    XAMP_NO_DISCARD virtual AudioFormat GetInputFormat() const noexcept = 0;
+    [[nodiscard]] virtual AudioFormat GetInputFormat() const noexcept = 0;
 
     /*
     * Get output format.
     *
     * @return The output format.
     */
-    XAMP_NO_DISCARD virtual AudioFormat GetOutputFormat() const noexcept = 0;
+    [[nodiscard]] virtual AudioFormat GetOutputFormat() const noexcept = 0;
 
     /*
     * Get audio device manager.

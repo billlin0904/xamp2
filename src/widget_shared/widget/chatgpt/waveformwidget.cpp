@@ -101,10 +101,7 @@ void WaveformWidget::setSpectrogramData(double duration_sec, size_t hop_size, co
 
     QPainter p(&spectrogram_);
     p.drawImage(time_index, 0, chunk);
-    p.end();
-
-    resizeSpectrogramSize();
-    update();
+    p.end();   
 }
 
 void WaveformWidget::resizeSpectrogramSize() {
@@ -628,17 +625,3 @@ void WaveformWidget::loadFile(const Path& file_path) {
 	update();
 }
 
-float WaveformWidget::mapPeakToY(float peakVal, 
-    int top,
-    int height, 
-    bool isPositive) const {
-    float mid_y = top + height * 0.5f;
-    float amplitude_range = (height * 0.5f) * kHeadroomFactor;
-
-    if (isPositive) {
-        return mid_y - peakVal * amplitude_range;
-    }
-    else {
-        return mid_y + peakVal * amplitude_range;
-    }
-}

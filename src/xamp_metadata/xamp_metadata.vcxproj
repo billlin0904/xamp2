@@ -78,7 +78,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/taglib2/taglib;../thirdparty/taglib2/taglib/ape;../thirdparty/taglib2/taglib/mpeg;../thirdparty/taglib2/taglib/toolkit;../thirdparty/taglib2/taglib/mp4;../thirdparty/taglib2/taglib/flac;../thirdparty/taglib2/taglib/mpeg/id3v2;../thirdparty/taglib2/taglib/ogg;../thirdparty/taglib2/taglib/riff;../thirdparty/libcue/include/;../thirdparty/chromaprint/src/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <PreprocessorDefinitions>METADATA_API_EXPORTS;TAGLIB_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BrowseInformation>true</BrowseInformation>
       <DisableSpecificWarnings>4996;4819</DisableSpecificWarnings>
@@ -129,7 +129,7 @@
       <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/taglib2/taglib;../thirdparty/taglib2/taglib/ape;../thirdparty/taglib2/taglib/mpeg;../thirdparty/taglib2/taglib/toolkit;../thirdparty/taglib2/taglib/mp4;../thirdparty/taglib2/taglib/flac;../thirdparty/taglib2/taglib/mpeg/id3v2;../thirdparty/taglib2/taglib/riff;../thirdparty/taglib2/taglib/ogg;../thirdparty/unordered_dense/include/;../thirdparty/spdlog/include/;../thirdparty/chromaprint/src/;../thirdparty/libcue/include/</AdditionalIncludeDirectories>
       <OmitFramePointers>true</OmitFramePointers>
       <PreprocessorDefinitions>METADATA_API_EXPORTS;TAGLIB_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <DebugInformationFormat>None</DebugInformationFormat>
       <BrowseInformation>true</BrowseInformation>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>

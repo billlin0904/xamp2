@@ -29,7 +29,7 @@ XApplication::XApplication(int& argc, char* argv[])
 
 	if (socket.waitForConnected(kIpcTimeout)) {
 		is_running_ = true;
-		return;																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																											
+		return;
 	}
 
 	server_.reset(new QLocalServer(this));

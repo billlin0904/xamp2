@@ -20,7 +20,9 @@ public:
 
     void SetSampleRate(uint32_t sample_rate);
 
-    int32_t Process(int16_t const* data, uint32_t size) const;
+    int32_t Process(const int16_t* data, uint32_t size) const;
+
+    int32_t Process(const float* data, uint32_t size) const;
 
     int32_t Finish() const;
 

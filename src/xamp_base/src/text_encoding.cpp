@@ -12,274 +12,201 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
+#define USE_LIBICONV 0
+
+namespace {
+	static const auto kUTF8Encoding = std::string("UTF-8");
+
 #if USE_LIBICONV
-class LibIconvLib final {
-public:
-	LibIconvLib();
+	class LibIconvLib final {
+	public:
+		LibIconvLib();
 
-	XAMP_DISABLE_COPY(LibIconvLib)
-private:
-	SharedLibraryHandle module_;
+		XAMP_DISABLE_COPY(LibIconvLib)
+	private:
+		SharedLibraryHandle module_;
 
-public:
-	XAMP_DECLARE_DLL_NAME(libiconv_open);
-	XAMP_DECLARE_DLL_NAME(libiconv_close);
-	XAMP_DECLARE_DLL_NAME(libiconv);
-};
+	public:
+		XAMP_DECLARE_DLL_NAME(libiconv_open);
+		XAMP_DECLARE_DLL_NAME(libiconv_close);
+		XAMP_DECLARE_DLL_NAME(libiconv);
+	};
 
-inline LibIconvLib::LibIconvLib() try
-	: module_(OpenSharedLibrary("libiconv"))
-	, XAMP_LOAD_DLL_API(libiconv_open)
-	, XAMP_LOAD_DLL_API(libiconv_close)
-	, XAMP_LOAD_DLL_API(libiconv) {
-}
-catch (const Exception& e) {
-	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
-}
+	inline LibIconvLib::LibIconvLib() try
+		: module_(OpenSharedLibrary("libiconv"))
+		, XAMP_LOAD_DLL_API(libiconv_open)
+		, XAMP_LOAD_DLL_API(libiconv_close)
+		, XAMP_LOAD_DLL_API(libiconv) {
+	}
+	catch (const Exception& e) {
+		XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+	}
 
 #define LIBICONV_LIB Singleton<LibIconvLib>::GetInstance()
 
-struct IconvDeleter final {
-	static iconv_t invalid() noexcept {
-		return (iconv_t)(-1);
-	}
-	static void close(iconv_t value) {
-		LIBICONV_LIB.iconv_close(value);
-	}
-};
+	struct IconvDeleter final {
+		static iconv_t invalid() noexcept {
+			return (iconv_t)(-1);
+		}
+		static void close(iconv_t value) {
+			LIBICONV_LIB.iconv_close(value);
+		}
+	};
 
-using IconvPtr = UniqueHandle<iconv_t, IconvDeleter>;
+	using IconvPtr = UniqueHandle<iconv_t, IconvDeleter>;
 #else
-static UINT WindowsCodePageFromString(const std::string& encoding) {
-	// 簡單做個大小寫不敏感的比對
-	auto lower_enc = String::ToLower(encoding);
+	static UINT WindowsCodePageFromString(const std::string& encoding) {
+		// From source code uchardet/src/nsMBCSGroupProber.cpp
+		// Windows code page
+		// https://learn.microsoft.com/zh-tw/windows/win32/intl/code-page-identifiers
+		static const OrderedMap<std::string_view, UINT> windows_code_page_lut{
+			{"utf-8",     65001 },
+			{"shift_jis", 932 },
+			{"sjis",      932 },
+			{"enu-jp",    20932 },
+			{"gbk",       936 },
+			{"cp936",     936 },
+			{"gb18030",   54936 },
+			{"big5",      950 },
+			{"cp950",     950 },
+			{"euc-tw",    51950 },
+			{"euc-kr",    51949 },
+		};
 
-	if (lower_enc == "utf-8") {
-		return CP_UTF8;
-	}
-	else if (lower_enc == "shift_jis" || lower_enc == "sjis") {
-		return 932; // Shift-JIS
-	}
-	else if (lower_enc == "gbk" || lower_enc == "cp936") {
-		return 936;
-	}
-	else if (lower_enc == "big5" || lower_enc == "cp950") {
-		return 950;
-	}
-	// 預設採用系統 ACP
-	return CP_ACP;
-}
+		auto lower_enc = String::ToLower(encoding);
+		auto itr = windows_code_page_lut.find(lower_enc);
+		if (itr != windows_code_page_lut.end()) {
+			return (*itr).second;
+		}
 
-static std::wstring MultiByteToWide(const std::string& input, UINT codePage, bool ignoreError) {
-	if (input.empty()) {
-		return std::wstring();
-	}
-
-	// 計算轉換後的 wchar_t 長度
-	DWORD flags = 0;
-	if (!ignoreError) {
-		// 若要在遇到無效字元時產生錯誤，可加此旗標
-		// flags = MB_ERR_INVALID_CHARS; 
-		// 依實際需求而定
+		// Default windows code page (ACP)
+		return CP_ACP;
 	}
 
-	int wide_size = ::MultiByteToWideChar(
-		codePage,
-		flags,
-		input.data(),
-		static_cast<int>(input.size()),
-		nullptr,
-		0
-	);
+	static std::expected<std::wstring, TextEncodeingError> MultiByteToWide(const std::string& input, UINT codePage, bool ignoreError) {
+		if (input.empty()) {
+			return std::unexpected(TextEncodeingError::TEXT_ENCODING_INPUT_STRING_EMPTY);
+		}
 
-	if (wide_size == 0) {
-		// 轉換失敗
-		DWORD err = ::GetLastError();
-		// 依需求處理：若 ignoreError=true，可嘗試替換或略過；此處直接拋例外
-		throw std::runtime_error("MultiByteToWideChar failed with error: " + std::to_string(err));
+		// 計算轉換後的 wchar_t 長度
+		DWORD flags = 0;
+		if (!ignoreError) {
+			// 若要在遇到無效字元時產生錯誤，可加此旗標
+			// flags = MB_ERR_INVALID_CHARS; 
+			// 依實際需求而定
+		}
+
+		int wide_size = ::MultiByteToWideChar(
+			codePage,
+			flags,
+			input.data(),
+			static_cast<int>(input.size()),
+			nullptr,
+			0
+		);
+
+		if (wide_size == 0) {
+			return std::unexpected(TextEncodeingError::TEXT_ENCODING_API_ERROR);
+		}
+
+		std::wstring output;
+		output.resize(wide_size);
+
+		// 真正做轉換
+		int result = ::MultiByteToWideChar(
+			codePage,
+			flags,
+			input.data(),
+			static_cast<int>(input.size()),
+			&output[0],
+			wide_size
+		);
+
+		if (result == 0) {
+			return std::unexpected(TextEncodeingError::TEXT_ENCODING_API_ERROR);
+		}
+
+		return output;
 	}
 
-	std::wstring output;
-	output.resize(wide_size);
+	// 封裝：將 wstring -> 多位元字串 (某 code page)
+	static std::expected<std::string, TextEncodeingError> WideToMultiByte(const std::wstring& input, UINT codePage, bool ignoreError) {
+		if (input.empty()) {
+			return std::unexpected(TextEncodeingError::TEXT_ENCODING_INPUT_STRING_EMPTY);
+		}
 
-	// 真正做轉換
-	int result = ::MultiByteToWideChar(
-		codePage,
-		flags,
-		input.data(),
-		static_cast<int>(input.size()),
-		&output[0],
-		wide_size
-	);
+		DWORD flags = 0;
+		// 若要在無法對應的 wchar 時，改成 '?', 可在 WideCharToMultiByte 裡設定 WC_NO_BEST_FIT_CHARS
+		// 同樣地, ignoreError = false 時，也可能需要 WC_ERR_INVALID_CHARS
+		// 依需求調整
 
-	if (result == 0) {
-		DWORD err = ::GetLastError();
-		throw std::runtime_error("MultiByteToWideChar failed (2nd pass) with error: " + std::to_string(err));
+		int mb_size = ::WideCharToMultiByte(
+			codePage,
+			flags,
+			input.data(),
+			static_cast<int>(input.size()),
+			nullptr,
+			0,
+			nullptr,
+			nullptr
+		);
+
+		if (mb_size == 0) {
+			return std::unexpected(TextEncodeingError::TEXT_ENCODING_API_ERROR);
+		}
+
+		std::string output;
+		output.resize(mb_size);
+
+		int result = ::WideCharToMultiByte(
+			codePage,
+			flags,
+			input.data(),
+			static_cast<int>(input.size()),
+			&output[0],
+			mb_size,
+			nullptr,
+			nullptr
+		);
+
+		if (result == 0) {
+			return std::unexpected(TextEncodeingError::TEXT_ENCODING_API_ERROR);
+		}
+
+		return output;
 	}
-
-	return output;
-}
-
-// 封裝：將 wstring -> 多位元字串 (某 code page)
-static std::string WideToMultiByte(const std::wstring& input, UINT codePage, bool ignoreError) {
-	if (input.empty()) {
-		return std::string();
-	}
-
-	DWORD flags = 0;
-	// 若要在無法對應的 wchar 時，改成 '?', 可在 WideCharToMultiByte 裡設定 WC_NO_BEST_FIT_CHARS
-	// 同樣地, ignoreError = false 時，也可能需要 WC_ERR_INVALID_CHARS
-	// 依需求調整
-
-	int mb_size = ::WideCharToMultiByte(
-		codePage,
-		flags,
-		input.data(),
-		static_cast<int>(input.size()),
-		nullptr,
-		0,
-		nullptr,
-		nullptr
-	);
-
-	if (mb_size == 0) {
-		DWORD err = ::GetLastError();
-		throw std::runtime_error("WideCharToMultiByte failed with error: " + std::to_string(err));
-	}
-
-	std::string output;
-	output.resize(mb_size);
-
-	int result = ::WideCharToMultiByte(
-		codePage,
-		flags,
-		input.data(),
-		static_cast<int>(input.size()),
-		&output[0],
-		mb_size,
-		nullptr,
-		nullptr
-	);
-
-	if (result == 0) {
-		DWORD err = ::GetLastError();
-		throw std::runtime_error("WideCharToMultiByte failed (2nd pass) with error: " + std::to_string(err));
-	}
-
-	return output;
-}
 #endif
+}
 
 class TextEncoding::TextEncodingImpl {
 public:
 	TextEncodingImpl() = default;
 
-#if USE_LIBICONV
-	std::string ConvertTo8String(
+	std::expected<std::string, TextEncodeingError> ConvertTo8String(
 		const std::string& input_encoding,
 		const std::string& input,
-		const std::string& toencode,
+		const std::string& output_encoding,
 		size_t buf_size,
 		bool ignore_error) {
-		auto check_convert_error = [](auto check_error) {			
-			switch (check_error) {
-			case EILSEQ:
-			case EINVAL:
-				throw std::runtime_error("invalid multibyte chars");
-			default:
-				throw std::runtime_error("unknown error");
-			}
-			};
-
-		IconvPtr handle(LIBICONV_LIB.libiconv_open(toencode.c_str(),
-			input_encoding.c_str()));
-		if (!handle) {
-			auto check_error = errno;
-			check_convert_error(check_error);
+		UINT from_code_page = WindowsCodePageFromString(input_encoding);
+		auto wide = MultiByteToWide(input, from_code_page, ignore_error);
+		if (!wide) {
+			return std::unexpected(TextEncodeingError::TEXT_ENCODING_TO_WIDE_ERROR);
 		}
 
-		std::string output;
-
-		// copy the string to a buffer as iconv function requires a non-const char
-		// pointer.
-		std::vector<char> in_buf(input.begin(), input.end());
-
-		char* src_ptr = &in_buf[0];
-		size_t src_size = input.size();
-
-		std::vector<char> buf(buf_size);
-		std::string dst;
-
-		while (0 < src_size) {
-			// reset the buffer
-			char* dst_ptr = &buf[0];
-			size_t dst_size = buf.size();
-
-			// convert the string
-			size_t res = LIBICONV_LIB.libiconv(handle.get(),
-				&src_ptr,
-				&src_size,
-				&dst_ptr,
-				&dst_size);
-			auto check_error = errno;
-			if (res == (size_t)-1) {
-				if (errno == E2BIG) {
-					// ignore this error
-				}
-				else if (ignore_error) {
-					// skip character
-					++src_ptr;
-					--src_size;
-				}
-				else {
-					check_convert_error(check_error);
-				}
-			}
-
-			// append the converted string
-			dst.append(&buf[0], buf.size() - dst_size);
-		}
-
-		// swap the result
-		dst.swap(output);
-		return output;
+		UINT to_code_page = WindowsCodePageFromString(output_encoding);
+		return WideToMultiByte(wide.value(), to_code_page, ignore_error);
 	}
 
-	std::string ConvertToUtf8String(const std::string& input_encoding,
+	std::expected<std::string, TextEncodeingError> ConvertToUtf8String(const std::string& input_encoding,
 		const std::string& input,
 		size_t buf_size,
 		bool ignore_error) {
-		return ConvertTo8String(input_encoding,
-			input, 
-			"UTF-8", 
-			buf_size,
-			ignore_error);
+		return ConvertTo8String(input_encoding, input, kUTF8Encoding, buf_size, ignore_error);
 	}
-#else
-	std::string ConvertTo8String(
-		const std::string& input_encoding,
-		const std::string& input,
-		const std::string& toencode,
-		size_t buf_size,
-		bool ignore_error) {
-		UINT fromCP = WindowsCodePageFromString(input_encoding);
-		std::wstring wide = MultiByteToWide(input, fromCP, ignore_error);
-
-		UINT toCP = WindowsCodePageFromString(toencode);
-		std::string output = WideToMultiByte(wide, toCP, ignore_error);
-		return output;
-	}
-
-	std::string ConvertToUtf8String(const std::string& input_encoding,
-		const std::string& input,
-		size_t buf_size,
-		bool ignore_error) {
-		return ConvertTo8String(input_encoding, input, "UTF-8", buf_size, ignore_error);
-	}
-#endif
 };
 
-std::string TextEncoding::ToUtf8String(const std::string& input_encoding,
+std::expected<std::string, TextEncodeingError> TextEncoding::ToUtf8String(const std::string& input_encoding,
 	const std::string& input,
 	size_t buf_size,
 	bool ignore_error) {
@@ -295,21 +222,21 @@ bool TextEncoding::IsUtf8(const std::string& input) {
 	if (encoding_name.empty()) {
 		return false;
 	}
-	return encoding_name == "UTF-8";
+	return encoding_name == kUTF8Encoding;
 }
 
-std::string TextEncoding::ToUtf8String(const std::string& input,
+std::expected<std::string, TextEncodeingError> TextEncoding::ToUtf8String(const std::string& input,
 	size_t buf_size,
 	bool ignore_error) {
 	EncodingDetector detector;
 	const auto encoding_name = detector.Detect(input);
 	if (encoding_name.empty()) {
-		throw std::runtime_error("Detect unknown encoding");
+		return std::unexpected(TextEncodeingError::TEXT_ENCODING_UNKNOWN_ENCDOING);
 	}
-	if (encoding_name != "UTF-8") {
+	if (encoding_name != kUTF8Encoding) {
 		return ToUtf8String(encoding_name, input, buf_size, ignore_error);		
 	}
-	return input;
+	return std::unexpected(TextEncodeingError::TEXT_ENCODING_INPUT_STRING_UTF8);
 }
 
 TextEncoding::TextEncoding()

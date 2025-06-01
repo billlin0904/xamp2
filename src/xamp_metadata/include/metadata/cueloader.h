@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <expected>
+
 #include <base/fs.h>
 #include <base/trackinfo.h>
 #include <base/memory.h>
@@ -12,13 +14,21 @@
 
 XAMP_METADATA_NAMESPACE_BEGIN
 
+enum class ParseCueError {
+	PARSE_ERROR,
+	PARSE_ERROR_UNKNOWN_ENCODING,
+	PARSE_ERROR_NOT_FOUND_FILE_NAME,
+	PARSE_ERROR_READ_TRACK_INFO,
+};
+
 class XAMP_METADATA_API CueLoader {
 public:
+	
 	CueLoader();
 
 	XAMP_PIMPL(CueLoader)
 
-	std::vector<TrackInfo> Load(const Path& file_path);
+	std::expected<std::vector<TrackInfo>, ParseCueError> Load(const Path& file_path);
 private:
 	class CueLoaderImpl;
 	ScopedPtr<CueLoaderImpl> impl_;

@@ -187,7 +187,7 @@ public:
     * 
     * @return The queue size.
     */
-    XAMP_NO_DISCARD size_t size() const noexcept {
+    [[nodiscard]] size_t size() const noexcept {
         std::lock_guard guard{ mutex_ };
         return queue_.size();
     }

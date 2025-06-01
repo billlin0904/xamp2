@@ -26,7 +26,7 @@ public:
     * 
     * @return true if the stream is a file, otherwise false.
     */
-    XAMP_NO_DISCARD virtual bool IsFile() const noexcept = 0;
+    [[nodiscard]] virtual bool IsFile() const noexcept = 0;
 
     /*
     * Close the stream.
@@ -39,7 +39,7 @@ public:
     * 
     * @return the duration of the stream (unit: seconds).
     */
-    XAMP_NO_DISCARD virtual double GetDurationAsSeconds() const = 0;
+    [[nodiscard]] virtual double GetDurationAsSeconds() const = 0;
 
     /*
     * Get audio samples.
@@ -56,7 +56,7 @@ public:
     * 
     * @return The format of the stream.
     */
-    XAMP_NO_DISCARD virtual AudioFormat GetFormat() const = 0;
+    [[nodiscard]] virtual AudioFormat GetFormat() const = 0;
 
     /*
     * Seek to the specified time.
@@ -70,35 +70,35 @@ public:
     * 
     * @return The description of the stream.
     */
-    XAMP_NO_DISCARD virtual std::string_view GetDescription() const noexcept = 0;
+    [[nodiscard]] virtual std::string_view GetDescription() const noexcept = 0;
 	
     /*
     * Get the size of a sample.
     * 
     * @return The size of a sample.
     */
-    XAMP_NO_DISCARD virtual uint32_t GetSampleSize() const noexcept = 0;
+    [[nodiscard]] virtual uint32_t GetSampleSize() const noexcept = 0;
 
     /*
     * Check if the stream is active.
     * 
     * @return true if the stream is active, otherwise false.
     */
-    XAMP_NO_DISCARD virtual bool IsActive() const noexcept = 0;
+    [[nodiscard]] virtual bool IsActive() const noexcept = 0;
 
     /*
     * Get stream type id
     *
     * @return Uuid
     */
-    XAMP_NO_DISCARD virtual Uuid GetTypeId() const = 0;
+    [[nodiscard]] virtual Uuid GetTypeId() const = 0;
 
     /*
     * Get file bit depth.
     *
     * @return: the file bit depth.
     */
-    XAMP_NO_DISCARD virtual uint32_t GetBitDepth() const = 0;
+    [[nodiscard]] virtual uint32_t GetBitDepth() const = 0;
 
 protected:
     IAudioStream() = default;
