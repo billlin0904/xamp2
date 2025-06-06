@@ -164,8 +164,7 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
 
     try {
 	    const auto cover_id = album_dao.getAlbumCoverId(id.second.value());
-        if (!isNullOfEmpty(cover_id) && cover_id != qImageCache.unknownCoverId()) {
-			emit setAlbumCover(id.second.value(), cover_id);
+        if (!isNullOfEmpty(cover_id) && cover_id != qImageCache.unknownCoverId()) {			
             return;
         }
 
@@ -192,7 +191,6 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
 		reader.Open(music_file_path, TAG_IO_READ_MODE);
         auto cover = reader.embeddedCover();
         if (!cover.isNull()) {
-            //cover = image_util::mergeImage({ cover });
             emit setAlbumCover(id.second.value(), qImageCache.addImage(cover));
             return;
         }

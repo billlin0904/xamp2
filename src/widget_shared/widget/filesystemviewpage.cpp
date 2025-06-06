@@ -10,6 +10,7 @@
 #include <widget/util/ui_util.h>
 #include <widget/xmainwindow.h>
 #include <widget/widget_shared.h>
+#include <widget/imagecache.h>
 
 #include <stream/filestream.h>
 #include <base/workstealingtaskqueue.h>
@@ -49,9 +50,39 @@ class FileSystemViewPage::DirFirstSortFilterProxyModel : public QSortFilterProxy
 public:
     explicit DirFirstSortFilterProxyModel(QObject* parent)
 	    : QSortFilterProxyModel(parent) {
+        setRecursiveFilteringEnabled(true);
+    }
+
+    void setSearchString(const QString& search) {
+        searchString = search;
+        invalidateFilter();
     }
 
     bool lessThan(const QModelIndex& left, const QModelIndex& right) const override;
+
+    bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const override {
+        auto* fsm = qobject_cast<QFileSystemModel*>(sourceModel());
+        if (!fsm) return true;
+
+        QModelIndex idx = fsm->index(sourceRow, 0, sourceParent);
+        QString name = fsm->fileName(idx);
+
+        //XAMP_LOG_DEBUG("=> {}", name.toStdString());
+
+        if (searchString.isEmpty() ||
+            name.contains(searchString, Qt::CaseInsensitive))
+            return true;
+
+        if (fsm->isDir(idx)) {
+            for (int r = 0, rows = fsm->rowCount(idx); r < rows; ++r)
+                if (filterAcceptsRow(r, idx))
+                    return true;
+        }
+        return false;
+    }
+
+private:
+    QString searchString;
 };
 
 bool FileSystemViewPage::DirFirstSortFilterProxyModel::lessThan(const QModelIndex& left, const QModelIndex& right) const {
@@ -88,7 +119,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     ui_ = new Ui::FileSystemViewPage();
     ui_->setupUi(this);
     
-    setFrameStyle(QFrame::StyledPanel);
+    setFrameStyle(QFrame::StyledPanel);    
 
     dir_model_ = new FileSystemModel(this);   
 
@@ -139,8 +170,10 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     ui_->dirTree->expand(proxy_index);
 
     (void)QObject::connect(ui_->dirTree, &QTreeView::clicked,
-        [this](const auto &index) {
+        [this](const auto &index) {      
         auto src_index = dir_first_sort_filter_->mapToSource(index);
+        
+        ui_->dirTree->expand(index);
 		auto path = dir_model_->fileInfo(src_index).filePath();
         QFileInfo file_info(path);
         QString parent_dir_path;
@@ -194,7 +227,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
             return;
 		}
 
-        Executor::ParallelFor(getMainWindow()->threadPool().get(),
+        Executor::ParallelForEach(getMainWindow()->threadPool(),
             extract_file_paths,
             [&track_queue](const auto& path) {
             const Path file_path(path);
@@ -288,6 +321,16 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
 
     ui_->dirTree->verticalScrollBar()->setStyleSheet(
         "QScrollBar:vertical { width: 6px; }"_str);
+
+    qTheme.setLineEditStyle(ui_->searchLineEdit, "searchLineEdit"_str);
+    auto search_line_action = ui_->searchLineEdit->addAction(qTheme.fontIcon(Glyphs::ICON_SEARCH), QLineEdit::TrailingPosition);
+    ui_->searchLineEdit->setPlaceholderText(tr("Search directory name/file name"));
+
+    (void)QObject::connect(ui_->searchLineEdit, &QLineEdit::returnPressed, [this]() {
+        const auto text = ui_->searchLineEdit->text();
+        dir_first_sort_filter_->setSearchString(text);
+        });
+
 }
 
 PlaylistPage* FileSystemViewPage::playlistPage() {

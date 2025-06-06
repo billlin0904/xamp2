@@ -46,15 +46,15 @@ public:
         return *this;
     }
 
-    T* Get() noexcept { 
+    [[nodiscard]] T* Get() noexcept XAMP_CHECK_LIFETIME {
         return ptr_.get();
     }
 
-    [[nodiscard]] const T* Get() const noexcept {
+    [[nodiscard]] const T* Get() const noexcept XAMP_CHECK_LIFETIME {
         return ptr_.get();
     }
 
-    [[nodiscard]] const T* data() const noexcept {
+    [[nodiscard]] const T* data() const noexcept XAMP_CHECK_LIFETIME {
         return ptr_.get();
     }
 
@@ -72,19 +72,19 @@ public:
 
     // 兼容STL容器相關函數.
 
-    T* data() noexcept {
+    [[nodiscard]] T* data() noexcept XAMP_CHECK_LIFETIME {
         return ptr_.get();
     }
 
-    T* get() noexcept {
+    [[nodiscard]] T* get() noexcept XAMP_CHECK_LIFETIME {
         return ptr_.get();
     }
 
-    T& operator[](size_t i) noexcept {
+    [[nodiscard]] T& operator[](size_t i) noexcept XAMP_CHECK_LIFETIME {
         return ptr_[i]; 
     }
 
-    const T& operator[](size_t i) const noexcept {
+    [[nodiscard]] const T& operator[](size_t i) const noexcept XAMP_CHECK_LIFETIME {
         return ptr_[i]; 
     }
 
@@ -169,22 +169,22 @@ struct XAMP_BASE_API_ONLY_EXPORT BufferRef {
         size_ = size;
     }
 
-    reference operator[](size_type pos) noexcept {
+    [[nodiscard]] reference operator[](size_type pos) noexcept XAMP_CHECK_LIFETIME {
         return buffer_[pos];
     }
 
-    const_reference operator[](size_type pos) const noexcept {
+    [[nodiscard]] const_reference operator[](size_type pos) const noexcept XAMP_CHECK_LIFETIME {
         return buffer_[pos];
     }
 
-    reference at(size_type pos) {
+    [[nodiscard]] reference at(size_type pos) XAMP_CHECK_LIFETIME {
         if (pos >= size_) {
             throw std::out_of_range("Index out of range");
         }
         return buffer_[pos];
     }
 
-    const_reference at(size_type pos) const {
+    [[nodiscard]] const_reference at(size_type pos) const XAMP_CHECK_LIFETIME {
         if (pos >= size_) {
             throw std::out_of_range("Index out of range");
         }
@@ -220,11 +220,11 @@ struct XAMP_BASE_API_ONLY_EXPORT BufferRef {
         return size_ == 0;
     }
 
-    pointer data() noexcept {
+    [[nodiscard]] pointer data() noexcept XAMP_CHECK_LIFETIME {
         return buffer_;
     }
 
-    const_pointer data() const noexcept {
+    [[nodiscard]] const_pointer data() const noexcept XAMP_CHECK_LIFETIME {
         return buffer_;
     }
 

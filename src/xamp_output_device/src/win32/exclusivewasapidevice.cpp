@@ -368,7 +368,7 @@ bool ExclusiveWasapiDevice::GetSample(bool is_silence) noexcept {
 			flags = AUDCLNT_BUFFERFLAGS_SILENT;
 			result = false;
 		}
-		std::invoke(convert_, data, buffer_.Get(), data_convert_);		
+		convert_.convert(data, buffer_.Get(), data_convert_);
 		hr = render_client_->ReleaseBuffer(buffer_frames_, flags);
 		return result;
 	}
@@ -463,37 +463,12 @@ void ExclusiveWasapiDevice::StartStream() {
 	// Reset event.
 	::ResetEvent(close_request_.get());
 
-	if (!Is16BitSamples(mix_format_)) {
-		if (!is_2432_format_) {
-			convert_ = [](void* data, const float* buffer, const AudioConvertContext& context) {
-				DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Convert(
-					static_cast<int32_t*>(data),
-					buffer,
-					context);
-				};
-		}
-		else {
-			convert_ = [](void* data, const float* buffer, const AudioConvertContext& context) {
-				DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::ConvertToInt2432(
-					static_cast<int32_t*>(data),
-					buffer,
-					context);
-				};
-		}
-	}
-	else {
-		convert_ = [](void* data, const float* buffer, const AudioConvertContext& context) {
-			DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Convert(
-				static_cast<int16_t*>(data),
-				buffer,
-				context);
-			};
-	}
+	convert_.SetFormat(mix_format_->wBitsPerSample, is_2432_format_);
 
 	// Must be active device and prefill buffer.
 	GetSample(true);
 
-	render_task_ = Executor::Spawn(thread_pool_.get(), [this, glitch_time](const auto& stop_token) {
+	render_task_ = Executor::Spawn(thread_pool_, [this, glitch_time](const auto& stop_token) {
 		XAMP_LOG_D(logger_, "Start exclusive mode stream task! thread: {}", GetCurrentThreadId());
 		DWORD current_timeout = INFINITE;
 		Stopwatch watch;

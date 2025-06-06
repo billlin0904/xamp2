@@ -7,7 +7,7 @@
 
 #include <stream/stream.h>
 #include <stream/iaudiostream.h>
-
+#include <base/archivefile.h>
 #include <base/fs.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
@@ -35,6 +35,7 @@ public:
     */
     virtual void OpenFile(const Path & file_path) = 0;
 
+    virtual void Open(ArchiveEntry archive_entry) = 0;
 protected:
     FileStream() = default;
 };

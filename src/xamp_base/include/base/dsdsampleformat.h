@@ -6,6 +6,7 @@
 #pragma once
 
 #include <base/enum.h>
+#include <base/base.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
 

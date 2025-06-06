@@ -1,5 +1,6 @@
 ﻿#include <widget/databasefacade.h>
 #include <widget/worker/filesystemservice.h>
+#include <widget/tagio.h>
 
 #include <base/base.h>
 #include <base/threadpoolexecutor.h>
@@ -61,6 +62,22 @@ namespace {
     }
 }
 
+const std::function<void(int32_t, int32_t, const QString&)> DatabaseFacade::kDefaultFetchCover = GetDefaultFetchCover();
+
+const std::function<void(int32_t, int32_t, const QString&)> DatabaseFacade::GetDefaultFetchCover() {
+    return [](int32_t music_id, int32_t album_id, const QString& file_path) {
+        TagIO reader;
+        reader.Open(file_path.toStdWString(), TAG_IO_READ_MODE);
+        auto cover = reader.embeddedCover();
+        if (!cover) {
+            return;
+        }
+        auto cover_id = qImageCache.addImage(cover);
+        qDaoFacade.music_dao.setMusicCover(music_id, cover_id);
+        qDaoFacade.album_dao.setAlbumCover(album_id, cover_id);
+        };
+}
+
 DatabaseFacade::DatabaseFacade(QObject* parent, Database* database)
     : QObject(parent) {
     logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(DatabaseFacade));
@@ -112,7 +129,7 @@ void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result,
     int32_t playlist_id,
     StoreType store_type,
     const QString& dick_id,
-    const std::function<void(int32_t, int32_t)>& fetch_cover) {
+    const std::function<void(int32_t, int32_t, const QString&)>& fetch_cover) {
     if (result.empty()) {
         return;
     }
@@ -201,6 +218,13 @@ void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result,
                 dao_facade_->album_dao.addAlbumCategory(album_id, kHiResCategory);
             }
 
+            if (track_info.is_cue_file) {
+                dao_facade_->album_dao.addAlbumCategory(album_id, kCueCategory);
+            }
+            if (track_info.is_zip_file) {
+                dao_facade_->album_dao.addAlbumCategory(album_id, kZipCategory);
+            }
+
             for (const auto& category : getAlbumCategories(album, dao_facade_->album_dao)) {
                 dao_facade_->album_dao.addAlbumCategory(album_id, category);
             }
@@ -235,7 +259,7 @@ void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result,
 
         if (isNullOfEmpty(cover_id)) {
             if (fetch_cover != nullptr) {
-                fetch_cover(music_id, album_id);
+                fetch_cover(music_id, album_id, file_path);
             }
         }
 	}
@@ -246,7 +270,7 @@ void DatabaseFacade::insertMultipleTrackInfo(
     int32_t playlist_id,
     StoreType store_type,
     const QString& dick_id,
-    const std::function<void(int32_t, int32_t)>& fetch_cover) {
+    const std::function<void(int32_t, int32_t, const QString&)>& fetch_cover) {
     TransactionScope scope([&]() {
         for (const auto& result : results) {
             insertTrackInfo(result,

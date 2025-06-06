@@ -47,7 +47,8 @@ std::string GetBassVersion(uint32_t version) {
 
 BassDSDLib::BassDSDLib() try
     : module_(OpenSharedLibrary("bassdsd"))
-    , XAMP_LOAD_DLL_API(BASS_DSD_StreamCreateFile) {
+    , XAMP_LOAD_DLL_API(BASS_DSD_StreamCreateFile)
+    , XAMP_LOAD_DLL_API(BASS_DSD_StreamCreateFileUser) {
 }
 catch (const Exception& e) {
     XAMP_LOG_E(BASS_LIB.logger, "{}", e.GetErrorMessage());
@@ -195,7 +196,8 @@ BassLib::BassLib() try
     , XAMP_LOAD_DLL_API(BASS_StreamCreateURL)
     , XAMP_LOAD_DLL_API(BASS_StreamGetFilePosition)
     , XAMP_LOAD_DLL_API(BASS_ChannelIsActive)
-	, XAMP_LOAD_DLL_API(BASS_SampleGetChannel) {
+	, XAMP_LOAD_DLL_API(BASS_SampleGetChannel)
+    , XAMP_LOAD_DLL_API(BASS_StreamCreateFileUser) {
 }
 catch (const Exception& e) {
     XAMP_LOG_E(logger, "{}", e.GetErrorMessage());

@@ -41,67 +41,6 @@ inline constexpr uint32_t kInfinity =
         0; // 在 macOS 上，超時為 0 表示無限等待
     #endif
 
-enum FastFileOpenMode {
-    FAST_IO_CREATE_ALWAYS = 0,
-    FAST_IO_OPEN_EXISTING = 1,
-    FAST_IO_READ = 2,
-    FAST_IO_WRITE = 4,
-    FAST_IO_READ_WRITE = (FAST_IO_READ | FAST_IO_WRITE),
-};
-
-enum FastFilSeekMode {
-	FAST_IO_SEEK_SET = 0,
-	FAST_IO_SEEK_CUR = 1,
-	FAST_IO_SEEK_END = 2,
-};
-
-class XAMP_BASE_API XAMP_NO_VTABLE IPlatformFile {
-public:
-    XAMP_BASE_CLASS(IPlatformFile)
-
-	virtual void Open(const Path& file_path, FastFileOpenMode mode) = 0;
-
-    virtual int64_t Seek(int64_t offset, FastFilSeekMode mode) = 0;
-
-    virtual void Close() = 0;
-
-    virtual bool Read(void* buffer,
-        uint32_t bytes_to_read, 
-        uint32_t& bytes_read) = 0;
-
-    virtual bool Write(const void* buffer,
-        uint32_t bytes_to_write, 
-        uint32_t& bytes_written) = 0;
-protected:
-    IPlatformFile() = default;
-};
-
-class XAMP_BASE_API FastFile : public IPlatformFile {
-public:
-    FastFile();
-
-	explicit FastFile(const Path& file_path, FastFileOpenMode mode);
-
-    virtual ~FastFile();
-
-	void Open(const Path & file_path, FastFileOpenMode mode) override;
-
-    int64_t Seek(int64_t offset, FastFilSeekMode mode) override;
-
-	void Close() override;
-
-    bool Read(void* buffer,
-        uint32_t bytes_to_read,
-        uint32_t& bytes_read) override;
-
-    bool Write(const void* buffer,
-        uint32_t bytes_to_write, 
-        uint32_t& bytes_written) override;
-private:
-    class FastFileImpl;
-	ScopedPtr<FastFileImpl> impl_;
-};
-
 XAMP_BASE_API void SetThreadPriority(std::jthread& thread,
     ThreadPriority priority);
 

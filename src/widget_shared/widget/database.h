@@ -85,6 +85,8 @@ constexpr auto kYouTubeCategory = "YouTube"_str;
 constexpr auto kLocalCategory = "Local"_str;
 constexpr auto kHiResCategory = "HiRes"_str;
 constexpr auto kDsdCategory = "DSD"_str;
+constexpr auto kZipCategory = "Zip"_str;
+constexpr auto kCueCategory = "Cue"_str;
 
 inline std::wstring kYoutubeMusicLibraryAlbumPrefix = L"YoutubeMusicLibrary ";
 

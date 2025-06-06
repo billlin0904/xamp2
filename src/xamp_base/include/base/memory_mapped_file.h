@@ -6,6 +6,7 @@
 #pragma once
 
 #include <string>
+#include <expected>
 
 #include <base/memory.h>
 #include <base/pimplptr.h>
@@ -19,7 +20,7 @@ public:
 
     XAMP_PIMPL(MemoryMappedFile)
 
-    void Open(std::wstring const &file_path, bool is_module = false);
+    [[nodiscard]] bool Open(std::wstring const &file_path, bool is_module = false);
 
     [[nodiscard]] void const * GetData() const noexcept;
 

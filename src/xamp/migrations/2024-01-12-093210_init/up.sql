@@ -28,8 +28,10 @@ IF
 		trLyrc TEXT,
 		coverId TEXT DEFAULT NULL,
 		isCueFile integer,
+		isZipFile integer,
 		ytMusicAlbumId TEXT,
 		ytMusicArtistId TEXT,
+		archiveEntryName TEXT,
 		UNIQUE ( path, offset, durationStr ) 
 	);
 	

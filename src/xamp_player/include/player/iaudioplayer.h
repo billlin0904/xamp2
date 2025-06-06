@@ -14,7 +14,7 @@
 #include <base/audioformat.h>
 #include <base/dsdsampleformat.h>
 #include <base/uuid.h>
-
+#include <base/archivefile.h>
 #include <stream/iaudioprocessor.h>
 
 #include <optional>
@@ -62,6 +62,11 @@ public:
                       const DeviceInfo& device_info,
                       uint32_t target_sample_rate = 0,
                       DsdModes output_mode = DsdModes::DSD_MODE_AUTO) = 0;
+
+    virtual void OpenArchiveEntry(ArchiveEntry archive_entry,
+        const DeviceInfo& device_info,
+        uint32_t target_sample_rate = 0,
+        DsdModes output_mode = DsdModes::DSD_MODE_AUTO) = 0;
 
     /*
     * Prepare to play.

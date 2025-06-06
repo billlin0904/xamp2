@@ -20,6 +20,7 @@
 
 struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
     bool is_cue_file{ false };
+    bool is_zip_file{ false };
     bool heart{ false };
     int32_t playing{0};
     int32_t music_id{0};
@@ -50,6 +51,7 @@ struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
     QString yt_music_album_id;
     QString yt_music_artist_id;
 
+    std::optional<QString> archive_entry_name;
     std::optional<QString> music_cover_id;    
     std::optional<double> offset;
     std::optional<ReplayGain> replay_gain;

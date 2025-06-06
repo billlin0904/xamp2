@@ -125,7 +125,7 @@ public:
 
     LoggerManager& AddSink(spdlog::sink_ptr sink);
 
-    [[nodiscard]] Logger* GetDefaultLogger() const noexcept {
+    XAMP_CHECK_LIFETIME [[nodiscard]] Logger* GetDefaultLogger() const noexcept {
         return default_logger_.get();
     }
 

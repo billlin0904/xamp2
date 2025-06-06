@@ -118,7 +118,7 @@ public:
 	/*
 	* Initial.
 	*/
-	void Initial() {
+	void LoadStream() {
 		DWORD queue_id = MF_MULTITHREADED_WORKQUEUE;
 		HrIfFailThrow(::MFLockSharedWorkQueue(mmcss_name_.c_str(), 0, &task_id_, &queue_id));
 		queue_id_ = queue_id;

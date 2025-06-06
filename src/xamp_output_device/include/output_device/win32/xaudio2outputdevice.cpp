@@ -291,7 +291,7 @@ void XAudio2OutputDevice::StartStream() {
 			voice_context_.get()));
 	}
 
-	render_task_ = Executor::Spawn(thread_pool_.get(), [this](const auto& stop_token) {
+	render_task_ = Executor::Spawn(thread_pool_, [this](const auto& stop_token) {
 		is_running_ = true;
 
 		const std::array<HANDLE, 2> objects{

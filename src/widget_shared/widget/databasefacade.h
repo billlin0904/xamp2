@@ -14,6 +14,7 @@
 
 class XAMP_WIDGET_SHARED_EXPORT DatabaseFacade final : public QObject {
 public:
+    static const std::function<void(int32_t, int32_t, const QString&)> kDefaultFetchCover;
     static constexpr size_t kReserveSize = 1024;
     
     explicit DatabaseFacade(QObject* parent = nullptr, Database *database = nullptr);
@@ -43,14 +44,16 @@ public:
 	    int32_t playlist_id,
 	    StoreType store_type = StoreType::LOCAL_STORE,
         const QString& dick_id = QString(),
-        const std::function<void(int32_t, int32_t)>& fetch_cover = nullptr);
+        const std::function<void(int32_t, int32_t, const QString&)>& fetch_cover = kDefaultFetchCover);
 
     void insertTrackInfo(const std::forward_list<TrackInfo>& result,
         int32_t playlist_id,
         StoreType store_type = StoreType::LOCAL_STORE,
         const QString &dick_id = QString(),
-        const std::function<void(int32_t, int32_t)>& fetch_cover = nullptr);
+        const std::function<void(int32_t, int32_t, const QString&)>& fetch_cover = kDefaultFetchCover);
 private:    
+    static const std::function<void(int32_t, int32_t, const QString&)> GetDefaultFetchCover();
+
     void ensureAddUnknownId();
 
     int32_t kUnknownArtistId{ kInvalidDatabaseId };

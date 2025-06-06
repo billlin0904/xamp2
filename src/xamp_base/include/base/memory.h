@@ -11,27 +11,6 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-#ifdef __cpp_lib_assume_aligned
-
-#define AssumeAligned std::assume_aligned
-
-#else
-
-template <size_t AlignedBytes, typename T>
-XAMP_ALWAYS_INLINE constexpr T* AssumeAligned(T* ptr) {
-#ifdef XAMP_OS_MAC
-	return reinterpret_cast<T*>(__builtin_assume_aligned(ptr, AlignedBytes));
-#else
-	if ((reinterpret_cast<std::uintptr_t>(ptr) & ((1 << AlignedBytes) - 1)) == 0) {
-		return ptr;
-	}
-	__assume(false);
-#endif
-}
-
-#endif
-
-
 class MemoryMappedFile;
 
 inline constexpr size_t kMaxPreReadFileSize = 65536;
@@ -55,7 +34,7 @@ XAMP_BASE_API bool PrefetchMemory(void* adddr, size_t length) noexcept;
 * @param[in] aligned_size
 * @return void*
 */
-XAMP_BASE_API void* AlignedMalloc(size_t size, size_t aligned_size) noexcept;
+XAMP_BASE_API XAMP_CHECK_LIFETIME void* AlignedMalloc(size_t size, size_t aligned_size) noexcept;
 
 /*
 * Free aligned memory.
@@ -73,7 +52,7 @@ XAMP_BASE_API void AlignedFree(void* p) noexcept;
 * @return void*
 * @note StackAlloc is not thread safe.
 */
-XAMP_BASE_API void* StackAlloc(size_t size);
+XAMP_BASE_API XAMP_CHECK_LIFETIME void* StackAlloc(size_t size);
 
 /*
 * Free stack memory.
@@ -105,7 +84,7 @@ constexpr T AlignUp(T value, size_t aligned_size = kMallocAlignSize) {
 * @note aligned_size must be power of 2.
 */
 template <typename T>
-XAMP_BASE_API_ONLY_EXPORT T* AlignedMallocObject(size_t aligned_size) noexcept {
+XAMP_BASE_API_ONLY_EXPORT XAMP_CHECK_LIFETIME T* AlignedMallocObject(size_t aligned_size) noexcept {
     return static_cast<T*>(AlignedMalloc(sizeof(T), aligned_size));
 }
 
@@ -118,7 +97,7 @@ XAMP_BASE_API_ONLY_EXPORT T* AlignedMallocObject(size_t aligned_size) noexcept {
 * @note aligned_size must be power of 2.
 */
 template <typename Type>
-XAMP_BASE_API_ONLY_EXPORT Type* AlignedMallocArray(size_t n, size_t aligned_size) noexcept {
+XAMP_BASE_API_ONLY_EXPORT XAMP_CHECK_LIFETIME Type* AlignedMallocArray(size_t n, size_t aligned_size) noexcept {
     return static_cast<Type*>(AlignedMalloc(sizeof(Type) * n, aligned_size));
 }
 
@@ -283,7 +262,7 @@ template <typename Type = std::byte>
 XAMP_BASE_API_ONLY_EXPORT StackBuffer<Type> MakeStackBuffer(size_t n) {
     auto* ptr = StackAlloc(sizeof(Type) * n);
     if (!ptr) {
-        throw std::bad_alloc();
+            throw std::bad_alloc();
     }
     return StackBuffer<Type>(static_cast<Type*>(ptr));
 }

@@ -21,7 +21,7 @@ XAMP_BASE_NAMESPACE_BEGIN
 namespace Executor {
 
 template <typename F, typename ... Args>
-decltype(auto) Spawn(IThreadPoolExecutor *executor,
+decltype(auto) Spawn(const std::shared_ptr<IThreadPoolExecutor>& executor,
     F&& f, 
     Args&&... args,
     ExecuteFlags flags = ExecuteFlags::EXECUTE_NORMAL) {
@@ -30,7 +30,7 @@ decltype(auto) Spawn(IThreadPoolExecutor *executor,
 }
 
 template <typename C, typename Func>
-void ParallelFor(IThreadPoolExecutor* executor,
+void ParallelFor(const std::shared_ptr<IThreadPoolExecutor>& executor,
     C& items,
     Func&& f,
     const std::stop_token& stop_token = std::stop_token(),
@@ -79,8 +79,45 @@ void ParallelFor(IThreadPoolExecutor* executor,
     }
 }
 
+template <typename C, typename Func>
+void ParallelForEach(const std::shared_ptr<IThreadPoolExecutor>& executor,
+    C& items,
+    Func&& f,
+    const std::stop_token& stop_token = std::stop_token()) {
+    using IteratorType = typename C::iterator;
+    using ValueType = typename C::value_type;
+    IteratorType begin = items.begin();
+    IteratorType end = items.end();
+    size_t size = std::distance(begin, end);
+    size_t batches = 8;
+
+    constexpr bool can_call_with_stop =
+        std::is_invocable_v<Func, ValueType&, const std::stop_token&>;
+	auto itr = begin;
+    for (size_t i = 0; i < size;) {
+        size_t batch_size = (std::min)(batches, static_cast<size_t>(std::distance(itr, end)));
+        std::vector<Task<void>> futures((std::min)(size - i, batches));
+        for (auto& ff : futures) {
+            ff = Executor::Spawn(executor,
+                [func = std::forward<Func>(f), itr](const auto& token) -> void {
+                    if constexpr (can_call_with_stop) {
+						func(*itr, token);
+                    }
+                    else {
+						func(*itr);
+                    }
+                });
+            ++i;
+            ++itr;
+        }
+        for (auto& ff : futures) {
+            ff.wait();
+        }
+    }
+}
+
 template <typename Func>
-void ParallelForIndex(IThreadPoolExecutor* executor, size_t begin, size_t end, Func&& f) {
+void ParallelForEach(const std::shared_ptr<IThreadPoolExecutor>& executor, size_t begin, size_t end, Func&& f) {
     size_t size = end - begin;
     size_t batches = (executor->GetThreadSize() / 2) + 1;
 
@@ -108,7 +145,7 @@ void ParallelForIndex(IThreadPoolExecutor* executor, size_t begin, size_t end, F
 }
 
 template <typename C, typename Func>
-void ParallelForSimple(IThreadPoolExecutor* executor,
+void ParallelForSimple(const std::shared_ptr<IThreadPoolExecutor>& executor,
     C& items,
     Func&& f) {
     using ValueType = typename C::value_type;

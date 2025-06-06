@@ -45,6 +45,12 @@ PlayListEntity getEntity(const QModelIndex& index) {
     entity.year              = indexValue(index, PLAYLIST_YEAR).toUInt();
     entity.music_cover_id    = indexValue(index, PLAYLIST_MUSIC_COVER_ID).toString();
 	entity.is_cue_file       = indexValue(index, PLAYLIST_IS_CUE_FILE).toBool();
+    entity.is_zip_file       = indexValue(index, PLAYLIST_IS_ZIP_FILE).toBool();
+
+    auto result = indexValue(index, PLAYLIST_ARCHVI_ENTRY_NAME);
+    if (result.isValid()) {
+        entity.archive_entry_name = result.toString();
+    }    
 
     setEntityValue(entity.offset, indexValue(index, PLAYLIST_OFFSET));
 
@@ -59,7 +65,8 @@ PlayListEntity getEntity(const QModelIndex& index) {
     entity.yt_music_artist_id = indexValue(index, PLAYLIST_YT_MUSIC_ARIST_ID).toString();
 
     const QFileInfo file_info(entity.file_path);
-    entity.file_extension = file_info.suffix();
+    //entity.file_extension = file_info.suffix();
+    entity.file_extension = indexValue(index, PLAYLIST_FILE_EXT).toString();
     entity.file_name      = file_info.completeBaseName();
     entity.parent_path    = toNativeSeparators(file_info.dir().path());
 

@@ -204,6 +204,29 @@ public:
 		bool ignore_error) {
 		return ConvertTo8String(input_encoding, input, kUTF8Encoding, buf_size, ignore_error);
 	}
+
+	bool IsUtf8(const std::string& input) {		
+		const auto encoding_name = detector_.Detect(input);
+		if (!encoding_name) {
+			return false;
+		}
+		return encoding_name.value() == kUTF8Encoding;
+	}
+
+	std::expected<std::string, TextEncodeingError> ToUtf8String(const std::string& input,
+		size_t buf_size,
+		bool ignore_error) {
+		const auto encoding_name = detector_.Detect(input);
+		if (encoding_name) {
+			return std::unexpected(TextEncodeingError::TEXT_ENCODING_DETECT_ERROR);
+		}
+		if (encoding_name != kUTF8Encoding) {
+			return ConvertToUtf8String(encoding_name.value(), input, buf_size, ignore_error);
+		}
+		return std::unexpected(TextEncodeingError::TEXT_ENCODING_INPUT_STRING_UTF8);
+	}
+
+	EncodingDetector detector_;
 };
 
 std::expected<std::string, TextEncodeingError> TextEncoding::ToUtf8String(const std::string& input_encoding,
@@ -217,26 +240,13 @@ std::expected<std::string, TextEncodeingError> TextEncoding::ToUtf8String(const 
 }
 
 bool TextEncoding::IsUtf8(const std::string& input) {
-	EncodingDetector detector;
-	const auto encoding_name = detector.Detect(input);
-	if (encoding_name.empty()) {
-		return false;
-	}
-	return encoding_name == kUTF8Encoding;
+	return impl_->IsUtf8(input);
 }
 
 std::expected<std::string, TextEncodeingError> TextEncoding::ToUtf8String(const std::string& input,
 	size_t buf_size,
 	bool ignore_error) {
-	EncodingDetector detector;
-	const auto encoding_name = detector.Detect(input);
-	if (encoding_name.empty()) {
-		return std::unexpected(TextEncodeingError::TEXT_ENCODING_UNKNOWN_ENCDOING);
-	}
-	if (encoding_name != kUTF8Encoding) {
-		return ToUtf8String(encoding_name, input, buf_size, ignore_error);		
-	}
-	return std::unexpected(TextEncodeingError::TEXT_ENCODING_INPUT_STRING_UTF8);
+	return impl_->ToUtf8String(input, buf_size, ignore_error);
 }
 
 TextEncoding::TextEncoding()

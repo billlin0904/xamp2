@@ -99,7 +99,7 @@ namespace {
 }
 
 BassException::BassException()
-    : BassException(Singleton<BassLib>::GetInstance().BASS_ErrorGetCode()) {
+    : BassException(SharedSingleton<BassLib>::GetInstance().BASS_ErrorGetCode()) {
 }
 
 BassException::BassException(int error)

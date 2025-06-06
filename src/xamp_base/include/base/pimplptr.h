@@ -30,23 +30,23 @@ public:
 		return reinterpret_cast<T*>(buffer_.data());
 	}
 
-	const T* operator->() const noexcept {
+	XAMP_CHECK_LIFETIME [[nodiscard]] const T* operator->() const noexcept {
 		return reinterpret_cast<const T*>(buffer_.data());
 	}
 
-	T& operator*() noexcept {
+	XAMP_CHECK_LIFETIME [[nodiscard]] T& operator*() noexcept {
 		return *get();
 	}
 
-	const T& operator*() const noexcept {
+	XAMP_CHECK_LIFETIME [[nodiscard]] const T& operator*() const noexcept {
 		return *get();
 	}
 
-	T* get() noexcept {
+	XAMP_CHECK_LIFETIME [[nodiscard]] T* get() noexcept {
 		return reinterpret_cast<T*>(buffer_.data());
 	}
 
-	const T* get() const noexcept {
+	XAMP_CHECK_LIFETIME [[nodiscard]] const T* get() const noexcept {
 		return reinterpret_cast<const T*>(buffer_.data());
 	}
 private:

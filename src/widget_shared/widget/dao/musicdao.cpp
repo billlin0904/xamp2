@@ -15,10 +15,41 @@ namespace dao {
         SqlQuery query(db_);
 
         query.prepare(R"(
-    INSERT OR REPLACE INTO musics
-    (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bitRate, sampleRate, offset, dateTime, albumReplayGain, trackReplayGain, albumPeak, trackPeak, genre, comment, fileSize, heart, isCueFile, ytMusicAlbumId, ytMusicArtistId)
-    VALUES ((SELECT musicId FROM musics WHERE path = :path AND durationStr = :durationStr AND ytMusicAlbumId = :ytMusicAlbumId), 
-      :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitRate, :sampleRate, :offset, :dateTime, :albumReplayGain, :trackReplayGain, :albumPeak, :trackPeak, :genre, :comment, :fileSize, :heart, :isCueFile, :ytMusicAlbumId, :ytMusicArtistId)
+INSERT 
+	OR REPLACE INTO musics (
+		musicId,
+		title,
+		track,
+		path,
+		fileExt,
+		fileName,
+		duration,
+		durationStr,
+		parentPath,
+		bitRate,
+		sampleRate,
+		OFFSET,
+		dateTime,
+		albumReplayGain,
+		trackReplayGain,
+		albumPeak,
+		trackPeak,
+		genre,
+		comment,
+		fileSize,
+		heart,
+		isCueFile,
+        isZipFile,
+		ytMusicAlbumId,
+		ytMusicArtistId,
+        archiveEntryName
+	)
+VALUES
+	(
+		( SELECT musicId FROM musics WHERE path = :path AND durationStr = :durationStr AND ytMusicAlbumId = :ytMusicAlbumId ), 
+	:title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitRate, :sampleRate, :offset, :dateTime, :albumReplayGain, :trackReplayGain, 
+    :albumPeak, :trackPeak, :genre, :comment, :fileSize, :heart, :isCueFile, :isZipFile, :ytMusicAlbumId, :ytMusicArtistId, :archiveEntryName 
+	)
     )"_str
         );
 
@@ -36,6 +67,7 @@ namespace dao {
         query.bindValue(":fileSize"_str, track_info.file_size);
         query.bindValue(":heart"_str, track_info.rating ? 1 : 0);
         query.bindValue(":isCueFile"_str, track_info.is_cue_file ? 1 : 0);
+        query.bindValue(":isZipFile"_str, track_info.is_zip_file ? 1 : 0);
         query.bindValue(":ytMusicAlbumId"_str, QString::fromStdString(track_info.yt_album_id));
         query.bindValue(":ytMusicArtistId"_str, QString::fromStdString(track_info.yt_artist_id));
 
@@ -50,6 +82,13 @@ namespace dao {
             query.bindValue(":trackReplayGain"_str, QVariant());
             query.bindValue(":albumPeak"_str, QVariant());
             query.bindValue(":trackPeak"_str, QVariant());
+        }
+
+        if (track_info.archive_entry_name) {
+            query.bindValue(":archiveEntryName"_str, QString::fromStdWString(track_info.archive_entry_name.value()));
+        }
+        else {
+            query.bindValue(":archiveEntryName"_str, QVariant());
         }
 
         query.bindValue(":dateTime"_str, track_info.last_write_time);

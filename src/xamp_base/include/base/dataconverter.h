@@ -22,11 +22,28 @@ struct XAMP_BASE_API AudioConvertContext {
     size_t convert_size{0};
 };
 
+class XAMP_BASE_API AudioConverter {
+public:
+	AudioConverter();
+
+	void SetFormat(uint32_t bit_per_sample, bool is_2432_format);
+	
+	XAMP_ALWAYS_INLINE void convert(void* data, const float* buffer, const AudioConvertContext& context) {
+		XAMP_ASSERT(impl_ != nullptr);
+		std::invoke(impl_, data, buffer, context);
+	}
+private:
+	std::function<void(void*, const float*, const AudioConvertContext&)> impl_;
+};
+
 XAMP_BASE_API AudioConvertContext MakeConvert(size_t convert_size) noexcept;
 
 #ifdef XAMP_OS_WIN
 
-XAMP_BASE_API inline void ConvertInt8ToInt8SSE(const int8_t* input, int8_t* left_ptr, int8_t* right_ptr, size_t frames) {
+XAMP_BASE_API XAMP_ALWAYS_INLINE void ConvertInt8ToInt8SSE(const int8_t* input, int8_t* left_ptr, int8_t* right_ptr, size_t frames) {
+	XAMP_ASSUME(input != nullptr);
+	XAMP_ASSUME(left_ptr != nullptr);
+	XAMP_ASSUME(right_ptr != nullptr);
 	// mask: 取出「偶數索引」=> [0,2,4,6,8,10,12,14]，其餘填 0x80 (表示不取)
 	// mask: 16 bytes
 	alignas(16) static constexpr int8_t mask_even[16] = {
@@ -80,7 +97,11 @@ XAMP_BASE_API inline void ConvertInt8ToInt8SSE(const int8_t* input, int8_t* left
 	}
 }
 
-XAMP_BASE_API inline void ConvertFloatToFloatSSE(const float* input, float* left_ptr, float* right_ptr, size_t frames) {
+XAMP_BASE_API XAMP_ALWAYS_INLINE void ConvertFloatToFloatSSE(const float* input, float* left_ptr, float* right_ptr, size_t frames) {
+	XAMP_ASSUME(input != nullptr);
+	XAMP_ASSUME(left_ptr != nullptr);
+	XAMP_ASSUME(right_ptr != nullptr);
+
 	size_t i = 0;
 
 	for (; i + 4 <= frames; i += 4) {
@@ -119,10 +140,14 @@ XAMP_BASE_API inline void ConvertFloatToFloatSSE(const float* input, float* left
 	}
 }
 
-XAMP_BASE_API inline void ConvertFloatToInt16SSE(const float* input, int16_t* left_ptr, int16_t* right_ptr, size_t frames) {
+XAMP_BASE_API XAMP_ALWAYS_INLINE void ConvertFloatToInt16SSE(const float* input, int16_t* left_ptr, int16_t* right_ptr, size_t frames) {
 	// 一次處理 4 frames => 8 個 float： [L0,R0, L1,R1, L2,R2, L3,R3]
    // SSE 一次可載入 4 個 float => in1=[L0,R0,L1,R1], in2=[L2,R2,L3,R3]
    // 再透過兩級 unpacklo/hi_ps 直接分離出 left=[L0,L1,L2,L3], right=[R0,R1,R2,R3]
+
+	XAMP_ASSUME(input != nullptr);
+	XAMP_ASSUME(left_ptr != nullptr);
+	XAMP_ASSUME(right_ptr != nullptr);
 
 	size_t i = 0;
 	__m128 scale = _mm_set1_ps(kFloat16Scale);
@@ -183,7 +208,11 @@ XAMP_BASE_API inline void ConvertFloatToInt16SSE(const float* input, int16_t* le
 	}
 }
 
-XAMP_BASE_API inline void ConvertFloatToInt24(const float* input, int32_t* left_ptr, int32_t* right_ptr, size_t frames) {
+XAMP_BASE_API XAMP_ALWAYS_INLINE void ConvertFloatToInt24(const float* input, int32_t* left_ptr, int32_t* right_ptr, size_t frames) {
+	XAMP_ASSUME(input != nullptr);
+	XAMP_ASSUME(left_ptr != nullptr);
+	XAMP_ASSUME(right_ptr != nullptr);
+
 	for (size_t i = 0; i < frames; i++) {
 		// interleaved float: L,R
 		float L = input[2 * i + 0] * kFloat24Scale;
@@ -199,7 +228,11 @@ XAMP_BASE_API inline void ConvertFloatToInt24(const float* input, int32_t* left_
 	}
 }
 
-XAMP_BASE_API inline void ConvertFloatToInt16(const float* input, int16_t* left_ptr, int16_t* right_ptr, size_t frames) {
+XAMP_BASE_API XAMP_ALWAYS_INLINE void ConvertFloatToInt16(const float* input, int16_t* left_ptr, int16_t* right_ptr, size_t frames) {
+	XAMP_ASSUME(input != nullptr);
+	XAMP_ASSUME(left_ptr != nullptr);
+	XAMP_ASSUME(right_ptr != nullptr);
+
 	for (size_t i = 0; i < frames; i++) {
 		// interleaved float: L,R
 		float L = input[2 * i + 0] * kFloat16Scale;
@@ -215,7 +248,11 @@ XAMP_BASE_API inline void ConvertFloatToInt16(const float* input, int16_t* left_
 	}
 }
 
-XAMP_BASE_API inline void ConvertFloatToInt32SSE(const float* input, int32_t* left_ptr, int32_t* right_ptr, size_t frames, float volume = 1.0) {
+XAMP_BASE_API XAMP_ALWAYS_INLINE void ConvertFloatToInt32SSE(const float* input, int32_t* left_ptr, int32_t* right_ptr, size_t frames, float volume = 1.0f) {
+	XAMP_ASSUME(input != nullptr);
+	XAMP_ASSUME(left_ptr != nullptr);
+	XAMP_ASSUME(right_ptr != nullptr);
+
 	size_t i = 0;
 	__m128 scale = _mm_set1_ps(kFloat32Scale);
 	__m128 volume_scale = _mm_set1_ps(volume);
@@ -263,7 +300,11 @@ XAMP_BASE_API inline void ConvertFloatToInt32SSE(const float* input, int32_t* le
 	}
 }
 
-XAMP_BASE_API inline void ConvertFloatToInt24SSE(const float* input, int32_t* left_ptr, int32_t* right_ptr, size_t frames) {
+XAMP_BASE_API XAMP_ALWAYS_INLINE void ConvertFloatToInt24SSE(const float* input, int32_t* left_ptr, int32_t* right_ptr, size_t frames) {
+	XAMP_ASSUME(input != nullptr);
+	XAMP_ASSUME(left_ptr != nullptr);
+	XAMP_ASSUME(right_ptr != nullptr);
+
 	size_t i = 0;
 	__m128 scale = _mm_set1_ps(kFloat24Scale);
 
@@ -309,6 +350,9 @@ XAMP_BASE_API inline void ConvertFloatToInt24SSE(const float* input, int32_t* le
 
 template <typename T, typename TStoreType = T>
 void AVX2Convert(TStoreType* output, const float* input, float float_scale, const AudioConvertContext& context) noexcept {
+	XAMP_ASSUME(input != nullptr);
+	XAMP_ASSUME(output != nullptr);
+
 	const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * AudioFormat::kMaxChannel;
 
 	const __m256 scale = _mm256_set1_ps(float_scale);
@@ -386,7 +430,10 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 	// 3. 跨 lane 的問題：
 	//    `_mm256_shuffle_epi8` 能處理 byte-level 重組，但限制在 128-bit lane 內，
 	//    無法解決跨 lane 的搬移需求。
-	static void Convert(int8_t* output, const int8_t* input, const AudioConvertContext& context) noexcept {
+	static XAMP_ALWAYS_INLINE void Convert(int8_t* output, const int8_t* input, const AudioConvertContext& context) noexcept {
+		XAMP_ASSUME(input != nullptr);
+		XAMP_ASSUME(output != nullptr);
+
 		const size_t convert_size = context.convert_size;
 		// 左聲道: 放在 output[0 .. convert_size-1]
 		// 右聲道: 放在 output[convert_size .. (2*convert_size)-1]
@@ -445,7 +492,7 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 		}
 	}
 
-	static void Convert(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
+	static XAMP_ALWAYS_INLINE void Convert(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
 		const size_t frames = context.convert_size;
 		int32_t* left_channel = output;
 		int32_t* right_channel = output + frames;
@@ -455,15 +502,15 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 
 template <>
 struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED> {
-	static void Convert(int16_t* output, const float* input, const AudioConvertContext& context) noexcept {
+	static XAMP_ALWAYS_INLINE void Convert(int16_t* output, const float* input, const AudioConvertContext& context) noexcept {
 		AVX2Convert<int16_t>(output, input, kFloat16Scale, context);
 	}
 
-	static void Convert(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
+	static XAMP_ALWAYS_INLINE void Convert(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
 		AVX2Convert<int32_t>(output, input, kFloat32Scale, context);
 	}
 
-	static void ConvertToInt2432(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
+	static XAMP_ALWAYS_INLINE void ConvertToInt2432(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
 		AVX2Convert<Int24, int32_t>(output, input, kFloat24Scale, context);
 	}
 };

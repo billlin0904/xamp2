@@ -39,7 +39,7 @@ public:
 	XAMP_DECLARE_DLL_NAME(chromaprint_dealloc);
 };
 
-#define CHROMAPRINT_LIB Singleton<ChromaprintLib>::GetInstance()
+#define CHROMAPRINT_LIB Share<ChromaprintLib>::GetInstance()
 
 inline ChromaprintLib::ChromaprintLib() try
 	: module_(OpenSharedLibrary("chromaprint"))

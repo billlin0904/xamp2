@@ -20,6 +20,7 @@
 #include <base/fastmutex.h>
 #include <base/fastconditionvariable.h>
 #include <base/task.h>
+#include <base/archivefile.h>
 
 #include <output_device/iaudiocallback.h>
 #include <output_device/idevicestatelistener.h>
@@ -122,9 +123,14 @@ public:
     * @param[in] target_sample_rate The target sample rate.
     */
     void Open(const Path& file_path,              
-              const DeviceInfo& device_info,
-              uint32_t target_sample_rate = 0,
-              DsdModes output_mode = DsdModes::DSD_MODE_AUTO) override;
+        const DeviceInfo& device_info,
+        uint32_t target_sample_rate = 0,
+        DsdModes output_mode = DsdModes::DSD_MODE_AUTO) override;
+
+    void OpenArchiveEntry(ArchiveEntry archive_entry,
+        const DeviceInfo& device_info,
+        uint32_t target_sample_rate = 0,
+        DsdModes output_mode = DsdModes::DSD_MODE_AUTO) override;
 
     /*
     * Prepare to play.
@@ -321,6 +327,8 @@ private:
     void DoSeek(double stream_time);        
     	
     void OpenStream(Path const& file_path, DsdModes dsd_mode);
+
+    void OpenStream(ArchiveEntry archive_entry, DsdModes dsd_mode);
 
     void CreateDevice(Uuid const& device_type_id, const  std::string & device_id, bool open_always);
 

@@ -8,6 +8,7 @@
 #include <base/dll.h>
 #include <base/logger.h>
 #include <base/logger_impl.h>
+#include <base/shared_singleton.h>
 #include <metadata/api.h>
 
 extern "C" {
@@ -41,7 +42,7 @@ public:
 	XAMP_DECLARE_DLL_NAME(track_get_rem);
 };
 
-#define LIBCUE_LIB Singleton<LibCueLib>::GetInstance()
+#define LIBCUE_LIB SharedSingleton<LibCueLib>::GetInstance()
 
 inline LibCueLib::LibCueLib() try
 	: module_(OpenSharedLibrary("libcue"))

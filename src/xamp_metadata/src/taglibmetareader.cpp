@@ -385,8 +385,12 @@ namespace {
     }
 
     void SetFileInfo(const Path& path, TrackInfo& track_info) {
-        track_info.file_path = path;
-        track_info.file_size = Fs::file_size(path);
+        track_info.file_path = path;        
+        try {
+            track_info.file_size = Fs::file_size(path);
+        }
+        catch (...) {
+        }
     }
 
     void SetAudioProperties(const AudioProperties* audio_properties, TrackInfo& track_info) {
@@ -453,16 +457,13 @@ namespace {
         }
         catch (const std::exception& e) {
             XAMP_LOG_DEBUG("ExtractTag path: {}", e.what());
-        }
-
-        SetFileInfo(path, track_info);
-        SetAudioProperties(audio_properties, track_info);
+        }        
     }
 }
 
 class TaglibHelper {
 public:
-    friend class Singleton<TaglibHelper>;
+    friend class SharedSingleton<TaglibHelper>;
 
 	[[nodiscard]] HashSet<std::string> const & GetSupportFileExtensions() const noexcept {
 		return support_file_extensions_;
@@ -484,9 +485,114 @@ private:
     HashSet<std::string> support_file_extensions_;
 };
 
+class LibarchiveIOStream : public TagLib::IOStream {
+public:
+    explicit LibarchiveIOStream(ArchiveEntry entry)
+        : entry(std::move(entry)) {
+        ensureCached();
+    }
+
+    FileName name() const {
+        return entry.Name().c_str();
+    }
+
+    void ensureCached() {
+        if (!buffer_.empty()) return;
+
+        if (entry.Length() <= 0)
+            throw std::runtime_error("ArchiveEntry length unknown or zero.");
+
+        buffer_.resize(static_cast<size_t>(entry.Length()));
+
+        long total_read = 0;
+        while (total_read < entry.Length()) {
+            auto chunk = entry.Read(buffer_.data() + total_read,
+                static_cast<long>(entry.Length() - total_read));
+            if (!chunk) {
+                throw std::runtime_error(chunk.error().c_str());
+            }
+            if (chunk.value() <= 0)
+                throw std::runtime_error("ArchiveEntry Read failed or truncated.");
+            total_read += chunk.value();
+        }
+        pos_ = 0;
+    }
+
+    void writeBlock(const TagLib::ByteVector&) override {
+    }
+
+    void insert(const ByteVector& data, offset_t start = 0, size_t replace = 0) override {
+    }
+
+    void removeBlock(offset_t start = 0, size_t length = 0) override {
+    }
+
+    bool readOnly() const override {
+        return true;
+    }
+
+    bool isOpen() const override { 
+        return !buffer_.empty(); 
+    }
+
+    long long length() override {
+        return static_cast<long long>(buffer_.size());
+    }
+
+    ByteVector readBlock(size_t length) {
+        ensureCached();
+
+        const size_t avail = buffer_.size() - static_cast<size_t>(pos_);
+        const size_t n = std::min<size_t>(length, avail);
+
+        ByteVector out(buffer_.data() + pos_, n);
+        pos_ += static_cast<long long>(n);
+        return out;
+    }
+
+    void seek(long long offset, Position p) override {
+        ensureCached();
+
+        long long base = 0;
+        switch (p) {
+        case Beginning: base = 0;              break;
+        case Current:   base = pos_;           break;
+        case End:       base = buffer_.size(); break;
+        default:        return;
+        }
+        long long newPos = base + offset;
+        if (newPos < 0 || newPos > static_cast<long long>(buffer_.size()))
+            return;
+        pos_ = newPos;
+    }
+
+    long long tell() const override { 
+        return pos_; 
+    }
+
+    void truncate(long long) override {
+    }
+private:
+    long pos_;
+    ArchiveEntry entry;
+    std::vector<char> buffer_;
+};
+
 class TaglibMetadataReader::TaglibMetadataReaderImpl {
 public:
+    void Open(ArchiveEntry entry) {
+        auto archive_path = entry.ArchivePath();
+        archive_stream_ = MakeAlign<LibarchiveIOStream>(std::move(entry));
+        FileRef fileref(archive_stream_.get(), true, TagLib::AudioProperties::Fast);
+        if (!fileref.isNull()) {
+            fileref_opt_ = fileref;
+            path_ = archive_path;
+            is_archive_file_ = true;
+        }
+    }
+
 	void Open(const Path& path) {
+        PrefetchFile(path);
 #ifdef XAMP_OS_WIN
         FileRef fileref(path.wstring().c_str(), true, TagLib::AudioProperties::Fast);
 #else
@@ -494,10 +600,10 @@ public:
 #endif
         if (!fileref.isNull()) {
             fileref_opt_ = fileref;
-            path_ = path;
+            path_ = path;            
             file_ext_ = String::ToLower(path_.extension().string());
             tag_reader_ = MakeFileTagReader(file_ext_);
-        }        
+        }
 	}
 
     std::expected<TrackInfo, ParseMetadataError> Extract() const {
@@ -510,9 +616,20 @@ public:
         const auto& file_ref = *fileref_opt_;
         const auto* tag = file_ref.tag();
 
-        if (tag != nullptr) {
-            ExtractTag(path_, tag, file_ref.audioProperties(), track_info);
-        } else {            
+        if (is_archive_file_) {
+            track_info.file_size = archive_stream_->length();
+            track_info.archive_entry_name = archive_stream_->name().toString().toCWString();
+            track_info.file_path = path_;
+            track_info.is_zip_file = true;
+            if (tag != nullptr) {
+                ExtractTag(path_, tag, file_ref.audioProperties(), track_info);
+            }
+            SetAudioProperties(file_ref.audioProperties(), track_info);
+        }
+        else {
+            if (tag != nullptr) {
+                ExtractTag(path_, tag, file_ref.audioProperties(), track_info);
+            }
             SetFileInfo(path_, track_info);
             SetAudioProperties(file_ref.audioProperties(), track_info);
         }
@@ -526,7 +643,7 @@ public:
         auto replay_gain = ReadReplayGain(file_ref.file());
         if (replay_gain) {
             track_info.replay_gain = replay_gain.value();
-        }        
+        }
         return track_info;
     }
 
@@ -542,7 +659,7 @@ public:
     }
 
     XAMP_ALWAYS_INLINE bool IsSupported() const noexcept {
-		return Singleton<TaglibHelper>::GetInstance().IsSupported(file_ext_);
+		return SharedSingleton<TaglibHelper>::GetInstance().IsSupported(file_ext_);
     }
 
     std::expected<ReplayGain, ParseMetadataError> ReadReplayGain() const {
@@ -567,16 +684,22 @@ private:
         return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
     }
 
+    bool is_archive_file_{ false };
     std::string file_ext_;
     Path path_;
     std::optional<FileRef> fileref_opt_;
     ScopedPtr<IFileTagReader> tag_reader_;
+    ScopedPtr<LibarchiveIOStream> archive_stream_;
 };
 
 XAMP_PIMPL_IMPL(TaglibMetadataReader)
 
 TaglibMetadataReader::TaglibMetadataReader()
     : reader_(MakeAlign<TaglibMetadataReaderImpl>()) {
+}
+
+void TaglibMetadataReader::Open(ArchiveEntry archive_entry) {
+    return reader_->Open(std::move(archive_entry));
 }
 
 void TaglibMetadataReader::Open(const Path& path) {
@@ -596,7 +719,7 @@ std::expected<std::vector<std::byte>, ParseMetadataError> TaglibMetadataReader::
 }
 
 const HashSet<std::string>& TaglibMetadataReader::GetSupportFileExtensions() {
-    return Singleton<TaglibHelper>::GetInstance().GetSupportFileExtensions();
+    return SharedSingleton<TaglibHelper>::GetInstance().GetSupportFileExtensions();
 }
 
 bool TaglibMetadataReader::IsSupported() const {

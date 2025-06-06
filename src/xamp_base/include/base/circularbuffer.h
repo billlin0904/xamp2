@@ -215,7 +215,7 @@ public:
     /*
      * Get the front item in the buffer.
      */
-    [[nodiscard]] T& front() {
+    [[nodiscard]] T& front() XAMP_CHECK_LIFETIME {
         if (empty()) {
             throw std::runtime_error("empty buffer");
         }
@@ -225,7 +225,7 @@ public:
     /*
 	 * Get the front item in the buffer.
 	 */
-    [[nodiscard]] const T& front() const {
+    [[nodiscard]] const T& front() const XAMP_CHECK_LIFETIME {
         if (empty()) {
             throw std::runtime_error("empty buffer");
         }

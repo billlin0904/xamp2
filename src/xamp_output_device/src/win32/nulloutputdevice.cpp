@@ -116,7 +116,7 @@ void NullOutputDevice::StartStream() {
 	is_playing_ = false;
 	is_stopped_ = false;
 
-	render_task_ = Executor::Spawn(thread_pool_.get(), [this](const auto& stop_token) {
+	render_task_ = Executor::Spawn(thread_pool_, [this](const auto& stop_token) {
 		size_t num_filled_frames = 0;		
 		double sample_time = 0;
 

@@ -130,22 +130,22 @@ public:
     }
 #endif
     
-    [[nodiscard]] XAMP_ALWAYS_INLINE operator T* () const noexcept {
+    [[nodiscard]] XAMP_ALWAYS_INLINE operator T* () const noexcept XAMP_CHECK_LIFETIME {
         XAMP_ASSERT(func_ != nullptr);
         return func_;
     }
 
-    [[nodiscard]] XAMP_ALWAYS_INLINE T* Get() const noexcept {
+    [[nodiscard]] XAMP_ALWAYS_INLINE T* Get() const noexcept XAMP_CHECK_LIFETIME {
         XAMP_ASSERT(func_ != nullptr);
 		return func_;
 	}
 
-    [[nodiscard]] XAMP_ALWAYS_INLINE T* operator->() const noexcept {
+    [[nodiscard]] XAMP_ALWAYS_INLINE T* operator->() const noexcept XAMP_CHECK_LIFETIME {
         XAMP_ASSERT(func_ != nullptr);
 		return func_;
 	}
 
-    [[nodiscard]] XAMP_ALWAYS_INLINE T& operator*() const noexcept {
+    [[nodiscard]] XAMP_ALWAYS_INLINE T& operator*() const noexcept XAMP_CHECK_LIFETIME {
         XAMP_ASSERT(func_ != nullptr);
 		return *func_;
 	}

@@ -136,6 +136,10 @@ ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& filePath) {
 	return MakeFileStream(filePath, dsd_mode);
 }
 
+ScopedPtr<FileStream> StreamFactory::MakeFileStream() {
+    return MakeAlign<FileStream, BassFileStream>();;
+}
+
 ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& file_path, DsdModes dsd_mode) {
     if (!IsCDAFile(file_path)) {
         switch (dsd_mode) {
@@ -201,6 +205,49 @@ FileStream* AsFileStream(ScopedPtr<IAudioStream> const& stream) noexcept {
 
 IDsdStream* AsDsdStream(FileStream* stream) noexcept {
     return dynamic_cast<IDsdStream*>(stream);
+}
+
+ScopedPtr<FileStream> MakeFileStream(ArchiveEntry archive_entry, DsdModes dsd_mode) {
+    auto file_stream = StreamFactory::MakeFileStream();
+
+    if (dsd_mode != DsdModes::DSD_MODE_PCM) {
+        if (auto* dsd_stream = AsDsdStream(file_stream)) {
+            switch (dsd_mode) {
+            case DsdModes::DSD_MODE_DOP:
+                ThrowIf<NotSupportFormatException>(
+                    dsd_stream->SupportDOP(),
+                    "Stream not support mode: {}", dsd_mode);
+                break;
+            case DsdModes::DSD_MODE_DOP_AA:
+                ThrowIf<NotSupportFormatException>(
+                    dsd_stream->SupportDOP_AA(),
+                    "Stream not support mode: {}", dsd_mode);
+                break;
+            case DsdModes::DSD_MODE_NATIVE:
+                ThrowIf<NotSupportFormatException>(
+                    dsd_stream->SupportNativeSD(),
+                    "Stream not support mode: {}", dsd_mode);
+                break;
+            case DsdModes::DSD_MODE_DSD2PCM:
+                break;
+            case DsdModes::DSD_MODE_AUTO:
+                break;
+            case DsdModes::DSD_MODE_PCM:
+                break;
+            default:
+                Throw<NotSupportFormatException>(
+                    "Not support dsd-mode: {}.", dsd_mode);
+                break;
+            }
+            dsd_stream->SetDSDMode(dsd_mode);
+            file_stream->Open(std::move(archive_entry));
+            return file_stream;
+        }
+    }
+
+    file_stream = MakeAlign<FileStream, BassFileStream>();
+    file_stream->Open(std::move(archive_entry));
+    return file_stream;
 }
 
 ScopedPtr<FileStream> MakeFileStream(const Path& file_path, DsdModes dsd_mode) {

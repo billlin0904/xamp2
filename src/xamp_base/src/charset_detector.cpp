@@ -9,78 +9,83 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-class UcharDectLib final {
-public:
-	UcharDectLib();
+namespace {
+	class UcharDectLib final {
+	public:
+		UcharDectLib();
 
-	XAMP_DISABLE_COPY(UcharDectLib)
-private:
-	SharedLibraryHandle module_;
+		XAMP_DISABLE_COPY(UcharDectLib)
+	private:
+		SharedLibraryHandle module_;
 
-public:
-	XAMP_DECLARE_DLL_NAME(uchardet_new);
-	XAMP_DECLARE_DLL_NAME(uchardet_handle_data);
-	XAMP_DECLARE_DLL_NAME(uchardet_delete);
-	XAMP_DECLARE_DLL_NAME(uchardet_data_end);
-	XAMP_DECLARE_DLL_NAME(uchardet_get_charset);
-	XAMP_DECLARE_DLL_NAME(uchardet_reset);
-};
+	public:
+		XAMP_DECLARE_DLL_NAME(uchardet_new);
+		XAMP_DECLARE_DLL_NAME(uchardet_handle_data);
+		XAMP_DECLARE_DLL_NAME(uchardet_delete);
+		XAMP_DECLARE_DLL_NAME(uchardet_data_end);
+		XAMP_DECLARE_DLL_NAME(uchardet_get_charset);
+		XAMP_DECLARE_DLL_NAME(uchardet_reset);
+	};
 
-inline UcharDectLib::UcharDectLib() try
-	: module_(OpenSharedLibrary("uchardet"))
-	, XAMP_LOAD_DLL_API(uchardet_new)
-	, XAMP_LOAD_DLL_API(uchardet_handle_data)
-	, XAMP_LOAD_DLL_API(uchardet_delete)
-	, XAMP_LOAD_DLL_API(uchardet_data_end)
-	, XAMP_LOAD_DLL_API(uchardet_get_charset)
-	, XAMP_LOAD_DLL_API(uchardet_reset) {
-}
-catch (const Exception& e) {
-	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
-}
-
-#define UCHARDECT_LIB Singleton<UcharDectLib>::GetInstance()
-
-template <typename T>
-struct UcharDetDeleter;
-
-template <>
-struct UcharDetDeleter<uchardet> {
-	void operator()(uchardet* p) const {		
-		UCHARDECT_LIB.uchardet_delete(p);
+	inline UcharDectLib::UcharDectLib() try
+		: module_(OpenSharedLibrary("uchardet"))
+		, XAMP_LOAD_DLL_API(uchardet_new)
+		, XAMP_LOAD_DLL_API(uchardet_handle_data)
+		, XAMP_LOAD_DLL_API(uchardet_delete)
+		, XAMP_LOAD_DLL_API(uchardet_data_end)
+		, XAMP_LOAD_DLL_API(uchardet_get_charset)
+		, XAMP_LOAD_DLL_API(uchardet_reset) {
 	}
-};
-
-using UcharDetPtr = std::unique_ptr<uchardet, UcharDetDeleter<uchardet>>;
-
-template <typename T>
-struct OpenCCDetDeleter;
-
-template <>
-struct OpenCCDetDeleter<opencc_t> {
-	void operator()(opencc_t p) const {
-		::opencc_close(p);
+	catch (const Exception& e) {
+		XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 	}
-};
 
-using OpenCCPtr = std::unique_ptr<opencc_t, OpenCCDetDeleter<opencc_t>>;
+#define UCHARDECT_LIB SharedSingleton<UcharDectLib>::GetInstance()
+
+	template <typename T>
+	struct UcharDetDeleter;
+
+	template <>
+	struct UcharDetDeleter<uchardet> {
+		void operator()(uchardet* p) const {
+			UCHARDECT_LIB.uchardet_delete(p);
+		}
+	};
+
+	using UcharDetPtr = std::unique_ptr<uchardet, UcharDetDeleter<uchardet>>;
+
+	template <typename T>
+	struct OpenCCDetDeleter;
+
+	template <>
+	struct OpenCCDetDeleter<opencc_t> {
+		void operator()(opencc_t p) const {
+			::opencc_close(p);
+		}
+	};
+
+	using OpenCCPtr = std::unique_ptr<opencc_t, OpenCCDetDeleter<opencc_t>>;
+
+	const std::string kJapaneseLanguage = "ja";
+	const std::string kSimpleChineseLanguage = "zh";
+}
 
 class EncodingDetector::EncodingDetectorImpl {
 public:
 	EncodingDetectorImpl() = default;
 
-	std::string Detect(const char* data, size_t size) {
+	std::expected<std::string, EncodingDetectorError> Detect(const char* data, size_t size) {
 		UcharDetPtr detector;
 
 		// create detector
 		detector.reset(UCHARDECT_LIB.uchardet_new());
 		if (!detector) {
-			throw std::runtime_error("unknown error");
+			return std::unexpected(EncodingDetectorError::ENCODING_ERROR_UNKNOWN);
 		}
 
 		// handle data
 		if (UCHARDECT_LIB.uchardet_handle_data(detector.get(), data, size) != 0) {
-			return "";
+			return std::unexpected(EncodingDetectorError::ENCODING_DATA_ERROR);
 		}
 		
 		// end data
@@ -92,10 +97,7 @@ public:
 		// reset detector
 		UCHARDECT_LIB.uchardet_reset(detector.get());
 		return encoding;
-	}	
-
-private:
-	chrome_lang_id::NNetLanguageIdentifier indentifier_;
+	}
 };
 
 class LanguageDetector::LanguageDetectorImpl {
@@ -104,18 +106,19 @@ public:
 		: indentifier_(0, 1000) {
 	}
 
-	bool IsJapanese(const std::wstring& text) {
-		static const std::string kJapanese = "ja";
-		const auto result = indentifier_.FindLanguage(String::ToUtf8String(text));
-		return result.is_reliable && result.language == kJapanese;
+	bool IsJapanese(const std::wstring& text) {		
+		const auto result = FindLanguage(text);
+		return result.is_reliable && result.language == kJapaneseLanguage;
 	}
 
-	bool IsChinese(const std::wstring& text) {
-		static const std::string kSimpleChinese = "zh";
-		const auto result = indentifier_.FindLanguage(String::ToUtf8String(text));
-		return result.is_reliable && result.language == kSimpleChinese;
+	bool IsChinese(const std::wstring& text) {		
+		const auto result = FindLanguage(text);
+		return result.is_reliable && result.language == kSimpleChineseLanguage;
 	}
 private:
+	chrome_lang_id::NNetLanguageIdentifier::Result FindLanguage(const std::wstring& text) {
+		return indentifier_.FindLanguage(String::ToUtf8String(text));
+	}
 	chrome_lang_id::NNetLanguageIdentifier indentifier_;
 };
 
@@ -164,7 +167,7 @@ EncodingDetector::EncodingDetector()
 
 XAMP_PIMPL_IMPL(EncodingDetector)
 
-std::string EncodingDetector::Detect(const char* data, size_t size) {
+std::expected<std::string, EncodingDetectorError> EncodingDetector::Detect(const char* data, size_t size) {
 	return impl_->Detect(data, size);
 }
 

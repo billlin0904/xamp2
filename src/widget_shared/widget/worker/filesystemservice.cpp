@@ -3,6 +3,7 @@
 #include <QDirIterator>
 #include <execution>
 #include <base/scopeguard.h>
+#include <base/archivefile.h>
 #include <widget/util/read_util.h>
 #include <metadata/taglibmetareader.h>
 #include <metadata/cueloader.h>
@@ -37,7 +38,7 @@ namespace {
 			path_infos.push_back({0, 0, path});
 		}
 
-		Executor::ParallelFor(thread_pool.get(), path_infos, [&](auto& path_info)->void {
+		Executor::ParallelForEach(thread_pool, path_infos, [&](auto& path_info)->void {
 			path_info.file_count = getFileCount(path_info.path, file_name_filters);
 			path_info.depth = path_info.path.count("/"_str);
 			total_file_count += path_info.file_count;
@@ -95,9 +96,11 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 
 	FloatMap<QString, std::vector<Path>> directory_files;
 	std::vector<Path> cue_files;
+	std::vector<Path> zip_files;
 
 	directory_files.reserve(1024);
 	cue_files.reserve(1024);
+	zip_files.reserve(1024);
 
 	XAMP_ON_SCOPE_EXIT(
 		for (auto& pair_entry : directory_files) {
@@ -106,18 +109,21 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 		}
 	);
 
-	auto collect_files = [this, &directory_files, &cue_files](const auto& dir) {
+	auto collect_files = [this, &directory_files, &cue_files, &zip_files](const auto& dir) {
 		const Path path(toNativeSeparators(dir).toStdWString());
-		if (path.extension() != kCueFileExtension) {
+		if (path.extension() == kCueFileExtension) {
+			cue_files.push_back(path);
+		}
+		else if (path.extension() == kZipFileExtension) {
+			zip_files.push_back(path);
+		}
+		else {
 			const auto directory = QFileInfo(dir).dir().path();
 			if (!directory_files.contains(directory)) {
 				directory_files[directory].reserve(
 					kReserveFilePathSize);
 			}
-			directory_files[directory].emplace_back(path);
-		}
-		else {
-			cue_files.push_back(path);
+			directory_files[directory].emplace_back(path);			
 		}
 		};
 
@@ -142,11 +148,21 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 	std::vector<std::forward_list<TrackInfo>> batch_track_infos;
 
 	constexpr auto kMaxBatchTrackSize = 250UL;
-
-	size_t worker_count = IsFileOnSsd(dir.toStdWString()) ? 0 : 2;
 	size_t track_count = 0;
 
-	Executor::ParallelFor(thread_pool_.get(),
+	Executor::ParallelForEach(thread_pool_,
+		zip_files, [&](auto& files_path, const auto& stop_token) {
+			ArchiveFile archive_file;
+			auto result = archive_file.Open(files_path);
+			if (!result) {
+				XAMP_LOG_D(logger_, result.error());
+				return;
+			}
+			total_work_ += result.value().size();
+		}
+	);
+
+	Executor::ParallelForEach(thread_pool_,
 		directory_files, [&](auto& path_info, const auto& stop_token) {
 		if (is_stop_) {
 			return;
@@ -159,7 +175,7 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 			if (stop_token.stop_requested()) {
 				return;
 			}
-			reader->Open(path);
+			reader->Open(path);			
 			auto track_info = reader->Extract();
 			if (track_info) {
 				tracks.push_front(track_info.value());
@@ -185,16 +201,52 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 			batch_track_infos.clear();
 			track_count = 0;
 		}
-	}, stop_source_.get_token(), worker_count);
+	}, stop_source_.get_token());
 
 	if (!batch_track_infos.empty()) {
 		emit readFilePath(qFormat("Scan directory %1 size:%2 completed.")
 			.arg(directory_files.begin()->first)
 			.arg(directory_files.begin()->second.size()));
 		emit batchInsertDatabase(batch_track_infos, playlist_id);
-	}
+	}	
 
-	Executor::ParallelFor(thread_pool_.get(),
+	Executor::ParallelForEach(thread_pool_,
+		zip_files, [&](auto& files_path, const auto& stop_token) {
+		if (stop_token.stop_requested()) {
+			return;
+		}
+		
+		ArchiveFile archive_file;
+		auto result = archive_file.Open(files_path);
+		if (!result) {
+			XAMP_LOG_D(logger_, result.error());
+			return;
+		}
+
+		std::forward_list<TrackInfo> tracks;
+		for (const auto & entry_name : result.value()) {
+			auto entry = archive_file.OpenEntry(entry_name);
+			if (entry) {
+				TaglibMetadataReader reader;
+				reader.Open(std::move(entry.value()));
+				auto track_info = reader.Extract();
+				if (track_info) {
+					tracks.push_front(track_info.value());
+				}				
+			}			
+			++completed_work_;
+			updateProgress();
+		}
+
+		tracks.sort([](const auto& first, const auto& last) {
+			return first.track < last.track;
+			});
+		if (!tracks.empty()) {
+			emit insertDatabase(tracks, playlist_id);
+		}
+		});
+
+	Executor::ParallelForEach(thread_pool_,
 		cue_files, [&](auto& files_path, const auto& stop_token) {
 		if (stop_token.stop_requested()) {
 			return;
@@ -253,7 +305,7 @@ void FileSystemService::scanReplayGain(const QList<PlayListEntity>& entities) {
 		scanners.resize(album.second.size());
 
 		auto stop_token = stop_source_.get_token();
-		Executor::ParallelForIndex(thread_pool_.get(), 0, album.second.size(),
+		Executor::ParallelForEach(thread_pool_, 0, album.second.size(),
 			[&](auto index) {								
 				if (!stop_token.stop_requested()) {
 					std::scoped_lock lock(mutex);
@@ -397,9 +449,9 @@ void FileSystemService::updateProgress() {
 		return;
 	}
 
-	if (update_ui_elapsed_.ElapsedSeconds() < 3.0) {
+	if (update_ui_elapsed_.ElapsedSeconds() < 1.0) {
 		return;
-	}	
+	}
 
 	const auto completed_work = completed_work_.load();
 	emit readFileProgress((completed_work * 100) / total_work_);

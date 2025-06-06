@@ -19,13 +19,12 @@
 #include <widget/xmessagebox.h>
 #include <widget/xmainwindow.h>
 #include <widget/jsonsettings.h>
+#include <widget/imagecache.h>
 
 #include <QPermissions>
 #include <QSslSocket>
 #include <QProcess>
 #include <fcntl.h>
-
-#include "widget/imagecache.h"
 
 namespace {
 #ifdef Q_OS_MAC
@@ -137,7 +136,7 @@ namespace {
         auto prefetch_dll = prefetchDll();
         XAMP_LOG_DEBUG("Prefetch dll success.");
 #endif
-        //QApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+        QApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 
         QLoggingCategory::setFilterRules(QStringLiteral("qt.gui.imageio.warning=false"));
         qputenv("QT_ICC_PROFILE", QByteArray());

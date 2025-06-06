@@ -445,7 +445,7 @@ void SharedWasapiDevice::StartStream() {
 	is_playing_ = false;
 	// Note: 必要! 某些音效卡會爆音!
 	GetSample(true);
-	rt_work_queue_->Initial();
+	rt_work_queue_->LoadStream();
 	rt_work_queue_->WaitAsync(sample_ready_.get());
 	is_running_ = true;
 	HrIfFailThrow(client_->Start());

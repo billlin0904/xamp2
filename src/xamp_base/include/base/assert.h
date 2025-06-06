@@ -27,7 +27,11 @@ namespace xamp {
     }
 }
 
-
+#ifdef XAMP_OS_WIN
+#define XAMP_ASSUME(expr) __assume(expr)
+#else 
+#define XAMP_ASSUME(expr) __builtin_assume(expr)
+#endif
 
 #define XAMP_CONTRACT_CHECK(type, cond) \
 	((cond) ? static_cast<void>(0) : xamp::details::terminate())

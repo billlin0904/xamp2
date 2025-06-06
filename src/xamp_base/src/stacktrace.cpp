@@ -3,6 +3,7 @@
 #include <base/fs.h>
 #include <base/stl.h>
 #include <base/singleton.h>
+#include <base/shared_singleton.h>
 #include <base/str_utilts.h>
 #include <base/memory.h>
 
@@ -87,7 +88,7 @@ namespace {
         WinHandle process_;
     };
 
-#define SYMBOL_LOADER Singleton<SymLoader>::GetInstance()
+#define SYMBOL_LOADER SharedSingleton<SymLoader>::GetInstance()
 
     void WriteLog(std::ostringstream& ostr, size_t frame_count, CaptureStackAddress& addrlist) {
         ostr.str("");

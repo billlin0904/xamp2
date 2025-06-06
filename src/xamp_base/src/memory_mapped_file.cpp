@@ -13,7 +13,7 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 class MemoryMappedFile::MemoryMappedFileImpl {
 public:
-    void Open(std::wstring const & file_path, bool is_module) {
+    bool Open(std::wstring const & file_path, bool is_module) {
         static constexpr DWORD kAccessMode = GENERIC_READ;
         static constexpr DWORD kCreateType = OPEN_EXISTING;
         static constexpr DWORD kAccess = FILE_MAP_READ;
@@ -28,11 +28,10 @@ public:
                                   nullptr));
 
         if (file_) {
-            OpenMappingFile(is_module ? (kProtect | SEC_IMAGE_NO_EXECUTE) : kProtect, kAccess);
-            return;
+            return OpenMappingFile(is_module ? (kProtect | SEC_IMAGE_NO_EXECUTE) : kProtect, kAccess);            
         }
 
-        throw FileNotFoundException();
+        return false;
     }
 
     ~MemoryMappedFileImpl() noexcept {
@@ -54,7 +53,7 @@ public:
         return li.QuadPart;
     }
 private:
-    void OpenMappingFile(DWORD protect, DWORD access) {
+    bool OpenMappingFile(DWORD protect, DWORD access) {
         MappingFileHandle const mapping_handle(::CreateFileMapping(file_.get(),
             nullptr,
             protect,
@@ -62,7 +61,7 @@ private:
             0,
             nullptr));
         if (!mapping_handle) {
-            throw PlatformException();
+            return false;
         }
         address_.reset(::MapViewOfFile(mapping_handle.get(),
             access,
@@ -70,8 +69,9 @@ private:
             0,
             0));
         if (!address_) {
-            throw PlatformException();
+            return false;
         }
+        return true;
     }
 
     MappingAddressHandle address_;
@@ -87,11 +87,11 @@ public:
     void Open(std::wstring const& file_path, bool /*is_module*/) {
         file_.reset(::open(String::ToUtf8String(file_path).c_str(), O_RDONLY));
         if (!file_) {
-            throw FileNotFoundException();
+            return false;
         }
         mem_ = ::mmap(nullptr, GetLength(), PROT_READ, MAP_PRIVATE, file_.get(), 0);
         if (!mem_) {
-            throw FileNotFoundException();
+            return false;
         }
     }
 
@@ -130,8 +130,8 @@ MemoryMappedFile::MemoryMappedFile()
 
 XAMP_PIMPL_IMPL(MemoryMappedFile)
 
-void MemoryMappedFile::Open(std::wstring const &file_path, bool is_module) {
-    impl_->Open(file_path, is_module);
+bool MemoryMappedFile::Open(std::wstring const &file_path, bool is_module) {
+    return impl_->Open(file_path, is_module);
 }
 
 void const * MemoryMappedFile::GetData() const noexcept {

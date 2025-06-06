@@ -9,15 +9,17 @@
 
 #include <base/stl.h>
 #include <base/memory.h>
-#include <base/pimplptr.h>
+#include <base/archivefile.h>
 
 XAMP_METADATA_NAMESPACE_BEGIN
 
-class TaglibMetadataReader final : public IMetadataReader {
+class XAMP_METADATA_API TaglibMetadataReader final : public IMetadataReader {
 public:
     TaglibMetadataReader();
 
     XAMP_PIMPL(TaglibMetadataReader)
+
+    void Open(ArchiveEntry archive_entry);
 
     void Open(const Path& path) override;
 

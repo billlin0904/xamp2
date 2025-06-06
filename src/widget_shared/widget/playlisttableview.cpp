@@ -74,7 +74,9 @@ namespace {
     musics.offset,
     musics.isCueFile,
     musics.ytMusicAlbumId,
-	musics.ytMusicArtistId
+	musics.ytMusicArtistId,
+    musics.isZipFile,
+    musics.archiveEntryName
 FROM
 	playlistMusics
 	JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
@@ -124,7 +126,9 @@ WHERE
     musics.offset,
     musics.isCueFile,
 	musics.ytMusicAlbumId,
-	musics.ytMusicArtistId
+	musics.ytMusicArtistId,
+    musics.isZipFile,
+    musics.archiveEntryName
 FROM
 	playlistMusics
 	JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
@@ -175,7 +179,9 @@ ORDER BY
     musics.offset,
 	musics.isCueFile,
 	musics.ytMusicAlbumId,
-	musics.ytMusicArtistId
+	musics.ytMusicArtistId,
+    musics.isZipFile,
+    musics.archiveEntryName
 FROM
 	playlistMusics
 	JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
@@ -433,6 +439,8 @@ void PlaylistTableView::setPlaylistId(const int32_t playlist_id, const QString &
         PLAYLIST_MUSIC_COVER_ID,
         PLAYLIST_OFFSET,
         PLAYLIST_IS_CUE_FILE,
+        PLAYLIST_IS_ZIP_FILE,
+        PLAYLIST_ARCHVI_ENTRY_NAME
     };
 
     always_hidden_columns_ = always_hidden_columns;
@@ -470,6 +478,8 @@ void PlaylistTableView::setPlaylistId(const int32_t playlist_id, const QString &
             PLAYLIST_OFFSET,
             PLAYLIST_YT_MUSIC_ALBUM_ID,
             PLAYLIST_YT_MUSIC_ARIST_ID,
+            PLAYLIST_IS_ZIP_FILE,
+            PLAYLIST_ARCHVI_ENTRY_NAME
         };
 
         for (const auto column : qAsConst(hidden_columns)) {
@@ -939,6 +949,7 @@ bool PlaylistTableView::eventFilter(QObject* obj, QEvent* ev) {
 }
 
 void PlaylistTableView::append(const QString& file_name) {
+    showProgressPage();
     emit extractFile(file_name, playlistId());
 }
 

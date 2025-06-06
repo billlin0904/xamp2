@@ -89,16 +89,17 @@ namespace {
     }
 
     DsdModes getDsdModes(const DeviceInfo& device_info,
-        const Path& file_path,
-        uint32_t input_sample_rate,
+        const PlayListEntity& entity,
         uint32_t target_sample_rate) {
         auto dsd_modes = DsdModes::DSD_MODE_AUTO;
         const auto is_enable_sample_rate_converter = target_sample_rate > 0;
-        const auto is_dsd_file = IsDsdFile(file_path);
+        //const auto is_dsd_file = IsDsdFile(file_path);
+		const auto is_dsd_file = 
+            entity.file_extension == ".dff"_str || entity.file_extension == ".dsf"_str;
 
         if (!is_dsd_file
             && !is_enable_sample_rate_converter
-            && input_sample_rate % kPcmSampleRate441 == 0) {
+            && entity.sample_rate % kPcmSampleRate441 == 0) {
             dsd_modes = DsdModes::DSD_MODE_AUTO;
         }
 
@@ -1440,16 +1441,33 @@ void Xamp::onPlayEntity(PlaylistPage* playlist_page,
                              sample_rate_converter_type);
     
     const auto open_dsd_mode = getDsdModes(device_info_.value(),
-        entity.file_path.toStdWString(),
-        entity.sample_rate,
+        entity,
         target_sample_rate);
 
     try {
 	    PlaybackFormat playback_format;
-	    player_->Open(entity.file_path.toStdWString(),
-	                  device_info_.value(),
-	                  target_sample_rate,
-	                  open_dsd_mode);
+
+        if (entity.is_zip_file) {
+            ArchiveFile archive_file;
+            auto result = archive_file.Open(entity.file_path.toStdWString());
+            if (!result) {
+                return;
+            }
+            auto entry_result = archive_file.OpenEntry(entity.archive_entry_name.value().toStdWString());
+            if (!entry_result) {
+                return;
+            }
+            player_->OpenArchiveEntry(std::move(entry_result.value()),
+                device_info_.value(),
+                target_sample_rate,
+                open_dsd_mode);
+        }
+        else {
+            player_->Open(entity.file_path.toStdWString(),
+                device_info_.value(),
+                target_sample_rate,
+                open_dsd_mode);
+        }	    
 
         player_->SeFileCacheMode(entity.isHttpUrl());
 
@@ -1740,7 +1758,7 @@ void Xamp::onFetchPlaylistTrackCompleted(PlaylistPage* playlist_page, const std:
 
         const std::forward_list<TrackInfo> track_infos{ track_info };
 
-        auto found_cover = [thumbnail_url, is_unknown_album, this](auto music_id, auto album_id) {
+        auto found_cover = [thumbnail_url, is_unknown_album, this](auto music_id, auto album_id, const QString&) {
             if (thumbnail_url.isEmpty()) {
                 return;
             }
@@ -1970,7 +1988,7 @@ void Xamp::onNavigateToArtistAlbumPage(const QPixmap& album_cover, const QString
             track_info.yt_album_id = yt_music_album_id.toStdString();
             track_info.yt_artist_id = yt_artist_id;
 
-            auto found_cover = [thumbnail_url, is_unknown_album, album_cover, this](auto music_id, auto album_id) {
+            auto found_cover = [thumbnail_url, is_unknown_album, album_cover, this](auto music_id, auto album_id, const QString&) {
                 if (thumbnail_url.isEmpty()) {
                     return;
                 }
@@ -2082,7 +2100,7 @@ void Xamp::onNavigateToAlbumPage(const PlayListEntity& entity) {
             track_info.yt_album_id = entity.yt_music_album_id.toStdString();
             track_info.yt_artist_id = yt_artist_id;
 
-            auto found_cover = [thumbnail_url, is_unknown_album, this](auto music_id, auto album_id) {
+            auto found_cover = [thumbnail_url, is_unknown_album, this](auto music_id, auto album_id, const QString&) {
                 if (thumbnail_url.isEmpty()) {
                     return;
                 }
@@ -2119,7 +2137,8 @@ void Xamp::onUpdateCdTrackInfo(const QString& disc_id,
     qDatabaseFacade.insertTrackInfo(track_infos,
         kCdPlaylistId, 
         StoreType::LOCAL_STORE,
-        disc_id);
+        disc_id,
+        nullptr);
 
     cd_page_->playlistPage()->playlist()->reload();
     cd_page_->showPlaylistPage(true);
@@ -2883,7 +2902,9 @@ void Xamp::onInsertDatabase(const std::forward_list<TrackInfo>& result,
     int32_t playlist_id) {
     qDatabaseFacade.insertTrackInfo(result,
         playlist_id,
-        StoreType::PLAYLIST_LOCAL_STORE);
+        StoreType::PLAYLIST_LOCAL_STORE,
+        kEmptyString,
+        nullptr);
     ensureLocalOnePlaylistPage();
     localPlaylistPage()->playlist()->reload();
 }

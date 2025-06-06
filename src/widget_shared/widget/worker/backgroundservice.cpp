@@ -28,6 +28,7 @@
 #include <stream/ebur128scanner.h>
 
 #include <base/logger_impl.h>
+#include <base/math.h>
 
 #if defined(Q_OS_WIN)
 #include <stream/mbdiscid.h>
@@ -43,7 +44,7 @@ namespace {
     constexpr size_t kFFTSize = 2048 * 2;
     constexpr size_t kHopSize = kFFTSize * 0.5;
     constexpr float kPower2FFSize = kFFTSize * kFFTSize;
-    constexpr size_t kFreqBins = (kFFTSize / 2);
+    constexpr size_t kFreqBins = (kFFTSize / 2);    
    
     float getDb(const std::complex<float>& c) {
         // 取得 (實部^2 + 虛部^2)
@@ -52,7 +53,8 @@ namespace {
             return ColorTable::kMinDb;
         }
         // log10( val / kPower2FFSize ) → dB
-        float dB = 10.0f * std::log10f(val / kPower2FFSize);
+        //float dB = 10.0f * std::log10f(val / kPower2FFSize);
+        float dB = 10.0f * log10f_fast(val / kPower2FFSize);
         return dB;
     }
 
@@ -60,7 +62,8 @@ namespace {
         if (real_val == 0.0f) {
             return ColorTable::kMinDb;
         }
-        float dB = 10.0f * std::log10f((real_val * real_val) / kPower2FFSize);
+        //float dB = 10.0f * std::log10f((real_val * real_val) / kPower2FFSize);
+        float dB = 10.0f * log10f_fast((real_val * real_val) / kPower2FFSize);
         return dB;
     }
 
@@ -68,6 +71,7 @@ namespace {
         QImage& chunk_img,
         int col,
         const ComplexValarray& freq_bins) {
+#if 0
         // 1) 先準備顏色查表物件 (靜態單例)
         // 2) 取得 QImage 的基本資訊
         uchar* data = chunk_img.bits();
@@ -114,6 +118,41 @@ namespace {
             data[idx + 1] = qGreen(color);
             data[idx + 2] = qBlue(color);
         }
+#else
+        // --- 前置 -----------------------------------------------------------------
+        const int h = chunk_img.height();
+        const int stride = chunk_img.bytesPerLine();
+        const int n = static_cast<int>(freq_bins.size());
+
+        const int num = h - 1;
+        const int den = n - 1;
+
+        uchar* base = chunk_img.bits() + col * 3;           // 提前算 x 位移
+        auto  toRow = [&](int f) noexcept {
+            return ((h - 1) - (f * num + den / 2) / den) * stride;
+            };
+
+        // --- 主迴圈 ----------------------------------------------------------------
+        for (int f = 0; f < n; ++f) {
+            // 1. 轉 dB（示範：直接 norm→log10，不採 LUT）
+            float db;
+            if ((f == 0) || (f == n - 1)) {              // 無分支：bit-or
+                db = getRealDb(freq_bins[f].real());
+            }
+            else {
+                db = getDb(freq_bins[f]);
+            }
+
+            // 2. 顏色查表 (LUT 推薦)
+            const QRgb c = color_table[db];
+
+            // 3. 寫像素
+            uchar* pix = base + toRow(f);
+            pix[0] = qRed(c);
+            pix[1] = qGreen(c);
+            pix[2] = qBlue(c);
+        }
+#endif
     }
 
     bool getSamples(ScopedPtr<FileStream>& file_stream, Buffer<float>& buffer) {
@@ -343,7 +382,7 @@ QCoro::Task<> BackgroundService::fetchMusicBrainzRecording(const PlayListEntity&
 
 void BackgroundService::parallelEncode(const QString& dir_name, QList<EncodeJob> jobs) {
     auto stop_token = stop_source_.get_token();
-    Executor::ParallelFor(thread_pool_.get(), jobs,
+    Executor::ParallelFor(thread_pool_, jobs,
         [this, dir_name](const EncodeJob& job) {
         executeEncodeJob(dir_name, job);
         }, stop_token);

@@ -20,12 +20,5 @@ XAMP_BASE_NAMESPACE_BEGIN
 #define port_strcpy  strcpy
 #endif
 
-inline int port_wtoi(const wchar_t *str) {
-    int val = 0;
-    std::wistringstream is(str);
-    is >> val;
-    return val;
-}
-
 XAMP_BASE_NAMESPACE_END
 

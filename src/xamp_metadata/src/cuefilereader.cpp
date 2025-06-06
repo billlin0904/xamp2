@@ -80,6 +80,8 @@ public:
 		if (!cur_name) {
 			return std::unexpected(ParseCueError::PARSE_ERROR_NOT_FOUND_FILE_NAME);
 		}
+
+		track_info.is_cue_file = true;
 		
 		bool same_file = false;
 		double file_duration = 0;
@@ -90,11 +92,11 @@ public:
 				if (path.has_root_path()) {
 					auto file_path = path.parent_path() / Path(wide_cur_name);
 					reader->Open(file_path);
-					auto temp = reader->Extract();
-					if (!temp) {
+					auto result = reader->Extract();
+					if (!result) {
 						return std::unexpected(ParseCueError::PARSE_ERROR_READ_TRACK_INFO);
 					}
-					track_info = temp.value();
+					track_info = result.value();
 					file_duration = track_info.duration;
 				}
 				else {

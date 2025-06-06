@@ -11,6 +11,7 @@
 #include <base/fs.h>
 #include <base/memory.h>
 #include <base/dsdsampleformat.h>
+#include <base/archivefile.h>
 
 #include <stream/ifileencoder.h>
 #include <stream/stream.h>
@@ -26,6 +27,8 @@ public:
 
     // Create a file stream object based on the file path and DSD mode
     static ScopedPtr<FileStream> MakeFileStream(const Path& filePath, DsdModes dsdMode);
+
+    static ScopedPtr<FileStream> MakeFileStream();
 
     // Create an AAC encoder object
     static ScopedPtr<IFileEncoder> MakeFileEncoder();
@@ -67,6 +70,8 @@ XAMP_STREAM_API IDsdStream* AsDsdStream(ScopedPtr<FileStream> const & stream) no
 XAMP_STREAM_API FileStream* AsFileStream(ScopedPtr<IAudioStream> const& stream) noexcept;
 
 XAMP_STREAM_API ScopedPtr<FileStream> MakeFileStream(const Path& file_path, DsdModes dsd_mode);
+
+XAMP_STREAM_API ScopedPtr<FileStream> MakeFileStream(ArchiveEntry archive_entry, DsdModes dsd_mode);
 
 XAMP_STREAM_API std::shared_ptr<IFile> MakFileEncodeWriter(const Path& file_path);
 

@@ -19,7 +19,7 @@ std::shared_ptr<IThreadPoolExecutor> IXMainWindow::threadPool() const {
 IXMainWindow::IXMainWindow()
 	: QMainWindow() {
     setAttribute(Qt::WA_DontCreateNativeAncestors);
-    thread_pool_ = ThreadPoolBuilder::MakeThreadPool(XAMP_LOG_NAME(GUIThreadPool), 4, 1);
+    thread_pool_ = ThreadPoolBuilder::MakeThreadPool(XAMP_LOG_NAME(GUIThreadPool));
 }
 
 void IXMainWindow::installWindowAgent() {

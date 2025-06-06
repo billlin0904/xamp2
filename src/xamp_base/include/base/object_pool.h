@@ -98,7 +98,7 @@ private:
     factory_type factory_;
     std::deque<std::unique_ptr<T>> objects_;
 
-    T *CreateObject() {
+    XAMP_CHECK_LIFETIME [[nodiscard]] T *CreateObject() {
         if (current_size_ < max_size_) {
             current_size_++;
             return factory_.Create();

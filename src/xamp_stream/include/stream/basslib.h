@@ -16,6 +16,7 @@
 #include <bass/bassmix.h>
 #include <bass/basscd.h>
 #include <bass/bassenc.h>
+#include <bass/bassdsd.h>
 #include <bass/bassenc_flac.h>
 #include <base/singleton.h>
 #include <base/dll.h>
@@ -32,12 +33,12 @@ XAMP_STREAM_NAMESPACE_BEGIN
 
 inline constexpr DWORD kBassError{ 0xFFFFFFFF };
 
-struct XAMP_STREAM_API BassPluginLoadDeleter final {
+struct BassPluginLoadDeleter final {
     static HPLUGIN invalid() noexcept;
     static void close(HPLUGIN value);
 };
 
-struct XAMP_STREAM_API BassStreamDeleter final {
+struct BassStreamDeleter final {
     static HSTREAM invalid() noexcept;
     static void close(HSTREAM value);
 };
@@ -45,7 +46,7 @@ struct XAMP_STREAM_API BassStreamDeleter final {
 using BassPluginHandle = UniqueHandle<HPLUGIN, BassPluginLoadDeleter>;
 using BassStreamHandle = UniqueHandle<HSTREAM, BassStreamDeleter>;
 
-XAMP_STREAM_API std::string GetBassVersion(uint32_t version);
+std::string GetBassVersion(uint32_t version);
 
 class BassDSDLib final {
 public:
@@ -58,6 +59,7 @@ private:
 
 public:
     SharedLibraryFunction<HSTREAM(BOOL, void const *, QWORD, QWORD, DWORD, DWORD)> BASS_DSD_StreamCreateFile;
+    XAMP_DECLARE_DLL_NAME(BASS_DSD_StreamCreateFileUser);
 };
 
 class BassMixLib final {
@@ -272,6 +274,7 @@ public:
     XAMP_DECLARE_DLL_NAME(BASS_StreamGetFilePosition);
     XAMP_DECLARE_DLL_NAME(BASS_ChannelIsActive);
     XAMP_DECLARE_DLL_NAME(BASS_SampleGetChannel);
+    XAMP_DECLARE_DLL_NAME(BASS_StreamCreateFileUser);
 private:
     void LoadPlugin(const  std::string & file_name);
 };

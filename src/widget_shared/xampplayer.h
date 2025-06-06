@@ -60,7 +60,7 @@ protected:
 
     void installWindowAgent();
 
-    QWK::WidgetWindowAgent *window_agent_;
+    QWK::WidgetWindowAgent* window_agent_{ nullptr };
     std::shared_ptr<IThreadPoolExecutor> thread_pool_;
 };
 

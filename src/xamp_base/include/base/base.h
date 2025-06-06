@@ -105,7 +105,7 @@
 
 #ifdef XAMP_OS_WIN
 // Optimization function call
-#define XAMP_ALWAYS_INLINE __forceinline
+#define XAMP_ALWAYS_INLINE inline __forceinline
 #define XAMP_NEVER_INLINE __declspec(noinline)
 #else
 #define XAMP_ALWAYS_INLINE inline __attribute__((__always_inline__))
@@ -138,6 +138,12 @@
 #define XAMP_NO_TLS_GUARDS [[msvc::no_tls_guard]]
 #else
 #define XAMP_NO_TLS_GUARDS
+#endif
+
+#ifdef XAMP_OS_WIN
+#define XAMP_CHECK_LIFETIME [[msvc::lifetimebound]]
+#else
+#define XAMP_CHECK_LIFETIME
 #endif
 
 #define XAMP_HTTP_USER_AGENT "xamp2/1.0.0"

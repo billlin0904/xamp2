@@ -137,7 +137,7 @@ namespace {
 		return TBPF_NOPROGRESS;
 	}
 
-#define DWM_DLL Singleton<DwmapiLib>::GetInstance()
+#define DWM_DLL SharedSingleton<DwmapiLib>::GetInstance()
 #define IDTB_FIRST 3000
 
 	UINT MSG_TaskbarButtonCreated = WM_NULL;

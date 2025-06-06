@@ -6,6 +6,8 @@
 #pragma once
 
 #include <base/dll.h>
+#include <base/logger.h>
+#include <base/logger_impl.h>
 #include <stream/stream.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
@@ -28,7 +30,7 @@ public:
 	XAMP_DECLARE_DLL_NAME(ebur128_loudness_global_multiple);
 };
 
-Ebur128Lib::Ebur128Lib()
+Ebur128Lib::Ebur128Lib() try
 #ifdef XAMP_OS_WIN
 	: module_(LoadSharedLibrary("ebur128.dll"))
 #else
@@ -42,6 +44,9 @@ Ebur128Lib::Ebur128Lib()
 	, XAMP_LOAD_DLL_API(ebur128_sample_peak)
 	, XAMP_LOAD_DLL_API(ebur128_loudness_global)
 	, XAMP_LOAD_DLL_API(ebur128_loudness_global_multiple) {
+}
+catch (const Exception& e) {
+	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 }
 
 #define EBUR128_LIB SharedSingleton<Ebur128Lib>::GetInstance()

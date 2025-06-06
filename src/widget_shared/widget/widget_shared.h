@@ -25,7 +25,6 @@
 #include <base/lrucache.h>
 #include <base/pimplptr.h>
 #include <base/stacktrace.h>
-#include <base/lazy_storage.h>
 
 #include <metadata/api.h>
 #include <stream/api.h>

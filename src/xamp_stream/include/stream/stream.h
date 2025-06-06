@@ -44,6 +44,8 @@ XAMP_STREAM_NAMESPACE_BEGIN
     class IFile;
     class FileStream;
     class IDsdStream;
+    class ArchiveStream;
+
     class IDSPManager;
 
     using Complex = std::complex<float>;

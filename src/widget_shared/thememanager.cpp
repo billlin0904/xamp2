@@ -1,4 +1,4 @@
-#include <thememanager.h>
+ï»¿#include <thememanager.h>
 
 #include <widget/util/image_util.h>
 #include <widget/util/json_util.h>
@@ -804,18 +804,18 @@ void ThemeManager::setSliderTheme(QSlider* slider, bool enter) {
         break;
     }
 
-    // handle ¹w³]ªºÃä®ØÃC¦â
+    // handle é è¨­çš„é‚Šæ¡†é¡è‰²
     auto handle_border_color = slider_background_color;
 
-    // ­ì¥ıªº margin ­È
+    // åŸå…ˆçš„ margin å€¼
     auto margin = 10;
     if (!enter) {
         handle_border_color = "transparent"_str;
         margin = 1;
     }
 
-    // Åı handle §ó¶ê¡G°²³] handle ¬° 12x12¡Aborder-radius ³]¬° 6 (ª½®|ªº¤@¥b)
-    // ¥i¥H¨Ì»İ¨D¦Û¦æ½Õ¾ã¤j¤p
+    // è®“ handle æ›´åœ“ï¼šå‡è¨­ handle ç‚º 12x12ï¼Œborder-radius è¨­ç‚º 6 (ç›´å¾‘çš„ä¸€åŠ)
+    // å¯ä»¥ä¾éœ€æ±‚è‡ªè¡Œèª¿æ•´å¤§å°
     const int handleSize = 12;
     const int handleRadius = handleSize / 2;
 
@@ -848,10 +848,10 @@ void ThemeManager::setSliderTheme(QSlider* slider, bool enter) {
     }
 
     QSlider#%1::handle:vertical {
-        /* ³]¬°¬Û¦Pªº¼e°ª + ¶ê¨¤¡AµøÄ±¤W´N·|¬O¶ê */
+        /* è¨­ç‚ºç›¸åŒçš„å¯¬é«˜ + åœ“è§’ï¼Œè¦–è¦ºä¸Šå°±æœƒæ˜¯åœ“ */
         width: %5px;
         height: %5px;
-        margin: 0px -%6px 0px -%6px;  /* ¥iµø»İ¨D·L½Õ */
+        margin: 0px -%6px 0px -%6px;  /* å¯è¦–éœ€æ±‚å¾®èª¿ */
         background-color: %2;
         border: 1px solid %2;
         border-radius: %7px;
@@ -883,7 +883,7 @@ void ThemeManager::setSliderTheme(QSlider* slider, bool enter) {
     QSlider#%1::handle:horizontal {
         width: %5px;
         height: %5px;
-        margin: -%6px 0px -%6px 0px; /* ¥iµø»İ¨D·L½Õ */
+        margin: -%6px 0px -%6px 0px; /* å¯è¦–éœ€æ±‚å¾®èª¿ */
         border-radius: %7px;
         background-color: %4;
         border: 1px solid %4;
@@ -894,7 +894,7 @@ void ThemeManager::setSliderTheme(QSlider* slider, bool enter) {
         .arg(slider_border_color)
         .arg(handle_border_color)
         .arg(handleSize)
-        // margin ¥H handleSize / 2 °µ·L½Õ¡AÅı¾ã­Ó handle ¦b¤¤½u¤W
+        // margin ä»¥ handleSize / 2 åšå¾®èª¿ï¼Œè®“æ•´å€‹ handle åœ¨ä¸­ç·šä¸Š
         .arg(handleSize / 2)
         .arg(handleRadius)
     );

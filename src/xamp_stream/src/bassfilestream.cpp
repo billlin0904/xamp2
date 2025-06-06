@@ -3,6 +3,7 @@
 #include <stream/bassexception.h>
 #include <stream/basslib.h>
 
+#include <fstream>
 #include <base/dsd_utils.h>
 #include <base/str_utilts.h>
 #include <base/singleton.h>
@@ -18,6 +19,112 @@ XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(BassFileStream);
 
+bool fseek64(FILE* f, uint64_t off) {
+#ifdef XAMP_OS_WIN
+    return _fseeki64(f, static_cast<uint64_t>(off), SEEK_SET) == 0;
+#else
+    return fseeko64(f, static_cast<off64_t>(off), SEEK_SET) == 0;
+#endif
+}
+
+uint64_t ftell64(FILE* f) {
+#ifdef XAMP_OS_WIN
+    return static_cast<uint64_t>(_ftelli64(f));
+#else
+    return static_cast<uint64_t>(ftello64(f));
+#endif
+}
+
+using CFilePtr = std::unique_ptr<FILE, decltype(&fclose)>;
+
+class ArchiveContext {
+public:
+    static constexpr size_t kReadSize = 512 * 1024;
+    
+private:
+    ArchiveEntry entry;
+    CFilePtr file_;
+    uint64_t write_pos_ = 0;
+    uint64_t read_pos_ = 0;
+    uint64_t total_len_ = 0;
+    std::vector<char> buffer_;
+
+    static bool WriteCache(ArchiveContext* ctx, uint64_t want_end) {
+        while (ctx->write_pos_ < want_end) {
+            auto result = ctx->entry.Read(ctx->buffer_.data(), static_cast<long>(kReadSize));
+            if (!result) {
+                return false;
+            }
+            auto r = result.value();
+            if (r <= 0) {
+                return false;
+            }
+            std::fseek(ctx->file_.get(), 0, SEEK_END);
+            std::fwrite(ctx->buffer_.data(), 1, r, ctx->file_.get());
+            ctx->write_pos_ += r;
+        }
+        return true;
+    }
+public:
+    explicit ArchiveContext(ArchiveEntry archive_entry)
+        : file_(std::tmpfile(), fclose) {
+        if (!file_) {
+            throw std::runtime_error("Failed to create temp file");
+        }
+        entry = std::move(archive_entry);
+        buffer_.resize(kReadSize);
+    }
+
+    ~ArchiveContext() = default;    
+
+    static QWORD CALLBACK ArchiveLengthCallback(void* user) {
+        auto* context = static_cast<ArchiveContext*>(user);
+        return context->entry.Length();
+    }
+
+    static DWORD CALLBACK ArchiveReadCallback(void* buf, DWORD len, void* user) {
+        auto* ctx = static_cast<ArchiveContext*>(user);
+        const uint64_t want_end = ctx->read_pos_ + len;
+
+        WriteCache(ctx, want_end);
+
+        const uint64_t avail = ctx->write_pos_ - ctx->read_pos_;
+        const DWORD to_read = static_cast<DWORD>(std::min<uint64_t>(len, avail));
+        if (to_read == 0) {
+            return 0;
+        }
+
+        if (!fseek64(ctx->file_.get(), ctx->read_pos_)) {
+            return 0;
+        }
+
+        size_t n = std::fread(buf, 1, to_read, ctx->file_.get());
+        ctx->read_pos_ += n;
+
+        return static_cast<DWORD>(n);
+    }
+
+    static BOOL CALLBACK ArchiveSeekCallback(QWORD offset, void* user) {
+        auto* ctx = static_cast<ArchiveContext*>(user);
+
+        if (offset > ctx->total_len_ && ctx->total_len_ != 0) {
+            return FALSE;
+        }
+
+        if (!WriteCache(ctx, offset)) {
+            return FALSE;
+        }
+
+        ctx->read_pos_ = static_cast<uint64_t>(offset);
+        return TRUE;
+    }
+
+    static void CALLBACK ArchiveCloseCallback(void* user) {
+        auto* ctx = static_cast<ArchiveContext*>(user);
+        ctx->file_.reset();
+    }    
+};
+
 class BassFileStream::BassFileStreamImpl {
 public:
     BassFileStreamImpl() noexcept
@@ -31,7 +138,7 @@ public:
         Close();
     }
 
-    void LoadFile(const std::wstring & file_path, DsdModes mode, DWORD flags) {
+    void CreateBassStream(const std::wstring & file_path, DsdModes mode, DWORD flags) {
         if (mode == DsdModes::DSD_MODE_PCM) {
 #ifdef XAMP_OS_MAC
             auto utf8 = String::ToString(file_path);
@@ -71,8 +178,10 @@ public:
         }
     }
 
-    void LoadMemoryMappedFile(std::wstring const& file_path, DsdModes mode, DWORD flags) {
-        file_.Open(file_path);
+    void CreateMemoryMappedBassStream(std::wstring const& file_path, DsdModes mode, DWORD flags) {
+        if (!file_.Open(file_path)) {
+            throw PlatformException();
+        }
 
         if (mode == DsdModes::DSD_MODE_PCM) {
             stream_.reset(BASS_LIB.BASS_StreamCreateFile(TRUE,
@@ -94,8 +203,10 @@ public:
         }
     }
 
-    void LoadFileOrURL(std::wstring const& file_path, bool is_file_path, DsdModes mode, DWORD flags) {
+    void CreateFileOrURL(std::wstring const& file_path, bool is_file_path, DsdModes mode, DWORD flags) {
         if (is_file_path) {
+            PrefetchFile(file_path);
+
 	        const auto is_cda_file = IsCDAFile(file_path);
 
             if (is_cda_file) {
@@ -108,8 +219,7 @@ public:
                 return;
             }
 
-            //LoadMemoryMappedFile(file_path, mode, flags);
-            LoadFile(file_path, mode, flags);
+            CreateBassStream(file_path, mode, flags);
         } else {
 #ifdef XAMP_OS_MAC
             auto utf8 = String::ToString(file_path);
@@ -135,7 +245,14 @@ public:
         }
     }
 
-    void LoadFromFile(Path const& file_path) {
+    void Open(ArchiveEntry archive_entry) {
+        const BASS_FILEPROCS file_process = {
+            &ArchiveContext::ArchiveCloseCallback,
+            & ArchiveContext::ArchiveLengthCallback,
+            & ArchiveContext::ArchiveReadCallback,
+            & ArchiveContext::ArchiveSeekCallback
+        };
+
         DWORD flags = 0;
 
         switch (mode_) {
@@ -154,25 +271,74 @@ public:
             XAMP_NO_DEFAULT;
         }
 
+        flags |= BASS_ASYNCFILE;
+
+        archive_context_ = MakeAlign<ArchiveContext>(std::move(archive_entry));
+
+        Stopwatch measure_stream_time;
+
+        if (mode_ == DsdModes::DSD_MODE_PCM) {
+            stream_.reset(BASS_LIB.BASS_StreamCreateFileUser(
+                STREAMFILE_NOBUFFER,
+                flags | BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
+                &file_process,
+                archive_context_.get()
+            ));
+        }
+        else {
+            stream_.reset(BASS_LIB.DSDLib->BASS_DSD_StreamCreateFileUser(
+                STREAMFILE_NOBUFFER,
+                flags | BASS_STREAM_DECODE,
+                &file_process,
+                archive_context_.get(),
+                0
+            ));
+        }
+
+        XAMP_LOG_DEBUG("Open track is a {} Secs", measure_stream_time.ElapsedSeconds());
+
+        LoadStream();
+    }
+
+    void Open(Path const& file_path) {
+        DWORD flags = 0;
+
+        switch (mode_) {
+        case DsdModes::DSD_MODE_PCM:
+        case DsdModes::DSD_MODE_DSD2PCM:
+            flags = BASS_SAMPLE_FLOAT;
+            break;
+        case DsdModes::DSD_MODE_DOP:
+            // DSD-over-PCM data is 24-bit, so the BASS_SAMPLE_FLOAT flag is required.
+            flags = BASS_DSD_DOP | BASS_SAMPLE_FLOAT;
+            break;
+        case DsdModes::DSD_MODE_NATIVE:
+            flags = BASS_DSD_RAW;
+            break;
+        default:
+            XAMP_NO_DEFAULT;
+        }
+
+        flags |= BASS_ASYNCFILE;
+
         XAMP_LOG_D(logger_, "Use DsdModes: {}", mode_);
 
         const auto is_http = file_path.wstring().find(L"http") != std::string::npos
     		|| file_path.wstring().find(L"https") != std::string::npos;
         XAMP_LOG_D(logger_, "Start open file");
 
-        Stopwatch sw;
-        sw.Reset();
+        CreateFileOrURL(file_path.wstring(), !is_http, mode_, flags);
+        LoadStream();
+    }
 
-        LoadFileOrURL(file_path.wstring(), !is_http, mode_, flags);
-
-        XAMP_LOG_D(logger_, "End open file :{:.2f} secs", sw.ElapsedSeconds());
+    void LoadStream() {
         info_ = BASS_CHANNELINFO{};
         BassIfFailedThrow(BASS_LIB.BASS_ChannelGetInfo(stream_.get(), &info_));
 
         const auto duration = GetDuration();
         if (duration < 1.0) {
             throw LibraryException(
-                String::Format("Duration too small! {:.2f} secs", 
+                String::Format("Duration too small! {:.2f} secs",
                     duration));
         }
 
@@ -184,17 +350,17 @@ public:
             mix_stream_.reset(
                 BASS_LIB.MixLib->BASS_Mixer_StreamCreate(
                     GetFormat().GetSampleRate(),
-                AudioFormat::kMaxChannel,
-                BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE | BASS_MIXER_END));
+                    AudioFormat::kMaxChannel,
+                    BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE | BASS_MIXER_END));
             if (!mix_stream_) {
                 throw BassException();
             }
 
             BassIfFailedThrow(
                 BASS_LIB.MixLib->BASS_Mixer_StreamAddChannel(mix_stream_.get(),
-                stream_.get(),
-                BASS_MIXER_BUFFER));
-            XAMP_LOG_D(logger_, 
+                    stream_.get(),
+                    BASS_MIXER_BUFFER));
+            XAMP_LOG_D(logger_,
                 "Mix stream {} channel to 2 channel", info_.chans);
             info_.chans = AudioFormat::kMaxChannel;
         }
@@ -368,7 +534,7 @@ public:
             return true;
         }
         return false;
-    }
+    }    
 
 private:
     uint32_t InternalGetSamples(void* buffer, uint32_t length) const noexcept {
@@ -387,6 +553,7 @@ private:
     BassStreamHandle limiter_;
     BASS_CHANNELINFO info_;
     MemoryMappedFile file_;
+    ScopedPtr<ArchiveContext> archive_context_;
     LoggerPtr logger_;
 };
 
@@ -397,7 +564,11 @@ BassFileStream::BassFileStream()
 XAMP_PIMPL_IMPL(BassFileStream)
 
 void BassFileStream::OpenFile(Path const& file_path)  {
-    stream_->LoadFromFile(file_path);
+    stream_->Open(file_path);
+}
+
+void BassFileStream::Open(ArchiveEntry archive_entry) {
+    stream_->Open(std::move(archive_entry));
 }
 
 void BassFileStream::Close() noexcept {

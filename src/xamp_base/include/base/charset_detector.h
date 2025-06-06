@@ -5,10 +5,17 @@
 
 #pragma once
 
+#include <expected>
+
 #include <base/base.h>
 #include <base/memory.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
+
+enum class EncodingDetectorError {
+	ENCODING_ERROR_UNKNOWN,
+	ENCODING_DATA_ERROR,
+};
 
 class XAMP_BASE_API OpenCCConvert {
 public:
@@ -30,9 +37,9 @@ public:
 
 	XAMP_PIMPL(EncodingDetector)
 
-	std::string Detect(const char* data, size_t size);
+	std::expected<std::string, EncodingDetectorError> Detect(const char* data, size_t size);
 
-	std::string Detect(const std::string &str) {
+	std::expected<std::string, EncodingDetectorError> Detect(const std::string &str) {
 		return Detect(str.data(), str.size());
 	}
 

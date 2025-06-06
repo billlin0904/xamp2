@@ -238,7 +238,7 @@ private:
 	Task<void> render_task_;
 	FastMutex mutex_;
 	std::shared_ptr<IThreadPoolExecutor> thread_pool_;
-	std::function<void(void *, const float *, const AudioConvertContext &)> convert_;
+	AudioConverter convert_;
 	mutable AudioConvertContext data_convert_;
 };
 

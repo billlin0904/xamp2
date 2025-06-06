@@ -11,7 +11,7 @@
 #include <base/audioformat.h>
 #include <base/memory.h>
 #include <base/uuidof.h>
-#include <base/pimplptr.h>
+#include <base/archivefile.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
@@ -25,7 +25,9 @@ public:
 
 	XAMP_PIMPL(BassFileStream)
 
-    void OpenFile(Path const& file_path) override;
+    void OpenFile(const Path& file_path) override;
+
+	void Open(ArchiveEntry archive_entry) override;
 
 	void Close() noexcept override;
 

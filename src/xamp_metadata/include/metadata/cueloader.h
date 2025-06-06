@@ -22,8 +22,7 @@ enum class ParseCueError {
 };
 
 class XAMP_METADATA_API CueLoader {
-public:
-	
+public:	
 	CueLoader();
 
 	XAMP_PIMPL(CueLoader)

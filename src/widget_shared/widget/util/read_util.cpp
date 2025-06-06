@@ -70,9 +70,8 @@ QByteArray readChromaprint(const Path& file_path) {
     return base64;
 }
 
-ScopedPtr<FileStream> makePcmFileStream(const Path& file_path) {
-    PrefetchFile(file_path);
+ScopedPtr<FileStream> makePcmFileStream(const Path& file_path) {    
     auto file_stream = StreamFactory::MakeFileStream(file_path);
-    file_stream->OpenFile(file_path);
+    file_stream->OpenFile(file_path);    
     return file_stream;
 }

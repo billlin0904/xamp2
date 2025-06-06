@@ -143,6 +143,17 @@ void AudioPlayer::Open(const Path& file_path,
     audio_config_.target_sample_rate = target_sample_rate;
 }
 
+void AudioPlayer::OpenArchiveEntry(ArchiveEntry archive_entry,
+    const DeviceInfo& device_info,
+    uint32_t target_sample_rate, 
+    DsdModes output_mode) {
+    CloseDevice(true);
+    UpdatePlayerStreamTime();
+    OpenStream(std::move(archive_entry), output_mode);
+    device_info_ = device_info;
+    audio_config_.target_sample_rate = target_sample_rate;
+}
+
 void AudioPlayer::CreateDevice(const Uuid& device_type_id,
     const std::string & device_id, bool open_always) {
     if (device_ == nullptr
@@ -196,6 +207,16 @@ void AudioPlayer::ReadStreamInfo(DsdModes dsd_mode,
 
 void AudioPlayer::OpenStream(const Path & file_path, DsdModes dsd_mode) {
     stream_ = MakeFileStream(file_path, dsd_mode);
+
+    ReadStreamInfo(dsd_mode, stream_);
+    XAMP_LOG_D(logger_, "Open stream type: {} {} duration:{:.2f} sec.",
+        stream_->GetDescription(),
+        audio_config_.dsd_mode,
+        playback_state_.stream_duration);
+}
+
+void AudioPlayer::OpenStream(ArchiveEntry archive_entry, DsdModes dsd_mode) {
+    stream_ = MakeFileStream(std::move(archive_entry), dsd_mode);
 
     ReadStreamInfo(dsd_mode, stream_);
     XAMP_LOG_D(logger_, "Open stream type: {} {} duration:{:.2f} sec.",
@@ -873,7 +894,7 @@ void AudioPlayer::Play() {
 
     XAMP_LOG_W(logger_, "Stream task is spawning!");
 
-    stream_task_ = Executor::Spawn(player_thread_pool_.get(),
+    stream_task_ = Executor::Spawn(player_thread_pool_,
         [player = shared_from_this()](const auto& stop_token) {
         XAMP_LOG_W(player->logger_, "Stream task is spawn done!");
 

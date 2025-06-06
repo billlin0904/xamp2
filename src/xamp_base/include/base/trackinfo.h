@@ -30,6 +30,7 @@ struct XAMP_BASE_API TrackInfo final {
     TrackInfo() noexcept;
 
     uint32_t is_cue_file;
+    uint32_t is_zip_file;
     uint32_t rating;
     uint32_t track;
     uint32_t bit_rate;
@@ -49,6 +50,7 @@ struct XAMP_BASE_API TrackInfo final {
     std::wstring comment;
     std::string yt_album_id;
     std::string yt_artist_id;
+    std::optional<std::wstring> archive_entry_name;
     std::optional<ReplayGain> replay_gain;
 
     std::optional<std::wstring> file_name() const {
@@ -64,8 +66,10 @@ struct XAMP_BASE_API TrackInfo final {
         }
         return MakeOptional<std::wstring>(file_path.parent_path().wstring());
     }
-
     std::optional<std::wstring> file_ext() const {
+        if (is_zip_file && archive_entry_name) {
+            return Path(archive_entry_name.value()).extension().wstring();
+		}
         if (!file_path.has_extension()) {
             return std::nullopt;
         }

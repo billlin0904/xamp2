@@ -20,38 +20,6 @@ XAMP_BASE_NAMESPACE_BEGIN
 inline constexpr double XAMP_PI{ 3.14159265358979323846 };
 
 /*
-* Splitmix64 random number generator.
-* 
-* @param[in] state
-* @return std::array<uint64_t, N>
-*/
-template <size_t N>
-constexpr std::array<uint64_t, N> Splitmix64(uint64_t state) noexcept {
-	std::array<uint64_t, N> seeds = {};
-	std::generate(seeds.begin(), seeds.end(), [state]() mutable noexcept {
-		uint64_t z = (state += UINT64_C(0x9e3779b97f4a7c15));
-		z = (z ^ (z >> 30)) * UINT64_C(0xbf58476d1ce4e5b9);
-		z = (z ^ (z >> 27)) * UINT64_C(0x94d049bb133111eb);
-		return z ^ (z >> 31);
-		});
-	return seeds;
-}
-
-/*
-* From unaligned memory.
-* 
-* @param[in] address
-* @return T
-*/
-template <typename T>
-T FromUnaligned(const void* address) {
-	static_assert(std::is_trivially_copyable_v<T>);
-	T res{};
-	MemoryCopy(&res, address, sizeof(res));
-	return res;
-}
-
-/*
 * Rotates bits to the left.
 * 
 * @param[in] x
@@ -133,6 +101,26 @@ T Round(T a, int32_t places) {
     static_assert(std::is_floating_point_v<T>, "Round<T>: T must be floating point");
     const T shift = pow(static_cast<T>(10.0), places);
     return Round(a * shift) / shift;
+}
+
+//log10f is exactly log2(x)/log2(10.0f)
+#define log10f_fast(x)  (log2f_approx(x) * 0.3010299956639812f)
+
+// This is a fast approximation to log2()
+// Y = C[0]*F*F*F + C[1]*F*F + C[2]*F + C[3] + E;
+XAMP_ALWAYS_INLINE float log2f_approx(float X) noexcept {
+	float Y, F;
+	int E;
+	F = frexpf(fabsf(X), &E);
+	Y = 1.23149591368684f;
+	Y *= F;
+	Y += -4.11852516267426f;
+	Y *= F;
+	Y += 6.02197014179219f;
+	Y *= F;
+	Y += -3.13396450166353f;
+	Y += E;
+	return Y;
 }
 
 XAMP_BASE_NAMESPACE_END

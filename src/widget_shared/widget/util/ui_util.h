@@ -24,6 +24,7 @@ class QStyleOptionViewItem;
 class QAbstractItemView;
 
 inline constexpr std::string_view kCueFileExtension(".cue");
+inline constexpr std::string_view kZipFileExtension(".zip");
 
 struct XAMP_WIDGET_SHARED_EXPORT PlaybackFormat {
     bool is_dsd_file{ false };

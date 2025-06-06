@@ -16,7 +16,7 @@ XAMP_STREAM_NAMESPACE_BEGIN
 namespace {
 	XAMP_DECLARE_LOG_NAME(SoxrSampleRateConverter);
 	const std::string_view SOXR_Description = "Soxr " SOXR_THIS_VERSION_STR;
-#define LISOXR_LIB Singleton<SoxrLib>::GetInstance()	
+#define LISOXR_LIB SharedSingleton<SoxrLib>::GetInstance()	
 }
 
 class SoxrSampleRateConverter::SoxrSampleRateConverterImpl final {

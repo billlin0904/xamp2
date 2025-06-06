@@ -22,10 +22,22 @@ size_t GetPageSize() noexcept {
 	return system_info.dwPageSize;
 }
 
-bool PrefetchMemory(void* adddr, size_t length) noexcept {
-	_WIN32_MEMORY_RANGE_ENTRY address_range{ adddr, length };
+bool PrefetchMemory(void* addr, size_t length) noexcept {
+	XAMP_EXPECTS(addr != nullptr);
+	XAMP_EXPECTS(length > 0);	
+
+	_WIN32_MEMORY_RANGE_ENTRY address_range{ addr, length };
 	const WinHandle current_process(::GetCurrentProcess());
-	return ::PrefetchVirtualMemory(current_process.get(), 1, &address_range, 0);
+	if (::PrefetchVirtualMemory(current_process.get(), 1, &address_range, 0)) {
+		volatile uint8_t dummy = 0;
+		auto page_size = GetPageSize();
+		const uint8_t* base = (const uint8_t*)addr;
+		for (size_t i = 0; i < length; i += page_size) {
+			dummy ^= base[i];
+		}
+		return true;
+	}
+	return false;
 }
 #else
 size_t GetPageSize() noexcept {
@@ -39,15 +51,14 @@ bool PrefetchMemory(void* adddr, size_t length) noexcept {
 
 bool PrefetchFile(MemoryMappedFile &file, size_t prefech_size) {
     const auto prefetch_file_size = (std::min)(prefech_size, file.GetLength());
-    return PrefetchMemory(const_cast<void*>(file.GetData()), prefetch_file_size);
+	if (PrefetchMemory(const_cast<void*>(file.GetData()), prefetch_file_size)) {		
+		return true;
+	}
+	return false;
 }
 
 bool PrefetchFile(std::wstring const & file_path) {
-#ifndef XAMP_OS_WIN
-	MemoryMappedFile file;
-	file.Open(file_path);
-    return PrefetchFile(file);
-#else
+#if 0
 	FileHandle file(::CreateFileW(file_path.c_str(),
 		GENERIC_READ,
 		FILE_SHARE_READ,
@@ -74,6 +85,12 @@ bool PrefetchFile(std::wstring const & file_path) {
 		}
 	}
 	return true;
+#else
+	MemoryMappedFile file;
+	if (file.Open(file_path)) {
+		return PrefetchFile(file);
+	}
+	return false;
 #endif
 }
 
