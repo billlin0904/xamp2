@@ -218,7 +218,7 @@ HPLUGIN BassPluginLoadDeleter::invalid() noexcept {
     return 0;
 }
 
- void BassPluginLoadDeleter::close(HPLUGIN value) {
+ void BassPluginLoadDeleter::Close(HPLUGIN value) {
      BASS_LIB.BASS_PluginFree(value);
 }
 
@@ -226,7 +226,7 @@ HSTREAM BassStreamDeleter::invalid() noexcept {
     return 0;
 }
 
-void BassStreamDeleter::close(HSTREAM value) {
+void BassStreamDeleter::Close(HSTREAM value) {
     BASS_LIB.BASS_StreamFree(value);
 }
 

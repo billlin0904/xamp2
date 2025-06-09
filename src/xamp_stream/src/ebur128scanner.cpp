@@ -94,7 +94,7 @@ private:
 		static ebur128_state* invalid() noexcept {
 			return nullptr;
 		}
-		static void close(ebur128_state* value) {
+		static void Close(ebur128_state* value) {
 			EBUR128_LIB.ebur128_destroy(&value);
 		}
 	};

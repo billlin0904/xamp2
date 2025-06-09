@@ -178,9 +178,9 @@ void XAudio2OutputDevice::CloseStream() {
 		mastering_voice_ = nullptr;
 	}
 
-	thread_start_.close();
-	thread_exit_.close();
-	close_request_.close();
+	thread_start_.Close();
+	thread_exit_.Close();
+	close_request_.Close();
 	render_task_ = Task<void>();
 }
 

@@ -26,7 +26,7 @@ public:
 	}
 
 	~UniqueHandle() noexcept {
-		close();
+		Close();
 	}
 
 	XAMP_DISABLE_COPY(UniqueHandle)
@@ -37,7 +37,7 @@ public:
 
 	void reset(T value = Traits::invalid()) noexcept {
 		if (value_ != value) {
-			close();
+			Close();
 			value_ = value;
 		}
 	}
@@ -56,9 +56,9 @@ public:
 		return is_valid();
 	}
 
-	void close() noexcept(noexcept(Traits::close(value_))) {
+	void Close() noexcept(noexcept(Traits::Close(value_))) {
 		if (is_valid()) {
-			Traits::close(value_);
+			Traits::Close(value_);
 			value_ = Traits::invalid();
 		}
 	}

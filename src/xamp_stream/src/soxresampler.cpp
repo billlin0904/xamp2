@@ -204,7 +204,7 @@ private:
 			return nullptr;
 		}
 
-		static void close(soxr_t value) noexcept {
+		static void Close(soxr_t value) noexcept {
 			LISOXR_LIB.soxr_delete(value);
 		}
 	};

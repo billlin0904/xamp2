@@ -513,11 +513,11 @@ private:
         if (!reader) {
             return AVERROR(EINVAL);
         }
-        int32_t read = reader->Read(buf, buf_size);
-        if (read < 0) {
+        int32_t Read = reader->Read(buf, buf_size);
+        if (Read < 0) {
             return AVERROR(EIO);
         }
-        return read;
+        return Read;
     }
 
     static int32_t CustomWritePacket(void* opaque, uint8_t* buf, int32_t buf_size) {

@@ -19,31 +19,13 @@ XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(BassFileStream);
 
-bool fseek64(FILE* f, uint64_t off) {
-#ifdef XAMP_OS_WIN
-    return _fseeki64(f, static_cast<uint64_t>(off), SEEK_SET) == 0;
-#else
-    return fseeko64(f, static_cast<off64_t>(off), SEEK_SET) == 0;
-#endif
-}
-
-uint64_t ftell64(FILE* f) {
-#ifdef XAMP_OS_WIN
-    return static_cast<uint64_t>(_ftelli64(f));
-#else
-    return static_cast<uint64_t>(ftello64(f));
-#endif
-}
-
-using CFilePtr = std::unique_ptr<FILE, decltype(&fclose)>;
-
 class ArchiveContext {
 public:
     static constexpr size_t kReadSize = 512 * 1024;
     
 private:
     ArchiveEntry entry;
-    CFilePtr file_;
+    TemporaryFile file_;
     uint64_t write_pos_ = 0;
     uint64_t read_pos_ = 0;
     uint64_t total_len_ = 0;
@@ -59,18 +41,14 @@ private:
             if (r <= 0) {
                 return false;
             }
-            std::fseek(ctx->file_.get(), 0, SEEK_END);
-            std::fwrite(ctx->buffer_.data(), 1, r, ctx->file_.get());
+            ctx->file_.Seek(0, SEEK_END);
+            ctx->file_.Write(ctx->buffer_.data(), 1, r);
             ctx->write_pos_ += r;
         }
         return true;
     }
 public:
-    explicit ArchiveContext(ArchiveEntry archive_entry)
-        : file_(std::tmpfile(), fclose) {
-        if (!file_) {
-            throw std::runtime_error("Failed to create temp file");
-        }
+    explicit ArchiveContext(ArchiveEntry archive_entry) {
         entry = std::move(archive_entry);
         buffer_.resize(kReadSize);
     }
@@ -94,11 +72,11 @@ public:
             return 0;
         }
 
-        if (!fseek64(ctx->file_.get(), ctx->read_pos_)) {
+        if (!ctx->file_.Seek(ctx->read_pos_, SEEK_SET)) {
             return 0;
         }
 
-        size_t n = std::fread(buf, 1, to_read, ctx->file_.get());
+        size_t n = ctx->file_.Read(buf, 1, to_read);
         ctx->read_pos_ += n;
 
         return static_cast<DWORD>(n);
@@ -121,7 +99,7 @@ public:
 
     static void CALLBACK ArchiveCloseCallback(void* user) {
         auto* ctx = static_cast<ArchiveContext*>(user);
-        ctx->file_.reset();
+        ctx->file_.Close();
     }    
 };
 
@@ -279,7 +257,7 @@ public:
 
         if (mode_ == DsdModes::DSD_MODE_PCM) {
             stream_.reset(BASS_LIB.BASS_StreamCreateFileUser(
-                STREAMFILE_NOBUFFER,
+                STREAMFILE_BUFFER,
                 flags | BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
                 &file_process,
                 archive_context_.get()

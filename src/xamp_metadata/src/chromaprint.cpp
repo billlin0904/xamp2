@@ -81,7 +81,7 @@ private:
 			return nullptr;
 		}
 
-		static void close(ChromaprintContext* value) noexcept {
+		static void Close(ChromaprintContext* value) noexcept {
 			CHROMAPRINT_LIB.chromaprint_free(value);
 		}
 	};

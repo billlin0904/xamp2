@@ -13,6 +13,11 @@
 #include <base/archivelib.h>
 #include <base/archivefile.h>
 
+#if 0
+#include <llfio/llfio.hpp>
+#include <ntkernel-error-category/ntkernel_category.hpp>
+#endif
+
 XAMP_BASE_NAMESPACE_BEGIN
 
 namespace {
@@ -29,7 +34,7 @@ archive* ArchivePtrDeleter::invalid() noexcept {
 	return nullptr;
 }
 
-void ArchivePtrDeleter::close(archive* value) {
+void ArchivePtrDeleter::Close(archive* value) {
 	LIBARCHIVE_LIB.archive_read_free(value);
 }
 
@@ -41,26 +46,47 @@ std::expected<long long, std::string> ArchiveEntry::Read(char* buffer, long leng
 	return ret;
 }
 
-std::expected<Path, std::string> ArchiveEntry::Decompress() {
-	const auto temp_file_path = GetTempFileNamePath();
+#if !USE_CSTDIO
+#if 0
+namespace llfio = LLFIO_V2_NAMESPACE;
 
-	std::ofstream tempfile;
-	tempfile.open(temp_file_path, std::ios::binary);
-	if (!tempfile) {
-		return std::unexpected(GetLinArchiveErrorMessage(archive_ptr));
+using ssize_t = long long;
+
+struct LlfioStream {
+	llfio::file_handle fh;
+	uint64_t           offset = 0;
+
+	static int open_cb(struct archive* a, void* client) {
+		auto* s = static_cast<LlfioStream*>(client);
+		(void)a;
+		return ARCHIVE_OK;
 	}
 
-	constexpr size_t bufsize = 65536;
-	std::vector<uint8_t> buffer(bufsize);
+	static ssize_t read_cb(struct archive* a, void* client,
+		const void** buff) {
+		auto* s = static_cast<LlfioStream*>(client);
 
-	la_ssize_t read_bytes = 0;
-	while ((read_bytes = LIBARCHIVE_LIB.archive_read_data(archive_ptr.get(), buffer.data(), buffer.size())) > 0) {
-		tempfile.write((const char*)buffer.data(), read_bytes);
+		static thread_local std::array<char, 64 * 1024> tlbuf;
+		llfio::file_handle::buffer_type b{ tlbuf.data(), tlbuf.size() };
+		llfio::file_handle::buffers_type bufs(&b, 1);
+		llfio::file_handle::io_request<decltype(bufs)> req(bufs, s->offset);
+
+		auto r = s->fh.read(req);
+		if (!r) {
+			archive_set_error(a, int(r.error().value()),
+				r.error().message().c_str());
+			return -1;
+		}
+		const auto n = r.bytes_transferred();
+		if (n == 0) return 0;                     // EOF
+
+		s->offset += n;
+		*buff = tlbuf.data();
+		return static_cast<ssize_t>(n);
 	}
-
-	tempfile.close();
-	return temp_file_path;
-}
+};
+#endif
+#endif
 
 class ArchiveFile::ArchiveFileImpl {
 public:

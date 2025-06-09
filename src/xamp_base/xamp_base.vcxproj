@@ -79,17 +79,17 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/unordered_dense/include/;../thirdparty/uchardet/src/;../thirdparty/libiconv/include/;../thirdparty/mecab/include/;../thirdparty/cld3/include/;../thirdparty/OpenCC/src/;../thirdparty/libarchive/include/</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>BASE_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/unordered_dense/include/;../thirdparty/uchardet/src/;../thirdparty/libiconv/include/;../thirdparty/mecab/include/;../thirdparty/cld3/include/;../thirdparty/OpenCC/src/;../thirdparty/libarchive/include/;../thirdparty/llfio/include/llfio/ntkernel-error-category/include/</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BASE_API_EXPORTS;LLFIO_HEADERS_ONLY=0;NTKERNEL_ERROR_CATEGORY_INLINE=0;LLFIO_STATIC_LINK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996;4819</DisableSpecificWarnings>
       <BrowseInformation>true</BrowseInformation>
       <LanguageStandard_C>Default</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>Dbghelp.lib;Synchronization.lib;rpcrt4.lib;Winmm.lib;Bcrypt.lib;icuuc.lib;icuin.lib;cld3.lib;opencc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Dbghelp.lib;Synchronization.lib;rpcrt4.lib;Winmm.lib;Bcrypt.lib;icuuc.lib;icuin.lib;cld3.lib;opencc.lib;llfio_sl-2.0-Windows-AMD64-Release.lib;ntkernel-error-category_sl-1.0-Windows-AMD64-Release.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>../thirdparty/uchardet/msvc/src/Debug/;../thirdparty/libiconv/output/x64/Debug/;../thirdparty/cld3/debug/lib/;../thirdparty/OpenCC/msvc/src/Debug/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../thirdparty/uchardet/msvc/src/Debug/;../thirdparty/libiconv/output/x64/Debug/;../thirdparty/cld3/debug/lib/;../thirdparty/OpenCC/msvc/src/Debug/;../thirdparty/llfio/prebuilt/lib/Release/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>
@@ -129,9 +129,9 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/unordered_dense/include/;../thirdparty/uchardet/src/;../thirdparty/libiconv/include/;../thirdparty/mecab/include/;../thirdparty/cld3/include/;../thirdparty/OpenCC/src/;../thirdparty/libarchive/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/unordered_dense/include/;../thirdparty/uchardet/src/;../thirdparty/libiconv/include/;../thirdparty/mecab/include/;../thirdparty/cld3/include/;../thirdparty/OpenCC/src/;../thirdparty/libarchive/;../thirdparty/llfio/include/llfio/ntkernel-error-category/include/</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <PreprocessorDefinitions>BASE_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BASE_API_EXPORTS;LLFIO_HEADERS_ONLY=0;NTKERNEL_ERROR_CATEGORY_INLINE=0;LLFIO_STATIC_LINK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <OmitFramePointers>true</OmitFramePointers>
       <DebugInformationFormat>None</DebugInformationFormat>
       <DisableSpecificWarnings>4996;4819</DisableSpecificWarnings>
@@ -149,8 +149,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Dbghelp.lib;Synchronization.lib;rpcrt4.lib;Winmm.lib;Bcrypt.lib;icuuc.lib;icuin.lib;cld3.lib;opencc.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>../thirdparty/cld3/lib/;../thirdparty/OpenCC/msvc/src/Release/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Dbghelp.lib;Synchronization.lib;rpcrt4.lib;Winmm.lib;Bcrypt.lib;icuuc.lib;icuin.lib;cld3.lib;opencc.lib;llfio_sl-2.0-Windows-AMD64-Release.lib;ntkernel-error-category_sl-1.0-Windows-AMD64-Release.lib;Ws2_32.lib;Crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../thirdparty/cld3/lib/;../thirdparty/OpenCC/msvc/src/Release/;../thirdparty/llfio/prebuilt/lib/Release/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <Bscmake>

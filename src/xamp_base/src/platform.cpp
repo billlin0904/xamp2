@@ -529,7 +529,7 @@ uint64_t GenRandomSeed() noexcept {
             return nullptr;
         }
 
-        static void close(BCRYPT_ALG_HANDLE value) {
+        static void Close(BCRYPT_ALG_HANDLE value) {
             ::BCryptCloseAlgorithmProvider(value, 0);
         }
     };

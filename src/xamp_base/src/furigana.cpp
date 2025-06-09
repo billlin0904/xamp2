@@ -13,7 +13,7 @@ namespace {
             return nullptr;
         }
 
-        static void close(UTransliterator* value) {
+        static void Close(UTransliterator* value) {
             if (value != nullptr) {
                 ::utrans_close(value);
             }

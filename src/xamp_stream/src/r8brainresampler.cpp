@@ -66,7 +66,7 @@ public:
 			return nullptr;
 		}
 
-		static void close(CR8BResampler value) noexcept {
+		static void Close(CR8BResampler value) noexcept {
 			LIBR8_DLL.r8b_clear(value);
 			LIBR8_DLL.r8b_delete(value);
 		}

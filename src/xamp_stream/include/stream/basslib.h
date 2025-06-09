@@ -35,12 +35,12 @@ inline constexpr DWORD kBassError{ 0xFFFFFFFF };
 
 struct BassPluginLoadDeleter final {
     static HPLUGIN invalid() noexcept;
-    static void close(HPLUGIN value);
+    static void Close(HPLUGIN value);
 };
 
 struct BassStreamDeleter final {
     static HSTREAM invalid() noexcept;
-    static void close(HSTREAM value);
+    static void Close(HSTREAM value);
 };
 
 using BassPluginHandle = UniqueHandle<HPLUGIN, BassPluginLoadDeleter>;

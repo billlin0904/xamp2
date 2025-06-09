@@ -18,7 +18,7 @@ struct DiscIdDeleter final {
 		return nullptr;
 	}
 
-	static void close(DiscId* value) {
+	static void Close(DiscId* value) {
 		DiscIdDLL.discid_free(value);
 	}
 };

@@ -33,6 +33,7 @@
     <ClCompile Include="src\charset_detector.cpp" />
     <ClCompile Include="src\text_encoding.cpp" />
     <ClCompile Include="src\furigana.cpp" />
+    <ClCompile Include="src\archivefile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\base\assert.h" />
@@ -88,11 +89,12 @@
     <ClInclude Include="include\base\windows_handle.h" />
     <ClInclude Include="include\base\workstealingtaskqueue.h" />
     <ClInclude Include="include\base\algorithm.h" />
-    <ClInclude Include="include\base\lazy_storage.h" />
     <ClInclude Include="include\base\port.h" />
     <ClInclude Include="include\base\com_error_category.h" />
     <ClInclude Include="include\base\charset_detector.h" />
     <ClInclude Include="include\base\text_encoding.h" />
     <ClInclude Include="include\base\furigana.h" />
+    <ClInclude Include="include\base\archivefile.h" />
+    <ClInclude Include="include\base\archivelib.h" />
   </ItemGroup>
 </Project>

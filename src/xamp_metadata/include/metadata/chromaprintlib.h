@@ -8,7 +8,7 @@
 #include <base/dll.h>
 #include <base/logger.h>
 #include <base/logger_impl.h>
-
+#include <base/shared_singleton.h>
 #include <metadata/metadata.h>
 
 extern "C" {
@@ -39,7 +39,7 @@ public:
 	XAMP_DECLARE_DLL_NAME(chromaprint_dealloc);
 };
 
-#define CHROMAPRINT_LIB Share<ChromaprintLib>::GetInstance()
+#define CHROMAPRINT_LIB Singleton<ChromaprintLib>::GetInstance()
 
 inline ChromaprintLib::ChromaprintLib() try
 	: module_(OpenSharedLibrary("chromaprint"))

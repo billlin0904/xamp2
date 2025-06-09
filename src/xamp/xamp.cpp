@@ -220,7 +220,7 @@ void Xamp::destroy() {
 
     playlist_tab_page_->tabWidget()->saveTabOrder();
     album_cover_service_->cleaup();
-    qGuiDb.close();
+    qGuiDb.Close();
 
     XAMP_LOG_DEBUG("Xamp destroy!");
 

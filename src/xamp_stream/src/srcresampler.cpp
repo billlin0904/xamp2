@@ -110,7 +110,7 @@ private:
 			return nullptr;
 		}
 
-		static void close(SRC_STATE* value) noexcept {
+		static void Close(SRC_STATE* value) noexcept {
 			LIBSRC_LIB.src_delete(value);
 		}
 	};

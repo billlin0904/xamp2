@@ -30,47 +30,47 @@ XAMP_BASE_NAMESPACE_BEGIN
 struct XAMP_BASE_API HandleTraits final {
 	static HANDLE invalid() noexcept;
 
-	static void close(HANDLE value) noexcept;
+	static void Close(HANDLE value) noexcept;
 };
 
 struct XAMP_BASE_API FileHandleTraits final {
 	static HANDLE invalid() noexcept;
 
-	static void close(HANDLE value) noexcept;
+	static void Close(HANDLE value) noexcept;
 };
 
 struct XAMP_BASE_API ModuleHandleTraits final {
 	static HMODULE invalid() noexcept;
 
-	static void close(HMODULE value) noexcept;
+	static void Close(HMODULE value) noexcept;
 };
 
 struct XAMP_BASE_API MappingFileHandleTraits final {
 	static HANDLE invalid() noexcept;
 
-	static void close(HANDLE value) noexcept;
+	static void Close(HANDLE value) noexcept;
 };
 
 struct XAMP_BASE_API MappingMemoryAddressTraits final {
 	static void* invalid() noexcept;
 
-	static void close(void* value) noexcept;
+	static void Close(void* value) noexcept;
 };
 
 struct XAMP_BASE_API TimerQueueTraits final {
 	static HANDLE invalid() noexcept;
 
-	static void close(HANDLE value) noexcept;
+	static void Close(HANDLE value) noexcept;
 };
 
 struct XAMP_BASE_API RegTraits final {
 	static HKEY invalid() noexcept;
 
-	static void close(HKEY value) noexcept;
+	static void Close(HKEY value) noexcept;
 };
 
 using WinHandle = UniqueHandle<HANDLE, HandleTraits>;
-using SharedLibraryHandle = UniqueHandle<HMODULE, ModuleHandleTraits>;
+using SharedLibraryHandle = UniqueHandle<HINSTANCE, ModuleHandleTraits>;
 using FileHandle = UniqueHandle<HANDLE, FileHandleTraits>;
 using MappingFileHandle = UniqueHandle<HANDLE, MappingFileHandleTraits>;
 using MappingAddressHandle = UniqueHandle<void*, MappingMemoryAddressTraits>;

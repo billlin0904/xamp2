@@ -393,10 +393,10 @@ bool ExclusiveWasapiDevice::IsStreamRunning() const noexcept {
 void ExclusiveWasapiDevice::CloseStream() {
 	XAMP_LOG_D(logger_, "CloseStream is_running_: {}", is_running_);
 
-	sample_ready_.close();
-	thread_start_.close();
-	thread_exit_.close();
-	close_request_.close();
+	sample_ready_.Close();
+	thread_start_.Close();
+	thread_exit_.Close();
+	close_request_.Close();
 	render_task_ = Task<void>();
 	render_client_.Release();
 	clock_.Release();

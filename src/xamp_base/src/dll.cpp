@@ -108,8 +108,10 @@ bool PrefetchSharedLibrary(SharedLibraryHandle const& module) {
     }
     const auto path = GetSharedLibraryPath(module);
     MemoryMappedFile file;
-    file.Open(path.wstring(), true);
-    return PrefetchMemory(const_cast<void*>(file.GetData()), file.GetLength());
+    if (file.Open(path.wstring(), true)) {
+        return PrefetchMemory(const_cast<void*>(file.GetData()), file.GetLength());
+    }    
+    return false;
 }
 
 SharedLibraryHandle OpenSharedLibrary(const std::string_view& file_name) {

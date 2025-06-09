@@ -111,7 +111,7 @@ struct DftiDescriptorTraits final {
 		return nullptr;
 	}
 
-	static void close(DFTI_DESCRIPTOR_HANDLE value) {
+	static void Close(DFTI_DESCRIPTOR_HANDLE value) {
 		XAMP_EXPECTS(value != nullptr);
 		MKL_LIB.DftiFreeDescriptor(&value);
 	}
@@ -303,7 +303,7 @@ private:
 			return nullptr;
 		}
 
-		static void close(FFTSetup value) {
+		static void Close(FFTSetup value) {
 			::vDSP_destroy_fftsetup(value);
 		}
 	};

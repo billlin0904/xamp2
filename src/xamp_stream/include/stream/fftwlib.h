@@ -115,7 +115,7 @@ struct FFTWFPlanTraits final {
 		return nullptr;
 	}
 
-	static void close(fftwf_plan value) {
+	static void Close(fftwf_plan value) {
 		XAMP_EXPECTS(value != nullptr);
 		FFTWF_LIB.fftwf_destroy_plan(value);
 	}

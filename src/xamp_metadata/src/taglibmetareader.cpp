@@ -1,5 +1,5 @@
 #include <metadata/taglibmetareader.h>
-
+#include <metadata/taglibiostream.h>
 #include <metadata/taglib.h>
 
 #include <base/stl.h>
@@ -566,7 +566,7 @@ public:
         pos_ = newPos;
     }
 
-    long long tell() const override { 
+    long long tell() const override {
         return pos_; 
     }
 
@@ -593,11 +593,13 @@ public:
 
 	void Open(const Path& path) {
         PrefetchFile(path);
-#ifdef XAMP_OS_WIN
-        FileRef fileref(path.wstring().c_str(), true, TagLib::AudioProperties::Fast);
-#else
-        FileRef fileref(path.string().c_str(), true, TagLib::AudioProperties::Fast);
-#endif
+        stream_ = MakeAlign<TaglibIOStream>(path, true);
+        FileRef fileref(stream_.get(), true, TagLib::AudioProperties::Fast);
+//#ifdef XAMP_OS_WIN
+//        FileRef fileref(path.wstring().c_str(), true, TagLib::AudioProperties::Fast);
+//#else
+//        FileRef fileref(path.string().c_str(), true, TagLib::AudioProperties::Fast);
+//#endif
         if (!fileref.isNull()) {
             fileref_opt_ = fileref;
             path_ = path;            
@@ -690,6 +692,7 @@ private:
     std::optional<FileRef> fileref_opt_;
     ScopedPtr<IFileTagReader> tag_reader_;
     ScopedPtr<LibarchiveIOStream> archive_stream_;
+    ScopedPtr<TaglibIOStream> stream_;
 };
 
 XAMP_PIMPL_IMPL(TaglibMetadataReader)

@@ -17,7 +17,7 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 struct ArchivePtrDeleter final {
 	static archive* invalid() noexcept;
-	static void close(archive* value);
+	static void Close(archive* value);
 };
 
 using ArchivePtrHandle = UniqueHandle<archive*, ArchivePtrDeleter>;
@@ -61,8 +61,6 @@ public:
 		}
 		return *this;
 	}
-
-	std::expected<Path, std::string> Decompress();
 
 	std::expected<long long, std::string> Read(char *buffer, long length);
 
