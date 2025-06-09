@@ -497,7 +497,8 @@ public:
     }
 
     void ensureCached() {
-        if (!buffer_.empty()) return;
+        if (!buffer_.empty()) 
+            return;
 
         if (entry.Length() <= 0)
             throw std::runtime_error("ArchiveEntry length unknown or zero.");
@@ -560,6 +561,7 @@ public:
         case End:       base = buffer_.size(); break;
         default:        return;
         }
+
         long long newPos = base + offset;
         if (newPos < 0 || newPos > static_cast<long long>(buffer_.size()))
             return;
@@ -581,25 +583,23 @@ private:
 class TaglibMetadataReader::TaglibMetadataReaderImpl {
 public:
     void Open(ArchiveEntry entry) {
+        auto entry_name = entry.Name();
         auto archive_path = entry.ArchivePath();
-        archive_stream_ = MakeAlign<LibarchiveIOStream>(std::move(entry));
-        FileRef fileref(archive_stream_.get(), true, TagLib::AudioProperties::Fast);
+        stream_ = MakeAlign<TagLib::IOStream, LibarchiveIOStream>(std::move(entry));
+        FileRef fileref(stream_.get(), true, TagLib::AudioProperties::Fast);
         if (!fileref.isNull()) {
             fileref_opt_ = fileref;
             path_ = archive_path;
+            file_ext_ = String::ToLower(Path(entry_name).extension().string());
+            tag_reader_ = MakeFileTagReader(file_ext_);
             is_archive_file_ = true;
         }
     }
 
 	void Open(const Path& path) {
         PrefetchFile(path);
-        stream_ = MakeAlign<TaglibIOStream>(path, true);
+        stream_ = MakeAlign<TagLib::IOStream, TaglibIOStream>(path, true);
         FileRef fileref(stream_.get(), true, TagLib::AudioProperties::Fast);
-//#ifdef XAMP_OS_WIN
-//        FileRef fileref(path.wstring().c_str(), true, TagLib::AudioProperties::Fast);
-//#else
-//        FileRef fileref(path.string().c_str(), true, TagLib::AudioProperties::Fast);
-//#endif
         if (!fileref.isNull()) {
             fileref_opt_ = fileref;
             path_ = path;            
@@ -611,7 +611,7 @@ public:
     std::expected<TrackInfo, ParseMetadataError> Extract() const {
         TrackInfo track_info;
 
-		if (!fileref_opt_) {            
+		if (!fileref_opt_) {
             return std::unexpected(ParseMetadataError::PARSE_ERROR_OPEN_FILE);
 		}
 
@@ -619,8 +619,8 @@ public:
         const auto* tag = file_ref.tag();
 
         if (is_archive_file_) {
-            track_info.file_size = archive_stream_->length();
-            track_info.archive_entry_name = archive_stream_->name().toString().toCWString();
+            track_info.file_size = stream_->length();
+            track_info.archive_entry_name = stream_->name().toString().toCWString();
             track_info.file_path = path_;
             track_info.is_zip_file = true;
             if (tag != nullptr) {
@@ -691,8 +691,7 @@ private:
     Path path_;
     std::optional<FileRef> fileref_opt_;
     ScopedPtr<IFileTagReader> tag_reader_;
-    ScopedPtr<LibarchiveIOStream> archive_stream_;
-    ScopedPtr<TaglibIOStream> stream_;
+    ScopedPtr<TagLib::IOStream> stream_;
 };
 
 XAMP_PIMPL_IMPL(TaglibMetadataReader)

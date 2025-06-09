@@ -24,9 +24,6 @@ public:
     }
 
     TagLib::ByteVector readBlock(size_t len) override {
-        //std::vector<char> buf(len);
-        //auto n = fast_.read(buf.data(), len);
-        //return TagLib::ByteVector(buf.data(), static_cast<uint32_t>(n));
         TagLib::ByteVector buf;
         buf.resize(static_cast<uint32_t>(len));
         auto n = fast_.read(buf.data(), len);

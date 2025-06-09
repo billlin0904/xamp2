@@ -19,6 +19,32 @@ XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(BassFileStream);
 
+struct FastIOStreamContext {
+    static DWORD CALLBACK BassReadProc(void* buffer, DWORD length, void* user) {
+        auto* stream = static_cast<FastIOStream*>(user);
+        return static_cast<DWORD>(stream->read(buffer, length));
+    }
+
+    static QWORD CALLBACK BassLenProc(void* user) {
+        auto* stream = static_cast<FastIOStream*>(user);
+        return stream->size();
+    }
+
+    static BOOL CALLBACK BassSeekProc(QWORD offset, void* user) {
+        auto* stream = static_cast<FastIOStream*>(user);
+
+        if (offset == static_cast<QWORD>(-1))
+            return TRUE;
+
+        stream->seek(static_cast<int64_t>(offset), SEEK_SET);
+        return TRUE;
+    }
+
+    static void CALLBACK BassCloseProc(void* user) {
+        auto* stream = static_cast<FastIOStream*>(user);        
+    }
+};
+
 class ArchiveContext {
 public:
     static constexpr size_t kReadSize = 512 * 1024;
@@ -117,6 +143,13 @@ public:
     }
 
     void CreateBassStream(const std::wstring & file_path, DsdModes mode, DWORD flags) {
+        const BASS_FILEPROCS file_process = {
+               &FastIOStreamContext::BassCloseProc,
+               &FastIOStreamContext::BassLenProc,
+               &FastIOStreamContext::BassReadProc,
+               &FastIOStreamContext::BassSeekProc
+        };
+
         if (mode == DsdModes::DSD_MODE_PCM) {
 #ifdef XAMP_OS_MAC
             auto utf8 = String::ToString(file_path);
@@ -125,12 +158,14 @@ public:
                 0,
                 0,
                 flags | BASS_STREAM_DECODE));
-#else
-            stream_.reset(BASS_LIB.BASS_StreamCreateFile(FALSE,
-                file_path.c_str(),
-                0,
-                0,
-                flags | BASS_STREAM_DECODE | BASS_UNICODE));
+#else           
+            io_stream_ = MakeAlign<FastIOStream>(file_path, FastIOStream::Mode::Read);
+            stream_.reset(BASS_LIB.BASS_StreamCreateFileUser(
+                STREAMFILE_BUFFER,
+                flags | BASS_STREAM_DECODE | BASS_UNICODE,
+                &file_process,
+                io_stream_.get()
+            ));
 #endif
         }
         else {
@@ -143,12 +178,14 @@ public:
                 flags | BASS_STREAM_DECODE,
                 0));
 #else
-            stream_.reset(BASS_LIB.DSDLib->BASS_DSD_StreamCreateFile(FALSE,
-                file_path.c_str(),
-                0,
-                0,
+            io_stream_ = MakeAlign<FastIOStream>(file_path, FastIOStream::Mode::Read);
+            stream_.reset(BASS_LIB.DSDLib->BASS_DSD_StreamCreateFileUser(
+                STREAMFILE_NOBUFFER,
                 flags | BASS_STREAM_DECODE | BASS_UNICODE,
-                0));            
+                &file_process,
+                io_stream_.get(),
+                0
+            ));
 #endif
             // BassLib DSD module default use 6dB gain.
             // 不設定的話會爆音!
@@ -532,6 +569,7 @@ private:
     BASS_CHANNELINFO info_;
     MemoryMappedFile file_;
     ScopedPtr<ArchiveContext> archive_context_;
+    ScopedPtr<FastIOStream> io_stream_;
     LoggerPtr logger_;
 };
 
