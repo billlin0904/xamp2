@@ -1123,6 +1123,10 @@ QModelIndex PlaylistTableView::shuffleAlbumIndex() {
     }    
 
     const auto& selected_album_songs = album_songs_id_cache_[selected_album_id];
+    if (selected_album_songs.isEmpty()) {
+        throw std::exception("Not found song id in cache");
+    }
+
     const auto selected_song_index = rng_.NextInt32(0, selected_album_songs.size() - 1);
     const auto selected_row = selected_album_songs[selected_song_index];
 

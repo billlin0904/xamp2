@@ -23,9 +23,12 @@
 #include <llfio/llfio.hpp>
 #include <ntkernel-error-category/ntkernel_category.hpp>
 
+#include <regex>
 #include <fstream>
 
 XAMP_BASE_NAMESPACE_BEGIN
+
+namespace llfio = LLFIO_V2_NAMESPACE;
 
 bool IsFilePath(const Path& file_path) noexcept {
 	return file_path.has_extension();
@@ -147,6 +150,72 @@ bool IsCDAFile(Path const& path) {
 	return path.extension() == ".cda";
 }
 
+class FileCountTraverseVisitor : public llfio::algorithm::traverse_visitor {
+	size_t file_count_{ 0 };
+	std::vector<std::wregex> regexes_;
+
+	std::vector<std::wregex> MakeRegexFilters(const std::vector<std::wstring> &filters) {
+		std::vector<std::wregex> v;
+		v.reserve(filters.size());
+		for (auto f : filters) {
+			std::wstring r;
+			r.reserve(f.size() * 2);
+			for (char c : f) {
+				switch (c) {
+				case L'*': r += L".*"; break;
+				case L'?': r += L'.';  break;
+				case L'.': r += L"\\."; break;
+				default: r += c;    break;
+				}
+			}
+			v.emplace_back(r, std::regex::icase);
+		}
+		return v;
+	}
+public:
+	explicit FileCountTraverseVisitor(const std::vector<std::wstring>& filters) {
+		regexes_ = MakeRegexFilters(filters);
+	}
+
+	size_t GetFileCount() const {
+		return file_count_;
+	}
+
+	virtual llfio::result<void> post_enumeration(void*,
+		const llfio::directory_handle& dirh, 
+		llfio::directory_handle::buffers_type& contents,
+		size_t) noexcept override final {
+		llfio::file_handle::extent_type bytes = 0;
+		
+		for (const llfio::directory_entry& entry : contents) {
+			const Path leafname(entry.leafname.path());
+			auto name = leafname.native();
+			for (auto& re : regexes_) {
+				if (std::regex_match(name, re)) {
+					++file_count_;
+					break;
+				}
+			}
+		}
+		return llfio::success();
+	}
+};
+
+size_t GetFileCount(const std::wstring &dir, const std::vector<std::wstring>& filters) {
+	FileCountTraverseVisitor visitor(filters);
+	llfio::path_view to_traverse_path(dir);
+	if (dir.rfind(L".") != std::wstring::npos) {
+		return 1;
+	}
+	auto result = llfio::path_handle::path(to_traverse_path);
+	if (!result) {
+		throw PlatformException(result.error().value());		
+	}
+	auto to_traverse = std::move(result.value());
+	llfio::algorithm::traverse(to_traverse, &visitor, std::thread::hardware_concurrency()).value();
+	return visitor.GetFileCount();
+}
+
 std::expected<std::string, TextEncodeingError> ReadFileToUtf8String(const Path& path) {
 	std::ifstream file;
 	file.open(path, std::ios::binary);
@@ -224,7 +293,6 @@ std::tuple<CFilePtr, Path> CTemporaryFile::GetTempFile() {
 	throw PlatformException("Can't create temp file.");
 }
 
-namespace llfio = LLFIO_V2_NAMESPACE;
 constexpr auto kMaxRetryCreateTempFile = 128;
 
 class TemporaryFile::TemporaryFileImpl {
@@ -307,7 +375,7 @@ public:
 	}
 
 	void Close() noexcept {
-		handle_.close();
+		auto res = handle_.close();
 	}
 
 	uint64_t pos_{};
@@ -343,7 +411,19 @@ void TemporaryFile::Close() noexcept {
 
 class FastIOStream::FastIOStreamImpl {
 public:
+	FastIOStreamImpl() = default;
+
 	FastIOStreamImpl(const Path& file_path, FastIOStream::Mode m) {
+		open(file_path, m);
+	}
+
+	~FastIOStreamImpl() {
+		close();
+	}
+
+	void open(const Path& file_path, Mode m = Mode::Read) {
+		close();
+
 		path_ = file_path;
 		readonly_ = (m == Mode::Read);
 
@@ -351,11 +431,22 @@ public:
 			? llfio::file_handle::mode::read
 			: llfio::file_handle::mode::write;
 
+		llfio::file_handle::creation creation;
+
+		if (m == FastIOStream::Mode::ReadWriteOnlyExisting) {
+			creation = llfio::file_handle::creation::open_existing;
+		}
+		else {
+			creation = readonly_
+				? llfio::file_handle::creation::open_existing
+				: llfio::file_handle::creation::if_needed;
+		}
+
 		auto r = llfio::file_handle::file(
-			{}, 
+			{},
 			path_.native(),
 			mode,
-			llfio::file_handle::creation::open_existing,
+			creation,
 			llfio::file_handle::caching::all);
 
 		if (!r)
@@ -363,7 +454,7 @@ public:
 		fh_ = std::move(r.value());
 	}
 
-	std::size_t read(void* dst, std::size_t len) {
+	size_t read(void* dst, size_t len) {
 		if (!fh_.is_valid() || len == 0) 
 			return 0;
 
@@ -372,35 +463,63 @@ public:
 		llfio::file_handle::io_request<decltype(bufs)> req(bufs, pos_);
 
 		auto res = fh_.read(req);
-		if (!res) 
-			return 0;
+		if (!res) {
+			constexpr int STATUS_END_OF_FILE = 0xC0000011;
+			if (res.error().value() == STATUS_END_OF_FILE) {
+				return 0;
+			}
+			throw PlatformException(res.error().value());
+		}
 
 		pos_ += res.bytes_transferred();
 		return res.bytes_transferred();
 	}
 
-	std::size_t write(const void* src, std::size_t len) {
+	size_t write(const void* src, size_t len) {
 		if (readonly_ || !fh_.is_valid() || len == 0) 
 			return 0;
 
-		llfio::file_handle::const_buffer_type  b{ static_cast<const llfio::byte*>(src), len };
-		llfio::file_handle::const_buffers_type bufs(&b, 1);
-		llfio::file_handle::io_request<decltype(bufs)> req(bufs, pos_);
+		const llfio::byte* p = static_cast<const llfio::byte*>(src);
+		size_t total = 0;
+		while (total < len) {
+			size_t chunk = len - total;
+			llfio::file_handle::const_buffer_type b{ p + total, chunk };
+			llfio::file_handle::const_buffers_type bufs(&b, 1);
+			llfio::file_handle::io_request req(bufs, pos_ + total);
 
-		auto res = fh_.write(req);
-		if (!res)
-			return 0;
+			auto res = fh_.write(req);
+			if (!res || res.bytes_transferred() == 0)
+				throw PlatformException(res ? -1 : res.error().value());
 
-		pos_ += res.bytes_transferred();
-		return res.bytes_transferred();
+			total += res.bytes_transferred();
+		}
+		pos_ += total;
+		return total;
 	}
 
 	void seek(int64_t off, int whence) {
+		uint64_t newpos = 0;
+
 		switch (whence) {
-		case SEEK_SET: pos_ = static_cast<uint64_t>(off); break;
-		case SEEK_CUR: pos_ += off; break;
-		case SEEK_END: pos_ = size() + off; break;
+		case SEEK_SET:
+			newpos = (off < 0) ? 0ULL : static_cast<uint64_t>(off);
+			break;
+		case SEEK_CUR: {
+			int64_t temp = static_cast<int64_t>(pos_) + off;
+			if (temp < 0)
+				temp = 0;
+			newpos = static_cast<uint64_t>(temp);
+			break;
 		}
+		case SEEK_END: {
+			int64_t temp = static_cast<int64_t>(size()) + off;
+			if (temp < 0)
+				temp = 0;
+			newpos = static_cast<uint64_t>(temp);
+			break;
+		}
+		}
+		pos_ = newpos;
 	}
 
 	uint64_t tell() const {
@@ -417,7 +536,9 @@ public:
 		if (readonly_ || !fh_.is_valid()) 
 			return;
 
-		fh_.truncate(new_size);
+		auto res = fh_.truncate(new_size);
+		if (!res)
+			throw PlatformException(res.error().value());
 
 		if (pos_ > new_size)
 			pos_ = new_size;
@@ -435,6 +556,11 @@ public:
 		return path_;
 	}
 
+	void close() {
+		if (!fh_.is_valid())
+			return;
+		auto res = fh_.close();		
+	}
 private:
 	bool               readonly_{ true };
 	uint64_t           pos_{ 0 };
@@ -442,17 +568,25 @@ private:
 	Path               path_;
 };
 
+FastIOStream::FastIOStream()
+	: impl_(MakeAlign<FastIOStreamImpl>()) {
+}
+
 FastIOStream::FastIOStream(const Path& file_path, Mode m)
 	: impl_(MakeAlign<FastIOStreamImpl>(file_path, m)) {
 }
 
+void FastIOStream::open(const Path& file_path, Mode m) {
+	impl_->open(file_path, m);
+}
+
 XAMP_PIMPL_IMPL(FastIOStream)
 
-std::size_t FastIOStream::read(void* dst, std::size_t len) {
+size_t FastIOStream::read(void* dst, size_t len) {
 	return impl_->read(dst, len);
 }
 
-std::size_t FastIOStream::write(const void* src, std::size_t len) {
+size_t FastIOStream::write(const void* src, size_t len) {
 	return impl_->write(src, len);
 }
 
@@ -482,6 +616,10 @@ bool FastIOStream::read_only() const {
 
 const Path& FastIOStream::path() const {
 	return impl_->path();
+}
+
+void FastIOStream::close() {
+	return impl_->close();
 }
 
 XAMP_BASE_NAMESPACE_END

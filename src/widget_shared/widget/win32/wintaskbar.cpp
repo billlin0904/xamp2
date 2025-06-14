@@ -80,7 +80,7 @@ namespace {
 			return nullptr;
 		}
 
-		static void close(HBITMAP value) {
+		static void Close(HBITMAP value) {
 			::DeleteObject(value);
 		}
 	};
@@ -92,7 +92,7 @@ namespace {
 			return nullptr;
 		}
 
-		static void close(HICON value) {
+		static void Close(HICON value) {
 			::DestroyIcon(value);
 		}
 	};

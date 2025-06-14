@@ -11,6 +11,7 @@
 #include <base/text_encoding.h>
 #include <expected>
 #include <filesystem>
+#include <span>
 
 XAMP_BASE_NAMESPACE_BEGIN
 
@@ -46,6 +47,8 @@ XAMP_BASE_API bool IsCDAFile(const Path& path);
 XAMP_BASE_API bool IsFileOnSsd(const Path& path);
 
 XAMP_BASE_API std::expected<std::string, TextEncodeingError> ReadFileToUtf8String(const Path& path);
+
+XAMP_BASE_API size_t GetFileCount(const std::wstring& dir, const std::vector<std::wstring>& filters);
 
 using CFilePtr = std::unique_ptr<FILE, decltype(&fclose)>;
 
@@ -103,15 +106,19 @@ private:
 
 class XAMP_BASE_API FastIOStream {
 public:
-    enum class Mode { Read, ReadWrite };
+    enum class Mode { Read, ReadWrite, ReadWriteOnlyExisting };
+
+    FastIOStream();
 
     FastIOStream(const Path& file_path, Mode m = Mode::Read);
 
+    void open(const Path& file_path, Mode m = Mode::Read);
+
     XAMP_PIMPL(FastIOStream)
 
-    std::size_t read(void* dst, std::size_t len);
+    size_t read(void* dst, size_t len);
 
-    std::size_t write(const void* src, std::size_t len);
+    size_t write(const void* src, size_t len);
 
     void seek(int64_t off, int whence);
 
@@ -126,6 +133,9 @@ public:
     [[nodiscard]] bool read_only() const;
 
     const Path& path() const;
+
+    void close();
+
 private:
     class FastIOStreamImpl;
     ScopedPtr<FastIOStreamImpl> impl_;

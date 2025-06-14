@@ -132,7 +132,7 @@ public:
 
 	QSqlDatabase& database();
 
-	void close();
+	void Close();
 
 	void open();
 

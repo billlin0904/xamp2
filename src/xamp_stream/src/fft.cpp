@@ -161,7 +161,7 @@ public:
 	}
 
 	const ComplexValarray& Forward(const float* signals,
-		std::size_t frame_size) {
+		size_t frame_size) {
 		XAMP_ASSERT(frame_size_ == frame_size);
 		XAMP_ASSERT(descriptor_);
 

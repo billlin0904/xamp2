@@ -218,7 +218,7 @@ public:
 		bool ignore_error) {
 		const auto encoding_name = detector_.Detect(input);
 		if (encoding_name) {
-			return std::unexpected(TextEncodeingError::TEXT_ENCODING_DETECT_ERROR);
+			return input;
 		}
 		if (encoding_name != kUTF8Encoding) {
 			return ConvertToUtf8String(encoding_name.value(), input, buf_size, ignore_error);

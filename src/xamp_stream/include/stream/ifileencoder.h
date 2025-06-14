@@ -28,25 +28,12 @@ namespace FileEncoderConfig {
 		std::string_view("EncodingProfile");
 };
 
-class XAMP_STREAM_API XAMP_NO_VTABLE IFile {
-public:
-	XAMP_BASE_CLASS(IFile)
-
-	virtual int32_t Write(const uint8_t* buf, int32_t size) = 0;
-
-	virtual int32_t Read(uint8_t* buf, int32_t buf_size) = 0;
-
-	virtual int64_t Seek(int64_t offset, int whence) = 0;
-protected:
-	IFile() = default;
-};
-
 class XAMP_STREAM_API XAMP_NO_VTABLE IFileEncoder {
 public:
 	XAMP_BASE_CLASS(IFileEncoder)
 
 	virtual void Start(const AnyMap& config,
-		const std::shared_ptr<IFile> & file = std::shared_ptr<IFile>()) = 0;
+		const std::shared_ptr<FastIOStream> & file) = 0;
 
 	virtual void Encode(std::function<bool(uint32_t)> const& progress = nullptr,
 		const std::stop_token& stop_token = std::stop_token()) = 0;

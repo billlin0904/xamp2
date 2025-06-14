@@ -53,7 +53,7 @@ public:
         format_context_.reset();
     }
 
-    void Start(const AnyMap& config, const std::shared_ptr<IFile>& writer) {
+    void Start(const AnyMap& config, const std::shared_ptr<FastIOStream>& io_stream) {
         // 1) 從 config 解析關鍵參數
         const auto input_file_path = config.AsPath(FileEncoderConfig::kInputFilePath);
         const auto output_file_path = config.AsPath(FileEncoderConfig::kOutputFilePath);
@@ -66,12 +66,7 @@ public:
         input_file_->OpenFile(input_file_path);
 
         // 4) 若未指定 writer，則建立檔案寫入物件
-        if (!writer) {
-            writer_ = MakFileEncodeWriter(output_file_path);
-        }
-        else {
-            writer_ = writer;
-        }
+        io_stream_ = io_stream;
 
         // 5) 建立音訊串流並初始化編碼相關參數
         CreateAudioStream();
@@ -174,7 +169,7 @@ public:
         // 建立輸出 AVFormatContext + AVIOContext (若使用自訂 IO)
         //----------------------------------------------------------------------
 
-        if (writer_ != nullptr) {
+        if (io_stream_ != nullptr) {
             // 使用自訂 I/O
             auto* avio_buffer = static_cast<uint8_t*>(LIBAV_LIB.Util->av_malloc(kFrameSize));
             if (!avio_buffer) {
@@ -185,7 +180,7 @@ public:
                 avio_buffer,                // buffer
                 kFrameSize,                 // buffer size
                 1,                          // write_flag
-                writer_.get(),              // opaque (指向 IFileEncodeWriter)
+                io_stream_.get(),              // opaque (指向 IFileEncodeWriter)
                 &CustomReadPacket,          // read_packet
                 &CustomWritePacket,         // write_packet
                 &CustomSeekPacket           // seek
@@ -509,23 +504,17 @@ private:
     //--------------------------------------------------------------------------
 
     static int32_t CustomReadPacket(void* opaque, uint8_t* buf, int32_t buf_size) {
-        auto* reader = static_cast<IFile*>(opaque);
-        if (!reader) {
-            return AVERROR(EINVAL);
-        }
-        int32_t Read = reader->Read(buf, buf_size);
-        if (Read < 0) {
+        auto* io_stream = static_cast<FastIOStream*>(opaque);
+        auto readbytes = io_stream->read(buf, buf_size);
+        if (readbytes < 0) {
             return AVERROR(EIO);
         }
-        return Read;
+        return readbytes;
     }
 
     static int32_t CustomWritePacket(void* opaque, uint8_t* buf, int32_t buf_size) {
-        auto* writer = static_cast<IFile*>(opaque);
-        if (!writer) {
-            return AVERROR(EINVAL);
-        }
-        int32_t written = writer->Write(buf, buf_size);
+        auto* io_stream = static_cast<FastIOStream*>(opaque);
+        int32_t written = io_stream->write(buf, buf_size);
         if (written < 0) {
             return AVERROR(EIO);
         }
@@ -533,11 +522,9 @@ private:
     }
 
     static int64_t CustomSeekPacket(void* opaque, int64_t offset, int32_t whence) {
-        auto* writer = static_cast<IFile*>(opaque);
-        if (!writer) {
-            return AVERROR(EINVAL);
-        }
-        return writer->Seek(offset, whence);
+        auto* io_stream = static_cast<FastIOStream*>(opaque);
+        io_stream->seek(offset, whence);
+        return io_stream->tell();
     }
 
 private:
@@ -557,7 +544,7 @@ private:
     // 用於 float PCM => 對應格式的轉換函式
     std::function<void(const float*, AVFrame*, size_t)> convert_;
 
-    std::shared_ptr<IFile> writer_;
+    std::shared_ptr<FastIOStream> io_stream_;
     ScopedPtr<FileStream> input_file_;
     Buffer<float> buffer_;
 };
@@ -571,7 +558,7 @@ LibAbFileEncoder::LibAbFileEncoder()
 
 XAMP_PIMPL_IMPL(LibAbFileEncoder)
 
-void LibAbFileEncoder::Start(const AnyMap& config, const std::shared_ptr<IFile>& file) {
+void LibAbFileEncoder::Start(const AnyMap& config, const std::shared_ptr<FastIOStream>& file) {
     impl_->Start(config, file);
 }
 

@@ -24,7 +24,7 @@ struct XAMP_WIDGET_SHARED_EXPORT ConstexprQString final : public QLatin1String {
 	}
 };
 
-inline constexpr ConstexprQString operator"" _str(const char* s, std::size_t length) noexcept {
+inline constexpr ConstexprQString operator"" _str(const char* s, size_t length) noexcept {
 	return ConstexprQString(s, static_cast<int>(length));
 }
 

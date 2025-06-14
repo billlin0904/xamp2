@@ -41,77 +41,6 @@ namespace {
         }
         return false;
     }
-
-    class LibAvIoContext final : public IFile {
-    public:
-        explicit LibAvIoContext(const Path& path) {
-			auto [file, temp_path] = GetTempFile();
-            file_ = std::move(file);
-            temp_file_path_ = temp_path;
-            dest_file_path_ = path;
-        }
-
-        ~LibAvIoContext() override {
-            try {
-                file_.close();
-                Fs::rename(temp_file_path_, dest_file_path_);
-            }
-            catch (...) {
-                Fs::remove(temp_file_path_);
-            }            
-        }
-
-        int64_t Seek(int64_t offset, int whence) override {
-			if (!file_.good()) {
-				return -1;
-			}
-            std::ios_base::seekdir dir;
-            switch (whence) {
-            case SEEK_SET:
-                dir = std::ios_base::beg;
-                break;
-            case SEEK_CUR:
-                dir = std::ios_base::cur;
-                break;
-            case SEEK_END:
-                dir = std::ios_base::end;
-                break;
-            default:
-                return -1;
-            }
-			file_.seekp(offset, dir);
-			if (!file_) {
-				return -1;
-			}
-			return file_.tellp();
-        }
-
-        int32_t Read(uint8_t* buf, int32_t buf_size) override {
-			if (!file_.good()) {
-				return -1;
-			}
-			file_.read(reinterpret_cast<char*>(buf), buf_size);
-			if (!file_) {
-                return static_cast<int32_t>(file_.gcount());
-			}
-			return file_.gcount();
-        }
-
-        int32_t Write(const uint8_t* buf, int32_t size) override {
-            if (!file_.good()) {
-                return -1;
-            }
-            file_.write(reinterpret_cast<const char*>(buf), size);
-            if (!file_) {
-                return -1;
-            }
-            return size;
-        }
-    private:
-        std::fstream file_;
-        Path dest_file_path_;
-        Path temp_file_path_;
-    };
 }
 
 bool IsDsdFile(const Path & path) {
@@ -239,13 +168,9 @@ ScopedPtr<FileStream> MakeFileStream(ArchiveEntry archive_entry, DsdModes dsd_mo
                     "Not support dsd-mode: {}.", dsd_mode);
                 break;
             }
-            dsd_stream->SetDSDMode(dsd_mode);
-            file_stream->Open(std::move(archive_entry));
-            return file_stream;
+            dsd_stream->SetDSDMode(dsd_mode);            
         }
-    }
-
-    file_stream = MakeAlign<FileStream, BassFileStream>();
+    }    
     file_stream->Open(std::move(archive_entry));
     return file_stream;
 }
@@ -283,12 +208,8 @@ ScopedPtr<FileStream> MakeFileStream(const Path& file_path, DsdModes dsd_mode) {
                 break;
             }
             dsd_stream->SetDSDMode(dsd_mode);
-            file_stream->OpenFile(file_path);
-            return file_stream;
         }
     }
-
-    file_stream = MakeAlign<FileStream, BassFileStream>();
     file_stream->OpenFile(file_path);
     return file_stream;
 }
@@ -315,10 +236,6 @@ void LoadBassLib() {
     for (const auto& info : BASS_LIB.GetVersions()) {
         XAMP_LOG_DEBUG("DLL {} version: {}", info.first, info.second);
     }
-}
-
-std::shared_ptr<IFile> MakFileEncodeWriter(const Path& file_path) {
-	return std::make_shared<LibAvIoContext>(file_path);
 }
 
 OrderedMap<std::string, std::string> GetBassDLLVersion() {

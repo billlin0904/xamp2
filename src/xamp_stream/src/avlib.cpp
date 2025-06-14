@@ -4,6 +4,7 @@
 #include <base/logger.h>
 #include <base/logger_impl.h>
 #include <base/exception.h>
+#include <base/memory.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
 

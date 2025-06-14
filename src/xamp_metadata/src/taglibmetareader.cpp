@@ -333,28 +333,46 @@ namespace {
                 return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
             }
 
+            auto get_dB = [](const TagLib::StringList& v) -> double {
+                if (v.isEmpty()) return 0.0;
+                return std::stod(v.front().to8Bit());
+                };
+
+            auto get_q78 = [](const TagLib::StringList& v) -> double {
+                if (v.isEmpty()) return 0.0;
+                return static_cast<double>(std::stoi(v.front().to8Bit())) / 256.0;
+                };
+
             auto found = false;
             auto field_map = xiph_comment->fieldListMap();
             ReplayGain replay_gain;
             for (auto& field : field_map) {
-                if (field.first == kReplaygainAlbumGain) {
-                    replay_gain.album_gain = std::stod(field.second[0].to8Bit());
+                if (field.first == "R128_TRACK_GAIN") {             // RFC 7845
+                    replay_gain.track_gain = get_q78(field.second); // Q7.8 ¡÷ dB
+                    found = true;
+                }
+                else if (field.first == "R128_ALBUM_GAIN") {        // RFC 7845
+                    replay_gain.track_gain = get_q78(field.second); // Q7.8 ¡÷ dB
+                    found = true;
+                }
+                else if (field.first == kReplaygainAlbumGain) {
+                    replay_gain.album_gain = get_dB(field.second);
                     found = true;
                 }
                 else if (field.first == kReplaygainTrackPeak) {
-                    replay_gain.track_peak = std::stod(field.second[0].to8Bit());
+                    replay_gain.track_peak = get_dB(field.second);
                     found = true;
                 }
                 else if (field.first == kReplaygainAlbumPeak) {
-                    replay_gain.album_peak = std::stod(field.second[0].to8Bit());
+                    replay_gain.album_peak = get_dB(field.second);
                     found = true;
                 }
                 else if (field.first == kReplaygainTrackGain) {
-                    replay_gain.track_gain = std::stod(field.second[0].to8Bit());
+                    replay_gain.track_gain = get_dB(field.second);
                     found = true;
                 }
                 else if (field.first == kReplaygainReferenceLoudness) {
-                    replay_gain.ref_loudness = std::stod(field.second[0].to8Bit());
+                    replay_gain.ref_loudness = get_dB(field.second);
                     found = true;
                 }
             }

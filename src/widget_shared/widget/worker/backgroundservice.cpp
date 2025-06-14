@@ -209,10 +209,10 @@ void BackgroundService::onTranscribeFile(const QString& file_name) {
     });
 }
 
-std::tuple<std::shared_ptr<IFile>, Path> 
-BackgroundService::makeFile(const EncodeJob &job,
+std::tuple<std::shared_ptr<FastIOStream>, Path> 
+BackgroundService::makeUniqueFile(const EncodeJob &job,
     const QString& dir_name) {
-    std::shared_ptr<IFile> file_writer;
+    std::shared_ptr<FastIOStream> file_writer;
     Path output_path;
 
     auto file_name = getValidFileName(job.file.file_name);
@@ -243,13 +243,11 @@ BackgroundService::makeFile(const EncodeJob &job,
                 + "/"_str
                 + unique_save_file_name;
             output_path = save_file_name.toStdWString();
-            file_writer = MakFileEncodeWriter(output_path);
+            file_writer = std::make_shared<FastIOStream>(output_path, FastIOStream::Mode::ReadWrite);
             break;
         }
         catch (const Exception& e) {
             XAMP_LOG_ERROR(e.GetErrorMessage());
-            emit jobError(job.job_id, tr("Error"));
-            return std::make_tuple(nullptr, "");
         }
     }
     if (i == kMaxRetryTestUniqueFileName) {
@@ -266,7 +264,7 @@ void BackgroundService::sequenceEncode(const QString& dir_name, QList<EncodeJob>
 }
 
 void BackgroundService::executeEncodeJob(const QString& dir_name, const EncodeJob & job) {
-    auto [file_writer, output_path] = makeFile(
+    auto [file_writer, output_path] = makeUniqueFile(
         job,
         dir_name);
 

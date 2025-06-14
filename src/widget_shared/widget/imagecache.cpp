@@ -25,7 +25,7 @@
 #include <widget/dao/dbfacade.h>
 
 constexpr size_t kDefaultCacheSize = 24;
-constexpr qint64 kMaxCacheImageSize = 128 * 1024 * 1024;
+constexpr qint64 kMaxCacheImageSize = 1 * 1024 * 1024;//128 * 1024 * 1024;
 auto kCacheFileExtension = "."_str + qFormat(ImageCache::kImageFileFormat).toLower();
 
 XAMP_DECLARE_LOG_NAME(ImageCache);

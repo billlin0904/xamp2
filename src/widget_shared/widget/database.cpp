@@ -198,10 +198,10 @@ QSqlDatabase& Database::database() {
 }
 
 Database::~Database() {
-    close();
+    Close();
 }
 
-void Database::close() {
+void Database::Close() {
     if (db_.isOpen()) {
     	db_.close();
         XAMP_LOG_I(logger_, "Database {} closed.", connection_name_.toStdString());

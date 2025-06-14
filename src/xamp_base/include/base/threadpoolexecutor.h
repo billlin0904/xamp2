@@ -139,15 +139,20 @@ private:
 
 	bool IsLongRunning(size_t index) const;
 
+    template <typename T>
+    struct alignas(kCacheAlignSize) AlignedAtomic {
+        std::atomic<T> value;
+    };
+
     std::atomic<bool> is_stopped_;
     std::atomic<size_t> running_thread_;
     size_t max_thread_;
 	size_t bulk_size_;
     std::string name_;
     std::vector<std::jthread> threads_;
-    std::vector<std::atomic<ExecuteFlags>> task_execute_flags_;
-    std::vector<std::atomic<size_t>> attempt_count_;
-    std::vector<std::atomic<size_t>> success_count_;
+    std::vector<AlignedAtomic<ExecuteFlags>> task_execute_flags_;
+    std::vector<AlignedAtomic<size_t>> attempt_count_;
+    std::vector<AlignedAtomic<size_t>> success_count_;
     SharedTaskQueuePtr task_pool_;
     std::vector<WorkStealingTaskQueuePtr> task_work_queues_;
     std::latch work_done_;

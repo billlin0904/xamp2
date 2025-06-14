@@ -84,6 +84,9 @@ void TaskScheduler::Destroy() noexcept {
 	// Wait for all threads to finish
 	is_stopped_ = true;
 
+	for (auto& t : threads_)
+		t.request_stop();
+
 	// Wake up all threads
 	task_pool_->wakeup_for_shutdown();
 
@@ -137,7 +140,7 @@ size_t TaskScheduler::TryDequeueSharedQueue(std::vector<MoveOnlyFunction>& tasks
 }
 
 bool TaskScheduler::IsLongRunning(size_t index) const {
-	return task_execute_flags_[index].load(std::memory_order_acquire)
+	return task_execute_flags_[index].value.load(std::memory_order_acquire)
 	== ExecuteFlags::EXECUTE_LONG_RUNNING;
 }
 
@@ -163,7 +166,7 @@ size_t TaskScheduler::TrySteal(std::vector<MoveOnlyFunction>& tasks,
 		auto& attempt_count = attempt_count_[current_thread_index];
 
 		for (size_t attempts = 0; attempts < kMaxAttempts; ++attempts) {
-			attempt_count.fetch_add(1, std::memory_order_relaxed);
+			attempt_count.value.fetch_add(1, std::memory_order_relaxed);
 
 			size_t random_index = (random_start + attempts) % max_thread_;
 			if (random_index == current_thread_index) {
@@ -178,7 +181,7 @@ size_t TaskScheduler::TrySteal(std::vector<MoveOnlyFunction>& tasks,
 			auto size = queue->try_dequeue_bulk(
 				tasks.begin(), tasks.size());
 			if (size > 0) {
-				success_count_[current_thread_index].fetch_add(1,
+				success_count_[current_thread_index].value.fetch_add(1,
 					std::memory_order_relaxed);
 				return size;
 			}
@@ -196,7 +199,7 @@ void TaskScheduler::SubmitJob(MoveOnlyFunction&& task, ExecuteFlags flags) {
 		if (!IsLongRunning(random_index)) {
 			auto& task_queue = task_work_queues_[random_index];
 			if (task_queue->try_enqueue(std::move(task))) {
-				task_execute_flags_[random_index] = flags;
+				task_execute_flags_[random_index].value = flags;
 				XAMP_LOG_D(logger_, "TaskScheduler::SubmitJob() enqueue task to local queue.");
 				return;
 			}
@@ -231,7 +234,7 @@ void TaskScheduler::Execute(std::vector<MoveOnlyFunction>& tasks,
 		}
 		--running_thread_;
 	}
-	task_execute_flags_[current_index] = ExecuteFlags::EXECUTE_NORMAL;
+	task_execute_flags_[current_index].value = ExecuteFlags::EXECUTE_NORMAL;
 }
 
 void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
@@ -287,8 +290,8 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 			}
 
 			if (check_ewa_watch.Elapsed<std::chrono::milliseconds>() >= kCheckEwaInterval) {
-				size_t attempts = attempt_count_[i].exchange(0);
-				size_t successes = success_count_[i].exchange(0);
+				size_t attempts = attempt_count_[i].value.exchange(0);
+				size_t successes = success_count_[i].value.exchange(0);
 				if (attempts > 0) {
 					double rate = static_cast<double>(successes) / attempts;
 					ema.Update(rate);

@@ -128,7 +128,7 @@ private:
 template <typename T, typename U = std::enable_if_t<std::is_trivially_copyable_v<T>>>
 struct XAMP_BASE_API_ONLY_EXPORT BufferRef {
     using value_type = T;
-    using size_type = std::size_t;
+    using size_type = size_t;
     using difference_type = std::ptrdiff_t;
     using reference = value_type&;
     using const_reference = const value_type&;

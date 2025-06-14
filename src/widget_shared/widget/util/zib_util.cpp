@@ -176,7 +176,7 @@ namespace {
                 return nullptr;
             }
 
-            static void close(libdeflate_decompressor* value) noexcept {
+            static void Close(libdeflate_decompressor* value) noexcept {
                 LIBDEFLATE_LIB.libdeflate_free_decompressor(value);
             }
         };
@@ -186,7 +186,7 @@ namespace {
                 return nullptr;
             }
 
-            static void close(libdeflate_compressor* value) noexcept {
+            static void Close(libdeflate_compressor* value) noexcept {
                 LIBDEFLATE_LIB.libdeflate_free_compressor(value);
             }
         };

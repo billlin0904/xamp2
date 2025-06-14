@@ -329,7 +329,7 @@ XAMP_BASE_NAMESPACE_END
 
 template <>
 struct std::hash<xamp::base::AudioFormat> {
-    std::size_t operator()(xamp::base::AudioFormat const& f) const noexcept {
+    size_t operator()(xamp::base::AudioFormat const& f) const noexcept {
         return f.GetHash();
     }
 };

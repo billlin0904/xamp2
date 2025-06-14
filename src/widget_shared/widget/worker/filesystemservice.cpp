@@ -36,7 +36,7 @@ namespace {
 		// Calculate file counts and depths in parallel
 		for (const auto& path : paths) {
 			path_infos.push_back({0, 0, path});
-		}
+		}		
 
 		Executor::ParallelForEach(thread_pool, path_infos, [&](auto& path_info)->void {
 			path_info.file_count = getFileCount(path_info.path, file_name_filters);
@@ -224,19 +224,25 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 		}
 
 		std::forward_list<TrackInfo> tracks;
-		for (const auto & entry_name : result.value()) {
+		for (const auto& entry_name : result.value()) {
 			auto entry = archive_file.OpenEntry(entry_name);
-			if (entry) {
-				TaglibMetadataReader reader;
-				reader.Open(std::move(entry.value()));
-				auto track_info = reader.Extract();
-				if (track_info) {
-					tracks.push_front(track_info.value());
-				}				
+
+			try {
+				if (entry) {
+					TaglibMetadataReader reader;
+					reader.Open(std::move(entry.value()));
+					auto track_info = reader.Extract();
+					if (track_info) {
+						tracks.push_front(track_info.value());
+					}
+				}
+			}
+			catch (const std::exception& e) {
+				XAMP_LOG_DEBUG("{}", e.what());
 			}			
 			++completed_work_;
 			updateProgress();
-		}
+		}		
 
 		tracks.sort([](const auto& first, const auto& last) {
 			return first.track < last.track;
@@ -330,7 +336,7 @@ void FileSystemService::scanReplayGain(const QList<PlayListEntity>& entities) {
 		}
 
 		try {
-			double album_peak = std::numeric_limits<double>::max();
+			double album_peak = std::numeric_limits<double>::min();
 			for (auto i = 0; i < album.second.size(); ++i) {
 				if (!scanners[i].IsValid()) {
 					XAMP_LOG_DEBUG("In-completed read file replay gain");
@@ -343,6 +349,8 @@ void FileSystemService::scanReplayGain(const QList<PlayListEntity>& entities) {
 			}
 
 			auto album_replay_gain = Ebur128Scanner::GetMultipleLoudness(scanners);
+			scanners.clear(); // !!!!! Key point
+
 			for (auto& entity : album.second) {
 				entity.replay_gain.value().album_peak = album_peak;
 				entity.replay_gain.value().album_gain = album_replay_gain;

@@ -159,12 +159,12 @@ public:
                 0,
                 flags | BASS_STREAM_DECODE));
 #else           
-            io_stream_ = MakeAlign<FastIOStream>(file_path, FastIOStream::Mode::Read);
+            io_stream_.open(file_path, FastIOStream::Mode::Read);
             stream_.reset(BASS_LIB.BASS_StreamCreateFileUser(
-                STREAMFILE_BUFFER,
-                flags | BASS_STREAM_DECODE | BASS_UNICODE,
+                STREAMFILE_NOBUFFER,
+                flags | BASS_STREAM_DECODE,
                 &file_process,
-                io_stream_.get()
+                &io_stream_
             ));
 #endif
         }
@@ -178,40 +178,15 @@ public:
                 flags | BASS_STREAM_DECODE,
                 0));
 #else
-            io_stream_ = MakeAlign<FastIOStream>(file_path, FastIOStream::Mode::Read);
+            io_stream_.open(file_path, FastIOStream::Mode::Read);
             stream_.reset(BASS_LIB.DSDLib->BASS_DSD_StreamCreateFileUser(
                 STREAMFILE_NOBUFFER,
-                flags | BASS_STREAM_DECODE | BASS_UNICODE,
+                flags | BASS_STREAM_DECODE,
                 &file_process,
-                io_stream_.get(),
+                &io_stream_,
                 0
             ));
 #endif
-            // BassLib DSD module default use 6dB gain.
-            // 不設定的話會爆音!
-            BASS_LIB.BASS_ChannelSetAttribute(stream_.get(), BASS_ATTRIB_DSD_GAIN, 0.0);
-        }
-    }
-
-    void CreateMemoryMappedBassStream(std::wstring const& file_path, DsdModes mode, DWORD flags) {
-        if (!file_.Open(file_path)) {
-            throw PlatformException();
-        }
-
-        if (mode == DsdModes::DSD_MODE_PCM) {
-            stream_.reset(BASS_LIB.BASS_StreamCreateFile(TRUE,
-                file_.GetData(),
-                0,
-                file_.GetLength(),
-                flags | BASS_STREAM_DECODE));
-        }
-        else {
-            stream_.reset(BASS_LIB.DSDLib->BASS_DSD_StreamCreateFile(TRUE,
-                file_.GetData(),
-                0,
-                file_.GetLength(),
-                flags | BASS_STREAM_DECODE,
-                0));
             // BassLib DSD module default use 6dB gain.
             // 不設定的話會爆音!
             BASS_LIB.BASS_ChannelSetAttribute(stream_.get(), BASS_ATTRIB_DSD_GAIN, 0.0);
@@ -286,7 +261,7 @@ public:
             XAMP_NO_DEFAULT;
         }
 
-        flags |= BASS_ASYNCFILE;
+        //flags |= BASS_ASYNCFILE;
 
         archive_context_ = MakeAlign<ArchiveContext>(std::move(archive_entry));
 
@@ -334,7 +309,7 @@ public:
             XAMP_NO_DEFAULT;
         }
 
-        flags |= BASS_ASYNCFILE;
+        //flags |= BASS_ASYNCFILE;
 
         XAMP_LOG_D(logger_, "Use DsdModes: {}", mode_);
 
@@ -434,10 +409,10 @@ public:
         }
     }
 
-    void Close() noexcept {
+    void Close() noexcept {        
         stream_.reset();
-        mix_stream_.reset();
-        file_.Close();
+        mix_stream_.reset();        
+        io_stream_.close();
         mode_ = DsdModes::DSD_MODE_PCM;
         info_ = BASS_CHANNELINFO{};
         download_size_ = 0;
@@ -567,9 +542,8 @@ private:
     BassStreamHandle mix_stream_;
     BassStreamHandle limiter_;
     BASS_CHANNELINFO info_;
-    MemoryMappedFile file_;
     ScopedPtr<ArchiveContext> archive_context_;
-    ScopedPtr<FastIOStream> io_stream_;
+    FastIOStream io_stream_;
     LoggerPtr logger_;
 };
 

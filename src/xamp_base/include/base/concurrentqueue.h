@@ -117,14 +117,14 @@ namespace moodycamel { namespace details {
 	// be.
 	static inline thread_id_t thread_id() { return std::this_thread::get_id(); }
 
-	template<std::size_t> struct thread_id_size { };
+	template<size_t> struct thread_id_size { };
 	template<> struct thread_id_size<4> { typedef std::uint32_t numeric_t; };
 	template<> struct thread_id_size<8> { typedef std::uint64_t numeric_t; };
 
 	template<> struct thread_id_converter<thread_id_t> {
 		typedef thread_id_size<sizeof(thread_id_t)>::numeric_t thread_id_numeric_size_t;
 #ifndef __APPLE__
-		typedef std::size_t thread_id_hash_t;
+		typedef size_t thread_id_hash_t;
 #else
 		typedef thread_id_numeric_size_t thread_id_hash_t;
 #endif
@@ -320,8 +320,8 @@ namespace details {
 // otherwise.
 struct ConcurrentQueueDefaultTraits
 {
-	// General-purpose size type. std::size_t is strongly recommended.
-	typedef std::size_t size_t;
+	// General-purpose size type. size_t is strongly recommended.
+	typedef size_t size_t;
 	
 	// The type used for the enqueue and dequeue indices. Must be at least as
 	// large as size_t. Should be significantly larger than the number of elements
@@ -333,7 +333,7 @@ struct ConcurrentQueueDefaultTraits
 	// prevent a race condition no matter the usage of the queue. Note that
 	// whether the queue is lock-free with a 64-int type depends on the whether
 	// std::atomic<std::uint64_t> is lock-free, which is platform-specific.
-	typedef std::size_t index_t;
+	typedef size_t index_t;
 	
 	// Internally, all elements are enqueued and dequeued from multi-element
 	// blocks; this is the smallest controllable unit. If you expect few elements
@@ -464,7 +464,7 @@ namespace details
 			return h ^ (h >> 33);
 		}
 	};
-	template<std::size_t size> struct hash_32_or_64 : public _hash_32_or_64<(size > 4)> {  };
+	template<size_t size> struct hash_32_or_64 : public _hash_32_or_64<(size > 4)> {  };
 	
 	static inline size_t hash_thread_id(thread_id_t id)
 	{
@@ -485,7 +485,7 @@ namespace details
 	template<typename U>
 	static inline char* align_for(char* ptr)
 	{
-		const std::size_t alignment = std::alignment_of<U>::value;
+		const size_t alignment = std::alignment_of<U>::value;
 		return ptr + (alignment - (reinterpret_cast<std::uintptr_t>(ptr) % alignment)) % alignment;
 	}
 
@@ -499,7 +499,7 @@ namespace details
 		x |= x >> 1;
 		x |= x >> 2;
 		x |= x >> 4;
-		for (std::size_t i = 1; i < sizeof(T); i <<= 1) {
+		for (size_t i = 1; i < sizeof(T); i <<= 1) {
 			x |= x >> (i << 3);
 		}
 		++x;

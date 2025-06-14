@@ -27,86 +27,29 @@ XAMP_BASE_API bool PrefetchMemory(void* adddr, size_t length) noexcept;
 #define MemoryCopy(dest, src, size) std::memcpy(dest, src, size)
 #define MemoryMove(dest, src, size) std::memmove(dest, src, size)
 
-/*
-* Allocate aligned memory.
-*
-* @param[in] size
-* @param[in] aligned_size
-* @return void*
-*/
 XAMP_BASE_API XAMP_CHECK_LIFETIME void* AlignedMalloc(size_t size, size_t aligned_size) noexcept;
 
-/*
-* Free aligned memory.
-*
-* @param[in] p
-* @return void
-* @note p must be allocated by AlignedMalloc.
-*/
 XAMP_BASE_API void AlignedFree(void* p) noexcept;
 
-/*
-* Allocate stack memory.
-*
-* @param[in] size
-* @return void*
-* @note StackAlloc is not thread safe.
-*/
 XAMP_BASE_API XAMP_CHECK_LIFETIME void* StackAlloc(size_t size);
 
-/*
-* Free stack memory.
-*
-* @param[in] p
-* @return void
-* @note p must be allocated by StackAlloc.
-*/
 XAMP_BASE_API void StackFree(void* p);
 
-/*
-* Align value to aligned_size.
-*
-* @param[in] value
-* @param[in] aligned_size
-* @return T
-* @note aligned_size must be power of 2.
-*/
 template <typename T>
 constexpr T AlignUp(T value, size_t aligned_size = kMallocAlignSize) {
     return T((value + (T(aligned_size) - 1)) & ~T(aligned_size - 1));
 }
 
-/*
-* Allocate aligned memory.
-*
-* @param[in] aligned_size
-* @return void*
-* @note aligned_size must be power of 2.
-*/
 template <typename T>
 XAMP_BASE_API_ONLY_EXPORT XAMP_CHECK_LIFETIME T* AlignedMallocObject(size_t aligned_size) noexcept {
     return static_cast<T*>(AlignedMalloc(sizeof(T), aligned_size));
 }
 
-/*
-* Allocate aligned memory.
-*
-* @param[in] n
-* @param[in] aligned_size
-* @return void*
-* @note aligned_size must be power of 2.
-*/
 template <typename Type>
 XAMP_BASE_API_ONLY_EXPORT XAMP_CHECK_LIFETIME Type* AlignedMallocArray(size_t n, size_t aligned_size) noexcept {
     return static_cast<Type*>(AlignedMalloc(sizeof(Type) * n, aligned_size));
 }
 
-/*
-* Aligned deleter.
-*
-* @param[in] p
-* @return void
-*/
 template <typename Type>
 struct XAMP_BASE_API_ONLY_EXPORT AlignedDeleter {
     void operator()(Type* p) const noexcept {
@@ -114,26 +57,16 @@ struct XAMP_BASE_API_ONLY_EXPORT AlignedDeleter {
     }
 };
 
-/*
-* Aligned class deleter.
-*
-* @param[in] p
-* @return void
-*/
 template <typename Type>
 struct XAMP_BASE_API_ONLY_EXPORT AlignedClassDeleter {
     void operator()(Type* p) const {
-        p->~Type();
+        if constexpr (!std::is_trivially_destructible_v<Type>) {
+            p->~Type();
+        }        
         AlignedFree(p);
     }
 };
 
-/*
-* Stack buffer deleter.
-*
-* @param[in] p
-* @return void
-*/
 template <typename Type>
 struct XAMP_BASE_API_ONLY_EXPORT StackBufferDeleter {
     void operator()(Type* p) const noexcept {
@@ -141,12 +74,6 @@ struct XAMP_BASE_API_ONLY_EXPORT StackBufferDeleter {
     }
 };
 
-/*
-* Free deleter.
-*
-* @param[in] p
-* @return void
-*/
 template <typename Type>
 struct XAMP_BASE_API_ONLY_EXPORT FreeDeleter {
     void operator()(Type* p) const noexcept {
@@ -174,7 +101,7 @@ using ScopedArray = std::unique_ptr<Type[], AlignedDeleter<Type>>;
 */
 template <typename BaseType, typename ImplType, typename... Args, size_t AlignSize = kMallocAlignSize>
 XAMP_BASE_API_ONLY_EXPORT ScopedPtr<BaseType> MakeAlign(Args&& ... args) {
-    auto ptr = ScopedPtr<BaseType>(AlignedMallocObject<ImplType>(AlignSize));
+    auto ptr = ScopedPtr<void>(AlignedMallocObject<ImplType>(AlignSize));
     if (!ptr) {
         throw std::bad_alloc();
     }
@@ -199,7 +126,7 @@ XAMP_BASE_API_ONLY_EXPORT ScopedPtr<BaseType> MakeAlign(Args&& ... args) {
 */
 template <typename Type, typename... Args, size_t AlignSize = kMallocAlignSize>
 XAMP_BASE_API_ONLY_EXPORT ScopedPtr<Type> MakeAlign(Args&& ... args) {
-    auto ptr = ScopedPtr<Type>(AlignedMallocObject<Type>(AlignSize));
+    auto ptr = ScopedPtr<void>(AlignedMallocObject<Type>(AlignSize));
     if (!ptr) {
         throw std::bad_alloc();
     }
@@ -208,7 +135,7 @@ XAMP_BASE_API_ONLY_EXPORT ScopedPtr<Type> MakeAlign(Args&& ... args) {
     try {
         obj = ::new(ptr.get()) Type(std::forward<Args>(args)...);
     }
-    catch (...) {
+    catch (...) {        
         throw;
     }
     ptr.release();

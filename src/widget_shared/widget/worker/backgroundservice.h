@@ -111,7 +111,7 @@ public Q_SLOT:
 
 	QCoro::Task<> fetchMusicBrainzRecording(const PlayListEntity& entity);
 private:
-	std::tuple<std::shared_ptr<IFile>, Path> makeFile(const EncodeJob& job, const QString& dir_name);
+	std::tuple<std::shared_ptr<FastIOStream>, Path> makeUniqueFile(const EncodeJob& job, const QString& dir_name);
 
 	QCoro::Task<> searchKugou(const PlayListEntity& keyword);
 

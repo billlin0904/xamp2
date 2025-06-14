@@ -5,7 +5,7 @@
 
 const std::array<QRgb, ColorTable::kLutSize> ColorTable::kSoxrLut = [] noexcept {
     std::array<QRgb, kLutSize> lut{};
-    for (std::size_t i = 0; i < kLutSize; ++i) {
+    for (size_t i = 0; i < kLutSize; ++i) {
         const double ratio = static_cast<double>(i) / (kLutSize - 1);
         lut[i] = soxrColor(ratio);
     }
@@ -14,7 +14,7 @@ const std::array<QRgb, ColorTable::kLutSize> ColorTable::kSoxrLut = [] noexcept 
 
 const std::array<QRgb, ColorTable::kLutSize> ColorTable::kDanBrutonLut = [] noexcept {
     std::array<QRgb, kLutSize> lut{};
-    for (std::size_t i = 0; i < kLutSize; ++i) {
+    for (size_t i = 0; i < kLutSize; ++i) {
         const double ratio = static_cast<double>(i) / (kLutSize - 1);
         lut[i] = danBrutonColor(ratio);
     }

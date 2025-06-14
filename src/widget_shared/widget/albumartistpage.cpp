@@ -159,7 +159,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	auto title_category_list = qDaoFacade.album_dao.getCategories();
 
 	album_tag_list_widget_ = new TagListView();
-	album_tag_list_widget_->setListViewFixedHeight(70);
+	//album_tag_list_widget_->setListViewFixedHeight(70);
 
     std::sort(title_category_list.begin(), title_category_list.end(),
               [](const auto& left, const auto& right) {
@@ -394,7 +394,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	year_frame_->setFrameShape(QFrame::StyledPanel);
 	auto* year_frame_layout = new QVBoxLayout(year_frame_);
 	year_frame_layout->setSpacing(0);
-	QSizePolicy size_policy_1(QSizePolicy::Preferred, QSizePolicy::Fixed);
+	QSizePolicy size_policy_1(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	year_frame_layout->setObjectName(QString::fromUtf8("currentArtistViewFrameLayout"));
 	year_frame_layout->setContentsMargins(0, 0, 0, 0);	
 

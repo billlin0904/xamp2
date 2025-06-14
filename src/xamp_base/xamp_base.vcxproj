@@ -169,6 +169,7 @@
     <ClInclude Include="include\base\buffer.h" />
     <ClInclude Include="include\base\charset_detector.h" />
     <ClInclude Include="include\base\furigana.h" />
+    <ClInclude Include="include\base\memory.h" />
     <ClInclude Include="include\base\text_encoding.h" />
     <ClInclude Include="include\base\com_error_category.h" />
     <ClInclude Include="include\base\crashhandler.h" />
@@ -211,7 +212,6 @@
     <ClInclude Include="include\base\memory_mapped_file.h" />
     <ClInclude Include="include\base\uuid.h" />
     <ClInclude Include="include\base\logger.h" />
-    <ClInclude Include="include\base\memory.h" />
     <ClInclude Include="include\base\trackinfo.h" />
     <ClInclude Include="include\base\rng.h" />
     <ClInclude Include="include\base\timer.h" />

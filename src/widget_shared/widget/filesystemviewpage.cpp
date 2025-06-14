@@ -235,18 +235,23 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
                 return;
             }
             auto reader = MakeMetadataReader();
-            reader->Open(file_path);
-            auto track_info = reader->Extract();
-            if (track_info) {
-                if (track_info.value().sample_rate == 0) {
-                    // Workaround for sample rate is 0
-                    XAMP_LOG_DEBUG("Try read sample use file stream.");
-                    auto file_stream = StreamFactory::MakeFileStream(file_path);
-                    file_stream->OpenFile(file_path);
-                    auto sampler_rate = file_stream->GetFormat().GetSampleRate();
-                    track_info.value().sample_rate = sampler_rate;
+            try {
+                reader->Open(file_path);
+                auto track_info = reader->Extract();
+                if (track_info) {
+                    if (track_info.value().sample_rate == 0) {
+                        // Workaround for sample rate is 0
+                        XAMP_LOG_DEBUG("Try read sample use file stream.");
+                        auto file_stream = StreamFactory::MakeFileStream(file_path);
+                        file_stream->OpenFile(file_path);
+                        auto sampler_rate = file_stream->GetFormat().GetSampleRate();
+                        track_info.value().sample_rate = sampler_rate;
+                    }
+                    track_queue.enqueue(track_info.value());
                 }
-                track_queue.enqueue(track_info.value());
+            }
+            catch (const Exception& e) {
+                XAMP_LOG_DEBUG("{}", e.what());
             }
             });
 

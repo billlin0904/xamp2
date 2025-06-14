@@ -10,6 +10,8 @@
 #include <QJsonArray>
 #include <QFile>
 
+#include <glaze/glaze.hpp>
+
 namespace json_util {
 
 inline bool deserialize(const QString& str, QJsonDocument& doc) {
