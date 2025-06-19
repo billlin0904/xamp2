@@ -295,6 +295,7 @@ void BackgroundService::executeEncodeJob(const QString& dir_name, const EncodeJo
                 return false;
             }
             if (progress % 10 == 0) {
+				//std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 emit updateJobProgress(job.job_id, progress);
             }            
             return true;
@@ -380,7 +381,7 @@ QCoro::Task<> BackgroundService::fetchMusicBrainzRecording(const PlayListEntity&
 
 void BackgroundService::parallelEncode(const QString& dir_name, QList<EncodeJob> jobs) {
     auto stop_token = stop_source_.get_token();
-    Executor::ParallelFor(thread_pool_, jobs,
+    Executor::ParallelForEach(thread_pool_, jobs,
         [this, dir_name](const EncodeJob& job) {
         executeEncodeJob(dir_name, job);
         }, stop_token);
@@ -399,6 +400,8 @@ void BackgroundService::onAddJobs(const QString& dir_name, const QList<EncodeJob
 		}
     }
     parallelEncode(dir_name, parallel_jobs);
+
+    //sequenceEncode(dir_name, jobs);
 }
 
 void BackgroundService::cancelRequested() {

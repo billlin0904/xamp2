@@ -26,7 +26,7 @@ class XAMP_BASE_API XAMP_NO_VTABLE ITaskScheduler {
 public:
     XAMP_BASE_CLASS(ITaskScheduler)
 
-	virtual void SubmitJob(MoveOnlyFunction&& task, ExecuteFlags flags) = 0;
+	virtual void SubmitJob(MoveOnlyFunction task, ExecuteFlags flags) = 0;
 
     virtual size_t GetThreadSize() const = 0;
 

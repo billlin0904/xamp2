@@ -357,7 +357,7 @@ const QStringList& getTrackInfoFileNameFilter() {
                 name_filter << qFormat("*%1").arg(QString::fromStdString(file_ext));
             }
             name_filter << "*.cue"_str;
-            name_filter << "*.zip"_str;
+            //name_filter << "*.zip"_str;
         }
         QStringList name_filter;
     };

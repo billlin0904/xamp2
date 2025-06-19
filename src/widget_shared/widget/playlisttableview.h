@@ -155,6 +155,8 @@ public:
 	void setAlbumCoverId(int32_t album_id, const QString &cover_id);
 	
 	ScanFileProgressPage* progressPage() const;
+
+	void showProgressPage();
 signals:
 	void updatePlayingState(const PlayListEntity &entity, PlayingState playing_state);
 
@@ -215,7 +217,7 @@ private:
 	void initial();
 
 protected:
-	void showProgressPage();
+	
 
 	bool cloud_mode_{ false };
 	bool enable_delete_{ true };

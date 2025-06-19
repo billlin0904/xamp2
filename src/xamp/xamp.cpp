@@ -2900,6 +2900,9 @@ void Xamp::onCancelRequested() {
 
 void Xamp::onInsertDatabase(const std::forward_list<TrackInfo>& result,
     int32_t playlist_id) {
+    if (playlist_id == kFileSystemPlaylistId) {
+        return;
+    }
     qDatabaseFacade.insertTrackInfo(result,
         playlist_id,
         StoreType::PLAYLIST_LOCAL_STORE,
@@ -2911,6 +2914,9 @@ void Xamp::onInsertDatabase(const std::forward_list<TrackInfo>& result,
 
 void Xamp::onBatchInsertDatabase(const std::vector<std::forward_list<TrackInfo>>& results,
     int32_t playlist_id) {
+    if (playlist_id == kFileSystemPlaylistId) {
+        return;
+    }
     qDatabaseFacade.insertMultipleTrackInfo(results,
         playlist_id,
         StoreType::PLAYLIST_LOCAL_STORE);

@@ -9,7 +9,7 @@
 #include <stream/anymap.h>
 
 #include <fstream>
-#include <base/fs.h>
+#include <base/fastiostream.h>
 
 #include <functional>
 

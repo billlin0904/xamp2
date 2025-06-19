@@ -190,7 +190,7 @@ size_t TaskScheduler::TrySteal(std::vector<MoveOnlyFunction>& tasks,
 	return 0;
 }
 
-void TaskScheduler::SubmitJob(MoveOnlyFunction&& task, ExecuteFlags flags) {
+void TaskScheduler::SubmitJob(MoveOnlyFunction task, ExecuteFlags flags) {
 	XAMP_NO_TLS_GUARDS thread_local PRNG prng;
 	size_t random_start = prng() % max_thread_;
 	for (size_t attempts = 0; attempts < kMaxAttempts; ++attempts) {

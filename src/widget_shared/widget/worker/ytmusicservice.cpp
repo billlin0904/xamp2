@@ -211,7 +211,7 @@ namespace {
 		}
 	}
 
-	artist::Artist parseArtist(const QJsonObject& artistObj) 	{
+	artist::Artist parseArtist(const QJsonObject& artistObj) {
 		using namespace artist;
 
 		Artist result;
@@ -438,8 +438,27 @@ YtMusicHttpService::YtMusicHttpService()
 	: http_client_(BASE_URL) {
 }
 
+QCoro::Task<LibraryPlaylist> YtMusicHttpService::fetchPlaylist(const QString& playlist_id) {
+	http_client_.setUrl(qFormat("%1/fetch_playlist").arg(BASE_URL));
+
+	QVariantMap map;
+	map["playlist_id"_str] = playlist_id;
+	const auto json = json_util::serialize(map);
+	http_client_.setJson(json);
+
+	auto content = co_await http_client_.post();
+
+	LibraryPlaylist playlist;
+	QJsonDocument doc;
+	if (!json_util::deserialize(content, doc)) {
+		co_return playlist;
+	}
+
+	parsePlaylistJson(playlist, doc);
+	co_return playlist;
+}
+
 QCoro::Task<SongInfo> YtMusicHttpService::fetchSongInfo(const QString& video_id) {
-	//http_client_.setUrl(qFormat("%1/fetch_song_info").arg(BASE_URL));
 	http_client_.setUrl(qFormat("%1/fetch_song").arg(BASE_URL));
 
 	QVariantMap map;
@@ -485,7 +504,7 @@ QCoro::Task<std::optional<QList<LibraryPlaylist>>> YtMusicHttpService::fetchLibr
 		parsePlaylistJson(playlist, playlist_obj);
 		results.push_back(playlist);
 	}
-
+	
 	co_return MakeOptional<QList<LibraryPlaylist>>(std::move(results));
 }
 
@@ -548,26 +567,6 @@ QCoro::Task<QList<QString>> YtMusicHttpService::searchSuggestions(const QString&
 
 	suggestions = extractSuggestions(doc);
 	co_return suggestions;
-}
-
-QCoro::Task<LibraryPlaylist> YtMusicHttpService::fetchPlaylist(const QString& playlist_id) {
-	http_client_.setUrl(qFormat("%1/fetch_playlist").arg(BASE_URL));
-
-	QVariantMap map;
-	map["playlist_id"_str] = playlist_id;
-	const auto json = json_util::serialize(map);
-	http_client_.setJson(json);
-
-	auto content = co_await http_client_.post();
-
-	LibraryPlaylist playlist;
-	QJsonDocument doc;
-	if (!json_util::deserialize(content, doc)) {
-		co_return playlist;
-	}
-
-	parsePlaylistJson(playlist, doc);
-	co_return playlist;
 }
 
 QCoro::Task<QString> YtMusicHttpService::editPlaylist(const QString& playlist_id, const QString& title) {

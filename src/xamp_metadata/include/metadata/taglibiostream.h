@@ -8,86 +8,151 @@
 #include <metadata/taglib.h>
 #include <base/fs.h>
 #include <base/stl.h>
+#include <base/fastiostream.h>
 #include <base/memory.h>
 
 XAMP_METADATA_NAMESPACE_BEGIN
 
-class TaglibIOStream : public TagLib::IOStream {
+class TaglibIOStream final : public TagLib::IOStream {
 public:
-    explicit TaglibIOStream(const Path& p, bool read_only = false)
-        : fast_(p, read_only ? FastIOStream::Mode::Read
-            : FastIOStream::Mode::ReadWrite) {
-    }
+	TaglibIOStream() = default;
 
-    TagLib::FileName name() const override {
-        return fast_.path().wstring().c_str();
-    }
+	virtual ~TaglibIOStream() override = default;
 
-    TagLib::ByteVector readBlock(size_t len) override {
-        TagLib::ByteVector buf;
-        buf.resize(static_cast<uint32_t>(len));
-        auto n = fast_.read(buf.data(), len);
-        buf.resize(static_cast<uint32_t>(n));
-        return buf;
-    }
+	explicit TaglibIOStream(const Path& path)
+		: io_stream_(path, FastIOStream::Mode::ReadWriteOnlyExisting) {
+	}
 
-    void writeBlock(const TagLib::ByteVector& v) override {
-        fast_.write(v.data(), v.size());
-    }
+	void open(const Path& path) {
+		io_stream_.open(path, FastIOStream::Mode::ReadWriteOnlyExisting);
+	}
 
-    void insert(const TagLib::ByteVector& data, offset_t start = 0, size_t replace = 0) override {
-        seek(start, Beginning);
-        if (replace) 
-            removeBlock(start, replace);
-        writeBlock(data);
-    }
+	TagLib::FileName name() const override {
+		return io_stream_.path().wstring().c_str();
+	}
 
-    void removeBlock(offset_t start = 0, size_t len = 0) override {
-        if (len == 0) 
-            return;
+	TagLib::ByteVector readBlock(size_t len) override {
+		if (!isOpen() || len == 0)
+			return {};
 
-        const auto total = length();
-        if (start + len >= total) {
-            truncate(start); return; 
-        }
+		TagLib::ByteVector v;
+		v.resize(static_cast<uint32_t>(len));
 
-        std::vector<char> tail(static_cast<size_t>(total - (start + len)));
-        seek(start + len, Beginning);
-        auto tail_vec = readBlock(tail.size());
+		size_t n = io_stream_.read(v.data(), len);
+		v.resize(static_cast<uint32_t>(n));
+		return v;
+	}
 
-        seek(start, Beginning);
-        writeBlock(tail_vec);
-        truncate(total - len);
-    }
+	void writeBlock(const TagLib::ByteVector& v) override {
+		if (v.isEmpty() || io_stream_.read_only())
+			return;
 
-    bool readOnly() const override { 
-        return fast_.read_only(); 
-    }
+		size_t total = 0;
+		const char* data = v.data();
+		const size_t len = v.size();
 
-    bool isOpen()  const override { 
-        return fast_.is_open();
-    }
+		while (total < len) {
+			size_t w = io_stream_.write(data + total, len - total);
+			if (w == 0) {
+				throw PlatformException();
+			}
+			total += w;
+		}
+	}
 
-    long long length() override { 
-        return static_cast<long long>(fast_.size());
-    }
+	void insert(const TagLib::ByteVector& data, offset_t start = 0, size_t replace = 0) override {
+		if (io_stream_.read_only())
+			return;
 
-    void seek(long long off, Position p = Beginning) override {
-        fast_.seek(off,
-            p == Beginning ? SEEK_SET :
-            p == Current ? SEEK_CUR : SEEK_END);
-    }
+		const auto total = length();
+		const uint64_t insert_len = data.size();
+		const uint64_t remove_len = replace;
 
-    long long tell() const override { 
-        return static_cast<long long>(fast_.tell());
-    }
+		static constexpr size_t BUF = 64 * 1024;
+		std::vector<char> buf(BUF);
 
-    void truncate(long long l) override { 
-        fast_.truncate(static_cast<uint64_t>(l)); 
-    }
+		uint64_t read_pos = total;
+		uint64_t write_pos = total + insert_len - remove_len;
 
-private:
-    FastIOStream fast_;
+		while (read_pos > start + remove_len) {
+			size_t chunk = std::min<uint64_t>(BUF, read_pos - (start + remove_len));
+			read_pos -= chunk;
+			write_pos -= chunk;
+
+			io_stream_.seek(read_pos, Beginning);
+			size_t n = io_stream_.read(buf.data(), chunk);
+			io_stream_.seek(write_pos, Beginning);
+			io_stream_.write(buf.data(), n);
+		}
+
+		// 2) 寫入新資料
+		seek(start, Beginning);
+		writeBlock(data);
+
+		// 3) 如有 replace > insert_len，砍掉多餘
+		if (insert_len < remove_len) {
+			truncate(total + insert_len - remove_len);
+		}
+	}
+
+	void removeBlock(offset_t start = 0, size_t len = 0) override {
+		if (io_stream_.read_only() || len == 0)
+			return;
+
+		const auto total = length();
+		if (start + len >= total) {
+			truncate(start);
+			return;
+		}
+
+		static constexpr size_t BUF = 64 * 1024;
+		std::vector<char> buf(BUF);
+
+		uint64_t read_pos = start + len;
+		uint64_t write_pos = start;
+
+		while (read_pos < total) {
+			size_t chunk = std::min<uint64_t>(BUF, total - read_pos);
+			io_stream_.seek(read_pos, Beginning);
+			size_t n = io_stream_.read(buf.data(), chunk);
+			io_stream_.seek(write_pos, Beginning);
+			io_stream_.write(buf.data(), n);
+			read_pos += n;
+			write_pos += n;
+		}
+		truncate(write_pos);
+	}
+
+	bool readOnly() const override {
+		return io_stream_.read_only();
+	}
+
+	bool isOpen() const override {
+		return io_stream_.is_open();
+	}
+
+	long long length() override {
+		return static_cast<long long>(io_stream_.size());
+	}
+
+	void seek(long long offset, Position p = Beginning) override {
+		int whence = (p == Beginning)
+			? SEEK_SET
+			: (p == Current) ? SEEK_CUR
+			: SEEK_END;
+		io_stream_.seek(offset, whence);
+	}
+
+	long long tell() const override {
+		return static_cast<long long>(io_stream_.tell());
+	}
+
+	void truncate(long long l) override {
+		if (!io_stream_.read_only())
+			io_stream_.truncate(static_cast<uint64_t>(l));
+	}
+
+	FastIOStream io_stream_;
 };
 
 XAMP_METADATA_NAMESPACE_END

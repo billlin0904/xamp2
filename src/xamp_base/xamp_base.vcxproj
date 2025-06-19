@@ -168,6 +168,7 @@
     <ClInclude Include="include\base\blocking_queue.h" />
     <ClInclude Include="include\base\buffer.h" />
     <ClInclude Include="include\base\charset_detector.h" />
+    <ClInclude Include="include\base\fastiostream.h" />
     <ClInclude Include="include\base\furigana.h" />
     <ClInclude Include="include\base\memory.h" />
     <ClInclude Include="include\base\text_encoding.h" />
@@ -233,6 +234,7 @@
     <ClCompile Include="src\dsd_utils.cpp" />
     <ClCompile Include="src\exception.cpp" />
     <ClCompile Include="src\fastconditionvariable.cpp" />
+    <ClCompile Include="src\fastiostream.cpp" />
     <ClCompile Include="src\fastmutex.cpp" />
     <ClCompile Include="src\fs.cpp" />
     <ClCompile Include="src\furigana.cpp" />

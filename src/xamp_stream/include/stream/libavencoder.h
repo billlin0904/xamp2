@@ -6,6 +6,7 @@
 #pragma once
 
 #include <stream/ifileencoder.h>
+#include <base/fastiostream.h>
 #include <base/uuidof.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN

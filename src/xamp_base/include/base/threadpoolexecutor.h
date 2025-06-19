@@ -84,7 +84,7 @@ public:
     /*
     * Submit job to thread pool.
     */
-    void SubmitJob(MoveOnlyFunction&& task, ExecuteFlags flags) override;
+    void SubmitJob(MoveOnlyFunction task, ExecuteFlags flags) override;
 
     /*
     * Destroy thread pool.

@@ -45,6 +45,8 @@ class LibAbFileEncoder::LibAbFileEncoderImpl {
 public:
     static constexpr auto kDefaultChannelLayout = AV_CH_LAYOUT_STEREO;
     static constexpr auto kFrameSize = 8192;
+    
+    using Converter = std::function<void(const float*, AVFrame*, size_t)>;
 
     ~LibAbFileEncoderImpl() {
         // 確保在解構時釋放重要資源
@@ -72,6 +74,100 @@ public:
         CreateAudioStream();
     }
 
+    void InitialConverter(uint32_t& sample_size, 
+        AVCodecID& codec_id,
+        AVSampleFormat& sample_format,
+        std::string& guess_file_name) {
+
+        static const HashMap<std::string, std::function<Converter (const ScopedPtr<FileStream> &, uint32_t&, AVCodecID&, AVSampleFormat&, std::string&)>>
+            converter_lut = {
+                { "aac", [](const ScopedPtr<FileStream>&, uint32_t& sample_size, AVCodecID& codec_id, AVSampleFormat& sample_format, std::string& guess_file_name) ->Converter {
+                guess_file_name = "output.m4a";
+                sample_size = 16;
+                codec_id = AV_CODEC_ID_AAC;
+                sample_format = AV_SAMPLE_FMT_FLTP;
+
+                return [](const float* input, AVFrame* frame, size_t read_samples) {
+                    void* left_ch = frame->data[0];
+                    void* right_ch = frame->data[1];
+
+                    // SSE convert: interleaved float => planar float
+                    ConvertFloatToFloatSSE(input,
+                        static_cast<float*>(left_ch),
+                        static_cast<float*>(right_ch),
+                        read_samples / 2);
+                    };
+                }},
+                { "alac", [](const ScopedPtr<FileStream>& input_file, uint32_t& sample_size, AVCodecID& codec_id, AVSampleFormat& sample_format, std::string& guess_file_name) -> Converter {
+                    guess_file_name = "output.m4a";
+                    codec_id = AV_CODEC_ID_ALAC;
+
+                    // 若 bit depth > 16 => 24-bit
+                    if (input_file->GetBitDepth() > 16) {
+                        sample_size = 24;
+                        sample_format = AV_SAMPLE_FMT_S32P;
+                        return [](const float* input, AVFrame* frame, size_t read_samples) {
+                            void* left_ch = frame->data[0];
+                            void* right_ch = frame->data[1];
+
+                            ConvertFloatToInt24SSE(input,
+                                static_cast<int32_t*>(left_ch),
+                                static_cast<int32_t*>(right_ch),
+                                read_samples / 2);
+                            };
+                    }
+                    else {
+                        sample_size = 16;
+                        sample_format = AV_SAMPLE_FMT_S16P;
+                        return [](const float* input, AVFrame* frame, size_t read_samples) {
+                            void* left_ch = frame->data[0];
+                            void* right_ch = frame->data[1];
+
+                            ConvertFloatToInt16SSE(input,
+                                static_cast<int16_t*>(left_ch),
+                                static_cast<int16_t*>(right_ch),
+                                read_samples / 2);
+                            };
+                    }
+                }},
+                { "pcm", [](const ScopedPtr<FileStream>& input_file, uint32_t& sample_size, AVCodecID& codec_id, AVSampleFormat& sample_format, std::string& guess_file_name) -> Converter {
+                    // 預設產生 WAV 檔
+                    guess_file_name = "output.wav";
+                    
+                    // 判斷 bit depth，若 >16 => 24-bit
+                    if (input_file->GetBitDepth() > 16) {
+                        codec_id = AV_CODEC_ID_PCM_S24LE;
+                        sample_size = 24;
+                        sample_format = AV_SAMPLE_FMT_S32; // pack 24bit in 32
+                        return [](const float* input, AVFrame* frame, size_t read_samples) {
+                            AudioConvertContext ctx;
+                            ctx.convert_size = read_samples / 2;
+                            // SSE convert: float => 24-bit (packed in 32bit)
+                            DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Convert(
+                                reinterpret_cast<int32_t*>(frame->data[0]), input, ctx);
+                            };
+                    }
+                    else {
+                        codec_id = AV_CODEC_ID_PCM_S16LE;
+                        sample_size = 16;
+                        sample_format = AV_SAMPLE_FMT_S16;
+                        return [](const float* input, AVFrame* frame, size_t read_samples) {
+                            AudioConvertContext ctx;
+                            ctx.convert_size = read_samples / 2;
+                            // SSE convert: float => 16-bit
+                            DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Convert(
+                                reinterpret_cast<int16_t*>(frame->data[0]), input, ctx);
+                            };
+                    }
+                }},
+        };
+
+        auto itr = converter_lut.find(codec_type_);
+        if (itr != converter_lut.end()) {
+            convert_ = itr->second(input_file_, sample_size, codec_id, sample_format, guess_file_name);
+        }
+    }
+
     void CreateAudioStream() {
         // 預設輸出檔名 (若未指定 writer 或 container)
         std::string guess_file_name = "output.m4a";
@@ -86,84 +182,7 @@ public:
         // 根據 codec_type_ (aac / alac / pcm) 選擇對應的 codec_id、sample_fmt、bit depth
         //----------------------------------------------------------------------
 
-        if (codec_type_ == "aac") {
-            sample_size = 16;
-            codec_id = AV_CODEC_ID_AAC;
-            sample_format = AV_SAMPLE_FMT_FLTP;
-
-            // for AAC: convert float => float planar
-            convert_ = [](const float* input, AVFrame* frame, size_t read_samples) {
-                void* left_ch = frame->data[0];
-                void* right_ch = frame->data[1];
-
-                // SSE convert: interleaved float => planar float
-                ConvertFloatToFloatSSE(input,
-                    static_cast<float*>(left_ch),
-                    static_cast<float*>(right_ch),
-                    read_samples / 2);
-                };
-        }
-        else if (codec_type_ == "alac") {
-            codec_id = AV_CODEC_ID_ALAC;
-
-            // 若 bit depth > 16 => 24-bit
-            if (input_file_->GetBitDepth() > 16) {
-                sample_size = 24;
-                sample_format = AV_SAMPLE_FMT_S32P;
-                convert_ = [](const float* input, AVFrame* frame, size_t read_samples) {
-                    void* left_ch = frame->data[0];
-                    void* right_ch = frame->data[1];
-
-                    ConvertFloatToInt24SSE(input,
-                        static_cast<int32_t*>(left_ch),
-                        static_cast<int32_t*>(right_ch),
-                        read_samples / 2);
-                    };
-            }
-            else {
-                sample_size = 16;
-                sample_format = AV_SAMPLE_FMT_S16P;
-                convert_ = [](const float* input, AVFrame* frame, size_t read_samples) {
-                    void* left_ch = frame->data[0];
-                    void* right_ch = frame->data[1];
-
-                    ConvertFloatToInt16SSE(input,
-                        static_cast<int16_t*>(left_ch),
-                        static_cast<int16_t*>(right_ch),
-                        read_samples / 2);
-                    };
-            }
-        }
-        else if (codec_type_ == "pcm") {
-            // 預設產生 WAV 檔
-            guess_file_name = "output.wav";
-
-            // 判斷 bit depth，若 >16 => 24-bit
-            if (input_file_->GetBitDepth() > 16) {
-                codec_id = AV_CODEC_ID_PCM_S24LE;
-                sample_size = 24;
-                sample_format = AV_SAMPLE_FMT_S32; // pack 24bit in 32
-                convert_ = [](const float* input, AVFrame* frame, size_t read_samples) {
-                    AudioConvertContext ctx;
-                    ctx.convert_size = read_samples / 2;
-                    // SSE convert: float => 24-bit (packed in 32bit)
-                    DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Convert(
-                        reinterpret_cast<int32_t*>(frame->data[0]), input, ctx);
-                    };
-            }
-            else {
-                codec_id = AV_CODEC_ID_PCM_S16LE;
-                sample_size = 16;
-                sample_format = AV_SAMPLE_FMT_S16;
-                convert_ = [](const float* input, AVFrame* frame, size_t read_samples) {
-                    AudioConvertContext ctx;
-                    ctx.convert_size = read_samples / 2;
-                    // SSE convert: float => 16-bit
-                    DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Convert(
-                        reinterpret_cast<int16_t*>(frame->data[0]), input, ctx);
-                    };
-            }
-        }
+        InitialConverter(sample_size, codec_id, sample_format, guess_file_name);
 
         //----------------------------------------------------------------------
         // 建立輸出 AVFormatContext + AVIOContext (若使用自訂 IO)
@@ -541,8 +560,8 @@ private:
     AvPtr<AVIOContext> output_io_context_;
     AvPtr<AVFormatContext> format_context_;
 
-    // 用於 float PCM => 對應格式的轉換函式
-    std::function<void(const float*, AVFrame*, size_t)> convert_;
+    // 用於 float PCM => 對應格式的轉換函式    
+    Converter convert_;
 
     std::shared_ptr<FastIOStream> io_stream_;
     ScopedPtr<FileStream> input_file_;

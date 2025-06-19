@@ -603,8 +603,9 @@ public:
     void Open(ArchiveEntry entry) {
         auto entry_name = entry.Name();
         auto archive_path = entry.ArchivePath();
-        stream_ = MakeAlign<TagLib::IOStream, LibarchiveIOStream>(std::move(entry));
-        FileRef fileref(stream_.get(), true, TagLib::AudioProperties::Fast);
+        PrefetchFile(archive_path);
+        io_stream_ = MakeAlign<TagLib::IOStream, LibarchiveIOStream>(std::move(entry));
+        FileRef fileref(io_stream_.get(), true, TagLib::AudioProperties::Fast);
         if (!fileref.isNull()) {
             fileref_opt_ = fileref;
             path_ = archive_path;
@@ -615,9 +616,9 @@ public:
     }
 
 	void Open(const Path& path) {
-        PrefetchFile(path);
-        stream_ = MakeAlign<TagLib::IOStream, TaglibIOStream>(path, true);
-        FileRef fileref(stream_.get(), true, TagLib::AudioProperties::Fast);
+        PrefetchFile(path);        
+        io_stream_ = MakeAlign<TagLib::IOStream, TaglibIOStream>(path);
+        FileRef fileref(io_stream_.get(), true, TagLib::AudioProperties::Fast);
         if (!fileref.isNull()) {
             fileref_opt_ = fileref;
             path_ = path;            
@@ -637,8 +638,8 @@ public:
         const auto* tag = file_ref.tag();
 
         if (is_archive_file_) {
-            track_info.file_size = stream_->length();
-            track_info.archive_entry_name = stream_->name().toString().toCWString();
+            track_info.file_size = io_stream_->length();
+            track_info.archive_entry_name = io_stream_->name().toString().toCWString();
             track_info.file_path = path_;
             track_info.is_zip_file = true;
             if (tag != nullptr) {
@@ -709,7 +710,7 @@ private:
     Path path_;
     std::optional<FileRef> fileref_opt_;
     ScopedPtr<IFileTagReader> tag_reader_;
-    ScopedPtr<TagLib::IOStream> stream_;
+    ScopedPtr<TagLib::IOStream> io_stream_;
 };
 
 XAMP_PIMPL_IMPL(TaglibMetadataReader)

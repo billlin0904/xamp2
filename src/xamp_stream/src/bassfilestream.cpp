@@ -12,6 +12,7 @@
 #include <base/logger.h>
 #include <base/logger_impl.h>
 #include <bass/bassdsd.h>
+#include <base/fastiostream.h>
 
 #include <stream/compressorconfig.h>
 
@@ -143,7 +144,7 @@ public:
     }
 
     void CreateBassStream(const std::wstring & file_path, DsdModes mode, DWORD flags) {
-        const BASS_FILEPROCS file_process = {
+        static constexpr BASS_FILEPROCS file_process = {
                &FastIOStreamContext::BassCloseProc,
                &FastIOStreamContext::BassLenProc,
                &FastIOStreamContext::BassReadProc,
@@ -151,14 +152,6 @@ public:
         };
 
         if (mode == DsdModes::DSD_MODE_PCM) {
-#ifdef XAMP_OS_MAC
-            auto utf8 = String::ToString(file_path);
-            stream_.reset(BASS_LIB.BASS_StreamCreateFile(FALSE,
-                utf8.c_str(),
-                0,
-                0,
-                flags | BASS_STREAM_DECODE));
-#else           
             io_stream_.open(file_path, FastIOStream::Mode::Read);
             stream_.reset(BASS_LIB.BASS_StreamCreateFileUser(
                 STREAMFILE_NOBUFFER,
@@ -166,18 +159,8 @@ public:
                 &file_process,
                 &io_stream_
             ));
-#endif
         }
         else {
-#ifdef XAMP_OS_MAC
-            auto utf8 = String::ToString(file_path);
-            stream_.reset(BASS_LIB.DSDLib->BASS_DSD_StreamCreateFile(FALSE,
-                utf8.c_str(),
-                0,
-                0,
-                flags | BASS_STREAM_DECODE,
-                0));
-#else
             io_stream_.open(file_path, FastIOStream::Mode::Read);
             stream_.reset(BASS_LIB.DSDLib->BASS_DSD_StreamCreateFileUser(
                 STREAMFILE_NOBUFFER,
@@ -186,7 +169,6 @@ public:
                 &io_stream_,
                 0
             ));
-#endif
             // BassLib DSD module default use 6dB gain.
             // 不設定的話會爆音!
             BASS_LIB.BASS_ChannelSetAttribute(stream_.get(), BASS_ATTRIB_DSD_GAIN, 0.0);
@@ -200,6 +182,7 @@ public:
 	        const auto is_cda_file = IsCDAFile(file_path);
 
             if (is_cda_file) {
+                flags |= BASS_ASYNCFILE;
                 // Only for windows.
                 stream_.reset(BASS_LIB.BASS_StreamCreateFile(FALSE,
                     file_path.c_str(),
@@ -236,7 +219,7 @@ public:
     }
 
     void Open(ArchiveEntry archive_entry) {
-        const BASS_FILEPROCS file_process = {
+        static constexpr BASS_FILEPROCS file_process = {
             &ArchiveContext::ArchiveCloseCallback,
             & ArchiveContext::ArchiveLengthCallback,
             & ArchiveContext::ArchiveReadCallback,
@@ -260,8 +243,6 @@ public:
         default:
             XAMP_NO_DEFAULT;
         }
-
-        //flags |= BASS_ASYNCFILE;
 
         archive_context_ = MakeAlign<ArchiveContext>(std::move(archive_entry));
 
@@ -308,8 +289,6 @@ public:
         default:
             XAMP_NO_DEFAULT;
         }
-
-        //flags |= BASS_ASYNCFILE;
 
         XAMP_LOG_D(logger_, "Use DsdModes: {}", mode_);
 
