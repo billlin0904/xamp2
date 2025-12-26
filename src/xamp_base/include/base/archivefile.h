@@ -21,7 +21,7 @@ struct ArchivePtrDeleter final {
 };
 
 using ArchivePtrHandle = UniqueHandle<archive*, ArchivePtrDeleter>;
-
+using ArchiveProgressCallback = std::function<bool(uint64_t, std::optional<uint64_t>)>;
 
 class XAMP_BASE_API ArchiveEntry {
 	std::wstring name;
@@ -45,11 +45,11 @@ public:
 		, archive_ptr(std::move(archive_ptr)) {
 	}
 
-	ArchiveEntry(ArchiveEntry&& other) {
+	ArchiveEntry(ArchiveEntry&& other) noexcept {
 		*this = std::move(other);
 	}
 
-	ArchiveEntry& operator=(ArchiveEntry&& other) {
+	ArchiveEntry& operator=(ArchiveEntry&& other) noexcept {
 		if (this != &other) {
 			name         = std::move(other.name);
 			archive_path = std::move(other.archive_path);
@@ -62,7 +62,7 @@ public:
 		return *this;
 	}
 
-	std::expected<long long, std::string> Read(char *buffer, long length);
+	std::expected<ptrdiff_t, std::string> Read(char *buffer, long length);
 
 	const std::wstring& Name() const noexcept {
 		return name; 
@@ -95,7 +95,7 @@ public:
 
 	std::vector<std::wstring> ListEntries() const;
 
-	std::expected<ArchiveEntry, std::string> OpenEntry(const std::wstring& entry_name);
+	std::expected<ArchiveEntry, std::string> GetEntryByName(const std::wstring& entry_name);
 
 	static std::vector<std::expected<ArchiveEntry, std::string>> GetAllEntry(ArchiveFile &file);
 private:

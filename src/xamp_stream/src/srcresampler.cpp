@@ -1,6 +1,5 @@
 #include <stream/srcresampler.h>
 
-#include <base/singleton.h>
 #include <base/dll.h>
 #include <base/logger.h>
 #include <base/logger_impl.h>
@@ -46,13 +45,13 @@ public:
 			break;
 		}
 
-		handle_.reset(LIBSRC_LIB.src_new(quality, AudioFormat::kMaxChannel, &error));
+		handle_.reset(LibSrcDLL.src_new(quality, AudioFormat::kMaxChannel, &error));
 		if (!handle_ || error > 0) {
-			throw LibraryException(String::Format("src_new return failure! {}", LIBSRC_LIB.src_strerror(error)));
+			throw LibraryException(String::Format("src_new return failure! {}", LibSrcDLL.src_strerror(error)));
 		}
 
 		ratio_ = static_cast<double>(output_sample_rate_) / static_cast<double>(input_sample_rate_);
-		if (!LIBSRC_LIB.src_is_valid_ratio(ratio_)) {
+		if (!LibSrcDLL.src_is_valid_ratio(ratio_)) {
 			throw LibraryException("Sample rate change out of valid range.");
 		}
 
@@ -74,7 +73,7 @@ public:
 		src_data.data_out = output.data() + src_data.output_frames_gen;
 		src_data.output_frames = output.size() / AudioFormat::kMaxChannel;
 
-		const auto result = LIBSRC_LIB.src_process(handle_.get(), &src_data);
+		const auto result = LibSrcDLL.src_process(handle_.get(), &src_data);
 		if (result > 0) {
 			return false;
 		}
@@ -111,7 +110,7 @@ private:
 		}
 
 		static void Close(SRC_STATE* value) noexcept {
-			LIBSRC_LIB.src_delete(value);
+			LibSrcDLL.src_delete(value);
 		}
 	};
 
@@ -145,14 +144,6 @@ void SrcSampleRateConverter::Initialize(const AnyMap& config) {
 
 	const auto input_format = config.Get<AudioFormat>(DspConfig::kInputFormat);
 	impl_->Initialize(input_format.GetSampleRate());
-}
-
-Uuid SrcSampleRateConverter::GetTypeId() const {
-	return XAMP_UUID_OF(SrcSampleRateConverter);
-}
-
-std::string_view SrcSampleRateConverter::GetDescription() const noexcept {
-	return "Secret Rabbit Code";
 }
 
 XAMP_STREAM_NAMESPACE_END

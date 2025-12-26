@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2025 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -8,6 +8,8 @@
 #include <ostream>
 #include <string_view>
 #include <array>
+
+#if 1
 
 #define EXPAND_VISUAL_STUDIO_HELPER(x) x
 
@@ -156,3 +158,4 @@ inline std::ostream &operator<<(std::ostream &os, EnumName value) {\
     return os;\
 }
 
+#endif

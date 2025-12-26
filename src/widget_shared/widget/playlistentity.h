@@ -96,6 +96,12 @@ struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
         }
         return dop_sample_rate;
     }
+
+	[[nodiscard]] QString getDateTime() const {
+        QDateTime dt = QDateTime::fromSecsSinceEpoch(timestamp, Qt::UTC);
+        QString str = dt.toString("yyyy-MM-dd hh:mm:ss"_str);
+        return str;
+    }
 };
 
 // for QVariant轉換使用

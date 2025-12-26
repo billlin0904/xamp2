@@ -113,7 +113,7 @@ public:
     * @param[in] file_path The file path.
     * @param[in] device_id The device id.
     */
-    void Open(const Path& file_path, const Uuid& device_id = Uuid::kNullUuid) override;
+    void Open(const Path& file_path, const Uuid& device_id = Uuid::kNullUuid, float rate = 0.0f) override;
 
     /*
     * Open a file.
@@ -125,12 +125,14 @@ public:
     void Open(const Path& file_path,              
         const DeviceInfo& device_info,
         uint32_t target_sample_rate = 0,
-        DsdModes output_mode = DsdModes::DSD_MODE_AUTO) override;
+        DsdModes output_mode = DsdModes::DSD_MODE_AUTO,
+        float rate = 0.0f) override;
 
     void OpenArchiveEntry(ArchiveEntry archive_entry,
         const DeviceInfo& device_info,
         uint32_t target_sample_rate = 0,
-        DsdModes output_mode = DsdModes::DSD_MODE_AUTO) override;
+        DsdModes output_mode = DsdModes::DSD_MODE_AUTO,
+        float rate = 0.0f) override;
 
     /*
     * Prepare to play.
@@ -311,6 +313,9 @@ public:
     * Set file cache mode.
     */
     void SeFileCacheMode(bool enable) override;
+
+	uint32_t GetBitRate() const override;
+
 private:
     DataCallbackResult OnGetSamples(void* samples,
         size_t num_buffer_frames, 
@@ -324,11 +329,13 @@ private:
 
     void OnDeviceStateChange(DeviceState state, std::string const& device_id) override;
 
+    void OnGlitch(std::chrono::milliseconds duration, uint32_t count) noexcept override;
+
     void DoSeek(double stream_time);        
     	
-    void OpenStream(Path const& file_path, DsdModes dsd_mode);
+    void OpenStream(Path const& file_path, DsdModes dsd_mode, float rate);
 
-    void OpenStream(ArchiveEntry archive_entry, DsdModes dsd_mode);
+    void OpenStream(ArchiveEntry archive_entry, DsdModes dsd_mode, float rate);
 
     void CreateDevice(Uuid const& device_type_id, const  std::string & device_id, bool open_always);
 
@@ -394,7 +401,7 @@ private:
     ScopedPtr<IAudioProcessor> fader_;
     ScopedPtr<IAudioDeviceManager> device_manager_;
     std::weak_ptr<IPlaybackStateAdapter> state_adapter_;    
-    Task<void> stream_task_;        
+    Future<void> stream_task_;
     AnyMap config_;
     LoggerPtr logger_;
     std::string device_id_;

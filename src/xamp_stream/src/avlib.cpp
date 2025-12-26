@@ -12,7 +12,7 @@ AvException::AvException(int32_t error)
 	: Exception(Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR) 
 	, error_code_(error) {
 	char buf[256]{};
-	LIBAV_LIB.Util->av_strerror(error, buf, sizeof(buf) - 1);
+	LibAvDLL.Util->av_strerror(error, buf, sizeof(buf) - 1);
 	message_.assign(buf);
 }
 
@@ -142,10 +142,11 @@ catch (const Exception& e) {
 static void LogPrintf(void* ptr, int level, const char* fmt, va_list vl) {
 	va_list valist;
 	char message[1024]{};
+	int32_t message_size = sizeof(message);
 
 	va_copy(valist, vl);
 	int print_prefix = 1;
-	LIBAV_LIB.Util->av_log_format_line(ptr, level, fmt, valist, message, sizeof(message), &print_prefix);
+	LibAvDLL.Util->av_log_format_line(ptr, level, fmt, valist, message, message_size, &print_prefix);
 	va_end(valist);
 
 	const auto message_length = strlen(message) - 1;
@@ -175,7 +176,7 @@ static void LogPrintf(void* ptr, int level, const char* fmt, va_list vl) {
 		return;
 	}
 
-	XAMP_LOG_LEVEL(LIBAV_LIB.logger, log_level, "{}", message);
+	XAMP_LOG_LEVEL(LibAvDLL.logger, log_level, "{}", message);
 }
 
 AvLib::~AvLib() {

@@ -2,8 +2,6 @@
 
 #include <base/trackinfo.h>
 #include <base/threadpoolexecutor.h>
-#include <base/spinlock.h>
-#include <base/memory.h>
 #include <base/rng.h>
 #include <base/dataconverter.h>
 #include <base/lrucache.h>
@@ -15,22 +13,12 @@
 
 #include <base/logger_impl.h>
 #include <base/executor.h>
-#include <base/uuidof.h>
-#include <base/sfc64.h>
-#include <base/mpmc_queue.h>
 
-#include <stream/fft.h>
 #include <stream/stream.h>
 #include <stream/api.h>
 #include <stream/ifileencoder.h>
 
 #include <player/api.h>
-
-#ifdef XAMP_OS_WIN
-#include <base/simd.h>
-#else
-#include <uuid/uuid.h>
-#endif
 
 #include <iostream>
 #include <numeric>
@@ -39,7 +27,10 @@
 #include <execution>
 #include <unordered_set>
 
+#include <thread_pool/thread_pool.h>
+#include <xsimd/xsimd.hpp>
 #include <base/dll.h>
+#include <base/fs.h>
 
 using namespace xamp::player;
 using namespace xamp::base;
@@ -58,6 +49,89 @@ bool IsPrime(size_t n) {
 
 constexpr size_t kThreadPoolTestTaskSize = 1000;
 
+void ConvertInt8ToInt8_xsimd(const int8_t* input, int8_t* left_ptr, int8_t* right_ptr, size_t frames) {
+    constexpr size_t BATCH_SIZE = xsimd::batch<int8_t>::size;
+    using batch_type = xsimd::batch<int8_t>;
+    size_t i = 0;
+
+    // 每個 frame 包含左右聲道各一個 int8_t，因此每個 batch 處理 BATCH_SIZE / 2 個 frames
+    size_t frames_per_batch = BATCH_SIZE / 2;
+
+    while (frames >= frames_per_batch) {
+        // 載入交錯的音訊資料
+        batch_type data = batch_type::load_unaligned(input);
+
+        // 使用 zip_lo 和 zip_hi 分離左右聲道
+        auto left_batch = xsimd::zip_lo(data, data);
+        auto right_batch = xsimd::zip_hi(data, data);
+
+        // 儲存左右聲道資料
+        left_batch.store_unaligned(left_ptr);
+        right_batch.store_unaligned(right_ptr);
+
+        input += BATCH_SIZE;
+        left_ptr += frames_per_batch;
+        right_ptr += frames_per_batch;
+        frames -= frames_per_batch;
+        i += frames_per_batch;
+    }
+
+    // 處理剩餘不足一個 batch 的 frames
+    for (; frames > 0; --frames) {
+        *left_ptr++ = *input++;
+        *right_ptr++ = *input++;
+    }
+}
+
+void ConvertFloatToInt24_xsimd(const float* input, int32_t* left_ptr, int32_t* right_ptr, size_t frames) {
+    using batch = xsimd::batch<float>;
+    using ibatch = xsimd::batch<int32_t>;
+    constexpr size_t simd_size = batch::size; // 通常為 4/8/16，依平台
+
+    const float* in = input;
+    int32_t* lptr = left_ptr;
+    int32_t* rptr = right_ptr;
+
+    size_t i = 0;
+    batch scale = batch(kFloat24Scale);
+
+    // 一次處理 simd_size 個 frame（每 frame 是 L/R 交錯的 2 值）
+    for (; i + simd_size <= frames; i += simd_size) {
+        // 讀入 2 * simd_size 個 float，代表 simd_size 個 frame 的 L/R 交錯資料
+        batch interleaved1 = batch::load_unaligned(in);
+        batch interleaved2 = batch::load_unaligned(in + simd_size);
+
+        // 使用 zip_lo 和 zip_hi 分離左右聲道
+        auto left = xsimd::zip_lo(interleaved1, interleaved2);
+        auto right = xsimd::zip_hi(interleaved1, interleaved2);
+
+        // 乘以縮放因子
+        left = left * scale;
+        right = right * scale;
+
+        // 轉換為 int32 並左移 8 位
+        ibatch left_i32 = xsimd::to_int(left) << 8;
+        ibatch right_i32 = xsimd::to_int(right) << 8;
+
+        // 儲存結果
+        left_i32.store_unaligned(lptr);
+        right_i32.store_unaligned(rptr);
+
+        in += simd_size * 2;
+        lptr += simd_size;
+        rptr += simd_size;
+    }
+
+    // 處理剩餘不足 simd_size 的 frame
+    for (; i < frames; i++) {
+        float L = in[0] * kFloat24Scale;
+        float R = in[1] * kFloat24Scale;
+        *lptr++ = static_cast<int32_t>(L) << 8;
+        *rptr++ = static_cast<int32_t>(R) << 8;
+        in += 2;
+    }
+}
+
 static void BM_ThreadPoolBaseLine(benchmark::State& state) {
     const size_t max_thread = state.range(0);
     std::vector<uint32_t> n(kThreadPoolTestTaskSize);
@@ -75,6 +149,31 @@ static void BM_ThreadPoolBaseLine(benchmark::State& state) {
 	}
 }
 
+//static void BM_DpThreadPool(benchmark::State& state) {
+//    const size_t max_thread = state.range(0);
+//    dp::thread_pool<std::function<void()>> pool(max_thread);
+//    PRNG prng;
+//    std::atomic<int64_t> prime_count{ 0 };
+//
+//    for (auto _ : state) {
+//        std::vector<std::future<void>> results;
+//        results.reserve(max_thread);
+//        for (auto i = 0; i < max_thread; ++i) {
+//            auto number = prng.NextUInt32();
+//            auto task_lambda = [&prime_count, number]() {
+//                if (IsPrime(number)) {
+//                    ++prime_count;
+//                }
+//                };
+//            results.push_back(pool.enqueue(task_lambda));
+//        }
+//        for (auto& fut : results) {
+//            fut.wait();
+//        }
+//        benchmark::DoNotOptimize(prime_count.load());
+//    }
+//}
+
 static void BM_ThreadPool(benchmark::State& state) {
     const size_t max_thread = state.range(0);
 
@@ -84,54 +183,46 @@ static void BM_ThreadPool(benchmark::State& state) {
         max_thread / 2,
         ThreadPriority::PRIORITY_NORMAL);
 
-#ifndef _DEBUG
     XampLoggerFactory.GetLogger(XAMP_LOG_NAME(BM_ThreadPool))
         ->SetLevel(LOG_LEVEL_OFF);
-#else
-    XampLoggerFactory.GetLogger(XAMP_LOG_NAME(BM_ThreadPool))
-        ->SetLevel(LOG_LEVEL_TRACE);
-#endif
-    std::vector<uint32_t> n(kThreadPoolTestTaskSize);
+
     PRNG prng;
+    std::atomic<int64_t> prime_count{ 0 };
+    std::vector<uint32_t> n(max_thread);
     std::generate(n.begin(), n.end(), [&prng]() {
         return prng.NextUInt32();
         });
-    std::atomic<int64_t> prime_count{0};
-
-    auto task_lambda = [&prime_count, thread_pool](auto item) {
-        if (IsPrime(item)) {
+    auto task_lambda = [&prime_count](auto number) {
+        if (IsPrime(number)) {
             ++prime_count;
         }
-        thread_pool->Spawn([](auto stop_token) {
-            });
     };
 
     for (auto _ : state) {
-        Executor::ParallelFor(thread_pool.get(), n, task_lambda);
+        Executor::ParallelForSimple(thread_pool, n, task_lambda);
         benchmark::DoNotOptimize(prime_count.load());
     }
 }
 
-auto std_parallel_for = [](auto& items, auto&& f) {
-    auto begin = std::begin(items);
-    size_t size = std::distance(begin, std::end(items));
-    size_t batches = std::thread::hardware_concurrency() / 2 + 1;
-    for (size_t i = 0; i < size; ++i) {
-        std::vector<std::shared_future<void>> futures((std::min)(size - i, batches));
-        for (auto& ff : futures) {
-            ff = std::async(std::launch::async, [f, begin, i]() -> void {
+static void BM_StdThreadPool(benchmark::State& state) {
+    auto std_parallel_for = [](auto& items, auto&& f) {
+        auto begin = std::begin(items);
+        size_t size = std::distance(begin, std::end(items));
+
+        std::vector<std::shared_future<void>> futures;
+        futures.reserve(size);
+        for (size_t i = 0; i < size; ++i) {
+            futures.push_back(std::async(std::launch::async, [f, begin, i]() -> void {
                 f(*(begin + i));
-                });
+                }));
             ++i;
         }
         for (auto& ff : futures) {
             ff.wait();
         }
-    }
-    };
-
-static void BM_StdThreadPool(benchmark::State& state) {
-    std::vector<uint32_t> n(kThreadPoolTestTaskSize);
+        };
+    const size_t max_thread = state.range(0);
+    std::vector<uint32_t> n(max_thread);
     PRNG prng;
     std::generate(n.begin(), n.end(), [&prng]() {
         return prng.NextUInt32();
@@ -186,6 +277,32 @@ static void BM_ConvertFloatToFloatSSE(benchmark::State& state) {
     state.SetItemsProcessed(static_cast<int64_t>(state.iterations()) * frames);
 }
 
+static void BM_ConvertFloatToInt16SSE(benchmark::State& state) {
+    const size_t frames = static_cast<size_t>(state.range(0));
+    PRNG prng;
+    auto input = prng.NextSingles(2 * frames);
+    std::vector<int16_t> left(frames), right(frames);
+    for (auto _ : state) {
+        ConvertFloatToInt16SSE(input.data(), left.data(), right.data(), frames);
+        benchmark::DoNotOptimize(left);
+        benchmark::DoNotOptimize(right);
+    }
+    state.SetItemsProcessed(static_cast<int64_t>(state.iterations()) * frames);
+}
+
+static void BM_ConvertFloatToInt16(benchmark::State& state) {
+    const size_t frames = static_cast<size_t>(state.range(0));
+    PRNG prng;
+    auto input = prng.NextSingles(2 * frames);
+    std::vector<int16_t> left(frames), right(frames);
+    for (auto _ : state) {
+        ConvertFloatToInt16(input.data(), left.data(), right.data(), frames);
+        benchmark::DoNotOptimize(left);
+        benchmark::DoNotOptimize(right);
+    }
+    state.SetItemsProcessed(static_cast<int64_t>(state.iterations()) * frames);
+}
+
 static void BM_ConvertFloatToInt24SSE(benchmark::State& state) {
     const size_t frames = static_cast<size_t>(state.range(0));
     PRNG prng;
@@ -210,140 +327,6 @@ static void BM_ConvertFloatToInt24(benchmark::State& state) {
         benchmark::DoNotOptimize(right);
     }
     state.SetItemsProcessed(static_cast<int64_t>(state.iterations()) * frames);
-}
-
-static void BM_FastFile_Write(benchmark::State& state) {
-    const uint32_t bytes_to_write = static_cast<uint32_t>(state.range(0));
-    const Path kTestFileName = std::filesystem::temp_directory_path() / "fastfile_write_test.bin";
-
-    std::vector<char> buffer(bytes_to_write, 'x');
-	for (auto _ : state) {
-        FastFile file(kTestFileName, FastFileOpenMode::FAST_IO_WRITE);
-		uint32_t bytes_written = 0;
-		file.Write(buffer.data(), bytes_to_write, bytes_written);
-        file.Close();
-		benchmark::DoNotOptimize(bytes_written);
-	}
-
-    std::filesystem::remove(kTestFileName);
-}
-
-static void BM_STDFile_Write(benchmark::State& state) {
-    const uint32_t bytes_to_write = static_cast<uint32_t>(state.range(0));
-    const Path kTestFileName = std::filesystem::temp_directory_path() / "stdfile_write_test.bin";
-
-    std::vector<char> buffer(bytes_to_write, 'x');
-    for (auto _ : state) {
-        std::ofstream ofs(kTestFileName, std::ios::binary | std::ios::trunc);
-        ofs.write(buffer.data(), static_cast<std::streamsize>(bytes_to_write));
-        ofs.close();
-    }
-
-    std::filesystem::remove(kTestFileName);
-}
-
-static void BM_FastFile_Read(benchmark::State& state) {
-    const uint32_t bytes_to_read = static_cast<uint32_t>(state.range(0));
-    const Path kTestFileName = std::filesystem::temp_directory_path() / "fastfile_read_test.bin";
-
-    std::vector<char> buffer(bytes_to_read, 'x');
-    std::vector<char> read_buffer(bytes_to_read, '\0');
-
-    FastFile test_file(kTestFileName, FastFileOpenMode::FAST_IO_WRITE);
-    uint32_t bytes_written = 0;
-    test_file.Write(buffer.data(), bytes_to_read, bytes_written);
-    test_file.Close();
-
-    for (auto _ : state) {
-        FastFile file(kTestFileName, FastFileOpenMode::FAST_IO_READ);
-        uint32_t bytes_read = 0;
-        file.Read(read_buffer.data(), bytes_to_read, bytes_read);
-        file.Close();
-        benchmark::DoNotOptimize(read_buffer);
-        benchmark::DoNotOptimize(bytes_written);
-    }
-
-    std::filesystem::remove(kTestFileName);
-}
-
-static void BM_STDFile_Read(benchmark::State& state) {
-    const uint32_t bytes_to_read = static_cast<uint32_t>(state.range(0));
-    const Path kTestFileName = std::filesystem::temp_directory_path() / "stdfile_read_test.bin";
-
-    std::vector<char> buffer(bytes_to_read, 'x');
-    std::vector<char> read_buffer(bytes_to_read, '\0');
-
-    std::ofstream ofs(kTestFileName, std::ios::binary | std::ios::trunc);
-    ofs.write(buffer.data(), bytes_to_read);
-    ofs.close();
-
-    for (auto _ : state) {
-        std::ifstream ifs(kTestFileName, std::ios::binary);
-        ifs.read(read_buffer.data(), bytes_to_read);
-        ifs.close();
-        benchmark::DoNotOptimize(read_buffer);
-    }
-}
-
-static void BM_FastFileWriteThreadPool(benchmark::State& state) {
-    const size_t max_thread = state.range(0);
-
-    auto thread_pool = ThreadPoolBuilder::MakeThreadPool(
-        XAMP_LOG_NAME(BM_ThreadPool),
-        max_thread,
-        max_thread / 2,
-        ThreadPriority::PRIORITY_NORMAL);
-
-    XampLoggerFactory.GetLogger(XAMP_LOG_NAME(BM_ThreadPool))
-        ->SetLevel(LOG_LEVEL_OFF);
-
-    std::vector<uint32_t> n(kThreadPoolTestTaskSize);
-    PRNG prng;
-    std::generate(n.begin(), n.end(), [&prng]() {
-        return prng.NextUInt32();
-        });
-
-    for (auto _ : state) {
-        Executor::ParallelFor(thread_pool.get(), n, [&n](auto item) {
-			auto file_name = GetSequentialUUID() + ".bin";
-            const Path kTestFileName = std::filesystem::temp_directory_path() / file_name;
-            FastFile test_file(kTestFileName, FastFileOpenMode::FAST_IO_WRITE);
-            uint32_t bytes_written = 0;
-            test_file.Write(n.data(), n.size() * sizeof(uint32_t), bytes_written);
-            test_file.Close();
-            std::filesystem::remove(kTestFileName);
-            });
-    }
-}
-
-static void BM_STDFileWriteThreadPool(benchmark::State& state) {
-    const size_t max_thread = state.range(0);
-
-    auto thread_pool = ThreadPoolBuilder::MakeThreadPool(
-        XAMP_LOG_NAME(BM_ThreadPool),
-        max_thread,
-		max_thread / 2,
-        ThreadPriority::PRIORITY_NORMAL);
-
-    XampLoggerFactory.GetLogger(XAMP_LOG_NAME(BM_ThreadPool))
-        ->SetLevel(LOG_LEVEL_OFF);
-
-    std::vector<uint32_t> n(kThreadPoolTestTaskSize);
-    PRNG prng;
-    std::generate(n.begin(), n.end(), [&prng]() {
-        return prng.NextUInt32();
-        });
-
-    for (auto _ : state) {
-        Executor::ParallelFor(thread_pool.get(), n, [&n](auto item) {
-            auto file_name = GetSequentialUUID() + ".bin";
-            const Path kTestFileName = std::filesystem::temp_directory_path() / file_name;
-            std::ofstream ofs(kTestFileName, std::ios::binary | std::ios::trunc);
-            ofs.write(reinterpret_cast<const char*>(n.data()), static_cast<std::streamsize>(n.size() * sizeof(uint32_t)));
-            ofs.close();
-            std::filesystem::remove(kTestFileName);
-            });
-    }
 }
 
 static std::vector<int> GenerateRandomKeys(size_t n, unsigned seed = 1234) {
@@ -430,22 +413,6 @@ static void BM_V2_MoveOperation(benchmark::State& state) {
     }
 }
 
-// -----------------------------------------------------------------------------
-// 註冊基準測試
-// -----------------------------------------------------------------------------
-BENCHMARK(BM_V1_CreateAndDestroy);
-BENCHMARK(BM_V2_CreateAndDestroy);
-
-BENCHMARK(BM_V1_CreateAndInvoke);
-BENCHMARK(BM_V2_CreateAndInvoke);
-
-BENCHMARK(BM_V1_MoveOperation);
-BENCHMARK(BM_V2_MoveOperation);
-
-// ============================================================
-//  Part B.  std::unordered_map 基準測試
-// ============================================================
-
 // (1) 插入測試: Insert
 static void BM_UnorderedMap_Insert(benchmark::State& state) {
     size_t n = static_cast<size_t>(state.range(0));
@@ -508,22 +475,82 @@ static void BM_UnorderedMap_InsertHighLoad(benchmark::State& state) {
     }
 }
 
+static void BM_Log10Fast(benchmark::State& state) {
+    PRNG prng;
+    for (auto _ : state) {
+        benchmark::DoNotOptimize(log10f_fast(prng.NextSingle()));
+    }
+}
 
-// ============================================================
-//  註冊測試並執行 BENCHMARK_MAIN
-// ============================================================
+static void BM_StdLog10(benchmark::State& state) {
+    PRNG prng;
+    for (auto _ : state) {
+        benchmark::DoNotOptimize(std::log10f(prng.NextSingle()));
+    }
+}
 
-//// 針對 TinyPointerHashTable
-//BENCHMARK(BM_TinyHashTable_Insert)->Arg(10000)->Arg(100000)->Arg(1000000);
-//BENCHMARK(BM_TinyHashTable_Find)->Arg(10000)->Arg(100000)->Arg(1000000);
+static void BM_TemporaryFile_Write(benchmark::State& state) {
+    PRNG prng;
+    TemporaryFile file;
+    auto tempstr = prng.GetRandomString(64 * 1024);
+    for (auto _ : state) {
+        file.Write(tempstr.c_str(), tempstr.length(), 1);
+    }
+}
+
+static void BM_CTemporaryFile_Write(benchmark::State& state) {
+    PRNG prng;
+    CTemporaryFile file;
+    auto tempstr = prng.GetRandomString(64 * 1024);
+    for (auto _ : state) {
+        file.Write(tempstr.c_str(), tempstr.length(), 1);
+    }
+}
+
+static void BM_TemporaryFile_Read(benchmark::State& state) {
+    PRNG prng;
+    TemporaryFile file;
+
+    for (size_t i = 0; i < 10 * 64 * 1024; i += 64 * 1024) {
+        auto tempstr = prng.GetRandomString(64 * 1024);
+        file.Write(tempstr.c_str(), tempstr.length(), 1);
+    }
+    std::vector<char> buffer(4 * 1024);
+    for (auto _ : state) {
+        file.Read(buffer.data(), buffer.size(), 1);
+    }
+}
+
+static void BM_CTemporaryFile_Read(benchmark::State& state) {
+    PRNG prng;
+    CTemporaryFile file;
+
+    for (size_t i = 0; i < 10 * 64 * 1024; i += 64 * 1024) {
+        auto tempstr = prng.GetRandomString(64 * 1024);
+        file.Write(tempstr.c_str(), tempstr.length(), 1);
+    }    
+    std::vector<char> buffer(4 * 1024);
+    for (auto _ : state) {        
+        file.Read(buffer.data(), buffer.size(), 1);
+    }
+}
+
+BENCHMARK(BM_StdLog10);
+BENCHMARK(BM_Log10Fast);
+
+BENCHMARK(BM_TemporaryFile_Write);
+BENCHMARK(BM_CTemporaryFile_Write);
+BENCHMARK(BM_TemporaryFile_Read);
+BENCHMARK(BM_CTemporaryFile_Read);
+
+//BENCHMARK(BM_V1_CreateAndDestroy);
+//BENCHMARK(BM_V2_CreateAndDestroy);
 //
-//// 測試不同高負載
-//BENCHMARK(BM_TinyHashTable_InsertHighLoad)
-//->Args({ 100000, 50 })
-//->Args({ 100000, 80 })
-//->Args({ 100000, 90 })
-//->Args({ 100000, 95 })
-//->Args({ 100000, 99 });
+//BENCHMARK(BM_V1_CreateAndInvoke);
+//BENCHMARK(BM_V2_CreateAndInvoke);
+//
+//BENCHMARK(BM_V1_MoveOperation);
+//BENCHMARK(BM_V2_MoveOperation);
 
 // 針對 std::unordered_map
 //BENCHMARK(BM_UnorderedMap_Insert)->Arg(10000)->Arg(100000)->Arg(1000000);
@@ -536,22 +563,20 @@ static void BM_UnorderedMap_InsertHighLoad(benchmark::State& state) {
 //->Args({ 100000, 95 })
 //->Args({ 100000, 99 });
 
-//BENCHMARK(BM_FastFile_Write)->Arg(1024)->Arg(1024 * 1024);
-//BENCHMARK(BM_STDFile_Write)->Arg(1024)->Arg(1024 * 1024);
-//BENCHMARK(BM_FastFile_Read)->Arg(1024)->Arg(1024 * 1024);
-//BENCHMARK(BM_STDFile_Read)->Arg(1024)->Arg(1024 * 1024);
-//BENCHMARK(BM_FastFileWriteThreadPool)->Arg(2)->Arg(4)->Arg(8)->Arg(16)->Arg(32);
-//BENCHMARK(BM_STDFileWriteThreadPool)->Arg(2)->Arg(4)->Arg(8)->Arg(16)->Arg(32);
+BENCHMARK(BM_ThreadPoolBaseLine)->Arg(4)->Arg(8)->Arg(16)->Arg(32);
+BENCHMARK(BM_ThreadPool)->Arg(4)->Arg(8)->Arg(16)->Arg(32);
+//BENCHMARK(BM_DpThreadPool)->Arg(4)->Arg(8)->Arg(16)->Arg(32);
+//BENCHMARK(BM_StdThreadPool)->Arg(4)->Arg(8)->Arg(16)->Arg(32);
 
-//BENCHMARK(BM_ConvertFloatToInt24)->RangeMultiplier(2)->Range(256, 512);
-//BENCHMARK(BM_ConvertInt8ToInt8SSE)->RangeMultiplier(2)->Range(256, 512);
-//BENCHMARK(BM_ConvertFloatToInt24SSE)->RangeMultiplier(2)->Range(256, 512);
-//BENCHMARK(BM_ConvertFloatToFloatSSE)->RangeMultiplier(2)->Range(256, 512);
-//BENCHMARK(BM_ConvertFloatToInt32SSE)->RangeMultiplier(2)->Range(256, 512);
+BENCHMARK(BM_ConvertFloatToInt24)->RangeMultiplier(2)->Range(256, 512);
+BENCHMARK(BM_ConvertFloatToInt24SSE)->RangeMultiplier(2)->Range(256, 512);
 
-//BENCHMARK(BM_ThreadPoolBaseLine);
-BENCHMARK(BM_ThreadPool)->Arg(2)->Arg(4)->Arg(8)->Arg(16)->Arg(32);
-BENCHMARK(BM_StdThreadPool)->Arg(2)->Arg(4)->Arg(8)->Arg(16)->Arg(32);
+BENCHMARK(BM_ConvertFloatToInt16)->RangeMultiplier(2)->Range(256, 512);
+BENCHMARK(BM_ConvertFloatToInt16SSE)->RangeMultiplier(2)->Range(256, 512);
+
+BENCHMARK(BM_ConvertFloatToFloatSSE)->RangeMultiplier(2)->Range(256, 512);
+BENCHMARK(BM_ConvertFloatToInt32SSE)->RangeMultiplier(2)->Range(256, 512);
+BENCHMARK(BM_ConvertInt8ToInt8SSE)->RangeMultiplier(2)->Range(256, 512);
 
 int main(int argc, char** argv) {
     std::ios::sync_with_stdio(false);

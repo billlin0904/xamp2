@@ -21,7 +21,8 @@ XAMP_DECLARE_LOG_NAME(ExclusiveWasapiDevice);
 
 using namespace helper;
 
-namespace {
+namespace {	
+
 	/*
 	* Set WAVEFORMATEX from AudioFormat and valid bits samples
 	*
@@ -94,10 +95,6 @@ namespace {
 		return CalcAlignedFramePerBuffer(frames_per_latency, format.GetBlockAlign(), f);
 	}
 
-	bool Is16BitSamples(const CComHeapPtr<WAVEFORMATEX> &format) {
-		return format->wBitsPerSample == 16;
-	}
-
 	constexpr auto kAudioRenderClientID = __uuidof(IAudioRenderClient);
 	constexpr auto kAudioEndpointVolumeID = __uuidof(IAudioEndpointVolume);
 	constexpr auto kAudioClient3ID = __uuidof(IAudioClient3);
@@ -118,6 +115,7 @@ ExclusiveWasapiDevice::ExclusiveWasapiDevice(const std::shared_ptr<IThreadPoolEx
 	, is_running_(false)
 	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL)
 	, buffer_frames_(0)
+	, device_frequency_(0)
 	, buffer_period_(0)
 	, volume_support_mask_(0)
 	, stream_time_(0)
@@ -246,6 +244,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 
 			auto is_32bit_format = false;
 
+			// Device report 32 bit format but valid bits per sample is 24 bits.
 			if (mix_format_->wFormatTag == WAVE_FORMAT_EXTENSIBLE
 				&& mix_format_->cbSize == sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX)) {
 				const auto& driver_format = *reinterpret_cast<WAVEFORMATEXTENSIBLE*>(mix_format_.m_pData);
@@ -256,6 +255,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 				}
 			}
 
+			// If the format is not supported, try to fallback to valid format.
 			if (hr == AUDCLNT_E_UNSUPPORTED_FORMAT) {
 				if (!is_32bit_format) {
 					constexpr uint32_t kValidBitPerSamples = 24;
@@ -269,7 +269,20 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 					is_2432_format_ = false;
 				}
 			}
+			else if (SUCCEEDED(hr)) {
+				// The format is supported.
+				if (is_32bit_format) {
+					InitialDeviceFormat(output_format, 32);
+					is_2432_format_ = false;
+				}
+				else {
+					constexpr uint32_t kValidBitPerSamples = 24;
+					InitialDeviceFormat(output_format, kValidBitPerSamples);
+					is_2432_format_ = true;
+				}
+			}
 			else {
+				// Some other error occurred.
 				HrIfFailThrow(hr);
 			}
 
@@ -285,13 +298,21 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	// Reset device state.
     HrIfFailThrow(client_->Reset());
 
-	// Get device render client.
+	// Get device render client. 
     HrIfFailThrow(client_->GetService(kAudioRenderClientID,
 		reinterpret_cast<void**>(&render_client_)));
 
 	// Get device clock.
 	HrIfFailThrow(client_->GetService(kAudioClockID,
 		reinterpret_cast<void**>(&clock_)));
+
+	if (clock_) {
+		HrIfFailThrow(clock_->GetFrequency(&device_frequency_));
+		using namespace std::chrono;
+		auto buffer_duration_ms =
+			duration_cast<milliseconds>(nanoseconds(aligned_period_ * 100));
+		glitch_detector_.Reset(device_frequency_, buffer_duration_ms);
+	}
 
 	// Create sample ready event handle.
 	if (!sample_ready_) {
@@ -342,7 +363,21 @@ bool ExclusiveWasapiDevice::GetSample(bool is_silence) noexcept {
 	XAMP_ENSURES(render_client_ != nullptr);
 	XAMP_ENSURES(callback_ != nullptr);
 
+	Accumulator glitch_accumulator;
 	BYTE* data = nullptr;
+
+	if (!is_silence && clock_ && device_frequency_ != 0) {
+		UINT64 position = 0;
+		UINT64 qpc_position = 0;
+		if (SUCCEEDED(clock_->GetPosition(&position, &qpc_position))) {
+			if (auto g = glitch_detector_.Update(position, qpc_position)) {
+				glitch_accumulator.Add(g.value());				
+			}
+		}
+	}
+
+	AudioGlitchInfo glitch_info = glitch_accumulator.GetAndReset();
+	callback_->OnGlitch(glitch_info.duration, glitch_info.count);
 
 	// Get buffer from device.
 	auto hr = render_client_->GetBuffer(buffer_frames_, &data);
@@ -353,7 +388,8 @@ bool ExclusiveWasapiDevice::GetSample(bool is_silence) noexcept {
 	// Calculate stream time.
 	const auto stream_time = stream_time_ + buffer_frames_;
 	stream_time_ = stream_time;
-	const auto stream_time_float = static_cast<double>(stream_time) / static_cast<double>(mix_format_->nSamplesPerSec);
+	const auto stream_time_float = static_cast<double>(stream_time)
+	/ static_cast<double>(mix_format_->nSamplesPerSec);
 
 	// Calculate sample time.
 	const auto sample_time = GetStreamPosInMilliseconds(clock_) / 1000.0;
@@ -362,7 +398,11 @@ bool ExclusiveWasapiDevice::GetSample(bool is_silence) noexcept {
 
 	// Get sample from callback.
 	size_t num_filled_frames = 0;
-	if (callback_->OnGetSamples(buffer_.Get(), buffer_frames_, num_filled_frames, stream_time_float, sample_time) == DataCallbackResult::CONTINUE) {
+	if (callback_->OnGetSamples(buffer_.Get(),
+		buffer_frames_,
+		num_filled_frames,
+		stream_time_float,
+		sample_time) == DataCallbackResult::CONTINUE) {
 		bool result = true;
 		if (num_filled_frames != buffer_frames_) {
 			flags = AUDCLNT_BUFFERFLAGS_SILENT;
@@ -397,7 +437,7 @@ void ExclusiveWasapiDevice::CloseStream() {
 	thread_start_.Close();
 	thread_exit_.Close();
 	close_request_.Close();
-	render_task_ = Task<void>();
+	render_task_ = Future<void>();
 	render_client_.Release();
 	clock_.Release();
 }
@@ -507,7 +547,9 @@ void ExclusiveWasapiDevice::StartStream() {
 
 			// Wait for sample ready or stop event.
 			auto result = ::WaitForMultipleObjects(static_cast<DWORD>(objects.size()),
-				objects.data(), FALSE, current_timeout);
+				objects.data(),
+				FALSE, 
+				current_timeout);
 
 			// Check wait time.
 			const auto elapsed = watch.Elapsed<std::chrono::milliseconds>();

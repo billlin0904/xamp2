@@ -25,10 +25,6 @@ bool DsdModeSampleWriter::Process(const BufferRef<float>& input, AudioBuffer<std
     return Process(input.data(), input.size(), buffer);
 }
 
-Uuid DsdModeSampleWriter::GetTypeId() const {
-    return XAMP_UUID_OF(DsdModeSampleWriter);
-}
-
 bool DsdModeSampleWriter::ProcessNativeDsd(const std::byte* sample_buffer, size_t num_samples, AudioBuffer<std::byte>& fifo) {
     ThrowIf<BufferOverflowException>(fifo.TryWrite(sample_buffer, num_samples),
         "Failed to write buffer, read:{} write:{}",

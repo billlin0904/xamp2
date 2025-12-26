@@ -199,6 +199,7 @@
     <ClInclude Include="include\stream\stream.h" />
     <ClInclude Include="include\stream\api.h" />
     <ClInclude Include="include\stream\supereqequalizer.h" />
+    <ClInclude Include="include\stream\uuid_class.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\ebur128scanner.cpp" />

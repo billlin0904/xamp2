@@ -193,13 +193,14 @@ namespace http {
         }
         else {
             data = json_.toUtf8();
-            auto result = gzipCompress(data, CompressType::COMPRESS_GZIP);
-            if (result && result.value().size() < data.size()) {
-            //if (result) {
-                data = result.value();
-                request.setRawHeader("Content-Encoding", "gzip");
-                request.setHeader(QNetworkRequest::ContentLengthHeader, QByteArray::number(data.size()));
-            }
+            if (data.length() > 1024) {
+                auto result = gzipCompress(data, CompressType::COMPRESS_GZIP);
+                if (result) {
+                    data = result.value();
+                    request.setRawHeader("Content-Encoding", "gzip");
+                    request.setHeader(QNetworkRequest::ContentLengthHeader, QByteArray::number(data.size()));
+                }
+            }            
         }
         auto* reply = co_await manager_->post(request, data);
         logHttpRequest(logger,

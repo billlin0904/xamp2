@@ -325,7 +325,7 @@ namespace {
 		}
 		
 		auto blur_job = [&](auto step) {
-			std::vector<Task<>> tasks;
+			std::vector<Future<void>> tasks;
 			tasks.reserve(cores);
 
 			for (auto i = 0; i < cores; i++) {

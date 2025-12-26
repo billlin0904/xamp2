@@ -591,7 +591,7 @@ void WaveformWidget::mouseReleaseEvent(QMouseEvent* event) {
 
 void WaveformWidget::resizeEvent(QResizeEvent* event) {
 	QFrame::resizeEvent(event);
-    if (file_path_.empty() || is_processing_) {
+    if (file_path_.file_path.isEmpty() || is_processing_) {
         markCacheDirty();
         return;
     }
@@ -619,9 +619,9 @@ void WaveformWidget::clear() {
     update();
 }
 
-void WaveformWidget::loadFile(const Path& file_path) {
-	file_path_ = file_path;
-    emit readAudioSpectrogram(color_, file_path_);
+void WaveformWidget::loadFile(const PlayListEntity& entity) {
+	file_path_ = entity;
+    emit readAudioSpectrogram(color_, entity);
 	update();
 }
 

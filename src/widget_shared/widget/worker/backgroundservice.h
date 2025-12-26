@@ -8,11 +8,8 @@
 #include <stop_token>
 
 #include <QObject>
-#include <base/object_pool.h>
 #include <base/threadpoolexecutor.h>
 #include <base/lrucache.h>
-
-#include <base/charset_detector.h>
 
 #include <widget/widget_shared.h>
 #include <widget/playlistentity.h>
@@ -24,6 +21,8 @@
 #include <widget/krcparser.h>
 #include <widget/neteaseparser.h>
 #include <widget/util/colortable.h>
+
+#include <widget/musicbrainzparser.h>
 
 Q_DECLARE_METATYPE(ReplayGain);
 
@@ -73,7 +72,8 @@ signals:
 	void readAudioDataCompleted();
 
 	void transcribeFileCompleted(const QSharedPointer<ILrcParser>& parser);
-	
+
+	void readMusicBrainzAlbums(const QList<PlayListEntity>& entities, const QList<MusicBrainzAlbum>& albums);
 public Q_SLOT:
 	void cancelAllJob();
 
@@ -93,7 +93,7 @@ public Q_SLOT:
 
 	void onTranslation(const QString& keyword, const QString& from, const QString& to);
 
-	void onReadSpectrogram(SpectrogramColor color, const Path& file_path);
+	void onReadSpectrogram(SpectrogramColor color, const PlayListEntity& entity);
 
 	QCoro::Task<SearchLyricsResult> downloadSingleKlrc(InfoItem info);
 
@@ -107,15 +107,21 @@ public Q_SLOT:
 
 	void sequenceEncode(const QString& dir_name, QList<EncodeJob> jobs);
 
-	void executeEncodeJob(const QString& dir_name, const EncodeJob& job);	
+	void executeEncodeJob(const QString& dir_name, const EncodeJob& job);
 
-	QCoro::Task<> fetchMusicBrainzRecording(const PlayListEntity& entity);
+	QCoro::Task<> onFindMusicBrainzRecording(const QList<PlayListEntity>& entities);
+
+	QCoro::Task<std::optional<MusicBrainzAlbum>> fetchMusicBrainzRecording(const PlayListEntity& entity);
+
+	QCoro::Task<std::optional<QByteArray>> fetchCoverArtByUrl(const QString& tag, const QString& release_id, size_t prefer_size = 1200);
 private:
 	std::tuple<std::shared_ptr<FastIOStream>, Path> makeUniqueFile(const EncodeJob& job, const QString& dir_name);
 
 	QCoro::Task<> searchKugou(const PlayListEntity& keyword);
 
 	QCoro::Task<> searchNetease(const PlayListEntity& keyword);
+
+	QCoro::Task<std::optional<QByteArray>> tryFetch(const QString& tag, const QString& release_id, size_t size);
 
 	bool is_stop_{false};
 	LruCache<QString, QImage> blur_image_cache_;

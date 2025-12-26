@@ -117,17 +117,17 @@ public:
         std::lock_guard<std::recursive_mutex> guard{ mutex_ };
 
         StackTrace stack_trace;
-        auto* exception_pointers = static_cast<PEXCEPTION_POINTERS>(info);
+        auto* exception_pointers = static_cast<PEXCEPTION_POINTERS>(info);        
+
+        const auto code = exception_pointers->ExceptionRecord->ExceptionCode;
+        if (code == EXCEPTION_STACK_OVERFLOW) {
+            return;
+        }
 
         const auto itr = kIgnoreExceptionCode.find(exception_pointers->ExceptionRecord->ExceptionCode);
         if (itr != kIgnoreExceptionCode.end()) {
             XAMP_LOG_TRACE("Ignore exception code: {}({:#010X}) {}",
-                       itr->second, itr->first, stack_trace.CaptureStack());
-            return;
-        }
-
-        const auto code = exception_pointers->ExceptionRecord->ExceptionCode;
-        if (code == EXCEPTION_STACK_OVERFLOW) {
+                itr->second, itr->first, stack_trace.CaptureStack());
             return;
         }
 
@@ -150,25 +150,12 @@ public:
         DumpStackInfo(&exception_pointers);
     }
 
-    static LONG SehHandler(PEXCEPTION_POINTERS exception_pointers) {
-        DumpStackInfo(exception_pointers);
-        return EXCEPTION_EXECUTE_HANDLER;
-    }
-
     static LONG VectoredHandler(PEXCEPTION_POINTERS exception_pointers) {
         DumpStackInfo(exception_pointers);
         return EXCEPTION_EXECUTE_HANDLER;
     }
 
     static void TerminateHandler() {
-        DumpCurrentExceptionStack();
-    }
-
-    static void UnexpectedHandler() {
-        DumpCurrentExceptionStack();
-    }
-
-    static void PureCallHandler() {
         DumpCurrentExceptionStack();
     }
 
@@ -201,7 +188,7 @@ public:
     }
 
     // CRT SIGFPE signal handler
-    static void SigfpeHandler(int32_t /*code*/, int32_t /*subcode*/) {
+    static void SigfpeHandler(int32_t) {
         // Floating point exception (SIGFPE)
         auto* exception_pointers = static_cast<PEXCEPTION_POINTERS>(_pxcptinfoptrs);
         DumpStackInfo(exception_pointers);
@@ -230,7 +217,7 @@ public:
     }
 
     void SetProcessExceptionHandlers() {
-        XAMP_LOG_DEBUG("Install process exception handler.");
+        //XAMP_LOG_DEBUG("Install process exception handler.");
 
         // Vectored Exception Handling (VEH) is an extension to structured exception handling.
         ::AddVectoredExceptionHandler(0, VectoredHandler);
@@ -242,43 +229,23 @@ public:
         ::_set_invalid_parameter_handler(InvalidParameterHandler);
 
         // Set up C++ signal handlers
-        ::_set_abort_behavior(_CALL_REPORTFAULT, _CALL_REPORTFAULT);
+        _set_abort_behavior(0, _CALL_REPORTFAULT | _WRITE_ABORT_MSG);
 
         // Catch an abnormal program termination
         (void)::signal(SIGABRT, SigabrtHandler);
 
         // Catch illegal instruction handler
-        (void)::signal(SIGINT, SigintHandler);
+        (void)::signal(SIGILL, SigillHandler);
 
-        // Catch a termination request
-        (void)::signal(SIGTERM, SigtermHandler);
+        (void)::signal(SIGSEGV, SigsegvHandler);
     }
 
     void SetThreadExceptionHandlers() {
-        XAMP_LOG_DEBUG("Install thread exception handler.");
+        //XAMP_LOG_INFO("Install thread exception handler.");
 
-        // Catch terminate() calls. 
-        // In a multithreaded environment, terminate functions are maintained 
-        // separately for each thread. Each new thread needs to install its own 
-        // terminate function. Thus, each thread is in charge of its own termination handling.
-        // http://msdn.microsoft.com/en-us/library/t6fk7h29.aspx
+        // C++ terminate handler 是「每個 thread 各自一份」，
+        // 所以新 thread 建立後，要呼叫一次這個函式。
         ::set_terminate(TerminateHandler);
-
-#if 0 // C++17 removed
-        // Catch unexpected() calls.
-        // In a multithreaded environment, unexpected functions are maintained 
-        // separately for each thread. Each new thread needs to install its own 
-        // unexpected function. Thus, each thread is in charge of its own unexpected handling.
-        // http://msdn.microsoft.com/en-us/library/h46t5b69.aspx  
-        ::set_unexpected(UnexpectedHandler);
-#endif
-        (void)::signal(SIGFPE, reinterpret_cast<_crt_signal_t>(SigfpeHandler));
-
-        // Catch an illegal instruction
-        (void)::signal(SIGILL, SigillHandler);
-
-        // Catch illegal storage access errors
-        (void)::signal(SIGSEGV, SigsegvHandler);
     }
 
 #else

@@ -21,4 +21,6 @@ Ebur128Scanner readFileLoudness(const Path& file_path,
 
 QByteArray readChromaprint(const Path& file_path);
 
-ScopedPtr<FileStream> makePcmFileStream(const Path& file_path);
+ScopedPtr<FileStream> makePcmFileStream(const Path& file_path, float rate);
+
+QString readAll(const QString& file_path);

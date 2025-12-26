@@ -10,7 +10,6 @@
 #if defined(XAMP_OS_WIN) || defined(XAMP_OS_MAC)
 
 #include <stream/stream.h>
-#include <base/singleton.h>
 #include <base/shared_singleton.h>
 #include <base/dll.h>
 
@@ -22,8 +21,6 @@
 
 #if (USE_INTEL_MKL_LIB)
 #define MKL_DIRECT_CALL
-#include <fftw3.h>
-#include <fftw/fftw3_mkl.h>
 #include <mkl_service.h>
 #include <mkl_dfti.h>
 #include <mkl.h>
@@ -37,6 +34,8 @@ XAMP_STREAM_NAMESPACE_BEGIN
 
 class MKLLib final {
 public:
+	XAMP_DECLARE_SINGLETON_NAME()
+
 	MKLLib();
 
 	XAMP_DISABLE_COPY(MKLLib)
@@ -60,9 +59,9 @@ public:
 	XAMP_DECLARE_DLL(DftiErrorMessage) DftiErrorMessage;
 };
 
-#define MKL_LIB SharedSingleton<MKLLib>::GetInstance()
+#define MklDLL SharedSingleton<MKLLib>::GetInstance()
 
-#endif
+#else
 
 class FFTWFLib final {
 public:
@@ -124,7 +123,8 @@ struct FFTWFPlanTraits final {
 using FFTWFPlan = UniqueHandle<fftwf_plan, FFTWFPlanTraits>;
 using FFTWFPtr = std::unique_ptr<float, FFTWFPtrTraits<float>>;
 
+#endif
+
 XAMP_STREAM_NAMESPACE_END
 
 #endif
-

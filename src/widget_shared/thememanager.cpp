@@ -2,13 +2,13 @@
 
 #include <widget/util/image_util.h>
 #include <widget/util/json_util.h>
-
 #include <widget/appsettingnames.h>
 #include <widget/widget_shared.h>
 #include <widget/util/str_util.h>
 #include <widget/appsettings.h>
 #include <widget/iconsizestyle.h>
 #include <widget/imagecache.h>
+#include <base/logger.h>
 
 #include <QOperatingSystemVersion>
 #include <QDirIterator>
@@ -160,8 +160,8 @@ QFont ThemeManager::loadFonts() {
 
     installFileFonts("FiraCode-Regular"_str, debug_fonts);
     //installFileFonts("Lato"_str, mono_fonts);
-    //installFileFonts("Inter_18pt"_str, ui_fonts);
-    ui_fonts.push_back("TX-02"_str);
+    installFileFonts("Inter_18pt"_str, ui_fonts);
+    //ui_fonts.push_back("TX-02"_str);
     //installFileFonts("NotoSans"_str, mono_fonts);
     installFileFonts("SourceHanSans"_str, ui_fonts);
 
@@ -202,6 +202,13 @@ void ThemeManager::setPalette() {
     }
 }
 
+void ThemeManager::load() {
+	qTheme; // In widget-shared.dll initialize.
+    const auto theme = qAppSettings.valueAsEnum<ThemeColor>(kAppSettingTheme);
+    qTheme.setThemeQssFile();
+    qTheme.setThemeColor(theme);
+}
+
 ThemeManager::ThemeManager() {
     cover_size_ = QSize(185, 185);
     cache_cover_size_ = QSize(544, 544);
@@ -215,9 +222,13 @@ ThemeManager::ThemeManager() {
 #endif
     ui_font_.setPointSize(defaultFontSize());
     setGoogleMaterialFontIcons();
+    auto theme_color = qAppSettings.valueAsEnum<ThemeColor>(kAppSettingTheme);
+    setThemeColor(theme_color, false);
 }
 
-void ThemeManager::setThemeColor(ThemeColor theme_color) {
+void ThemeManager::setThemeColor(ThemeColor theme_color, bool notify) {
+    XAMP_LOG_DEBUG("setThemeColor");
+
     theme_color_ = theme_color;
     
     setPalette();
@@ -239,7 +250,9 @@ void ThemeManager::setThemeColor(ThemeColor theme_color) {
         break;
     }
     default_size_unknown_cover_ = image_util::resizeImage(unknown_cover_, album_cover_size_, true);
-    emit themeChangedFinished(theme_color);
+    if (notify) {
+        emit themeChangedFinished(theme_color);
+    }    
 }
 
 QLatin1String ThemeManager::themeColorPath() const {
@@ -373,6 +386,11 @@ QIcon ThemeManager::fontIcon(const Glyphs code, std::optional<ThemeColor> theme_
 			return qFontIcon.getIcon(static_cast<int32_t>(code), temp);
 		}
     }
+
+    if (font_icon_opts_.isEmpty()) {
+        XAMP_LOG_DEBUG("font_icon_opts_ is empty.");
+    }
+
     return qFontIcon.getIcon(static_cast<int32_t>(code), font_icon_opts_);
 }
 

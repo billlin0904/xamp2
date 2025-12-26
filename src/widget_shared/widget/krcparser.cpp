@@ -366,6 +366,9 @@ bool KrcParser::parseFile(const std::wstring& file_path) {
 }
 
 bool KrcParser::parseKrcText(const std::wstring& wtext) {
+    static constexpr wchar_t beams = { 0x266B };
+    static constexpr wchar_t black_circle = { 0x25CF };
+
     auto result = parseKrc(wtext);
 
     // result.lines 目前包含「實際歌詞行」，沒有「● 行」
@@ -400,7 +403,8 @@ bool KrcParser::parseKrcText(const std::wstring& wtext) {
                 KrcWord word;
                 word.offset = std::chrono::milliseconds(0); // 從 0 開始
                 word.length = gap;                           // 同整行時長
-                word.content = std::wstring(3, 0x266B);      // 只放一顆 ●
+
+                word.content = std::wstring(3, black_circle);
 
                 dotLine.words.push_back(word);
 

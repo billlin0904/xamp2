@@ -55,6 +55,6 @@ private:
 	PooledDatabasePtr database_ptr_;
 	QNetworkAccessManager nam_;
 	http::HttpClient http_client_;
-	std::set<QString> pending_requests_;
+	std::set<QString> pending_request_urls_;
 };
 

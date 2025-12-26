@@ -6,9 +6,42 @@
 #pragma once
 
 #include <typeindex>
+#include <string_view>
 #include <base/base.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
+
+namespace detail {
+	constexpr std::string_view ExtractClassNameFromFunSig(std::string_view sig) {
+		// MSVC 格式假設:
+		// "static class std::basic_string_view<...> __cdecl xamp::base::Logger::GetSingletonName(void) noexcept"
+
+		constexpr std::string_view kCdecl = " __cdecl ";
+		constexpr std::string_view kFunc = "::GetSingletonName";
+
+		const auto pos_cdecl = sig.find(kCdecl);
+		const auto start = (pos_cdecl == std::string_view::npos)
+			? 0
+			: pos_cdecl + kCdecl.size();
+
+		const auto end = sig.find(kFunc, start);
+
+		// 簡易防呆：如果找不到，就回傳整串（你也可以改成 static_assert）
+		if (end == std::string_view::npos || start >= end) {
+			return sig;
+		}
+		return sig.substr(start, end - start);
+	}
+}
+
+#define XAMP_DECLARE_SINGLETON_NAME() \
+	static constexpr std::string_view GetSingletonName() noexcept {          \
+        constexpr std::string_view sig  = __FUNCSIG__;                       \
+        constexpr std::string_view name =                                    \
+            detail::ExtractClassNameFromFunSig(sig);						 \
+        return name;                                                         \
+    }
+
 
 /*
 * GetSharedInstance is a function that can be called by different modules to get a shared singleton instance.
@@ -18,7 +51,7 @@ XAMP_BASE_NAMESPACE_BEGIN
 * @param[out] instance The shared singleton instance.
 * 
 */
-XAMP_BASE_API void GetSharedInstance(const std::type_index& type_index,
+XAMP_BASE_API void GetSharedInstance(std::string_view type_name,
 	void* (*get_static_instance)(),
 	void*& instance);
 
@@ -36,9 +69,7 @@ class XAMP_BASE_API_ONLY_EXPORT SharedSingleton {
 public:
 	static T& GetInstance() {
 		static void* instance = nullptr;
-        if (!instance) {
-			GetSharedInstance(typeid(T), &GetStaticInstance, instance);
-		}
+		GetSharedInstance(T::GetSingletonName(), &GetStaticInstance, instance);
 		return *static_cast<T*>(instance);
 	}
 
@@ -49,8 +80,10 @@ protected:
 	* @return The static instance of the singleton.
 	*/
 	static void* GetStaticInstance() {
+		static_assert(std::is_default_constructible_v<T>,
+			"SharedSingleton<T> requires default-constructible T.");
 		static T t{};
-		return &reinterpret_cast<char&>(t);
+		return &t;
 	}
 
 public:

@@ -1,6 +1,5 @@
 #include <ebur128/ebur128.h>
 
-#include <base/singleton.h>
 #include <base/exception.h>
 #include <base/math.h>
 #include <base/audioformat.h>
@@ -36,41 +35,41 @@ public:
 	}
 
 	void SetSampleRate(uint32_t sample_rate) {
-		state_.reset(EBUR128_LIB.ebur128_init(AudioFormat::kMaxChannel,
+		state_.reset(Ebur128LibDLL.ebur128_init(AudioFormat::kMaxChannel,
 			sample_rate,
 			EBUR128_MODE_I | EBUR128_MODE_TRUE_PEAK | EBUR128_MODE_SAMPLE_PEAK));
-		IfFailThrow(EBUR128_LIB.ebur128_set_channel(state_.get(), 0, EBUR128_LEFT));
-		IfFailThrow(EBUR128_LIB.ebur128_set_channel(state_.get(), 1, EBUR128_RIGHT));
+		IfFailThrow(Ebur128LibDLL.ebur128_set_channel(state_.get(), 0, EBUR128_LEFT));
+		IfFailThrow(Ebur128LibDLL.ebur128_set_channel(state_.get(), 1, EBUR128_RIGHT));
 	}
 
 	void Process(float const* samples, size_t num_sample) {
-		IfFailThrow(EBUR128_LIB.ebur128_add_frames_float(state_.get(),
+		IfFailThrow(Ebur128LibDLL.ebur128_add_frames_float(state_.get(),
 			samples, num_sample / AudioFormat::kMaxChannel));
 	}
 
 	[[nodiscard]] double GetTruePeek() const {
 		double left_true_peek = 0;
 		double right_true_peek = 0;
-		IfFailThrow(EBUR128_LIB.ebur128_true_peak(state_.get(), 0, &left_true_peek));
-		IfFailThrow(EBUR128_LIB.ebur128_true_peak(state_.get(), 1, &right_true_peek));
+		IfFailThrow(Ebur128LibDLL.ebur128_true_peak(state_.get(), 0, &left_true_peek));
+		IfFailThrow(Ebur128LibDLL.ebur128_true_peak(state_.get(), 1, &right_true_peek));
 		return Round((left_true_peek + right_true_peek) / 2.0, 2);
 	}
 
 	[[nodiscard]] double GetSamplePeak() const {
 		double left_sample_peek = 0;
 		double right_sample_peek = 0;
-		IfFailThrow(EBUR128_LIB.ebur128_sample_peak(state_.get(), 0, &left_sample_peek));
-		IfFailThrow(EBUR128_LIB.ebur128_sample_peak(state_.get(), 1, &right_sample_peek));
+		IfFailThrow(Ebur128LibDLL.ebur128_sample_peak(state_.get(), 0, &left_sample_peek));
+		IfFailThrow(Ebur128LibDLL.ebur128_sample_peak(state_.get(), 1, &right_sample_peek));
 		return Ebur128Scanner::kReferenceLoudness - Round((std::max)(left_sample_peek, right_sample_peek), 2);
 	}
 
 	[[nodiscard]] double GetLoudness() const {
 		double loudness = 0;
-		IfFailThrow(EBUR128_LIB.ebur128_loudness_global(state_.get(), &loudness));
+		IfFailThrow(Ebur128LibDLL.ebur128_loudness_global(state_.get(), &loudness));
 		return Ebur128Scanner::kReferenceLoudness - Round(loudness, 2);
 	}
 
-	bool IsValid() const {
+	[[nodiscard]] bool IsValid() const {
 		return state_.is_valid();
 	}
 
@@ -85,7 +84,7 @@ public:
 			handles.push_back(static_cast<ebur128_state*>(scanner.GetNativeHandle()));
 		}
 		double loudness = 0;
-		IfFailThrow(EBUR128_LIB.ebur128_loudness_global_multiple(handles.data(), handles.size(), &loudness));
+		IfFailThrow(Ebur128LibDLL.ebur128_loudness_global_multiple(handles.data(), handles.size(), &loudness));
 		return Ebur128Scanner::kReferenceLoudness - Round(loudness, 2);
 	}
 
@@ -95,7 +94,7 @@ private:
 			return nullptr;
 		}
 		static void Close(ebur128_state* value) {
-			EBUR128_LIB.ebur128_destroy(&value);
+			Ebur128LibDLL.ebur128_destroy(&value);
 		}
 	};
 
@@ -145,7 +144,7 @@ double Ebur128Scanner::GetMultipleLoudness(std::vector<Ebur128Scanner>& scanners
 }
 
 void Ebur128Scanner::LoadEbur128Lib() {
-	EBUR128_LIB;
+	Ebur128LibDLL;
 }
 
 XAMP_STREAM_NAMESPACE_END

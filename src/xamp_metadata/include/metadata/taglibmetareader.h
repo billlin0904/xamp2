@@ -19,7 +19,7 @@ public:
 
     XAMP_PIMPL(TaglibMetadataReader)
 
-    void Open(ArchiveEntry archive_entry);
+    void Open(ArchiveEntry archive_entry) override;
 
     void Open(const Path& path) override;
 

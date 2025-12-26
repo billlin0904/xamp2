@@ -46,7 +46,7 @@ INSERT
 	)
 VALUES
 	(
-		( SELECT musicId FROM musics WHERE path = :path AND durationStr = :durationStr AND ytMusicAlbumId = :ytMusicAlbumId ), 
+		( SELECT musicId FROM musics WHERE path = :path AND durationStr = :durationStr AND ytMusicAlbumId = :ytMusicAlbumId AND isZipFile = :isZipFile AND archiveEntryName = :archiveEntryName ), 
 	:title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitRate, :sampleRate, :offset, :dateTime, :albumReplayGain, :trackReplayGain, 
     :albumPeak, :trackPeak, :genre, :comment, :fileSize, :heart, :isCueFile, :isZipFile, :ytMusicAlbumId, :ytMusicArtistId, :archiveEntryName 
 	)
@@ -286,6 +286,23 @@ VALUES
         query.prepare("UPDATE musics SET plays = plays + 1 WHERE (musicId = :musicId)"_str);
         query.bindValue(":musicId"_str, music_id);
         DbIfFailedThrow1(query);
+    }
+
+    std::vector<int32_t> MusicDao::getArchiveFileMusicId(const QString& file_path) const {
+        SqlQuery query(db_);
+
+        query.prepare("SELECT musicId FROM musics WHERE path = (:path) AND isZipFile = 1"_str);
+        query.bindValue(":path"_str, file_path);
+
+        DbIfFailedThrow1(query);
+
+		std::vector<int32_t> music_ids;
+        const auto index = query.record().indexOf("musicId"_str);
+        while (query.next()) {
+            auto music_id = query.value(index).toInt();
+			music_ids.push_back(music_id);
+        }
+        return music_ids;
     }
 
     std::optional<int32_t> MusicDao::getMusicId(const QString& file_path) const {

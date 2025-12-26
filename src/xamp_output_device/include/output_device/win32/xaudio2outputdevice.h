@@ -177,7 +177,7 @@ private:
 	uint32_t buffer_frames_;
 	std::atomic<int64_t> stream_time_;
 	IAudioCallback* callback_;
-	Task<void> render_task_;
+	Future<void> render_task_;
 	AudioFormat output_format_;
 	Buffer<float> buffer_;
 	std::wstring device_id_;

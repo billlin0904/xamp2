@@ -17,6 +17,8 @@ XAMP_STREAM_NAMESPACE_BEGIN
 
 class R8brainLib final {
 public:
+	XAMP_DECLARE_SINGLETON_NAME()
+
 	R8brainLib();
 
 	XAMP_DISABLE_COPY(R8brainLib)
@@ -41,6 +43,6 @@ catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 }
 
-#define LIBR8_DLL SharedSingleton<R8brainLib>::GetInstance()
+#define LibR8brainDLL SharedSingleton<R8brainLib>::GetInstance()
 
 XAMP_STREAM_NAMESPACE_END

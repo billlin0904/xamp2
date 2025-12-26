@@ -115,7 +115,7 @@ void AudioPlayer::Destroy() {
     device_manager_.reset();
 }
 
-void AudioPlayer::Open(const Path& file_path, const Uuid& device_id) {
+void AudioPlayer::Open(const Path& file_path, const Uuid& device_id, float rate) {
     ScopedPtr<IDeviceType> device_type;
     if (device_id.IsValid()) {
         device_type = device_manager_->CreateDefaultDeviceType();
@@ -135,10 +135,11 @@ void AudioPlayer::Open(const Path& file_path, const Uuid& device_id) {
 void AudioPlayer::Open(const Path& file_path, 
     const DeviceInfo& device_info, 
     uint32_t target_sample_rate, 
-    DsdModes output_mode) {
+    DsdModes output_mode,
+    float rate) {
     CloseDevice(true);
     UpdatePlayerStreamTime();
-    OpenStream(file_path, output_mode);
+    OpenStream(file_path, output_mode, rate);
     device_info_ = device_info;
     audio_config_.target_sample_rate = target_sample_rate;
 }
@@ -146,10 +147,11 @@ void AudioPlayer::Open(const Path& file_path,
 void AudioPlayer::OpenArchiveEntry(ArchiveEntry archive_entry,
     const DeviceInfo& device_info,
     uint32_t target_sample_rate, 
-    DsdModes output_mode) {
+    DsdModes output_mode,
+    float rate) {
     CloseDevice(true);
     UpdatePlayerStreamTime();
-    OpenStream(std::move(archive_entry), output_mode);
+    OpenStream(std::move(archive_entry), output_mode, rate);
     device_info_ = device_info;
     audio_config_.target_sample_rate = target_sample_rate;
 }
@@ -184,7 +186,7 @@ void AudioPlayer::ReadStreamInfo(DsdModes dsd_mode,
     const ScopedPtr<FileStream>& stream) {
     audio_config_.dsd_mode = dsd_mode;
 
-    playback_state_.stream_duration = stream->GetDurationAsSeconds();
+    playback_state_.stream_duration = stream->GetDuration();
     input_format_ = stream->GetFormat();
 
     if (dsd_mode == DsdModes::DSD_MODE_PCM) {
@@ -205,8 +207,8 @@ void AudioPlayer::ReadStreamInfo(DsdModes dsd_mode,
     }
 }
 
-void AudioPlayer::OpenStream(const Path & file_path, DsdModes dsd_mode) {
-    stream_ = MakeFileStream(file_path, dsd_mode);
+void AudioPlayer::OpenStream(const Path & file_path, DsdModes dsd_mode, float rate) {
+    stream_ = StreamFactory::MakeFileStream(file_path, dsd_mode, rate);
 
     ReadStreamInfo(dsd_mode, stream_);
     XAMP_LOG_D(logger_, "Open stream type: {} {} duration:{:.2f} sec.",
@@ -215,8 +217,8 @@ void AudioPlayer::OpenStream(const Path & file_path, DsdModes dsd_mode) {
         playback_state_.stream_duration);
 }
 
-void AudioPlayer::OpenStream(ArchiveEntry archive_entry, DsdModes dsd_mode) {
-    stream_ = MakeFileStream(std::move(archive_entry), dsd_mode);
+void AudioPlayer::OpenStream(ArchiveEntry archive_entry, DsdModes dsd_mode, float rate) {
+    stream_ = StreamFactory::MakeFileStream(std::move(archive_entry), dsd_mode, rate);
 
     ReadStreamInfo(dsd_mode, stream_);
     XAMP_LOG_D(logger_, "Open stream type: {} {} duration:{:.2f} sec.",
@@ -450,7 +452,7 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream, bool quit) {
 #else
         stream_task_.get();
 #endif
-        stream_task_ = Task<void>();
+        stream_task_ = Future<void>();
         XAMP_LOG_D(logger_, "Stream thread was finished.");
     }
 
@@ -628,6 +630,11 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, const std::string & dev
     }
 }
 
+void AudioPlayer::OnGlitch(std::chrono::milliseconds duration, uint32_t count) noexcept {
+    XAMP_LOG_DEBUG("Audio glitch duration:{} ms, count:{}.", 
+		duration.count(), count);
+}
+
 void AudioPlayer::OpenDevice(double stream_time) {
 #if defined(XAMP_OS_WIN)
     if (auto* dsd_output = AsDsdDevice(device_)) {
@@ -675,7 +682,7 @@ void AudioPlayer::BufferStream(double stream_time,
     }
 
     fifo_.Clear();
-    stream_->SeekAsSeconds(playback_state_.stream_offset_time + stream_time);
+    stream_->Seek(playback_state_.stream_offset_time + stream_time);
     audio_config_.sample_size = stream_->GetSampleSize();
     BufferSamples(stream_, GetBufferCount(output_format_.GetSampleRate()));
 }
@@ -745,7 +752,7 @@ void AudioPlayer::DoSeek(double stream_time) {
 	}
 	
     try {
-        stream_->SeekAsSeconds(stream_time);
+        stream_->Seek(stream_time);
     }
     catch (const Exception& e) {
         XAMP_LOG_D(logger_, e.GetErrorMessage());
@@ -754,9 +761,9 @@ void AudioPlayer::DoSeek(double stream_time) {
     }
 
     device_->SetStreamTime(stream_time);
-    sample_end_time_ = stream_->GetDurationAsSeconds() - stream_time;
+    sample_end_time_ = stream_->GetDuration() - stream_time;
     XAMP_LOG_D(logger_, "Stream duration:{:.2f} seeking:{:.2f} sec, end time:{:.2f} sec.",
-        stream_->GetDurationAsSeconds(),
+        stream_->GetDuration(),
         stream_time,
         sample_end_time_);
     auto seek_time = static_cast<uint32_t>(stream_time * 1000.0);
@@ -1057,7 +1064,7 @@ void AudioPlayer::PrepareToPlay(ByteFormat byte_format,
         std::any(stream_->GetSampleSize()));
 
     dsp_manager_->Initialize(config_);
-	sample_end_time_ = stream_->GetDurationAsSeconds();
+	sample_end_time_ = stream_->GetDuration();
     XAMP_LOG_D(logger_, "Stream end time: {:.2f} sec.", sample_end_time_);    
 }
 
@@ -1071,6 +1078,10 @@ void AudioPlayer::SetDelayCallback(std::function<void(uint32_t)>&& delay_callbac
 
 void AudioPlayer::SeFileCacheMode(bool enable) {
     enable_file_cache_ = enable;
+}
+
+uint32_t AudioPlayer::GetBitRate() const {    
+    return stream_->GetBitRate();
 }
 
 XAMP_AUDIO_PLAYER_NAMESPACE_END

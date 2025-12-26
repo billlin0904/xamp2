@@ -34,6 +34,7 @@
     <ClCompile Include="src\text_encoding.cpp" />
     <ClCompile Include="src\furigana.cpp" />
     <ClCompile Include="src\archivefile.cpp" />
+    <ClCompile Include="src\fastiostream.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\base\assert.h" />
@@ -56,7 +57,6 @@
     <ClInclude Include="include\base\sfc64.h" />
     <ClInclude Include="include\base\shared_singleton.h" />
     <ClInclude Include="include\base\scopeguard.h" />
-    <ClInclude Include="include\base\singleton.h" />
     <ClInclude Include="include\base\stl.h" />
     <ClInclude Include="include\base\audiobuffer.h" />
     <ClInclude Include="include\base\audioformat.h" />
@@ -70,7 +70,6 @@
     <ClInclude Include="include\base\platform.h" />
     <ClInclude Include="include\base\stacktrace.h" />
     <ClInclude Include="include\base\stopwatch.h" />
-    <ClInclude Include="include\base\moveonly_function.h" />
     <ClInclude Include="include\base\task.h" />
     <ClInclude Include="include\base\threadpoolexecutor.h" />
     <ClInclude Include="include\base\uuidof.h" />
@@ -78,7 +77,6 @@
     <ClInclude Include="include\base\memory_mapped_file.h" />
     <ClInclude Include="include\base\uuid.h" />
     <ClInclude Include="include\base\logger.h" />
-    <ClInclude Include="include\base\memory.h" />
     <ClInclude Include="include\base\trackinfo.h" />
     <ClInclude Include="include\base\rng.h" />
     <ClInclude Include="include\base\timer.h" />
@@ -96,5 +94,7 @@
     <ClInclude Include="include\base\furigana.h" />
     <ClInclude Include="include\base\archivefile.h" />
     <ClInclude Include="include\base\archivelib.h" />
+    <ClInclude Include="include\base\memory.h" />
+    <ClInclude Include="include\base\fastiostream.h" />
   </ItemGroup>
 </Project>

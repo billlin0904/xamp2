@@ -18,9 +18,8 @@ SharedLibraryHandle PinSystemLibrary(const std::string_view& file_name) {
         library_path.native().c_str(),
         &module)) {
         throw LoadDllFailureException(file_name);
-    }
-    SharedLibraryHandle temp(module);
-    return library;
+    }    
+    return SharedLibraryHandle(module);
 }
 
 void* LoadSharedLibrarySymbolEx(SharedLibraryHandle const& dll, const std::string_view name, uint32_t flags) {

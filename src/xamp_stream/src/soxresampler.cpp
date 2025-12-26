@@ -3,7 +3,6 @@
 #include <stream/soxrlib.h>
 
 #include <base/assert.h>
-#include <base/singleton.h>
 #include <base/dll.h>
 #include <base/logger.h>
 #include <base/logger_impl.h>
@@ -16,7 +15,6 @@ XAMP_STREAM_NAMESPACE_BEGIN
 namespace {
 	XAMP_DECLARE_LOG_NAME(SoxrSampleRateConverter);
 	const std::string_view SOXR_Description = "Soxr " SOXR_THIS_VERSION_STR;
-#define LISOXR_LIB SharedSingleton<SoxrLib>::GetInstance()	
 }
 
 class SoxrSampleRateConverter::SoxrSampleRateConverterImpl final {
@@ -87,17 +85,17 @@ public:
 			phase = SOXR_MINIMUM_PHASE;
 		}
 
-		auto soxr_quality = LISOXR_LIB.soxr_quality_spec(quality_spec | phase, flags);
+		auto soxr_quality = LibSoxrDLL.soxr_quality_spec(quality_spec | phase, flags);
 
 		soxr_quality.passband_end = pass_band_ / 100.0;
 		soxr_quality.stopband_begin = stop_band_ / 100.0;
 
-		auto iospec = LISOXR_LIB.soxr_io_spec(SOXR_FLOAT32_I, SOXR_FLOAT32_I);
+		auto iospec = LibSoxrDLL.soxr_io_spec(SOXR_FLOAT32_I, SOXR_FLOAT32_I);
 
-		auto runtimespec = LISOXR_LIB.soxr_runtime_spec(1);
+		auto runtimespec = LibSoxrDLL.soxr_runtime_spec(1);
 
 		soxr_error_t error = nullptr;
-		handle_.reset(LISOXR_LIB.soxr_create(input_sample_rate,
+		handle_.reset(LibSoxrDLL.soxr_create(input_sample_rate,
 			output_sample_rate_,
 			AudioFormat::kMaxChannel,
 			&error,
@@ -161,7 +159,7 @@ public:
 		if (!handle_) {
 			return;
 		}
-		LISOXR_LIB.soxr_clear(handle_.get());
+		LibSoxrDLL.soxr_clear(handle_.get());
 	}
 
 	bool Process(float const* samples, size_t num_samples, BufferRef<float>& output) {
@@ -169,7 +167,7 @@ public:
 		MaybeResizeBuffer(output, required_size);
 
 		size_t num_read_samples = 0;
-		LISOXR_LIB.soxr_process(handle_.get(),
+		LibSoxrDLL.soxr_process(handle_.get(),
 			samples,
 			num_samples / num_channels_,
 			nullptr,
@@ -205,7 +203,7 @@ private:
 		}
 
 		static void Close(soxr_t value) noexcept {
-			LISOXR_LIB.soxr_delete(value);
+			LibSoxrDLL.soxr_delete(value);
 		}
 	};
 
@@ -264,14 +262,6 @@ void SoxrSampleRateConverter::SetDither(bool enable) {
 
 bool SoxrSampleRateConverter::Process(float const* samples, size_t num_samples, BufferRef<float>& output) {
 	return impl_->Process(samples, num_samples, output);
-}
-
-Uuid SoxrSampleRateConverter::GetTypeId() const {
-	return XAMP_UUID_OF(SoxrSampleRateConverter);
-}
-
-std::string_view SoxrSampleRateConverter::GetDescription() const noexcept {
-	return SOXR_Description;
 }
 	
 XAMP_STREAM_NAMESPACE_END

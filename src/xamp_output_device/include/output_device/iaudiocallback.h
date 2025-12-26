@@ -12,55 +12,26 @@
 
 XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN
 
-/*
-* DataCallbackResult is the enum for data callback result.
-* 
-* <remarks>
-* CONTINUE: Continue.
-* STOP: Stop.
-* </remarks>
-*/
 XAMP_MAKE_ENUM(DataCallbackResult,
 	CONTINUE = 0, 
 	STOP)
 
-/*
-* IAudioCallback is a callback interface for audio device.
-*/
 class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE IAudioCallback {
 public:
 	XAMP_BASE_CLASS(IAudioCallback)
 
-	/*
-	* OnGetSamples is called when audio device need more data.
-	* 
-	* @param[in] samples is a pointer to buffer.
-	* @param[in] num_buffer_frames is a number of frames in buffer.
-	* @param[in] num_filled_bytes is a number of bytes filled in buffer.
-	* @param[in] stream_time is a stream time.
-	* @param[in] sample_time is a sample time.
-	* 
-	* @return DataCallbackResult::CONTINUE if need more data, DataCallbackResult::STOP if no need more data.
-	*/
-    virtual DataCallbackResult OnGetSamples(void* samples, size_t num_buffer_frames, size_t & num_filled_bytes, double stream_time, double sample_time) noexcept = 0;
+    virtual DataCallbackResult OnGetSamples(void* samples,
+		size_t num_buffer_frames,
+		size_t & num_filled_bytes, 
+		double stream_time, 
+		double sample_time) noexcept = 0;
 
-	/*
-	* OnError is called when audio device error.
-	* 
-	* @param[in] exception is a exception.
-	*/
     virtual void OnError(const std::exception& exception) noexcept = 0;
 
-	/*
-	* OnVolumeChange is called when audio device volume changed.
-	* 
-	* @param[in] vol is a volume.
-	*/	
 	virtual void OnVolumeChange(int32_t vol) noexcept = 0;
+	
+	virtual void OnGlitch(std::chrono::milliseconds duration, uint32_t count) noexcept = 0;
 protected:
-	/*
-	* Constructor.
-	*/
 	IAudioCallback() = default;
 };
 

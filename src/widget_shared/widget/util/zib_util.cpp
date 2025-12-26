@@ -118,6 +118,8 @@ std::expected<std::string, GzipDecompressError> gzipDecompress(const uint8_t* in
 namespace {
     class LibdeflateLib final {
     public:
+        XAMP_DECLARE_SINGLETON_NAME()
+
         LibdeflateLib();
 
         XAMP_DISABLE_COPY(LibdeflateLib)

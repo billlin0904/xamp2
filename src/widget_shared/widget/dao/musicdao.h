@@ -19,6 +19,7 @@ public:
 
     int32_t addOrUpdateMusic(const TrackInfo& track_info);
     std::optional<int32_t> getMusicId(const QString& file_path) const;
+	std::vector<int32_t> getArchiveFileMusicId(const QString& file_paths) const;
     void updateMusic(int32_t music_id, const TrackInfo& track_info);
     void updateMusicFilePath(int32_t music_id, const QString& file_path);
     void updateMusicReplayGain(int32_t music_id, double album_gain, double album_peak, double track_gain, double track_peak);

@@ -54,4 +54,9 @@ std::string PRNG::GetRandomString(size_t size) {
     return temp;
 }
 
+PRNG& PRNG::GetThreadLocal() {
+    XAMP_NO_TLS_GUARDS thread_local static PRNG instance;
+	return instance;
+}
+
 XAMP_BASE_NAMESPACE_END

@@ -7,6 +7,7 @@
 #include <base/scopeguard.h>
 #include <base/ithreadpoolexecutor.h>
 
+#include <output_device/win32/wasapi.h>
 #include <output_device/iaudiocallback.h>
 #include <output_device/win32/comexception.h>
 
@@ -24,6 +25,35 @@ namespace {
 		format.nSamplesPerSec = sample_rate;
 		format.nBlockAlign = format.nChannels * format.wBitsPerSample / 8;
 		format.nAvgBytesPerSec = format.nSamplesPerSec * format.nBlockAlign;
+	}
+
+	uint32_t GetDeviceBufferSize(const std::wstring& device_id, uint32_t sample_rate) {
+		REFERENCE_TIME default_period = 0;
+		REFERENCE_TIME min_period = 0;
+
+		CComPtr<IMMDeviceEnumerator> enumerator;
+		HrIfFailThrow(::CoCreateInstance(__uuidof(MMDeviceEnumerator),
+			nullptr,
+			CLSCTX_ALL,
+			IID_PPV_ARGS(&enumerator)));
+
+		CComPtr<IMMDevice> device;
+		HrIfFailThrow(enumerator->GetDevice(device_id.c_str(), &device));
+
+		CComPtr<IAudioClient> client;
+		HrIfFailThrow(device->Activate(__uuidof(IAudioClient),
+			CLSCTX_ALL,
+			nullptr,
+			reinterpret_cast<void**>(&client)));
+
+		CComHeapPtr<WAVEFORMATEX> mix_format;
+		HrIfFailThrow(client->GetMixFormat(&mix_format));
+		HrIfFailThrow(client->GetDevicePeriod(&default_period, &min_period));
+
+		auto default_frames = static_cast<uint32_t>(
+			(static_cast<double>(sample_rate) * default_period) / 10'000'000.0);
+
+		return default_frames;
 	}
 }
 
@@ -181,14 +211,31 @@ void XAudio2OutputDevice::CloseStream() {
 	thread_start_.Close();
 	thread_exit_.Close();
 	close_request_.Close();
-	render_task_ = Task<void>();
+	render_task_ = Future<void>();
+
+	if (xaudio2_ != nullptr && engine_context_ != nullptr) {
+		xaudio2_->UnregisterForCallbacks(engine_context_.get());
+	}	
 }
 
 void XAudio2OutputDevice::OpenStream(AudioFormat const& output_format) {
-	// NOTE: 設置太大或太小都會有問題.
-	auto get_buffer_size = [](auto sample_rate) {
-		return (sample_rate / 2) * 8;
-		};
+	uint32_t default_buffer_size = 0;
+	try {
+		default_buffer_size = GetDeviceBufferSize(device_id_, output_format.GetSampleRate());
+	}
+	catch (const Exception &e) {
+		constexpr double kBufferDurationMs = 20.0;
+		auto get_buffer_frames = [](uint32_t sample_rate) {
+			// round to nearest
+			return static_cast<uint32_t>(
+				sample_rate * (kBufferDurationMs / 1000.0));
+			};
+		default_buffer_size = get_buffer_frames(output_format.GetSampleRate());
+		XAMP_LOG_W(logger_, 
+			"Failed to get device buffer size: {}. Using default buffer size: {} frames",
+			e.what(),
+			default_buffer_size);
+	}
 
 	HrIfFailThrow(xaudio2_->CreateMasteringVoice(&mastering_voice_,
 		output_format.GetChannels(),
@@ -213,8 +260,11 @@ void XAudio2OutputDevice::OpenStream(AudioFormat const& output_format) {
 	}
 
 	output_format_ = output_format;
-	buffer_frames_ = get_buffer_size(output_format.GetSampleRate()) / output_format.GetChannels() / output_format.GetBytesPerSample();
-	buffer_.resize(get_buffer_size(output_format.GetSampleRate()) / output_format.GetChannels());
+	const auto frames_per_buffer = default_buffer_size;
+
+	buffer_frames_ = frames_per_buffer;
+	buffer_.resize(static_cast<size_t>(buffer_frames_) * output_format.GetChannels());
+	XAMP_LOG_DEBUG("XAudio2OutputDevice buffer frames: {} ({})", buffer_frames_, buffer_.GetByteSizeString());
 
 	if (!source_voice_) {
 		WAVEFORMATEX waveformat{};
@@ -244,6 +294,7 @@ PackedFormat XAudio2OutputDevice::GetPackedFormat() const noexcept {
 }
 
 uint32_t XAudio2OutputDevice::GetBufferSize() const noexcept {
+	// todo: return buffer_frames_ * output_format_.GetChannels();
 	return buffer_frames_ * AudioFormat::kMaxChannel;
 }
 
@@ -276,6 +327,9 @@ double XAudio2OutputDevice::GetStreamTime() const noexcept {
 
 void XAudio2OutputDevice::StartStream() {
 	std::unique_lock lock{ mutex_ };
+
+	// note: Reset stream time. but in the end of rendering task, we need to keep stream time.
+	//stream_time_ = 0;
 
 	::ResetEvent(close_request_.get());
 
@@ -358,7 +412,7 @@ void XAudio2OutputDevice::StartStream() {
 
 	while (!is_running_) {
 		if (::WaitForSingleObject(thread_start_.get(), kWaitStreamStartTimeout.count()) == WAIT_TIMEOUT) {
-			XAMP_LOG_E(logger_, "ExclusiveWasapiDevice start render timeout.");
+			XAMP_LOG_E(logger_, "XAudio2OutputDevice start render timeout.");
 			return;
 		}
 	}
@@ -397,6 +451,9 @@ bool XAudio2OutputDevice::IsStreamRunning() const noexcept {
 
 void XAudio2OutputDevice::AbortStream() noexcept {
 	is_running_ = false;
+	if (close_request_) {
+		::SetEvent(close_request_.get());
+	}
 }
 
 void XAudio2OutputDevice::ReportError(HRESULT hr) noexcept {

@@ -36,6 +36,8 @@ template
 >
 class XAMP_BASE_API_ONLY_EXPORT LruCache {
 public:
+	XAMP_DECLARE_SINGLETON_NAME()
+
     using KeyIterator = typename KeyList::iterator;
     using CacheMap = HashMap<Key, KeyIterator>;
 
@@ -198,12 +200,20 @@ Value LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::GetOrAdd(Key con
   
     {
         std::unique_lock<SharedMutex> write_lock(mutex_);
+        const auto check = cache_.find(key);
+        if (check != cache_.end()) {
+            // 已經存在，直接返回該值 (並更新 LRU)
+            ++hit_count_;
+            keys_.splice(keys_.begin(), keys_, check->second);
+            return check->second->second;
+        }
+
         size_ += policy_(key, value);
         keys_.emplace_front(key, value);
         cache_[key] = keys_.begin();
-    }
 
-    Evict(capacity_);
+        Evict(capacity_);
+    }    
 
     return value;
 }
@@ -217,18 +227,23 @@ template
     typename SharedMutex
 >
 void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::AddOrUpdate(Key const& key, Value value) {
-    {
-        std::unique_lock<SharedMutex> write_lock(mutex_);
+    std::unique_lock<SharedMutex> write_lock(mutex_);
+
+    size_ += policy_(key, value);
+    auto itr = cache_.find(key);
+    if (itr != cache_.cend()) {
+        // 1. 先減去「舊值」的大小
+        size_ -= policy_(key, itr->second->second);
+        // 2. 加上「新值」的大小
         size_ += policy_(key, value);
-        auto itr = cache_.find(key);
-        if (itr != cache_.cend()) {
-            size_ -= policy_(key, value);
-            itr->second->second = std::move(value);
-            keys_.splice(keys_.begin(), keys_, itr->second);
-        } else {
-            keys_.emplace_front(key, std::move(value));
-            cache_[key] = keys_.begin();
-        }
+        itr->second->second = std::move(value);
+        keys_.splice(keys_.begin(), keys_, itr->second);
+    }
+    else {
+        // 新增項目
+        size_ += policy_(key, value);
+        keys_.emplace_front(key, std::move(value));
+        cache_[key] = keys_.begin();
     }
 
     Evict(capacity_);
@@ -243,11 +258,7 @@ template
     typename SharedMutex
 >
 void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::Evict(int64_t max_size) {
-    while (true) {
-        std::unique_lock<SharedMutex> write_lock(mutex_);
-        if (!size_ || size_ <= max_size) {
-            break;
-        }
+    while (size_ > max_size && !keys_.empty()) {
         auto& eldest = keys_.back();
         size_ -= policy_(eldest.first, eldest.second);
         cache_.erase(eldest.first);

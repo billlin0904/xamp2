@@ -84,7 +84,7 @@ public:
     /*
     * Submit job to thread pool.
     */
-    void SubmitJob(MoveOnlyFunction task, ExecuteFlags flags) override;
+    void SubmitJob(Task task, ExecuteFlags flags) override;
 
     /*
     * Destroy thread pool.
@@ -99,20 +99,20 @@ private:
     /*
     * Try dequeue task from shared queue.
     */
-    size_t TryDequeueSharedQueue(std::vector<MoveOnlyFunction>& tasks,
+    size_t TryDequeueSharedQueue(std::vector<Task>& tasks,
         const std::stop_token& stop_token);
 
     /*
     * Try dequeue task from shared queue.
     */
-    size_t TryDequeueSharedQueue(std::vector<MoveOnlyFunction>& tasks,
+    size_t TryDequeueSharedQueue(std::vector<Task>& tasks,
         const std::stop_token& stop_token, 
         std::chrono::milliseconds timeout);
 
     /*
     * Try steal task from other thread.
     */
-    size_t TrySteal(std::vector<MoveOnlyFunction> &tasks,
+    size_t TrySteal(std::vector<Task> &tasks,
         const std::stop_token& stop_token,
         size_t random_start,
         size_t current_thread_index);
@@ -120,7 +120,7 @@ private:
     /*
     * Try dequeue task from local queue.
     */
-    size_t TryLocalPop(std::vector<MoveOnlyFunction>& tasks,
+    size_t TryLocalPop(std::vector<Task>& tasks,
         const std::stop_token& stop_token,
         WorkStealingTaskQueue* local_queue) const;
 
@@ -132,7 +132,7 @@ private:
     /*
 	 * Execute task.
 	 */
-    void Execute(std::vector<MoveOnlyFunction>& tasks,
+    void Execute(std::vector<Task>& tasks,
         size_t task_size,
         size_t current_index,
         const std::stop_token& stop_token);

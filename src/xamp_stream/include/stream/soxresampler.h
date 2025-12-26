@@ -7,7 +7,6 @@
 
 #include <stream/iaudioprocessor.h>
 
-#include <base/uuidof.h>
 #include <base/enum.h>
 #include <base/memory.h>
 #include <base/audiobuffer.h>
@@ -33,6 +32,10 @@ class XAMP_STREAM_API SoxrSampleRateConverter final : public IAudioProcessor {
 public:
     SoxrSampleRateConverter();
 
+	XAMP_DECLARE_UUID_CLASS(SoxrSampleRateConverter)
+
+    void Initialize(const AnyMap& config) override;
+
     XAMP_PIMPL(SoxrSampleRateConverter)
 
     void SetQuality(SoxrQuality quality);
@@ -47,13 +50,7 @@ public:
 
     void SetDither(bool enable);
 
-    void Initialize(const AnyMap& config) override;
-
     [[nodiscard]] bool Process(float const* samples, size_t num_samples, BufferRef<float>& output) override;
-
-    [[nodiscard]] Uuid GetTypeId() const override;
-
-    [[nodiscard]] std::string_view GetDescription() const noexcept override;
 
 private:
     class SoxrSampleRateConverterImpl;

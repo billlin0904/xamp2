@@ -37,7 +37,7 @@ void XDialog::setContent(QWidget* content) {
     default_layout->addWidget(content_, 1);
 
     adjustSize();
-    setFixedSize(size());
+    //setFixedSize(size());
     //setAttribute(Qt::WA_Moved, true);
     //setAttribute(Qt::WA_Resized, true);
     //setMinimumSize(size());

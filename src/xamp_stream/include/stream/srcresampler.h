@@ -25,6 +25,8 @@ class XAMP_STREAM_API SrcSampleRateConverter final : public IAudioProcessor {
 public:
     XAMP_PIMPL(SrcSampleRateConverter)
 
+    XAMP_DECLARE_UUID_CLASS(SrcSampleRateConverter)
+
 	SrcSampleRateConverter();
 
     void SetQuality(SrcQuality quality);
@@ -32,10 +34,6 @@ public:
     void Initialize(const AnyMap& config) override;
 
     [[nodiscard]] bool Process(float const* samples, size_t num_samples, BufferRef<float>& output) override;
-
-    [[nodiscard]] Uuid GetTypeId() const override;
-
-    [[nodiscard]] std::string_view GetDescription() const noexcept override;
 
 private:
     class SrcSampleRateConverterImpl;

@@ -17,7 +17,7 @@ class XAMP_STREAM_API BassCompressor final : public IAudioProcessor {
     XAMP_DECLARE_MAKE_CLASS_UUID(BassCompressor, "263079D0-FDD4-46DF-9BB3-71821AF95EDB")
 
 public:
-    constexpr static auto Description = std::string_view("BassCompressor");
+    XAMP_DECLARE_UUID_CLASS(BassCompressor)
 
     BassCompressor();
 
@@ -26,10 +26,6 @@ public:
     void Initialize(const AnyMap& config) override;
 
     bool Process(float const * samples, size_t num_samples, BufferRef<float>& out) override;
-
-    [[nodiscard]] Uuid GetTypeId() const override;
-
-    [[nodiscard]] std::string_view GetDescription() const noexcept override;
 
 private:
     class BassCompressorImpl;

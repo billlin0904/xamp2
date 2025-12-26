@@ -9,10 +9,11 @@
 
 #include <base/base.h>
 #include <base/memory.h>
+#include <base/enum.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-enum class TextEncodeingError {
+XAMP_MAKE_ENUM(TextEncodeingError,
 	TEXT_ENCODING_NOT_FOUND_FILE,
 	TEXT_ENCODING_EMPTY_FILE,
 	TEXT_ENCODING_UNKNOWN_ENCDOING,
@@ -20,8 +21,7 @@ enum class TextEncodeingError {
 	TEXT_ENCODING_API_ERROR,
 	TEXT_ENCODING_TO_WIDE_ERROR,
 	TEXT_ENCODING_INPUT_STRING_UTF8,
-	TEXT_ENCODING_DETECT_ERROR
-};
+	TEXT_ENCODING_DETECT_ERROR)
 
 class XAMP_BASE_API TextEncoding {
 public:

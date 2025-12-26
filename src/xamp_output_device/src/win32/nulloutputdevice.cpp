@@ -56,7 +56,7 @@ void NullOutputDevice::StopStream(bool wait_for_stop_stream) {
 
 void NullOutputDevice::CloseStream() {
 	XAMP_LOG_D(logger_, "NullOutputDevice close stream.");
-	render_task_ = Task<void>();
+	render_task_ = Future<void>();
 }
 
 void NullOutputDevice::OpenStream(AudioFormat const & output_format) {

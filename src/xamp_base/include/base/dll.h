@@ -106,6 +106,8 @@ template
 class XAMP_BASE_API_ONLY_EXPORT SharedLibraryFunction final {
 public:
     static_assert(std::is_function_v<std::remove_pointer_t<T>>, "T must be a function pointer type");
+    
+    using FuncPtr = T*;
 
     /*
     * Constructor.
@@ -114,7 +116,7 @@ public:
     * @param name Function name.    
     */
     SharedLibraryFunction(SharedLibraryHandle const& dll, const std::string_view name) {
-        func_ = static_cast<T*>(LoadSharedLibrarySymbol(dll, name));
+        func_ = reinterpret_cast<T*>(LoadSharedLibrarySymbol(dll, name));
     }
 
 #ifdef XAMP_OS_WIN
@@ -126,33 +128,23 @@ public:
     * @param flags Function flags.
     */
     SharedLibraryFunction(SharedLibraryHandle const& dll, const std::string_view name, uint32_t flags) {
-        func_ = static_cast<T*>(LoadSharedLibrarySymbolEx(dll, name, flags));
+        func_ = reinterpret_cast<T*>(LoadSharedLibrarySymbolEx(dll, name, flags));
     }
 #endif
     
-    [[nodiscard]] XAMP_ALWAYS_INLINE operator T* () const noexcept XAMP_CHECK_LIFETIME {
+    auto operator()(auto&&... args) const {
+        XAMP_ASSERT(func_ != nullptr);
+        return func_(std::forward<decltype(args)>(args)...);
+    }
+
+    [[nodiscard]] T* Get() const noexcept XAMP_CHECK_LIFETIME {
         XAMP_ASSERT(func_ != nullptr);
         return func_;
     }
 
-    [[nodiscard]] XAMP_ALWAYS_INLINE T* Get() const noexcept XAMP_CHECK_LIFETIME {
-        XAMP_ASSERT(func_ != nullptr);
-		return func_;
-	}
-
-    [[nodiscard]] XAMP_ALWAYS_INLINE T* operator->() const noexcept XAMP_CHECK_LIFETIME {
-        XAMP_ASSERT(func_ != nullptr);
-		return func_;
-	}
-
-    [[nodiscard]] XAMP_ALWAYS_INLINE T& operator*() const noexcept XAMP_CHECK_LIFETIME {
-        XAMP_ASSERT(func_ != nullptr);
-		return *func_;
-	}
-
     XAMP_DISABLE_COPY_AND_MOVE(SharedLibraryFunction)
 private:
-    T *func_{nullptr};
+    FuncPtr func_{nullptr};
 };
 
 #define XAMP_DECLARE_DLL(Func) SharedLibraryFunction<decltype(Func)>

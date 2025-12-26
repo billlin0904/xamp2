@@ -12,6 +12,7 @@
 #include <output_device/win32/wasapi.h>
 #include <output_device/idsddevice.h>
 #include <output_device/ioutputdevice.h>
+#include <output_device/win32/glitchdetector.h>
 
 #include <base/logger.h>
 #include <base/dataconverter.h>
@@ -213,10 +214,11 @@ private:
 
 	bool raw_mode_;
 	bool ignore_wait_slow_;
-	bool is_2432_format_;
+	bool is_2432_format_;	
 	std::atomic<bool> is_running_;
 	MmcssThreadPriority thread_priority_;
 	uint32_t buffer_frames_;
+	uint64_t device_frequency_;
 	REFERENCE_TIME buffer_period_;
 	DWORD volume_support_mask_;
 	std::atomic<int64_t> stream_time_;
@@ -235,11 +237,12 @@ private:
 	Buffer<float> buffer_;
 	IAudioCallback* callback_;
 	LoggerPtr logger_;
-	Task<void> render_task_;
+	Future<void> render_task_;
 	FastMutex mutex_;
 	std::shared_ptr<IThreadPoolExecutor> thread_pool_;
 	AudioConverter convert_;
 	mutable AudioConvertContext data_convert_;
+	GlitchDetector glitch_detector_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

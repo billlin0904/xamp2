@@ -352,6 +352,8 @@ QSharedPointer<XMessageBox> makeMessageBox(const QString& title,
 
 const QStringList& getTrackInfoFileNameFilter() {
     struct StaticGetFileNameFilter {
+        XAMP_DECLARE_SINGLETON_NAME()
+
         StaticGetFileNameFilter() {
             for (auto& file_ext : GetSupportFileExtensions()) {
                 name_filter << qFormat("*%1").arg(QString::fromStdString(file_ext));

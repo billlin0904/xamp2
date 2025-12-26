@@ -6,19 +6,19 @@
 #pragma once
 
 #include <base/memory.h>
-#include <base/moveonly_function.h>
+#include <base/task.h>
 #include <base/blocking_queue.h>
 #include <base/concurrentqueue.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-using SharedTaskQueue = BlockingQueue<MoveOnlyFunction>;
+using SharedTaskQueue = BlockingQueue<Task>;
 using SharedTaskQueuePtr = ScopedPtr<SharedTaskQueue>;
 
 template <typename T>
 using ConcurrentQueue = moodycamel::ConcurrentQueue<T>;
 
-using WorkStealingTaskQueue = moodycamel::ConcurrentQueue<MoveOnlyFunction>;
+using WorkStealingTaskQueue = moodycamel::ConcurrentQueue<Task>;
 using WorkStealingTaskQueuePtr = ScopedPtr<WorkStealingTaskQueue>;
 
 XAMP_BASE_NAMESPACE_END

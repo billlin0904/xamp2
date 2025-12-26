@@ -18,7 +18,7 @@
 #include <widget/util/str_util.h>
 #include <widget/databasecoverid.h>
 #include <widget/worker/ytmusicservice.h>
-
+#include <widget/musicbrainzparser.h>
 #include <widget/dao/dbfacade.h>
 #include <widget/encodejobwidget.h>
 #include <widget/httpx.h>
@@ -58,6 +58,7 @@ class GenreViewPage;
 class YtMusicOAuth;
 class QScrollArea;
 class QSystemTrayIcon;
+
 struct YtMusicServerProcessor;
 
 class Xamp final : public IXFrame {
@@ -173,6 +174,7 @@ public slots:
 
 	void onPlayCloudVideoId(PlaylistPage* playlist_page, const PlayListEntity& entity);
 
+	void onShowMusicbrainzEditPage(const QList<PlayListEntity>& entities, const QList<MusicBrainzAlbum>& albums);
 private:
 	void initialUi();
 

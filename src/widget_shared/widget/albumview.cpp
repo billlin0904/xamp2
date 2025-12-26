@@ -248,6 +248,8 @@ AlbumView::AlbumView(QWidget* parent)
         "QScrollBar:vertical { width: 6px; }"_str);
 
     //(void)QObject::connect(&refresh_cover_timer_, &QTimer::timeout, this, &AlbumView::reload);
+
+   onThemeChangedFinished(qTheme.themeColor());
 }
 
 void AlbumView::setPlayingAlbumId(int32_t album_id) {
@@ -359,10 +361,14 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             process_dialog->show();
 
             int32_t count = 0;
+            auto remove_unknown_album = false;
 
             TransactionScope scope([&]() {
                 QList<int32_t> selected_albums = qDaoFacade.album_dao.getSelectedAlbums();
                 Q_FOREACH(auto album_id, selected_albums) {
+                    if (album_id == qDatabaseFacade.unknownAlbumId()) {
+                        remove_unknown_album = true;                        
+					}
                     emit removeSelectedAlbum(album_id);
                     qDaoFacade.album_dao.removeAlbumArtist(album_id);
                     qDaoFacade.album_dao.removeAlbum(album_id);
@@ -372,7 +378,13 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
                 reload();
                 });
 
-			});
+            if (remove_unknown_album) {
+                scope.then([this]() {
+                    qDatabaseFacade.resetUnknownId();
+                    });
+            }            
+
+			});           
 
         return;
     }
@@ -429,6 +441,10 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             qIconCache.Clear();
             update();
             });
+
+        scope.then([this]() {
+            qDatabaseFacade.resetUnknownId();
+			});
     };
 
     auto* load_file_act = action_map.addAction(tr("Load local file"), [this]() {

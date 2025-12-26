@@ -32,7 +32,8 @@ namespace {
 
         UuidBuffer uuid{};
 
-        for (size_t i = 0, j = 0; i < hex_string.length(); ++i) {
+        size_t i = 0, j = 0;
+        for (; i < hex_string.length(); ++i) {
             switch (i) {
             case 8:
             case 13:
@@ -46,6 +47,10 @@ namespace {
                 ++j;
                 ++i;
             }
+        }
+
+		if (j != kMaxUuidSize) {
+            return false;
         }
         result = uuid;
         return true;
@@ -80,12 +85,12 @@ Uuid const Uuid::kNullUuid;
 
 Uuid::Uuid() noexcept = default;
 
-Uuid::Uuid(Uuid const& other) noexcept
+Uuid::Uuid(const Uuid& other) noexcept
 	: Uuid() {
     *this = other;
 }
 
-Uuid& Uuid::operator=(Uuid const& other) noexcept {
+Uuid& Uuid::operator=(const Uuid& other) noexcept {
     if (this != &other) {
         bytes_ = other.bytes_;
     }
@@ -111,7 +116,7 @@ Uuid::Uuid(const uint8_t(&byte_array)[kMaxUuidSize]) noexcept {
         std::begin(bytes_));
 }
 
-Uuid::Uuid(std::string_view const &str) {
+Uuid::Uuid(const std::string_view &str) {
     TryParseUuid(str, bytes_);
 }
 
@@ -121,12 +126,16 @@ Uuid::operator std::string() const {
     return ostr.str();
 }
 
-Uuid Uuid::FromString(std::string const & hex_string) {
-    return { hex_string };
+Uuid Uuid::FromString(const std::string & hex_string) {
+    UuidBuffer buffer{};
+    if (!TryParseUuid(hex_string, buffer)) {
+        throw std::invalid_argument("Invalid Uuid string.");
+	}
+	return Uuid(buffer);
 }
 
-bool Uuid::TryParseString(std::string const& hex_string, Uuid& uuid) {
-    UuidBuffer buffer;
+bool Uuid::TryParseString(const std::string & hex_string, Uuid& uuid) {
+    UuidBuffer buffer{};
     if (!TryParseUuid(hex_string, buffer)) {
         return false;
     }

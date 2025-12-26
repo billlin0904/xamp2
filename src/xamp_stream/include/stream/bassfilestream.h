@@ -7,6 +7,7 @@
 
 #include <stream/idsdstream.h>
 #include <stream/filestream.h>
+#include <stream/iaudioprocessor.h>
 
 #include <base/audioformat.h>
 #include <base/memory.h>
@@ -19,15 +20,15 @@ class XAMP_STREAM_API BassFileStream final : public FileStream, public IDsdStrea
 	XAMP_DECLARE_MAKE_CLASS_UUID(BassFileStream, "E421F2D7-2716-4CB7-9A0F-07B16DE32EBA")
 
 public:
-	constexpr static auto Description = std::string_view("BassFileStream");
+	XAMP_DECLARE_UUID_CLASS(BassFileStream)
 
 	BassFileStream();
 
 	XAMP_PIMPL(BassFileStream)
 
-    void OpenFile(const Path& file_path) override;
+    void OpenFile(const Path& file_path, float rate = 0.0f) override;
 
-	void Open(ArchiveEntry archive_entry) override;
+	void Open(ArchiveEntry archive_entry, float rate = 0.0f) override;
 
 	void Close() noexcept override;
 
@@ -35,15 +36,13 @@ public:
 	// If read CD or use BASS_ASYNCFILE flag, Must use this function to check.
 	bool EndOfStream() const;
 
-	[[nodiscard]] double GetDurationAsSeconds() const override;
+	[[nodiscard]] double GetDuration() const override;
 
 	[[nodiscard]] AudioFormat GetFormat() const override;
 
 	[[nodiscard]] uint32_t GetSamples(void* buffer, uint32_t length) const override;
 
-	void SeekAsSeconds(double stream_time) const override;
-
-	[[nodiscard]] std::string_view GetDescription() const noexcept override;
+	void Seek(double stream_time) const override;
 
 	[[nodiscard]] uint32_t GetSampleSize() const noexcept override;
 
@@ -63,6 +62,8 @@ public:
 
 	[[nodiscard]] uint32_t GetBitDepth() const override;
 
+	[[nodiscard]] uint32_t GetBitRate() const override;
+
 	[[nodiscard]] uint32_t GetHStream() const noexcept;
 
 	[[nodiscard]] bool IsActive() const noexcept override;
@@ -73,7 +74,6 @@ public:
 
 	[[nodiscard]] bool SupportNativeSD() const noexcept override;
 
-	[[nodiscard]] Uuid GetTypeId() const override;
 private:	
 	class BassFileStreamImpl;
 	ScopedPtr<BassFileStreamImpl> stream_;

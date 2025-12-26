@@ -13,6 +13,8 @@
 namespace dao {
 	class XAMP_WIDGET_SHARED_EXPORT DatabaseFacade final {
 	public:
+		XAMP_DECLARE_SINGLETON_NAME()
+
 		DatabaseFacade()
 			: playlist_dao(qGuiDb.getDatabase())
 			, album_dao(qGuiDb.getDatabase())

@@ -12,21 +12,36 @@
 #include <base/memory.h>
 #include <base/dsdsampleformat.h>
 #include <base/archivefile.h>
-
+#include <stream/filestream.h>
 #include <stream/ifileencoder.h>
 #include <stream/stream.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
+struct XAMP_STREAM_API ArchiveFileStream {
+    ArchiveFile archive_file;
+	ScopedPtr<FileStream> file_stream;
+};
 
 class XAMP_STREAM_API StreamFactory {
 public:
     StreamFactory() = delete;
 
-    static ScopedPtr<FileStream> MakeFileStream(const Path& filePath);
+    static ScopedPtr<FileStream> MakeFileStream(const Path& filePath,
+        float rate = 0.0f);
 
     // Create a file stream object based on the file path and DSD mode
-    static ScopedPtr<FileStream> MakeFileStream(const Path& filePath, DsdModes dsdMode);
+    static ScopedPtr<FileStream> MakeFileStream(const Path& filePath,
+        DsdModes dsdMode, 
+        float rate = 0.0f);
+
+    static ScopedPtr<FileStream> MakeFileStream(ArchiveEntry archive_entry,
+        DsdModes dsd_mode,
+        float rate = 0.0f);
+
+	static std::expected<ArchiveFileStream, std::string> MakeArchiveFileStream(const Path& archive_path,
+        const std::wstring& archive_entry_name,
+        float rate = 0.0f);
 
     static ScopedPtr<FileStream> MakeFileStream();
 
@@ -68,10 +83,6 @@ XAMP_STREAM_API OrderedMap<std::string, std::string> GetBassDLLVersion();
 XAMP_STREAM_API IDsdStream* AsDsdStream(ScopedPtr<FileStream> const & stream) noexcept;
 
 XAMP_STREAM_API FileStream* AsFileStream(ScopedPtr<IAudioStream> const& stream) noexcept;
-
-XAMP_STREAM_API ScopedPtr<FileStream> MakeFileStream(const Path& file_path, DsdModes dsd_mode);
-
-XAMP_STREAM_API ScopedPtr<FileStream> MakeFileStream(ArchiveEntry archive_entry, DsdModes dsd_mode);
 
 XAMP_STREAM_API void LoadFFTLib();
 

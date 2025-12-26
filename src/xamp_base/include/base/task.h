@@ -11,9 +11,11 @@
 XAMP_BASE_NAMESPACE_BEGIN
 
 template <typename T = void>
-using Task = std::future<T>;
+using Future = std::future<T>;
 
 template <typename T = void>
-using SharedTask = std::shared_future<T>;
+using SharedFuture = std::shared_future<T>;
+
+using Task = std::move_only_function<void(const std::stop_token&)>;
 
 XAMP_BASE_NAMESPACE_END

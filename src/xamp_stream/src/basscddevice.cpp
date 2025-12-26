@@ -8,12 +8,13 @@ XAMP_STREAM_NAMESPACE_BEGIN
 #ifdef XAMP_OS_WIN
 
 namespace {
-	inline constexpr auto kCDSpeedMultiplier = 176.4;
+	constexpr auto kCDSpeedMultiplier = 176.4;
+	constexpr double kCDBytesPerSecond = 176400;
 
 	DWORD Drive2BassID(char driver_letter) {
 		for (DWORD i = 0; i < 25; i++) {
 			BASS_CD_INFO cdinfo{};
-			if (BASS_LIB.CDLib->BASS_CD_GetInfo(i, &cdinfo)) {
+			if (BassLibDLL.CDLib->BASS_CD_GetInfo(i, &cdinfo)) {
 				char letter = 'A' + cdinfo.letter;
 				if (letter == driver_letter) {
 					return i;
@@ -36,23 +37,23 @@ public:
 	}
 
 	void SetAction(CDDeviceAction action) {
-		BassIfFailedThrow(BASS_LIB.CDLib->BASS_CD_Door(driver_, static_cast<DWORD>(action)));
+		BassIfFailedThrow(BassLibDLL.CDLib->BASS_CD_Door(driver_, static_cast<DWORD>(action)));
 	}
 
 	void SetSpeed(uint32_t speed) {
-		BassIfFailedThrow(BASS_LIB.CDLib->BASS_CD_SetSpeed(driver_, speed));
+		BassIfFailedThrow(BassLibDLL.CDLib->BASS_CD_SetSpeed(driver_, speed));
 	}
 
 	[[nodiscard]] uint32_t GetSpeed() const {
-		return static_cast<uint32_t>((BASS_LIB.CDLib->BASS_CD_GetSpeed(driver_) / kCDSpeedMultiplier));
+		return static_cast<uint32_t>((BassLibDLL.CDLib->BASS_CD_GetSpeed(driver_) / kCDSpeedMultiplier));
 	}
 
 	[[nodiscard]] bool DoorIsOpen() const {
-		return BASS_LIB.CDLib->BASS_CD_DoorIsOpen(driver_);
+		return BassLibDLL.CDLib->BASS_CD_DoorIsOpen(driver_);
 	}
 
 	std::string GetISRC(uint32_t track) const {
-		auto const* text = BASS_LIB.CDLib->BASS_CD_GetID(driver_, BASS_CDID_ISRC + track);
+		auto const* text = BassLibDLL.CDLib->BASS_CD_GetID(driver_, BASS_CDID_ISRC + track);
 		if (!text) {
 			return "";
 		}
@@ -61,7 +62,7 @@ public:
 
 	[[nodiscard]] CDText GetCDText() const {
 		CDText cd_text;
-		auto const * text = BASS_LIB.CDLib->BASS_CD_GetID(driver_, BASS_CDID_TEXT);
+		auto const * text = BassLibDLL.CDLib->BASS_CD_GetID(driver_, BASS_CDID_TEXT);
 		if (!text) {
 			return cd_text;
 		}
@@ -77,7 +78,7 @@ public:
 
 	[[nodiscard]] std::vector<std::wstring> GetTotalTracks() const {
 		std::vector<std::wstring> tracks;
-		const auto num_track = BASS_LIB.CDLib->BASS_CD_GetTracks(driver_);
+		const auto num_track = BassLibDLL.CDLib->BASS_CD_GetTracks(driver_);
 		if (num_track == kBassError) {
 			return tracks;
 		}
@@ -92,14 +93,20 @@ public:
 
 	[[nodiscard]] CDDeviceInfo GetCDDeviceInfo() const {
 		BASS_CD_INFO info{};
-		BassIfFailedThrow(BASS_LIB.CDLib->BASS_CD_GetInfo(driver_, &info));
+		BassIfFailedThrow(BassLibDLL.CDLib->BASS_CD_GetInfo(driver_, &info));
 		CDDeviceInfo device_info;
 		device_info.can_lock = info.canlock;
 		device_info.can_open = info.canopen;
 		device_info.device_letter = std::to_wstring(info.letter);
-		device_info.product = String::ToStdWString(info.product);
-		device_info.vendor = String::ToStdWString(info.vendor);
-		device_info.rev = String::ToStdWString(info.rev);
+		if (info.product != nullptr) {
+			device_info.product = String::ToStdWString(info.product);
+		}		
+		if (info.vendor != nullptr) {
+			device_info.vendor = String::ToStdWString(info.vendor);
+		}		
+		if (info.rev != nullptr) {
+			device_info.rev = String::ToStdWString(info.rev);
+		}		
 		device_info.cache_size = info.cache;
 		device_info.max_speed = info.maxspeed;
 		device_info.can_read_cdtext = info.cdtext;
@@ -107,21 +114,20 @@ public:
 	}
 
 	uint32_t GetTrackLength(uint32_t track) const {
-		return BASS_LIB.CDLib->BASS_CD_GetTrackLength(driver_, track);
+		return BassLibDLL.CDLib->BASS_CD_GetTrackLength(driver_, track);
 	}
 
 	void Release() {
-		BASS_LIB.CDLib->BASS_CD_Release(driver_);
+		BassLibDLL.CDLib->BASS_CD_Release(driver_);
 	}
 
 	void SetMaxSpeed() {
 		// -1 = optimal performace.
-		BassIfFailedThrow(BASS_LIB.CDLib->BASS_CD_SetSpeed(driver_, -1));
+		BassIfFailedThrow(BassLibDLL.CDLib->BASS_CD_SetSpeed(driver_, -1));
 	}
 
-	double GetDuration(uint32_t track) const {
-		constexpr double kCDBytesPerSecond = 176400;
-		return BASS_LIB.CDLib->BASS_CD_GetTrackLength(driver_, track) / kCDBytesPerSecond;
+	double GetDuration(uint32_t track) const {		
+		return BassLibDLL.CDLib->BASS_CD_GetTrackLength(driver_, track) / kCDBytesPerSecond;
 	}
 private:
 	char driver_letter_;

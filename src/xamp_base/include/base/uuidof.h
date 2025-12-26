@@ -31,7 +31,7 @@ constexpr uint8_t ParseHexDigital(const char c) {
 	case 'A': case 'B': case 'C': case 'D': case 'E': case 'F':
 		return static_cast<uint8_t>(10 + (c - 'A'));
 	default:
-		throw std::domain_error{ "invalid character in UUID"s };
+		throw std::domain_error{ "invalid character in UUID" };
 	}
 }
 
@@ -68,7 +68,7 @@ namespace uuid_literals {
 		using namespace std::string_literals;
 
 		if (N != xamp::base::kMaxUuidHexStringLength) {
-			throw std::domain_error{ "String GUID of the form XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX is expected"s };
+			throw std::domain_error{ "String GUID of the form XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX is expected" };
 		}
 
 		if (!(str[8] == '-' && str[13] == '-' && str[18] == '-' && str[23] == '-')) {
@@ -84,7 +84,7 @@ namespace uuid_literals {
 public:\
 	static const xamp::base::Uuid & uuidof() {\
 		using namespace uuid_literals;\
-		static const xamp::base::Uuid id = UuidString##_uuid; \
+		static constexpr xamp::base::Uuid id = UuidString##_uuid; \
 		return id;\
 	}\
 	\

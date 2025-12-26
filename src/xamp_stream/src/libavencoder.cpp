@@ -39,15 +39,98 @@ namespace {
         (*buf)[3] = static_cast<uint8_t>(value & 0xFF);
         *buf += 4;
     }
+
+    using Converter = std::function<void(const float*, AVFrame*, size_t)>;
+
+    const HashMap<std::string, std::function<Converter(const ScopedPtr<FileStream>&, uint32_t&, AVCodecID&, AVSampleFormat&, std::string&)>>
+        kConverterLut = {
+            { "aac", [](const ScopedPtr<FileStream>&, uint32_t& sample_size, AVCodecID& codec_id, AVSampleFormat& sample_format, std::string& guess_file_name) ->Converter {
+            guess_file_name = "output.m4a";
+            sample_size = 16;
+            codec_id = AV_CODEC_ID_AAC;
+            sample_format = AV_SAMPLE_FMT_FLTP;
+
+            return [](const float* input, AVFrame* frame, size_t read_samples) {
+                void* left_ch = frame->data[0];
+                void* right_ch = frame->data[1];
+
+                // SSE convert: interleaved float => planar float
+                ConvertFloatToFloatSSE(input,
+                    static_cast<float*>(left_ch),
+                    static_cast<float*>(right_ch),
+                    read_samples / 2);
+                };
+            }},
+            { "alac", [](const ScopedPtr<FileStream>& input_file, uint32_t& sample_size, AVCodecID& codec_id, AVSampleFormat& sample_format, std::string& guess_file_name) -> Converter {
+                guess_file_name = "output.m4a";
+                codec_id = AV_CODEC_ID_ALAC;
+
+                // 若 bit depth > 16 => 24-bit
+                if (input_file->GetBitDepth() > 16) {
+                    sample_size = 24;
+                    sample_format = AV_SAMPLE_FMT_S32P;
+                    return [](const float* input, AVFrame* frame, size_t read_samples) {
+                        void* left_ch = frame->data[0];
+                        void* right_ch = frame->data[1];
+
+                        ConvertFloatToInt24SSE(input,
+                            static_cast<int32_t*>(left_ch),
+                            static_cast<int32_t*>(right_ch),
+                            read_samples / 2);
+                        };
+                }
+                else {
+                    sample_size = 16;
+                    sample_format = AV_SAMPLE_FMT_S16P;
+                    return [](const float* input, AVFrame* frame, size_t read_samples) {
+                        void* left_ch = frame->data[0];
+                        void* right_ch = frame->data[1];
+
+                        ConvertFloatToInt16SSE(input,
+                            static_cast<int16_t*>(left_ch),
+                            static_cast<int16_t*>(right_ch),
+                            read_samples / 2);
+                        };
+                }
+            }},
+            { "pcm", [](const ScopedPtr<FileStream>& input_file, uint32_t& sample_size, AVCodecID& codec_id, AVSampleFormat& sample_format, std::string& guess_file_name) -> Converter {
+                // 預設產生 WAV 檔
+                guess_file_name = "output.wav";
+
+                // 判斷 bit depth，若 >16 => 24-bit
+                if (input_file->GetBitDepth() > 16) {
+                    codec_id = AV_CODEC_ID_PCM_S24LE;
+                    sample_size = 24;
+                    sample_format = AV_SAMPLE_FMT_S32; // pack 24bit in 32
+                    return [](const float* input, AVFrame* frame, size_t read_samples) {
+                        AudioConvertContext ctx;
+                        ctx.convert_size = read_samples / 2;
+                        // SSE convert: float => 24-bit (packed in 32bit)
+                        DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Convert(
+                            reinterpret_cast<int32_t*>(frame->data[0]), input, ctx);
+                        };
+                }
+                else {
+                    codec_id = AV_CODEC_ID_PCM_S16LE;
+                    sample_size = 16;
+                    sample_format = AV_SAMPLE_FMT_S16;
+                    return [](const float* input, AVFrame* frame, size_t read_samples) {
+                        AudioConvertContext ctx;
+                        ctx.convert_size = read_samples / 2;
+                        // SSE convert: float => 16-bit
+                        DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Convert(
+                            reinterpret_cast<int16_t*>(frame->data[0]), input, ctx);
+                        };
+                }
+            }},
+    };
 }
 
 class LibAbFileEncoder::LibAbFileEncoderImpl {
 public:
     static constexpr auto kDefaultChannelLayout = AV_CH_LAYOUT_STEREO;
     static constexpr auto kFrameSize = 8192;
-    
-    using Converter = std::function<void(const float*, AVFrame*, size_t)>;
-
+        
     ~LibAbFileEncoderImpl() {
         // 確保在解構時釋放重要資源
         codec_context_.reset();
@@ -64,7 +147,7 @@ public:
         file_name_ = String::ToUtf8String(output_file_path.wstring());
 
         // 3) 建立輸入檔案讀取物件並打開
-        input_file_ = StreamFactory::MakeFileStream(input_file_path);
+        input_file_ = StreamFactory::MakeFileStream(input_file_path, 0.0);
         input_file_->OpenFile(input_file_path);
 
         // 4) 若未指定 writer，則建立檔案寫入物件
@@ -77,94 +160,14 @@ public:
     void InitialConverter(uint32_t& sample_size, 
         AVCodecID& codec_id,
         AVSampleFormat& sample_format,
-        std::string& guess_file_name) {
+        std::string& guess_file_name) {        
 
-        static const HashMap<std::string, std::function<Converter (const ScopedPtr<FileStream> &, uint32_t&, AVCodecID&, AVSampleFormat&, std::string&)>>
-            converter_lut = {
-                { "aac", [](const ScopedPtr<FileStream>&, uint32_t& sample_size, AVCodecID& codec_id, AVSampleFormat& sample_format, std::string& guess_file_name) ->Converter {
-                guess_file_name = "output.m4a";
-                sample_size = 16;
-                codec_id = AV_CODEC_ID_AAC;
-                sample_format = AV_SAMPLE_FMT_FLTP;
-
-                return [](const float* input, AVFrame* frame, size_t read_samples) {
-                    void* left_ch = frame->data[0];
-                    void* right_ch = frame->data[1];
-
-                    // SSE convert: interleaved float => planar float
-                    ConvertFloatToFloatSSE(input,
-                        static_cast<float*>(left_ch),
-                        static_cast<float*>(right_ch),
-                        read_samples / 2);
-                    };
-                }},
-                { "alac", [](const ScopedPtr<FileStream>& input_file, uint32_t& sample_size, AVCodecID& codec_id, AVSampleFormat& sample_format, std::string& guess_file_name) -> Converter {
-                    guess_file_name = "output.m4a";
-                    codec_id = AV_CODEC_ID_ALAC;
-
-                    // 若 bit depth > 16 => 24-bit
-                    if (input_file->GetBitDepth() > 16) {
-                        sample_size = 24;
-                        sample_format = AV_SAMPLE_FMT_S32P;
-                        return [](const float* input, AVFrame* frame, size_t read_samples) {
-                            void* left_ch = frame->data[0];
-                            void* right_ch = frame->data[1];
-
-                            ConvertFloatToInt24SSE(input,
-                                static_cast<int32_t*>(left_ch),
-                                static_cast<int32_t*>(right_ch),
-                                read_samples / 2);
-                            };
-                    }
-                    else {
-                        sample_size = 16;
-                        sample_format = AV_SAMPLE_FMT_S16P;
-                        return [](const float* input, AVFrame* frame, size_t read_samples) {
-                            void* left_ch = frame->data[0];
-                            void* right_ch = frame->data[1];
-
-                            ConvertFloatToInt16SSE(input,
-                                static_cast<int16_t*>(left_ch),
-                                static_cast<int16_t*>(right_ch),
-                                read_samples / 2);
-                            };
-                    }
-                }},
-                { "pcm", [](const ScopedPtr<FileStream>& input_file, uint32_t& sample_size, AVCodecID& codec_id, AVSampleFormat& sample_format, std::string& guess_file_name) -> Converter {
-                    // 預設產生 WAV 檔
-                    guess_file_name = "output.wav";
-                    
-                    // 判斷 bit depth，若 >16 => 24-bit
-                    if (input_file->GetBitDepth() > 16) {
-                        codec_id = AV_CODEC_ID_PCM_S24LE;
-                        sample_size = 24;
-                        sample_format = AV_SAMPLE_FMT_S32; // pack 24bit in 32
-                        return [](const float* input, AVFrame* frame, size_t read_samples) {
-                            AudioConvertContext ctx;
-                            ctx.convert_size = read_samples / 2;
-                            // SSE convert: float => 24-bit (packed in 32bit)
-                            DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Convert(
-                                reinterpret_cast<int32_t*>(frame->data[0]), input, ctx);
-                            };
-                    }
-                    else {
-                        codec_id = AV_CODEC_ID_PCM_S16LE;
-                        sample_size = 16;
-                        sample_format = AV_SAMPLE_FMT_S16;
-                        return [](const float* input, AVFrame* frame, size_t read_samples) {
-                            AudioConvertContext ctx;
-                            ctx.convert_size = read_samples / 2;
-                            // SSE convert: float => 16-bit
-                            DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Convert(
-                                reinterpret_cast<int16_t*>(frame->data[0]), input, ctx);
-                            };
-                    }
-                }},
-        };
-
-        auto itr = converter_lut.find(codec_type_);
-        if (itr != converter_lut.end()) {
+        auto itr = kConverterLut.find(codec_type_);
+        if (itr != kConverterLut.end()) {
             convert_ = itr->second(input_file_, sample_size, codec_id, sample_format, guess_file_name);
+        }
+        else {
+            throw Exception("Failed to find codec convert.");
         }
     }
 
@@ -190,12 +193,12 @@ public:
 
         if (io_stream_ != nullptr) {
             // 使用自訂 I/O
-            auto* avio_buffer = static_cast<uint8_t*>(LIBAV_LIB.Util->av_malloc(kFrameSize));
+            auto* avio_buffer = static_cast<uint8_t*>(LibAvDLL.Util->av_malloc(kFrameSize));
             if (!avio_buffer) {
-                throw Exception("Fail to allocate AVIO buffer.");
+                throw Exception("Failed to allocate AVIO buffer.");
             }
 
-            auto* custom_io_ctx = LIBAV_LIB.Format->avio_alloc_context(
+            auto* custom_io_ctx = LibAvDLL.Format->avio_alloc_context(
                 avio_buffer,                // buffer
                 kFrameSize,                 // buffer size
                 1,                          // write_flag
@@ -205,13 +208,13 @@ public:
                 &CustomSeekPacket           // seek
             );
             if (!custom_io_ctx) {
-                LIBAV_LIB.Util->av_free(avio_buffer);
-                throw Exception("Fail to create custom AVIOContext.");
+                LibAvDLL.Util->av_free(avio_buffer);
+                throw Exception("Failed to create custom AVIOContext.");
             }
 
             output_io_context_.reset(custom_io_ctx);
 
-            format_context_.reset(LIBAV_LIB.Format->avformat_alloc_context());
+            format_context_.reset(LibAvDLL.Format->avformat_alloc_context());
             if (!format_context_) {
                 throw Exception();
             }
@@ -223,14 +226,14 @@ public:
         else {
             // 直接開檔案寫
             AVIOContext* output_io_context = nullptr;
-            AvIfFailedThrow(LIBAV_LIB.Format->avio_open(
+            AvIfFailedThrow(LibAvDLL.Format->avio_open(
                 &output_io_context,
                 guess_file_name.c_str(),
                 AVIO_FLAG_WRITE
             ));
             output_io_context_.reset(output_io_context);
 
-            format_context_.reset(LIBAV_LIB.Format->avformat_alloc_context());
+            format_context_.reset(LibAvDLL.Format->avformat_alloc_context());
             if (!format_context_) {
                 throw Exception();
             }
@@ -239,7 +242,7 @@ public:
         }
 
         // 猜測輸出封裝格式
-        format_context_->oformat = LIBAV_LIB.Format->av_guess_format(
+        format_context_->oformat = LibAvDLL.Format->av_guess_format(
             nullptr, guess_file_name.c_str(), nullptr
         );
 
@@ -247,17 +250,17 @@ public:
         // 依據 codec_id 建立 encoder，並分配 AVCodecContext
         //----------------------------------------------------------------------
 
-        auto* av_codec = LIBAV_LIB.Codec->avcodec_find_encoder(codec_id);
+        auto* av_codec = LibAvDLL.Codec->avcodec_find_encoder(codec_id);
         if (!av_codec) {
             throw Exception("Encoder codec id not found.");
         }
 
-        stream_ = LIBAV_LIB.Format->avformat_new_stream(format_context_.get(), av_codec);
+        stream_ = LibAvDLL.Format->avformat_new_stream(format_context_.get(), av_codec);
         if (!stream_) {
             throw Exception("Failed to create new stream.");
         }
 
-        codec_context_.reset(LIBAV_LIB.Codec->avcodec_alloc_context3(av_codec));
+        codec_context_.reset(LibAvDLL.Codec->avcodec_alloc_context3(av_codec));
         codec_context_->channels = format.GetChannels();
         codec_context_->channel_layout = kDefaultChannelLayout;
         codec_context_->sample_rate = format.GetSampleRate();
@@ -309,7 +312,7 @@ public:
 
         if (codec_type_ == "alac") {
             codec_context_->extradata = static_cast<uint8_t*>(
-                LIBAV_LIB.Util->av_malloc(kAlacExtradataSize + AV_INPUT_BUFFER_PADDING_SIZE));
+                LibAvDLL.Util->av_malloc(kAlacExtradataSize + AV_INPUT_BUFFER_PADDING_SIZE));
             codec_context_->extradata_size = kAlacExtradataSize;
             MemorySet(codec_context_->extradata, 0, kAlacExtradataSize);
 
@@ -338,44 +341,44 @@ public:
             // 避免使用 compression_level = 0
 
             // 開啟 ALAC 編碼器
-            AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_open2(codec_context_.get(), av_codec, nullptr));
+            AvIfFailedThrow(LibAvDLL.Codec->avcodec_open2(codec_context_.get(), av_codec, nullptr));
         }
         else if (codec_type_ == "aac") {
             // AAC 需要指定 profile
             AVDictionary* opts = nullptr;
-            LIBAV_LIB.Util->av_dict_set(&opts, "profile", "aac_low", 0);
+            LibAvDLL.Util->av_dict_set(&opts, "profile", "aac_low", 0);
 
-            AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_open2(codec_context_.get(), av_codec, &opts));
+            AvIfFailedThrow(LibAvDLL.Codec->avcodec_open2(codec_context_.get(), av_codec, &opts));
         }
         else if (codec_type_ == "pcm") {
             // PCM 也要開啟編碼器流程
-            AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_open2(codec_context_.get(), av_codec, nullptr));
+            AvIfFailedThrow(LibAvDLL.Codec->avcodec_open2(codec_context_.get(), av_codec, nullptr));
         }
 
         // 將 codec_context 參數複製到 stream_->codecpar
-        AvIfFailedThrow(LIBAV_LIB.Codec->avcodec_parameters_from_context(
+        AvIfFailedThrow(LibAvDLL.Codec->avcodec_parameters_from_context(
             stream_->codecpar, codec_context_.get()));
 
         // 寫入容器標頭
-        AvIfFailedThrow(LIBAV_LIB.Format->avformat_write_header(
+        AvIfFailedThrow(LibAvDLL.Format->avformat_write_header(
             format_context_.get(), nullptr));
 
         // dump 格式資訊
-        LIBAV_LIB.Format->av_dump_format(format_context_.get(), 0, file_name, 1);
+        LibAvDLL.Format->av_dump_format(format_context_.get(), 0, file_name, 1);
     }
 
     bool EncodeFrame(AVFrame* frame) {
         // 建立並初始化 AVPacket
         AvPtr<AVPacket> packet;
-        packet.reset(LIBAV_LIB.Codec->av_packet_alloc());
+        packet.reset(LibAvDLL.Codec->av_packet_alloc());
         if (!packet) {
             throw Exception("Failed to allocate AVPacket.");
         }
-        LIBAV_LIB.Codec->av_init_packet(packet.get());
+        LibAvDLL.Codec->av_init_packet(packet.get());
 
         // 設定 frame->pts
         if (frame != nullptr) {
-            frame->pts = LIBAV_LIB.Util->av_rescale_q(
+            frame->pts = LibAvDLL.Util->av_rescale_q(
                 pts_,
                 AVRational{ 1, frame->sample_rate },
                 codec_context_->time_base
@@ -384,7 +387,7 @@ public:
         }
 
         // 送入 frame 給編碼器
-        auto ret = LIBAV_LIB.Codec->avcodec_send_frame(codec_context_.get(), frame);
+        auto ret = LibAvDLL.Codec->avcodec_send_frame(codec_context_.get(), frame);
         if (ret == AVERROR_EOF) {
             XAMP_LOG_WARN("avcodec_send_frame: AVERROR_EOF");
             return false;
@@ -392,7 +395,7 @@ public:
         AvIfFailedThrow(ret);
 
         // 從編碼器讀取封包
-        ret = LIBAV_LIB.Codec->avcodec_receive_packet(codec_context_.get(), packet.get());
+        ret = LibAvDLL.Codec->avcodec_receive_packet(codec_context_.get(), packet.get());
         if (ret == AVERROR_EOF) {
             return false;
         }
@@ -405,7 +408,7 @@ public:
         }
 
         // 寫入封裝容器
-        ret = LIBAV_LIB.Format->av_interleaved_write_frame(format_context_.get(), packet.get());
+        ret = LibAvDLL.Format->av_interleaved_write_frame(format_context_.get(), packet.get());
         AvIfFailedThrow(ret);
         return true;
     }
@@ -414,7 +417,7 @@ public:
         const std::stop_token& stop_token) {
         // 分配並初始化輸出用的 AVFrame
         AvPtr<AVFrame> frame;
-        frame.reset(LIBAV_LIB.Util->av_frame_alloc());
+        frame.reset(LibAvDLL.Util->av_frame_alloc());
         frame->format = codec_context_->sample_fmt;
         frame->channel_layout = codec_context_->channel_layout;
         frame->sample_rate = codec_context_->sample_rate;
@@ -432,14 +435,14 @@ public:
         // 預估總樣本數以便顯示進度
         auto format = input_file_->GetFormat();
         uint64_t total_samples = static_cast<uint64_t>(
-            input_file_->GetDurationAsSeconds()
+            input_file_->GetDuration()
             * format.GetSampleRate()
             * format.GetChannels()
             );
         uint64_t processed_samples = 0;
 
         // 要先為 frame 分配 buffer
-        auto ret = LIBAV_LIB.Util->av_frame_get_buffer(frame.get(), 0);
+        auto ret = LibAvDLL.Util->av_frame_get_buffer(frame.get(), 0);
         if (ret < 0) {
             AvIfFailedThrow(ret);
         }
@@ -457,7 +460,7 @@ public:
 
         while (!stop_token.stop_requested() && input_file_->IsActive()) {
             // 確保 frame 可寫
-            ret = LIBAV_LIB.Util->av_frame_make_writable(frame.get());
+            ret = LibAvDLL.Util->av_frame_make_writable(frame.get());
             AvIfFailedThrow(ret);
 
             read_samples = 0;
@@ -514,7 +517,7 @@ public:
         }
 
         // 寫入容器尾資訊
-        AvIfFailedThrow(LIBAV_LIB.Format->av_write_trailer(format_context_.get()));
+        AvIfFailedThrow(LibAvDLL.Format->av_write_trailer(format_context_.get()));
     }
 
 private:

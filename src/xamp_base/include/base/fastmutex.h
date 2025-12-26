@@ -7,37 +7,49 @@
 
 #include <base/base.h>
 #include <base/memory.h>
-#include <base/pimplptr.h>
+#include <base/platform.h>
 
 #include <shared_mutex>
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-#if 0
-
-class XAMP_BASE_API SRWMutex final {
+// See: https://rigtorp.se/spinlock/
+class XAMP_BASE_API SpinLock final {
 public:
-	SRWMutex() noexcept;
+	static constexpr int32_t kMaxSpinCount = 64;
 
-	XAMP_PIMPL(SRWMutex)
+	SpinLock() noexcept
+		: flag_{ false } {
+	}
 
-	void lock() noexcept;
-	
-	void unlock() noexcept;
+	XAMP_DISABLE_COPY(SpinLock)
 
-	[[nodiscard]] bool try_lock() noexcept;
+		void lock() noexcept {
+		int32_t mask = 1;
+
+		while (flag_.exchange(true, std::memory_order_acquire)) {
+			while (flag_.load(std::memory_order_relaxed)) {
+				for (int32_t i = mask; i; --i)
+					CpuRelax();
+				mask = mask < kMaxSpinCount ? mask << 1 : kMaxSpinCount;
+			}
+		}
+	}
+
+	[[nodiscard]] bool try_lock() noexcept {
+		return !flag_.load(std::memory_order_relaxed)
+			&& !flag_.exchange(true, std::memory_order_acquire);
+	}
+
+	void unlock() noexcept {
+		flag_.store(false, std::memory_order_release);
+	}
 private:
-	class SRWMutexImpl;
-	ScopedPtr<SRWMutexImpl> impl_;
+	std::atomic_bool flag_;
 };
-
-using FastMutex = SRWMutex;
-
-#else
 
 using FastMutex = std::shared_mutex;
 
-#endif
 	
 XAMP_BASE_NAMESPACE_END
 

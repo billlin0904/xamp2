@@ -45,7 +45,9 @@ public:
 	static constexpr QImage::Format kImageFormat = QImage::Format_RGB888;
 	static constexpr auto kCoverSize = QSize(38, 38);
 
-    friend class SharedSingleton<ImageCache>;
+	XAMP_DECLARE_SINGLETON_NAME()
+
+	ImageCache();
 
 	void loadUnknownCover();
 
@@ -92,9 +94,6 @@ public:
 	QIcon uniformIcon(const QIcon &icon, QSize size) const;
 
 public slots:
-	
-protected:
-	ImageCache();
 
 private:
 	void timerEvent(QTimerEvent*) override;

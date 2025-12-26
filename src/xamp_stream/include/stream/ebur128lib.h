@@ -14,6 +14,8 @@ XAMP_STREAM_NAMESPACE_BEGIN
 
 class Ebur128Lib final {
 public:
+	XAMP_DECLARE_SINGLETON_NAME()
+
 	Ebur128Lib();
 
 private:
@@ -49,7 +51,7 @@ catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 }
 
-#define EBUR128_LIB SharedSingleton<Ebur128Lib>::GetInstance()
+#define Ebur128LibDLL SharedSingleton<Ebur128Lib>::GetInstance()
 
 
 XAMP_STREAM_NAMESPACE_END

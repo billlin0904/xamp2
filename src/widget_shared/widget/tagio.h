@@ -23,6 +23,8 @@ public:
 
 	void Open(const Path& path, TagIOMode mode = TAG_IO_WRITE_MODE);
 
+    void Open(ArchiveEntry archive_entry);
+
     static std::expected<TrackInfo, ParseMetadataError> getTrackInfo(const Path& path);
 
     void writeArtist(const QString& artist);

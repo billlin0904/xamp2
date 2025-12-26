@@ -24,11 +24,11 @@ const HashSet<std::string>& GetSupportFileExtensions() {
 }
 
 void LoadCueLib() {
-	Singleton<LibCueLib>::GetInstance();
+	LIBCUE_LIB;
 }
 
 void LoadChromaprintLib() {
-	Singleton<ChromaprintLib>::GetInstance();
+	CHROMAPRINT_LIB;
 }
 
 XAMP_METADATA_NAMESPACE_END

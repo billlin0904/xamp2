@@ -18,7 +18,7 @@
 #include <fstream>
 #include <set>
 
-namespace xamp::stream {
+namespace xamp { namespace stream {
 
 struct XAMP_STREAM_API AudioConverterDeleter final {
     static AudioConverterRef invalid() noexcept {
@@ -238,7 +238,7 @@ void BassAACFileEncoder::SetEncodingProfile(const EncodingProfile& profile) {
     impl_->SetEncodingProfile(profile);
 }
 
-}
+} } }
 
 #endif
 

@@ -7,6 +7,7 @@
 
 #include <stream/stream.h>
 #include <stream/anymap.h>
+#include <stream/uuid_class.h>
 
 #include <base/base.h>
 #include <base/uuid.h>
@@ -32,7 +33,7 @@ namespace DspConfig {
 * IAudioProcessor is an interface for audio processor.
 * 
 */
-class XAMP_NO_VTABLE XAMP_STREAM_API IAudioProcessor {
+class XAMP_NO_VTABLE XAMP_STREAM_API IAudioProcessor : public IUUIDClass {
 public:
 	XAMP_BASE_CLASS(IAudioProcessor)
 
@@ -53,20 +54,6 @@ public:
     * @return: true if success, otherwise false.
     */
     virtual bool Process(float const* samples, size_t num_samples, BufferRef<float>& output) = 0;
-
-    /*
-    * Get the type id of the audio processor.
-    * 
-    * @return the type id of the audio processor.
-    */
-    [[nodiscard]] virtual Uuid GetTypeId() const = 0;
-
-    /*
-    * Get the description of the audio processor.
-    * 
-    * @return the description of the audio processor.
-    */
-    [[nodiscard]] virtual std::string_view GetDescription() const noexcept = 0;
 
 protected:
 	IAudioProcessor() = default;

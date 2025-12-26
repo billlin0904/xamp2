@@ -15,6 +15,8 @@
 
 class XAMP_WIDGET_SHARED_EXPORT GlobalShortcut final {
 public:
+    XAMP_DECLARE_SINGLETON_NAME()
+
     GlobalShortcut();
 
     XAMP_PIMPL(GlobalShortcut)

@@ -191,7 +191,6 @@
     <ClInclude Include="include\base\sfc64.h" />
     <ClInclude Include="include\base\shared_singleton.h" />
     <ClInclude Include="include\base\scopeguard.h" />
-    <ClInclude Include="include\base\singleton.h" />
     <ClInclude Include="include\base\stl.h" />
     <ClInclude Include="include\base\audiobuffer.h" />
     <ClInclude Include="include\base\audioformat.h" />
@@ -205,7 +204,6 @@
     <ClInclude Include="include\base\platform.h" />
     <ClInclude Include="include\base\stacktrace.h" />
     <ClInclude Include="include\base\stopwatch.h" />
-    <ClInclude Include="include\base\moveonly_function.h" />
     <ClInclude Include="include\base\task.h" />
     <ClInclude Include="include\base\threadpoolexecutor.h" />
     <ClInclude Include="include\base\uuidof.h" />

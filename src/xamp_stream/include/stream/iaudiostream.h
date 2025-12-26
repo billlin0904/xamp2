@@ -6,6 +6,7 @@
 #pragma once
 
 #include <stream/stream.h>
+#include <stream/uuid_class.h>
 #include <base/audioformat.h>
 #include <base/uuid.h>
 
@@ -17,7 +18,7 @@ XAMP_STREAM_NAMESPACE_BEGIN
 * @note
 *  This interface is not thread-safe.
 */
-class XAMP_STREAM_API XAMP_NO_VTABLE IAudioStream {
+class XAMP_STREAM_API XAMP_NO_VTABLE IAudioStream : public IUUIDClass {
 public:
     XAMP_BASE_CLASS(IAudioStream)
 
@@ -39,7 +40,7 @@ public:
     * 
     * @return the duration of the stream (unit: seconds).
     */
-    [[nodiscard]] virtual double GetDurationAsSeconds() const = 0;
+    [[nodiscard]] virtual double GetDuration() const = 0;
 
     /*
     * Get audio samples.
@@ -63,14 +64,7 @@ public:
     * 
     * @param stream_time The time to seek (unit: seconds).
     */
-    virtual void SeekAsSeconds(double stream_time) const = 0;
-
-    /*
-    * Get the description of the stream.
-    * 
-    * @return The description of the stream.
-    */
-    [[nodiscard]] virtual std::string_view GetDescription() const noexcept = 0;
+    virtual void Seek(double stream_time) const = 0;
 	
     /*
     * Get the size of a sample.
@@ -87,18 +81,13 @@ public:
     [[nodiscard]] virtual bool IsActive() const noexcept = 0;
 
     /*
-    * Get stream type id
-    *
-    * @return Uuid
-    */
-    [[nodiscard]] virtual Uuid GetTypeId() const = 0;
-
-    /*
     * Get file bit depth.
     *
     * @return: the file bit depth.
     */
     [[nodiscard]] virtual uint32_t GetBitDepth() const = 0;
+
+    [[nodiscard]] virtual uint32_t GetBitRate() const = 0;
 
 protected:
     IAudioStream() = default;

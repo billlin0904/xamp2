@@ -57,31 +57,55 @@ bool IsDsdFile(const Path & path) {
     return IsDsdFileChunk(file_chunks);
 }
 
-ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& filePath) {
+ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& filePath, float rate) {
     auto dsd_mode = DsdModes::DSD_MODE_DSD2PCM;
     if (!IsDsdFile(filePath)) {
         dsd_mode = DsdModes::DSD_MODE_PCM;
     }
-	return MakeFileStream(filePath, dsd_mode);
+	return MakeFileStream(filePath, dsd_mode, rate);
 }
 
 ScopedPtr<FileStream> StreamFactory::MakeFileStream() {
-    return MakeAlign<FileStream, BassFileStream>();;
+    return MakeAlign<FileStream, BassFileStream>();
 }
 
-ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& file_path, DsdModes dsd_mode) {
-    if (!IsCDAFile(file_path)) {
-        switch (dsd_mode) {
-        case DsdModes::DSD_MODE_NATIVE:
-        case DsdModes::DSD_MODE_DOP:
-        case DsdModes::DSD_MODE_DSD2PCM:
-            return MakeAlign<FileStream, BassFileStream>();
-        default:;
+ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& file_path, DsdModes dsd_mode, float rate) {
+    auto file_stream = MakeFileStream();
+
+    if (dsd_mode != DsdModes::DSD_MODE_PCM) {
+        if (auto* dsd_stream = AsDsdStream(file_stream)) {
+            switch (dsd_mode) {
+            case DsdModes::DSD_MODE_DOP:
+                ThrowIf<NotSupportFormatException>(
+                    dsd_stream->SupportDOP(),
+                    "Stream not support mode: {}", dsd_mode);
+                break;
+            case DsdModes::DSD_MODE_DOP_AA:
+                ThrowIf<NotSupportFormatException>(
+                    dsd_stream->SupportDOP_AA(),
+                    "Stream not support mode: {}", dsd_mode);
+                break;
+            case DsdModes::DSD_MODE_NATIVE:
+                ThrowIf<NotSupportFormatException>(
+                    dsd_stream->SupportNativeSD(),
+                    "Stream not support mode: {}", dsd_mode);
+                break;
+            case DsdModes::DSD_MODE_DSD2PCM:
+                break;
+            case DsdModes::DSD_MODE_AUTO:
+                break;
+            case DsdModes::DSD_MODE_PCM:
+                break;
+            default:
+                Throw<NotSupportFormatException>(
+                    "Not support dsd-mode: {}.", dsd_mode);
+                break;
+            }
+            dsd_stream->SetDSDMode(dsd_mode);
         }
-        return MakeAlign<FileStream, BassFileStream>();
-    } else {
-        return MakeAlign<FileStream, BassFileStream>();
     }
+    file_stream->OpenFile(file_path, rate);
+    return file_stream;
 }
 
 ScopedPtr<IFileEncoder> StreamFactory::MakeFileEncoder() {
@@ -136,7 +160,25 @@ IDsdStream* AsDsdStream(FileStream* stream) noexcept {
     return dynamic_cast<IDsdStream*>(stream);
 }
 
-ScopedPtr<FileStream> MakeFileStream(ArchiveEntry archive_entry, DsdModes dsd_mode) {
+std::expected<ArchiveFileStream, std::string> StreamFactory::MakeArchiveFileStream(const Path& archive_path, const std::wstring& archive_entry_name, float rate) {
+    ArchiveFile file;
+    auto file_stream = StreamFactory::MakeFileStream();
+    auto enitities = file.Open(archive_path);
+    if (enitities.has_value()) {
+        auto archive_entiry = file.GetEntryByName(archive_entry_name);
+        if (archive_entiry.has_value()) {
+            file_stream->Open(std::move(archive_entiry.value()), rate);
+			ArchiveFileStream result;
+			result.archive_file = std::move(file);
+			result.file_stream = std::move(file_stream);
+			return result;
+        }
+        return std::unexpected(archive_entiry.error());
+    }
+    return std::unexpected(enitities.error());
+}
+
+ScopedPtr<FileStream> StreamFactory::MakeFileStream(ArchiveEntry archive_entry, DsdModes dsd_mode, float rate) {
     auto file_stream = StreamFactory::MakeFileStream();
 
     if (dsd_mode != DsdModes::DSD_MODE_PCM) {
@@ -171,75 +213,36 @@ ScopedPtr<FileStream> MakeFileStream(ArchiveEntry archive_entry, DsdModes dsd_mo
             dsd_stream->SetDSDMode(dsd_mode);            
         }
     }    
-    file_stream->Open(std::move(archive_entry));
-    return file_stream;
-}
-
-ScopedPtr<FileStream> MakeFileStream(const Path& file_path, DsdModes dsd_mode) {
-    auto file_stream = StreamFactory::MakeFileStream(file_path, dsd_mode);
-
-    if (dsd_mode != DsdModes::DSD_MODE_PCM) {
-        if (auto* dsd_stream = AsDsdStream(file_stream)) {
-            switch (dsd_mode) {
-            case DsdModes::DSD_MODE_DOP:
-                ThrowIf<NotSupportFormatException>(
-                    dsd_stream->SupportDOP(),
-                    "Stream not support mode: {}", dsd_mode);
-                break;
-            case DsdModes::DSD_MODE_DOP_AA:
-                ThrowIf<NotSupportFormatException>(
-                    dsd_stream->SupportDOP_AA(),
-                    "Stream not support mode: {}", dsd_mode);
-                break;
-            case DsdModes::DSD_MODE_NATIVE:
-                ThrowIf<NotSupportFormatException>(
-                    dsd_stream->SupportNativeSD(),
-                    "Stream not support mode: {}", dsd_mode);
-                break;
-            case DsdModes::DSD_MODE_DSD2PCM:
-                break;
-            case DsdModes::DSD_MODE_AUTO:
-                break;
-            case DsdModes::DSD_MODE_PCM:
-                break;
-            default:
-                Throw<NotSupportFormatException>(
-                    "Not support dsd-mode: {}.", dsd_mode);
-                break;
-            }
-            dsd_stream->SetDSDMode(dsd_mode);
-        }
-    }
-    file_stream->OpenFile(file_path);
+    file_stream->Open(std::move(archive_entry), rate);
     return file_stream;
 }
 
 void LoadBassLib() {
-    if (!BASS_LIB.IsLoaded()) {
-        Singleton<BassLib>::GetInstance().Load();
+    if (!BassLibDLL.IsLoaded()) {
+        SharedSingleton<BassLib>::GetInstance().Load();
     }
-    BASS_LIB.MixLib = MakeAlign<BassMixLib>();
-    BASS_LIB.DSDLib = MakeAlign<BassDSDLib>();
-    BASS_LIB.FxLib = MakeAlign<BassFxLib>();
+    BassLibDLL.MixLib = MakeAlign<BassMixLib>();
+    BassLibDLL.DSDLib = MakeAlign<BassDSDLib>();
+    BassLibDLL.FxLib = MakeAlign<BassFxLib>();
 #ifdef XAMP_OS_WIN
-    BASS_LIB.CDLib = MakeAlign<BassCDLib>();
+    BassLibDLL.CDLib = MakeAlign<BassCDLib>();
     try {
-        BASS_LIB.EncLib = MakeAlign<BassEncLib>();
+        BassLibDLL.EncLib = MakeAlign<BassEncLib>();
     }  catch (const Exception &e) {
         XAMP_LOG_DEBUG("Load EncLib error: {}", e.what());
     }
 #else
     BASS_LIB.CAEncLib = MakeAlign<BassCAEncLib>();
 #endif
-    BASS_LIB.FLACEncLib = MakeAlign<BassFLACEncLib>();
-    BASS_LIB.LoadVersionInfo();
-    for (const auto& info : BASS_LIB.GetVersions()) {
+    BassLibDLL.FLACEncLib = MakeAlign<BassFLACEncLib>();
+    BassLibDLL.LoadVersionInfo();
+    for (const auto& info : BassLibDLL.GetVersions()) {
         XAMP_LOG_DEBUG("DLL {} version: {}", info.first, info.second);
     }
 }
 
 OrderedMap<std::string, std::string> GetBassDLLVersion() {
-    return BASS_LIB.GetVersions();
+    return BassLibDLL.GetVersions();
 }
 
 void LoadFFTLib() {

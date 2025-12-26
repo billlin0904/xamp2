@@ -18,6 +18,10 @@ void TagIO::Open(const Path& path, TagIOMode mode) {
     }
 }
 
+void TagIO::Open(ArchiveEntry archive_entry) {
+    reader_->Open(std::move(archive_entry));
+}
+
 TagIO::TagIO()
     : reader_(MakeMetadataReader())
     , writer_(MakeMetadataWriter()) {

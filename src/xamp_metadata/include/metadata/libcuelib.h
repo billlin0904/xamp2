@@ -19,6 +19,8 @@ XAMP_METADATA_NAMESPACE_BEGIN
 
 class LibCueLib final {
 public:
+	XAMP_DECLARE_SINGLETON_NAME()
+
 	LibCueLib();
 
 	XAMP_DISABLE_COPY(LibCueLib)

@@ -16,6 +16,8 @@ XAMP_STREAM_NAMESPACE_BEGIN
 
 class SrcLib final {
 public:
+    XAMP_DECLARE_SINGLETON_NAME()
+
     SrcLib();
 
     XAMP_DISABLE_COPY(SrcLib)
@@ -49,6 +51,6 @@ catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 }
 
-#define LIBSRC_LIB SharedSingleton<SrcLib>::GetInstance()
+#define LibSrcDLL SharedSingleton<SrcLib>::GetInstance()
 
 XAMP_STREAM_NAMESPACE_END

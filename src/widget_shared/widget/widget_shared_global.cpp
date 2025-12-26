@@ -3,23 +3,36 @@
 #include <widget/widget_shared_global.h>
 
 void logAndShowMessage(const std::exception_ptr& ptr) {
+    QString uiMessage;
+    std::string logMessage;
+    std::string stack;
+
     try {
         std::rethrow_exception(ptr);
     }
     catch (const PlatformException& e) {
-        XAMP_LOG_DEBUG("{} {}", e.GetErrorMessage(), StackTrace{}.CaptureStack());
-        XMessageBox::showError(qFormat(e.GetErrorMessage()));
+        logMessage = e.GetErrorMessage();
+        uiMessage = qFormat(e.GetErrorMessage());
+		stack = e.GetStackTrace();
     }
     catch (const Exception& e) {
-        XAMP_LOG_DEBUG("{} {}", e.GetErrorMessage(), StackTrace{}.CaptureStack());
-        XMessageBox::showError(QString::fromStdString(e.GetErrorMessage()));
+        logMessage = e.GetErrorMessage();
+        uiMessage = QString::fromUtf8(logMessage.c_str());
+        stack = e.GetStackTrace();
     }
     catch (const std::exception& e) {
-        XAMP_LOG_DEBUG("{} {}", String::LocaleStringToUTF8(e.what()), StackTrace{}.CaptureStack());
-        XMessageBox::showError(QString::fromStdString(String::LocaleStringToUTF8(e.what())));
+        logMessage = String::LocaleStringToUTF8(e.what());
+        uiMessage = QString::fromUtf8(logMessage.c_str());
+        stack = StackTrace{}.CaptureStack();
     }
     catch (...) {
-        XAMP_LOG_DEBUG("Unknown error. {}", StackTrace{}.CaptureStack());
-        XMessageBox::showError(qApp->tr("Unknown error"));
+        logMessage = "Unknown error.";
+        uiMessage = qApp->tr("Unknown error");
     }
+
+    XAMP_LOG_DEBUG("{} {}", logMessage, stack);
+
+    QMetaObject::invokeMethod(qApp, [msg = uiMessage]() {
+        XMessageBox::showError(msg);
+        }, Qt::QueuedConnection);
 }

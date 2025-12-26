@@ -8,18 +8,17 @@
 #include <base/audiobuffer.h>
 #include <stream/stream.h>
 #include <base/uuidof.h>
+#include <stream/uuid_class.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
-class XAMP_STREAM_API XAMP_NO_VTABLE ISampleWriter {
+class XAMP_STREAM_API XAMP_NO_VTABLE ISampleWriter : public IUUIDClass {
 public:
     XAMP_BASE_CLASS(ISampleWriter)
 
     [[nodiscard]] virtual bool Process(BufferRef<float> const &input, AudioBuffer<std::byte>& buffer) = 0;
 	
     [[nodiscard]] virtual bool Process(float const * samples, size_t num_sample, AudioBuffer<std::byte>& buffer) = 0;
-
-    [[nodiscard]] virtual Uuid GetTypeId() const = 0;
 protected:
     ISampleWriter() = default;
 };

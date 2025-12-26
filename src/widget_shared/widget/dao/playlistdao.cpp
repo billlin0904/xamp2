@@ -129,7 +129,7 @@ namespace dao {
     }
 
     void PlaylistDao::addMusicToPlaylist(const QList<int32_t>& music_id, int32_t playlist_id) const {
-        if (music_id.isEmpty()) {
+        if (music_id.empty()) {
             return;
         }
 

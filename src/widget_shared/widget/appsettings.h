@@ -73,6 +73,8 @@ enum class ReplayGainScanMode {
 
 class XAMP_WIDGET_SHARED_EXPORT AppSettings final {
 public:
+	XAMP_DECLARE_SINGLETON_NAME()
+
 	AppSettings() = default;
 
 	void loadIniFile(const QString& file_name);

@@ -89,8 +89,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;XAMP_USE_BENCHMAKR;BENCHMARK_STATIC_DEFINE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../thirdparty/benchmark/include/;../thirdparty/unordered_dense/include/;../xamp_base/include/;../xamp_output_device/include/;../xamp_player/include/;../xamp_stream/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>../thirdparty/benchmark/include/;../thirdparty/unordered_dense/include/;../xamp_base/include/;../xamp_output_device/include/;../xamp_player/include/;../xamp_stream/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;../thirdparty/thread-pool/include/;../thirdparty/xsimd/include/</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <Optimization>Full</Optimization>
       <OmitFramePointers>true</OmitFramePointers>
       <BrowseInformation>true</BrowseInformation>
@@ -128,9 +128,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;XAMP_USE_BENCHMAKR;_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING;BENCHMARK_STATIC_DEFINE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../thirdparty/benchmark/include/;../thirdparty/unordered_dense/include/;../xamp_base/include/;../xamp_player/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../thirdparty/benchmark/include/;../thirdparty/unordered_dense/include/;../xamp_base/include/;../xamp_player/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;../thirdparty/thread-pool/include/;../thirdparty/xsimd/include/</AdditionalIncludeDirectories>
       <LanguageStandard_C>Default</LanguageStandard_C>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

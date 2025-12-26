@@ -54,7 +54,7 @@ public:
 
     IXFrame* contentWidget() const override;
 
-    void setTheme() override;
+    //void setTheme() override;
 protected:
     void dragEnterEvent(QDragEnterEvent *event) override;
 

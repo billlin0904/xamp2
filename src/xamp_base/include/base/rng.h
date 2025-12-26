@@ -102,7 +102,9 @@ public:
         return engine_;
     }
 
-    std::string GetRandomString(size_t size);    
+    std::string GetRandomString(size_t size);
+
+    static PRNG& GetThreadLocal();
 private:
     Sfc64Engine<> engine_;
 };

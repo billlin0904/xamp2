@@ -1,3 +1,5 @@
+#include <QFile>
+#include <QTextStream>
 #include <widget/util/read_util.h>
 #include <stream/filestream.h>
 #include <metadata/chromaprint.h>
@@ -9,7 +11,7 @@ void readAll(Path const& file_path,
     uint64_t max_duration) {
     constexpr auto kReadSampleSize = 8192;
 
-    const auto file_stream = makePcmFileStream(file_path);
+    const auto file_stream = makePcmFileStream(file_path, 0.0f);
     file_stream->OpenFile(file_path.wstring());
 
     const auto source_format = file_stream->GetFormat();
@@ -22,7 +24,7 @@ void readAll(Path const& file_path,
     prepare(input_format);
 
     if (max_duration == (std::numeric_limits<uint64_t>::max)()) {
-        max_duration = static_cast<uint64_t>(file_stream->GetDurationAsSeconds());
+        max_duration = static_cast<uint64_t>(file_stream->GetDuration());
     }
 
     while (num_samples / input_format.GetSampleRate() < max_duration && file_stream->IsActive()) {
@@ -70,8 +72,16 @@ QByteArray readChromaprint(const Path& file_path) {
     return base64;
 }
 
-ScopedPtr<FileStream> makePcmFileStream(const Path& file_path) {    
-    auto file_stream = StreamFactory::MakeFileStream(file_path);
-    file_stream->OpenFile(file_path);    
-    return file_stream;
+ScopedPtr<FileStream> makePcmFileStream(const Path& file_path, float rate) {
+    return StreamFactory::MakeFileStream(file_path, rate);
+}
+
+QString readAll(const QString& file_path) {
+    QFile file(file_path);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return QString();
+    }
+    QTextStream in(&file);
+    in.setEncoding(QStringConverter::Utf8);
+	return in.readAll();
 }

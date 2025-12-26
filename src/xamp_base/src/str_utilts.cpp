@@ -8,7 +8,9 @@
 
 #include <array>
 
-namespace xamp::base::String {
+XAMP_BASE_NAMESPACE_BEGIN
+
+namespace String {
 
 std::wstring ToStdWString(const std::string & utf8) {
 	std::wstring utf16;
@@ -60,3 +62,5 @@ std::string FormatBytes(size_t bytes) {
 }
 
 }
+
+XAMP_BASE_NAMESPACE_END

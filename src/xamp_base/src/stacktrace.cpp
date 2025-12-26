@@ -2,7 +2,6 @@
 
 #include <base/fs.h>
 #include <base/stl.h>
-#include <base/singleton.h>
 #include <base/shared_singleton.h>
 #include <base/str_utilts.h>
 #include <base/memory.h>
@@ -49,6 +48,7 @@ namespace {
 
     class SymLoader final {
     public:
+		XAMP_DECLARE_SINGLETON_NAME()
         XAMP_DISABLE_COPY(SymLoader)
 
     	SymLoader() {

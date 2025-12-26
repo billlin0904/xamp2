@@ -39,6 +39,8 @@ NavBarListView::NavBarListView(QWidget *parent)
 
     main_layout_->addLayout(bottom_layout_, 0);
     main_layout_->addWidget(scroll_area_, 1, Qt::AlignTop);
+
+    onThemeChangedFinished(qTheme.themeColor());
 }
 
 QString NavBarListView::tabName(int table_id) const {

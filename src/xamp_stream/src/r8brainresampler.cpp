@@ -29,7 +29,7 @@ public:
 	}
 
 	void Init(uint32_t input_sample_rate) {
-		handle_.reset(LIBR8_DLL.r8b_create(input_sample_rate,
+		handle_.reset(LibR8brainDLL.r8b_create(input_sample_rate,
 			output_sample_rate_,
 			kR8brainBufferSize,
 			kReqTransBand,
@@ -45,9 +45,9 @@ public:
 		}
 
 		double* outbuff = nullptr;
-		const auto read_samples = LIBR8_DLL.r8b_process(handle_.get(),
+		const auto read_samples = LibR8brainDLL.r8b_process(handle_.get(),
 		                                               input_data_.data(),
-		                                               input_data_.size(),
+		                                               static_cast<int32_t>(input_data_.size()),
 		                                               outbuff);
 
 		XAMP_ENSURES(outbuff != nullptr);
@@ -67,8 +67,8 @@ public:
 		}
 
 		static void Close(CR8BResampler value) noexcept {
-			LIBR8_DLL.r8b_clear(value);
-			LIBR8_DLL.r8b_delete(value);
+			LibR8brainDLL.r8b_clear(value);
+			LibR8brainDLL.r8b_delete(value);
 		}
 	};
 
@@ -95,14 +95,6 @@ void R8brainSampleRateConverter::Initialize(const AnyMap& config) {
 
 	const auto input_format = config.Get<AudioFormat>(DspConfig::kInputFormat);
 	impl_->Init(input_format.GetSampleRate());
-}
-
-Uuid R8brainSampleRateConverter::GetTypeId() const {
-	return XAMP_UUID_OF(R8brainSampleRateConverter);
-}
-
-std::string_view R8brainSampleRateConverter::GetDescription() const noexcept {
-	return R8B_Description;
 }
 
 XAMP_STREAM_NAMESPACE_END

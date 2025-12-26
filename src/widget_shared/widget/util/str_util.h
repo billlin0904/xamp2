@@ -120,3 +120,6 @@ QString stringFormat(std::string_view s, Args &&...args) {
 	using namespace xamp::base::String;
 	return QString::fromStdString(Format(s, args...));
 }
+
+XAMP_WIDGET_SHARED_EXPORT double similarity2(const QString& aRaw,
+	const QString& bRaw);

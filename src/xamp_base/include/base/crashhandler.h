@@ -17,6 +17,8 @@ XAMP_DECLARE_LOG_NAME(CrashHandler);
 
 class XAMP_BASE_API CrashHandler {
 public:
+	XAMP_DECLARE_SINGLETON_NAME()
+
 	CrashHandler();
 
 	XAMP_PIMPL(CrashHandler)

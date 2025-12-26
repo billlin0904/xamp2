@@ -27,6 +27,10 @@ class QComboBox;
 class XAMP_WIDGET_SHARED_EXPORT ThemeManager final : public QObject {
     Q_OBJECT
 public:
+    static void load();
+
+    XAMP_DECLARE_SINGLETON_NAME()
+
     ThemeManager();
 
     const QPalette& palette() const {
@@ -73,7 +77,7 @@ public:
 
     QIcon playlistPauseIcon(QSize icon_size, double scale_factor = 1.0) const;
 
-    void setThemeColor(ThemeColor theme_color);    
+    void setThemeColor(ThemeColor theme_color, bool notify = true);    
 
     void setThemeQssFile();
 

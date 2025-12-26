@@ -20,6 +20,8 @@ class BassParametricEq final : public IAudioProcessor {
     XAMP_DECLARE_MAKE_CLASS_UUID(BassParametricEq, "EBFA0111-594F-4F9D-9131-256451C3BF46")
 
 public:
+    XAMP_DECLARE_UUID_CLASS(BassParametricEq)
+
     BassParametricEq();
 
     XAMP_PIMPL(BassParametricEq)
@@ -29,10 +31,6 @@ public:
     void SetEq(const EqSettings& settings);
 
     bool Process(float const* samples, size_t num_samples, BufferRef<float>& out) override;
-
-    Uuid GetTypeId() const override;
-
-    [[nodiscard]] std::string_view GetDescription() const noexcept override;
 
 private:    
     class BassParametricEqImpl;

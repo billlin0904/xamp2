@@ -69,21 +69,21 @@ std::optional<T> MakeOptional(Args&&... args) {
 template <typename T1, typename T2>
 using Pair = std::pair<T1, T2>;
 
-template <typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K>, typename Alloc = AlignedAllocator<std::pair<const K, V>>>
+template <typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K>>
 using HashMap = std::unordered_map<K, V, H, E, Alloc>;
 
-template <typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K>, typename Alloc = AlignedAllocator<std::pair<const K, V>>>
+template <typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K>>>
 using FloatMap = std::unordered_map<K, V, H, E, Alloc>;
 
-template <typename T, typename H = std::hash<T>, typename E = std::equal_to<T>, typename Alloc = AlignedAllocator<T>>
+template <typename T, typename H = std::hash<T>, typename E = std::equal_to<T>>
 using HashSet = std::unordered_set<T, H, E, Alloc>;
 #else
 
 template <typename K, typename V>
-using FloatMap = ankerl::unordered_dense::segmented_map<K, V>;
+using FlatMap = ankerl::unordered_dense::segmented_map<K, V>;
 
-template <typename K, typename V>
-using HashMap = ankerl::unordered_dense::map<K, V>;
+template <typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K>>
+using HashMap = ankerl::unordered_dense::map<K, V, H, E>;
 
 template <typename K>
 using HashSet = ankerl::unordered_dense::set<K>;

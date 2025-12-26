@@ -155,14 +155,6 @@ bool SuperEqEqualizer::Process(float const* samples, size_t num_samples, BufferR
     return impl_->Process(samples, num_samples, out);
 }
 
-Uuid SuperEqEqualizer::GetTypeId() const {
-    return XAMP_UUID_OF(SuperEqEqualizer);
-}
-
-std::string_view SuperEqEqualizer::GetDescription() const noexcept {
-    return "SuperEq";
-}
-
 XAMP_STREAM_NAMESPACE_END
 
 #endif

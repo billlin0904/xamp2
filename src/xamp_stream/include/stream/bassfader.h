@@ -18,7 +18,7 @@ class XAMP_STREAM_API BassFader final : public IAudioProcessor {
     XAMP_DECLARE_MAKE_CLASS_UUID(BassFader, "6981FB2E-E133-4B33-9378-F23628EEE4FE")
 
 public:
-    constexpr static auto Description = std::string_view("BassFader");
+    XAMP_DECLARE_UUID_CLASS(BassFader)
 
     BassFader();
 
@@ -29,10 +29,6 @@ public:
     void SetTime(float current, float target, float fade_time);
 
     bool Process(float const * samples, size_t num_samples, BufferRef<float>& out) override;
-
-    [[nodiscard]] Uuid GetTypeId() const override;
-
-    [[nodiscard]] std::string_view GetDescription() const noexcept override;
 
 private:
     class BassFaderImpl;

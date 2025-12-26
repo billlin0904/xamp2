@@ -10,16 +10,15 @@
 #include <base/fs.h>
 #include <base/stl.h>
 #include <base/trackinfo.h>
-
+#include <base/archivefile.h>
 #include <metadata/metadata.h>
 
 XAMP_METADATA_NAMESPACE_BEGIN
 
-enum class ParseMetadataError {
+XAMP_MAKE_ENUM(ParseMetadataError,
     PARSE_ERROR_OPEN_FILE,
     PARSE_ERROR_NOT_FOUND,
-    PARSE_ERROR_NOT_SUPPORT,
-};
+    PARSE_ERROR_NOT_SUPPORT)
 
 /*
 * IMetadataReader is an interface for reading metadata from file.
@@ -30,6 +29,8 @@ public:
     XAMP_BASE_CLASS(IMetadataReader)
 
     virtual void Open(const Path& path) = 0;
+
+    virtual void Open(ArchiveEntry archive_entry) = 0;
 
     /*
     * Extract metadata from file.

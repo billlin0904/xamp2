@@ -7,6 +7,7 @@
 
 #include <base/memory.h>
 #include <base/vmmemlock.h>
+#include <base/str_utilts.h>
 #include <base/assert.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
@@ -64,6 +65,10 @@ public:
 
     [[nodiscard]] size_t GetByteSize() const noexcept {
         return size_ * sizeof(T);
+    }
+
+    [[nodiscard]] std::string GetByteSizeString() const noexcept {
+        return String::FormatBytesBy<T>(GetByteSize());
     }
 
     void Fill(T value) {

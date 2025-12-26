@@ -87,6 +87,7 @@ XAMP_MAKE_ENUM(Glyphs,
     ICON_HD,
     ICON_SEND,
     ICON_CLOUD,
+    ICON_ARCHIVE,
     ICON_END);
 
 struct XAMP_WIDGET_SHARED_EXPORT FontIconOption final {
@@ -116,7 +117,7 @@ struct XAMP_WIDGET_SHARED_EXPORT FontIconOption final {
 
 class XAMP_WIDGET_SHARED_EXPORT FontIcon final : public QObject {
 public:
-    friend class XAMP_WIDGET_SHARED_EXPORT SharedSingleton<FontIcon>;
+    XAMP_DECLARE_SINGLETON_NAME()
 
     explicit FontIcon(QObject* parent = nullptr);
 

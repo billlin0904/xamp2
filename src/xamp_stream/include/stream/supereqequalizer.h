@@ -24,15 +24,13 @@ class SuperEqEqualizer final : public IAudioProcessor {
 public:
     SuperEqEqualizer();
 
+    XAMP_DECLARE_UUID_CLASS(SuperEqEqualizer)
+
     XAMP_PIMPL(SuperEqEqualizer)
 
     void Initialize(const AnyMap& config) override;
 
     bool Process(float const* samples, size_t num_samples, BufferRef<float>& out) override;
-
-    [[nodiscard]] Uuid GetTypeId() const override;
-
-    [[nodiscard]] std::string_view GetDescription() const noexcept override;
 
 private:
     class SuperEqEqualizerImpl;

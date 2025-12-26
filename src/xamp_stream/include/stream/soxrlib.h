@@ -19,6 +19,8 @@ XAMP_STREAM_NAMESPACE_BEGIN
 
 class SoxrLib final {
 public:
+    XAMP_DECLARE_SINGLETON_NAME()
+
     SoxrLib();
 
     XAMP_DISABLE_COPY(SoxrLib)
@@ -50,6 +52,6 @@ catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 }
 
-#define LIBSRC_LIB SharedSingleton<SrcLib>::GetInstance()
+#define LibSoxrDLL SharedSingleton<SoxrLib>::GetInstance()
 
 XAMP_STREAM_NAMESPACE_END

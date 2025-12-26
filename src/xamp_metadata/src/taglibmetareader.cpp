@@ -7,7 +7,6 @@
 #include <base/memory.h>
 #include <base/logger.h>
 #include <base/logger_impl.h>
-#include <base/singleton.h>
 #include <base/exception.h>
 #include <base/fastmutex.h>
 
@@ -450,7 +449,7 @@ namespace {
                 }
                 if (!tag->album().toWString().empty()) {
                     track_info.album = tag->album().toWString();
-                }
+                }                
                 track_info.track = tag->track();
                 track_info.year = tag->year();
                 // 如果讀取到年分是20211126
@@ -477,126 +476,133 @@ namespace {
             XAMP_LOG_DEBUG("ExtractTag path: {}", e.what());
         }        
     }
-}
 
-class TaglibHelper {
-public:
-    friend class SharedSingleton<TaglibHelper>;
+    class TaglibHelper {
+    public:
+        XAMP_DECLARE_SINGLETON_NAME(xamp::metadata::TaglibHelper)
 
-	[[nodiscard]] HashSet<std::string> const & GetSupportFileExtensions() const noexcept {
-		return support_file_extensions_;
-	}
+        [[nodiscard]] HashSet<std::string> const& GetSupportFileExtensions() const noexcept {
+            return support_file_extensions_;
+        }
 
-    [[nodiscard]] bool IsSupported(const std::string& file_ext) const noexcept {
-        return support_file_extensions_.find(file_ext) != support_file_extensions_.end();
-    }
+        [[nodiscard]] bool IsSupported(const std::string& file_ext) const noexcept {
+            return support_file_extensions_.find(file_ext) != support_file_extensions_.end();
+        }
 
-protected:
-	TaglibHelper() {
-		for (const auto& file_exts : FileRef::defaultFileExtensions()) {
-			support_file_extensions_.insert(std::string(".") + file_exts.toCString());
-		}
-        support_file_extensions_.erase(".mkv");
-        support_file_extensions_.erase(".m4v");
-	}
-private:
-    HashSet<std::string> support_file_extensions_;
-};
-
-class LibarchiveIOStream : public TagLib::IOStream {
-public:
-    explicit LibarchiveIOStream(ArchiveEntry entry)
-        : entry(std::move(entry)) {
-        ensureCached();
-    }
-
-    FileName name() const {
-        return entry.Name().c_str();
-    }
-
-    void ensureCached() {
-        if (!buffer_.empty()) 
-            return;
-
-        if (entry.Length() <= 0)
-            throw std::runtime_error("ArchiveEntry length unknown or zero.");
-
-        buffer_.resize(static_cast<size_t>(entry.Length()));
-
-        long total_read = 0;
-        while (total_read < entry.Length()) {
-            auto chunk = entry.Read(buffer_.data() + total_read,
-                static_cast<long>(entry.Length() - total_read));
-            if (!chunk) {
-                throw std::runtime_error(chunk.error().c_str());
+        TaglibHelper() {
+            for (const auto& file_exts : FileRef::defaultFileExtensions()) {
+                support_file_extensions_.insert(std::string(".") + file_exts.toCString());
             }
-            if (chunk.value() <= 0)
-                throw std::runtime_error("ArchiveEntry Read failed or truncated.");
-            total_read += chunk.value();
+            support_file_extensions_.erase(".mkv");
+            support_file_extensions_.erase(".m4v");
         }
-        pos_ = 0;
-    }
+    private:
+        HashSet<std::string> support_file_extensions_;
+    };
 
-    void writeBlock(const TagLib::ByteVector&) override {
-    }
-
-    void insert(const ByteVector& data, offset_t start = 0, size_t replace = 0) override {
-    }
-
-    void removeBlock(offset_t start = 0, size_t length = 0) override {
-    }
-
-    bool readOnly() const override {
-        return true;
-    }
-
-    bool isOpen() const override { 
-        return !buffer_.empty(); 
-    }
-
-    long long length() override {
-        return static_cast<long long>(buffer_.size());
-    }
-
-    ByteVector readBlock(size_t length) {
-        ensureCached();
-
-        const size_t avail = buffer_.size() - static_cast<size_t>(pos_);
-        const size_t n = std::min<size_t>(length, avail);
-
-        ByteVector out(buffer_.data() + pos_, n);
-        pos_ += static_cast<long long>(n);
-        return out;
-    }
-
-    void seek(long long offset, Position p) override {
-        ensureCached();
-
-        long long base = 0;
-        switch (p) {
-        case Beginning: base = 0;              break;
-        case Current:   base = pos_;           break;
-        case End:       base = buffer_.size(); break;
-        default:        return;
+    class LibarchiveIOStream : public TagLib::IOStream {
+    public:
+        explicit LibarchiveIOStream(ArchiveEntry entry)
+            : entry(std::move(entry)) {
+            ensureCached();
         }
 
-        long long newPos = base + offset;
-        if (newPos < 0 || newPos > static_cast<long long>(buffer_.size()))
-            return;
-        pos_ = newPos;
+        FileName name() const {
+            return entry.Name().c_str();
+        }
+
+        void ensureCached() {
+            if (!buffer_.empty())
+                return;
+
+            if (entry.Length() <= 0)
+                throw std::runtime_error("ArchiveEntry length unknown or zero.");
+
+            buffer_.resize(entry.Length());
+
+            long total_read = 0;
+            while (total_read < entry.Length()) {
+                auto chunk = entry.Read(buffer_.data() + total_read,
+                    static_cast<long>(entry.Length() - total_read));
+                if (!chunk) {
+                    throw std::runtime_error(chunk.error().c_str());
+                }
+                if (chunk.value() <= 0)
+                    throw std::runtime_error("ArchiveEntry Read failed or truncated.");
+                total_read += chunk.value();
+            }
+            pos_ = 0;
+        }
+
+        void writeBlock(const TagLib::ByteVector&) override {
+        }
+
+        void insert(const ByteVector& data, offset_t start = 0, size_t replace = 0) override {
+        }
+
+        void removeBlock(offset_t start = 0, size_t length = 0) override {
+        }
+
+        bool readOnly() const override {
+            return true;
+        }
+
+        bool isOpen() const override {
+            return !buffer_.empty();
+        }
+
+        long long length() override {
+            return static_cast<long long>(buffer_.size());
+        }
+
+        ByteVector readBlock(size_t length) {
+            ensureCached();
+
+            const size_t avail = buffer_.size() - static_cast<size_t>(pos_);
+            const size_t n = std::min<size_t>(length, avail);
+
+            ByteVector out(buffer_.data() + pos_, n);
+            pos_ += static_cast<long long>(n);
+            return out;
+        }
+
+        void seek(long long offset, Position p) override {
+            ensureCached();
+
+            long long base = 0;
+            switch (p) {
+            case Beginning: base = 0;              break;
+            case Current:   base = pos_;           break;
+            case End:       base = buffer_.size(); break;
+            default:        return;
+            }
+
+            long long newPos = base + offset;
+            if (newPos < 0 || newPos > static_cast<long long>(buffer_.size()))
+                return;
+            pos_ = newPos;
+        }
+
+        long long tell() const override {
+            return pos_;
+        }
+
+        void truncate(long long) override {
+        }
+    private:
+        long pos_{};
+        ArchiveEntry entry;
+        std::vector<char> buffer_;
+    };
+
+    ScopedPtr<TagLib::IOStream> MakeIOStream(ArchiveEntry entry) {
+        return MakeAlign<TagLib::IOStream, LibarchiveIOStream>(std::move(entry));
     }
 
-    long long tell() const override {
-        return pos_; 
+    ScopedPtr<TagLib::IOStream> MakeIOStream(const Path& path) {
+        return MakeAlign<TagLib::IOStream, TaglibIOStream>(path);
     }
-
-    void truncate(long long) override {
-    }
-private:
-    long pos_;
-    ArchiveEntry entry;
-    std::vector<char> buffer_;
-};
+}
 
 class TaglibMetadataReader::TaglibMetadataReaderImpl {
 public:
@@ -604,11 +610,12 @@ public:
         auto entry_name = entry.Name();
         auto archive_path = entry.ArchivePath();
         PrefetchFile(archive_path);
-        io_stream_ = MakeAlign<TagLib::IOStream, LibarchiveIOStream>(std::move(entry));
+        io_stream_ = MakeIOStream(std::move(entry));
         FileRef fileref(io_stream_.get(), true, TagLib::AudioProperties::Fast);
         if (!fileref.isNull()) {
             fileref_opt_ = fileref;
             path_ = archive_path;
+			entry_name_ = entry_name;
             file_ext_ = String::ToLower(Path(entry_name).extension().string());
             tag_reader_ = MakeFileTagReader(file_ext_);
             is_archive_file_ = true;
@@ -617,7 +624,7 @@ public:
 
 	void Open(const Path& path) {
         PrefetchFile(path);        
-        io_stream_ = MakeAlign<TagLib::IOStream, TaglibIOStream>(path);
+        io_stream_ = MakeIOStream(path);
         FileRef fileref(io_stream_.get(), true, TagLib::AudioProperties::Fast);
         if (!fileref.isNull()) {
             fileref_opt_ = fileref;
@@ -646,6 +653,9 @@ public:
                 ExtractTag(path_, tag, file_ref.audioProperties(), track_info);
             }
             SetAudioProperties(file_ref.audioProperties(), track_info);
+			if (track_info.title.empty()) {
+				track_info.title = Path(track_info.archive_entry_name.value()).stem().wstring();
+            }
         }
         else {
             if (tag != nullptr) {
@@ -707,6 +717,7 @@ private:
 
     bool is_archive_file_{ false };
     std::string file_ext_;
+	std::wstring entry_name_;
     Path path_;
     std::optional<FileRef> fileref_opt_;
     ScopedPtr<IFileTagReader> tag_reader_;

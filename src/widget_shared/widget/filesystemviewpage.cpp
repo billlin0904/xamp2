@@ -161,7 +161,10 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     dir_model_->setRootPath(qAppSettings.myMusicFolderPath());
     dir_model_->setFilter(
         QDir::NoDotAndDotDot | QDir::AllDirs | QDir::Files);
-    dir_model_->setNameFilters(getTrackInfoFileNameFilter());
+
+    auto filter = getTrackInfoFileNameFilter();
+	filter << "*.zip"_str;
+    dir_model_->setNameFilters(filter);
     dir_model_->setNameFilterDisables(false);
 
     auto last_open_index = dir_model_->index(last_open_path);
@@ -197,27 +200,39 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
 		file_path_ = parent_dir_path;
         ConcurrentQueue<TrackInfo> track_queue;
 
-        QDirIterator itr(parent_dir_path, getTrackInfoFileNameFilter(),
+        auto filter = getTrackInfoFileNameFilter();
+        filter << "*.zip"_str;
+        QDirIterator itr(parent_dir_path, 
+            filter,
             QDir::NoDotAndDotDot | QDir::Files);
 
-        std::vector<std::wstring> file_paths;
-        std::vector<std::wstring> extract_file_paths;
-        file_paths.reserve(20);
-
+        std::vector<QString> file_paths;
+        std::vector<QString> extract_file_paths;
+        ConcurrentQueue<Path> extract_zip_file_paths;
+        
     	while (itr.hasNext()) {
-            const auto next_path = toNativeSeparators(itr.next());
-            const auto path_str = next_path.toStdWString();
+            const auto path_str = toNativeSeparators(itr.next());
 			file_paths.push_back(path_str);
         }
 
         QList<int32_t> file_music_id;
+        
         for (const auto& file_path: file_paths) {
-            auto music_id = qDaoFacade.music_dao.getMusicId(QString::fromStdWString(file_path));
-            if (music_id.has_value()) {
-                file_music_id.push_back(music_id.value());
+            auto archive_file_music_id = qDaoFacade.music_dao.getArchiveFileMusicId(file_path);
+            if (!archive_file_music_id.empty()) {                
+                for (auto i = 0; i < archive_file_music_id.size(); ++i) {
+                    file_music_id.push_back(archive_file_music_id[i]);
+                }
+                extract_file_paths.push_back(file_path);
             }
             else {
-                extract_file_paths.push_back(file_path);
+                auto music_id = qDaoFacade.music_dao.getMusicId(file_path);
+                if (music_id.has_value()) {
+                    file_music_id.push_back(music_id.value());
+                }
+                else {
+                    extract_file_paths.push_back(file_path);
+                }
             }
         }
 
@@ -225,18 +240,54 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
             qDaoFacade.playlist_dao.addMusicToPlaylist(file_music_id, kFileSystemPlaylistId);
             ui_->page->playlist()->reload();
             return;
-		}
+		}        
 
         Executor::ParallelForEach(getMainWindow()->threadPool(),
             extract_file_paths,
-            [&track_queue](const auto& path) {
-            const Path file_path(path);
+            [&track_queue, &extract_zip_file_paths](const QString& path) {
+            const Path file_path(path.toStdWString());
             if (file_path.extension() == kCueFileExtension) {
                 return;
             }
-            auto reader = MakeMetadataReader();
-            try {
-                reader->Open(file_path);
+            else if (file_path.extension() == kZipFileExtension) {
+				extract_zip_file_paths.enqueue(file_path);
+            }
+            else {
+                auto reader = MakeMetadataReader();
+                try {
+                    reader->Open(file_path);
+                    auto track_info = reader->Extract();
+                    if (track_info) {
+                        if (track_info.value().sample_rate == 0) {
+                            // Workaround for sample rate is 0
+                            XAMP_LOG_DEBUG("Try read sample use file stream.");
+                            auto file_stream = StreamFactory::MakeFileStream(file_path);
+                            file_stream->OpenFile(file_path);
+                            auto sampler_rate = file_stream->GetFormat().GetSampleRate();
+                            track_info.value().sample_rate = sampler_rate;
+                        }
+                        track_queue.enqueue(track_info.value());
+                    }
+                }
+                catch (const Exception& e) {
+                    XAMP_LOG_DEBUG("{}", e.what());
+                }
+            }
+            
+            });
+
+        Path file_path;
+		while (extract_zip_file_paths.try_dequeue(file_path)) {
+            ArchiveFile archive_file;
+            auto entities = archive_file.Open(file_path);
+            for (const auto& entity_name : entities.value()) {
+                auto entity = archive_file.GetEntryByName(entity_name);
+                if (!entity.has_value()) {
+                    XAMP_LOG_DEBUG("Failed to get entry by name: {}", entity.error());
+                    continue;
+                }
+                auto reader = MakeMetadataReader();
+                reader->Open(std::move(entity.value()));
                 auto track_info = reader->Extract();
                 if (track_info) {
                     if (track_info.value().sample_rate == 0) {
@@ -250,10 +301,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
                     track_queue.enqueue(track_info.value());
                 }
             }
-            catch (const Exception& e) {
-                XAMP_LOG_DEBUG("{}", e.what());
-            }
-            });
+        }
 
         std::forward_list<TrackInfo> track_infos;
 
@@ -265,9 +313,8 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
         track_infos.sort([](const auto& first, const auto& last) {
             return first.track < last.track;
             });
-
-        DatabaseFacade facade;
-        facade.insertTrackInfo(track_infos,
+        qDatabaseFacade.resetUnknownId();
+        qDatabaseFacade.insertTrackInfo(track_infos,
             kFileSystemPlaylistId, 
             StoreType::LOCAL_STORE);
         qDaoFacade.playlist_dao.addMusicToPlaylist(file_music_id, kFileSystemPlaylistId);

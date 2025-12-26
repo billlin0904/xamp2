@@ -18,7 +18,7 @@ public:
     }
 
     void Start(uint32_t output_sample_rate) {
-        stream_.reset(BASS_LIB.BASS_StreamCreate(output_sample_rate,
+        stream_.reset(BassLibDLL.BASS_StreamCreate(output_sample_rate,
                                              AudioFormat::kMaxChannel,
                                              BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
                                              STREAMPROC_DUMMY,
@@ -34,12 +34,12 @@ public:
         compressord.fAttack    = config.attack;
         compressord.fRelease   = config.release;
         compressord.lChannel   = BASS_BFX_CHANALL;
-        const auto compressor_fx = BASS_LIB.BASS_ChannelSetFX(
+        const auto compressor_fx = BassLibDLL.BASS_ChannelSetFX(
             stream_.get(),
             BASS_FX_BFX_COMPRESSOR2,
             0);
         BassIfFailedThrow(compressor_fx);
-        BassIfFailedThrow(BASS_LIB.BASS_FXSetParameters(compressor_fx, &compressord));
+        BassIfFailedThrow(BassLibDLL.BASS_FXSetParameters(compressor_fx, &compressord));
         XAMP_LOG_D(logger_, "Compressor gain:{} threshold:{} ratio:{} attack:{} release:{}",
             compressord.fGain,
             compressord.fThreshold,
@@ -73,14 +73,6 @@ void BassCompressor::Initialize(const AnyMap& config) {
 
 bool BassCompressor::Process(float const * samples, size_t num_samples, BufferRef<float>& out) {
     return impl_->Process(samples, num_samples, out);
-}
-
-Uuid BassCompressor::GetTypeId() const {
-    return XAMP_UUID_OF(BassCompressor);
-}
-
-std::string_view BassCompressor::GetDescription() const noexcept {
-    return Description;
 }
 
 XAMP_STREAM_NAMESPACE_END

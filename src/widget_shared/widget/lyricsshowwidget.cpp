@@ -30,7 +30,7 @@ namespace {
 		const QString base_name = file_info.completeBaseName();
 		const QString suffix = file_info.completeSuffix();
 
-		lrc_path = file_dir + QDir::separator() + base_name;
+		lrc_path = file_dir + "/"_str + base_name;
 		std::function<QSharedPointer<ILrcParser>()> make_parser_func;
 
 		const OrderedMap<QString, std::function<QSharedPointer<ILrcParser>()>> lrc_parser_map{
@@ -53,13 +53,16 @@ namespace {
 
 		for (const auto& parser_pair : lrc_parser_map) {
 			// Path like "C:/filename.lrc"
-			if (QFileInfo::exists(lrc_path + parser_pair.first)) {
+			auto pattern1 = lrc_path + parser_pair.first;
+			// Path like "C:/filename.mp3.lrc"
+			auto pattern2 = lrc_path + "."_str + suffix + parser_pair.first;
+			if (QFileInfo::exists(pattern1)) {
 				lrc_path = lrc_path + parser_pair.first;
 				make_parser_func = parser_pair.second;
 				break;
-				// Path like "C:/filename.mp3.lrc"
+				
 			}
-			else if (QFileInfo::exists(lrc_path + "."_str + suffix + parser_pair.first)) {
+			else if (QFileInfo::exists(pattern2)) {
 				lrc_path = lrc_path + "."_str + suffix + parser_pair.first;
 				make_parser_func = parser_pair.second;
 				break;
@@ -157,6 +160,25 @@ void LyricsShowWidget::initial() {
 			QApplication::clipboard()->setText(parsedLyrics());
 			});
 
+		auto* font_size_menu = action_map.addSubMenu(tr("Font size"));
+		(void)font_size_menu->addAction(tr("Increase font size"), [this]() {
+			auto size = lrc_font_.pointSizeF();
+			if (size < 60) {
+				lrc_font_.setPointSizeF(size + 5);
+				//resizeFontSize();
+				update();
+			}
+			});
+
+		(void)font_size_menu->addAction(tr("Decrease font size"), [this]() {
+			auto size = lrc_font_.pointSizeF();
+			if (size > 12) {
+				lrc_font_.setPointSizeF(size - 5);
+				//resizeFontSize();
+				update();
+			}
+			});
+
 		action_map.exec(pt);
 		});
 
@@ -237,7 +259,7 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 	qint64 global_time = pos_;
 	qint64 line_start = entry.timestamp.count();
 
-	if (is_fulled_) {
+	if ((is_fulled_ || is_lrc_valid_) && words.empty()) {
 		const QString text = QString::fromStdWString(entry.lrc);
 
 		// 置中計算 (以行寬 - 文字寬) / 2
@@ -687,6 +709,7 @@ void LyricsShowWidget::setLrcTime(int32_t stream_time) {
 		real_current_text_ = QString::fromStdWString(ly.lrc);
 		item_offset_ = -1;
 		onScrollTo(ly.index);
+		setCurrentIndex(ly.index);
 	}
 
 	if (item_offset_ != 0) {
@@ -718,7 +741,7 @@ void LyricsShowWidget::setLrcTime(int32_t stream_time) {
 	
 	// Only use the last highlight rect
 	//QRect lineRect = itemBoundingRect(item_, item_offset_);
-	//update(lineRect);
+	//update(lineRect);	
 	update();
 }
 

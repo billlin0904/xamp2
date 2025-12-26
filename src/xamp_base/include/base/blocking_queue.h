@@ -22,12 +22,7 @@ template
     typename T,
     typename Mutex = FastMutex,
     typename Queue = CircularBuffer<T>,
-    typename ConditionVariable = FastConditionVariable,
-    typename V = 
-    std::enable_if_t
-	<
-		std::is_nothrow_move_assignable_v<T>
-	>
+    typename ConditionVariable = FastConditionVariable
 >
 class XAMP_BASE_API_ONLY_EXPORT BlockingQueue final {
 public:
@@ -49,7 +44,7 @@ public:
 	}
 
     template <typename U>
-    bool try_dequeue(U &&task) noexcept {
+    bool try_enqueue(U &&task) {
         {
 	        const std::unique_lock lock{mutex_, std::try_to_lock};
             if (!lock) {

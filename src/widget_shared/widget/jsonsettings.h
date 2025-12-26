@@ -10,10 +10,13 @@
 
 #include <widget/util/str_util.h>
 #include <widget/appsettingnames.h>
+#include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
 
 class XAMP_WIDGET_SHARED_EXPORT JsonSettings {
 public:
+    XAMP_DECLARE_SINGLETON_NAME()
+
     JsonSettings() = default;
 
     void loadJsonFile(QString const& file_name);

@@ -20,6 +20,7 @@
 
 #include <widget/util/read_util.h>
 #include <widget/util/colortable.h>
+#include <widget/appsettingnames.h>
 
 #include <stream/filestream.h>
 #include <stream/bassfilestream.h>
@@ -44,82 +45,29 @@ namespace {
     constexpr size_t kFFTSize = 2048 * 2;
     constexpr size_t kHopSize = kFFTSize * 0.5;
     constexpr float kPower2FFSize = kFFTSize * kFFTSize;
-    constexpr size_t kFreqBins = (kFFTSize / 2);    
-   
-    float getDb(const std::complex<float>& c) {
-        // 取得 (實部^2 + 虛部^2)
-        float val = (c.real() * c.real() + c.imag() * c.imag());
-        if (val <= 0.0f) {
+    constexpr size_t kFreqBins = (kFFTSize / 2);
+
+    float toDbFromNorm(float p) noexcept {
+        // p 已是功率（re^2+im^2），保底避免 log(0)
+        if (p <= 0.0f) 
             return ColorTable::kMinDb;
-        }
-        // log10( val / kPower2FFSize ) → dB
-        //float dB = 10.0f * std::log10f(val / kPower2FFSize);
-        float dB = 10.0f * log10f_fast(val / kPower2FFSize);
-        return dB;
+        // 若常數很大，建議 kPower2FFSize 用 double 並在此轉回 float
+        return 10.0f * log10f_fast(p / kPower2FFSize);
     }
 
-    float getRealDb(float real_val) {
-        if (real_val == 0.0f) {
-            return ColorTable::kMinDb;
-        }
-        //float dB = 10.0f * std::log10f((real_val * real_val) / kPower2FFSize);
-        float dB = 10.0f * log10f_fast((real_val * real_val) / kPower2FFSize);
-        return dB;
+    float getDb(const std::complex<float>& c) {
+        return toDbFromNorm(std::norm(c));
+    }
+
+    float getRealDb(float r) {
+        return toDbFromNorm(r * r);
     }
 
     void fillSpectrogramColumn(const ColorTable &color_table,
         QImage& chunk_img,
         int col,
         const ComplexValarray& freq_bins) {
-#if 0
-        // 1) 先準備顏色查表物件 (靜態單例)
-        // 2) 取得 QImage 的基本資訊
-        uchar* data = chunk_img.bits();
-        int bytes_per_line = chunk_img.bytesPerLine();
-        int height = chunk_img.height();
-        int n_bins = static_cast<int>(freq_bins.size());
 
-        // 3) 計算線性縮放比例： freq_bins.size() → 影像高度
-        //    預計 f=0 畫在最底部 (height-1)，f=n_bins-1 畫在最頂 (0)
-        double scale = 1.0;
-        if (n_bins > 1 && height > 1) {
-            scale = static_cast<double>(height - 1) / static_cast<double>(n_bins - 1);
-        }
-
-        // 4) 逐一頻率 bin，計算 dB，並繪製到對應的 y
-        for (int f = 0; f < n_bins; ++f) {
-            float dB;
-            if (f == 0 || f == n_bins - 1) {
-                // 端點 bin (DC / Nyquist) 使用實數 dB
-                dB = getRealDb(freq_bins[f].real());
-            }
-            else {
-                // 其他 bin 使用複數幅度 dB
-                dB = getDb(freq_bins[f]);
-            }
-
-            // 透過 color_table 查出對應的 QRgb (SoX 調色)
-            QRgb color = color_table[dB];
-
-            // 將 bin 索引 f => y 座標
-            //   y = (height - 1) - round(f * scale)
-            int scaled_f = static_cast<int>(f * scale + 0.5);
-            int y = (height - 1) - scaled_f;
-
-            // x = col 代表「這一整列」是第幾個時間窗
-            int x = col;
-
-            // 計算此像素在 QImage data 陣列的起始 index
-            // QImage::Format_RGB888 => 每像素 3 bytes (R, G, B)
-            int idx = y * bytes_per_line + x * 3;
-
-            // 寫入 RGB
-            data[idx + 0] = qRed(color);
-            data[idx + 1] = qGreen(color);
-            data[idx + 2] = qBlue(color);
-        }
-#else
-        // --- 前置 -----------------------------------------------------------------
         const int h = chunk_img.height();
         const int stride = chunk_img.bytesPerLine();
         const int n = static_cast<int>(freq_bins.size());
@@ -127,32 +75,36 @@ namespace {
         const int num = h - 1;
         const int den = n - 1;
 
-        uchar* base = chunk_img.bits() + col * 3;           // 提前算 x 位移
-        auto  toRow = [&](int f) noexcept {
+        uchar* base = chunk_img.bits() + col * 3;
+        auto toRow = [&](int f) noexcept {
             return ((h - 1) - (f * num + den / 2) / den) * stride;
             };
 
-        // --- 主迴圈 ----------------------------------------------------------------
+        std::vector<int> row_of_f(n);
+        {
+            const int num = h - 1, den = n - 1;
+            for (int f = 0; f < n; ++f) {
+                const int row = toRow(f);
+                row_of_f[f] = row;
+            }
+        }
+
         for (int f = 0; f < n; ++f) {
-            // 1. 轉 dB（示範：直接 norm→log10，不採 LUT）
             float db;
-            if ((f == 0) || (f == n - 1)) {              // 無分支：bit-or
+            if ((f == 0) || (f == n - 1)) {
                 db = getRealDb(freq_bins[f].real());
             }
             else {
                 db = getDb(freq_bins[f]);
             }
 
-            // 2. 顏色查表 (LUT 推薦)
             const QRgb c = color_table[db];
 
-            // 3. 寫像素
-            uchar* pix = base + toRow(f);
+            uchar* pix = base + row_of_f[f];
             pix[0] = qRed(c);
             pix[1] = qGreen(c);
             pix[2] = qBlue(c);
         }
-#endif
     }
 
     bool getSamples(ScopedPtr<FileStream>& file_stream, Buffer<float>& buffer) {
@@ -339,44 +291,179 @@ void BackgroundService::executeEncodeJob(const QString& dir_name, const EncodeJo
     }
 }
 
-QCoro::Task<> BackgroundService::fetchMusicBrainzRecording(const PlayListEntity& entity) {
-    PlayListEntity temp = entity;
+QCoro::Task<std::optional<QByteArray>> BackgroundService::tryFetch(const QString& tag, const QString& release_id, size_t size) {
+    //http::HttpClient http_client(&nam_, QString(), this);
+
+    const auto url = (size > 0)
+        ? qFormat("https://coverartarchive.org/%1/%2/front-%3").arg(tag).arg(release_id).arg(size)
+        : qFormat("https://coverartarchive.org/%1/%2/front").arg(tag).arg(release_id);
+    http_client_.setUrl(url);
+    http_client_.setHeader("Accept"_str, "image/*"_str);
+
+    auto img = co_await http_client_.download();
+    if (!img.isEmpty())
+        co_return img;
+    co_return std::nullopt;
+}
+
+QCoro::Task<std::optional<QByteArray>> BackgroundService::fetchCoverArtByUrl(const QString& tag, const QString& release_id, size_t prefer_size) {
+    std::optional<QByteArray> b;
+    if (prefer_size > 0) {
+        auto result = co_await tryFetch(tag, release_id, prefer_size);
+        if (result.has_value()) {
+            b = result.value();
+        } else {
+            result = co_await tryFetch(tag, release_id, 500);
+            if (result.has_value()) {
+                b = result.value();
+            }
+        }
+    } else {
+        auto result = co_await tryFetch(tag, release_id, -1);
+        if (result.has_value()) {
+            b = result.value();
+        }
+    }
+    if (!b.has_value()) {
+        XAMP_LOG_DEBUG("Not found cover art.");
+        co_return std::nullopt;
+	}
+	co_return b;
+}
+
+QCoro::Task<> BackgroundService::onFindMusicBrainzRecording(const QList<PlayListEntity>& entities) {
+	auto temp = entities;
+
+    QMap<QString, QList<PlayListEntity>> album_unique_map;
+    Q_FOREACH(auto entity, temp) {
+        album_unique_map[entity.album].append(entity);
+    }
+
+    QList<MusicBrainzAlbum> total_album;
+	for (const auto& list_entities : album_unique_map) {
+        for (const auto & entity : list_entities) {
+            auto albums = co_await fetchMusicBrainzRecording(entity);
+            if (!albums.has_value()) {
+                continue;
+			}
+            XAMP_LOG_DEBUG("Found {} tracks.", albums.value().recordings.count());
+            total_album.append(albums.value());
+            break;
+		}        
+	}
+    emit readMusicBrainzAlbums(temp, total_album);
+}
+
+QCoro::Task<std::optional<MusicBrainzAlbum>> BackgroundService::fetchMusicBrainzRecording(const PlayListEntity& entity) {
+    static constexpr size_t kDefaultSize = 500;
+
+    MusicBrainzAlbum result;
+
     http_client_.setUrl("https://api.acoustid.org/v2/lookup"_str);
     http_client_.param("client"_str, "J0OsCydP14"_str);
     http_client_.param("format"_str, "json"_str);
-    http_client_.param("meta"_str, "recordings+releasegroups+releases+tracks+compress"_str);
+    http_client_.param("meta"_str, "recordings+recordingids+releases+releaseids+releasegroups+releasegroupids+tracks+compress+usermeta+sources"_str);
     http_client_.param("duration"_str, static_cast<uint32_t>(Round(entity.duration)));
     http_client_.param("fingerprint"_str, readChromaprint(entity.file_path.toStdWString()));
     auto content = co_await http_client_.get();
+
     auto resp = acoustid::parseAcoustidResponse(content);
-    std::optional<acoustid::Recording> search_recording;
     if (!resp) {
-        co_return;
-    }
-    for (const auto& result : resp.value().results) {
-        for (const auto& recording : result.recordings) {
-            if (temp.title.contains(recording.title)) {
-                search_recording = recording;
-                break;
+        XAMP_LOG_DEBUG("Not found recording.");
+        co_return std::nullopt;
+    }    
+
+    for (const auto& search_result : resp.value().results) {
+        for (const auto& recording : search_result.recordings) {
+            http_client_.setUrl("https://musicbrainz.org/ws/2/recording/"_str + recording.id);
+            http_client_.param("inc"_str, "artists+releases+release-groups"_str);
+            http_client_.param("fmt"_str, "json"_str);
+            http_client_.param("client"_str, "J0OsCydP14"_str);
+
+            content = co_await http_client_.get();
+            auto root_recording = musicbrain::parseRootRecording(content);
+            if (!root_recording.has_value()) {
+                co_return result;
+            }
+
+            for (const auto& r : root_recording.value().releases) {
+                MusicBrainzRecording music_brainz_recording;
+
+                music_brainz_recording.release_id = r.id;
+
+                http_client_.setUrl("https://musicbrainz.org/ws/2/release/"_str + r.id);
+                http_client_.param("inc"_str, "release-groups+recordings+media+artist-credits"_str);
+                http_client_.param("fmt"_str, "json"_str);
+                http_client_.param("client"_str, "J0OsCydP14"_str);
+
+                content = co_await http_client_.get();
+                auto tracks = musicbrain::parseReleaseTracklist(content.toUtf8(), root_recording.value().releases);
+                if (tracks.has_value()) {
+                    XAMP_LOG_DEBUG("Total {} tracks.", tracks->count());
+
+                    auto cover_art = co_await fetchCoverArtByUrl("release"_str,
+                        r.id,
+                        kDefaultSize);
+                    if (cover_art.has_value() && !cover_art->isEmpty()) {
+                        XAMP_LOG_DEBUG("Download image size: {}", String::FormatBytes(cover_art->size()));
+                        music_brainz_recording.cover_art.loadFromData(cover_art.value());
+                        music_brainz_recording.tracks = tracks.value();
+                        music_brainz_recording.title = qFormat("%1 (%2 %3)")
+                    	.arg(root_recording.value().title)
+                    	.arg(r.status)
+                    	.arg(r.country);
+                        result.recordings.append(music_brainz_recording);
+                    }
+                    music_brainz_recording.tracks = tracks.value();
+                    music_brainz_recording.title = qFormat("%1 (%2 %3)")
+                        .arg(root_recording.value().title)
+                        .arg(r.status)
+                        .arg(r.country);
+                    result.recordings.append(music_brainz_recording);
+                }
             }
         }
-    }
-    if (!search_recording) {
-        co_return;
-    }
-    http_client_.setUrl("https://musicbrainz.org/ws/2/recording/"_str + search_recording.value().id);
-    http_client_.param("inc"_str, "artist-credits+tags+genres"_str);
-    http_client_.param("fmt"_str, "json"_str);
-    content = co_await http_client_.get();
+	}
+
+    /*auto content = readAll("test-data.txt"_str);
     auto root_recording = musicbrain::parseRootRecording(content);
-    if (!root_recording) {
-        co_return;
+    if (!root_recording.has_value()) {
+        co_return result;
     }
-    QList<QString> genres;
-    for (const auto& tag : root_recording.value().genres) {
-        genres.append(tag.name);
-    }
-    co_return;
+
+    for (const auto& r : root_recording.value().releases) {
+        MusicBrainzRecording music_brainz_recording;
+
+        music_brainz_recording.release_id = r.id;
+
+        http_client_.setUrl("https://musicbrainz.org/ws/2/release/"_str + r.id);
+        http_client_.param("inc"_str, "release-groups+recordings+media+artist-credits"_str);
+        http_client_.param("fmt"_str, "json"_str);
+        http_client_.param("client"_str, "J0OsCydP14"_str);
+
+        content = co_await http_client_.get();
+        auto tracks = musicbrain::parseReleaseTracklist(content.toUtf8(), root_recording.value().releases);
+        if (tracks.has_value()) {
+            XAMP_LOG_DEBUG("Total {} tracks.", tracks->count());
+
+            auto cover_art = co_await fetchCoverArtByUrl("release"_str,
+                r.id,
+                kDefaultSize);
+            if (cover_art.has_value() && !cover_art->isEmpty()) {
+                XAMP_LOG_DEBUG("Download image size: {}", String::FormatBytes(cover_art->size()));
+                music_brainz_recording.cover_art.loadFromData(cover_art.value());
+            }
+            music_brainz_recording.tracks = tracks.value();
+            music_brainz_recording.title = qFormat("%1 (%2 %3)")
+                .arg(root_recording.value().title)
+                .arg(r.status)
+                .arg(r.country);
+            music_brainz_recording.root_recording = root_recording.value();
+            result.recordings.append(music_brainz_recording);
+        }
+    }*/
+
+    co_return MakeOptional<MusicBrainzAlbum>(result);
 }
 
 void BackgroundService::parallelEncode(const QString& dir_name, QList<EncodeJob> jobs) {
@@ -703,36 +790,52 @@ void BackgroundService::onTranslation(const QString& keyword,
         });
 }
 
-void BackgroundService::onReadSpectrogram(SpectrogramColor color, const Path& file_path) {
-	try {
-        auto file_stream = makePcmFileStream(file_path);
-        if (file_stream->GetDurationAsSeconds() <= 0.0) {
+void BackgroundService::onReadSpectrogram(SpectrogramColor color, const PlayListEntity& entity) {
+	try {        
+        ArchiveFileStream afs;
+
+        auto setting_speed = qAppSettings.valueAsInt(kAppSettingPlaybackSpeed);
+
+        if (entity.is_zip_file && entity.archive_entry_name.has_value()) {
+            auto result = StreamFactory::MakeArchiveFileStream(
+                entity.file_path.toStdWString(),
+                entity.archive_entry_name.value().toStdWString(),
+                setting_speed);
+            if (!result.has_value()) {
+				throw Exception(result.error());
+            }
+            afs = std::move(result.value());
+        }
+        else {
+            afs.file_stream = makePcmFileStream(entity.file_path.toStdWString(), setting_speed);
+        }
+        if (afs.file_stream->GetDuration() <= 0.0) {
             return;
         }
 
         STFT fft(kFFTSize, kHopSize);
         fft.SetWindowType(WindowType::HANN);
 
-        Buffer<float> buffer(kFFTSize);
+        Buffer<float> buffer(kFFTSize);        
 		
         int time_index = 0;
-        auto duration = file_stream->GetDurationAsSeconds();
+        auto duration = afs.file_stream->GetDuration();
         ComplexValarray freq_bins;
         freq_bins.resize(fft.GetShiftSize() + 1);
 
-        auto format = file_stream->GetFormat();
+        auto format = afs.file_stream->GetFormat();
 		auto total_samples = static_cast<uint32_t>(duration * format.GetSampleRate());
         auto kColumnsPerChunk = (std::min)(100u, static_cast<uint32_t>(total_samples / fft.GetShiftSize()));
 
         color_table_.setSpectrogramColor(color);
 
-        while (!is_stop_ && file_stream->IsActive()) {
+        while (!is_stop_ && afs.file_stream->IsActive()) {
         	QImage chunk_img(kColumnsPerChunk, 
                 freq_bins.size(),
                 QImage::Format_RGB888);
             chunk_img.fill(Qt::black);
 
-            if (!getSamples(file_stream, buffer)) {
+            if (!getSamples(afs.file_stream, buffer)) {
                 freq_bins = fft.Flush();
                 fillSpectrogramColumn(color_table_, chunk_img, 0, freq_bins);
                 emit readAudioSpectrogram(duration, kHopSize, chunk_img, time_index);
@@ -745,7 +848,7 @@ void BackgroundService::onReadSpectrogram(SpectrogramColor color, const Path& fi
             int actual_columns = kColumnsPerChunk;
 			
             for (int col = 1; col < kColumnsPerChunk; col++) {                             
-				if (!getSamples(file_stream, buffer)) {
+				if (!getSamples(afs.file_stream, buffer)) {
                     actual_columns = col;
                     freq_bins = fft.Flush();
                     fillSpectrogramColumn(color_table_, chunk_img, col, freq_bins);

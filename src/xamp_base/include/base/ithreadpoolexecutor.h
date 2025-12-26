@@ -6,7 +6,7 @@
 #pragma once
 
 #include <base/base.h>
-#include <base/moveonly_function.h>
+#include <base/task.h>
 #include <base/memory.h>
 #include <base/stl.h>
 #include <base/platform.h>
@@ -26,7 +26,7 @@ class XAMP_BASE_API XAMP_NO_VTABLE ITaskScheduler {
 public:
     XAMP_BASE_CLASS(ITaskScheduler)
 
-	virtual void SubmitJob(MoveOnlyFunction task, ExecuteFlags flags) = 0;
+	virtual void SubmitJob(Task task, ExecuteFlags flags) = 0;
 
     virtual size_t GetThreadSize() const = 0;
 
@@ -56,28 +56,18 @@ protected:
 
 template <typename F, typename ... Args>
 decltype(auto) IThreadPoolExecutor::Spawn(F&& f, Args&&... args, ExecuteFlags flags) {
-    // When Spawn receives f, it effectively only captures a "reference" to the lambda expression,
-    // rather than the lambda’s value itself. Therefore, std::forward<Func>(f) will not move f,
-    // because f is an lvalue here, and std::forward does not turn an lvalue into an rvalue.
-    //static_assert(std::is_lvalue_reference_v<F>, "Func must be l value reference.");
-
     using ReturnType = std::invoke_result_t<F, const std::stop_token&, Args...>;
 
-    // MSVC packaged_task can't be constructed from a move-only lambda
-    // https://github.com/microsoft/STL/issues/321
     using PackagedTaskType = std::packaged_task<ReturnType(const std::stop_token&)>;
 
-    auto task = std::make_shared<PackagedTaskType>(bind_front(
+    PackagedTaskType task(
         std::forward<F>(f),
-        std::forward<Args>(args)...)
-        );
+        std::forward<Args>(args)...);
 
-    auto future = task->get_future();
+    auto future = task.get_future();
 
-    // std::unique_ptr will destruct task when the lambda in SubmitJob finishes,
-    // but std::shared_ptr ensures that task will only be destructed when the lambda itself is fully released.
-    scheduler_->SubmitJob([t = std::move(task)](const auto& stop_token) {
-        (*t)(stop_token);
+    scheduler_->SubmitJob([t = std::move(task)](const auto& stop_token) mutable {
+        t(stop_token);
     }, flags);
 
     return future;

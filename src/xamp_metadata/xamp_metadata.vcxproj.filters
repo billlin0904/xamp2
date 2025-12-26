@@ -19,6 +19,7 @@
     <ClInclude Include="include\metadata\libcuelib.h" />
     <ClInclude Include="include\metadata\chromaprint.h" />
     <ClInclude Include="include\metadata\chromaprintlib.h" />
+    <ClInclude Include="include\metadata\taglibiostream.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="win32">

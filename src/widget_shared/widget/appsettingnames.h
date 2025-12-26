@@ -45,6 +45,7 @@ DECLARE_APP_SETTING_NAME(AppSettingHideNaviBar);
 DECLARE_APP_SETTING_NAME(AppSettingLastPlaylistTabIndex);
 DECLARE_APP_SETTING_NAME(AppSettingEnableTray);
 DECLARE_APP_SETTING_NAME(AppSettingFileSystemLastOpenPath);
+DECLARE_APP_SETTING_NAME(AppSettingPlaybackSpeed);
 
 // Waveform
 DECLARE_APP_SETTING_NAME(AppSettingWaveformColor);

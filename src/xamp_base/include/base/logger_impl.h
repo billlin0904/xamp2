@@ -6,7 +6,6 @@
 #pragma once
 
 #include <base/base.h>
-#include <base/singleton.h>
 #include <base/stl.h>
 #include <base/logger.h>
 
@@ -85,20 +84,20 @@ public:
     }
 
     template <typename... Args>
-    void Log(LogLevel level, const SourceLocation& source_location, fmt::format_string<Args...> s, const Args&... args) {
+    void Log(LogLevel level, const SourceLocation& source_location, fmt::format_string<Args...> s, Args&&... args) {
         if (!ShouldLog(level)) {
             return;
         }
-        auto message = fmt::format(s, args...);
+        auto message = fmt::format(s, std::forward<Args>(args)...);
         LogMsg(level, source_location.file_name(), source_location.line(), source_location.function_name(), message);
     }
 
     template <typename... Args>
-    void Log(LogLevel level, const char* filename, int32_t line, const char* func, fmt::format_string<Args...> s, const Args&... args) {
+    void Log(LogLevel level, const char* filename, int32_t line, const char* func, fmt::format_string<Args...> s, Args&&... args) {
         if (!ShouldLog(level)) {
             return;
         }
-        auto message = fmt::format(s, args...);
+        auto message = fmt::format(s, std::forward<Args>(args)...);
         LogMsg(level, filename, line, func, message);
     }
 private:
@@ -110,6 +109,8 @@ private:
 class XAMP_BASE_API LoggerManager final {
 public:
     static constexpr int kMaxLogFileSize = 1024 * 1024;
+
+    XAMP_DECLARE_SINGLETON_NAME()
 
     LoggerManager() noexcept;
 

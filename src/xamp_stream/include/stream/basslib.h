@@ -18,7 +18,6 @@
 #include <bass/bassenc.h>
 #include <bass/bassdsd.h>
 #include <bass/bassenc_flac.h>
-#include <base/singleton.h>
 #include <base/dll.h>
 #include <base/stl.h>
 #include <base/unique_handle.h>
@@ -198,6 +197,8 @@ public:
 
 class BassLib final {
 public:
+	XAMP_DECLARE_SINGLETON_NAME()
+
     BassLib();
 
     ~BassLib();
@@ -279,7 +280,7 @@ private:
     void LoadPlugin(const  std::string & file_name);
 };
 
-#define BASS_LIB SharedSingleton<BassLib>::GetInstance()
+#define BassLibDLL SharedSingleton<BassLib>::GetInstance()
 
 XAMP_STREAM_NAMESPACE_END
 

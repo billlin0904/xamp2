@@ -19,13 +19,13 @@ XAMP_METADATA_NAMESPACE_BEGIN
 
 class ChromaprintLib final {
 public:
-	friend class Singleton<ChromaprintLib>;
+	XAMP_DECLARE_SINGLETON_NAME()
+
+	ChromaprintLib();
 
 	XAMP_DISABLE_COPY(ChromaprintLib)
 
 private:
-	ChromaprintLib();
-
 	SharedLibraryHandle module_;
 
 public:
@@ -39,7 +39,7 @@ public:
 	XAMP_DECLARE_DLL_NAME(chromaprint_dealloc);
 };
 
-#define CHROMAPRINT_LIB Singleton<ChromaprintLib>::GetInstance()
+#define CHROMAPRINT_LIB SharedSingleton<ChromaprintLib>::GetInstance()
 
 inline ChromaprintLib::ChromaprintLib() try
 	: module_(OpenSharedLibrary("chromaprint"))

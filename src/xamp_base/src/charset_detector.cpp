@@ -12,6 +12,8 @@ XAMP_BASE_NAMESPACE_BEGIN
 namespace {
 	class UcharDectLib final {
 	public:
+		XAMP_DECLARE_SINGLETON_NAME()
+
 		UcharDectLib();
 
 		XAMP_DISABLE_COPY(UcharDectLib)

@@ -62,21 +62,38 @@ namespace {
     }
 }
 
-const std::function<void(int32_t, int32_t, const QString&)> DatabaseFacade::kDefaultFetchCover = GetDefaultFetchCover();
+const FetchCoverCallback DatabaseFacade::kDefaultFetchCover = GetDefaultFetchCover();
 
-const std::function<void(int32_t, int32_t, const QString&)> DatabaseFacade::GetDefaultFetchCover() {
-    return [](int32_t music_id, int32_t album_id, const QString& file_path) {
-        TagIO reader;
-        reader.Open(file_path.toStdWString(), TAG_IO_READ_MODE);
-        auto cover = reader.embeddedCover();
-        if (!cover) {
+const FetchCoverCallback DatabaseFacade::GetDefaultFetchCover() {
+    return [](int32_t music_id, int32_t album_id, const QString& file_path, std::optional<ArchiveEntry> archive_entry) {
+        if (album_id == kUnknownAlbumId) {
             return;
+		}
+
+        try {
+            TagIO reader;
+            if (archive_entry.has_value()) {
+                reader.Open(std::move(archive_entry.value()));
+            } else {
+                reader.Open(file_path.toStdWString(), TAG_IO_READ_MODE);
+			}            
+            auto cover = reader.embeddedCover();
+            if (!cover) {
+                return;
+            }
+            auto cover_id = qImageCache.addImage(cover);
+            qDaoFacade.music_dao.setMusicCover(music_id, cover_id);
+            qDaoFacade.album_dao.setAlbumCover(album_id, cover_id);
         }
-        auto cover_id = qImageCache.addImage(cover);
-        qDaoFacade.music_dao.setMusicCover(music_id, cover_id);
-        qDaoFacade.album_dao.setAlbumCover(album_id, cover_id);
-        };
+        catch (const Exception&) {
+            // Ignore exception
+        }
+    };
 }
+
+int32_t DatabaseFacade::kUnknownArtistId = kInvalidDatabaseId;
+int32_t DatabaseFacade::kUnknownAlbumId = kInvalidDatabaseId;
+int32_t DatabaseFacade::kVariousArtistsId = kInvalidDatabaseId;
 
 DatabaseFacade::DatabaseFacade(QObject* parent, Database* database)
     : QObject(parent) {
@@ -129,13 +146,11 @@ void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result,
     int32_t playlist_id,
     StoreType store_type,
     const QString& dick_id,
-    const std::function<void(int32_t, int32_t, const QString&)>& fetch_cover) {
+    const FetchCoverCallback& fetch_cover) {
     if (result.empty()) {
         return;
-    }
+    }    
     
-    ensureAddUnknownId();
-
     auto count_artist = 0;
     const auto& front = result.front();
     for (const auto& track_info : result) {
@@ -145,17 +160,18 @@ void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result,
 		}
     }
 
-	for (const auto& track_info : result) {        
+	for (const auto& track_info : result) {
         auto file_path = toQString(track_info.file_path);
         auto album     = toQString(track_info.album).trimmed();
         auto artist    = toQString(track_info.artist).trimmed();
 		auto disc_id   = toQString(track_info.disc_id);
 
-        /*if (store_type != StoreType::CLOUD_STORE
+        if (store_type != StoreType::CLOUD_STORE
+            && !track_info.is_zip_file
             && dao_facade_->music_dao.getMusicId(file_path)
             && playlist_id == kFileSystemPlaylistId) {
             continue;
-        }*/
+        }
 
         if (album.isEmpty()) {
             album = unknown_album_;
@@ -180,12 +196,18 @@ void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result,
         }
 
         auto album_id = kInvalidDatabaseId;
-        if (isCloudStore(store_type)) {
-            album_id = dao_facade_->album_dao.getAlbumId(album);
+
+        if (album != unknown_album_) {
+            if (isCloudStore(store_type)) {
+                album_id = dao_facade_->album_dao.getAlbumId(album);
+            }
+            else {
+                // Avoid cue file album name create new album id.
+                album_id = dao_facade_->album_dao.getAlbumIdFromAlbumMusic(music_id);
+            }
         }
         else {
-            // Avoid cue file album name create new album id.
-            album_id = dao_facade_->album_dao.getAlbumIdFromAlbumMusic(music_id);
+            album_id = kUnknownAlbumId;
         }
 
         if (album_id == kInvalidDatabaseId) {
@@ -258,9 +280,27 @@ void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result,
         }
 
         if (isNullOfEmpty(cover_id)) {
-            if (fetch_cover != nullptr) {
-                fetch_cover(music_id, album_id, file_path);
+            if (!fetch_cover) {
+				continue;
             }
+            ArchiveFile archive_file;
+            QString archive_file_name;
+			std::optional<ArchiveEntry> archive_entry_opt;
+            if (track_info.archive_entry_name) {
+                archive_file_name = toQString(track_info.archive_entry_name.value());
+                auto result = archive_file.Open(file_path.toStdWString());
+                if (result.has_value()) {
+                    auto archive_entry = archive_file.GetEntryByName(track_info.archive_entry_name.value());
+                    if (archive_entry.has_value()) {
+                        archive_entry_opt = std::move(archive_entry.value());
+                    }
+                    else {
+						XAMP_LOG_DEBUG("Not found entry in archive: {}",
+                            archive_entry.error());
+                    }
+                }                
+            }            
+            fetch_cover(music_id, album_id, file_path, std::move(archive_entry_opt));
         }
 	}
 }
@@ -270,7 +310,7 @@ void DatabaseFacade::insertMultipleTrackInfo(
     int32_t playlist_id,
     StoreType store_type,
     const QString& dick_id,
-    const std::function<void(int32_t, int32_t, const QString&)>& fetch_cover) {
+    const FetchCoverCallback& fetch_cover) {
     TransactionScope scope([&]() {
         for (const auto& result : results) {
             insertTrackInfo(result,

@@ -101,6 +101,8 @@ namespace {
 
 	class DwmapiLib {
 	public:
+		XAMP_DECLARE_SINGLETON_NAME()
+
 		DwmapiLib()
 			: module_(OpenSharedLibrary("dwmapi"))
 			, XAMP_LOAD_DLL_API(DwmInvalidateIconicBitmaps)

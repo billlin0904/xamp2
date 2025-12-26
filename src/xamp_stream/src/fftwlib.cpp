@@ -31,7 +31,7 @@ catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 }
 
-#endif
+#else
 
 FFTWFLib::FFTWFLib() try
     : module_(OpenSharedLibrary("fftw3f-3"))
@@ -49,6 +49,8 @@ FFTWFLib::FFTWFLib() try
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 }
+
+#endif
 
 #endif
 

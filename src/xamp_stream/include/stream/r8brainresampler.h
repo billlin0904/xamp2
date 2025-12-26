@@ -22,15 +22,13 @@ class XAMP_STREAM_API R8brainSampleRateConverter final : public IAudioProcessor 
 public:
     XAMP_PIMPL(R8brainSampleRateConverter)
 
+    XAMP_DECLARE_UUID_CLASS(R8brainSampleRateConverter)
+
 	R8brainSampleRateConverter();
 
     void Initialize(const AnyMap& config) override;
 
-    [[nodiscard]] bool Process(float const* samples, size_t num_samples, BufferRef<float>& output) override;
-
-    [[nodiscard]] Uuid GetTypeId() const override;
-
-    [[nodiscard]] std::string_view GetDescription() const noexcept override;
+    [[nodiscard]] bool Process(float const* samples, size_t num_samples, BufferRef<float>& output) override;    
 
 private:
     class R8brainSampleRateConverterImpl;

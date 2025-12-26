@@ -5,48 +5,37 @@
             "Override": {
                 "AsioDevice": "info",
                 "AudioPlayer": "debug",
-                "AvFileStream": "info",
-                "BASS": "debug",
+                "BASS": "info",
                 "BackgroundService": "info",
                 "BackgroundThreadPool": "info",
-                "BassFileStream": "debug",
+                "BassFileStream": "info",
                 "BassParametricEq": "info",
                 "CrashHandler": "debug",
-                "CueLoader": "info",
                 "Database": "info",
                 "DatabaseFacade": "info",
                 "DspManager": "info",
                 "ExclusiveWasapiDevice": "info",
                 "ExclusiveWasapiDeviceType": "info",
-                "FileExplorer": "info",
-                "FileProcess": "info",
                 "FileSystemService": "info",
+                "FileSystemServiceThreadPool": "info",
                 "GUIThreadPool": "info",
-                "Http": "debug",
+                "Http": "info",
                 "ImageCache": "info",
                 "LibAv": "info",
-                "MFEncoder": "info",
                 "NullOutputDevice": "info",
                 "NullOutputDeviceType": "info",
-                "OutputDeviceThreadPool": "info",
-                "PlaybackThreadPool": "debug",
-                "PlayerThreadPool": "debug",
+                "PlaybackThreadPool": "info",
+                "PlayerThreadPool": "info",
                 "Qt": "info",
                 "SharedWasapiDevice": "info",
                 "SoxrSampleRateConverter": "info",
-                "SrcSampleRateConverter": "info",
-                "UI": "info",
-                "VirtualMemory": "debug",
+                "VirtualMemory": "info",
                 "XApplication": "info",
                 "XAudio2DeviceType": "info",
                 "XAudio2EngineContext": "info",
-                "XAudio2OutputDevice": "debug",
-                "YtMusicOAuth": "info"
+                "XAudio2OutputDevice": "info"
             }
         }
-    },
-    "R8Brain": {
-        "resampleSampleRate": 96000
     },
     "Soxr": {
         "default": {
@@ -57,8 +46,5 @@
             "rolloffLevel": 2,
             "stopBand": 100
         }
-    },
-    "Src": {
-        "resampleSampleRate": 44100
     }
 }

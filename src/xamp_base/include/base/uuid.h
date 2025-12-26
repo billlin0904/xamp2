@@ -25,9 +25,9 @@ class XAMP_BASE_API Uuid final {
 public:
     static Uuid const kNullUuid;
 
-    static Uuid FromString(std::string const & hex_string);
+    static Uuid FromString(const std::string& hex_string);
 
-    static bool TryParseString(std::string const& hex_string, Uuid &uuid);
+    static bool TryParseString(const std::string& hex_string, Uuid &uuid);
 
     template <typename ForwardIterator>
     constexpr Uuid(ForwardIterator first, ForwardIterator last) {
@@ -40,19 +40,19 @@ public:
 
     Uuid() noexcept;
 
-    constexpr Uuid(UuidBuffer const& buffer)
+    constexpr Uuid(const UuidBuffer& buffer)
         : bytes_(buffer) {
     }
 
-    Uuid(std::string_view const &hex_string);
+    Uuid(const std::string_view &hex_string);
 
     explicit Uuid(const uint8_t(&byte_array)[kMaxUuidSize]) noexcept;
 
 	[[nodiscard]] bool IsValid() const noexcept;
 
-    Uuid(Uuid const &other) noexcept;
+    Uuid(const Uuid &other) noexcept;
     
-    Uuid& operator=(Uuid const &other) noexcept;
+    Uuid& operator=(const Uuid &other) noexcept;
 
     Uuid(Uuid &&other) noexcept;
     

@@ -28,7 +28,7 @@ void AlbumCoverService::onFetchArtistThumbnailUrl(int32_t artist_id, const QStri
         return;
     }
 
-    if (pending_requests_.contains(thumbnail_url)) {
+    if (pending_request_urls_.contains(thumbnail_url)) {
         return;
     }
 
@@ -41,11 +41,11 @@ void AlbumCoverService::onFetchArtistThumbnailUrl(int32_t artist_id, const QStri
             }
             auto cover_id = qImageCache.addImage(image, false, false);
             emit setAristThumbnail(artist_id, cover_id);
-            pending_requests_.erase(thumbnail_url);
+            pending_request_urls_.erase(thumbnail_url);
             });
     }
     
-    pending_requests_.insert(thumbnail_url);
+    pending_request_urls_.insert(thumbnail_url);
 }
 
 void AlbumCoverService::onFetchYoutubeThumbnailUrl(const QString& video_id, const QString& thumbnail_url) {
@@ -53,11 +53,11 @@ void AlbumCoverService::onFetchYoutubeThumbnailUrl(const QString& video_id, cons
         return;
     }
 
-    if (pending_requests_.contains(thumbnail_url)) {
+    if (pending_request_urls_.contains(thumbnail_url)) {
         return;
     }
 
-    if (enable_) {
+    if (enable_) {        
         http_client_.setUrl(thumbnail_url);
         http_client_.download().then([thumbnail_url, video_id, this](const auto& content) {
             QPixmap image;
@@ -65,11 +65,11 @@ void AlbumCoverService::onFetchYoutubeThumbnailUrl(const QString& video_id, cons
                 return;
             }
             qImageCache.addCache(video_id, image);
-            pending_requests_.erase(thumbnail_url);
+            pending_request_urls_.erase(thumbnail_url);
             });
     }
     
-    pending_requests_.insert(thumbnail_url);
+    pending_request_urls_.insert(thumbnail_url);
 }
 
 void AlbumCoverService::onFetchThumbnailUrl(const DatabaseCoverId& id, const QString& thumbnail_url) {
@@ -77,7 +77,7 @@ void AlbumCoverService::onFetchThumbnailUrl(const DatabaseCoverId& id, const QSt
         return;
     }
 
-    if (pending_requests_.contains(thumbnail_url)) {
+    if (pending_request_urls_.contains(thumbnail_url)) {
         return;
     }
 
@@ -89,11 +89,11 @@ void AlbumCoverService::onFetchThumbnailUrl(const DatabaseCoverId& id, const QSt
                 return;
             }
             emit setThumbnail(id, qImageCache.addImage(image));
-            pending_requests_.erase(thumbnail_url);
+            pending_request_urls_.erase(thumbnail_url);
             });
     }
 	
-    pending_requests_.insert(thumbnail_url);
+    pending_request_urls_.insert(thumbnail_url);
 }
 
 void AlbumCoverService::cancelRequested() {

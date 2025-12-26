@@ -122,6 +122,8 @@ XAMP_WIDGET_SHARED_EXPORT inline bool notAddablePlaylist(const int32_t playlist_
 
 class XAMP_WIDGET_SHARED_EXPORT Database final {
 public:
+	XAMP_DECLARE_SINGLETON_NAME()
+
 	explicit Database(const QString& name);
 
 	Database();
@@ -192,6 +194,10 @@ public:
 		result_ = database_->transaction();
 	}
 
+	void then(std::function<void()>&& func) {
+		then_action_ = std::forward<std::function<void()>>(func);
+	}
+
 	~TransactionScope() {
 		if (!result_) {
 			XAMP_LOG_DEBUG("Transaction failed");
@@ -202,6 +208,11 @@ public:
 			action_();
 			if (!database_->commit()) {
 				XAMP_LOG_DEBUG("Failed to commit");
+			}
+			else {
+				if (then_action_ != nullptr) {
+					then_action_();
+				}				
 			}
 		}
 		catch (...) {
@@ -215,6 +226,7 @@ private:
 	bool result_{ false };
 	Func action_;
 	Database* database_;
+	std::function<void()> then_action_;
 };
 
 struct Transaction final {

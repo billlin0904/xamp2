@@ -12,7 +12,7 @@
 #include <widget/widget_shared_global.h>
 #include <widget/widget_shared.h>
 #include <widget/util/colortable.h>
-
+#include <widget/playlistentity.h>
 
 class XAMP_WIDGET_SHARED_EXPORT WaveformWidget : public QFrame {
     Q_OBJECT
@@ -46,7 +46,7 @@ public:
 signals:
     void playAt(float sec);
 
-    void readAudioSpectrogram(SpectrogramColor color, const Path& file_path);
+    void readAudioSpectrogram(SpectrogramColor color, const PlayListEntity& entity);
 
 public slots:
     void setSpectrogramData(double duration_sec, size_t hop_size, const QImage& chunk, int time_index);
@@ -55,7 +55,7 @@ public slots:
 
     void clear();
 
-    void loadFile(const Path& file_path);
+    void loadFile(const PlayListEntity& entity);
 
 protected:
     void resizeSpectrogramSize();
@@ -100,7 +100,7 @@ private:
     float total_ms_ = 0.f;
     float cursor_ms_ = -1.f;
 	uint32_t sample_rate_ = 44100;
-	Path file_path_;
+    PlayListEntity file_path_;
     QImage spectrogram_;
     QImage spectrogram_cache_;
     QPixmap static_cache_;

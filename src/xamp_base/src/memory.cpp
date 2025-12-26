@@ -31,7 +31,7 @@ bool PrefetchMemory(void* addr, size_t length) noexcept {
 	if (::PrefetchVirtualMemory(current_process.get(), 1, &address_range, 0)) {
 		volatile uint8_t dummy = 0;
 		auto page_size = GetPageSize();
-		const uint8_t* base = (const uint8_t*)addr;
+		const uint8_t* base = static_cast<const uint8_t*>(addr);
 		for (size_t i = 0; i < length; i += page_size) {
 			dummy ^= base[i];
 		}

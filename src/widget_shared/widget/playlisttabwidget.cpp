@@ -268,7 +268,7 @@ void PlaylistTabWidget::onThemeChangedFinished(ThemeColor theme_color) {
     add_tab_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_ADD));
 
     for (auto i = 0; i < tabBar()->count(); ++i) {
-        setTabIcon(i, qTheme.fontIcon(Glyphs::ICON_DRAFT));  
+        setTabIcon(i, qTheme.fontIcon(Glyphs::ICON_DRAFT));
         auto* playlist_page = playlistPage(i);
         switch (qTheme.themeColor()) {
         case ThemeColor::DARK_THEME:

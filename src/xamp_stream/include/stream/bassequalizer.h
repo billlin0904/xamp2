@@ -18,7 +18,7 @@ class BassEqualizer final : public IAudioProcessor {
     XAMP_DECLARE_MAKE_CLASS_UUID(BassEqualizer, "FCC73B23-6806-44CD-882D-EA21A3482F51")
 
 public:
-    constexpr static auto Description = std::string_view("BassEqualizer");
+    XAMP_DECLARE_UUID_CLASS(BassEqualizer)
 
     BassEqualizer();
 
@@ -32,11 +32,7 @@ public:
 
     bool Process(const float* samples, size_t num_samples, BufferRef<float>& out) override;
 
-    [[nodiscard]] Uuid GetTypeId() const override;
-
     void SetPreamp(float preamp);
-
-    [[nodiscard]] std::string_view GetDescription() const noexcept override;
 
 private:
     class BassEqualizerImpl;

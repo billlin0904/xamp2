@@ -81,6 +81,8 @@ XAMP_BASE_API std::string GetSequentialUUID();
 #ifdef XAMP_OS_WIN
 XAMP_BASE_API void SetCurrentProcessPriority(ProcessPriority priority);
 
+XAMP_BASE_API void SetCurrentThreadPriority(ThreadPriority priority);
+
 XAMP_BASE_API void SetProcessPriority(int32_t pid, ProcessPriority priority);
 
 XAMP_BASE_API bool EnablePrivilege(std::string_view privilege, bool enable);
@@ -91,7 +93,7 @@ XAMP_BASE_API bool SetProcessWorkingSetSize(size_t working_set_size);
 
 XAMP_BASE_API void SetProcessMitigation();
 
-XAMP_BASE_API void SetThreadMitigation();
+XAMP_BASE_API void SetCurrentThreadMitigation();
 
 XAMP_BASE_API bool KillProcessByPidAndChildren(uint64_t pid);
 

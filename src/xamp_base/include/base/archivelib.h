@@ -18,6 +18,8 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 class ArchiveLib final {
 public:
+	XAMP_DECLARE_SINGLETON_NAME(xamp::base::ArchiveLib)
+
 	ArchiveLib();
 
 	XAMP_DISABLE_COPY(ArchiveLib)
@@ -29,6 +31,7 @@ public:
 	XAMP_DECLARE_DLL_NAME(archive_read_free);
 	XAMP_DECLARE_DLL_NAME(archive_read_support_format_all);
 	XAMP_DECLARE_DLL_NAME(archive_read_support_filter_all);
+	XAMP_DECLARE_DLL_NAME(archive_read_support_format_zip);
 	XAMP_DECLARE_DLL_NAME(archive_read_open_filename_w);
 	XAMP_DECLARE_DLL_NAME(archive_entry_pathname_w);
 	XAMP_DECLARE_DLL_NAME(archive_read_data_skip);
@@ -38,6 +41,7 @@ public:
 	XAMP_DECLARE_DLL_NAME(archive_errno);
 	XAMP_DECLARE_DLL_NAME(archive_read_set_options);
 	XAMP_DECLARE_DLL_NAME(archive_error_string);
+	XAMP_DECLARE_DLL_NAME(archive_entry_filetype);
 };
 
 inline ArchiveLib::ArchiveLib() try
@@ -46,6 +50,7 @@ inline ArchiveLib::ArchiveLib() try
 	, XAMP_LOAD_DLL_API(archive_read_free)
 	, XAMP_LOAD_DLL_API(archive_read_support_format_all)
 	, XAMP_LOAD_DLL_API(archive_read_support_filter_all)
+	, XAMP_LOAD_DLL_API(archive_read_support_format_zip)
 	, XAMP_LOAD_DLL_API(archive_read_open_filename_w)
 	, XAMP_LOAD_DLL_API(archive_entry_pathname_w)
 	, XAMP_LOAD_DLL_API(archive_read_data_skip)
@@ -54,7 +59,8 @@ inline ArchiveLib::ArchiveLib() try
 	, XAMP_LOAD_DLL_API(archive_read_next_header)
 	, XAMP_LOAD_DLL_API(archive_errno)
 	, XAMP_LOAD_DLL_API(archive_read_set_options)
-	, XAMP_LOAD_DLL_API(archive_error_string) {
+	, XAMP_LOAD_DLL_API(archive_error_string)
+	, XAMP_LOAD_DLL_API(archive_entry_filetype) {
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());

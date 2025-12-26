@@ -28,6 +28,8 @@ public:
 
     [[nodiscard]] virtual uint32_t GetDsdSpeed() const = 0;
 
+    [[nodiscard]] virtual uint32_t GetBitRate() const = 0;
+
     [[nodiscard]] virtual bool IsDsdFile() const noexcept = 0;
 
     [[nodiscard]] virtual bool SupportDOP() const noexcept = 0;

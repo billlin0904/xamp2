@@ -46,13 +46,18 @@ namespace {
         return messages[index];
 	}
 
-	std::unique_ptr<char[]> to_narrow(BSTR msg) {
-        return std::unique_ptr<char[]>{
-            _com_util::ConvertBSTRToString(msg)
+    void FreeBstr(char* bstr) noexcept {
+        ::SysFreeString((BSTR)bstr);
+	}
+
+    using narrow_ptr = std::unique_ptr<char, void(*)(char*)>;
+    narrow_ptr to_narrow(BSTR msg) {
+        return {
+            _com_util::ConvertBSTRToString(msg), FreeBstr
         };
     }
 
-    std::unique_ptr<char[]> to_narrow(const wchar_t* msg) {
+    narrow_ptr to_narrow(const wchar_t* msg) {
         static_assert(std::is_same_v<wchar_t*, BSTR>);
         // const_cast is fine:
         // BSTR is a wchar_t*;

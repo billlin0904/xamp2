@@ -138,39 +138,39 @@ namespace {
 #endif
         QApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 
-        QLoggingCategory::setFilterRules(QStringLiteral("qt.gui.imageio.warning=false"));
+        QLoggingCategory::setFilterRules("qt.gui.imageio.warning=false"_str);
         qputenv("QT_ICC_PROFILE", QByteArray());
     	qputenv("QT_WIN_DEBUG_CONSOLE", "attach");
+        qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
+        qputenv("QT_ENABLE_HIGHDPI_SCALING", "1");
 
         QApplication::setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
         QApplication::setApplicationName(kApplicationName);
         QApplication::setApplicationVersion(kApplicationVersion);
         QApplication::setOrganizationName(kApplicationName);
-        QApplication::setOrganizationDomain(kApplicationName);
+        QApplication::setOrganizationDomain(kApplicationName);       
 
         XApplication app(argc, argv);
         /*if (!app.isAttach()) {
             XAMP_LOG_DEBUG("Application already running!");
             return -1;
-        }*/
-
-		app.initial();
-        app.loadLang();
-        app.loadSampleRateConverterConfig();
-        app.setTheme();
-
-        qTheme.setThemeQssFile();
+        }*/        
         
-#ifdef _DEBUG
-        qInstallMessageHandler(logMessageHandler);
-        QLoggingCategory::setFilterRules("*.info=false"_str);
-#endif
-
         if (!QSslSocket::supportsSsl()) {
             XMessageBox::showError("SSL initialization failed."_str);
             return -1;
         }
 
+		app.initial();
+        app.loadLang();
+        app.loadSampleRateConverterConfig();        
+        
+        qTheme.setThemeQssFile();
+        
+#ifdef _DEBUG
+        qInstallMessageHandler(logMessageHandler);
+        QLoggingCategory::setFilterRules("*.info=false"_str);
+#endif        
         try {            
             LoadComponentSharedLibrary();
         }
@@ -202,7 +202,6 @@ namespace {
         Xamp win(&main_window, MakeAudioPlayer());
         win.setMainWindow(&main_window);
         main_window.setContentWidget(&win);
-        main_window.setTheme();
         win.adjustSize();
         main_window.restoreAppGeometry();
         main_window.showWindow();
@@ -220,7 +219,6 @@ namespace {
             main_window.setShortcut(QKeySequence(Qt::Key_F10));
             main_window.setShortcut(QKeySequence(Qt::Key_F1));
         }
-
         return app.exec();
     }
 }

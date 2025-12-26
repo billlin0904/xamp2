@@ -548,6 +548,16 @@ void PlaylistTableView::setHeaderViewHidden(bool enable) {
     });
 }
 
+QList<PlayListEntity> PlaylistTableView::selectItems() const {
+    QList<PlayListEntity> entities;
+    const auto rows = selectItemIndex();
+    for (const auto& row : rows) {
+        const auto entity = this->item(row.second);
+        entities.push_back(entity);
+    }
+    return entities;
+}
+
 void PlaylistTableView::initial() {
     proxy_model_->addFilterByColumn(PLAYLIST_ARTIST);
     proxy_model_->addFilterByColumn(PLAYLIST_TITLE);
@@ -750,35 +760,24 @@ void PlaylistTableView::initial() {
 
         auto* encode_pcm_file_act = action_map.addAction(tr("Encode to PCM File"));
         action_map.setCallback(encode_pcm_file_act, [this]() {
-            const auto rows = selectItemIndex();
-            QList<PlayListEntity> entities;
-            for (const auto& row : rows) {
-                const auto entity = this->item(row.second);
-                entities.push_back(entity);
-            }
-            emit encodeAlacFiles(EncodeType::ENCODE_PCM, entities);
+            emit encodeAlacFiles(EncodeType::ENCODE_PCM, selectItems());
             });
 
         auto* encode_alac_file_act = action_map.addAction(tr("Encode to ALAC File"));
         action_map.setCallback(encode_alac_file_act, [this]() {
-            const auto rows = selectItemIndex();
-            QList<PlayListEntity> entities;
-            for (const auto& row : rows) {
-                const auto entity = this->item(row.second);
-                entities.push_back(entity);
-            }
-            emit encodeAlacFiles(EncodeType::ENCODE_ALAC, entities);
+            emit encodeAlacFiles(EncodeType::ENCODE_ALAC, selectItems());
             });
 
         auto* encode_aac_file_act = action_map.addAction(tr("Encode to AAC File (256Kbps)"));
         action_map.setCallback(encode_aac_file_act, [this]() {
-            const auto rows = selectItemIndex();
-            QList<PlayListEntity> entities;
-            for (const auto& row : rows) {
-                const auto entity = this->item(row.second);
-                entities.push_back(entity);
-            }
-            emit encodeAlacFiles(EncodeType::ENCODE_AAC, entities);
+            emit encodeAlacFiles(EncodeType::ENCODE_AAC, selectItems());
+            });
+
+        action_map.addSeparator();
+
+        auto* find_musicbrain_act = action_map.addAction(tr("Find Music brain record"));
+        action_map.setCallback(find_musicbrain_act, [this]() {
+            emit findMusicbrainRecording(selectItems());
             });
 
         action_map.addSeparator();
@@ -1091,7 +1090,7 @@ QModelIndex PlaylistTableView::shuffleAlbumIndex() {
 
     const auto count = proxy_model_->rowCount();
     if (count == 0 || current_playlist_album_id == 0) {
-        return QModelIndex();
+        return {};
     }
 
 	// Avoid reappearing the same album.

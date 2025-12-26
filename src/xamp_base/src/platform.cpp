@@ -27,7 +27,7 @@
 #include <thread>
 #include <tlhelp32.h>
 
-#include "base/scopeguard.h"
+#include <base/scopeguard.h>
 
 #ifdef XAMP_OS_MAC
 extern "C" int __ulock_wait(uint32_t operation, void* addr, uint64_t value,
@@ -229,17 +229,17 @@ void SetThreadName(std::wstring const& name) {
 #endif
 }
 
-void SetThreadPriority(std::jthread& thread, ThreadPriority priority) {
+void SetThreadPriority(std::thread::native_handle_type handle, ThreadPriority priority) {
 #ifdef XAMP_OS_WIN
     auto thread_priority = THREAD_PRIORITY_NORMAL;
     switch (priority) {
     case ThreadPriority::PRIORITY_BACKGROUND:
-        if (::GetThreadPriority(thread.native_handle()) >= THREAD_PRIORITY_BELOW_NORMAL) {
-            ::SetThreadPriority(thread.native_handle(), THREAD_MODE_BACKGROUND_END);
+        if (::GetThreadPriority(handle) >= THREAD_PRIORITY_BELOW_NORMAL) {
+            ::SetThreadPriority(handle, THREAD_MODE_BACKGROUND_END);
         }
 
         // reduce CPU, page and IO priority for the current thread
-        if (!::SetThreadPriority(thread.native_handle(), THREAD_MODE_BACKGROUND_BEGIN)) {
+        if (!::SetThreadPriority(handle, THREAD_MODE_BACKGROUND_BEGIN)) {
             if (ERROR_THREAD_MODE_ALREADY_BACKGROUND == ::GetLastError()) {
                 XAMP_LOG_DEBUG("Already in background mode");
                 return;
@@ -248,11 +248,11 @@ void SetThreadPriority(std::jthread& thread, ThreadPriority priority) {
             return;
         }
 
-        if (::GetThreadPriority(thread.native_handle()) >= THREAD_PRIORITY_BELOW_NORMAL) {
-            if (!::SetThreadPriority(thread.native_handle(), THREAD_PRIORITY_LOWEST)) {
+        if (::GetThreadPriority(handle) >= THREAD_PRIORITY_BELOW_NORMAL) {
+            if (!::SetThreadPriority(handle, THREAD_PRIORITY_LOWEST)) {
                 XAMP_LOG_DEBUG("Failed to set background mode! error: {}.", GetLastErrorMessage());
             }
-		}
+        }
         break;
     case ThreadPriority::PRIORITY_NORMAL:
         thread_priority = THREAD_PRIORITY_NORMAL;
@@ -263,11 +263,11 @@ void SetThreadPriority(std::jthread& thread, ThreadPriority priority) {
     }
 
     if (priority != ThreadPriority::PRIORITY_BACKGROUND) {
-        if (!::SetThreadPriority(thread.native_handle(), thread_priority)) {
+        if (!::SetThreadPriority(handle, thread_priority)) {
             XAMP_LOG_DEBUG("Failed to set thread priority! error:{}.", GetLastErrorMessage());
-        }        
-    }    
-    auto current_priority = ::GetThreadPriority(thread.native_handle());
+        }
+    }
+    auto current_priority = ::GetThreadPriority(handle);
     XAMP_LOG_TRACE("Current thread priority is {}.", current_priority);
 #else
 #if !defined(PTHREAD_MIN_PRIORITY)
@@ -292,8 +292,17 @@ void SetThreadPriority(std::jthread& thread, ThreadPriority priority) {
     }
     struct sched_param thread_param;
     thread_param.sched_priority = thread_priority;
-    ::pthread_setschedparam(thread.native_handle(), SCHED_RR, &thread_param);
+    ::pthread_setschedparam(handle, SCHED_RR, &thread_param);
 #endif
+}
+
+void SetCurrentThreadPriority(ThreadPriority priority) {
+    std::thread::native_handle_type current_thread = ::GetCurrentThread();
+    SetThreadPriority(current_thread, priority);
+}
+
+void SetThreadPriority(std::jthread& thread, ThreadPriority priority) {
+	SetThreadPriority(thread.native_handle(), priority);
 }
 
 std::string GetCurrentThreadId() {
@@ -404,7 +413,7 @@ bool SetFileLowIoPriority(int32_t handle) {
         sizeof(priority_hint));
 }
 
-void SetThreadMitigation() {
+void SetCurrentThreadMitigation() {
     PROCESS_MITIGATION_DYNAMIC_CODE_POLICY dynamic_code_policy{};
     dynamic_code_policy.ProhibitDynamicCode = true;
     dynamic_code_policy.AllowThreadOptOut = true;

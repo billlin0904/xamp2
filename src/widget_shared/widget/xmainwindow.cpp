@@ -66,7 +66,7 @@ void XMainWindow::setContentWidget(IXFrame *content_widget) {
     installWindowAgent();
     setCentralWidget(content_widget);
     //ensureInitTaskbar();
-    readDriveInfo();
+    readDriveInfo();    
 }
 
 // QScopedPointer require default destructor.
@@ -100,10 +100,10 @@ void XMainWindow::systemThemeChanged(ThemeColor theme_color) {
     emit qTheme.themeChangedFinished(theme_color);
 }
 
-void XMainWindow::setTheme() {
-    const auto theme = qAppSettings.valueAsEnum<ThemeColor>(kAppSettingTheme);
-    qTheme.setThemeColor(theme);
-}
+//void XMainWindow::setTheme() {
+//    const auto theme = qAppSettings.valueAsEnum<ThemeColor>(kAppSettingTheme);
+//    qTheme.setThemeColor(theme);
+//}
 
 void XMainWindow::setTaskbarProgress(const int32_t percent) {
 #if defined(Q_OS_WIN)

@@ -67,7 +67,7 @@ void ParallelFor(const std::shared_ptr<IThreadPoolExecutor>& executor,
     if (worker_count == 0) {
         worker_count = executor->GetThreadSize();
     }    
-    std::vector<SharedTask<void>> futures;
+    std::vector<SharedFuture<void>> futures;
     futures.reserve(worker_count);
 
     for (size_t i = 0; i < worker_count; ++i) {
@@ -96,7 +96,7 @@ void ParallelForEach(const std::shared_ptr<IThreadPoolExecutor>& executor,
 	auto itr = begin;
     for (size_t i = 0; i < size;) {
         size_t batch_size = (std::min)(batches, static_cast<size_t>(std::distance(itr, end)));
-        std::vector<Task<void>> futures((std::min)(size - i, batches));
+        std::vector<Future<void>> futures((std::min)(size - i, batches));
         for (auto& ff : futures) {
             ff = Executor::Spawn(executor,
                 [func = std::forward<Func>(f), itr](const auto& token) -> void {
@@ -125,7 +125,7 @@ void ParallelForEach(const std::shared_ptr<IThreadPoolExecutor>& executor, size_
         std::is_invocable_v<Func, size_t, const std::stop_token&>;
 
     for (size_t i = 0; i < size;) {
-        std::vector<Task<void>> futures((std::min)(size - i, batches));
+        std::vector<Future<void>> futures((std::min)(size - i, batches));
         for (auto& ff : futures) {
             ff = Executor::Spawn(executor, 
                 [func = std::forward<Func>(f), begin, i](const auto& token) -> void {
@@ -160,7 +160,7 @@ void ParallelForSimple(const std::shared_ptr<IThreadPoolExecutor>& executor,
     constexpr bool can_call_with_stop =
         std::is_invocable_v<Func, ValueType&, const std::stop_token&>;
 
-    std::vector<Task<void>> futures;
+    std::vector<Future> futures;
     futures.reserve(size);
 
     auto i = 0;

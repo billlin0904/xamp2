@@ -15,7 +15,7 @@ XAMP_BASE_NAMESPACE_BEGIN
 #define USE_LIBICONV 0
 
 namespace {
-	static const auto kUTF8Encoding = std::string("UTF-8");
+	const auto kUTF8Encoding = std::string("UTF-8");
 
 #if USE_LIBICONV
 	class LibIconvLib final {
@@ -42,7 +42,7 @@ namespace {
 		XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 	}
 
-#define LIBICONV_LIB Singleton<LibIconvLib>::GetInstance()
+#define LIBICONV_LIB SharedSingleton<LibIconvLib>::GetInstance()
 
 	struct IconvDeleter final {
 		static iconv_t invalid() noexcept {
@@ -55,11 +55,11 @@ namespace {
 
 	using IconvPtr = UniqueHandle<iconv_t, IconvDeleter>;
 #else
-	static UINT WindowsCodePageFromString(const std::string& encoding) {
+	uint32_t WindowsCodePageFromString(const std::string& encoding) {
 		// From source code uchardet/src/nsMBCSGroupProber.cpp
 		// Windows code page
 		// https://learn.microsoft.com/zh-tw/windows/win32/intl/code-page-identifiers
-		static const OrderedMap<std::string_view, UINT> windows_code_page_lut{
+		static const OrderedMap<std::string_view, uint32_t> windows_code_page_lut{
 			{"utf-8",     65001 },
 			{"shift_jis", 932 },
 			{"sjis",      932 },
@@ -83,7 +83,7 @@ namespace {
 		return CP_ACP;
 	}
 
-	static std::expected<std::wstring, TextEncodeingError> MultiByteToWide(const std::string& input, UINT codePage, bool ignoreError) {
+	std::expected<std::wstring, TextEncodeingError> MultiByteToWide(const std::string& input, UINT codePage, bool ignoreError) {
 		if (input.empty()) {
 			return std::unexpected(TextEncodeingError::TEXT_ENCODING_INPUT_STRING_EMPTY);
 		}
@@ -130,7 +130,7 @@ namespace {
 	}
 
 	// 封裝：將 wstring -> 多位元字串 (某 code page)
-	static std::expected<std::string, TextEncodeingError> WideToMultiByte(const std::wstring& input, UINT codePage, bool ignoreError) {
+	std::expected<std::string, TextEncodeingError> WideToMultiByte(const std::wstring& input, UINT codePage, bool ignoreError) {
 		if (input.empty()) {
 			return std::unexpected(TextEncodeingError::TEXT_ENCODING_INPUT_STRING_EMPTY);
 		}
@@ -163,7 +163,7 @@ namespace {
 			flags,
 			input.data(),
 			static_cast<int>(input.size()),
-			&output[0],
+			output.data(),
 			mb_size,
 			nullptr,
 			nullptr
@@ -188,13 +188,13 @@ public:
 		const std::string& output_encoding,
 		size_t buf_size,
 		bool ignore_error) {
-		UINT from_code_page = WindowsCodePageFromString(input_encoding);
+		auto from_code_page = WindowsCodePageFromString(input_encoding);
 		auto wide = MultiByteToWide(input, from_code_page, ignore_error);
 		if (!wide) {
 			return std::unexpected(TextEncodeingError::TEXT_ENCODING_TO_WIDE_ERROR);
 		}
 
-		UINT to_code_page = WindowsCodePageFromString(output_encoding);
+		auto to_code_page = WindowsCodePageFromString(output_encoding);
 		return WideToMultiByte(wide.value(), to_code_page, ignore_error);
 	}
 

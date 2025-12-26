@@ -164,6 +164,8 @@ signals:
 
 	void downloadFile(const PlayListEntity& entity);
 
+	void findMusicbrainRecording(const QList<PlayListEntity>& entities);
+
 	void editTags(int32_t playlist_id, const QList<PlayListEntity>& entities);
 
 	void updateAlbumCover(const QString &cover_id);
@@ -200,6 +202,8 @@ public slots:
 
 	void updateReplayGain(const QList<PlayListEntity>& entities);
 private:
+	QList<PlayListEntity> selectItems() const;
+
 	PlayListEntity item(const QModelIndex& index) const;
 
 	void playItem(const QModelIndex& index);

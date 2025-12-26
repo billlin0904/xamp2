@@ -101,8 +101,8 @@ private:
 #if (USE_INTEL_MKL_LIB)
 
 #define IfFailedThrowMKL(s) \
-	if ((s) != 0 && !MKL_LIB.DftiErrorClass((s), DFTI_NO_ERROR)) { \
-		throw LibraryException(MKL_LIB.DftiErrorMessage((s))); \
+	if ((s) != 0 && !MklDLL.DftiErrorClass((s), DFTI_NO_ERROR)) { \
+		throw LibraryException(MklDLL.DftiErrorMessage((s))); \
 	}
 
 
@@ -113,7 +113,7 @@ struct DftiDescriptorTraits final {
 
 	static void Close(DFTI_DESCRIPTOR_HANDLE value) {
 		XAMP_EXPECTS(value != nullptr);
-		MKL_LIB.DftiFreeDescriptor(&value);
+		MklDLL.DftiFreeDescriptor(&value);
 	}
 };
 
@@ -124,7 +124,6 @@ public:
 	FFTImpl() = default;
 
 	~FFTImpl() {
-		XAMP_LOG_DEBUG("FFTImpl::~FFTImpl");
 		descriptor_.reset();
 	}
 
@@ -136,7 +135,7 @@ public:
 
 		complex_size_ = ComplexSize(frame_size);
 		DFTI_DESCRIPTOR_HANDLE descriptor = nullptr;
-		MKL_LONG status = MKL_LIB.DftiCreateDescriptor_(&descriptor,
+		MKL_LONG status = MklDLL.DftiCreateDescriptor_(&descriptor,
 			DFTI_SINGLE,
 			DFTI_REAL,
 			1,
@@ -144,17 +143,17 @@ public:
 		IfFailedThrowMKL(status)
 		descriptor_.reset(descriptor);
 
-		status = MKL_LIB.DftiSetValue(descriptor_.get(),
+		status = MklDLL.DftiSetValue(descriptor_.get(),
 			DFTI_PLACEMENT,
 			DFTI_NOT_INPLACE);
 		IfFailedThrowMKL(status)
 
-		status = MKL_LIB.DftiSetValue(descriptor_.get(),
+		status = MklDLL.DftiSetValue(descriptor_.get(),
 			DFTI_COMPLEX_STORAGE,
 			DFTI_COMPLEX_COMPLEX);
 		IfFailedThrowMKL(status)
 
-		status = MKL_LIB.DftiCommitDescriptor(descriptor_.get());
+		status = MklDLL.DftiCommitDescriptor(descriptor_.get());
 		IfFailedThrowMKL(status)
 
 		output_.resize(complex_size_);
@@ -165,7 +164,7 @@ public:
 		XAMP_ASSERT(frame_size_ == frame_size);
 		XAMP_ASSERT(descriptor_);
 
-		MKL_LONG status = MKL_LIB.DftiComputeForward(
+		MKL_LONG status = MklDLL.DftiComputeForward(
 			descriptor_.get(),
 			const_cast<float*>(signals),
 			output_.data()
@@ -186,7 +185,6 @@ public:
 	FFTImpl() = default;
 
 	~FFTImpl() {
-		XAMP_LOG_DEBUG("FFTImpl::~FFTImpl");
 	}
 
 	void Init(size_t frame_size) {

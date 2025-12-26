@@ -49,7 +49,9 @@ public:
     * @param[in] file_path The file path.
     * @param[in] device_id The device id.
     */
-	virtual void Open(Path const& file_path, const Uuid& device_id = Uuid::kNullUuid) = 0;
+	virtual void Open(Path const& file_path,
+                    const Uuid& device_id = Uuid::kNullUuid,
+                    float rate = 0.0f) = 0;
 
     /*
     * Open a file.
@@ -61,12 +63,14 @@ public:
     virtual void Open(Path const& file_path,
                       const DeviceInfo& device_info,
                       uint32_t target_sample_rate = 0,
-                      DsdModes output_mode = DsdModes::DSD_MODE_AUTO) = 0;
+                      DsdModes output_mode = DsdModes::DSD_MODE_AUTO,
+                      float rate = 0.0f) = 0;
 
     virtual void OpenArchiveEntry(ArchiveEntry archive_entry,
-        const DeviceInfo& device_info,
-        uint32_t target_sample_rate = 0,
-        DsdModes output_mode = DsdModes::DSD_MODE_AUTO) = 0;
+                    const DeviceInfo& device_info,
+                    uint32_t target_sample_rate = 0,
+                    DsdModes output_mode = DsdModes::DSD_MODE_AUTO,
+                    float rate = 0.0f) = 0;
 
     /*
     * Prepare to play.
@@ -76,14 +80,17 @@ public:
     * @param[in] dsd_mode The dsd mode.
     * @param[in] dsd_speed The dsd speed.
     */
-    virtual void PrepareToPlay(ByteFormat byte_format = ByteFormat::INVALID_FORMAT, uint32_t device_sample_rate = 0) = 0;
+    virtual void PrepareToPlay(ByteFormat byte_format = ByteFormat::INVALID_FORMAT,
+        uint32_t device_sample_rate = 0) = 0;
 
     /*
     * Buffer stream.
     *
     * @param[in] stream_time The stream time.
     */
-    virtual void BufferStream(double stream_time = 0.0, const std::optional<double>& offset = std::nullopt, const std::optional<double>& duration = std::nullopt) = 0;
+    virtual void BufferStream(double stream_time = 0.0,
+        const std::optional<double>& offset = std::nullopt,
+        const std::optional<double>& duration = std::nullopt) = 0;
 
     /*
     * Play.
@@ -110,7 +117,9 @@ public:
     * @param[in] shutdown_device The shutdown device.
     * @param[in] wait_for_stop_stream The wait for stop stream.
     */
-    virtual void Stop(bool signal_to_stop = true, bool shutdown_device = false, bool wait_for_stop_stream = true) = 0;    
+    virtual void Stop(bool signal_to_stop = true,
+        bool shutdown_device = false,
+        bool wait_for_stop_stream = true) = 0;    
 
     /*
     * Seek.
@@ -216,6 +225,8 @@ public:
     * @return The output format.
     */
     [[nodiscard]] virtual AudioFormat GetOutputFormat() const noexcept = 0;
+
+    [[nodiscard]] virtual uint32_t GetBitRate() const = 0;
 
     /*
     * Get audio device manager.

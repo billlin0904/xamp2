@@ -94,7 +94,7 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 		QDir::NoDotAndDotDot | QDir::Files,
 	    QDirIterator::Subdirectories);
 
-	FloatMap<QString, std::vector<Path>> directory_files;
+	FlatMap<QString, std::vector<Path>> directory_files;
 	std::vector<Path> cue_files;
 	std::vector<Path> zip_files;
 
@@ -169,14 +169,14 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 		}
 
 		std::forward_list<TrackInfo> tracks;
-		auto reader = MakeMetadataReader();
+		TaglibMetadataReader reader;
 
 		for (const auto& path : path_info.second) {
 			if (stop_token.stop_requested()) {
 				return;
 			}
-			reader->Open(path);			
-			auto track_info = reader->Extract();
+			reader.Open(path);			
+			auto track_info = reader.Extract();
 			if (track_info) {
 				tracks.push_front(track_info.value());
 			}
@@ -225,7 +225,7 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 
 		std::forward_list<TrackInfo> tracks;
 		for (const auto& entry_name : result.value()) {
-			auto entry = archive_file.OpenEntry(entry_name);
+			auto entry = archive_file.GetEntryByName(entry_name);
 
 			try {
 				if (entry) {
