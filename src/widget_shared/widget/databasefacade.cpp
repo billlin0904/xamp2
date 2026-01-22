@@ -97,7 +97,7 @@ int32_t DatabaseFacade::kVariousArtistsId = kInvalidDatabaseId;
 
 DatabaseFacade::DatabaseFacade(QObject* parent, Database* database)
     : QObject(parent) {
-    logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(DatabaseFacade));
+    logger_ = XAMP_LOG_CREATE_LOGGER(DatabaseFacade);
     if (!database) {
         database_ = &qGuiDb;
         dao_facade_.reset(new dao::DatabaseFacade(database_));

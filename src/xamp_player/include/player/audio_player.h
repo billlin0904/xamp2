@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 xamp project. All rights reserved.
+// Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -394,7 +394,7 @@ private:
     Timer timer_;    
     AudioFormat input_format_;
     AudioFormat output_format_;
-    ScopedPtr<FileStream> stream_;
+    ScopedPtr<FileStream> impl_;
     ScopedPtr<IDeviceType> device_type_;
     ScopedPtr<IOutputDevice> device_;
     ScopedPtr<IDSPManager> dsp_manager_;

@@ -77,8 +77,8 @@ void AppSettings::addDontShowMeAgain(const QString& text) {
 	}
 }
 
-void AppSettings::parseGraphicEq(const QFileInfo file_info, QFile& file) {
-	QTextStream in(&file);
+void AppSettings::parseGraphicEq(const QFileInfo file_info, QFile& file_) {
+	QTextStream in(&file_);
 	in.setEncoding(QStringConverter::Utf8);
 
 	if (in.atEnd()) {
@@ -113,14 +113,14 @@ void AppSettings::parseGraphicEq(const QFileInfo file_info, QFile& file) {
 	eq_settings_[file_info.baseName()] = settings;
 }
 
-void AppSettings::parseEQPreset(const QFileInfo file_info, QFile& file) {
+void AppSettings::parseEQPreset(const QFileInfo file_info, QFile& file_) {
 	constexpr std::array<std::pair<std::wstring_view, EQFilterTypes>, 3> filter_types{
 		std::make_pair(L"LSC", EQFilterTypes::FT_LOW_SHELF),
 		std::make_pair(L"HSC", EQFilterTypes::FT_LOW_HIGH_SHELF),
 		std::make_pair(L"PK", EQFilterTypes::FT_ALL_PEAKING_EQ),
 	};
 
-	QTextStream in(&file);
+	QTextStream in(&file_);
 	in.setEncoding(QStringConverter::Utf8);
 
 	EqSettings settings;
@@ -175,9 +175,9 @@ void AppSettings::loadEqPreset() {
 	     itr.hasNext();) {
 		const auto filepath = itr.next();
 		const QFileInfo file_info(filepath);
-		QFile file(filepath);
-		if (file.open(QIODevice::ReadOnly)) {
-			parseEQPreset(file_info, file);
+		QFile file_(filepath);
+		if (file_.open(QIODevice::ReadOnly)) {
+			parseEQPreset(file_info, file_);
 		}
 	}
 	EqSettings default_settings;
@@ -468,6 +468,7 @@ void AppSettings::loadOrSaveLogConfig() {
 	}
 
 #ifdef _DEBUG
+	// Workaround for crash handler debug log
 	XampLoggerFactory.GetLogger(kCrashHandlerLoggerName)
 	                 ->SetLevel(LOG_LEVEL_DEBUG);
 #endif

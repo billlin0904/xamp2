@@ -3,7 +3,10 @@
 #include <base/exception.h>
 #include <base/memory_mapped_file.h>
 #include <base/dll.h>
+#include <base/stl.h>
+#include <base/fastmutex.h>
 
+#include <mutex>
 
 XAMP_BASE_NAMESPACE_BEGIN
 
@@ -30,19 +33,39 @@ void* LoadSharedLibrarySymbolEx(SharedLibraryHandle const& dll, const std::strin
     return func;
 }
 
-bool AddSharedLibrarySearchDirectory(const Path& path) {    
-    ::SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS | LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR);
+bool AddSharedLibrarySearchDirectory(const Path& path) {
+    static FastMutex thread_safe_lock;
+    std::lock_guard<FastMutex> guard{ thread_safe_lock };
 
-	const auto utf16_string = path.wstring();
+    static std::once_flag once;
+    static bool dll_dirs_ok = true;
+    std::call_once(once, [&] {
+        dll_dirs_ok = ::SetDefaultDllDirectories(
+            LOAD_LIBRARY_SEARCH_DEFAULT_DIRS
+        ) != FALSE;
+        });
+    if (!dll_dirs_ok) {
+        DWORD err = ::GetLastError();
+        return false;
+    }
 
-    wchar_t buffer[MAX_PATH];   
-    ::GetFullPathNameW(utf16_string.c_str(), MAX_PATH, buffer, nullptr);
+    auto normalize_path = NormalizePathToWideString(path);
+    if (!normalize_path) {
+        return false;
+	}
 
-    if (!::AddDllDirectory(buffer)) {
-        if (::GetLastError() != ERROR_FILE_NOT_FOUND) {
+    static HashSet<std::wstring> added;
+    if (added.contains(normalize_path.value())) {
+        return true;
+    }
+
+    if (!::AddDllDirectory(normalize_path.value().c_str())) {
+        DWORD err = ::GetLastError();
+        if (err == ERROR_FILE_NOT_FOUND || err == ERROR_PATH_NOT_FOUND) {
             return false;
         }
     }
+	added.insert(normalize_path.value());
     return true;
 }
 
@@ -106,9 +129,9 @@ bool PrefetchSharedLibrary(SharedLibraryHandle const& module) {
         return false;
     }
     const auto path = GetSharedLibraryPath(module);
-    MemoryMappedFile file;
-    if (file.Open(path.wstring(), true)) {
-        return PrefetchMemory(const_cast<void*>(file.GetData()), file.GetLength());
+    MemoryMappedFile file_;
+    if (file_.Open(path.wstring(), true)) {
+        return PrefetchMemory(const_cast<void*>(file_.GetData()), file_.GetLength());
     }    
     return false;
 }

@@ -77,9 +77,9 @@ void VolumeControlDialog::paintEvent(QPaintEvent* event) {
     p.drawRoundedRect(rect(), 10, 10);
 }
 
-bool VolumeControlDialog::isHardwareControlVolume() const {
-    return player_->IsHardwareControlVolume();
-}
+//bool VolumeControlDialog::isHardwareControlVolume() const {
+//    return player_->IsHardwareControlVolume();
+//}
 
 void VolumeControlDialog::updateState() {
     if (!player_->IsHardwareControlVolume()) {

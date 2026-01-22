@@ -122,7 +122,7 @@ AsioDevice::AsioDevice(const  std::string & device_id)
 	, clock_source_(kClockSourceSize)
 	, callback_(nullptr)
 	, get_samples_(nullptr)
-	, logger_(XampLoggerFactory.GetLogger(kAsioDeviceLoggerName))
+	, logger_(XampLoggerFactory.GetLogger(XAMP_LOG_NAME(AsioDevice)))
 	, device_id_(device_id) {
 }
 
@@ -649,15 +649,27 @@ void AsioDevice::StopStream(bool wait_for_stop_stream) {
 	XAMP_LOG_D(logger_, "StopStream");
 
 	is_streaming_ = false;
+	is_stop_streaming_.store(false, std::memory_order_release);
 
-	while (wait_for_stop_stream && !is_stop_streaming_) {
-		condition_.wait(lock);
+	if (wait_for_stop_stream) {
+		bool ok = condition_.wait_for(lock, std::chrono::milliseconds(500), [&]() {
+			return is_stop_streaming_.load(std::memory_order_acquire);
+			});
+
+		if (!ok) {
+			XAMP_LOG_D(logger_, "StopStream timeout waiting for callback to quiesce.");
+		}
 	}
+	
+	lock.unlock();
 
 	// TODO: Workaround!
 	// 等待10ms這段期間OnBufferSwitch會填充靜音的資料.	
-	MSleep(std::chrono::milliseconds(10));
-	AsioIfFailedThrow(::ASIOStop());
+	//MSleep(std::chrono::milliseconds(10));
+
+	::ASIOStop();
+
+	lock.lock();
 }
 
 void AsioDevice::CloseStream() {

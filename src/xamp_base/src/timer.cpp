@@ -54,7 +54,7 @@ public:
 		Stop();
 	}
 
-	void Start(std::chrono::milliseconds interval, std::function<void()> callback) {
+	void Start(std::chrono::milliseconds interval, std::move_only_function<void()> callback) {
 		if (!is_stop_) {
 			return;
 		}
@@ -93,7 +93,7 @@ public:
 	}
 private:
 	static void CALLBACK TimerProc(void* param, BOOLEAN timer_called) {
-		const auto* timer = static_cast<TimerImpl*>(param);
+		auto* timer = static_cast<TimerImpl*>(param);
 		try {
 			std::invoke(timer->callback_);
 		} catch (...) {
@@ -103,7 +103,7 @@ private:
 	std::atomic<bool> is_stop_{true};
 	TimerQueueHandle timer_queue_;
 	TimerQueueTimer timer_;
-	std::function<void()> callback_;
+	std::move_only_function<void()> callback_;
 };
 #else
 class Timer::TimerImpl {
@@ -170,7 +170,7 @@ Timer::Timer()
 	: impl_(MakeAlign<TimerImpl>()) {
 }
 
-void Timer::Start(std::chrono::milliseconds interval, std::function<void()> callback) {
+void Timer::Start(std::chrono::milliseconds interval, std::move_only_function<void()> callback) {
 	impl_->Start(interval, std::move(callback));
 }
 

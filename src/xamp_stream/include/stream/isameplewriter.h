@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 xamp project. All rights reserved.
+// Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -8,7 +8,7 @@
 #include <base/audiobuffer.h>
 #include <stream/stream.h>
 #include <base/uuidof.h>
-#include <stream/uuid_class.h>
+#include <base/uuid_class.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
 

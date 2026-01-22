@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 xamp project. All rights reserved.
+// Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -48,6 +48,8 @@ XAMP_BASE_API bool IsCDAFile(const Path& path);
 XAMP_BASE_API bool IsFileOnSsd(const Path& path);
 
 XAMP_BASE_API std::expected<std::string, TextEncodeingError> ReadFileToUtf8String(const Path& path);
+
+XAMP_BASE_API std::expected<std::wstring, Errors> NormalizePathToWideString(const Path& path);
 
 /*
 * Exception safe file.

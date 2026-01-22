@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 xamp project. All rights reserved.
+// Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -49,7 +49,7 @@ public:
 
     void AddOrUpdate(Key const& key, Value value);
 
-    Value GetOrAdd(Key const& key, std::function<Value()> &&value_factory);
+    Value GetOrAdd(Key const& key, std::move_only_function<Value()> &&value_factory);
 
     bool Add(Key const& key, Value value);
 
@@ -82,7 +82,7 @@ public:
 
     bool Contains(Key const& key) const noexcept {
         std::shared_lock<SharedMutex> read_lock{ mutex_ };
-        return cache_.find(key) != cache_.end();
+        return thumbnail_cache_.find(key) != thumbnail_cache_.end();
 	}
 private:
     friend std::ostream& operator<< (std::ostream& ostr, const LruCache& cache) {
@@ -100,7 +100,7 @@ private:
     int64_t capacity_;
     mutable size_t hit_count_;
     mutable size_t miss_count_;
-    mutable CacheMap cache_;
+    mutable CacheMap thumbnail_cache_;
     mutable KeyList keys_;
     mutable SharedMutex mutex_;
     SizeOfPolicy policy_;
@@ -140,8 +140,8 @@ void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::Resize(int64_t ca
 template<typename Key, typename Value, typename SizeOfPolicy, typename KeyList, typename SharedMutex>
 bool LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::TryGet(Key const& key, Value& value) {
     std::unique_lock<SharedMutex> write_lock(mutex_);
-    const auto check = cache_.find(key);
-    if (check != cache_.end()) {
+    const auto check = thumbnail_cache_.find(key);
+    if (check != thumbnail_cache_.end()) {
         ++hit_count_;
         keys_.splice(keys_.begin(), keys_, check->second);
         value = check->second->second;
@@ -163,13 +163,13 @@ bool LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::Add(Key const& ke
     {
         std::unique_lock<SharedMutex> write_lock(mutex_);
 
-        if (cache_.count(key)) {
+        if (thumbnail_cache_.count(key)) {
             return false;
         }
 
         size_ += policy_(key, value);
         keys_.emplace_front(key, std::move(value));
-        cache_[key] = keys_.begin();
+        thumbnail_cache_[key] = keys_.begin();
     }
 
     Evict(capacity_);
@@ -184,11 +184,11 @@ template
     typename KeyList,
     typename SharedMutex
 >
-Value LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::GetOrAdd(Key const& key, std::function<Value()>&& value_factory) {
+Value LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::GetOrAdd(Key const& key, std::move_only_function<Value()>&& value_factory) {
     {
         std::unique_lock<SharedMutex> write_lock(mutex_);
-        const auto check = cache_.find(key);
-        if (check != cache_.end()) {
+        const auto check = thumbnail_cache_.find(key);
+        if (check != thumbnail_cache_.end()) {
             ++hit_count_;
             keys_.splice(keys_.begin(), keys_, check->second);
             return check->second->second;
@@ -200,8 +200,8 @@ Value LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::GetOrAdd(Key con
   
     {
         std::unique_lock<SharedMutex> write_lock(mutex_);
-        const auto check = cache_.find(key);
-        if (check != cache_.end()) {
+        const auto check = thumbnail_cache_.find(key);
+        if (check != thumbnail_cache_.end()) {
             // 已經存在，直接返回該值 (並更新 LRU)
             ++hit_count_;
             keys_.splice(keys_.begin(), keys_, check->second);
@@ -210,7 +210,7 @@ Value LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::GetOrAdd(Key con
 
         size_ += policy_(key, value);
         keys_.emplace_front(key, value);
-        cache_[key] = keys_.begin();
+        thumbnail_cache_[key] = keys_.begin();
 
         Evict(capacity_);
     }    
@@ -230,8 +230,8 @@ void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::AddOrUpdate(Key c
     std::unique_lock<SharedMutex> write_lock(mutex_);
 
     size_ += policy_(key, value);
-    auto itr = cache_.find(key);
-    if (itr != cache_.cend()) {
+    auto itr = thumbnail_cache_.find(key);
+    if (itr != thumbnail_cache_.cend()) {
         // 1. 先減去「舊值」的大小
         size_ -= policy_(key, itr->second->second);
         // 2. 加上「新值」的大小
@@ -243,7 +243,7 @@ void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::AddOrUpdate(Key c
         // 新增項目
         size_ += policy_(key, value);
         keys_.emplace_front(key, std::move(value));
-        cache_[key] = keys_.begin();
+        thumbnail_cache_[key] = keys_.begin();
     }
 
     Evict(capacity_);
@@ -261,7 +261,7 @@ void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::Evict(int64_t max
     while (size_ > max_size && !keys_.empty()) {
         auto& eldest = keys_.back();
         size_ -= policy_(eldest.first, eldest.second);
-        cache_.erase(eldest.first);
+        thumbnail_cache_.erase(eldest.first);
         keys_.pop_back();
     }
 }
@@ -303,14 +303,14 @@ template
 void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::Erase(Key const& key) {
     std::unique_lock<SharedMutex> write_lock(mutex_);
 
-    const auto check = cache_.find(key);
-    if (check == cache_.end()) {
+    const auto check = thumbnail_cache_.find(key);
+    if (check == thumbnail_cache_.end()) {
         return;
     }
 
     size_ -= policy_(check->first, check->second->second);
     keys_.erase(check->second);
-    cache_.erase(check);
+    thumbnail_cache_.erase(check);
 }
 
 template
@@ -325,7 +325,7 @@ void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::Clear() noexcept 
     std::unique_lock<SharedMutex> write_lock(mutex_);
     size_ = 0;
     keys_.clear();
-    cache_.clear();
+    thumbnail_cache_.clear();
 }
 
 template

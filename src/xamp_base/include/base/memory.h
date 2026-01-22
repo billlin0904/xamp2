@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 xamp project. All rights reserved.
+// Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -19,7 +19,7 @@ XAMP_BASE_API size_t GetPageSize() noexcept;
 
 XAMP_BASE_API bool PrefetchFile(std::wstring const& file_path);
 
-XAMP_BASE_API bool PrefetchFile(MemoryMappedFile& file, size_t prefech_size = kMaxPreReadFileSize);
+XAMP_BASE_API bool PrefetchFile(MemoryMappedFile& file_, size_t prefech_size = kMaxPreReadFileSize);
 
 XAMP_BASE_API bool PrefetchMemory(void* adddr, size_t length) noexcept;
 

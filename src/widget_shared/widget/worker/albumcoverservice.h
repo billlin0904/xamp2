@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 xamp project. All rights reserved.
+// Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -25,14 +25,14 @@ public:
 
 	void mergeUnknownAlbumCover();
 
-	void cleaup();	
+	void cleanup();	
 
 signals:
 	void fetchThumbnailUrlError(const DatabaseCoverId& id, const QString& thumbnail_url);
 
 	void setThumbnail(const DatabaseCoverId &id, const QString& cover_id);
 
-	void setAristThumbnail(int32_t artist_id, const QString& cover_id);
+	void setArtistThumbnail(int32_t artist_id, const QString& cover_id);
 
 	void setAlbumCover(int32_t album_id, const QString& cover_id);
 
@@ -47,14 +47,20 @@ public slots:
 
 	void onFetchArtistThumbnailUrl(int32_t artist_id, const QString& thumbnail_url);
 
+	void onRequestLoad(const QString& tag, const QString& cover_id);
+
 	void cancelRequested();
 
 private:
+	void timerEvent(QTimerEvent*) override;
+
 	bool is_stop_{ false };	
 	bool enable_{ true };
 	PooledDatabasePtr database_ptr_;
 	QNetworkAccessManager nam_;
 	http::HttpClient http_client_;
-	std::set<QString> pending_request_urls_;
+	HashSet<QString> pending_request_urls_;
+	HashSet<QString> request_load_cover_ids_;
+	LoggerPtr logger_;
 };
 

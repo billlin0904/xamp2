@@ -131,7 +131,7 @@ XAudio2OutputDevice::XAudio2OutputDevice(const std::shared_ptr<IThreadPoolExecut
 	, device_id_(device_id)
 	, mastering_voice_(nullptr)
 	, source_voice_(nullptr)
-	, logger_(XampLoggerFactory.GetLogger(kXAudio2OutputDeviceLoggerName))
+	, logger_(XampLoggerFactory.GetLogger(XAMP_LOG_NAME(XAudio2OutputDevice)))
 	, thread_pool_(thread_pool) {
 #ifdef _DEBUG
 	UINT32 flags = 0;

@@ -77,18 +77,18 @@ struct ExceptionPointer : EXCEPTION_POINTERS {
 void CreateMinidump(_EXCEPTION_POINTERS* exception_pointers) {
     auto file_name = String::ToStdWString(String::Format("{}-crashdump.dmp", GetSequentialUUID()));
 
-    auto file = CreateFileW(file_name.c_str(),
+    auto file_ = CreateFileW(file_name.c_str(),
         GENERIC_WRITE,
         0, 
         nullptr,
         CREATE_ALWAYS, 
         FILE_ATTRIBUTE_NORMAL,
         nullptr);
-    if ((file == nullptr) || (file == INVALID_HANDLE_VALUE)) {
+    if ((file_ == nullptr) || (file_ == INVALID_HANDLE_VALUE)) {
         return;
     }
 
-    FileHandle crashdump(file);
+    FileHandle crashdump(file_);
     MINIDUMP_EXCEPTION_INFORMATION mdei{};
     mdei.ThreadId = ::GetCurrentThreadId();
     mdei.ExceptionPointers = exception_pointers;
@@ -160,7 +160,7 @@ public:
     }
 
     static void InvalidParameterHandler(const wchar_t* expression,
-        const wchar_t* function, const wchar_t* file,
+        const wchar_t* function, const wchar_t* file_,
         unsigned int line, uintptr_t reserved) {
         DumpCurrentExceptionStack();
     }

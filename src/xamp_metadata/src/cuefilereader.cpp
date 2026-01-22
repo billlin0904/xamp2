@@ -44,8 +44,8 @@ XAMP_DECLARE_LOG_NAME(CueLoader);
 
 class CueLoader::CueLoaderImpl {
 public:
-	CueLoaderImpl() 
-		: logger_(XampLoggerFactory.GetLogger(kCueLoaderLoggerName)) {
+	CueLoaderImpl() {
+		logger_ = XAMP_LOG_CREATE_LOGGER(CueLoader);
 	}
 
 	std::expected<std::vector<TrackInfo>, ParseCueError> Load(const Path& path) {

@@ -61,9 +61,9 @@ std::tuple<CFilePtr, Path> CTemporaryFile::GetTempFile() {
 
 	for (auto i = 0; i < kMaxRetryCreateTempFile; ++i) {
 		auto path = temp_path / Fs::path(GetSequentialUUID() + ".tmp");
-		CFilePtr file(::_wfopen(path.wstring().c_str(), L"wb+"), fclose);
-		if (file) {
-			return std::make_tuple(std::move(file), path);
+		CFilePtr file_(::_wfopen(path.wstring().c_str(), L"wb+"), fclose);
+		if (file_) {
+			return std::make_tuple(std::move(file_), path);
 		}
 	}
 	throw PlatformException("Can't create temp file.");

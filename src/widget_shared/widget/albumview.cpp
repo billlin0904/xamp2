@@ -247,7 +247,7 @@ AlbumView::AlbumView(QWidget* parent)
    verticalScrollBar()->setStyleSheet(
         "QScrollBar:vertical { width: 6px; }"_str);
 
-    //(void)QObject::connect(&refresh_cover_timer_, &QTimer::timeout, this, &AlbumView::reload);
+   //(void)QObject::connect(&refresh_cover_timer_, &QTimer::timeout, this, &AlbumView::reload);
 
    onThemeChangedFinished(qTheme.themeColor());
 }

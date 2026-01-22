@@ -77,11 +77,11 @@ ScopedPtr<FileStream> makePcmFileStream(const Path& file_path, float rate) {
 }
 
 QString readAll(const QString& file_path) {
-    QFile file(file_path);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    QFile file_(file_path);
+    if (!file_.open(QIODevice::ReadOnly | QIODevice::Text)) {
         return QString();
     }
-    QTextStream in(&file);
+    QTextStream in(&file_);
     in.setEncoding(QStringConverter::Utf8);
 	return in.readAll();
 }

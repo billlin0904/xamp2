@@ -80,15 +80,15 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/;../thirdparty/libsamplerate/include/;../thirdparty/supereq/;../thirdparty/LibALAC/;../thirdparty/libebur128/;C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/;../thirdparty/libsamplerate/include/;../thirdparty/supereq/;../thirdparty/LibALAC/;../thirdparty/libebur128/;C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\include\;../thirdparty/libflac/include/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STREAM_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996;4819;4200;</DisableSpecificWarnings>
       <BrowseInformation>true</BrowseInformation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/supereq/supereq/x64/Debug;C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>xamp_base.lib;supereq.lib;Mfplat.lib;Mf.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/supereq/supereq/x64/Debug;C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\lib;../thirdparty/libflac/include/lib/</AdditionalLibraryDirectories>
+      <AdditionalDependencies>xamp_base.lib;supereq.lib;Mfplat.lib;Mf.lib;FLAC.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>
@@ -188,6 +188,7 @@
     <ClInclude Include="include\stream\filestream.h" />
     <ClInclude Include="include\stream\isameplewriter.h" />
     <ClInclude Include="include\stream\mbdiscid.h" />
+    <ClInclude Include="include\stream\mqafilestream.h" />
     <ClInclude Include="include\stream\r8brainlib.h" />
     <ClInclude Include="include\stream\r8brainresampler.h" />
     <ClInclude Include="include\stream\dsdmodesamplewriter.h" />
@@ -199,7 +200,6 @@
     <ClInclude Include="include\stream\stream.h" />
     <ClInclude Include="include\stream\api.h" />
     <ClInclude Include="include\stream\supereqequalizer.h" />
-    <ClInclude Include="include\stream\uuid_class.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\ebur128scanner.cpp" />
@@ -221,6 +221,7 @@
     <ClCompile Include="src\mbdiscid.cpp" />
     <ClCompile Include="src\api.cpp" />
     <ClCompile Include="src\dsdmodesamplewriter.cpp" />
+    <ClCompile Include="src\mqafilestream.cpp" />
     <ClCompile Include="src\r8brainresampler.cpp" />
     <ClCompile Include="src\soxresampler.cpp" />
     <ClCompile Include="src\srcresampler.cpp" />

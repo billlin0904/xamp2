@@ -1,5 +1,5 @@
 ﻿//=====================================================================================================================
-// Copyright (c) 2018-2025 xamp project. All rights reserved.
+// Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -28,12 +28,12 @@ public:
 
 	void SetFormat(uint32_t bit_per_sample, bool is_2432_format);
 	
-	XAMP_ALWAYS_INLINE void convert(void* data, const float* buffer, const AudioConvertContext& context) {
+	XAMP_ALWAYS_INLINE void convert(void* data, const void* buffer, const AudioConvertContext& context) {
 		XAMP_ASSERT(impl_ != nullptr);
 		std::invoke(impl_, data, buffer, context);
 	}
 private:
-	std::function<void(void*, const float*, const AudioConvertContext&)> impl_;
+	std::move_only_function<void(void*, const void*, const AudioConvertContext&)> impl_;
 };
 
 XAMP_BASE_API AudioConvertContext MakeConvert(size_t convert_size) noexcept;
@@ -367,7 +367,7 @@ void AVX2Convert(TStoreType* output, const float* input, float float_scale, cons
 		scaled_values = _mm256_mul_ps(scaled_values, volume_scale);
 
 		if constexpr (std::is_same_v<T, int32_t>) {
-			__m256i output_values = _mm256_cvttps_epi32(scaled_values);
+			__m256i output_values = _mm256_cvtps_epi32(scaled_values);
 			_mm256_store_si256(reinterpret_cast<__m256i*>(output), output_values);
 			output += 8;
 		}
@@ -381,7 +381,7 @@ void AVX2Convert(TStoreType* output, const float* input, float float_scale, cons
 			output += 8;
 		}
 		else if constexpr (std::is_same_v<T, int16_t>) {
-			__m256i output_values = _mm256_cvttps_epi32(scaled_values);
+			__m256i output_values = _mm256_cvtps_epi32(scaled_values);
 			__m256i packed_values = _mm256_packs_epi32(output_values, output_values);
 			packed_values = _mm256_permute4x64_epi64(packed_values, 0xD8);
 			_mm_store_si128(reinterpret_cast<__m128i*>(output), _mm256_castsi256_si128(packed_values));
@@ -506,12 +506,19 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 		AVX2Convert<int16_t>(output, input, kFloat16Scale, context);
 	}
 
-	static XAMP_ALWAYS_INLINE void Convert(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
+	static XAMP_ALWAYS_INLINE void ConvertToInt24(int24_t* output, const int32_t* input, const AudioConvertContext& context) noexcept {
+		// NOTE: MSB 24bit
+		for (size_t i = 0; i < context.convert_size * 2; ++i) {
+			output[i] = input[i] >> 8;
+		}
+	}
+
+	static XAMP_ALWAYS_INLINE void ConvertToInt32(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
 		AVX2Convert<int32_t>(output, input, kFloat32Scale, context);
 	}
 
 	static XAMP_ALWAYS_INLINE void ConvertToInt2432(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
-		AVX2Convert<Int24, int32_t>(output, input, kFloat24Scale, context);
+		AVX2Convert<int24_t, int32_t>(output, input, kFloat24Scale, context);
 	}
 };
 #endif

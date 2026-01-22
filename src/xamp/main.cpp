@@ -102,7 +102,7 @@ namespace {
             stream << QString::fromStdString(StackTrace{}.CaptureStack());
         }
 
-        const auto logger = XampLoggerFactory.GetLogger(kQtLoggerName);
+        const auto logger = XAMP_LOG_CREATE_LOGGER(Qt);
 
         switch (type) {
         case QtDebugMsg:

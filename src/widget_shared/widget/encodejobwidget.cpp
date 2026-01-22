@@ -66,11 +66,11 @@ QList<EncodeJob> EncodeJobWidget::addJobs(int32_t encode_type, const QList<PlayL
         << new QStandardItem(QString());
     model_->appendRow(top_row);
 
-    for (const auto& file : files) {
+    for (const auto& file_ : files) {
 	    constexpr auto k24Bit441KhzBitRate = 2116.8;
 
 	    auto child0 = new QStandardItem(QString());
-        auto child1 = new QStandardItem(file.file_name);
+        auto child1 = new QStandardItem(file_.file_name);
         auto child2 = new QStandardItem();
         auto child3 = new QStandardItem();
         auto child4 = new QStandardItem("Pending"_str);
@@ -80,22 +80,22 @@ QList<EncodeJob> EncodeJobWidget::addJobs(int32_t encode_type, const QList<PlayL
 
         EncodeJob job;
         job.job_id = QString::fromStdString(generateUuid().toStdString());
-        job.file = file;
+        job.file_ = file_;
 
-        auto bit_depth = file.bit_rate < k24Bit441KhzBitRate ? 16 : 24;
+        auto bit_depth = file_.bit_rate < k24Bit441KhzBitRate ? 16 : 24;
 
         switch (encode_type) {
         case EncodeType::ENCODE_ALAC:
             child2->setText(qFormat("%1 | %2 | %3 bit")
                 .arg("ALAC"_str)
-                .arg(formatSampleRate(file.sample_rate))
+                .arg(formatSampleRate(file_.sample_rate))
                 .arg(bit_depth));
             job.codec_id = "alac"_str;
             break;
         case EncodeType::ENCODE_AAC:
             child2->setText(qFormat("%1 | %2 | %3 bit | 256kbps")
                 .arg("AAC"_str)
-                .arg(formatSampleRate(file.sample_rate))
+                .arg(formatSampleRate(file_.sample_rate))
                 .arg(bit_depth));
             job.bit_rate = 256000;
             job.codec_id = "aac"_str;
@@ -103,7 +103,7 @@ QList<EncodeJob> EncodeJobWidget::addJobs(int32_t encode_type, const QList<PlayL
         case EncodeType::ENCODE_PCM:
             child2->setText(qFormat("%1 | %2 | %3 bit")
                 .arg("PCM"_str)
-                .arg(formatSampleRate(file.sample_rate))
+                .arg(formatSampleRate(file_.sample_rate))
                 .arg(bit_depth));
             job.codec_id = "pcm"_str;
             break;

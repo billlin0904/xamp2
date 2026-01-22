@@ -36,13 +36,13 @@ std::tuple<std::fstream, Path> GetTempFile() {
 
 	for (auto i = 0; i < kMaxRetryCreateTempFile; ++i) {
 		auto path = temp_path / Fs::path(GetSequentialUUID() + ".tmp");
-		std::fstream file(path.native(),
+		std::fstream file_(path.native(),
 			std::ios::in
 			| std::ios::out
 			| std::ios::binary
 			| std::ios::trunc);
-		if (file.is_open()) {
-			return std::make_tuple(std::move(file), path);
+		if (file_.is_open()) {
+			return std::make_tuple(std::move(file_), path);
 		}
 		XAMP_LOG_DEBUG("{} {}", path, GetLastErrorMessage());
 	}
@@ -56,9 +56,9 @@ Path GetTempFileNamePath() {
 
 	for (auto i = 0; i < kMaxRetryCreateTempFile; ++i) {
 		auto path = temp_path / Fs::path(GetSequentialUUID() + ".tmp");
-		std::ofstream file(path.native());
-		if (file.is_open()) {
-			file.close();
+		std::ofstream file_(path.native());
+		if (file_.is_open()) {
+			file_.close();
 			return path;
 		}
 		XAMP_LOG_DEBUG("{} {}", path, GetLastErrorMessage());
@@ -146,27 +146,50 @@ bool IsCDAFile(Path const& path) {
 }
 
 std::expected<std::string, TextEncodeingError> ReadFileToUtf8String(const Path& path) {
-	std::ifstream file;
-	file.open(path, std::ios::binary);
+	std::ifstream file_;
+	file_.open(path, std::ios::binary);
 
-	if (!file.is_open()) {
+	if (!file_.is_open()) {
 		return std::unexpected(TextEncodeingError::TEXT_ENCODING_NOT_FOUND_FILE);
 	}
 
-	file.seekg(0, std::ios::end);
-	auto length = file.tellg();
-	file.seekg(0, std::ios::beg);
+	file_.seekg(0, std::ios::end);
+	auto length = file_.tellg();
+	file_.seekg(0, std::ios::beg);
 
 	if (length <= 0) {
 		return std::unexpected(TextEncodeingError::TEXT_ENCODING_EMPTY_FILE);
 	}
 
 	std::vector<char> buffer(length);
-	file.read(&buffer[0], length);
+	file_.read(&buffer[0], length);
 	std::string input_str(buffer.data(), length);
 
 	TextEncoding encoding;
 	return encoding.ToUtf8String(input_str, length, false);
+}
+
+std::expected<std::wstring, Errors> NormalizePathToWideString(const Path& path) {
+	const auto raw = path.wstring();
+
+	// GetFullPathNameW：先問長度再配置，避免 MAX_PATH 問題
+	DWORD needed = ::GetFullPathNameW(raw.c_str(), 0, nullptr, nullptr);
+	if (needed == 0) return std::unexpected(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR);
+
+	std::wstring full;
+	full.resize(needed);
+	DWORD written = ::GetFullPathNameW(raw.c_str(), needed, full.data(), nullptr);
+	if (written == 0 || written >= needed) 
+		return std::unexpected(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR);
+	full.resize(written);
+
+	// normalize：去尾端 slash + 小寫化（用來去重）
+	while (!full.empty() && (full.back() == L'\\' || full.back() == L'/')) {
+		full.pop_back();
+	}
+	std::transform(full.begin(), full.end(), full.begin(),
+		[](wchar_t c) { return (wchar_t)::towlower(c); });
+	return full;
 }
 
 XAMP_BASE_NAMESPACE_END

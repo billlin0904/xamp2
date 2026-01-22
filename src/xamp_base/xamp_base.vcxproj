@@ -207,6 +207,7 @@
     <ClInclude Include="include\base\task.h" />
     <ClInclude Include="include\base\threadpoolexecutor.h" />
     <ClInclude Include="include\base\uuidof.h" />
+    <ClInclude Include="include\base\uuid_class.h" />
     <ClInclude Include="include\base\vmmemlock.h" />
     <ClInclude Include="include\base\memory_mapped_file.h" />
     <ClInclude Include="include\base\uuid.h" />
@@ -252,6 +253,7 @@
     <ClCompile Include="src\threadpoolexecutor.cpp" />
     <ClCompile Include="src\timer.cpp" />
     <ClCompile Include="src\str_utilts.cpp" />
+    <ClCompile Include="src\uuid_class.cpp" />
     <ClCompile Include="src\vmmemlock.cpp" />
     <ClCompile Include="src\volume.cpp" />
     <ClCompile Include="src\waitabletimer.cpp" />

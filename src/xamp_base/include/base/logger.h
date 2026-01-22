@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 xamp project. All rights reserved.
+// Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -22,6 +22,7 @@ using LoggerPtr = std::shared_ptr<Logger>;
 
 #define XAMP_DECLARE_LOG_NAME(LogName) inline constexpr std::string_view k##LogName##LoggerName(#LogName)
 #define XAMP_LOG_NAME(LogName) k##LogName##LoggerName
+#define XAMP_LOG_CREATE_LOGGER(LogName) XampLoggerFactory.GetLogger(#LogName)
 
 XAMP_DECLARE_LOG_NAME(Xamp);
 XAMP_DECLARE_LOG_NAME(CoreAudio);

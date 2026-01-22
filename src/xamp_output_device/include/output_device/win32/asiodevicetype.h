@@ -27,7 +27,7 @@ class AsioDeviceType final : public IDeviceType {
 	XAMP_DECLARE_MAKE_CLASS_UUID(AsioDeviceType, "0B3FF8BC-5BFD-4A08-8066-95974FB11BB5")
 
 public:
-	constexpr static auto Description = std::string_view("ASIO");
+	XAMP_DECLARE_UUID_CLASS_DESC(AsioDeviceType, "ASIO")
 
 	/*
 	* Constructor
@@ -35,20 +35,6 @@ public:
 	AsioDeviceType();
 
 	XAMP_PIMPL(AsioDeviceType)
-	
-	/*
-	* Get device type description
-	* 
-	* @return std::string_view
-	*/
-	std::string_view GetDescription() const override;
-
-	/*
-	* Get device type id
-	* 
-	* @return Uuid
-	*/
-	Uuid GetTypeId() const override;
 
 	/*
 	* Get device count

@@ -32,7 +32,7 @@ private:
 };
 
 NullOutputDeviceType::NullOutputDeviceTypeImpl::NullOutputDeviceTypeImpl() noexcept {
-	logger_ = XampLoggerFactory.GetLogger(kNullOutputDeviceTypeLoggerName);
+	logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(NullOutputDeviceType));
 }
 
 void NullOutputDeviceType::NullOutputDeviceTypeImpl::ScanNewDevice() {
@@ -71,14 +71,6 @@ NullOutputDeviceType::NullOutputDeviceType() noexcept
 
 void NullOutputDeviceType::ScanNewDevice() {
 	impl_->ScanNewDevice();
-}
-
-std::string_view NullOutputDeviceType::GetDescription() const {
-	return Description;
-}
-
-Uuid NullOutputDeviceType::GetTypeId() const {
-	return XAMP_UUID_OF(NullOutputDeviceType);
 }
 
 size_t NullOutputDeviceType::GetDeviceCount() const {

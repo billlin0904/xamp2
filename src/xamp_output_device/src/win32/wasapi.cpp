@@ -36,7 +36,7 @@ namespace {
 		UnknownFormFactor);
 
 	/*
-	* Propvariant wrapper class.
+	* PropVariant wrapper class.
 	*
 	*/
 	struct PropVariant final : PROPVARIANT {
@@ -248,6 +248,19 @@ bool IsDeviceSupportExclusiveMode(const CComPtr<IMMDevice>& device, AudioFormat&
 		return false;
 	}
 
+	if (prop_variant.vt != VT_BLOB
+		|| prop_variant.blob.pBlobData == nullptr 
+		|| prop_variant.blob.cbSize < sizeof(WAVEFORMATEX)) {
+		return false;
+	}
+
+	auto* wfx = reinterpret_cast<PWAVEFORMATEX>(prop_variant.blob.pBlobData);
+	const size_t base = sizeof(WAVEFORMATEX);
+	const size_t total = base + static_cast<size_t>(wfx->cbSize);
+	if (prop_variant.blob.cbSize < total) {
+		return false;
+	}
+
 	CComPtr<IAudioClient> client;
 	auto hr = device->Activate(__uuidof(IAudioClient),
 		CLSCTX_ALL,
@@ -256,7 +269,7 @@ bool IsDeviceSupportExclusiveMode(const CComPtr<IMMDevice>& device, AudioFormat&
 	if (SUCCEEDED(hr)) {
 		hr = client->IsFormatSupported(
 			AUDCLNT_SHAREMODE_EXCLUSIVE,
-			reinterpret_cast<PWAVEFORMATEX>(prop_variant.blob.pBlobData),
+			wfx,
 			nullptr
 		);
 		if (SUCCEEDED(hr)) {

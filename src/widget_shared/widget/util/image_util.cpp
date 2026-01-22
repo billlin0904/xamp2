@@ -347,10 +347,10 @@ namespace {
 }	
 
 bool optimizePng(const QByteArray& buffer, const QString& dest_file_path) {
-	QSaveFile file(dest_file_path);	
-	file.open(QIODevice::WriteOnly);
-	file.write(buffer);
-	return file.commit();	
+	QSaveFile file_(dest_file_path);	
+	file_.open(QIODevice::WriteOnly);
+	file_.write(buffer);
+	return file_.commit();	
 }
 
 QPixmap mergeImage(const QList<QPixmap>& images) {

@@ -96,14 +96,6 @@ AsioDeviceType::AsioDeviceType()
 	: impl_(MakeAlign<AsioDeviceTypeImpl>()) {
 }
 
-std::string_view AsioDeviceType::GetDescription() const {
-	return Description;
-}
-
-Uuid AsioDeviceType::GetTypeId() const {
-	return XAMP_UUID_OF(AsioDeviceType);
-}
-
 size_t AsioDeviceType::GetDeviceCount() const {
 	return impl_->GetDeviceCount();
 }

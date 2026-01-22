@@ -77,7 +77,7 @@ FileSystemService::FileSystemService()
 	, database_(makeDatabaseConnection()) {
 	(void)QObject::connect(&timer_, &QTimer::timeout,
 		this, &FileSystemService::updateProgress);
-	logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(FileSystemService));
+	logger_ = XAMP_LOG_CREATE_LOGGER(FileSystemService);
 	constexpr auto kThreadPoolSize = 8;
 	thread_pool_ = ThreadPoolBuilder::MakeThreadPool(
 		XAMP_LOG_NAME(FileSystemServiceThreadPool),
@@ -94,7 +94,7 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 		QDir::NoDotAndDotDot | QDir::Files,
 	    QDirIterator::Subdirectories);
 
-	FlatMap<QString, std::vector<Path>> directory_files;
+	HashMap<QString, std::vector<Path>> directory_files;
 	std::vector<Path> cue_files;
 	std::vector<Path> zip_files;
 
@@ -250,7 +250,7 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 		if (!tracks.empty()) {
 			emit insertDatabase(tracks, playlist_id);
 		}
-		});
+		}, stop_source_.get_token());
 
 	Executor::ParallelForEach(thread_pool_,
 		cue_files, [&](auto& files_path, const auto& stop_token) {
@@ -275,7 +275,7 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 		if (!tracks.empty()) {
 			emit insertDatabase(tracks, playlist_id);
 		}
-		});
+		}, stop_source_.get_token());
 }
 
 void FileSystemService::scanReplayGain(const QList<PlayListEntity>& entities) {

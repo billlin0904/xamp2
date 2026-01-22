@@ -16,25 +16,39 @@
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
-class XAMP_STREAM_API BassFileStream final : public FileStream, public IDsdStream {
-	XAMP_DECLARE_MAKE_CLASS_UUID(BassFileStream, "E421F2D7-2716-4CB7-9A0F-07B16DE32EBA")
+class XAMP_STREAM_API MqaIdentifier {
+public:
+	explicit MqaIdentifier(const Path& file_path);
+
+	bool Detect();
+
+	bool IsMQA() const;
+
+	bool IsMQAStudio() const;
+
+	uint32_t GetOriginalSampleRate() const;
+
+	XAMP_PIMPL(MqaIdentifier)
+private:
+	class MqaIdentifierImpl;
+	ScopedPtr<MqaIdentifierImpl> impl_;
+};
+
+class XAMP_STREAM_API MqaFileStream final : public FileStream, public IDsdStream {
+	XAMP_DECLARE_MAKE_CLASS_UUID(MqaFileStream, "D7F9B925-CFCC-4A86-95EC-6091D779FAB3")
 
 public:
-	XAMP_DECLARE_UUID_CLASS(BassFileStream)
+	XAMP_DECLARE_UUID_CLASS(MqaFileStream)
 
-	BassFileStream();
+	MqaFileStream();
 
-	XAMP_PIMPL(BassFileStream)
+	XAMP_PIMPL(MqaFileStream)
 
-    void OpenFile(const Path& file_path, float rate = 0.0f) override;
+	void OpenFile(const Path& file_path, float rate = 0.0f) override;
 
 	void Open(ArchiveEntry archive_entry, float rate = 0.0f) override;
 
 	void Close() noexcept override;
-
-	// Check if the stream is at the end.
-	// If read CD or use BASS_ASYNCFILE flag, Must use this function to check.
-	bool EndOfStream() const;
 
 	[[nodiscard]] double GetDuration() const override;
 
@@ -56,15 +70,13 @@ public:
 
 	[[nodiscard]] DsdFormat GetDsdFormat() const noexcept override;
 
-    void SetDsdToPcmSampleRate(uint32_t sample_rate) override;
+	void SetDsdToPcmSampleRate(uint32_t sample_rate) override;
 
 	[[nodiscard]] uint32_t GetDsdSpeed() const override;
 
 	[[nodiscard]] uint32_t GetBitDepth() const override;
 
 	[[nodiscard]] uint32_t GetBitRate() const override;
-
-	[[nodiscard]] uint32_t GetHStream() const noexcept;
 
 	[[nodiscard]] bool IsActive() const noexcept override;
 
@@ -74,10 +86,9 @@ public:
 
 	[[nodiscard]] bool SupportNativeSD() const noexcept override;
 
-private:	
-	class BassFileStreamImpl;
-	ScopedPtr<BassFileStreamImpl> impl_;
+private:
+	class MqaFileStreamImpl;
+	ScopedPtr<MqaFileStreamImpl> impl_;
 };
 
 XAMP_STREAM_NAMESPACE_END
-

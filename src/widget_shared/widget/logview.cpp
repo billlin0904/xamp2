@@ -27,15 +27,15 @@ LogView::~LogView() {
 
 // 載入 log 檔案並顯示於 logViewer_
 bool LogView::loadLogFile(const QString& filePath) {
-    QFile file(filePath);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {        
+    QFile file_(filePath);
+    if (!file_.open(QIODevice::ReadOnly | QIODevice::Text)) {        
         return false;
     }
 
-    QTextStream in(&file);
+    QTextStream in(&file_);
     in.setEncoding(QStringConverter::Utf8);
     QString content = in.readAll();
-    file.close();
+    file_.close();
 
     ui_->logViewerEdit->clear();
     ui_->logViewerEdit->appendPlainText(content);
@@ -62,20 +62,20 @@ void LogView::onAppendLog(const QString& logText) {
 }
 
 void LogView::appendNewLogs(qint64 startPos, qint64 endPos) {
-    QFile file(logFilePath_);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    QFile file_(logFilePath_);
+    if (!file_.open(QIODevice::ReadOnly | QIODevice::Text)) {
         return;
     }
 
     // 將檔案指標移到上次讀取結束的位置
-    if (!file.seek(startPos)) {
+    if (!file_.seek(startPos)) {
         return;
     }
 
     // 讀取新內容
     qint64 bytesToRead = endPos - startPos;
-    QByteArray data = file.read(bytesToRead);
-    file.close();
+    QByteArray data = file_.read(bytesToRead);
+    file_.close();
 
     // 假設是 UTF-8 編碼
     QString newContent = QString::fromUtf8(data);

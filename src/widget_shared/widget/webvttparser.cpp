@@ -21,7 +21,7 @@ namespace {
 
 WebVTTParser::WebVTTParser() = default;
 
-bool WebVTTParser::parse(std::wistream& file) {
+bool WebVTTParser::parse(std::wistream& file_) {
     lyrics_.clear();
 
     enum ParseState {
@@ -41,7 +41,7 @@ bool WebVTTParser::parse(std::wistream& file) {
     };
 
     LyricEntry entry;
-    while (std::getline(file, line)) {
+    while (std::getline(file_, line)) {
         if (line.empty()) continue;
         if (line.find(L"WEBVTT") != std::wstring::npos) continue;
 
@@ -61,7 +61,7 @@ bool WebVTTParser::parse(std::wistream& file) {
             break;
         case ParseState::PARSE_TEXT:
             entry.lrc = line;
-            while (std::getline(file, line) && !line.empty()) {
+            while (std::getline(file_, line) && !line.empty()) {
                 entry.lrc += L"\n" + line;
             }
             next_state = ParseState::PARSE_INDEX;
@@ -80,8 +80,8 @@ bool WebVTTParser::parseFile(const std::wstring& file_path) {
         auto utf8_text = ReadFileToUtf8String(file_path);
         if (utf8_text) {
             auto wide_str = String::ToStdWString(utf8_text.value());
-            std::wstringstream file(wide_str);
-            return parse(file);
+            std::wstringstream file_(wide_str);
+            return parse(file_);
         }  
         return false;
     }

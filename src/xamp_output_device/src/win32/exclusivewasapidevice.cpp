@@ -64,7 +64,10 @@ namespace {
 			format.Format.cbSize = sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
 			format.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
 			format.SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
-			format.Format.wBitsPerSample = 32;
+			if (audio_format.GetBitsPerSample() == 24) 
+				format.Format.wBitsPerSample = 24;
+			else
+				format.Format.wBitsPerSample = 32;
 		}
 		format.dwChannelMask = KSAUDIO_SPEAKER_STEREO;
 	}
@@ -124,8 +127,8 @@ ExclusiveWasapiDevice::ExclusiveWasapiDevice(const std::shared_ptr<IThreadPoolEx
 	, aligned_period_(0)
 	, device_(device)
 	, callback_(nullptr)
-	, logger_(XampLoggerFactory.GetLogger(kExclusiveWasapiDeviceLoggerName))
-	, thread_pool_(thread_pool) {
+	, thread_pool_(thread_pool)
+	, logger_(XampLoggerFactory.GetLogger(XAMP_LOG_NAME(ExclusiveWasapiDevice))) {
 }
 
 ExclusiveWasapiDevice::~ExclusiveWasapiDevice() {
@@ -291,7 +294,15 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 				is_2432_format_ = true;
 			}
 		} else {
-			InitialDeviceFormat(output_format, 16);
+			switch (output_format.GetBitsPerSample()) {
+			case 16:
+				InitialDeviceFormat(output_format, 16);
+				break;
+			case 24:
+				InitialDeviceFormat(output_format, 24);
+				break;
+			}
+			
 		}
     }
 
@@ -503,7 +514,9 @@ void ExclusiveWasapiDevice::StartStream() {
 	// Reset event.
 	::ResetEvent(close_request_.get());
 
-	convert_.SetFormat(mix_format_->wBitsPerSample, is_2432_format_);
+	// TODO: Add check 24/32 bit format.
+	//convert_.SetFormat(mix_format_->wBitsPerSample, is_2432_format_);
+	convert_.SetFormat(mix_format_->wBitsPerSample, false);
 
 	// Must be active device and prefill buffer.
 	GetSample(true);

@@ -87,7 +87,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <AdditionalLibraryDirectories>../xamp/x64/Debug/</AdditionalLibraryDirectories>
-      <AdditionalDependencies>xamp_base.lib;avrt.lib;Mfplat.lib;Propsys.lib;Mmdevapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>xamp_base.lib;Mfplat.lib;Propsys.lib;Mmdevapi.lib;dsound.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>

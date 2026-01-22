@@ -66,16 +66,16 @@ namespace {
         for (const auto& entry : entries) {
             QDir subdir(entry);
             if (subdir.dirName() > currentVersion) {
-                QFile file(migration_directory + QDir::separator() + entry + QDir::separator() + "up.sql"_str);
-                if (!file.open(QFile::ReadOnly)) {
-                    XAMP_LOG_DEBUG("Failed to open migration file {}", file.fileName().toStdString());
+                QFile file_(migration_directory + QDir::separator() + entry + QDir::separator() + "up.sql"_str);
+                if (!file_.open(QFile::ReadOnly)) {
+                    XAMP_LOG_DEBUG("Failed to open migration file {}", file_.fileName().toStdString());
                 }
                 XAMP_LOG_DEBUG("Running migration {}", subdir.dirName().toStdString());
 
                 database.transaction();
 
                 // Hackish
-                const auto statements = file.readAll().split(';');
+                const auto statements = file_.readAll().split(';');
 
                 bool migration_successful = true;
                 for (const QByteArray& statement : statements) {
@@ -179,7 +179,7 @@ constexpr auto kGuiDatabaseName = "UI"_str;
 XAMP_DECLARE_LOG_NAME(Database);
 
 Database::Database(const QString& name) {
-    logger_ = XampLoggerFactory.GetLogger(kDatabaseLoggerName);
+    logger_ = XAMP_LOG_CREATE_LOGGER(Database);
     if (QSqlDatabase::contains(name)) {
         db_ = QSqlDatabase::database(name);
     }

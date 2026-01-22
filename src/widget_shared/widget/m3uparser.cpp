@@ -63,24 +63,24 @@ bool M3uParser::writeM3UFile(const QString& file_name,
         output = file_contents.toUtf8();
     }
 
-    QFile file(file_name);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+    QFile file_(file_name);
+    if (!file_.open(QIODevice::WriteOnly | QIODevice::Text)) {
         return false;
     }
-    file.write(output);
-    file.close();
+    file_.write(output);
+    file_.close();
     return true;
 }
 
 QList<QString> M3uParser::parseM3UFile(const QString& file_name) {
     QList<QString> paths;
 
-    QFile file(file_name);
-    if (!file.open(QIODevice::ReadOnly)) {
+    QFile file_(file_name);
+    if (!file_.open(QIODevice::ReadOnly)) {
         return paths;
     }
 
-    auto byte_array = file.readAll();
+    auto byte_array = file_.readAll();
 	if (byte_array.isEmpty()) {
 		return paths;	
     }

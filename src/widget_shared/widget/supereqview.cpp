@@ -23,11 +23,11 @@ namespace {
             const auto filepath = itr.next();
             const QFileInfo file_info(filepath);
 
-        	QFile file(filepath);
+        	QFile file_(filepath);
 
-            if (file.open(QIODevice::ReadOnly)) {
+            if (file_.open(QIODevice::ReadOnly)) {
 	            EqSettings settings;
-	            QTextStream in(&file);
+	            QTextStream in(&file_);
                 in.setEncoding(QStringConverter::Utf8);
                 while (!in.atEnd()) {
                     auto line = in.readLine();

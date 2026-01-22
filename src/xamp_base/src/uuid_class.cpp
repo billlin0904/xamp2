@@ -1,0 +1,6 @@
+#include <base/uuid_class.h>
+
+XAMP_BASE_NAMESPACE_BEGIN
+
+
+XAMP_BASE_NAMESPACE_END

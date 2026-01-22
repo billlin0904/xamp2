@@ -46,7 +46,7 @@ private:
 };
 
 ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::ExclusiveWasapiDeviceTypeImpl() noexcept {
-	logger_ = XampLoggerFactory.GetLogger(kExclusiveWasapiDeviceTypeLoggerName);	
+	logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(ExclusiveWasapiDeviceType));	
 }
 
 void ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::ScanNewDevice() {
@@ -189,14 +189,6 @@ ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceType() noexcept
 
 void ExclusiveWasapiDeviceType::ScanNewDevice() {
 	impl_->ScanNewDevice();
-}
-
-std::string_view ExclusiveWasapiDeviceType::GetDescription() const {
-	return Description;
-}
-
-Uuid ExclusiveWasapiDeviceType::GetTypeId() const {
-	return XAMP_UUID_OF(ExclusiveWasapiDeviceType);
 }
 
 size_t ExclusiveWasapiDeviceType::GetDeviceCount() const {

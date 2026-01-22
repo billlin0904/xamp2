@@ -14,16 +14,16 @@ XAMP_DECLARE_LOG_NAME(BassCompressor);
 class BassCompressor::BassCompressorImpl {
 public:
     BassCompressorImpl() {
-        logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(BassCompressor));
+        logger_ = XAMP_LOG_CREATE_LOGGER(BassCompressor);
     }
 
     void Start(uint32_t output_sample_rate) {
-        stream_.reset(BassLibDLL.BASS_StreamCreate(output_sample_rate,
+        impl_.reset(BassLibDLL.BASS_StreamCreate(output_sample_rate,
                                              AudioFormat::kMaxChannel,
                                              BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
                                              STREAMPROC_DUMMY,
                                              nullptr));
-        BassIfFailedThrow(stream_);
+        BassIfFailedThrow(impl_);
     }
 
     void Initialize(const CompressorConfig& config) {
@@ -35,7 +35,7 @@ public:
         compressord.fRelease   = config.release;
         compressord.lChannel   = BASS_BFX_CHANALL;
         const auto compressor_fx = BassLibDLL.BASS_ChannelSetFX(
-            stream_.get(),
+            impl_.get(),
             BASS_FX_BFX_COMPRESSOR2,
             0);
         BassIfFailedThrow(compressor_fx);
@@ -49,11 +49,11 @@ public:
     }
 
     bool Process(float const * samples, size_t num_samples, BufferRef<float>& out) const {
-		return bass_util::ReadStream(stream_, samples, num_samples, out);
+		return bass_util::ReadStream(impl_, samples, num_samples, out);
     }
 
 private:
-    BassStreamHandle stream_;
+    BassStreamHandle impl_;
     LoggerPtr logger_;
 };
 

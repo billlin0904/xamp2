@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 xamp project. All rights reserved.
+// Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -26,7 +26,7 @@ class NullOutputDeviceType final : public IDeviceType {
 	XAMP_DECLARE_MAKE_CLASS_UUID(NullOutputDeviceType, "6F1223E0-231A-495C-B16A-2AAC851F8D5F")
 
 public:
-	static constexpr auto Description = std::string_view("Null Output");
+	XAMP_DECLARE_UUID_CLASS_DESC(NullOutputDeviceType, "Null Device")
 
 	/*
 	* Constructor.
@@ -42,20 +42,6 @@ public:
 	* Scan new device.
 	*/
 	void ScanNewDevice() override;
-
-	/*
-	* Get device description
-	*
-	* @return std::string_view
-	*/
-	[[nodiscard]] std::string_view GetDescription() const override;
-
-	/*
-	* Get device type id
-	*
-	* @return Uuid
-	*/
-	[[nodiscard]] Uuid GetTypeId() const override;
 
 	/*
 	* Get device count

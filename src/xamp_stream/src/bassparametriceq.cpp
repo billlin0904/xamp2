@@ -13,27 +13,27 @@ class BassParametricEq::BassParametricEqImpl {
 public:
     BassParametricEqImpl()
 		: preamp_(0) {
-	    logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(BassParametricEq));
+	    logger_ = XAMP_LOG_CREATE_LOGGER(BassParametricEq);
     }
     
     void Start(uint32_t sample_rate) {
         RemoveFx();
 
-        stream_.reset(BassLibDLL.BASS_StreamCreate(sample_rate,
+        impl_.reset(BassLibDLL.BASS_StreamCreate(sample_rate,
             AudioFormat::kMaxChannel,
             BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
             STREAMPROC_DUMMY,
             nullptr));
-        BassIfFailedThrow(stream_);
+        BassIfFailedThrow(impl_);
 
-        preamp_ = BassLibDLL.BASS_ChannelSetFX(stream_.get(), BASS_FX_BFX_VOLUME, 0);
+        preamp_ = BassLibDLL.BASS_ChannelSetFX(impl_.get(), BASS_FX_BFX_VOLUME, 0);
         BassIfFailedThrow(preamp_);
 
         sample_rate_ = sample_rate;
     }
 
     void AddBand(EQFilterTypes filter, float fCenter, float fBandWidth, float fGain, float fQ, float fS) {
-	    const auto fx_handle = BassLibDLL.BASS_ChannelSetFX(stream_.get(), BASS_FX_BFX_BQF, 1);
+	    const auto fx_handle = BassLibDLL.BASS_ChannelSetFX(impl_.get(), BASS_FX_BFX_BQF, 1);
         BassIfFailedThrow(fx_handle);
 
         BASS_BFX_BQF bqf{};
@@ -110,25 +110,25 @@ public:
     }
 
     bool Process(float const* samples, size_t num_samples, BufferRef<float>& out) {
-        return bass_util::ReadStream(stream_, samples, num_samples, out);
+        return bass_util::ReadStream(impl_, samples, num_samples, out);
     }
 
     uint32_t Process(float const* samples, float* out, size_t num_samples) {
-        return bass_util::ReadStream(stream_, samples, out, num_samples);
+        return bass_util::ReadStream(impl_, samples, out, num_samples);
     }
 
 private:
     void RemoveFx() {
         for (const auto fx_handle : fx_handles_) {
-            BassLibDLL.BASS_ChannelRemoveFX(stream_.get(), fx_handle);
+            BassLibDLL.BASS_ChannelRemoveFX(impl_.get(), fx_handle);
         }
         fx_handles_.clear();
-        BassLibDLL.BASS_ChannelRemoveFX(stream_.get(), preamp_);
+        BassLibDLL.BASS_ChannelRemoveFX(impl_.get(), preamp_);
         preamp_ = 0;
     }
 
     uint32_t sample_rate_{ 0 };
-    BassStreamHandle stream_;
+    BassStreamHandle impl_;
     HFX preamp_;
     std::vector<HFX> fx_handles_;
     LoggerPtr logger_;

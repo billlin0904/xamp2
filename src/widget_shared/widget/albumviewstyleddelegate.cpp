@@ -20,6 +20,8 @@ namespace {
     constexpr auto kImageCacheSize = 24;
     constexpr auto kPaddingSize = 10;
 
+    XAMP_DECLARE_LOG_NAME(AlbumViewStyledDelegate);
+
     inline QRect moreButtonRect(const QStyleOptionViewItem& option, const QSize& cover_size) noexcept {
         const QRect more_button_rect(
             option.rect.left() + cover_size.width() - 10,
@@ -134,6 +136,7 @@ AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
     mask_image_ = image_util::roundDarkImage(qTheme.defaultCoverSize(),
         image_util::kDarkAlpha, image_util::kSmallImageRadius);
     cover_size_ = qTheme.defaultCoverSize();
+    logger_ = XAMP_LOG_CREATE_LOGGER(AlbumViewStyledDelegate);
 }
 
 void AlbumViewStyledDelegate::setAlbumTextColor(QColor color) {
@@ -269,20 +272,26 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     painter->drawText(artist_text_rect, Qt::AlignVCenter,
         artist_metrics.elidedText(artist, Qt::ElideRight, cover_size_.width() - kMoreIconSize));
 
-    // Perform search album cover
-    // Note: Calculate view visible is not necessary, Qt already done it. 
     if (isNullOfEmpty(cover_id)) {
         auto visible_albums = getVisibleAlbumId(option);
         if (visible_albums.contains(album_id)) {
+            XAMP_LOG_D(logger_, "Perform search album id: {}", album_id);
             emit findAlbumCover(DatabaseCoverId(kInvalidDatabaseId, album_id));
         }
         painter->drawPixmap(coverRect(option, cover_size_), qTheme.unknownCover());
     }
     else {
         auto cover_rect = coverRect(option, cover_size_);
-        auto cover = qImageCache.getOrDefault(kAlbumCacheTag, cover_id);
-        Q_ASSERT(!cover.isNull());
-        painter->drawPixmap(cover_rect, cover);
+        // Try get image from cache.
+        auto cache_cover = qImageCache.tryGet(kAlbumCacheTag, cover_id);
+        if (!cache_cover.has_value()) {
+            XAMP_LOG_D(logger_, "Request load album cover: {}", cover_id.toStdString());
+            emit requestLoad(kAlbumCacheTag, cover_id);
+            painter->drawPixmap(cover_rect, qTheme.unknownCover());
+        }
+        else {
+            painter->drawPixmap(cover_rect, cache_cover.value());
+        }
     }
 
     // Draw hit play button

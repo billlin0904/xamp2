@@ -9,13 +9,17 @@
 #include <widget/dao/musicdao.h>
 #include <widget/imagecache.h>
 
+XAMP_DECLARE_LOG_NAME(AlbumCoverService);
+
 AlbumCoverService::AlbumCoverService()
     : database_ptr_(getPooledDatabase(2))
     , nam_(this)
 	, http_client_(&nam_, QString(), this) {
+	logger_ = XAMP_LOG_CREATE_LOGGER(AlbumCoverService);
+    startTimer(6000);
 }
 
-void AlbumCoverService::cleaup() {
+void AlbumCoverService::cleanup() {
     database_ptr_.reset();
 }
 
@@ -40,7 +44,7 @@ void AlbumCoverService::onFetchArtistThumbnailUrl(int32_t artist_id, const QStri
                 return;
             }
             auto cover_id = qImageCache.addImage(image, false, false);
-            emit setAristThumbnail(artist_id, cover_id);
+            emit setArtistThumbnail(artist_id, cover_id);
             pending_request_urls_.erase(thumbnail_url);
             });
     }
@@ -164,7 +168,9 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
 
     try {
 	    const auto cover_id = album_dao.getAlbumCoverId(id.second.value());
-        if (!isNullOfEmpty(cover_id) && cover_id != qImageCache.unknownCoverId()) {			
+        if (!isNullOfEmpty(cover_id)
+            && cover_id != qImageCache.unknownCoverId()
+            && qImageCache.isFileExists(kAlbumCacheTag, cover_id)) {
             return;
         }
 
@@ -195,14 +201,32 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
             return;
         }
 
+		XAMP_LOG_D(logger_, "No embedded cover found in file: {}", QString::fromStdWString(music_file_path).toStdString());
+
         // 4. If not found embedded cover, try to find cover from album folder.
         cover = qImageCache.scanCoverFromDir(QString::fromStdWString(music_file_path));
         if (!cover.isNull()) {
             //cover = image_util::mergeImage({ cover });
             emit setAlbumCover(id.second.value(), qImageCache.addImage(cover, true));
+            return;
         }
+
+        XAMP_LOG_D(logger_, "No folder cover found in file: {}", QString::fromStdWString(music_file_path).toStdString());
 	}
 	catch (const std::exception &e) {
-        XAMP_LOG_DEBUG("Find album cover error: {}", e.what());
+        XAMP_LOG_D(logger_, "Find album cover error: {}", e.what());
 	}    
+}
+
+void AlbumCoverService::timerEvent(QTimerEvent*) {
+    request_load_cover_ids_.clear();
+}
+
+void AlbumCoverService::onRequestLoad(const QString& tag, const QString& cover_id) {
+	if (request_load_cover_ids_.contains(tag + cover_id)) {
+        return;
+    }
+	request_load_cover_ids_.insert(tag + cover_id);
+    qImageCache.getOrDefault(tag, cover_id);
+    XAMP_LOG_D(logger_, "Loaded album cover: {}", cover_id.toStdString());
 }

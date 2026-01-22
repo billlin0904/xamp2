@@ -20,7 +20,7 @@ namespace {
 }
 
 DSPManager::DSPManager() {
-    logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(DspManager));
+    logger_ = XAMP_LOG_CREATE_LOGGER(DspManager);
     pre_dsp_buffer_.resize(kDefaultBufSize);
     post_dsp_buffer_.resize(kDefaultBufSize);
 }

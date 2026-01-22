@@ -3,10 +3,12 @@
 #include <base/str_utilts.h>
 #include <base/logger.h>
 #include <base/logger_impl.h>
+#include <base/fastiostream.h>
 
 #include <stream/basslib.h>
 #include <stream/idsdstream.h>
 #include <stream/bassfilestream.h>
+#include <stream/mqafilestream.h>
 #include <stream/ifileencoder.h>
 #include <stream/bassaacfileencoder.h>
 #include <stream/bassparametriceq.h>
@@ -44,13 +46,10 @@ namespace {
 }
 
 bool IsDsdFile(const Path & path) {
-    std::ifstream file(path, std::ios_base::binary);
-    if (!file.is_open()) {
-        return false;
-    }
+    FastIOStream file_(path);
     std::array<char, 4> buffer{ 0 };
-    file.read(buffer.data(), buffer.size());
-    if (file.gcount() < 4) {
+    auto readbytes = file_.read(buffer.data(), buffer.size());
+    if (readbytes < 4) {
         return false;
     }
     const std::string_view file_chunks{ buffer.data(), 4 };
@@ -65,12 +64,23 @@ ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& filePath, float 
 	return MakeFileStream(filePath, dsd_mode, rate);
 }
 
-ScopedPtr<FileStream> StreamFactory::MakeFileStream() {
-    return MakeAlign<FileStream, BassFileStream>();
-}
-
 ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& file_path, DsdModes dsd_mode, float rate) {
-    auto file_stream = MakeFileStream();
+    ScopedPtr<FileStream> file_stream;
+
+    try {
+        MqaIdentifier identifier(file_path);
+        if (identifier.Detect()) {
+            if (identifier.IsMQA()) {
+                file_stream = MakeAlign<FileStream, MqaFileStream>();
+            }
+            else {
+                file_stream = MakeAlign<FileStream, BassFileStream>();
+            }
+        }
+    }
+    catch (...) {
+        file_stream = MakeAlign<FileStream, BassFileStream>();
+    }
 
     if (dsd_mode != DsdModes::DSD_MODE_PCM) {
         if (auto* dsd_stream = AsDsdStream(file_stream)) {
@@ -161,15 +171,16 @@ IDsdStream* AsDsdStream(FileStream* stream) noexcept {
 }
 
 std::expected<ArchiveFileStream, std::string> StreamFactory::MakeArchiveFileStream(const Path& archive_path, const std::wstring& archive_entry_name, float rate) {
-    ArchiveFile file;
-    auto file_stream = StreamFactory::MakeFileStream();
-    auto enitities = file.Open(archive_path);
+    ArchiveFile file_;
+    
+    auto enitities = file_.Open(archive_path);
     if (enitities.has_value()) {
-        auto archive_entiry = file.GetEntryByName(archive_entry_name);
+        auto archive_entiry = file_.GetEntryByName(archive_entry_name);
         if (archive_entiry.has_value()) {
+            auto file_stream = StreamFactory::MakeFileStream(archive_path);
             file_stream->Open(std::move(archive_entiry.value()), rate);
 			ArchiveFileStream result;
-			result.archive_file = std::move(file);
+			result.archive_file = std::move(file_);
 			result.file_stream = std::move(file_stream);
 			return result;
         }
@@ -179,7 +190,7 @@ std::expected<ArchiveFileStream, std::string> StreamFactory::MakeArchiveFileStre
 }
 
 ScopedPtr<FileStream> StreamFactory::MakeFileStream(ArchiveEntry archive_entry, DsdModes dsd_mode, float rate) {
-    auto file_stream = StreamFactory::MakeFileStream();
+    auto file_stream = MakeAlign<FileStream, BassFileStream>();
 
     if (dsd_mode != DsdModes::DSD_MODE_PCM) {
         if (auto* dsd_stream = AsDsdStream(file_stream)) {

@@ -23,7 +23,7 @@ NullOutputDevice::NullOutputDevice(const std::shared_ptr<IThreadPoolExecutor>& t
 	, buffer_frames_(0)
 	, callback_(nullptr)
 	, wait_time_(0)
-	, logger_(XampLoggerFactory.GetLogger(kNullOutputDeviceLoggerName))
+	, logger_(XampLoggerFactory.GetLogger(XAMP_LOG_NAME(NullOutputDevice)))
 	, thread_pool_(thread_pool) {
 }
 

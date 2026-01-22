@@ -122,7 +122,7 @@ SharedWasapiDevice::SharedWasapiDevice(bool is_low_latency, CComPtr<IMMDevice> c
 	, device_(device)
 	, callback_(nullptr)
 	, mmcss_name_(kMmcssProfileProAudio)
-	, logger_(XampLoggerFactory.GetLogger(kSharedWasapiDeviceLoggerName)) {
+	, logger_(XampLoggerFactory.GetLogger(XAMP_LOG_NAME(SharedWasapiDevice))) {
 }
 
 SharedWasapiDevice::~SharedWasapiDevice() {

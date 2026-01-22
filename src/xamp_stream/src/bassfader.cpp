@@ -12,11 +12,11 @@ XAMP_DECLARE_LOG_NAME(BassFader);
 class BassFader::BassFaderImpl {
 public:
     BassFaderImpl() {
-        logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(BassFader));
+        logger_ = XAMP_LOG_CREATE_LOGGER(BassFader);
     }
 
     void Start(uint32_t output_sample_rate) {
-        stream_.reset(BassLibDLL.BASS_StreamCreate(output_sample_rate,
+        impl_.reset(BassLibDLL.BASS_StreamCreate(output_sample_rate,
                                              AudioFormat::kMaxChannel,
                                              BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
                                              STREAMPROC_DUMMY,
@@ -30,7 +30,7 @@ public:
         volume_param.fTime = fade_time;
         volume_param.lCurve = 0;
         const auto fade_fx = BassLibDLL.BASS_ChannelSetFX(
-            stream_.get(),
+            impl_.get(),
             BASS_FX_VOLUME,
             0);
         BassIfFailedThrow(fade_fx);
@@ -42,10 +42,10 @@ public:
     }
 
     bool Process(float const * samples, size_t num_samples, BufferRef<float>& out) {
-        return bass_util::ReadStream(stream_, samples, num_samples, out);
+        return bass_util::ReadStream(impl_, samples, num_samples, out);
     }
 private:
-    BassStreamHandle stream_;
+    BassStreamHandle impl_;
     LoggerPtr logger_;
 };
 

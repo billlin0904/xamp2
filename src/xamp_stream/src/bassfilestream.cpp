@@ -134,7 +134,7 @@ public:
     BassFileStreamImpl() noexcept
         : mode_(DsdModes::DSD_MODE_PCM)
 		, download_size_(0) {
-        logger_ = XampLoggerFactory.GetLogger(kBassFileStreamLoggerName);
+        logger_ = XAMP_LOG_CREATE_LOGGER(BassFileStream);
         Close();
     }
 
@@ -152,7 +152,7 @@ public:
 
         if (mode == DsdModes::DSD_MODE_PCM) {
             io_stream_.open(file_path, FastIOStream::Mode::Read);
-            stream_.reset(BassLibDLL.BASS_StreamCreateFileUser(
+            impl_.reset(BassLibDLL.BASS_StreamCreateFileUser(
                 STREAMFILE_NOBUFFER,
                 flags | BASS_STREAM_DECODE,
                 &file_process,
@@ -161,7 +161,7 @@ public:
         }
         else {
             io_stream_.open(file_path, FastIOStream::Mode::Read);
-            stream_.reset(BassLibDLL.DSDLib->BASS_DSD_StreamCreateFileUser(
+            impl_.reset(BassLibDLL.DSDLib->BASS_DSD_StreamCreateFileUser(
                 STREAMFILE_NOBUFFER,
                 flags | BASS_STREAM_DECODE,
                 &file_process,
@@ -170,7 +170,7 @@ public:
             ));
             // BassLib DSD module default use 6dB gain.
             // 不設定的話會爆音!
-            BassLibDLL.BASS_ChannelSetAttribute(stream_.get(), BASS_ATTRIB_DSD_GAIN, 0.0f);
+            BassLibDLL.BASS_ChannelSetAttribute(impl_.get(), BASS_ATTRIB_DSD_GAIN, 0.0f);
         }
     }
 
@@ -183,7 +183,7 @@ public:
             if (is_cda_file) {
                 flags |= BASS_ASYNCFILE;
                 // Only for windows.
-                stream_.reset(BassLibDLL.BASS_StreamCreateFile(FALSE,
+                impl_.reset(BassLibDLL.BASS_StreamCreateFile(FALSE,
                     file_path.c_str(),
                     0,
                     0,
@@ -203,7 +203,7 @@ public:
                 this));
 #else
             auto url = const_cast<wchar_t*>(file_path.c_str());
-            stream_.reset(BassLibDLL.BASS_StreamCreateURL(
+            impl_.reset(BassLibDLL.BASS_StreamCreateURL(
                 url,
                 0,
                 flags | BASS_STREAM_DECODE | BASS_UNICODE | BASS_STREAM_STATUS,
@@ -212,7 +212,7 @@ public:
 #endif
         }
 
-        if (!stream_) {
+        if (!impl_) {
             throw BassException();
         }
     }
@@ -248,7 +248,7 @@ public:
         Stopwatch measure_stream_time;
 
         if (mode_ == DsdModes::DSD_MODE_PCM) {
-            stream_.reset(BassLibDLL.BASS_StreamCreateFileUser(
+            impl_.reset(BassLibDLL.BASS_StreamCreateFileUser(
                 STREAMFILE_BUFFER,
                 flags | BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
                 &file_process,
@@ -256,7 +256,7 @@ public:
             ));
         }
         else {
-            stream_.reset(BassLibDLL.DSDLib->BASS_DSD_StreamCreateFileUser(
+            impl_.reset(BassLibDLL.DSDLib->BASS_DSD_StreamCreateFileUser(
                 STREAMFILE_NOBUFFER,
                 flags | BASS_STREAM_DECODE,
                 &file_process,
@@ -313,7 +313,12 @@ public:
 
     void LoadStream(float rate) {
         info_ = BASS_CHANNELINFO{};        
-        BassIfFailedThrow(BassLibDLL.BASS_ChannelGetInfo(stream_.get(), &info_));        
+        BassIfFailedThrow(BassLibDLL.BASS_ChannelGetInfo(impl_.get(), &info_)); 
+
+        if (mode_ == DsdModes::DSD_MODE_DOP || mode_ == DsdModes::DSD_MODE_NATIVE) {
+            CheckZeroDuration();
+            return;
+        }
 
         if (GetFormat().GetChannels() == AudioFormat::kMaxChannel) {
             CreateTempoStream();
@@ -334,7 +339,7 @@ public:
 
             BassIfFailedThrow(
                 BassLibDLL.MixLib->BASS_Mixer_StreamAddChannel(mix_stream_.get(),
-                    stream_.get(),
+                    impl_.get(),
                     BASS_MIXER_BUFFER));
             XAMP_LOG_D(logger_,
                 "Mix stream {} channel to 2 channel", info_.chans);
@@ -400,7 +405,7 @@ public:
 
     void Close() noexcept {   
         tempo_stream_.reset();
-        stream_.reset();
+        impl_.reset();
         mix_stream_.reset();        
         io_stream_.close();
         mode_ = DsdModes::DSD_MODE_PCM;
@@ -425,7 +430,7 @@ public:
     }
 
     [[nodiscard]] double GetSourceDurationSeconds() const {
-        return GetHStreamDuration(stream_.get());
+        return GetHStreamDuration(impl_.get());
     }
 
     [[nodiscard]] double GetDuration() const {
@@ -556,7 +561,7 @@ public:
         if (mix_stream_.is_valid()) {
             return mix_stream_.get();
         }
-        return stream_.get();
+        return impl_.get();
     }
 
     [[nodiscard]] bool IsActive() const noexcept {
@@ -605,7 +610,7 @@ private:
     }
 
     HSTREAM GetSourceStream() const noexcept {
-        return stream_.get();
+        return impl_.get();
     }
 
     void CreateTempoStream() {
@@ -615,7 +620,7 @@ private:
             return;
         }
 
-        const HSTREAM base = (mix_stream_.is_valid() ? mix_stream_.get() : stream_.get());
+        const HSTREAM base = (mix_stream_.is_valid() ? mix_stream_.get() : impl_.get());
         if (!base) {
             return;
         }
@@ -632,7 +637,7 @@ private:
     bool tempo_enabled_ = true;
     float playback_rate_ = 1.0f;    
     size_t download_size_;
-    BassStreamHandle stream_;
+    BassStreamHandle impl_;
     BassStreamHandle mix_stream_;
     BassStreamHandle tempo_stream_;
     BASS_CHANNELINFO info_;
@@ -642,101 +647,101 @@ private:
 };
 
 BassFileStream::BassFileStream()
-    : stream_(MakeAlign<BassFileStreamImpl>()) {
+    : impl_(MakeAlign<BassFileStreamImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(BassFileStream)
 
 void BassFileStream::OpenFile(Path const& file_path, float rate)  {
-    stream_->Open(file_path, rate);
+    impl_->Open(file_path, rate);
 }
 
 void BassFileStream::Open(ArchiveEntry archive_entry, float rate) {
-    stream_->Open(std::move(archive_entry), rate);
+    impl_->Open(std::move(archive_entry), rate);
 }
 
 void BassFileStream::Close() noexcept {
-    stream_->Close();
+    impl_->Close();
 }
 
 bool BassFileStream::EndOfStream() const {
-    return stream_->EndOfStream();
+    return impl_->EndOfStream();
 }
 
 double BassFileStream::GetDuration() const {
-    return stream_->GetDuration();
+    return impl_->GetDuration();
 }
 
 AudioFormat BassFileStream::GetFormat() const {
-    return stream_->GetFormat();
+    return impl_->GetFormat();
 }
 
 void BassFileStream::Seek(double stream_time) const {
-    stream_->Seek(stream_time);
+    impl_->Seek(stream_time);
 }
 
 uint32_t BassFileStream::GetSamples(void *buffer, uint32_t length) const {
-    return stream_->GetSamples(buffer, length);
+    return impl_->GetSamples(buffer, length);
 }
 
 void BassFileStream::SetDSDMode(DsdModes mode) noexcept {
-    stream_->SetDSDMode(mode);
+    impl_->SetDSDMode(mode);
 }
 
 DsdModes BassFileStream::GetDsdMode() const noexcept {
-    return stream_->GetDSDMode();
+    return impl_->GetDSDMode();
 }
 
 bool BassFileStream::IsDsdFile() const noexcept {
-    return stream_->IsDsdFile();
+    return impl_->IsDsdFile();
 }
 
 uint32_t BassFileStream::GetDsdSampleRate() const {
-    return stream_->GetDsdSampleRate();
+    return impl_->GetDsdSampleRate();
 }
 
 uint32_t BassFileStream::GetSampleSize() const noexcept {
-    return stream_->GetSampleSize();
+    return impl_->GetSampleSize();
 }
 
 DsdFormat BassFileStream::GetDsdFormat() const noexcept {
-    return stream_->GetDsdFormat();
+    return impl_->GetDsdFormat();
 }
 
 void BassFileStream::SetDsdToPcmSampleRate(uint32_t sample_rate) {
-    stream_->SetDsdToPcmSampleRate(sample_rate);
+    impl_->SetDsdToPcmSampleRate(sample_rate);
 }
 
 uint32_t BassFileStream::GetDsdSpeed() const {
-    return stream_->GetDsdSpeed();
+    return impl_->GetDsdSpeed();
 }
 
 uint32_t BassFileStream::GetBitDepth() const {
-    return stream_->GetBitDepth();
+    return impl_->GetBitDepth();
 }
 
 uint32_t BassFileStream::GetBitRate() const {
-    return stream_->GetBitRate();
+    return impl_->GetBitRate();
 }
 
 uint32_t BassFileStream::GetHStream() const noexcept {
-    return stream_->GetHStream();
+    return impl_->GetHStream();
 }
 
 bool BassFileStream::IsActive() const noexcept {
-    return stream_->IsActive();
+    return impl_->IsActive();
 }
 
 bool BassFileStream::SupportDOP() const noexcept {
-    return stream_->SupportDOP();
+    return impl_->SupportDOP();
 }
 
 bool BassFileStream::SupportDOP_AA() const noexcept {
-    return stream_->SupportDOP_AA();
+    return impl_->SupportDOP_AA();
 }
 
 bool BassFileStream::SupportNativeSD() const noexcept {
-    return stream_->SupportNativeSD();
+    return impl_->SupportNativeSD();
 }
 
 XAMP_STREAM_NAMESPACE_END

@@ -44,7 +44,7 @@ private:
 };
 
 SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::SharedWasapiDeviceTypeImpl() {
-	logger_ = XampLoggerFactory.GetLogger(kSharedWasapiDeviceLoggerName);
+	logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(SharedWasapiDevice));
 }
 
 void SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::ScanNewDevice() {
@@ -168,14 +168,6 @@ SharedWasapiDeviceType::SharedWasapiDeviceType()
 
 void SharedWasapiDeviceType::ScanNewDevice() {
 	impl_->ScanNewDevice();
-}
-
-std::string_view SharedWasapiDeviceType::GetDescription() const {
-	return Description;
-}
-
-Uuid SharedWasapiDeviceType::GetTypeId() const {
-	return XAMP_UUID_OF(SharedWasapiDeviceType);
 }
 
 size_t SharedWasapiDeviceType::GetDeviceCount() const {

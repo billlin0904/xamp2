@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 xamp project. All rights reserved.
+// Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -236,13 +236,13 @@ private:
 	CComHeapPtr<WAVEFORMATEX> mix_format_;
 	Buffer<float> buffer_;
 	IAudioCallback* callback_;
-	LoggerPtr logger_;
 	Future<void> render_task_;
 	FastMutex mutex_;
 	std::shared_ptr<IThreadPoolExecutor> thread_pool_;
 	AudioConverter convert_;
 	mutable AudioConvertContext data_convert_;
 	GlitchDetector glitch_detector_;
+	LoggerPtr logger_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

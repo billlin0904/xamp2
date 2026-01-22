@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 xamp project. All rights reserved.
+// Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -12,6 +12,7 @@
 #include <base/base.h>
 #include <base/memory.h>
 #include <base/stl.h>
+#include <base/uuid_class.h>
 
 #include <string>
 #include <memory>
@@ -28,7 +29,7 @@ XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN
 * IDeviceType is the interface for device type.
 * 
 */
-class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE IDeviceType {
+class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE IDeviceType : public IUUIDClass {
 public:
 	XAMP_BASE_CLASS(IDeviceType)
 
@@ -37,20 +38,6 @@ public:
 	* 
 	*/
 	virtual void ScanNewDevice() = 0;
-
-	/*
-	* Get device description.
-	* 
-	* @return std::string_view
-	*/
-	[[nodiscard]] virtual std::string_view GetDescription() const = 0;
-
-	/*
-	* Get device type id.
-	* 
-	* @return type id.
-	*/
-	[[nodiscard]] virtual Uuid GetTypeId() const = 0;
 
 	/*
 	* Make device.

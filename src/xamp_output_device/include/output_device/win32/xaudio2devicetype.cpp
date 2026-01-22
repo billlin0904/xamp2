@@ -40,7 +40,7 @@ private:
 };
 
 XAudio2DeviceType::XAudio2DeviceTypeImpl::XAudio2DeviceTypeImpl() noexcept {
-	logger_ = XampLoggerFactory.GetLogger(kXAudio2DeviceTypeLoggerName);	
+	logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(XAudio2DeviceType));	
 }
 
 XAudio2DeviceType::XAudio2DeviceTypeImpl::~XAudio2DeviceTypeImpl() = default;
@@ -160,14 +160,6 @@ XAudio2DeviceType::XAudio2DeviceType()
 
 void XAudio2DeviceType::ScanNewDevice() {
 	impl_->ScanNewDevice();
-}
-
-std::string_view XAudio2DeviceType::GetDescription() const {
-	return Description;
-}
-
-Uuid XAudio2DeviceType::GetTypeId() const {
-	return XAMP_UUID_OF(XAudio2DeviceType);
 }
 
 size_t XAudio2DeviceType::GetDeviceCount() const {

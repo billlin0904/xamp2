@@ -133,7 +133,7 @@ namespace http {
         const QString& url, QObject* parent)
         : manager_(nam)
 		, url_(url) {
-    	logger_ = XampLoggerFactory.GetLogger(kHttpLoggerName);
+    	logger_ = XAMP_LOG_CREATE_LOGGER(Http);
         manager_->setCache(new NetworkDiskCache(parent));
     }
 
@@ -401,16 +401,16 @@ namespace http {
                 .arg(file_name)));
         filePart.setHeader(QNetworkRequest::ContentTypeHeader, QVariant(mime_type));
 
-        auto* file = new QFile(file_path);
-        if (!file->open(QIODevice::ReadOnly)) {
+        auto* file_ = new QFile(file_path);
+        if (!file_->open(QIODevice::ReadOnly)) {
             // 打不開檔案就直接丟錯或回傳失敗
-            file->deleteLater();
+            file_->deleteLater();
             delete multiPart;
             // 也可改用 throw std::runtime_error(...) 或 co_return 空字串
             co_return QByteArray();
         }
-        filePart.setBodyDevice(file);
-        file->setParent(multiPart); // 生命週期交給 multiPart
+        filePart.setBodyDevice(file_);
+        file_->setParent(multiPart); // 生命週期交給 multiPart
 
         multiPart->append(filePart);
 

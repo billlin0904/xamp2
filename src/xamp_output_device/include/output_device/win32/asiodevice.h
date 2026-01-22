@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 xamp project. All rights reserved.
+// Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -295,9 +295,9 @@ private:
 
 	bool is_hardware_control_volume_;
 	bool is_removed_driver_;
-	std::atomic<bool> is_stopped_;
-	std::atomic<bool> is_streaming_;
-	std::atomic<bool> is_stop_streaming_;
+	mutable std::atomic<bool> is_stopped_;
+	mutable std::atomic<bool> is_streaming_;
+	mutable std::atomic<bool> is_stop_streaming_;
 	int64_t latency_;
 	DsdIoFormat io_format_;
 	DsdFormat sample_format_;
@@ -305,12 +305,12 @@ private:
 	size_t buffer_size_;
 	size_t buffer_bytes_;
 	std::atomic<int64_t> output_bytes_;	
-	mutable FastMutex mutex_;
-	FastConditionVariable condition_;
+	mutable std::mutex mutex_;
+	std::condition_variable condition_;
 	AudioFormat format_;
 	std::vector<ASIOClockSource> clock_source_;	
 	IAudioCallback* callback_;
-	std::function<bool(long, double, size_t&)> get_samples_;
+	std::move_only_function<bool(long, double, size_t&)> get_samples_;
 	LoggerPtr logger_;
 	std::string device_id_;
 	Buffer<std::byte> buffer_;

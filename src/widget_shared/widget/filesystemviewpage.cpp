@@ -276,31 +276,37 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
             
             });
 
-        Path file_path;
-		while (extract_zip_file_paths.try_dequeue(file_path)) {
-            ArchiveFile archive_file;
-            auto entities = archive_file.Open(file_path);
-            for (const auto& entity_name : entities.value()) {
-                auto entity = archive_file.GetEntryByName(entity_name);
-                if (!entity.has_value()) {
-                    XAMP_LOG_DEBUG("Failed to get entry by name: {}", entity.error());
-                    continue;
-                }
-                auto reader = MakeMetadataReader();
-                reader->Open(std::move(entity.value()));
-                auto track_info = reader->Extract();
-                if (track_info) {
-                    if (track_info.value().sample_rate == 0) {
-                        // Workaround for sample rate is 0
-                        XAMP_LOG_DEBUG("Try read sample use file stream.");
-                        auto file_stream = StreamFactory::MakeFileStream(file_path);
-                        file_stream->OpenFile(file_path);
-                        auto sampler_rate = file_stream->GetFormat().GetSampleRate();
-                        track_info.value().sample_rate = sampler_rate;
+        try {
+            Path file_path;
+            while (extract_zip_file_paths.try_dequeue(file_path)) {
+                ArchiveFile archive_file;
+                auto entities = archive_file.Open(file_path);
+                for (const auto& entity_name : entities.value()) {
+                    auto entity = archive_file.GetEntryByName(entity_name);
+                    if (!entity.has_value()) {
+                        XAMP_LOG_DEBUG("Failed to get entry by name: {}", entity.error());
+                        continue;
                     }
-                    track_queue.enqueue(track_info.value());
+                    auto reader = MakeMetadataReader();
+                    reader->Open(std::move(entity.value()));
+                    auto track_info = reader->Extract();
+                    if (track_info) {
+                        if (track_info.value().sample_rate == 0) {
+                            // Workaround for sample rate is 0
+                            XAMP_LOG_DEBUG("Try read sample use file stream.");
+                            auto file_stream = StreamFactory::MakeFileStream(file_path);
+                            file_stream->OpenFile(file_path);
+                            auto sampler_rate = file_stream->GetFormat().GetSampleRate();
+                            track_info.value().sample_rate = sampler_rate;
+
+                        }
+                        track_queue.enqueue(track_info.value());
+                    }
                 }
             }
+        }
+        catch (const Exception& e) {
+            XAMP_LOG_DEBUG("{}", e.what());
         }
 
         std::forward_list<TrackInfo> track_infos;

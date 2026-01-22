@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 xamp project. All rights reserved.
+// Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -97,7 +97,7 @@ public:
 
 	std::expected<ArchiveEntry, std::string> GetEntryByName(const std::wstring& entry_name);
 
-	static std::vector<std::expected<ArchiveEntry, std::string>> GetAllEntry(ArchiveFile &file);
+	static std::vector<std::expected<ArchiveEntry, std::string>> GetAllEntry(ArchiveFile &file_);
 private:
 	class ArchiveFileImpl;
 	ScopedPtr<ArchiveFileImpl> impl_;

@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 xamp project. All rights reserved.
+// Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -83,6 +83,9 @@ signals:
 	void findAlbumCover(const DatabaseCoverId& id) const;
 
 	void stopRefreshCover() const;
+
+	void requestLoad(const QString& tag, const QString& cover_id) const;
+
 protected:
 	bool editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) override;
 
@@ -103,5 +106,6 @@ private:
 	QScopedPointer<QPushButton> more_album_opt_button_;
 	QScopedPointer<QPushButton> play_button_;
 	QScopedPointer<QCheckBox> edit_mode_checkbox_;
+	LoggerPtr logger_;
 };
 

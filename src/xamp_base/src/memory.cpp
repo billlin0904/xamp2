@@ -29,12 +29,12 @@ bool PrefetchMemory(void* addr, size_t length) noexcept {
 	_WIN32_MEMORY_RANGE_ENTRY address_range{ addr, length };
 	const WinHandle current_process(::GetCurrentProcess());
 	if (::PrefetchVirtualMemory(current_process.get(), 1, &address_range, 0)) {
-		volatile uint8_t dummy = 0;
+		/*volatile uint8_t dummy = 0;
 		auto page_size = GetPageSize();
 		const uint8_t* base = static_cast<const uint8_t*>(addr);
 		for (size_t i = 0; i < length; i += page_size) {
 			dummy ^= base[i];
-		}
+		}*/
 		return true;
 	}
 	return false;
@@ -49,9 +49,9 @@ bool PrefetchMemory(void* adddr, size_t length) noexcept {
 }
 #endif
 
-bool PrefetchFile(MemoryMappedFile &file, size_t prefech_size) {
-    const auto prefetch_file_size = (std::min)(prefech_size, file.GetLength());
-	if (PrefetchMemory(const_cast<void*>(file.GetData()), prefetch_file_size)) {		
+bool PrefetchFile(MemoryMappedFile &file_, size_t prefech_size) {
+    const auto prefetch_file_size = (std::min)(prefech_size, file_.GetLength());
+	if (PrefetchMemory(const_cast<void*>(file_.GetData()), prefetch_file_size)) {		
 		return true;
 	}
 	return false;
@@ -86,9 +86,9 @@ bool PrefetchFile(std::wstring const & file_path) {
 	}
 	return true;
 #else
-	MemoryMappedFile file;
-	if (file.Open(file_path)) {
-		return PrefetchFile(file);
+	MemoryMappedFile file_;
+	if (file_.Open(file_path)) {
+		return PrefetchFile(file_);
 	}
 	return false;
 #endif

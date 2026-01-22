@@ -607,10 +607,10 @@ void LrcPage::initial() {
 				+ "\\"_str
 				+ entity_.file_name.trimmed()
 				+ ".krc"_str;
-			QSaveFile file(krc_file_name);
-			file.open(QIODevice::WriteOnly);
-			file.write(parser.content);
-			if (!file.commit()) {
+			QSaveFile file_(krc_file_name);
+			file_.open(QIODevice::WriteOnly);
+			file_.write(parser.content);
+			if (!file_.commit()) {
 				XAMP_LOG_DEBUG("Save lrc file failure!");
 			}
 			lyrics_widget_->loadFromParser(parser.parser);

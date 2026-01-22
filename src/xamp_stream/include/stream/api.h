@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2025 xamp project. All rights reserved.
+// Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -42,8 +42,6 @@ public:
 	static std::expected<ArchiveFileStream, std::string> MakeArchiveFileStream(const Path& archive_path,
         const std::wstring& archive_entry_name,
         float rate = 0.0f);
-
-    static ScopedPtr<FileStream> MakeFileStream();
 
     // Create an AAC encoder object
     static ScopedPtr<IFileEncoder> MakeFileEncoder();

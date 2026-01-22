@@ -223,7 +223,7 @@ void Xamp::destroy() {
     qAppSettings.saveLogConfig();
 
     playlist_tab_page_->tabWidget()->saveTabOrder();
-    album_cover_service_->cleaup();
+    album_cover_service_->cleanup();
     qGuiDb.Close();
 
     XAMP_LOG_DEBUG("Xamp destroy!");
@@ -482,9 +482,15 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         &Xamp::onSetThumbnail);
 
     (void)QObject::connect(album_cover_service_.get(),
-        &AlbumCoverService::setAristThumbnail,
+        &AlbumCoverService::setArtistThumbnail,
         this,
         &Xamp::onSetAristThumbnail);
+
+    (void)QObject::connect(library_page_->album()->styledDelegate(),
+        &AlbumViewStyledDelegate::requestLoad,
+        album_cover_service_.get(),
+        &AlbumCoverService::onRequestLoad,
+        Qt::QueuedConnection);
 
     connectThemeChangedSignal();
 
@@ -1319,7 +1325,7 @@ void Xamp::setupDsp(const PlayListEntity& item) const {
         }
     }
     else {
-        float replay_gain = 0;
+        /*float replay_gain = 0;
         auto mode = qAppSettings.valueAsEnum<ReplayGainMode>(kAppSettingReplayGainMode);
         if (mode == ReplayGainMode::RG_TRACK_MODE) {
             if (item.replay_gain) {
@@ -1340,7 +1346,7 @@ void Xamp::setupDsp(const PlayListEntity& item) const {
     	else {
             player_->GetDspManager()->RemoveEqualizer();
             player_->GetDspManager()->RemoveParametricEq();
-        }
+        }*/
     }
 }
 
@@ -1437,7 +1443,8 @@ void Xamp::onPlayEntity(PlaylistPage* playlist_page,
 
     QString sample_rate_converter_type;    
     uint32_t target_sample_rate = 0;
-    auto byte_format = ByteFormat::SINT32;
+    //auto byte_format = ByteFormat::SINT32;
+    auto byte_format = ByteFormat::SINT24;
     std::function<void()> sample_rate_converter_factory;
 
     player_->Stop();

@@ -154,11 +154,11 @@ std::expected<ArchiveEntry, std::string> ArchiveFile::GetEntryByName(const std::
 	return impl_->GetEntryByName(entry_name);
 }
 
-std::vector<std::expected<ArchiveEntry, std::string>> ArchiveFile::GetAllEntry(ArchiveFile& file) {
+std::vector<std::expected<ArchiveEntry, std::string>> ArchiveFile::GetAllEntry(ArchiveFile& file_) {
 	std::vector<std::expected<ArchiveEntry, std::string>> entries;
 
-	for (const auto& entry : file.ListEntries()) {
-		entries.push_back(file.GetEntryByName(entry));
+	for (const auto& entry : file_.ListEntries()) {
+		entries.push_back(file_.GetEntryByName(entry));
 	}
 	return entries;
 }

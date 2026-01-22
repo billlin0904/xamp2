@@ -138,7 +138,7 @@ namespace {
 BackgroundService::BackgroundService()
     : nam_(this)
 	, http_client_(&nam_, QString(), this) {
-    logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(BackgroundService));
+    logger_ = XAMP_LOG_CREATE_LOGGER(BackgroundService);
     thread_pool_ = ThreadPoolBuilder::MakeBackgroundThreadPool();
 }
 
@@ -167,7 +167,7 @@ BackgroundService::makeUniqueFile(const EncodeJob &job,
     std::shared_ptr<FastIOStream> file_writer;
     Path output_path;
 
-    auto file_name = getValidFileName(job.file.file_name);
+    auto file_name = getValidFileName(job.file_.file_name);
 
     // Ensure file name is unique.
     constexpr auto kMaxRetryTestUniqueFileName = 128;
@@ -225,7 +225,7 @@ void BackgroundService::executeEncodeJob(const QString& dir_name, const EncodeJo
         return;
     }
 
-    Path input_path(job.file.file_path.toStdWString());
+    Path input_path(job.file_.file_path.toStdWString());
     auto stop_token = stop_source_.get_token();
 
     try {
@@ -264,13 +264,13 @@ void BackgroundService::executeEncodeJob(const QString& dir_name, const EncodeJo
 
         TagIO output_io;
         output_io.Open(output_path, TAG_IO_WRITE_MODE);
-        output_io.writeArtist(job.file.artist);
-        output_io.writeTitle(job.file.title);
-        output_io.writeAlbum(job.file.album);
-        output_io.writeComment(job.file.comment);
-        output_io.writeGenre(job.file.genre);
-        output_io.writeTrack(job.file.track);
-        output_io.writeYear(job.file.year);
+        output_io.writeArtist(job.file_.artist);
+        output_io.writeTitle(job.file_.title);
+        output_io.writeAlbum(job.file_.album);
+        output_io.writeComment(job.file_.comment);
+        output_io.writeGenre(job.file_.genre);
+        output_io.writeTrack(job.file_.track);
+        output_io.writeYear(job.file_.year);
 
         TagIO input_io;
         input_io.Open(input_path, TAG_IO_READ_MODE);
@@ -479,7 +479,7 @@ void BackgroundService::onAddJobs(const QString& dir_name, const QList<EncodeJob
 
     QList<EncodeJob> parallel_jobs;
 	Q_FOREACH(auto job, jobs) {
-		if (job.file.disc_id.isEmpty()) {
+		if (job.file_.disc_id.isEmpty()) {
 			parallel_jobs.push_back(job);
 		}
 		else {

@@ -1,5 +1,5 @@
 //====================================================================================================================
-// Copyright (c) 2018-2025 xamp project. All rights reserved.
+// Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -74,7 +74,7 @@ XAMP_BASE_API uint64_t GetSystemEntropy() noexcept;
 
 XAMP_BASE_API void CpuRelax() noexcept;
 
-XAMP_BASE_API void Assert(const char* message, const char* file, uint32_t line);
+XAMP_BASE_API void Assert(const char* message, const char* file_, uint32_t line);
 
 XAMP_BASE_API std::string GetSequentialUUID();
 

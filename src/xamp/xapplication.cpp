@@ -22,7 +22,7 @@ XAMP_DECLARE_LOG_NAME(XApplication);
 
 XApplication::XApplication(int& argc, char* argv[])
 	: QApplication(argc, argv) {
-	logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(XApplication));
+	logger_ = XAMP_LOG_CREATE_LOGGER(XApplication);
 
 	QLocalSocket socket;
 	socket.connectToServer(applicationName());

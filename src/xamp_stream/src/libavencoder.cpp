@@ -106,7 +106,7 @@ namespace {
                         AudioConvertContext ctx;
                         ctx.convert_size = read_samples / 2;
                         // SSE convert: float => 24-bit (packed in 32bit)
-                        DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Convert(
+                        DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::ConvertToInt32(
                             reinterpret_cast<int32_t*>(frame->data[0]), input, ctx);
                         };
                 }
@@ -255,8 +255,8 @@ public:
             throw Exception("Encoder codec id not found.");
         }
 
-        stream_ = LibAvDLL.Format->avformat_new_stream(format_context_.get(), av_codec);
-        if (!stream_) {
+        impl_ = LibAvDLL.Format->avformat_new_stream(format_context_.get(), av_codec);
+        if (!impl_) {
             throw Exception("Failed to create new stream.");
         }
 
@@ -282,24 +282,24 @@ public:
         }
 
         // stream_ 的 codecpar 初始化
-        stream_->id = format_context_->nb_streams - 1;
-        stream_->codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
-        stream_->codecpar->codec_id = codec_id;
-        stream_->codecpar->channel_layout = kDefaultChannelLayout;
-        stream_->codecpar->channels = format.GetChannels();
-        stream_->codecpar->sample_rate = format.GetSampleRate();
-        stream_->codecpar->format = sample_format;
+        impl_->id = format_context_->nb_streams - 1;
+        impl_->codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
+        impl_->codecpar->codec_id = codec_id;
+        impl_->codecpar->channel_layout = kDefaultChannelLayout;
+        impl_->codecpar->channels = format.GetChannels();
+        impl_->codecpar->sample_rate = format.GetSampleRate();
+        impl_->codecpar->format = sample_format;
 
         if (codec_type_ != "pcm") {
-            stream_->codecpar->frame_size = kFrameSize;
+            impl_->codecpar->frame_size = kFrameSize;
         }
         else {
-            stream_->codecpar->frame_size = 0;
+            impl_->codecpar->frame_size = 0;
         }
 
         // 時基 (time_base) 設定
-        stream_->time_base = AVRational{ 1, static_cast<int32_t>(format.GetSampleRate()) };
-        codec_context_->time_base = stream_->time_base;
+        impl_->time_base = AVRational{ 1, static_cast<int32_t>(format.GetSampleRate()) };
+        codec_context_->time_base = impl_->time_base;
 
         // 如果封裝需要全域 header (如 MP4/M4A)
         if (format_context_->oformat->flags & AVFMT_GLOBALHEADER) {
@@ -357,7 +357,7 @@ public:
 
         // 將 codec_context 參數複製到 stream_->codecpar
         AvIfFailedThrow(LibAvDLL.Codec->avcodec_parameters_from_context(
-            stream_->codecpar, codec_context_.get()));
+            impl_->codecpar, codec_context_.get()));
 
         // 寫入容器標頭
         AvIfFailedThrow(LibAvDLL.Format->avformat_write_header(
@@ -555,7 +555,7 @@ private:
     //--------------------------------------------------------------------------
     uint32_t aac_bit_rate_{ 0 };
     int64_t pts_{ 0 };
-    AVStream* stream_{ nullptr };
+    AVStream* impl_{ nullptr };
     std::string codec_type_;
     std::string file_name_;
 
@@ -580,8 +580,8 @@ LibAbFileEncoder::LibAbFileEncoder()
 
 XAMP_PIMPL_IMPL(LibAbFileEncoder)
 
-void LibAbFileEncoder::Start(const AnyMap& config, const std::shared_ptr<FastIOStream>& file) {
-    impl_->Start(config, file);
+void LibAbFileEncoder::Start(const AnyMap& config, const std::shared_ptr<FastIOStream>& file_) {
+    impl_->Start(config, file_);
 }
 
 void LibAbFileEncoder::Encode(std::function<bool(uint32_t)> const& progress,

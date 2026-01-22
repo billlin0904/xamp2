@@ -5,56 +5,56 @@
 #include <QNetworkDiskCache>
 
 QMutex NetworkDiskCache::mutex_;
-QNetworkDiskCache* NetworkDiskCache::cache_ = nullptr;
+QNetworkDiskCache* NetworkDiskCache::thumbnail_cache_ = nullptr;
 
 NetworkDiskCache::NetworkDiskCache(QObject* parent)
 	: QAbstractNetworkCache(parent) {
 	QMutexLocker l(&mutex_);
-	if (!cache_) {
-		cache_ = new QNetworkDiskCache(parent);
-		cache_->setCacheDirectory(qAppSettings.getOrCreateCachePath());
-		cache_->setMaximumCacheSize(5 * 1024 * 1024);
+	if (!thumbnail_cache_) {
+		thumbnail_cache_ = new QNetworkDiskCache(parent);
+		thumbnail_cache_->setCacheDirectory(qAppSettings.getOrCreateCachePath());
+		thumbnail_cache_->setMaximumCacheSize(5 * 1024 * 1024);
 	}	
 }
 
 qint64 NetworkDiskCache::cacheSize() const {
 	QMutexLocker l(&mutex_);
-	return cache_->cacheSize();
+	return thumbnail_cache_->cacheSize();
 }
 
 QIODevice* NetworkDiskCache::data(const QUrl& url) {
 	QMutexLocker l(&mutex_);
-	return cache_->data(url);
+	return thumbnail_cache_->data(url);
 }
 
 void NetworkDiskCache::insert(QIODevice* device) {
 	QMutexLocker l(&mutex_);
-	cache_->insert(device);
+	thumbnail_cache_->insert(device);
 }
 
 QNetworkCacheMetaData NetworkDiskCache::metaData(const QUrl& url) {
 	QMutexLocker l(&mutex_);
-	return cache_->metaData(url);
+	return thumbnail_cache_->metaData(url);
 }
 
 QIODevice* NetworkDiskCache::prepare(
 	const QNetworkCacheMetaData& metaData) {
 	QMutexLocker l(&mutex_);
-	return cache_->prepare(metaData);
+	return thumbnail_cache_->prepare(metaData);
 }
 
 bool NetworkDiskCache::remove(const QUrl& url) {
 	QMutexLocker l(&mutex_);
-	return cache_->remove(url);
+	return thumbnail_cache_->remove(url);
 }
 
 void NetworkDiskCache::updateMetaData(
 	const QNetworkCacheMetaData& metaData) {
 	QMutexLocker l(&mutex_);
-	cache_->updateMetaData(metaData);
+	thumbnail_cache_->updateMetaData(metaData);
 }
 
 void NetworkDiskCache::clear() {
 	QMutexLocker l(&mutex_);
-	cache_->clear();
+	thumbnail_cache_->clear();
 }
