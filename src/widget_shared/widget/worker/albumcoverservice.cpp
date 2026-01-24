@@ -16,7 +16,6 @@ AlbumCoverService::AlbumCoverService()
     , nam_(this)
 	, http_client_(&nam_, QString(), this) {
 	logger_ = XAMP_LOG_CREATE_LOGGER(AlbumCoverService);
-    startTimer(6000);
 }
 
 void AlbumCoverService::cleanup() {
@@ -25,6 +24,7 @@ void AlbumCoverService::cleanup() {
 
 void AlbumCoverService::enableFetchThumbnail(bool enable) {
     enable_ = enable;
+    startTimer(6000);
 }
 
 void AlbumCoverService::onFetchArtistThumbnailUrl(int32_t artist_id, const QString& thumbnail_url) {

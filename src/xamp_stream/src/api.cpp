@@ -56,30 +56,41 @@ bool IsDsdFile(const Path & path) {
     return IsDsdFileChunk(file_chunks);
 }
 
-ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& filePath, float rate) {
+ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& filePath, float rate, bool use_mqa_decode) {
     auto dsd_mode = DsdModes::DSD_MODE_DSD2PCM;
     if (!IsDsdFile(filePath)) {
         dsd_mode = DsdModes::DSD_MODE_PCM;
     }
-	return MakeFileStream(filePath, dsd_mode, rate);
+	return MakeFileStream(filePath, dsd_mode, rate, use_mqa_decode);
 }
 
-ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& file_path, DsdModes dsd_mode, float rate) {
+ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& file_path,
+    DsdModes dsd_mode, 
+    float rate,
+    bool use_mqa_decode) {
     ScopedPtr<FileStream> file_stream;
 
-    try {
-        MqaIdentifier identifier(file_path);
-        if (identifier.Detect()) {
-            if (identifier.IsMQA()) {
-                file_stream = MakeAlign<FileStream, MqaFileStream>();
+    if (use_mqa_decode) {
+        try {
+            MqaIdentifier identifier(file_path);
+            if (identifier.Detect()) {
+                if (identifier.IsMQA()) {
+                    file_stream = MakeAlign<FileStream, MqaFileStream>();
+                }
+                else {
+                    file_stream = MakeAlign<FileStream, BassFileStream>();
+                }
             }
             else {
                 file_stream = MakeAlign<FileStream, BassFileStream>();
             }
         }
+        catch (...) {
+            file_stream = MakeAlign<FileStream, BassFileStream>();
+        }
     }
-    catch (...) {
-        file_stream = MakeAlign<FileStream, BassFileStream>();
+    else {
+		file_stream = MakeAlign<FileStream, BassFileStream>();
     }
 
     if (dsd_mode != DsdModes::DSD_MODE_PCM) {
@@ -114,7 +125,8 @@ ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& file_path, DsdMo
             dsd_stream->SetDSDMode(dsd_mode);
         }
     }
-    file_stream->OpenFile(file_path, rate);
+	file_stream->SetRate(rate);
+    file_stream->OpenFile(file_path);
     return file_stream;
 }
 
@@ -170,15 +182,19 @@ IDsdStream* AsDsdStream(FileStream* stream) noexcept {
     return dynamic_cast<IDsdStream*>(stream);
 }
 
-std::expected<ArchiveFileStream, std::string> StreamFactory::MakeArchiveFileStream(const Path& archive_path, const std::wstring& archive_entry_name, float rate) {
+std::expected<ArchiveFileStream, std::string> StreamFactory::MakeArchiveFileStream(const Path& archive_path,
+    const std::wstring& archive_entry_name,
+    float rate,
+    bool use_mqa_decode) {
     ArchiveFile file_;
     
     auto enitities = file_.Open(archive_path);
     if (enitities.has_value()) {
         auto archive_entiry = file_.GetEntryByName(archive_entry_name);
         if (archive_entiry.has_value()) {
-            auto file_stream = StreamFactory::MakeFileStream(archive_path);
-            file_stream->Open(std::move(archive_entiry.value()), rate);
+            auto file_stream = StreamFactory::MakeFileStream(archive_path, use_mqa_decode);
+			file_stream->SetRate(rate);
+            file_stream->Open(std::move(archive_entiry.value()));
 			ArchiveFileStream result;
 			result.archive_file = std::move(file_);
 			result.file_stream = std::move(file_stream);
@@ -189,7 +205,11 @@ std::expected<ArchiveFileStream, std::string> StreamFactory::MakeArchiveFileStre
     return std::unexpected(enitities.error());
 }
 
-ScopedPtr<FileStream> StreamFactory::MakeFileStream(ArchiveEntry archive_entry, DsdModes dsd_mode, float rate) {
+ScopedPtr<FileStream> StreamFactory::MakeFileStream(ArchiveEntry archive_entry, 
+    DsdModes dsd_mode,
+    float rate,
+    bool use_mqa_decode) {
+	// TODO: Implement MQA decoding for archive entries if needed
     auto file_stream = MakeAlign<FileStream, BassFileStream>();
 
     if (dsd_mode != DsdModes::DSD_MODE_PCM) {
@@ -224,7 +244,8 @@ ScopedPtr<FileStream> StreamFactory::MakeFileStream(ArchiveEntry archive_entry, 
             dsd_stream->SetDSDMode(dsd_mode);            
         }
     }    
-    file_stream->Open(std::move(archive_entry), rate);
+	file_stream->SetRate(rate);
+    file_stream->Open(std::move(archive_entry));
     return file_stream;
 }
 

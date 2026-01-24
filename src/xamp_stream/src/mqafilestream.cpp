@@ -411,8 +411,7 @@ private:
     static FLAC__StreamDecoderWriteStatus WriteCallback(const FLAC__StreamDecoder*,
         const FLAC__Frame* frame,
         const FLAC__int32* const buffer[],
-        void* client_data)
-    {
+        void* client_data) {
         auto* self = static_cast<MqaFileStreamImpl*>(client_data);
         const uint32_t block_size = frame->header.blocksize;
         const uint32_t ch = self->channels_;
@@ -438,8 +437,7 @@ private:
 
     static void MetadataCallback(const FLAC__StreamDecoder*,
         const FLAC__StreamMetadata* metadata,
-        void* client_data)
-    {
+        void* client_data) {
         auto* self = static_cast<MqaFileStreamImpl*>(client_data);
         if (metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
             self->sample_rate_ = metadata->data.stream_info.sample_rate;
@@ -473,11 +471,14 @@ MqaFileStream::MqaFileStream()
 
 XAMP_PIMPL_IMPL(MqaFileStream)
 
-void MqaFileStream::OpenFile(Path const& file_path, float rate) {
+void MqaFileStream::OpenFile(Path const& file_path) {
     impl_->Open(file_path);
 }
 
-void MqaFileStream::Open(ArchiveEntry archive_entry, float rate) {
+void MqaFileStream::Open(ArchiveEntry archive_entry) {
+}
+
+void MqaFileStream::SetRate(float rate) {
 }
 
 void MqaFileStream::Close() noexcept {
@@ -500,34 +501,8 @@ uint32_t MqaFileStream::GetSamples(void* buffer, uint32_t length) const {
     return impl_->GetSamples(buffer, length);
 }
 
-void MqaFileStream::SetDSDMode(DsdModes mode) noexcept {
-}
-
-DsdModes MqaFileStream::GetDsdMode() const noexcept {
-    return DsdModes::DSD_MODE_PCM;
-}
-
-bool MqaFileStream::IsDsdFile() const noexcept {
-    return false;
-}
-
-uint32_t MqaFileStream::GetDsdSampleRate() const {
-    return 0;
-}
-
 uint32_t MqaFileStream::GetSampleSize() const noexcept {
     return impl_->GetSampleSize();
-}
-
-DsdFormat MqaFileStream::GetDsdFormat() const noexcept {
-    return DsdFormat::DSD_INT8LSB;
-}
-
-void MqaFileStream::SetDsdToPcmSampleRate(uint32_t sample_rate) {
-}
-
-uint32_t MqaFileStream::GetDsdSpeed() const {
-    return 0;
 }
 
 uint32_t MqaFileStream::GetBitDepth() const {
@@ -540,18 +515,6 @@ uint32_t MqaFileStream::GetBitRate() const {
 
 bool MqaFileStream::IsActive() const noexcept {
     return impl_->IsActive();
-}
-
-bool MqaFileStream::SupportDOP() const noexcept {
-    return false;
-}
-
-bool MqaFileStream::SupportDOP_AA() const noexcept {
-    return false;
-}
-
-bool MqaFileStream::SupportNativeSD() const noexcept {
-    return false;
 }
 
 XAMP_STREAM_NAMESPACE_END

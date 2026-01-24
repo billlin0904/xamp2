@@ -41,7 +41,8 @@ struct FastIOStreamContext {
     }
 
     static void CALLBACK BassCloseProc(void* user) {
-        auto* stream = static_cast<FastIOStream*>(user);        
+        auto* stream = static_cast<FastIOStream*>(user);    
+        stream->close();
     }
 };
 
@@ -217,7 +218,7 @@ public:
         }
     }
 
-    void Open(ArchiveEntry archive_entry, float rate) {
+    void Open(ArchiveEntry archive_entry) {
         static constexpr BASS_FILEPROCS file_process = {
             &ArchiveContext::ArchiveCloseCallback,
             & ArchiveContext::ArchiveLengthCallback,
@@ -266,10 +267,10 @@ public:
         }
 
         XAMP_LOG_DEBUG("Open track is a {} secs", measure_stream_time.ElapsedSeconds());
-        LoadStream(rate);
+        LoadStream(0.0f);
     }
 
-    void Open(Path const& file_path, float rate) {
+    void Open(Path const& file_path) {
         DWORD flags = 0;
 
         switch (mode_) {
@@ -295,7 +296,7 @@ public:
         XAMP_LOG_D(logger_, "Start open file");
 
         CreateFileOrURL(file_path.wstring(), !is_http, mode_, flags);        
-        LoadStream(rate);
+        LoadStream(0.0f);
     }
 
     void CheckZeroDuration() {
@@ -652,12 +653,15 @@ BassFileStream::BassFileStream()
 
 XAMP_PIMPL_IMPL(BassFileStream)
 
-void BassFileStream::OpenFile(Path const& file_path, float rate)  {
-    impl_->Open(file_path, rate);
+void BassFileStream::OpenFile(Path const& file_path)  {
+    impl_->Open(file_path);
 }
 
-void BassFileStream::Open(ArchiveEntry archive_entry, float rate) {
-    impl_->Open(std::move(archive_entry), rate);
+void BassFileStream::Open(ArchiveEntry archive_entry) {
+    impl_->Open(std::move(archive_entry));
+}
+
+void BassFileStream::SetRate(float rate) {
 }
 
 void BassFileStream::Close() noexcept {

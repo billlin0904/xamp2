@@ -26,9 +26,11 @@ public:
 
 	XAMP_PIMPL(BassFileStream)
 
-    void OpenFile(const Path& file_path, float rate = 0.0f) override;
+    void OpenFile(const Path& file_path) override;
 
-	void Open(ArchiveEntry archive_entry, float rate = 0.0f) override;
+	void Open(ArchiveEntry archive_entry) override;
+
+	void SetRate(float rate = 0.0f) override;
 
 	void Close() noexcept override;
 

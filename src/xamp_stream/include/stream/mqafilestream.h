@@ -34,7 +34,7 @@ private:
 	ScopedPtr<MqaIdentifierImpl> impl_;
 };
 
-class XAMP_STREAM_API MqaFileStream final : public FileStream, public IDsdStream {
+class XAMP_STREAM_API MqaFileStream final : public FileStream {
 	XAMP_DECLARE_MAKE_CLASS_UUID(MqaFileStream, "D7F9B925-CFCC-4A86-95EC-6091D779FAB3")
 
 public:
@@ -44,11 +44,13 @@ public:
 
 	XAMP_PIMPL(MqaFileStream)
 
-	void OpenFile(const Path& file_path, float rate = 0.0f) override;
+	void OpenFile(const Path& file_path) override;
 
-	void Open(ArchiveEntry archive_entry, float rate = 0.0f) override;
+	void Open(ArchiveEntry archive_entry) override;
 
 	void Close() noexcept override;
+
+	void SetRate(float rate = 0.0f) override;
 
 	[[nodiscard]] double GetDuration() const override;
 
@@ -60,31 +62,11 @@ public:
 
 	[[nodiscard]] uint32_t GetSampleSize() const noexcept override;
 
-	[[nodiscard]] bool IsDsdFile() const noexcept override;
-
-	void SetDSDMode(DsdModes mode) noexcept override;
-
-	[[nodiscard]] DsdModes GetDsdMode() const noexcept override;
-
-	[[nodiscard]] uint32_t GetDsdSampleRate() const override;
-
-	[[nodiscard]] DsdFormat GetDsdFormat() const noexcept override;
-
-	void SetDsdToPcmSampleRate(uint32_t sample_rate) override;
-
-	[[nodiscard]] uint32_t GetDsdSpeed() const override;
-
 	[[nodiscard]] uint32_t GetBitDepth() const override;
 
 	[[nodiscard]] uint32_t GetBitRate() const override;
 
 	[[nodiscard]] bool IsActive() const noexcept override;
-
-	[[nodiscard]] bool SupportDOP() const noexcept override;
-
-	[[nodiscard]] bool SupportDOP_AA() const noexcept override;
-
-	[[nodiscard]] bool SupportNativeSD() const noexcept override;
 
 private:
 	class MqaFileStreamImpl;

@@ -28,20 +28,24 @@ public:
     StreamFactory() = delete;
 
     static ScopedPtr<FileStream> MakeFileStream(const Path& filePath,
-        float rate = 0.0f);
+        float rate = 0.0f,
+        bool use_mqa_decode = false);
 
     // Create a file stream object based on the file path and DSD mode
     static ScopedPtr<FileStream> MakeFileStream(const Path& filePath,
         DsdModes dsdMode, 
-        float rate = 0.0f);
+        float rate = 0.0f,
+        bool use_mqa_decode = false);
 
     static ScopedPtr<FileStream> MakeFileStream(ArchiveEntry archive_entry,
         DsdModes dsd_mode,
-        float rate = 0.0f);
+        float rate = 0.0f,
+        bool use_mqa_decode = false);
 
 	static std::expected<ArchiveFileStream, std::string> MakeArchiveFileStream(const Path& archive_path,
         const std::wstring& archive_entry_name,
-        float rate = 0.0f);
+        float rate = 0.0f,
+        bool use_mqa_decode = false);
 
     // Create an AAC encoder object
     static ScopedPtr<IFileEncoder> MakeFileEncoder();

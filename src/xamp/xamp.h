@@ -302,6 +302,6 @@ private:
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
 	std::shared_ptr<IAudioPlayer> player_;
 	std::shared_ptr<IThreadPoolExecutor> thread_pool_;
-	QScopedPointer<YtMusicServerProcessor> yt_music_server_processor_;
+	//QScopedPointer<YtMusicServerProcessor> yt_music_server_processor_;
 	Ui::XampWindow ui_;
 };

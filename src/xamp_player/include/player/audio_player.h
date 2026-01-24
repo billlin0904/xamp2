@@ -82,240 +82,91 @@ public:
 	static constexpr auto kStopStreamTime = std::numeric_limits<uint32_t>::max();
     static constexpr auto kFadeTimeSeconds = 1;
     
-    /*
-    * Constructor.
-    */
-    AudioPlayer(const std::shared_ptr<IThreadPoolExecutor>& playback_thread_pool, const std::shared_ptr<IThreadPoolExecutor>& player_thread_pool);
+    AudioPlayer(const std::shared_ptr<IThreadPoolExecutor>& playback_thread_pool,
+        const std::shared_ptr<IThreadPoolExecutor>& player_thread_pool);
 
-    /*
-    * Destructor.
-    */
     virtual ~AudioPlayer() override;
 
     XAMP_DISABLE_COPY(AudioPlayer)
 
-    /*
-    * Destroy.
-    *  
-    */
-    void Destroy() override;
+    void Open(const Path& file_path,
+        const Uuid& device_id = Uuid::kNullUuid,
+        float rate = 0.0f,
+        bool use_mqa_decode = false) override;
 
-    /*
-    * Startup the player.
-    * 
-    * @param[in] adapter The playback state adapter.
-    */
-	void SetStateAdapter(const std::weak_ptr<IPlaybackStateAdapter>& adapter) override;
-
-    /*
-    * Open a file.
-    * 
-    * @param[in] file_path The file path.
-    * @param[in] device_id The device id.
-    */
-    void Open(const Path& file_path, const Uuid& device_id = Uuid::kNullUuid, float rate = 0.0f) override;
-
-    /*
-    * Open a file.
-    * 
-    * @param[in] file_path The file path.
-    * @param[in] device_info The device info.
-    * @param[in] target_sample_rate The target sample rate.
-    */
     void Open(const Path& file_path,              
         const DeviceInfo& device_info,
         uint32_t target_sample_rate = 0,
         DsdModes output_mode = DsdModes::DSD_MODE_AUTO,
-        float rate = 0.0f) override;
+        float rate = 0.0f,
+        bool use_mqa_decode = false) override;
 
     void OpenArchiveEntry(ArchiveEntry archive_entry,
         const DeviceInfo& device_info,
         uint32_t target_sample_rate = 0,
         DsdModes output_mode = DsdModes::DSD_MODE_AUTO,
-        float rate = 0.0f) override;
+        float rate = 0.0f,
+        bool use_mqa_decode = false) override;
 
-    /*
-    * Prepare to play.
-    * 
-    * @param[in] byte_format The byte format.
-    * @param[in] device_sample_rate The device sample rate.
-    * @param[in] dsd_mode The dsd mode.
-    * @param[in] dsd_speed The dsd speed.
-    */
+    void Destroy() override;
+
+    void SetStateAdapter(const std::weak_ptr<IPlaybackStateAdapter>& adapter) override;
+
     void PrepareToPlay(ByteFormat byte_format = ByteFormat::INVALID_FORMAT, uint32_t device_sample_rate = 0) override;
 
-    /*
-    * Play.
-    *     
-    */
     void Play() override;
 
-    /*
-    * Pause.
-    * 
-    */
     void Pause() override;
 
-    /*
-    * Resume.
-    * 
-    */
     void Resume() override;
 
-    /*
-    * Stop.
-    * 
-    * @param[in] signal_to_stop The signal to stop.
-    * @param[in] shutdown_device The shutdown device.
-    * @param[in] wait_for_stop_stream The wait for stop stream.
-    */
     void Stop(bool signal_to_stop = true, bool shutdown_device = false, bool wait_for_stop_stream = true) override;    
     	
-    /*
-    * Seek.
-    * 
-    * @param[in] stream_time The stream time.
-    */
     void Seek(double stream_time) override;
 
-    /*
-    * Set volume.
-    * 
-    * @param[in] volume The volume.
-    */
     void SetVolume(uint32_t volume) override;
 
-    /*
-    * Get volume.
-    * 
-    * @return The volume.
-    */
     uint32_t GetVolume() const override;
 
-    /*
-    * Is hardware control volume.
-    * 
-    * @return True if hardware control volume.
-    */
     bool IsHardwareControlVolume() const override;
 
-    /*
-    * Is mute.
-    * 
-    * @return True if mute.
-    */
     bool IsMute() const override;
 
-    /*
-    * Set mute.
-    * 
-    * @param[in] mute The mute.
-    */
     void SetMute(bool mute) override;
     
-    /*
-    * Is playing.
-    * 
-    * @return True if playing.
-    */
     bool IsPlaying() const noexcept override;
 
-    /*
-    * Get dsd modes.
-    * 
-    * @return The dsd modes.
-    */
     DsdModes GetDsdModes() const noexcept override;
 
-    /*
-    * Is dsd file.
-    * 
-    * @return True if dsd file.
-    */
     bool IsDsdFile() const override;
 
-    /*
-    * Get dsd speed.
-    * 
-    * @return The dsd speed.
-    */
     std::optional<uint32_t> GetDsdSpeed() const override;
 
-    /*
-    * Get media duration.
-    * 
-    * @return The media duration.
-    */
     double GetDuration() const override;
 
-    /*
-    * Get player state.
-    * 
-    * @return The player state.
-    */
     PlayerState GetState() const noexcept override;
 
-    /*
-    * Get input format.
-    * 
-    * @return The input format.
-    */
     AudioFormat GetInputFormat() const noexcept override;
 
-    /*
-    * Get output format.
-    * 
-    * @return The output format.
-    */
     AudioFormat GetOutputFormat() const noexcept override;
 
-    /*
-    * Get audio device manager.
-    * 
-    * @return The audio device manager.
-    */
     const ScopedPtr<IAudioDeviceManager>& GetAudioDeviceManager() override;
 
-    /*
-    * Get dsp manager.
-    * 
-    * @return The dsp manager.
-    */
     ScopedPtr<IDSPManager>& GetDspManager() override;    
 
-    /*
-    * Buffer stream.
-    * 
-    * @param[in] stream_time The stream time.
-    */
     void BufferStream(double stream_time = 0.0, const std::optional<double> & offset = std::nullopt, const std::optional<double>& duration = std::nullopt) override;
 
-    /*
-    * Enable fade out.
-    * 
-    * @param[in] enable The enable.
-    */
     void EnableFadeOut(bool enable) override;
 
-    /*
-    * Get dsp config.
-    * 
-    * @return The dsp config.
-    */
     AnyMap& GetDspConfig() override;
 
-    /*
-     * Set audio delay callback.
-     */
     void SetDelayCallback(std::function<void(uint32_t)> &&delay_callback) override;
 
-   /*
-    * Set file cache mode.
-    */
     void SeFileCacheMode(bool enable) override;
 
 	uint32_t GetBitRate() const override;
 
+	bool IsMQA() const override;
 private:
     DataCallbackResult OnGetSamples(void* samples,
         size_t num_buffer_frames, 
@@ -333,9 +184,9 @@ private:
 
     void DoSeek(double stream_time);        
     	
-    void OpenStream(Path const& file_path, DsdModes dsd_mode, float rate);
+    void OpenStream(Path const& file_path, DsdModes dsd_mode, float rate, bool use_mqa_decode);
 
-    void OpenStream(ArchiveEntry archive_entry, DsdModes dsd_mode, float rate);
+    void OpenStream(ArchiveEntry archive_entry, DsdModes dsd_mode, float rate, bool use_mqa_decode);
 
     void CreateDevice(Uuid const& device_type_id, const  std::string & device_id, bool open_always);
 
@@ -394,7 +245,7 @@ private:
     Timer timer_;    
     AudioFormat input_format_;
     AudioFormat output_format_;
-    ScopedPtr<FileStream> impl_;
+    ScopedPtr<FileStream> file_stream_;
     ScopedPtr<IDeviceType> device_type_;
     ScopedPtr<IOutputDevice> device_;
     ScopedPtr<IDSPManager> dsp_manager_;

@@ -195,7 +195,7 @@ void Xamp::destroy() {
         return;
     }
 
-    yt_music_server_processor_.reset();
+    //yt_music_server_processor_.reset();
 
     auto quit_and_wait_thread = [](auto& thread) {
         if (!thread.isFinished()) {
@@ -1443,8 +1443,8 @@ void Xamp::onPlayEntity(PlaylistPage* playlist_page,
 
     QString sample_rate_converter_type;    
     uint32_t target_sample_rate = 0;
-    //auto byte_format = ByteFormat::SINT32;
-    auto byte_format = ByteFormat::SINT24;
+    auto byte_format = ByteFormat::SINT32;
+    auto use_mqa_decode = false;
     std::function<void()> sample_rate_converter_factory;
 
     player_->Stop();
@@ -1476,10 +1476,17 @@ void Xamp::onPlayEntity(PlaylistPage* playlist_page,
         player_->GetDspManager()->AddPreDSP(
             makeSoxrSampleRateConverter(target_sample_rate));
     }
+    else {
+        byte_format = ByteFormat::SINT24;
+        use_mqa_decode = true;
+    }
 
     setupSampleRateConverter(sample_rate_converter_factory,
                              target_sample_rate,
                              sample_rate_converter_type);
+    if (sample_rate_converter_factory != nullptr) {
+        use_mqa_decode = false;
+    }
     
     const auto open_dsd_mode = getDsdModes(device_info_.value(),
         entity,
@@ -1504,14 +1511,16 @@ void Xamp::onPlayEntity(PlaylistPage* playlist_page,
                 device_info_.value(),
                 target_sample_rate,
                 open_dsd_mode,
-                rate);
+                rate,
+                use_mqa_decode);
         }
         else {
             player_->Open(entity.file_path.toStdWString(),
                 device_info_.value(),
                 target_sample_rate,
                 open_dsd_mode,
-                rate);
+                rate,
+                use_mqa_decode);
         }	    
 
         player_->SeFileCacheMode(entity.isHttpUrl());
@@ -1528,7 +1537,14 @@ void Xamp::onPlayEntity(PlaylistPage* playlist_page,
         if (open_dsd_mode == DsdModes::DSD_MODE_PCM) {
             setupDsp(entity);
         }
-        setupSampleWriter(byte_format, playback_format);
+        
+        //setupSampleWriter(byte_format, playback_format);
+        player_->GetDspManager()->SetSampleWriter();
+        if (!player_->IsMQA()) {
+            byte_format = ByteFormat::SINT32;
+        }
+        player_->PrepareToPlay(byte_format);
+        playback_format = getPlaybackFormat(player_.get());
 
         playback_format.bit_rate = entity.bit_rate;
         // note: 某些DAC(ex: Dx3Pro)再撥放DSD的時候需要將音量設置最大.
@@ -1631,15 +1647,20 @@ void Xamp::updateUi(PlaylistPage* playlist_page,
     lrc_page_->disableLoadLrcButton();
     //emit transcribeFile(entity.file_path);
 
+    auto file_extension = entity.file_extension;
+    if (player_->IsMQA()) {
+        file_extension = "MQA"_str;
+    }
+
     if (playlist_page != nullptr) {
         playlist_page->format()->setText(
-            format2String(playback_format, entity.file_extension));
+            format2String(playback_format, file_extension));
     }
     
     lrc_page_->title()->setText(entity.title);
     lrc_page_->album()->setText(entity.album);
     lrc_page_->artist()->setText(entity.artist);
-    lrc_page_->format()->setText(format2String(playback_format, entity.file_extension));
+    lrc_page_->format()->setText(format2String(playback_format, file_extension));
 
     if (current_entity_.has_value()) {
         qTheme.setHeartButton(ui_.heartButton, current_entity_.value().heart);

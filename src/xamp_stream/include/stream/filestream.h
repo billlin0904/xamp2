@@ -12,30 +12,19 @@
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
-/*
-* FileStream is a base class for all file stream.
-* 
-*/
 class XAMP_STREAM_API XAMP_NO_VTABLE FileStream : public IAudioStream {
 public:
     XAMP_BASE_CLASS(FileStream)
 
-    /*
-    * IsFile return true.
-    * 
-    */
     [[nodiscard]] bool IsFile() const noexcept override {
 		return true;
 	}
 
-    /*
-    * OpenFile open a file.
-    * 
-    * @param file_path: the file path.
-    */
-    virtual void OpenFile(const Path & file_path, float rate = 0.0f) = 0;
+    virtual void OpenFile(const Path & file_path) = 0;
 
-    virtual void Open(ArchiveEntry archive_entry, float rate = 0.0f) = 0;
+    virtual void Open(ArchiveEntry archive_entry) = 0;
+
+    virtual void SetRate(float rate = 0.0f) = 0;
 protected:
     FileStream() = default;
 };

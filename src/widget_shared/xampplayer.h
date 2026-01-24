@@ -52,8 +52,6 @@ public:
 
     virtual void showWindow() = 0;
 
-    //virtual void setTheme() = 0;
-
     std::shared_ptr<IThreadPoolExecutor> threadPool() const;
 protected:
     IXMainWindow();
