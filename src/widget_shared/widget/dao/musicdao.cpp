@@ -390,7 +390,7 @@ VALUES
 
         if (query.next()) {
             const auto music_id = query.value("musicId"_str).toInt();
-            playlist.removePlaylistMusic(1, QVector<int32_t>{ music_id });
+            playlist.removePlaylistMusic(QList<int32_t>{ music_id }, kDefaultPlaylistId);
             removeTrackLoudnessMusicId(music_id);
             removeMusic(music_id);
             return;

@@ -78,7 +78,9 @@ std::optional<DeviceInfo> XAudio2DeviceType::XAudio2DeviceTypeImpl::GetDefaultDe
 	if (hr == ERROR_NOT_FOUND) {
 		return std::nullopt;
 	}
-	return MakeOptional<DeviceInfo>(helper::GetDeviceInfo(default_output_device, XAMP_UUID_OF(XAudio2DeviceType)));
+	return MakeOptional<DeviceInfo>(helper::GetDeviceInfo(default_output_device, 
+		XAMP_UUID_OF(XAudio2DeviceType),
+		XAudio2DeviceType::Description));
 }
 
 std::vector<DeviceInfo> XAudio2DeviceType::XAudio2DeviceTypeImpl::GetDeviceInfoList() const {
@@ -113,11 +115,11 @@ std::vector<DeviceInfo> XAudio2DeviceType::XAudio2DeviceTypeImpl::GetDeviceInfoL
 		try {
 			HrIfFailThrow(devices->Item(i, &device));
 
-			auto info = helper::GetDeviceInfo(device, XAMP_UUID_OF(XAudio2DeviceType));
+			auto info = helper::GetDeviceInfo(device, XAMP_UUID_OF(XAudio2DeviceType), XAudio2DeviceType::Description);
 			if (default_device_name == info.name) {
 				info.is_default_device = true;
 			}
-
+			
 			CComPtr<IAudioClient> client;
 			auto hr = device->Activate(__uuidof(IAudioClient),
 				CLSCTX_ALL,

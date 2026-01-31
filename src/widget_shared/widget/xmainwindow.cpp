@@ -21,6 +21,8 @@
 #include <QDragEnterEvent>
 #include <QMimeData>
 
+#include <QWKWidgets/widgetwindowagent.h>
+
 #if defined(Q_OS_WIN)
 #include <widget/win32/wintaskbar.h>
 #include <windowsx.h>
@@ -65,7 +67,6 @@ void XMainWindow::setContentWidget(IXFrame *content_widget) {
     }
     installWindowAgent();
     setCentralWidget(content_widget);
-    //ensureInitTaskbar();
     readDriveInfo();    
 }
 
@@ -99,11 +100,6 @@ void XMainWindow::systemThemeChanged(ThemeColor theme_color) {
     }
     emit qTheme.themeChangedFinished(theme_color);
 }
-
-//void XMainWindow::setTheme() {
-//    const auto theme = qAppSettings.valueAsEnum<ThemeColor>(kAppSettingTheme);
-//    qTheme.setThemeColor(theme);
-//}
 
 void XMainWindow::setTaskbarProgress(const int32_t percent) {
 #if defined(Q_OS_WIN)
@@ -341,6 +337,10 @@ void XMainWindow::showWindow() {
 
     raise(); // for MacOS
     activateWindow(); // for Windows
+}
+
+void XMainWindow::setTitle(const QString& title) {
+	dynamic_cast<QLabel*>(window_agent_->titleBar())->setText(title);
 }
 
 IXFrame* XMainWindow::contentWidget() const {

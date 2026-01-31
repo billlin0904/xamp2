@@ -78,6 +78,8 @@ enum PlaylistId {
 	kCdPlaylistId,
 	kFileSystemPlaylistId,
 	kArtistSongPlaylistId,
+	kNowPlayingPlaylistId,
+	kNextInQueuePlaylistId,
 	kMaxExistPlaylist,
 };
 

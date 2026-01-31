@@ -1,4 +1,4 @@
-//=====================================================================================================================
+ï»¿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -202,7 +202,7 @@ Value LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::GetOrAdd(Key con
         std::unique_lock<SharedMutex> write_lock(mutex_);
         const auto check = thumbnail_cache_.find(key);
         if (check != thumbnail_cache_.end()) {
-            // ¤w¸g¦s¦b¡Aª½±µªð¦^¸Ó­È (¨Ã§ó·s LRU)
+            // å·²ç¶“å­˜åœ¨ï¼Œç›´æŽ¥è¿”å›žè©²å€¼ (ä¸¦æ›´æ–° LRU)
             ++hit_count_;
             keys_.splice(keys_.begin(), keys_, check->second);
             return check->second->second;
@@ -232,15 +232,15 @@ void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::AddOrUpdate(Key c
     size_ += policy_(key, value);
     auto itr = thumbnail_cache_.find(key);
     if (itr != thumbnail_cache_.cend()) {
-        // 1. ¥ý´î¥h¡uÂÂ­È¡vªº¤j¤p
+        // 1. å…ˆæ¸›åŽ»ã€ŒèˆŠå€¼ã€çš„å¤§å°
         size_ -= policy_(key, itr->second->second);
-        // 2. ¥[¤W¡u·s­È¡vªº¤j¤p
+        // 2. åŠ ä¸Šã€Œæ–°å€¼ã€çš„å¤§å°
         size_ += policy_(key, value);
         itr->second->second = std::move(value);
         keys_.splice(keys_.begin(), keys_, itr->second);
     }
     else {
-        // ·s¼W¶µ¥Ø
+        // æ–°å¢žé …ç›®
         size_ += policy_(key, value);
         keys_.emplace_front(key, std::move(value));
         thumbnail_cache_[key] = keys_.begin();

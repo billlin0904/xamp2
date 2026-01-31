@@ -166,12 +166,12 @@ void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result,
         auto artist    = toQString(track_info.artist).trimmed();
 		auto disc_id   = toQString(track_info.disc_id);
 
-        if (store_type != StoreType::CLOUD_STORE
+        /*if (store_type != StoreType::CLOUD_STORE
             && !track_info.is_zip_file
             && dao_facade_->music_dao.getMusicId(file_path)
             && playlist_id == kFileSystemPlaylistId) {
             continue;
-        }
+        }*/
 
         if (album.isEmpty()) {
             album = unknown_album_;

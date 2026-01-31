@@ -211,7 +211,7 @@ CComPtr<IMMDeviceEnumerator> CreateDeviceEnumerator() {
 	return enumerator;
 }
 
-DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, const Uuid& device_type_id) {
+DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, const Uuid& device_type_id, std::string_view desc) {
 	DeviceInfo info;
 	info.name = GetDevicePropertyString(PKEY_Device_FriendlyName, VT_LPWSTR, device);
 	
@@ -220,6 +220,7 @@ DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, const Uuid& device_type_id)
 	info.device_type_id = device_type_id;
 	info.device_id = String::ToUtf8String(std::wstring(id));
 	info.connect_type = GetDeviceConnectType(device);
+	info.desc = desc;
 
 	return info;
 }

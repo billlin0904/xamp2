@@ -9,24 +9,23 @@
 #include <xampplayer.h>
 
 namespace {
-    XAMP_DECLARE_LOG_NAME(GUIThreadPool);
-}
-
-std::shared_ptr<IThreadPoolExecutor> IXMainWindow::threadPool() const {
-	return thread_pool_;
 }
 
 IXMainWindow::IXMainWindow()
 	: QMainWindow() {
     setAttribute(Qt::WA_DontCreateNativeAncestors);
-    thread_pool_ = ThreadPoolBuilder::MakeThreadPool(XAMP_LOG_NAME(GUIThreadPool));
 }
 
 void IXMainWindow::installWindowAgent() {
     window_agent_ = new QWK::WidgetWindowAgent(this);
     window_agent_->setup(this);
 
-    auto* title_label = new QLabel(this);
+    auto* title_label = new QLabel("XAMP"_str, this);
+    QFont f = font();
+    f.setBold(true);
+    f.setPointSize(8);
+    title_label->setFont(f);
+
     title_label->setAlignment(Qt::AlignCenter);
     title_label->setObjectName("win-title-label"_str);
     title_label->setStyleSheet("background-color: transparent"_str);
@@ -149,11 +148,6 @@ void IXMainWindow::installWindowAgent() {
         });
     (void)QObject::connect(window_bar, &QWK::WindowBar::closeRequested, this, &QWidget::close);
 #endif
-
-    //setObjectName("IXMainWindow"_str);
-    //setStyleSheet("background-color: transparent;"_str);
-    //window_agent_->setWindowAttribute("mica"_str, true);
-    //window_agent_->setWindowAttribute("mica-alt"_str, true);
 }
 
 IXFrame::IXFrame(QWidget* parent)

@@ -324,7 +324,7 @@ namespace dao {
                     });
 
                 Q_FOREACH(auto playlistId, playlist_ids) {
-                    playlist_dao.removePlaylistMusic(playlistId, QVector<int32_t>{ entity.music_id });
+                    playlist_dao.removePlaylistMusic(QList<int32_t>{ entity.music_id }, playlistId);
                 }
                 removeAlbumCategory(album_id);
                 removeAlbumMusicAlbum(album_id);

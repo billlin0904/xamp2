@@ -607,6 +607,7 @@ namespace {
 class TaglibMetadataReader::TaglibMetadataReaderImpl {
 public:
     void Open(ArchiveEntry entry) {
+        fileref_opt_ = std::nullopt;
         auto entry_name = entry.Name();
         auto archive_path = entry.ArchivePath();
         PrefetchFile(archive_path);
@@ -623,7 +624,7 @@ public:
     }
 
 	void Open(const Path& path) {
-        PrefetchFile(path);        
+        fileref_opt_ = std::nullopt;       
         io_stream_ = MakeIOStream(path);
         FileRef fileref(io_stream_.get(), true, TagLib::AudioProperties::Fast);
         if (!fileref.isNull()) {

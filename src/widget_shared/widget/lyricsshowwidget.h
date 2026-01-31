@@ -22,7 +22,7 @@ class XAMP_WIDGET_SHARED_EXPORT LyricsShowWidget : public WheelableWidget {
 	Q_OBJECT
 
 public:
-	static constexpr auto kKaraokeHighLightColor = QColor(247, 247, 59, 255);
+	static constexpr auto kKaraokeHighLightColor = QColor(232, 214, 90, 255);
 	static constexpr auto kNormalColor = QColor(69, 69, 69, 255);
 	static constexpr auto kHighLightColor = QColor(164, 216, 216, 255);
 

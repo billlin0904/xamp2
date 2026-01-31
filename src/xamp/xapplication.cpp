@@ -51,6 +51,7 @@ XApplication::XApplication(int& argc, char* argv[])
 			server_->listen(applicationName());
 		}
 	}
+	
 	//SetCurrentProcessPriority(ProcessPriority::PRIORITY_BACKGROUND);
 }
 

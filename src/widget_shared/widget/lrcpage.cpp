@@ -263,7 +263,7 @@ void LrcPage::onFetchLyricsCompleted(const QList<SearchLyricsResult>& results) {
 
 void LrcPage::setFullScreen() {
 	auto enter = false;
-	auto f = font();
+	auto f = QFont("FormatFont"_str);
 
 	if (!enter) {
 		cover_label_->setMinimumSize(QSize(411, 411));
@@ -346,7 +346,6 @@ void LrcPage::paintEvent(QPaintEvent*) {
 	}
 
 	painter.setCompositionMode(QPainter::CompositionMode_Overlay);
-#ifndef _DEBUG
 	if (!background_image_.isNull()) {
 		painter.setOpacity(current_bg_alpha_ / 255.0);
 		painter.drawImage(rect(), background_image_);
@@ -357,7 +356,6 @@ void LrcPage::paintEvent(QPaintEvent*) {
 		painter.drawImage(rect(), prev_background_image_);
 		painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
 	}
-#endif
 }
 
 void LrcPage::setAppearBgProgress(int x) {
@@ -578,6 +576,7 @@ void LrcPage::initial() {
 	change_lrc_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_SUBTITLE));
 	change_lrc_button_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	change_lrc_button_->setEnabled(false);
+	change_lrc_button_->hide();
 	(void)QObject::connect(change_lrc_button_, &QToolButton::clicked, [this]() {
 		if (lyrics_results_.isEmpty()) {
 			return;

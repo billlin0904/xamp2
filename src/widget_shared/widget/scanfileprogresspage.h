@@ -10,6 +10,7 @@
 
 class QProgressBar;
 class QLabel;
+class QPushButton;
 
 class XAMP_WIDGET_SHARED_EXPORT ScanFileProgressPage : public QFrame {
 	Q_OBJECT
@@ -20,18 +21,21 @@ signals:
 	void cancelRequested();
 
 public slots:
-	void onReadFileProgress(int32_t progress);
+	void setOnlyShowProgress();
+
+	void setFileProgress(int32_t progress);
 
 	void onReadCompleted();
 
 	void onRemainingTimeEstimation(size_t total_work, size_t completed_work, int32_t secs);
 
-	void onFoundFileCount(size_t file_count);
+	void setFileCount(size_t file_count);
 
 	void onReadFilePath(const QString& file_path);
 
 	void onReadFileStart();
 private:
 	QProgressBar* progress_bar_;
+	QPushButton* close_button_;
 	QLabel* message_text_label_;	
 };

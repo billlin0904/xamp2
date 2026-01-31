@@ -52,14 +52,13 @@ public:
 
     virtual void showWindow() = 0;
 
-    std::shared_ptr<IThreadPoolExecutor> threadPool() const;
+	virtual void setTitle(const QString& title) = 0;
 protected:
     IXMainWindow();
 
     void installWindowAgent();
 
     QWK::WidgetWindowAgent* window_agent_{ nullptr };
-    std::shared_ptr<IThreadPoolExecutor> thread_pool_;
 };
 
 class XAMP_WIDGET_SHARED_EXPORT IXFrame : public QFrame {

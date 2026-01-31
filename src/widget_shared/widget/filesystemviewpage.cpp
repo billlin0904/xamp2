@@ -11,6 +11,7 @@
 #include <widget/xmainwindow.h>
 #include <widget/widget_shared.h>
 #include <widget/imagecache.h>
+#include <widget/scanfileprogresspage.h>
 
 #include <stream/filestream.h>
 #include <base/workstealingtaskqueue.h>
@@ -118,6 +119,12 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     : QFrame(parent) {
     ui_ = new Ui::FileSystemViewPage();
     ui_->setupUi(this);
+
+    progress_page_ = new ScanFileProgressPage(this);
+    progress_page_->hide();
+    progress_page_->move(0, height() - 80);
+
+	waveformWidget()->hide();
     
     setFrameStyle(QFrame::StyledPanel);    
 
@@ -163,7 +170,6 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
         QDir::NoDotAndDotDot | QDir::AllDirs | QDir::Files);
 
     auto filter = getTrackInfoFileNameFilter();
-	filter << "*.zip"_str;
     dir_model_->setNameFilters(filter);
     dir_model_->setNameFilterDisables(false);
 
@@ -172,11 +178,18 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     ui_->dirTree->setCurrentIndex(proxy_index);
     ui_->dirTree->expand(proxy_index);
 
+    f = font();
+    f.setBold(true);
+    f.setPointSize(12);
+    ui_->page->pageTitle()->setFont(f);
+    ui_->page->pageTitle()->show();
+    ui_->page->pageTitle()->setText(kEmptyString);
+
     (void)QObject::connect(ui_->dirTree, &QTreeView::clicked,
         [this](const auto &index) {      
         auto src_index = dir_first_sort_filter_->mapToSource(index);
-        
         ui_->dirTree->expand(index);
+
 		auto path = dir_model_->fileInfo(src_index).filePath();
         QFileInfo file_info(path);
         QString parent_dir_path;
@@ -192,140 +205,88 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
 			return;
 		}
 
-		qAppSettings.setValue(kAppSettingFileSystemLastOpenPath,
-            parent_dir_path);
+		qAppSettings.setValue(kAppSettingFileSystemLastOpenPath, parent_dir_path);
 
         ui_->page->playlist()->removeAll();
-
 		file_path_ = parent_dir_path;
-        ConcurrentQueue<TrackInfo> track_queue;
 
-        auto filter = getTrackInfoFileNameFilter();
-        filter << "*.zip"_str;
-        QDirIterator itr(parent_dir_path, 
+        const auto filter = getTrackInfoFileNameFilter();
+        QDirIterator count_itr(parent_dir_path,
             filter,
             QDir::NoDotAndDotDot | QDir::Files);
 
-        std::vector<QString> file_paths;
-        std::vector<QString> extract_file_paths;
-        ConcurrentQueue<Path> extract_zip_file_paths;
-        
-    	while (itr.hasNext()) {
-            const auto path_str = toNativeSeparators(itr.next());
-			file_paths.push_back(path_str);
+		size_t total_files = 0;
+        while (count_itr.hasNext()) {
+            count_itr.next();
+           ++total_files;
         }
 
-        QList<int32_t> file_music_id;
-        
-        for (const auto& file_path: file_paths) {
-            auto archive_file_music_id = qDaoFacade.music_dao.getArchiveFileMusicId(file_path);
-            if (!archive_file_music_id.empty()) {                
-                for (auto i = 0; i < archive_file_music_id.size(); ++i) {
-                    file_music_id.push_back(archive_file_music_id[i]);
-                }
-                extract_file_paths.push_back(file_path);
-            }
-            else {
-                auto music_id = qDaoFacade.music_dao.getMusicId(file_path);
-                if (music_id.has_value()) {
-                    file_music_id.push_back(music_id.value());
-                }
-                else {
-                    extract_file_paths.push_back(file_path);
-                }
-            }
+        auto dir_name = file_info.fileName();
+        if (!file_info.isDir()) {
+            dir_name = QFileInfo(parent_dir_path).fileName();
         }
 
-		if (file_music_id.size() == file_paths.size()) {
-            qDaoFacade.playlist_dao.addMusicToPlaylist(file_music_id, kFileSystemPlaylistId);
-            ui_->page->playlist()->reload();
-            return;
-		}        
+		QFontMetrics fm(ui_->page->pageTitle()->font());
+        auto title = fm.elidedText(qFormat("Files in \"%1\" (%2 songs)")
+			.arg(dir_name).arg(QString::number(total_files)),
+            Qt::ElideRight,
+            800);
+        ui_->page->pageTitle()->setText(title);
 
-        Executor::ParallelForEach(getMainWindow()->threadPool(),
-            extract_file_paths,
-            [&track_queue, &extract_zip_file_paths](const QString& path) {
-            const Path file_path(path.toStdWString());
-            if (file_path.extension() == kCueFileExtension) {
-                return;
-            }
-            else if (file_path.extension() == kZipFileExtension) {
-				extract_zip_file_paths.enqueue(file_path);
-            }
-            else {
-                auto reader = MakeMetadataReader();
-                try {
-                    reader->Open(file_path);
-                    auto track_info = reader->Extract();
-                    if (track_info) {
-                        if (track_info.value().sample_rate == 0) {
-                            // Workaround for sample rate is 0
-                            XAMP_LOG_DEBUG("Try read sample use file stream.");
-                            auto file_stream = StreamFactory::MakeFileStream(file_path);
-                            file_stream->OpenFile(file_path);
-                            auto sampler_rate = file_stream->GetFormat().GetSampleRate();
-                            track_info.value().sample_rate = sampler_rate;
-                        }
-                        track_queue.enqueue(track_info.value());
-                    }
-                }
-                catch (const Exception& e) {
-                    XAMP_LOG_DEBUG("{}", e.what());
-                }
-            }
-            
-            });
-
-        try {
-            Path file_path;
-            while (extract_zip_file_paths.try_dequeue(file_path)) {
-                ArchiveFile archive_file;
-                auto entities = archive_file.Open(file_path);
-                for (const auto& entity_name : entities.value()) {
-                    auto entity = archive_file.GetEntryByName(entity_name);
-                    if (!entity.has_value()) {
-                        XAMP_LOG_DEBUG("Failed to get entry by name: {}", entity.error());
-                        continue;
-                    }
-                    auto reader = MakeMetadataReader();
-                    reader->Open(std::move(entity.value()));
-                    auto track_info = reader->Extract();
-                    if (track_info) {
-                        if (track_info.value().sample_rate == 0) {
-                            // Workaround for sample rate is 0
-                            XAMP_LOG_DEBUG("Try read sample use file stream.");
-                            auto file_stream = StreamFactory::MakeFileStream(file_path);
-                            file_stream->OpenFile(file_path);
-                            auto sampler_rate = file_stream->GetFormat().GetSampleRate();
-                            track_info.value().sample_rate = sampler_rate;
-
-                        }
-                        track_queue.enqueue(track_info.value());
-                    }
-                }
-            }
+        if (total_files > 4) {
+            progress_page_->show();
+            progress_page_->setOnlyShowProgress();
+            const auto list_view_rect = this->rect();
+            progress_page_->setFixedSize(QSize(list_view_rect.size().width() - 2, 80));
+            progress_page_->move(0, height() - 80);
+            delay(100);
         }
-        catch (const Exception& e) {
-            XAMP_LOG_DEBUG("{}", e.what());
-        }
+
+        QDirIterator itr(parent_dir_path,
+            filter,
+            QDir::NoDotAndDotDot | QDir::Files);
+
+        size_t process_file = 0;
+		progress_page_->setFileCount(static_cast<int32_t>(total_files));
+        progress_page_->setFileProgress(0);
 
         std::forward_list<TrackInfo> track_infos;
+        auto reader = MakeMetadataReader();
 
-        TrackInfo temp;
-    	while (track_queue.try_dequeue(temp)) {
-            track_infos.push_front(temp);
+        while (itr.hasNext()) {
+            const auto path_str = toNativeSeparators(itr.next());
+            auto file_path = path_str.toStdWString();
+            
+            try {
+                reader->Open(file_path);
+                auto track_info = reader->Extract();
+                if (track_info) {
+                    if (track_info.value().sample_rate == 0) {
+                        auto file_stream = StreamFactory::MakeFileStream(file_path);
+                        file_stream->OpenFile(file_path);
+                        auto sampler_rate = file_stream->GetFormat().GetSampleRate();
+                        track_info.value().sample_rate = sampler_rate;
+                    }
+                    track_infos.push_front(track_info.value());
+                }                
+            }
+            catch (...) {
+                logAndShowMessage(std::current_exception());
+            }
+            progress_page_->setFileProgress(process_file++ * 100 / total_files);
         }
+        progress_page_->setFileProgress(100);
+        progress_page_->hide();
 
         track_infos.sort([](const auto& first, const auto& last) {
             return first.track < last.track;
-            });
-        qDatabaseFacade.resetUnknownId();
-        qDatabaseFacade.insertTrackInfo(track_infos,
-            kFileSystemPlaylistId, 
-            StoreType::LOCAL_STORE);
-        qDaoFacade.playlist_dao.addMusicToPlaylist(file_music_id, kFileSystemPlaylistId);
-        ui_->page->playlist()->reload();
         });
+
+        qDatabaseFacade.insertTrackInfo(track_infos, kFileSystemPlaylistId, StoreType::LOCAL_STORE);
+        ui_->page->playlist()->reload();
+        
+        });
+
     (void)QObject::connect(ui_->dirTree,
         &QTreeView::customContextMenuRequested, [this](auto pt) {
         ActionMap<QTreeView, std::function<void(const QPoint&)>> action_map(ui_->dirTree);

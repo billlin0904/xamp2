@@ -404,7 +404,7 @@ bool KrcParser::parseKrcText(const std::wstring& wtext) {
                 word.offset = std::chrono::milliseconds(0); // 從 0 開始
                 word.length = gap;                           // 同整行時長
 
-                word.content = std::wstring(3, black_circle);
+                word.content = std::wstring(3, /*black_circle*/ L' ');
 
                 dotLine.words.push_back(word);
 

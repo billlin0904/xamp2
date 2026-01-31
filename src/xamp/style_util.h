@@ -9,7 +9,6 @@
 #include <ui_xamp.h>
 
 class NavBarListView;
-class QTableView;
 
 void setShufflePlayOrder(Ui::XampWindow& ui);
 

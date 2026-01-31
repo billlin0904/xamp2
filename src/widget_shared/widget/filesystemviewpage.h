@@ -12,6 +12,7 @@
 class PlaylistPage;
 class FileSystemModel;
 class WaveformWidget;
+class ScanFileProgressPage;
 
 namespace Ui {
 	class FileSystemViewPage;
@@ -37,5 +38,6 @@ private:
 	QString file_path_;
 	Ui::FileSystemViewPage* ui_;
 	FileSystemModel* dir_model_;
+	ScanFileProgressPage* progress_page_;
 	DirFirstSortFilterProxyModel* dir_first_sort_filter_;
 };

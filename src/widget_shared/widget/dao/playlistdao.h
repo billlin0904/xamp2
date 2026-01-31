@@ -30,7 +30,7 @@ public:
     void removePlaylist(int32_t playlist_id);
     void removePlaylistAllMusic(int32_t playlist_id);
     void updatePlaylistMusicChecked(int32_t playlist_music_id, bool is_checked);
-    int32_t removePlaylistMusic(int32_t playlist_id, const QVector<int>& select_music_ids);
+    int32_t removePlaylistMusic(const QList<int>& select_music_ids, int32_t playlist_id);
     bool isPlaylistExist(int32_t playlist_id) const;
     void setPlaylistIndex(int32_t playlist_id, int32_t play_index, StoreType store_type);
     void addMusicToPlaylist(int32_t music_id, int32_t playlist_id, int32_t album_id) const;

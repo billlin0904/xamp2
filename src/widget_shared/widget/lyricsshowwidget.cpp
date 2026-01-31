@@ -216,7 +216,7 @@ void LyricsShowWidget::setDefaultLrc() {
 		return;
 	}
 	LyricEntry entry;
-	entry.lrc = tr("Not found lyrics").toStdWString();
+	//entry.lrc = tr("Not Found Lyrics").toStdWString();
 	lyric_->addLrc(entry);
 	is_lrc_valid_ = true;
 }

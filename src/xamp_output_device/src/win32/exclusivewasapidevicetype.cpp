@@ -61,7 +61,9 @@ std::optional<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeIm
 	if (hr == ERROR_NOT_FOUND) {
 		return std::nullopt;
 	}
-	return MakeOptional<DeviceInfo>(helper::GetDeviceInfo(default_output_device, XAMP_UUID_OF(ExclusiveWasapiDeviceType)));
+	return MakeOptional<DeviceInfo>(helper::GetDeviceInfo(default_output_device,
+		XAMP_UUID_OF(ExclusiveWasapiDeviceType), 
+		ExclusiveWasapiDeviceType::Description));
 }
 
 std::vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::GetDeviceInfo() const {
@@ -122,7 +124,7 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl
 		try {
 			HrIfFailThrow(devices->Item(i, &device));
 
-			auto info = helper::GetDeviceInfo(device, XAMP_UUID_OF(ExclusiveWasapiDeviceType));
+			auto info = helper::GetDeviceInfo(device, XAMP_UUID_OF(ExclusiveWasapiDeviceType), ExclusiveWasapiDeviceType::Description);
 
 			AudioFormat default_format;
 			if (!helper::IsDeviceSupportExclusiveMode(device, default_format)) {

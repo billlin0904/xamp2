@@ -1,8 +1,6 @@
 <RCC>
     <qresource prefix="/xamp">
         <file>xamp.ico</file>
-        <file>Resource/Theme/dark/style.qss</file>
-        <file>Resource/Theme/light/style.qss</file>
         <file>Resource/White/GitHub-Mark.png</file>
         <file>Resource/Black/GitHub-Mark.png</file>
         <file>Resource/Black/play_circle.png</file>
@@ -25,5 +23,7 @@
         <file>Resource/Black/minimize-inactive.ico</file>
         <file>Resource/Black/unknown_album.png</file>
         <file>migrations/2024-01-12-093210_init/up.sql</file>
+        <file>Resource/Theme/dark/darkstyle.qss</file>
+        <file>Resource/Theme/light/lightstyle.qss</file>
     </qresource>
 </RCC>

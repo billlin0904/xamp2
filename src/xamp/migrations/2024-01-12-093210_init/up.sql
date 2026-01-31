@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS musics (
 CREATE UNIQUE INDEX IF NOT EXISTS path_index ON musics (path, offset, durationStr);
 
 CREATE TABLE IF NOT EXISTS playlist (
-    playlistId integer PRIMARY KEY AUTOINCREMENT,
+    playlistId integer PRIMARY KEY,
     playlistIndex integer,
     storeType integer,
     cloudPlaylistId TEXT,

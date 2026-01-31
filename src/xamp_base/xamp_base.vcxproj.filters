@@ -35,6 +35,7 @@
     <ClCompile Include="src\furigana.cpp" />
     <ClCompile Include="src\archivefile.cpp" />
     <ClCompile Include="src\fastiostream.cpp" />
+    <ClCompile Include="src\uuid_class.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\base\assert.h" />
@@ -96,5 +97,6 @@
     <ClInclude Include="include\base\archivelib.h" />
     <ClInclude Include="include\base\memory.h" />
     <ClInclude Include="include\base\fastiostream.h" />
+    <ClInclude Include="include\base\uuid_class.h" />
   </ItemGroup>
 </Project>

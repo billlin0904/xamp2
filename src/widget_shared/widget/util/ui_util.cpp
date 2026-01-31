@@ -52,7 +52,7 @@ QString formatSampleRate(const AudioFormat& format) {
     return formatSampleRate(format.GetSampleRate());
 }
 
-QString format2String(const PlaybackFormat& playback_format, const QString& file_ext) {
+QString format2String(const PlaybackFormat& playback_format, const QString& file_ext, const QString &desc) {
     auto format = playback_format.file_format;
 
     auto ext = file_ext;
@@ -107,7 +107,9 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
         + dsd_speed_format
         + output_format_str
         + " | "_str
-        + bit_format;
+        + bit_format
+        + " | "_str
+        + desc;
 
     if (!dsd_mode.isEmpty()) {
         result += " | "_str + dsd_mode;
@@ -330,8 +332,8 @@ void getOpenFileName(QWidget* parent,
     action(file_name);    
 }
 
-void delay(int32_t seconds) {
-	const auto die_time = QTime::currentTime().addSecs(seconds);
+void delay(int32_t ms) {
+	const auto die_time = QTime::currentTime().addMSecs(ms);
     while (QTime::currentTime() < die_time)
         QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents, 100);
 }

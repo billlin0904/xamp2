@@ -20,9 +20,9 @@
 #include "thememanager.h"
 
 enum TabIndex {
+    TAB_LYRICS,
     TAB_PLAYLIST,
     TAB_FILE_EXPLORER,
-    TAB_LYRICS,
     TAB_MUSIC_LIBRARY,
     TAB_CD,
     TAB_YT_MUSIC_PLAYLIST,

@@ -23,7 +23,7 @@ namespace dao {
             return kInvalidDatabaseId;
         }
 
-        model.setData(model.index(0, 0), QVariant());
+        model.setData(model.index(0, 0), /*QVariant()*/play_index);
         model.setData(model.index(0, 1), play_index);
         model.setData(model.index(0, 2), static_cast<int32_t>(store_type));
         model.setData(model.index(0, 3), cloud_playlist_id);
@@ -72,7 +72,7 @@ namespace dao {
         DbIfFailedThrow1(query);
     }
 
-    int32_t PlaylistDao::removePlaylistMusic(int32_t playlist_id, const QVector<int>& select_music_ids) {
+    int32_t PlaylistDao::removePlaylistMusic(const QList<int>& select_music_ids, int32_t playlist_id) {
         SqlQuery query(db_);
 
         QString str = "DELETE FROM playlistMusics WHERE playlistId=:playlistId AND musicId in (%0)"_str;

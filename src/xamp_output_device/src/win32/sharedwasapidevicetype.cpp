@@ -35,11 +35,8 @@ private:
 
 	[[nodiscard]] CComPtr<IMMDevice> GetDeviceById(const std::wstring& device_id) const;
 
-	// Device enumerator
 	CComPtr<IMMDeviceEnumerator> enumerator_;
-	// Device list
 	std::vector<DeviceInfo> device_list_;
-	// Logger
 	LoggerPtr logger_;
 };
 
@@ -86,7 +83,9 @@ std::optional<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::Ge
 	if (hr == ERROR_NOT_FOUND) {
 		return std::nullopt;
 	}
-	return MakeOptional<DeviceInfo>(helper::GetDeviceInfo(default_output_device, XAMP_UUID_OF(SharedWasapiDeviceType)));
+	return MakeOptional<DeviceInfo>(helper::GetDeviceInfo(default_output_device,
+		XAMP_UUID_OF(SharedWasapiDeviceType),
+		SharedWasapiDeviceType::Description));
 }
 
 std::vector<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDeviceInfoList() const {
@@ -121,7 +120,7 @@ std::vector<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetD
 		try {
 			HrIfFailThrow(devices->Item(i, &device));
 
-			auto info = helper::GetDeviceInfo(device, XAMP_UUID_OF(SharedWasapiDeviceType));
+			auto info = helper::GetDeviceInfo(device, XAMP_UUID_OF(SharedWasapiDeviceType), SharedWasapiDeviceType::Description);
 			if (default_device_name == info.name) {
 				info.is_default_device = true;
 			}

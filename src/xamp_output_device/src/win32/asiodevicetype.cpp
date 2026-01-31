@@ -83,6 +83,7 @@ DeviceInfo AsioDeviceType::AsioDeviceTypeImpl::GetDeviceInfo(std::wstring const&
 	info.device_type_id = XAMP_UUID_OF(AsioDeviceType);
 	info.is_support_dsd = true;
 	info.is_hardware_control_volume = false;
+	info.desc = AsioDeviceType::Description;
 	return info;
 }
 

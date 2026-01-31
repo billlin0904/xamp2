@@ -155,7 +155,6 @@ void PlaylistPage::initial() {
 	horizontalLayout_8->setObjectName(QString::fromUtf8("horizontalLayout_8"));
 	
 	horizontal_spacer_4_ = new QSpacerItem(5, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
-
 	horizontalLayout_8->addItem(horizontal_spacer_4_);
 
 	playlist_ = new PlaylistTableView(this);
@@ -267,7 +266,7 @@ void PlaylistPage::hidePlaybackInformation(bool hide) {
 		default_spacer_->changeSize(0, 0);
 		horizontal_spacer_4_->changeSize(0, 0);
 		horizontal_spacer_5_->changeSize(0, 0);
-		//horizontal_spacer_9_->changeSize(0, 0);
+		horizontal_spacer_9_->changeSize(0, 0);
 	}
 }
 

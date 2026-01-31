@@ -738,7 +738,7 @@ void PlaylistTableView::initial() {
 				return;
 			}
             add_music_to_new_playlist_menu->addAction(name, [playlist_id, this]() {
-                emit addPlaylist(playlist_id, items());
+                emit addPlaylist(playlist_id, selectItems());
                 });
             });
 
@@ -1281,7 +1281,7 @@ void PlaylistTableView::removeItem(const QModelIndex& index) {
 void PlaylistTableView::removeSelectItems() {
     const auto rows = selectItemIndex();
 
-    QVector<int> remove_music_ids;
+    QList<int> remove_music_ids;
 
     for (auto itr = rows.begin(); itr != rows.end(); ++itr) {
         const auto it = item(itr->second);
@@ -1294,6 +1294,6 @@ void PlaylistTableView::removeSelectItems() {
         qDaoFacade.playlist_dao.clearNowPlaying(playlist_id_);
 	}
     
-    qDaoFacade.playlist_dao.removePlaylistMusic(playlist_id_, remove_music_ids);
+    qDaoFacade.playlist_dao.removePlaylistMusic(remove_music_ids, playlist_id_);
     reload();
 }

@@ -40,7 +40,7 @@ namespace {
 
     constexpr int32_t kBufferStreamCount = 8;
     // 32MB
-    constexpr uint32_t kPreallocateBufferSize = 32 * 1024 * 1024;
+    constexpr uint32_t kPreallocateBufferSize = 1 * 1024 * 1024;
     // 128MB
     constexpr uint32_t kMaxPreAllocateBufferSize = 128 * 1024 * 1024;
     // 8KB
@@ -75,7 +75,7 @@ AudioPlayer::AudioPlayer(
     const std::shared_ptr<IThreadPoolExecutor>& player_thread_pool)
     : is_muted_(false)
 	, is_dsd_file_(false)
-    , enable_fadeout_(true)
+    , enable_fadeout_(false)
 	, enable_file_cache_(true)
     , num_read_buffer_size_(0)
     , num_write_buffer_size_(0)

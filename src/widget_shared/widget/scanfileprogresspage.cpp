@@ -18,9 +18,16 @@ ScanFileProgressPage::ScanFileProgressPage(QWidget* parent)
 
     progress_bar_ = new QProgressBar(this);
     progress_bar_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    progress_bar_->setFixedHeight(15);
+    progress_bar_->setFixedHeight(12);
+    /*progress_bar_->setStyleSheet(qFormat(
+        R"(
+           QProgressBar::chunk {
+                background-color: %3;
+           }
+        )"
+    ).arg(colorToString(qTheme.indicatorColor())));*/
 
-    auto* close_button_ = new QPushButton(this);
+    close_button_ = new QPushButton(this);
     close_button_->setObjectName("scanFileProgressPageCloseButton"_str);
     close_button_->setCursor(Qt::PointingHandCursor);
     close_button_->setAttribute(Qt::WA_TranslucentBackground);
@@ -43,7 +50,7 @@ ScanFileProgressPage::ScanFileProgressPage(QWidget* parent)
     message_text_label_->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     message_text_label_->setObjectName("messageTextLabel"_str);
     message_text_label_->setOpenExternalLinks(false);
-    message_text_label_->setFixedHeight(20);
+    message_text_label_->setFixedHeight(10);
     message_text_label_->setSizePolicy(QSizePolicy::Expanding,
         QSizePolicy::Fixed);
     message_text_label_->setStyleSheet("background: transparent;"_str);
@@ -72,15 +79,18 @@ ScanFileProgressPage::ScanFileProgressPage(QWidget* parent)
         });
 }
 
-void ScanFileProgressPage::onReadFileProgress(int32_t progress) {
+void ScanFileProgressPage::setOnlyShowProgress() {
+	//close_button_->hide();
+	message_text_label_->hide();
+}
+
+void ScanFileProgressPage::setFileProgress(int32_t progress) {
     progress_bar_->setValue(progress);
-    getMainWindow()->setTaskbarProgress(progress);
 }
 
 void ScanFileProgressPage::onReadCompleted() {
     hide();
     progress_bar_->setValue(0);
-    getMainWindow()->resetTaskbarProgress();
 }
 
 void ScanFileProgressPage::onRemainingTimeEstimation(size_t total_work,
@@ -95,7 +105,7 @@ void ScanFileProgressPage::onRemainingTimeEstimation(size_t total_work,
     message_text_label_->setText(metrics.elidedText(message, Qt::ElideRight, width()));
 }
 
-void ScanFileProgressPage::onFoundFileCount(size_t file_count) {
+void ScanFileProgressPage::setFileCount(size_t file_count) {
     auto message = qFormat("Total number of files %1").arg(file_count);
     QFontMetrics metrics(font());
     message_text_label_->setText(metrics.elidedText(message, Qt::ElideRight, width()));
@@ -107,6 +117,5 @@ void ScanFileProgressPage::onReadFilePath(const QString& file_path) {
     message_text_label_->setText(message);
 }
 
-void ScanFileProgressPage::onReadFileStart() {
-    getMainWindow()->resetTaskbarProgress();
+void ScanFileProgressPage::onReadFileStart() {    
 }

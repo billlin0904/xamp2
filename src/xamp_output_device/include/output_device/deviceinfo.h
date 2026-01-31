@@ -43,6 +43,7 @@ struct XAMP_OUTPUT_DEVICE_API DeviceInfo final {
 	std::wstring name;    
 	std::string device_id;
 	Uuid device_type_id;
+	std::string desc;
 	std::optional<AudioFormat> default_format;
 	std::optional<float> scaled_min_db;
 	std::optional<float> scaled_max_db;

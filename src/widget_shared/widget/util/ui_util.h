@@ -48,7 +48,7 @@ XAMP_WIDGET_SHARED_EXPORT IXMainWindow* getMainWindow();
 
 XAMP_WIDGET_SHARED_EXPORT QString formatSampleRate(const AudioFormat& format);
 
-XAMP_WIDGET_SHARED_EXPORT QString format2String(const PlaybackFormat& playback_format, const QString& file_ext);
+XAMP_WIDGET_SHARED_EXPORT QString format2String(const PlaybackFormat& playback_format, const QString& file_ext, const QString& desc);
 
 XAMP_WIDGET_SHARED_EXPORT QSharedPointer<XProgressDialog> makeProgressDialog(QString const& title,
     QString const& text, 
@@ -92,7 +92,7 @@ XAMP_WIDGET_SHARED_EXPORT void getSaveFileName(QWidget* parent,
     const QString& dir = QString(),
     const QString& filter = QString());
 
-XAMP_WIDGET_SHARED_EXPORT void delay(int32_t seconds);
+XAMP_WIDGET_SHARED_EXPORT void delay(int32_t ms);
 
 XAMP_WIDGET_SHARED_EXPORT QSharedPointer<XMessageBox> makeMessageBox(const QString& title,
     const QString &message, 

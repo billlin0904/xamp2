@@ -20,6 +20,7 @@
 #include <widget/xmainwindow.h>
 #include <widget/jsonsettings.h>
 #include <widget/imagecache.h>
+#include <widget/database.h>
 
 #include <QPermissions>
 #include <QSslSocket>
@@ -191,7 +192,7 @@ namespace {
             return -1;
         }
 
-        qImageCache.loadUnknownCover();
+        //qImageCache.loadUnknownCover();
 
         XAMP_LOG_DEBUG("Database init success.");
 

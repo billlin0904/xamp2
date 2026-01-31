@@ -159,10 +159,12 @@ QFont ThemeManager::loadFonts() {
     QList<QString> debug_fonts;
 
     installFileFonts("FiraCode-Regular"_str, debug_fonts);
+    
+    installFileFonts("Aldrich-Regular"_str, format_font);
     //installFileFonts("Lato"_str, mono_fonts);
-    installFileFonts("Inter_18pt"_str, ui_fonts);
+    installFileFonts("Inter"_str, ui_fonts);
     //ui_fonts.push_back("TX-02"_str);
-    //installFileFonts("NotoSans"_str, mono_fonts);
+    installFileFonts("NotoSans"_str, mono_fonts);
     installFileFonts("SourceHanSans"_str, ui_fonts);
 
     sortFontWeight(ui_fonts.begin(), ui_fonts.end());
@@ -268,6 +270,7 @@ QLatin1String ThemeManager::themeColorPath(ThemeColor theme_color) const {
 
 QColor ThemeManager::indicatorColor() const {
     return textColor();
+    //return QColor(232, 214, 90);
 }
 
 QColor ThemeManager::textColor() const {
@@ -509,9 +512,9 @@ void ThemeManager::setThemeQssFile() {
     QString filename;
 
     if (themeColor() == ThemeColor::LIGHT_THEME) {
-        filename = ":/xamp/Resource/Theme/light/style.qss"_str;
+        filename = ":/xamp/Resource/Theme/light/lightstyle.qss"_str;
     } else {
-        filename = ":/xamp/Resource/Theme/dark/style.qss"_str;
+        filename = ":/xamp/Resource/Theme/dark/darkstyle.qss"_str;
     }
 
     QFile f(filename);
@@ -818,6 +821,7 @@ void ThemeManager::setSliderTheme(QSlider* slider, bool enter) {
         break;
     case ThemeColor::DARK_THEME:
         slider_background_color = "#1A72BB"_str;
+        //slider_background_color = "#E8D65A"_str;
         slider_border_color = "#43474e"_str;
         break;
     }
