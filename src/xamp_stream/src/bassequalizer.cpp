@@ -107,7 +107,7 @@ BassEqualizer::BassEqualizer()
 
 XAMP_PIMPL_IMPL(BassEqualizer)
 
-void BassEqualizer::Initialize(const AnyMap& config) {
+void BassEqualizer::Initialize(const Property& config) {
     const auto output_format = config.Get<AudioFormat>(DspConfig::kOutputFormat);
     impl_->Start(output_format.GetSampleRate());
 

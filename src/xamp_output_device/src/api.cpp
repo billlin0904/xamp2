@@ -57,7 +57,9 @@ static struct IopmAssertion {
 #endif
 
 ScopedPtr<IAudioDeviceManager> MakeAudioDeviceManager() {
-	return MakeAlign<IAudioDeviceManager, AudioDeviceManager>();
+	auto manager = MakeAlign<IAudioDeviceManager, AudioDeviceManager>();
+	manager->Initial();
+	return manager;
 }
 
 bool IsExclusiveDevice(const DeviceInfo& info) noexcept {

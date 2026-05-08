@@ -54,7 +54,7 @@ namespace {
 
     constexpr std::chrono::milliseconds kUpdateSampleIntervalMs(15);
     constexpr std::chrono::milliseconds kReadSampleWaitTimeMs(15);
-    constexpr std::chrono::milliseconds kPauseWaitTimeout(30);
+    constexpr std::chrono::milliseconds kPauseWaitTimeout(10);
     constexpr std::chrono::seconds kWaitForStreamStopTime(10);
     constexpr std::chrono::seconds kWaitForSignalWhenReadFinish(3);
     constexpr std::chrono::milliseconds kMinimalCopySamplesTime(5);    
@@ -121,7 +121,7 @@ void AudioPlayer::Open(const Path& file_path,
     float rate,
     bool use_mqa_decode) {
     ScopedPtr<IDeviceType> device_type;
-    if (device_id.IsValid()) {
+    if (!device_id.IsValid()) {
         device_type = device_manager_->CreateDefaultDeviceType();
     } else {
         device_type = device_manager_->Create(device_id);
@@ -515,63 +515,84 @@ void AudioPlayer::ResizeFIFO(uint32_t fifo_size) {
 }
 
 void AudioPlayer::CreateBuffer() {
-    uint32_t allocate_size = 0;
-    uint32_t fifo_size = 0;
+    const uint32_t page_size = static_cast<uint32_t>(GetPageSize());
+    const uint32_t device_buffer_samples = device_->GetBufferSize();
+    const uint32_t file_sample_size = file_stream_->GetSampleSize();
+    const uint32_t output_bytes_per_sec = output_format_.GetAvgBytesPerSec();
 
-	auto align_page_size = [](uint32_t size) {
-		return AlignUp(size, GetPageSize());
-		};
-
-    auto get_buffer_sample = [](auto* device, auto ratio) {
-        return static_cast<uint32_t>(AlignUp(
-            device->GetBufferSize() * ratio, GetPageSize()));
+    auto multiply = [](uint32_t value, uint32_t factor, uint32_t limit = std::numeric_limits<uint32_t>::max()) {
+        if (factor == 0) {
+            return 0U;
+        }
+        if (value > limit / factor) {
+            return limit;
+        }
+        return value * factor;
         };
 
-    if (audio_config_.dsd_mode == DsdModes::DSD_MODE_NATIVE) {
-        // DSD native mode
-        num_read_buffer_size_ = align_page_size(
-            output_format_.GetSampleRate() / 8);
-        num_write_buffer_size_ = device_->GetBufferSize() * kMaxBufferSecs;
-    }
-    else {
-        auto max_ratio = std::max(
-            output_format_.GetAvgBytesPerSec() / input_format_.GetAvgBytesPerSec(), 1U);
-        num_write_buffer_size_ = get_buffer_sample(device_.get(),
-            max_ratio * sizeof(float));
-        num_read_buffer_size_ = std::max(get_buffer_sample(
-            device_.get(), kMaxReadRatio), kMinReadBufferSize);
-    }
+    auto align_page_size = [page_size](uint32_t size) {
+        const uint32_t max_size = std::numeric_limits<uint32_t>::max() - page_size;
+        return AlignUp(std::min(size, max_size), page_size);
+        };
+
+    auto ceil_ratio = [](uint32_t numerator, uint32_t denominator) {
+        if (numerator == 0 || denominator == 0) {
+            return 1U;
+        }
+        return std::max(((numerator - 1) / denominator) + 1, 1U);
+        };
+
+    auto cap_preallocate_size = [](uint32_t size) {
+        return std::min(size, kMaxPreAllocateBufferSize);
+        };
+
+    uint32_t read_buffer_size = 0;
+    uint32_t fifo_size = 0;
 
     if (audio_config_.dsd_mode == DsdModes::DSD_MODE_NATIVE) {
-        allocate_size = num_read_buffer_size_;
-        fifo_size = output_format_.GetAvgBytesPerSec() * kMaxBufferSecs;
+        // Native DSD is byte-oriented: one stream sample is one byte in the reader and FIFO.
+        num_read_buffer_size_ = align_page_size(output_format_.GetSampleRate() / 8);
+        num_write_buffer_size_ = multiply(device_buffer_samples, kMaxBufferSecs);
+        read_buffer_size = multiply(num_read_buffer_size_, file_sample_size);
+        fifo_size = align_page_size(multiply(output_bytes_per_sec, kMaxBufferSecs));
     }
     else {
+        const uint32_t input_bytes_per_sec = input_format_.GetAvgBytesPerSec();
+        const uint32_t output_to_input_ratio = ceil_ratio(output_bytes_per_sec, input_bytes_per_sec);
+
+        // Keep reads large enough for file/DSP efficiency, while the FIFO watermark is measured in bytes.
+        num_read_buffer_size_ = std::max(
+            align_page_size(multiply(device_buffer_samples, kMaxReadRatio)),
+            kMinReadBufferSize);
+        num_write_buffer_size_ = align_page_size(
+            multiply(multiply(device_buffer_samples, output_to_input_ratio), sizeof(float)));
+
         if (!enable_file_cache_) {
-            fifo_size = kMaxBufferSecs
-        	* output_format_.GetAvgBytesPerSec()
-        	* GetBufferCount(output_format_.GetSampleRate());
+            const uint32_t fifo_seconds = multiply(output_bytes_per_sec, kMaxBufferSecs);
+            fifo_size = align_page_size(multiply(fifo_seconds, GetBufferCount(output_format_.GetSampleRate())));
         }
         else {
             fifo_size = kMaxPreAllocateBufferSize;
         }
-        fifo_size = align_page_size(fifo_size);
 
-        allocate_size = std::min(kMaxPreAllocateBufferSize,
-            num_write_buffer_size_ 
-            * file_stream_->GetSampleSize() 
-            * kTotalBufferStreamCount);
-        allocate_size = align_page_size(allocate_size);
+        const uint32_t min_read_buffer_size = multiply(num_read_buffer_size_, file_sample_size);
+        const uint32_t preferred_read_buffer_size = multiply(
+            multiply(num_write_buffer_size_, file_sample_size, kMaxPreAllocateBufferSize),
+            kTotalBufferStreamCount,
+            kMaxPreAllocateBufferSize);
+        read_buffer_size = align_page_size(std::max(min_read_buffer_size,
+            cap_preallocate_size(preferred_read_buffer_size)));
     }
 
-    ResizeReadBuffer(allocate_size);
+    ResizeReadBuffer(read_buffer_size);
     ResizeFIFO(fifo_size);
 
     XAMP_LOG_DEBUG(
-        "Device output buffer:{} num_write_buffer_size:{} num_read_sample:{} fifo buffer:{}.",
-        String::FormatBytes(device_->GetBufferSize()),
+        "Device output buffer:{} fifo write watermark:{} read samples:{} read buffer:{} fifo buffer:{}.",
+        String::FormatBytes(device_buffer_samples),
         String::FormatBytes(num_write_buffer_size_),
-        String::FormatBytes(num_read_buffer_size_),
+        num_read_buffer_size_,
+        String::FormatBytes(read_buffer_size),
         String::FormatBytes(fifo_size));
 }
 
@@ -1069,13 +1090,13 @@ void AudioPlayer::PrepareToPlay(ByteFormat byte_format,
     OpenDevice(0);
     CreateBuffer();
 
-    config_.AddOrReplace(DspConfig::kInputFormat,
+    config_.Create(DspConfig::kInputFormat,
         std::any(input_format_));
-    config_.AddOrReplace(DspConfig::kOutputFormat,
+    config_.Create(DspConfig::kOutputFormat,
         std::any(output_format_));
-    config_.AddOrReplace(DspConfig::kDsdMode, 
+    config_.Create(DspConfig::kDsdMode,
         std::any(audio_config_.dsd_mode));
-    config_.AddOrReplace(DspConfig::kSampleSize, 
+    config_.Create(DspConfig::kSampleSize,
         std::any(file_stream_->GetSampleSize()));
 
     dsp_manager_->Initialize(config_);
@@ -1083,7 +1104,7 @@ void AudioPlayer::PrepareToPlay(ByteFormat byte_format,
     XAMP_LOG_D(logger_, "Stream end time: {:.2f} sec.", sample_end_time_);    
 }
 
-AnyMap& AudioPlayer::GetDspConfig() {
+Property& AudioPlayer::GetDspConfig() {
     return config_;
 }
 

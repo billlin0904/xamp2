@@ -15,9 +15,12 @@
 #include <ui_xamp.h>
 
 class QWidgetAction;
+
+class BackgroundService;
 class PlaybackQueueViewPage;
 class FileSystemViewPage;
 class LrcPage;
+class CdPage;
 
 class Xamp final : public IXFrame {
 	Q_OBJECT
@@ -48,7 +51,8 @@ public:
 	QString translateText(const std::string_view& text) override;
 
 signals:
-	
+    void fetchCdInfo(const DriveInfo& drive);
+
 public slots:
     void onPlayerStateChanged(xamp::player::PlayerState play_state);
 
@@ -56,6 +60,7 @@ public slots:
     
     void onDeviceStateChanged(DeviceState state, const QString& device_id);
 
+    void onUpdateCdTrackInfo(const QString& disc_id, const std::forward_list<TrackInfo>& track_infos);
 private:
     void pushWidget(QWidget* widget);
 
@@ -90,7 +95,9 @@ private:
     QAction* preference_action_{ nullptr };
     QScopedPointer<LrcPage> lrc_page_;
     QScopedPointer<FileSystemViewPage> file_explorer_page_;
+	QScopedPointer<CdPage> cd_page_;
     QScopedPointer<QSystemTrayIcon> tray_icon_;
+    QScopedPointer<BackgroundService> background_service_;
 	QScopedArrayPointer<PlaybackQueueViewPage> playback_queue_page_;
     QList<QFrame*> device_type_frame_;
     QList<QWidget*> widgets_;
@@ -98,5 +105,6 @@ private:
     std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
     std::shared_ptr<IAudioPlayer> player_;
     std::optional<DeviceInfo> device_info_;
+    QThread background_service_thread_;
 	Ui::XampWindow ui_;
 };

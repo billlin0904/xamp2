@@ -26,7 +26,7 @@ public:
 
     XAMP_PIMPL(BassParametricEq)
 
-    void Initialize(const AnyMap& config) override;
+    void Initialize(const Property& config) override;
 
     void SetEq(const EqSettings& settings);
 

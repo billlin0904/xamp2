@@ -105,7 +105,7 @@ public:
 
     virtual ScopedPtr<IDSPManager>& GetDspManager() = 0;
 
-    virtual AnyMap& GetDspConfig() = 0;
+    virtual Property& GetDspConfig() = 0;
 
     virtual void SetDelayCallback(std::function<void(uint32_t)>&& delay_callback) = 0;
 

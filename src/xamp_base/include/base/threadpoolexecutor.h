@@ -153,6 +153,7 @@ private:
     std::vector<AlignedAtomic<ExecuteFlags>> task_execute_flags_;
     std::vector<AlignedAtomic<size_t>> attempt_count_;
     std::vector<AlignedAtomic<size_t>> success_count_;
+    AlignedAtomic<size_t> enqueue_hint_;
     SharedTaskQueuePtr task_pool_;
     std::vector<WorkStealingTaskQueuePtr> task_work_queues_;
     std::latch work_done_;

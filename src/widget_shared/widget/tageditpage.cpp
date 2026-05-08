@@ -129,7 +129,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 		if (!entity.is_cue_file) {
 			try {
 				TagIO tag_io;
-				tag_io.Open(path);
+				tag_io.open(path);
 				tag_io.writeArtist(ui_->artistLineEdit->text());
 				tag_io.writeTitle(ui_->titleComboBox->currentText());
 				tag_io.writeAlbum(ui_->albumLineEdit->text());
@@ -187,7 +187,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 	(void)QObject::connect(ui_->removeCoverButton, &QPushButton::clicked, [this] {
 		const auto index = ui_->titleComboBox->currentIndex();
 		TagIO tag_io;
-		tag_io.Open(entities_[index].file_path.toStdWString());
+		tag_io.open(entities_[index].file_path.toStdWString());
 		tag_io.removeEmbeddedCover();
 		});
 
@@ -207,7 +207,7 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 		const auto index = ui_->titleComboBox->currentIndex();
 
 		TagIO tag_io;
-		tag_io.Open(entities_[index].file_path.toStdWString());
+		tag_io.open(entities_[index].file_path.toStdWString());
 		if (!tag_io.canWriteEmbeddedCover()) {
 			return;
 		}
@@ -320,7 +320,7 @@ void TagEditPage::readEmbeddedCover(const PlayListEntity& entity) {
 	QSize image_size(0, 0);
 	size_t image_file_size = 0;
 	QPixmap image;
-	tag_io.Open(entity.file_path.toStdWString(), TAG_IO_READ_MODE);
+	tag_io.open(entity.file_path.toStdWString(), TAG_IO_READ_MODE);
 	if (tag_io.embeddedCover(image, image_file_size)) {
 		image_size = image.size();
 		image = image_util::resizeImage(image, ui_->coverLabel->size());

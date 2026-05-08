@@ -42,7 +42,7 @@ public:
     * 
     * @param config: the configuration for the audio processor.
     */
-    virtual void Initialize(const AnyMap& config) = 0;
+    virtual void Initialize(const Property& config) = 0;
 
     /*
     * ReadStream the audio samples.

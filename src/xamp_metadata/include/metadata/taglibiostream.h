@@ -19,12 +19,12 @@ public:
 
 	virtual ~TaglibIOStream() override = default;
 
-	explicit TaglibIOStream(const Path& path)
-		: io_stream_(path, FastIOStream::Mode::ReadWriteOnlyExisting) {
+	explicit TaglibIOStream(const Path& path, FastIOStream::Mode mode = FastIOStream::Mode::ReadWriteOnlyExisting)
+		: io_stream_(path, mode) {
 	}
 
-	void open(const Path& path) {
-		io_stream_.open(path, FastIOStream::Mode::ReadWriteOnlyExisting);
+	void open(const Path& path, FastIOStream::Mode mode = FastIOStream::Mode::ReadWriteOnlyExisting) {
+		io_stream_.open(path, mode);
 	}
 
 	TagLib::FileName name() const override {

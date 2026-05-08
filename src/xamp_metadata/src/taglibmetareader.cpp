@@ -599,8 +599,8 @@ namespace {
         return MakeAlign<TagLib::IOStream, LibarchiveIOStream>(std::move(entry));
     }
 
-    ScopedPtr<TagLib::IOStream> MakeIOStream(const Path& path) {
-        return MakeAlign<TagLib::IOStream, TaglibIOStream>(path);
+    ScopedPtr<TagLib::IOStream> MakeIOStream(const Path& path, FastIOStream::Mode mode = FastIOStream::Mode::ReadWriteOnlyExisting) {
+        return MakeAlign<TagLib::IOStream, TaglibIOStream>(path, mode);
     }
 }
 
@@ -616,20 +616,20 @@ public:
         if (!fileref.isNull()) {
             fileref_opt_ = fileref;
             path_ = archive_path;
-			entry_name_ = entry_name;
+            entry_name_ = entry_name;
             file_ext_ = String::ToLower(Path(entry_name).extension().string());
             tag_reader_ = MakeFileTagReader(file_ext_);
             is_archive_file_ = true;
         }
     }
 
-	void Open(const Path& path) {
-        fileref_opt_ = std::nullopt;       
-        io_stream_ = MakeIOStream(path);
+    void Open(const Path& path) {
+        fileref_opt_ = std::nullopt;
+        io_stream_ = MakeIOStream(path, FastIOStream::Mode::Read);
         FileRef fileref(io_stream_.get(), true, TagLib::AudioProperties::Fast);
         if (!fileref.isNull()) {
             fileref_opt_ = fileref;
-            path_ = path;            
+            path_ = path;
             file_ext_ = String::ToLower(path_.extension().string());
             tag_reader_ = MakeFileTagReader(file_ext_);
         }

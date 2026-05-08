@@ -154,8 +154,7 @@ void ParallelForSimple(const std::shared_ptr<IThreadPoolExecutor>& executor,
         return;
     }
 
-    auto begin = std::begin(items);
-    auto size = std::distance(begin, std::end(items));
+    auto size = std::distance(std::begin(items), std::end(items));
 
     constexpr bool can_call_with_stop =
         std::is_invocable_v<Func, ValueType&, const std::stop_token&>;
@@ -163,14 +162,13 @@ void ParallelForSimple(const std::shared_ptr<IThreadPoolExecutor>& executor,
     std::vector<Future> futures;
     futures.reserve(size);
 
-    auto i = 0;
-    for (auto& item : items) {        
-        futures.push_back(Executor::Spawn(executor, [ff = std::forward<Func>(f), begin, i](const auto& stop_token) -> void {
+    for (auto& item : items) {
+        futures.push_back(Executor::Spawn(executor, [ff = std::forward<Func>(f), item_ptr = std::addressof(item)](const auto& stop_token) mutable -> void {
             if constexpr (can_call_with_stop) {
-                ff(*(begin + i), stop_token);
+                ff(*item_ptr, stop_token);
             }
             else {
-                ff(*(begin + i));
+                ff(*item_ptr);
             }
         }));
     }

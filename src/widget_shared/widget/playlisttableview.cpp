@@ -887,7 +887,7 @@ void PlaylistTableView::onReloadEntity(const PlayListEntity& item) {
     dao::MusicDao music_dao(qGuiDb.getDatabase());
 
     XAMP_TRY_LOG(
-        auto track_info = TagIO::getTrackInfo(item.file_path.toStdWString());
+        auto track_info = TagIO::extractTrackInfo(item.file_path.toStdWString());
         if (track_info) {
             music_dao.addOrUpdateMusic(track_info.value());
             reload();

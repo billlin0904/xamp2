@@ -55,7 +55,7 @@ BassFader::BassFader()
 
 XAMP_PIMPL_IMPL(BassFader)
 
-void BassFader::Initialize(const AnyMap& config) {
+void BassFader::Initialize(const Property& config) {
     const auto output_format = config.Get<AudioFormat>(DspConfig::kOutputFormat);
     impl_->Start(output_format.GetSampleRate());
 }

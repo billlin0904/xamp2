@@ -43,6 +43,7 @@ public:
 	WasapiWorkQueue(const std::wstring &mmcss_name, ParentClass* parent, const Callback fn)
 		: mmcss_name_(mmcss_name)
 		, queue_id_(MAXDWORD)
+		, shared_queue_id_(MAXDWORD)
 		, task_id_(0)
 		, workitem_key_(0)
 		, parent_(parent)
@@ -79,12 +80,16 @@ public:
 			workitem_key_ = 0;
 		}
 
-		if (!IsValid()) {
-			return;
-		}
 		async_result_.Release();
-		HrIfFailThrow(::MFUnlockWorkQueue(queue_id_));
-		queue_id_ = MAXDWORD;
+
+		if (queue_id_ != MAXDWORD) {
+			HrIfFailThrow(::MFUnlockWorkQueue(queue_id_));
+			queue_id_ = MAXDWORD;
+		}
+		if (shared_queue_id_ != MAXDWORD) {
+			HrIfFailThrow(::MFUnlockWorkQueue(shared_queue_id_));
+			shared_queue_id_ = MAXDWORD;
+		}
 		task_id_ = 0;
 	}
 
@@ -119,10 +124,27 @@ public:
 	* Initial.
 	*/
 	void LoadStream() {
-		DWORD queue_id = MF_MULTITHREADED_WORKQUEUE;
-		HrIfFailThrow(::MFLockSharedWorkQueue(mmcss_name_.c_str(), 0, &task_id_, &queue_id));
+		DWORD shared_queue_id = MF_MULTITHREADED_WORKQUEUE;
+		HrIfFailThrow(::MFLockSharedWorkQueue(mmcss_name_.c_str(), 0, &task_id_, &shared_queue_id));
+
+		DWORD queue_id = MAXDWORD;
+		CComPtr<IMFAsyncResult> async_result;
+		try {
+			HrIfFailThrow(::MFAllocateSerialWorkQueue(shared_queue_id, &queue_id));
+			HrIfFailThrow(::MFCreateAsyncResult(nullptr, this, nullptr, &async_result));
+		}
+		catch (...) {
+			if (queue_id != MAXDWORD) {
+				::MFUnlockWorkQueue(queue_id);
+			}
+			::MFUnlockWorkQueue(shared_queue_id);
+			task_id_ = 0;
+			throw;
+		}
+
+		shared_queue_id_ = shared_queue_id;
 		queue_id_ = queue_id;
-		HrIfFailThrow(::MFCreateAsyncResult(nullptr, this, nullptr, &async_result_));
+		async_result_ = async_result;
 	}
 
 	/*
@@ -131,9 +153,11 @@ public:
 	* @param[in] async_result: async result.
 	*/
 	STDMETHODIMP Invoke(IMFAsyncResult* async_result) override {
-		std::lock_guard<SpinLock> guard{ mutex_ };
-		if (!IsValid()) {
-			return S_OK;
+		{
+			std::lock_guard<SpinLock> guard{ mutex_ };
+			if (!IsValid()) {
+				return S_OK;
+			}
 		}
 		return (parent_->*callback_)(async_result);
 	}
@@ -143,6 +167,7 @@ public:
 	* 
 	*/
 	void WaitAsync(HANDLE event) {
+		std::lock_guard<SpinLock> guard{ mutex_ };
 		if (!IsValid()) {
 			return;
 		}
@@ -154,6 +179,7 @@ private:
 	SpinLock mutex_;
 	std::wstring mmcss_name_;
 	DWORD queue_id_;
+	DWORD shared_queue_id_;
 	DWORD task_id_;
 	MFWORKITEM_KEY workitem_key_;
 	ParentClass* parent_;

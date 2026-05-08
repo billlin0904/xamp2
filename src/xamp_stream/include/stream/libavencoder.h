@@ -19,7 +19,7 @@ public:
 
 	XAMP_PIMPL(LibAbFileEncoder)
 
-	void Start(const AnyMap& config,
+	void Start(const Property& config,
 		const std::shared_ptr<FastIOStream>& file_) override;
 
 	void Encode(std::function<bool(uint32_t)> const& progress = nullptr,

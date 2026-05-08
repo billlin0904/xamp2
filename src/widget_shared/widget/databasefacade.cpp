@@ -73,9 +73,9 @@ const FetchCoverCallback DatabaseFacade::GetDefaultFetchCover() {
         try {
             TagIO reader;
             if (archive_entry.has_value()) {
-                reader.Open(std::move(archive_entry.value()));
+                reader.open(std::move(archive_entry.value()));
             } else {
-                reader.Open(file_path.toStdWString(), TAG_IO_READ_MODE);
+                reader.open(file_path.toStdWString(), TAG_IO_READ_MODE);
 			}            
             auto cover = reader.embeddedCover();
             if (!cover) {

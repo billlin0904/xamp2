@@ -158,7 +158,7 @@ public:
 
     void EnableFadeOut(bool enable) override;
 
-    AnyMap& GetDspConfig() override;
+    Property& GetDspConfig() override;
 
     void SetDelayCallback(std::function<void(uint32_t)> &&delay_callback) override;
 
@@ -253,7 +253,7 @@ private:
     ScopedPtr<IAudioDeviceManager> device_manager_;
     std::weak_ptr<IPlaybackStateAdapter> state_adapter_;    
     Future<void> stream_task_;
-    AnyMap config_;
+    Property config_;
     LoggerPtr logger_;
     std::string device_id_;
     Buffer<std::byte> read_buffer_;

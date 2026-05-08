@@ -16,18 +16,10 @@
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
-class XAMP_STREAM_API AnyMap {
+class XAMP_STREAM_API Property {
 public:
     template <typename T>
-    void AddOrReplace(const std::string_view &name, T&& value) {
-        configs_.insert_or_assign(name, std::forward<T>(value));
-    }
-
-    template <typename T>
-    void Replace(const std::string_view& name, T&& value) {
-        if (configs_.find(name) != configs_.end()) {
-            return;
-        }
+    void Create(const std::string_view &name, T&& value) {
         configs_.insert_or_assign(name, std::forward<T>(value));
     }
 
@@ -46,6 +38,15 @@ public:
     template <typename T>
     T Get(const std::string_view& name) const {
         return std::any_cast<T>(configs_.at(name));
+    }
+
+    template <typename T>
+    bool Set(const std::string_view& name, const T &value) {
+	    if (!configs_.contains(name)) {
+            return false;
+	    }
+        configs_[name] = value;
+		return true;
     }
 
     void Remove(const std::string_view& name) {

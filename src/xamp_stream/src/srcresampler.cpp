@@ -138,7 +138,7 @@ bool SrcSampleRateConverter::Process(float const* samples, size_t num_samples, B
 	return impl_->Process(samples, num_samples, output);
 }
 
-void SrcSampleRateConverter::Initialize(const AnyMap& config) {
+void SrcSampleRateConverter::Initialize(const Property& config) {
 	const auto output_format = config.Get<AudioFormat>(DspConfig::kOutputFormat);
 	impl_->Start(output_format.GetSampleRate());
 

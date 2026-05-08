@@ -228,7 +228,7 @@ SoxrSampleRateConverter::SoxrSampleRateConverter()
 
 XAMP_PIMPL_IMPL(SoxrSampleRateConverter)
 
-void SoxrSampleRateConverter::Initialize(const AnyMap& config) {
+void SoxrSampleRateConverter::Initialize(const Property& config) {
 	const auto output_format = config.Get<AudioFormat>(DspConfig::kOutputFormat);
 	impl_->Start(output_format.GetSampleRate());
 

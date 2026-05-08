@@ -21,11 +21,11 @@ public:
 
     XAMP_DISABLE_COPY_AND_MOVE(TagIO)
 
-	void Open(const Path& path, TagIOMode mode = TAG_IO_WRITE_MODE);
+	void open(const Path& path, TagIOMode mode = TAG_IO_WRITE_MODE);
 
-    void Open(ArchiveEntry archive_entry);
+    void open(ArchiveEntry archive_entry);
 
-    static std::expected<TrackInfo, ParseMetadataError> getTrackInfo(const Path& path);
+    static std::expected<TrackInfo, ParseMetadataError> extractTrackInfo(const Path& path);
 
     void writeArtist(const QString& artist);
 

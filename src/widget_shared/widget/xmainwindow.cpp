@@ -32,7 +32,7 @@
 
 XMainWindow::XMainWindow()
     : IXMainWindow()
-#if defined(Q_OS_WIN)
+#ifdef Q_OS_WIN
 	, screen_number_(1)
 #endif
 	, content_widget_(nullptr) {
@@ -40,6 +40,9 @@ XMainWindow::XMainWindow()
     setObjectName("XMainWindow"_str);
     setAcceptDrops(true);
 }
+
+// QScopedPointer require default destructor.
+XMainWindow::~XMainWindow() = default;
 
 void XMainWindow::setShortcut(const QKeySequence& shortcut) {
     constexpr auto all_mods =
@@ -67,23 +70,19 @@ void XMainWindow::setContentWidget(IXFrame *content_widget) {
     }
     installWindowAgent();
     setCentralWidget(content_widget);
-    readDriveInfo();    
+    readDriveInfo();
 }
-
-// QScopedPointer require default destructor.
-XMainWindow::~XMainWindow() = default;
 
 void XMainWindow::onThemeChangedFinished(ThemeColor theme_color) {
 }
 
 void XMainWindow::ensureInitTaskbar() {
-#if defined(Q_OS_WIN)
+#ifdef Q_OS_WIN
     if (!content_widget_) {
         return;
     }
     if (!task_bar_) {
         task_bar_.reset(new WinTaskbar(this, content_widget_));
-        task_bar_->setIconicThumbnail(qTheme.defaultSizeUnknownCover());
     }
 #endif
 }
@@ -102,7 +101,7 @@ void XMainWindow::systemThemeChanged(ThemeColor theme_color) {
 }
 
 void XMainWindow::setTaskbarProgress(const int32_t percent) {
-#if defined(Q_OS_WIN)
+#ifdef Q_OS_WIN
     ensureInitTaskbar();
     task_bar_->setTaskbarProgress(percent);
 #else
@@ -111,42 +110,42 @@ void XMainWindow::setTaskbarProgress(const int32_t percent) {
 }
 
 void XMainWindow::resetTaskbarProgress() {
-#if defined(Q_OS_WIN)
+#ifdef Q_OS_WIN
     ensureInitTaskbar();
     task_bar_->resetTaskbarProgress();
 #endif
 }
 
 void XMainWindow::setTaskbarPlayingResume() {
-#if defined(Q_OS_WIN)
+#ifdef Q_OS_WIN
     ensureInitTaskbar();
     task_bar_->setTaskbarPlayingResume();
 #endif
 }
 
 void XMainWindow::setTaskbarPlayerPaused() {
-#if defined(Q_OS_WIN)
+#ifdef Q_OS_WIN
     ensureInitTaskbar();
     task_bar_->setTaskbarPlayerPaused();
 #endif
 }
 
 void XMainWindow::setTaskbarPlayerPlaying() {
-#if defined(Q_OS_WIN)
+#ifdef Q_OS_WIN
     ensureInitTaskbar();
     task_bar_->setTaskbarPlayerPlaying();
 #endif
 }
 
 void XMainWindow::setTaskbarPlayerStop() {
-#if defined(Q_OS_WIN)
+#ifdef Q_OS_WIN
     ensureInitTaskbar();
     task_bar_->setTaskbarPlayerStop();
 #endif
 }
 
 void XMainWindow::restoreAppGeometry() {
-#if defined(Q_OS_WIN)
+#ifdef Q_OS_WIN
     if (qAppSettings.contains(kAppSettingWindowState)) {
         if (qAppSettings.valueAs(kAppSettingWindowState).toBool()) {
             showMaximized();
@@ -205,7 +204,7 @@ void XMainWindow::shortcutsPressed(uint16_t native_key, uint16_t native_mods) {
 }
 
 void XMainWindow::drivesRemoved(char driver_letter) {
-#if defined(Q_OS_WIN)
+#ifdef Q_OS_WIN
     auto itr = std::ranges::find_if(exist_drives_, [driver_letter](auto drive) {
 	                                    return drive.driver_letter == driver_letter;
                                     });
@@ -217,7 +216,7 @@ void XMainWindow::drivesRemoved(char driver_letter) {
 }
 
 bool XMainWindow::nativeEvent(const QByteArray& event_type, void* message, qintptr* result) {
-#if defined(Q_OS_WIN)
+#ifdef Q_OS_WIN
     const auto* msg = static_cast<MSG const*>(message);
     switch (msg->message) {
     case DBT_DEVICEARRIVAL: {
@@ -265,7 +264,7 @@ default: ;
 }
 
 void XMainWindow::readDriveInfo() {
-#if defined(Q_OS_WIN)
+#ifdef Q_OS_WIN
     static const QSet<QByteArray> kCDFileSystemType = {
         "CDFS",
         "UDF",
@@ -309,7 +308,7 @@ void XMainWindow::readDriveInfo() {
 }
 
 void XMainWindow::showEvent(QShowEvent* event) {
-#if defined(Q_OS_WIN)
+#ifdef Q_OS_WIN
     if (!task_bar_) {
         return;
     }
@@ -319,8 +318,8 @@ void XMainWindow::showEvent(QShowEvent* event) {
 }
 
 void XMainWindow::setIconicThumbnail(const QPixmap& image) {
-#if defined(Q_OS_WIN)
-    ensureInitTaskbar();
+#ifdef Q_OS_WIN
+	ensureInitTaskbar();
     if (!task_bar_) {
         return;
     }

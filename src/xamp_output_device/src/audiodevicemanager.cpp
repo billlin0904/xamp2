@@ -67,6 +67,17 @@ private:
 
 AudioDeviceManager::AudioDeviceManager()
 	: impl_(MakeAlign<DeviceStateNotificationImpl>()) {
+}
+
+void AudioDeviceManager::Initial() {
+    if (is_initialized_) {
+        return;
+    }
+
+    if (!impl_) {
+        impl_ = MakeAlign<DeviceStateNotificationImpl>();
+    }
+
 #ifdef XAMP_OS_WIN
     using namespace win32;
     XAMP_LOG_DEBUG("LoadAvrtLib success");
@@ -99,6 +110,7 @@ AudioDeviceManager::AudioDeviceManager()
     XAMP_REGISTER_DEVICE_TYPE(HogCoreAudioDeviceType);
     XAMP_REGISTER_DEVICE_TYPE(win32::NullOutputDeviceType);
 #endif
+    is_initialized_ = true;
 }
 
 AudioDeviceManager::~AudioDeviceManager() {
@@ -165,6 +177,10 @@ bool AudioDeviceManager::IsSharedDevice(const Uuid& type) const noexcept {
 
 void AudioDeviceManager::Shutdown() {
     impl_.reset();
+    if (!is_initialized_) {
+        return;
+    }
+    is_initialized_ = false;
     // https://learn.microsoft.com/en-us/windows/win32/api/mfapi/nf-mfapi-mfshutdown
     // MFShutdown should be called during should be called during app uninitialization
     // and not from static destructors during process exit.
@@ -176,6 +192,7 @@ void AudioDeviceManager::Shutdown() {
 #else
     PreventSleep(false);
 #endif
+    Clear();
 }
 
 void AudioDeviceManager::RegisterDeviceListener(std::weak_ptr<IDeviceStateListener> const& callback) {

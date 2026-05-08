@@ -231,14 +231,14 @@ void BackgroundService::executeEncodeJob(const QString& dir_name, const EncodeJo
     try {
         auto encoder = StreamFactory::MakeFileEncoder();
 
-        AnyMap config;
-        config.AddOrReplace(FileEncoderConfig::kInputFilePath,
+        Property config;
+        config.Create(FileEncoderConfig::kInputFilePath,
             input_path);
-        config.AddOrReplace(FileEncoderConfig::kOutputFilePath,
+        config.Create(FileEncoderConfig::kOutputFilePath,
             output_path);
-        config.AddOrReplace(FileEncoderConfig::kCodecId,
+        config.Create(FileEncoderConfig::kCodecId,
             job.codec_id.toStdString());
-        config.AddOrReplace(FileEncoderConfig::kBitRate,
+        config.Create(FileEncoderConfig::kBitRate,
             job.bit_rate);
 
         encoder->Start(config, file_writer);
@@ -263,7 +263,7 @@ void BackgroundService::executeEncodeJob(const QString& dir_name, const EncodeJo
         }
 
         TagIO output_io;
-        output_io.Open(output_path, TAG_IO_WRITE_MODE);
+        output_io.open(output_path, TAG_IO_WRITE_MODE);
         output_io.writeArtist(job.file_.artist);
         output_io.writeTitle(job.file_.title);
         output_io.writeAlbum(job.file_.album);
@@ -273,7 +273,7 @@ void BackgroundService::executeEncodeJob(const QString& dir_name, const EncodeJo
         output_io.writeYear(job.file_.year);
 
         TagIO input_io;
-        input_io.Open(input_path, TAG_IO_READ_MODE);
+        input_io.open(input_path, TAG_IO_READ_MODE);
         auto cover = input_io.embeddedCover();
         if (!cover.isNull()) {
             output_io.writeEmbeddedCover(cover);
@@ -710,20 +710,19 @@ void BackgroundService::onFetchCdInfo(const DriveInfo& drive) {
 
         auto track_id = 0;
         for (const auto& track : tracks) {
-            auto track_info = TagIO::getTrackInfo(track);
-            if (track_info) {
-                track_info.value().file_path = tracks[track_id];
-                track_info.value().duration = cd->GetDuration(track_id++);
-                track_info.value().album = mb_disc_id_info.album;
-                track_info.value().sample_rate = 44100;
-                track_info.value().disc_id = disc_id;
-                track_info.value().track = track_id;
-                track_infos.push_front(track_info.value());
+            TrackInfo track_info;
+            auto track_info_opt = TagIO::extractTrackInfo(track);
+            if (track_info_opt.has_value()) {
+				track_info = track_info_opt.value();
             }
-            else {
-                XAMP_LOG_D(logger_, "Failed to extract track info.");
-                return;
-            }
+            track_info.title = mb_disc_id_info.tracks[track_id].title;
+            track_info.file_path = track;
+            track_info.duration = cd->GetDuration(track_id++);
+            track_info.album = mb_disc_id_info.album;
+            track_info.sample_rate = AudioFormat::k16BitPCM441Khz.GetSampleRate();
+            track_info.disc_id = disc_id;
+            track_info.track = track_id;
+            track_infos.push_front(track_info);
         }
 
         track_infos.sort([](const auto& first, const auto& last) {
@@ -733,9 +732,10 @@ void BackgroundService::onFetchCdInfo(const DriveInfo& drive) {
         emit readCdTrackInfo(QString::fromStdString(disc_id), track_infos);
 
         mb_disc_id_info.disc_id = disc_id;
-        mb_disc_id_info.tracks.sort([](const auto& first, const auto& last) {
+        std::sort(mb_disc_id_info.tracks.begin(), mb_disc_id_info.tracks.end(), 
+            [](const auto& first, const auto& last) {
             return first.track < last.track;
-        });
+            });
 
         emit fetchMbDiscInfoCompleted(mb_disc_id_info);
 

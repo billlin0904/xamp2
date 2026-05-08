@@ -167,7 +167,7 @@ bool DSPManager::Process(const float* samples, uint32_t num_samples, AudioBuffer
     return false;
 }
 
-void DSPManager::Initialize(const AnyMap& config) {
+void DSPManager::Initialize(const Property& config) {
     config_ = config;
 
     if (!sample_writer_) {

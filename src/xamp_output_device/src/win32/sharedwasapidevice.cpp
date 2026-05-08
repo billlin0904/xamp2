@@ -172,6 +172,8 @@ void SharedWasapiDevice::CloseStream() {
 	render_client_.Release();
 	clock_.Release();
 	rt_work_queue_.Release();
+	client_.Release();
+	mix_format_.Free();
 }
 
 void SharedWasapiDevice::InitialDeviceFormat(const AudioFormat& output_format) {
@@ -295,9 +297,9 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 	// Create sample ready event.
 	if (!sample_ready_) {
 		sample_ready_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
-		XAMP_ASSERT(sample_ready_);
-		HrIfFailThrow(client_->SetEventHandle(sample_ready_.get()));
+		XAMP_ASSERT(sample_ready_);		
 	}
+	HrIfFailThrow(client_->SetEventHandle(sample_ready_.get()));
 
 	// Create the work queue.
 	rt_work_queue_ = MakeWasapiWorkQueue(mmcss_name_, this, &SharedWasapiDevice::OnInvoke);
@@ -414,7 +416,13 @@ HRESULT SharedWasapiDevice::OnInvoke(IMFAsyncResult *) {
 			rt_work_queue_->WaitAsync(sample_ready_.get());
 		} catch (const std::exception &e) {
 			XAMP_LOG_D(logger_, e.what());
-			StopStream();
+			if (callback_ != nullptr) {
+				callback_->OnError(e);
+			}
+			is_running_ = false;
+			if (client_) {
+				client_->Stop();
+			}
 		}
 	}
 	return S_OK;

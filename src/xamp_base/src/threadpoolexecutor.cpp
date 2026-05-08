@@ -29,11 +29,12 @@ TaskScheduler::TaskScheduler(const std::string_view& name,
 	: is_stopped_(false)
 	, running_thread_(0)
 	, max_thread_(std::max(max_thread, kMinThreadPoolSize))
-	, bulk_size_(bulk_size)
+	, bulk_size_((std::max)(bulk_size, size_t{ 1 }))
 	, name_(name)
 	, task_execute_flags_(max_thread_)
 	, attempt_count_(max_thread_)
 	, success_count_(max_thread_)
+	, enqueue_hint_{}
 	, work_done_(static_cast<ptrdiff_t>(max_thread_))
 	, start_clean_up_(1) {
 	logger_ = XampLoggerFactory.GetLogger(name);
@@ -117,7 +118,11 @@ size_t TaskScheduler::TryDequeueSharedQueue(std::vector<Task>& tasks,
 #ifdef _DEBUG
 			XAMP_EXPECTS(tasks[0]);
 #endif
-			return 1;
+			size_t task_size = 1;
+			while (task_size < tasks.size() && task_pool_->try_dequeue(tasks[task_size])) {
+				++task_size;
+			}
+			return task_size;
 		}
 	}
 	return 0;
@@ -130,7 +135,11 @@ size_t TaskScheduler::TryDequeueSharedQueue(std::vector<Task>& tasks,
 #ifdef _DEBUG
 			XAMP_EXPECTS(tasks[0]);
 #endif
-			return 1;
+			size_t task_size = 1;
+			while (task_size < tasks.size() && task_pool_->try_dequeue(tasks[task_size])) {
+				++task_size;
+			}
+			return task_size;
 		}
 	}
 	return 0;
@@ -174,7 +183,11 @@ size_t TaskScheduler::TrySteal(std::vector<Task>& tasks,
 				continue;
 			}
 
-			auto& queue = task_work_queues_.at(random_index);
+			auto* queue = task_work_queues_[random_index].get();
+			if (queue == nullptr) {
+				continue;
+			}
+
 			auto size = queue->try_dequeue_bulk(
 				tasks.begin(), tasks.size());
 			if (size > 0) {
@@ -188,20 +201,18 @@ size_t TaskScheduler::TrySteal(std::vector<Task>& tasks,
 }
 
 void TaskScheduler::SubmitJob(Task task, ExecuteFlags flags) {
-	// 1. 隨機選一個起始執行緒
-	// 2. 嘗試 kMaxAttempts 次找到一個非「長時間執行 (Long Running)」的執行緒
-	// 3. 成功則塞入該本地佇列
-	// 4. 失敗 (都滿了或都在忙) 則退回到 task_pool_ (全域佇列)
+	// Prefer a non-long-running local queue first.
+	// If all local queues are busy or unavailable, fall back to the shared queue.
 
-	auto& prng = PRNG::GetThreadLocal();
-	size_t random_start = prng() % max_thread_;
-	for (size_t attempts = 0; attempts < kMaxAttempts; ++attempts) {
-		size_t random_index = (random_start + attempts) % max_thread_;
+	const auto probe_count = (std::min)(max_thread_, kMaxAttempts);
+	const auto start_index = enqueue_hint_.value.fetch_add(1, std::memory_order_relaxed);
+	for (size_t attempts = 0; attempts < probe_count; ++attempts) {
+		size_t random_index = (start_index + attempts) % max_thread_;
 
 		if (!IsLongRunning(random_index)) {
-			auto& task_queue = task_work_queues_[random_index];
-			if (task_queue->try_enqueue(std::move(task))) {
-				task_execute_flags_[random_index].value = flags;
+			auto* task_queue = task_work_queues_[random_index].get();
+			if (task_queue != nullptr && task_queue->try_enqueue(std::move(task))) {
+				task_execute_flags_[random_index].value.store(flags, std::memory_order_release);
 				XAMP_LOG_D(logger_, "TaskScheduler::SubmitJob() enqueue task to local queue.");
 				return;
 			}
@@ -209,7 +220,7 @@ void TaskScheduler::SubmitJob(Task task, ExecuteFlags flags) {
 	}
 
 	XAMP_LOG_D(logger_, "TaskScheduler::SubmitJob() failed to enqueue task. Enqueue to shared queue.");
-	task_pool_->enqueue(task);
+	task_pool_->enqueue(std::move(task));
 }
 
 void TaskScheduler::SetWorkerThreadName(size_t i) {
@@ -237,7 +248,7 @@ void TaskScheduler::Execute(std::vector<Task>& tasks,
 		tasks[i] = nullptr;
 		--running_thread_;
 	}
-	task_execute_flags_[current_index].value = ExecuteFlags::EXECUTE_NORMAL;
+	task_execute_flags_[current_index].value.store(ExecuteFlags::EXECUTE_NORMAL, std::memory_order_release);
 }
 
 void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {

@@ -7,6 +7,8 @@
 #include <QDirIterator>
 
 #include <base/ithreadpoolexecutor.h>
+#include <base/crashhandler.h>
+
 #include <player/audio_player.h>
 #include <stream/idspmanager.h>
 
@@ -28,6 +30,7 @@
 #include <widget/playlistpage.h>
 #include <widget/logview.h>
 #include <widget/preferencepage.h>
+#include <widget/cdpage.h>
 
 #include <style_util.h>
 
@@ -47,6 +50,19 @@ Xamp::~Xamp() {
     if (main_window_ != nullptr) {
         main_window_->saveAppGeometry();
     }
+
+    auto quit_and_wait_thread = [](auto& thread) {
+        if (!thread.isFinished()) {
+            thread.requestInterruption();
+            thread.quit();
+            thread.wait();
+        }
+        };
+
+    background_service_->cancelRequested();
+    quit_and_wait_thread(background_service_thread_);
+    qGuiDb.Close();
+    XampCrashHandler.Cleanup();
 }
 
 QString Xamp::translateDeviceDescription(const IDeviceType* device_type) {
@@ -111,6 +127,7 @@ void Xamp::setCurrentTab(int32_t table_id) {
         ui_.currentView->setCurrentWidget(lrc_page_.get());
         break;
     case TAB_CD:
+        ui_.currentView->setCurrentWidget(cd_page_.get());
         break;
     case TAB_YT_MUSIC_PLAYLIST:
         break;
@@ -273,11 +290,15 @@ void Xamp::setVolume(uint32_t volume) {
 }
 
 void Xamp::drivesRemoved(const DriveInfo& drive_info) {
-
+    cd_page_->playlistPage()->playlist()->removeAll();
+    cd_page_->playlistPage()->playlist()->reload();
+    cd_page_->showPlaylistPage(false);
 }
 
 void Xamp::drivesChanges(const QList<DriveInfo>& drive_infos) {
-
+    cd_page_->playlistPage()->playlist()->removeAll();
+    cd_page_->playlistPage()->playlist()->reload();
+    emit fetchCdInfo(drive_infos.first());
 }
 
 void Xamp::setAlbumCover(const QPixmap& cover) {
@@ -335,6 +356,11 @@ void Xamp::playLocalFile(const QString& file_name, bool queue) {
 
     player_->Stop();
 
+    auto output_mode = DsdModes::DSD_MODE_PCM;
+    if (IsDsdFile(file_name.toStdWString())) {
+        output_mode = DsdModes::DSD_MODE_DOP;
+    }
+
     if (player_->GetAudioDeviceManager()->IsSharedDevice(device_info_.value().device_type_id)) {
         AudioFormat default_format;
         if (device_info_.value().default_format) {
@@ -357,7 +383,7 @@ void Xamp::playLocalFile(const QString& file_name, bool queue) {
         player_->GetDspManager()->AddPreDSP(
             makeSoxrSampleRateConverter(target_sample_rate));
     }
-    else {
+    else {       
         byte_format = ByteFormat::SINT24;
         use_mqa_decode = true;
     }
@@ -366,7 +392,7 @@ void Xamp::playLocalFile(const QString& file_name, bool queue) {
         if (qAppSettings.contains(kAppSettingEQName)) {
             auto [name, _] = qAppSettings.eqSettings();
             auto eq_settings = qAppSettings.eqPreset()[name];
-            player_->GetDspConfig().AddOrReplace(DspConfig::kEQSettings, eq_settings);
+            player_->GetDspConfig().Create(DspConfig::kEQSettings, eq_settings);
             player_->GetDspManager()->AddParametricEq();
         }
     }
@@ -375,7 +401,7 @@ void Xamp::playLocalFile(const QString& file_name, bool queue) {
         player_->Open(file_name.toStdWString(),
             device_info_.value(),
             target_sample_rate,
-            DsdModes::DSD_MODE_PCM,
+            output_mode,
             0.0f,
             use_mqa_decode);
         player_->GetDspManager()->SetSampleWriter();
@@ -446,6 +472,12 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
             kNextInQueuePlaylistId,
             StoreType::LOCAL_STORE);
     }
+    if (!qDaoFacade.playlist_dao.isPlaylistExist(kCdPlaylistId)) {
+        qDaoFacade.playlist_dao.addPlaylist(
+            tr("CD Playlist"),
+            kCdPlaylistId,
+            StoreType::LOCAL_STORE);
+    }
 
     (void)QObject::connect(ui_.naviBarButton, &QToolButton::clicked, [this]() {
         showNaviBarButton();
@@ -469,7 +501,9 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     ui_.naviBar->addTab(translateText("File Browser"),
         TAB_FILE_EXPLORER,
         qTheme.fontIcon(Glyphs::ICON_DESKTOP));
-    ui_.naviBar->setCurrentIndex(TAB_LYRICS);
+    ui_.naviBar->addTab(translateText("CD"),
+        TAB_CD,
+        qTheme.fontIcon(Glyphs::ICON_CD));
 
     if (qAppSettings.valueAsBool(kAppSettingHideNaviBar)) {
         ui_.sliderFrame2->setMaximumWidth(50);
@@ -482,9 +516,6 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
 
     lrc_page_.reset(new LrcPage(this));
     file_explorer_page_.reset(new FileSystemViewPage(this));
-
-    pushWidget(lrc_page_.get());
-    pushWidget(file_explorer_page_.get());
 
     state_adapter_.reset(new UIPlayerStateAdapter(this));
     player_->SetStateAdapter(state_adapter_);
@@ -668,6 +699,31 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     tray_icon_->setContextMenu(tray_icon_menu);
     (void)QObject::connect(tray_icon_.get(), &QSystemTrayIcon::activated, this, &Xamp::onActivated);
     tray_icon_->show();
+
+    cd_page_.reset(new CdPage(this));
+    cd_page_->playlistPage()->playlist()->setPlaylistId(kCdPlaylistId, kAppSettingCdPlaylistColumnName);
+    cd_page_->playlistPage()->playlist()->setHeaderViewHidden(false);
+    cd_page_->playlistPage()->playlist()->setOtherPlaylist(kDefaultPlaylistId);
+
+    pushWidget(lrc_page_.get());
+    pushWidget(file_explorer_page_.get());
+    pushWidget(cd_page_.get());
+    ui_.naviBar->setCurrentIndex(TAB_LYRICS);
+
+    background_service_.reset(new BackgroundService());
+    background_service_->moveToThread(&background_service_thread_);
+    background_service_thread_.start(QThread::LowestPriority);
+
+    (void)QObject::connect(this,
+        &Xamp::fetchCdInfo,
+        background_service_.get(),
+        &BackgroundService::onFetchCdInfo);
+
+    (void)QObject::connect(background_service_.get(),
+        &BackgroundService::readCdTrackInfo,
+        this,
+        &Xamp::onUpdateCdTrackInfo,
+        Qt::QueuedConnection);
 }
 
 void Xamp::onCheckForUpdate() {
@@ -737,6 +793,17 @@ void Xamp::onDeviceStateChanged(DeviceState state, const QString& device_id) {
     else {
         initialDeviceList();
     }
+}
+
+void Xamp::onUpdateCdTrackInfo(const QString& disc_id, const std::forward_list<TrackInfo>& track_infos) {
+    qDatabaseFacade.insertTrackInfo(track_infos,
+        kCdPlaylistId,
+        StoreType::LOCAL_STORE,
+        disc_id,
+        nullptr);
+
+    cd_page_->playlistPage()->playlist()->reload();
+    cd_page_->showPlaylistPage(true);
 }
 
 void Xamp::showNaviBarButton() {

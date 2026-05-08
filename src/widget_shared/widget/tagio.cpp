@@ -1,13 +1,13 @@
 #include <widget/tagio.h>
 #include <widget/util/image_util.h>
 
-std::expected<TrackInfo, ParseMetadataError> TagIO::getTrackInfo(const Path& path) {
+std::expected<TrackInfo, ParseMetadataError> TagIO::extractTrackInfo(const Path& path) {
     const auto reader = MakeMetadataReader();
 	reader->Open(path);
     return reader->Extract();
 }
 
-void TagIO::Open(const Path& path, TagIOMode mode) {
+void TagIO::open(const Path& path, TagIOMode mode) {
     switch (mode) {
 	case TAG_IO_READ_MODE:
 		reader_->Open(path);
@@ -18,7 +18,7 @@ void TagIO::Open(const Path& path, TagIOMode mode) {
     }
 }
 
-void TagIO::Open(ArchiveEntry archive_entry) {
+void TagIO::open(ArchiveEntry archive_entry) {
     reader_->Open(std::move(archive_entry));
 }
 

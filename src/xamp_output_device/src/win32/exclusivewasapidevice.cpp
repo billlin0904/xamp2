@@ -451,6 +451,9 @@ void ExclusiveWasapiDevice::CloseStream() {
 	render_task_ = Future<void>();
 	render_client_.Release();
 	clock_.Release();
+	endpoint_volume_.Release();
+	client_.Release();
+	mix_format_.Free();
 }
 
 void ExclusiveWasapiDevice::AbortStream() noexcept {
@@ -515,8 +518,7 @@ void ExclusiveWasapiDevice::StartStream() {
 	::ResetEvent(close_request_.get());
 
 	// TODO: Add check 24/32 bit format.
-	//convert_.SetFormat(mix_format_->wBitsPerSample, is_2432_format_);
-	convert_.SetFormat(mix_format_->wBitsPerSample, false);
+	convert_.SetFormat(mix_format_->wBitsPerSample, is_2432_format_);
 
 	// Must be active device and prefill buffer.
 	GetSample(true);

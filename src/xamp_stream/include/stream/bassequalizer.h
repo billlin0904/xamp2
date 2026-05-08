@@ -24,7 +24,7 @@ public:
 
     XAMP_PIMPL(BassEqualizer)
 
-    void Initialize(const AnyMap& config) override;
+    void Initialize(const Property& config) override;
 
     void SetEq(uint32_t band, float gain, float Q);
 

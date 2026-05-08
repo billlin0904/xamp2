@@ -40,41 +40,6 @@ enum {
 Q_GUI_EXPORT HBITMAP qt_pixmapToWinHBITMAP(const QPixmap& p, int hbitmapFormat = HBitmapFormat::HBitmapNoAlpha);
 
 namespace {
-	typedef enum _WINDOWCOMPOSITIONATTRIB
-	{
-		WCA_UNDEFINED = 0,
-		WCA_NCRENDERING_ENABLED = 1,
-		WCA_NCRENDERING_POLICY = 2,
-		WCA_TRANSITIONS_FORCEDISABLED = 3,
-		WCA_ALLOW_NCPAINT = 4,
-		WCA_CAPTION_BUTTON_BOUNDS = 5,
-		WCA_NONCLIENT_RTL_LAYOUT = 6,
-		WCA_FORCE_ICONIC_REPRESENTATION = 7,
-		WCA_EXTENDED_FRAME_BOUNDS = 8,
-		WCA_HAS_ICONIC_BITMAP = 9,
-		WCA_THEME_ATTRIBUTES = 10,
-		WCA_NCRENDERING_EXILED = 11,
-		WCA_NCADORNMENTINFO = 12,
-		WCA_EXCLUDED_FROM_LIVEPREVIEW = 13,
-		WCA_VIDEO_OVERLAY_ACTIVE = 14,
-		WCA_FORCE_ACTIVEWINDOW_APPEARANCE = 15,
-		WCA_DISALLOW_PEEK = 16,
-		WCA_CLOAK = 17,
-		WCA_CLOAKED = 18,
-		WCA_ACCENT_POLICY = 19,
-		WCA_FREEZE_REPRESENTATION = 20,
-		WCA_EVER_UNCLOAKED = 21,
-		WCA_VISUAL_OWNER = 22,
-		WCA_HOLOGRAPHIC = 23,
-		WCA_EXCLUDED_FROM_DDA = 24,
-		WCA_PASSIVEUPDATEMODE = 25,
-		WCA_USEDARKMODECOLORS = 26,
-		WCA_CORNER_STYLE = 27,
-		WCA_PART_COLOR = 28,
-		WCA_DISABLE_MOVESIZE_FEEDBACK = 29,
-		WCA_LAST = 30
-	} WINDOWCOMPOSITIONATTRIB;
-
 	struct GdiDeleter final {
 		static HBITMAP invalid() noexcept {
 			return nullptr;
@@ -124,8 +89,9 @@ namespace {
 		XAMP_DECLARE_DLL_NAME(DwmSetIconicLivePreviewBitmap);
 		XAMP_DECLARE_DLL_NAME(DwmExtendFrameIntoClientArea);
 	};
+#define DwmDll SharedSingleton<DwmapiLib>::GetInstance()
 
-	TBPFLAG getWin32ProgressState(TaskbarProgressState state) {
+	TBPFLAG convertToProgressState(TaskbarProgressState state) {
 		static const QMap<TaskbarProgressState, TBPFLAG> state_lut{
 			{ TASKBAR_PROCESS_STATE_NO_PROCESS, TBPF_NOPROGRESS },
 			{ TASKBAR_PROCESS_STATE_INDETERMINATE, TBPF_INDETERMINATE },
@@ -139,16 +105,35 @@ namespace {
 		return TBPF_NOPROGRESS;
 	}
 
-#define DWM_DLL SharedSingleton<DwmapiLib>::GetInstance()
-#define IDTB_FIRST 3000
+	GdiHandle createDwmCompatibleHBitmap(const QImage& srcPremulArgb32) {
+		QImage img = srcPremulArgb32;
+		if (img.format() != QImage::Format_ARGB32_Premultiplied) {
+			img = img.convertToFormat(QImage::Format_ARGB32_Premultiplied);
+		}
 
-	UINT MSG_TaskbarButtonCreated = WM_NULL;
+		BITMAPINFO bmi{};
+		bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+		bmi.bmiHeader.biWidth = img.width();
+		bmi.bmiHeader.biHeight = -img.height(); // top-down
+		bmi.bmiHeader.biPlanes = 1;
+		bmi.bmiHeader.biBitCount = 32;
+		bmi.bmiHeader.biCompression = BI_RGB;
 
-	void updateLiveThumbnail(HWND hwnd, const QPixmap& thumbnail) {
+		void* bits = nullptr;
+		HBITMAP hbmp = CreateDIBSection(nullptr, &bmi, DIB_RGB_COLORS, &bits, nullptr, 0);
+		if (!hbmp || !bits) return GdiHandle();
+
+		// QImage::Format_ARGB32_Premultiplied 在 little-endian 下就是 BGRA 記憶體排列（DWM 可吃）
+		const int bytes = img.bytesPerLine() * img.height();
+		memcpy(bits, img.bits(), bytes);
+		return GdiHandle(hbmp);
+	}
+
+	bool updateLiveThumbnail(HWND hwnd, const QPixmap& thumbnail) {
 		RECT rect{};
 		if (!::GetClientRect(hwnd, &rect)) {
 			XAMP_LOG_ERROR("GetClientRect return failure! {}", GetLastErrorMessage());
-			return;
+			return false;
 		}
 
 		const QSize max_size(rect.right - rect.left, rect.bottom - rect.top);
@@ -163,19 +148,22 @@ namespace {
 			resize_image = thumbnail;
 		}
 
-		const GdiHandle bitmap(qt_pixmapToWinHBITMAP(resize_image));
+		const GdiHandle bitmap = createDwmCompatibleHBitmap(resize_image.toImage());
 		if (!bitmap) {
 			XAMP_LOG_ERROR("Failure to convert QPixmap to HBITMAP! ({})", GetLastErrorMessage());
-			return;
+			return false;
 		}
 
-		const auto hr = DWM_DLL.DwmSetIconicLivePreviewBitmap(hwnd, bitmap.get(), &offset, 0);
+		const auto hr = DwmDll.DwmSetIconicLivePreviewBitmap(hwnd, bitmap.get(), &offset, 0);
 		if (FAILED(hr)) {
-			XAMP_LOG_ERROR("DwmSetIconicLivePreviewBitmap return failure! ({})", com_to_system_error(hr).code().message());
+			XAMP_LOG_ERROR("DwmSetIconicLivePreviewBitmap return failure! ({})",
+				GetPlatformErrorMessage(hr));
+			return false;
 		}		
+		return true;
 	}
 
-	void updateIconicThumbnail(const QSize &aero_peak_size, HWND hwnd, const QPixmap& thumbnail) {
+	bool updateIconicThumbnail(const QSize &aero_peak_size, HWND hwnd, const QPixmap& thumbnail) {
 		const auto src_width = static_cast<float>(thumbnail.width());
 		const auto src_height = static_cast<float>(thumbnail.height());
 		auto width_ratio = static_cast<float>(aero_peak_size.width()) / src_width;
@@ -190,6 +178,8 @@ namespace {
 		thumbnail_width = static_cast<int>(src_width * scale);
 		thumbnail_height = static_cast<int>(src_height * scale);
 
+		XAMP_LOG_DEBUG("scale: {}", scale);
+
 		const QSize resize_size(thumbnail_width, thumbnail_height);
 
 		QPixmap resize_image;
@@ -201,22 +191,30 @@ namespace {
 		}
 
 		XAMP_LOG_DEBUG("updateIconicThumbnail size: {}x{}", resize_image.width(), resize_image.height());
+		
+		XAMP_LOG_DEBUG("updateIconicThumbnail size: {}x{} aero_peak_size: {}x{}", 
+			resize_image.width(), resize_image.height(), aero_peak_size.width(), aero_peak_size.height());
 
-		const GdiHandle bitmap(qt_pixmapToWinHBITMAP(resize_image, HBitmapPremultipliedAlpha));
+		const GdiHandle bitmap(createDwmCompatibleHBitmap(resize_image.toImage()));
 		if (!bitmap) {
-			return;
+			return false;
 		}
 
-		const auto hr = DWM_DLL.DwmSetIconicThumbnail(hwnd, bitmap.get(), 0);
+		const auto hr = DwmDll.DwmSetIconicThumbnail(hwnd, bitmap.get(), 0);
 		if (FAILED(hr)) {
-			XAMP_LOG_ERROR("DwmSetIconicThumbnail return failure! {}", GetPlatformErrorMessage(hr));
+			XAMP_LOG_ERROR("DwmSetIconicThumbnail return failure! {}",
+				GetPlatformErrorMessage(hr));
+			return false;
 		}
+		return true;
 	}
 
-	constexpr UINT ID_BACKWARD   = 3001;
-	constexpr UINT ID_PLAY_PAUSE = 3002;
-	constexpr UINT ID_STOP       = 3003;
-	constexpr UINT ID_FORWARD    = 3004;
+	constexpr UINT IDTB_FIRST     = 3000;
+	UINT MSG_TaskbarButtonCreated = WM_NULL;
+	constexpr UINT ID_BACKWARD    = 3001;
+	constexpr UINT ID_PLAY_PAUSE  = 3002;
+	constexpr UINT ID_STOP        = 3003;
+	constexpr UINT ID_FORWARD     = 3004;
 }
 
 struct WinTaskbar::ButtonIcon {
@@ -233,6 +231,8 @@ struct WinTaskbar::ButtonIcon {
 
 WinTaskbar::WinTaskbar(XMainWindow* window, IXFrame* frame)
 	: button_icons_(MakeAlign<ButtonIcon>()) {
+	frame_ = frame;
+
 	auto hr = ::CoCreateInstance(CLSID_TaskbarList,
 		nullptr,
 		CLSCTX_INPROC_SERVER,
@@ -262,7 +262,6 @@ WinTaskbar::WinTaskbar(XMainWindow* window, IXFrame* frame)
 	const auto theme = qAppSettings.valueAsEnum<ThemeColor>(kAppSettingTheme);
 	setTheme(theme);
 	setWindow(window);
-	frame_ = frame;
 	setRange(0, 100);
 }
 
@@ -289,9 +288,9 @@ void WinTaskbar::setWindow(QWidget* window) {
 	constexpr BOOL enable = TRUE;
 	const auto hwnd = reinterpret_cast<HWND>(window_->winId());
 
-	DWM_DLL.DwmSetWindowAttribute(hwnd, DWMWA_HAS_ICONIC_BITMAP, &enable, sizeof(enable));
-	DWM_DLL.DwmSetWindowAttribute(hwnd, DWMWA_FORCE_ICONIC_REPRESENTATION, &enable, sizeof(enable));
-	DWM_DLL.DwmInvalidateIconicBitmaps(hwnd);
+	DwmDll.DwmSetWindowAttribute(hwnd, DWMWA_HAS_ICONIC_BITMAP, &enable, sizeof(enable));
+	DwmDll.DwmSetWindowAttribute(hwnd, DWMWA_FORCE_ICONIC_REPRESENTATION, &enable, sizeof(enable));
+	DwmDll.DwmInvalidateIconicBitmaps(hwnd);
 }
 
 void WinTaskbar::setRange(int progress_minimum, int progress_maximum) {
@@ -330,7 +329,7 @@ void WinTaskbar::updateProgressIndicator() {
 	} else if (state_ == TASKBAR_PROCESS_STATE_NORMAL) {
 		state_ = TASKBAR_PROCESS_STATE_INDETERMINATE;
 	}
-	hr = taskbar_list_->SetProgressState(hwnd, getWin32ProgressState(state_));
+	hr = taskbar_list_->SetProgressState(hwnd, convertToProgressState(state_));
 
 	if (FAILED(hr)) {
 		XAMP_LOG_ERROR("UpdateProgressIndicator return failure! {}", GetPlatformErrorMessage(hr));
@@ -346,13 +345,15 @@ void WinTaskbar::setIconicThumbnail(const QPixmap& image) {
 
 	thumbnail_ = image;
 	const auto hwnd = reinterpret_cast<HWND>(window_->winId());
-	auto hr = DWM_DLL.DwmInvalidateIconicBitmaps(hwnd);
+	auto hr = DwmDll.DwmInvalidateIconicBitmaps(hwnd);
 	if (FAILED(hr)) {
 		XAMP_LOG_ERROR("DwmInvalidateIconicBitmaps return failure! {}", GetPlatformErrorMessage(hr));
 	}
 }
 
 void WinTaskbar::updateOverlay() {
+	XAMP_LOG_DEBUG("updateOverlay");
+
 	if (!window_) {
 		return;
 	}
@@ -391,6 +392,8 @@ void WinTaskbar::updateOverlay() {
 }
 
 void WinTaskbar::addThumbnailButtons() {
+	XAMP_LOG_DEBUG("addThumbnailButtons");
+
 	if (!taskbar_list_ || !window_) {
 		return;
 	}
@@ -469,19 +472,24 @@ bool WinTaskbar::nativeEventFilter(const QByteArray& event_type, void* message, 
 			return false;
 		}
 		QSize target_size(requested_width, requested_height);
-		updateIconicThumbnail(target_size, msg->hwnd, thumbnail_);
+		if (!updateIconicThumbnail(target_size, msg->hwnd, thumbnail_)) {
+			// If the thumbnail is not set or failed to update, use a default unknown cover image
+			updateIconicThumbnail(target_size, msg->hwnd, qTheme.unknownCover());
+		}
 		if (result != nullptr) {
 			*result = 0;
 		}
 		return true;
 	}
-	case WM_DWMSENDICONICLIVEPREVIEWBITMAP: 
-		XAMP_LOG_DEBUG("WM_DWMSENDICONICLIVEPREVIEWBITMAP");
-		updateLiveThumbnail(msg->hwnd, window_->grab());
+	case WM_DWMSENDICONICLIVEPREVIEWBITMAP: {
+		const auto live_image = window_->grab();
+		XAMP_LOG_DEBUG("WM_DWMSENDICONICLIVEPREVIEWBITMAP {}:{}", live_image.width(), live_image.height());
+		updateLiveThumbnail(msg->hwnd, live_image);
 		if (result != nullptr) {
 			*result = 0;
 		}
 		return true;
+		}
 	default:
 		break;
 	}
@@ -489,6 +497,8 @@ bool WinTaskbar::nativeEventFilter(const QByteArray& event_type, void* message, 
 }
 
 void WinTaskbar::updateThumbnailButton(UINT iId, HICON hIcon, LPCWSTR tooltip) {
+	XAMP_LOG_DEBUG("updateThumbnailButton");
+
 	if (!taskbar_list_ || !window_) {
 		return;
 	}

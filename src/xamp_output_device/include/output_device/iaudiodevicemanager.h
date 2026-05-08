@@ -26,6 +26,11 @@ public:
 	XAMP_BASE_CLASS(IAudioDeviceManager)
 
 	/*
+	* Initial audio device manager.
+	*/
+	virtual void Initial() = 0;
+
+	/*
 	* Register device listener.
 	* 
 	* @param callback: device state listener.

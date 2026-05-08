@@ -107,7 +107,7 @@ std::pair<std::string, MbDiscIdInfo> parseMbDiscIdXml(QString const& src) {
                     std::string recording_value(node->value(), node->value_size());
                     if (recording_name == "title") {
                         mb_disc_id_track.title = String::ToStdWString(recording_value);
-                        mb_disc_id_info.tracks.push_front(mb_disc_id_track);
+                        mb_disc_id_info.tracks.push_back(mb_disc_id_track);
                     }
                 }
             }

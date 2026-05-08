@@ -138,7 +138,7 @@ public:
         format_context_.reset();
     }
 
-    void Start(const AnyMap& config, const std::shared_ptr<FastIOStream>& io_stream) {
+    void Start(const Property& config, const std::shared_ptr<FastIOStream>& io_stream) {
         // 1) 從 config 解析關鍵參數
         const auto input_file_path = config.AsPath(FileEncoderConfig::kInputFilePath);
         const auto output_file_path = config.AsPath(FileEncoderConfig::kOutputFilePath);
@@ -580,7 +580,7 @@ LibAbFileEncoder::LibAbFileEncoder()
 
 XAMP_PIMPL_IMPL(LibAbFileEncoder)
 
-void LibAbFileEncoder::Start(const AnyMap& config, const std::shared_ptr<FastIOStream>& file_) {
+void LibAbFileEncoder::Start(const Property& config, const std::shared_ptr<FastIOStream>& file_) {
     impl_->Start(config, file_);
 }
 

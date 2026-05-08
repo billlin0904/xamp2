@@ -63,7 +63,7 @@ BassCompressor::BassCompressor()
 
 XAMP_PIMPL_IMPL(BassCompressor)
 
-void BassCompressor::Initialize(const AnyMap& config) {
+void BassCompressor::Initialize(const Property& config) {
     const auto output_format = config.AsAudioFormat(DspConfig::kOutputFormat);
     impl_->Start(output_format.GetSampleRate());
 

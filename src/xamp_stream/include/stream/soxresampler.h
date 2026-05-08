@@ -34,7 +34,7 @@ public:
 
 	XAMP_DECLARE_UUID_CLASS(SoxrSampleRateConverter)
 
-    void Initialize(const AnyMap& config) override;
+    void Initialize(const Property& config) override;
 
     XAMP_PIMPL(SoxrSampleRateConverter)
 

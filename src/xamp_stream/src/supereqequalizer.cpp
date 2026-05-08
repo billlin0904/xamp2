@@ -143,7 +143,7 @@ SuperEqEqualizer::SuperEqEqualizer()
 
 XAMP_PIMPL_IMPL(SuperEqEqualizer)
 
-void SuperEqEqualizer::Initialize(const AnyMap& config) {
+void SuperEqEqualizer::Initialize(const Property& config) {
     const auto output_format = config.Get<AudioFormat>(DspConfig::kOutputFormat);
     impl_->Start(output_format.GetSampleRate());
 

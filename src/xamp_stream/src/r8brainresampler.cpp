@@ -89,7 +89,7 @@ bool R8brainSampleRateConverter::Process(float const* samples, size_t num_sample
 	return impl_->Process(samples, num_samples, output);
 }
 
-void R8brainSampleRateConverter::Initialize(const AnyMap& config) {
+void R8brainSampleRateConverter::Initialize(const Property& config) {
 	const auto output_format = config.Get<AudioFormat>(DspConfig::kOutputFormat);
 	impl_->Start(output_format.GetSampleRate());
 

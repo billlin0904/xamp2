@@ -33,6 +33,7 @@ public:
 
     virtual ~WinTaskbar() override;
 
+
     void setTheme(ThemeColor theme_color);
 
     void setTaskbarProgress(const int32_t process);

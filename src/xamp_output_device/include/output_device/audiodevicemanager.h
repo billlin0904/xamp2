@@ -34,6 +34,11 @@ public:
     virtual ~AudioDeviceManager() override;    
 
     /*
+    * Initial audio device manager.
+    */
+    void Initial() override;
+
+    /*
 	* Register device listener
 	* 
 	* @param callback: device state listener
@@ -118,6 +123,7 @@ private:
     class DeviceStateNotificationImpl;
     ScopedPtr<DeviceStateNotificationImpl> impl_;    
     DeviceTypeFactoryMap factory_;
+    bool is_initialized_{ false };
 };
 
 XAMP_OUTPUT_DEVICE_NAMESPACE_END
