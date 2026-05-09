@@ -596,6 +596,13 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
             }
         });
 
+    (void)QObject::connect(file_explorer_page_->playlistPage()->playlist(),
+        &PlaylistTableView::playMusic,
+        this,
+        [this](int32_t playlist_id, const PlayListEntity& item, bool is_play) {
+            playLocalFile(item.file_path, is_play);
+        });
+
     (void)QObject::connect(ui_.playButton, &QToolButton::clicked, [this]() {
         playOrPause();
         });
