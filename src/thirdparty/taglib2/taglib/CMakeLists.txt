@@ -1,38 +1,84 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-include_directories(
+set(tag_HDR_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/toolkit
-  ${CMAKE_CURRENT_SOURCE_DIR}/asf
   ${CMAKE_CURRENT_SOURCE_DIR}/mpeg
-  ${CMAKE_CURRENT_SOURCE_DIR}/ogg
-  ${CMAKE_CURRENT_SOURCE_DIR}/ogg/flac
-  ${CMAKE_CURRENT_SOURCE_DIR}/flac
-  ${CMAKE_CURRENT_SOURCE_DIR}/mpc
-  ${CMAKE_CURRENT_SOURCE_DIR}/mp4
-  ${CMAKE_CURRENT_SOURCE_DIR}/ogg/vorbis
-  ${CMAKE_CURRENT_SOURCE_DIR}/ogg/speex
-  ${CMAKE_CURRENT_SOURCE_DIR}/ogg/opus
   ${CMAKE_CURRENT_SOURCE_DIR}/mpeg/id3v2
   ${CMAKE_CURRENT_SOURCE_DIR}/mpeg/id3v2/frames
   ${CMAKE_CURRENT_SOURCE_DIR}/mpeg/id3v1
-  ${CMAKE_CURRENT_SOURCE_DIR}/ape
-  ${CMAKE_CURRENT_SOURCE_DIR}/wavpack
-  ${CMAKE_CURRENT_SOURCE_DIR}/trueaudio
-  ${CMAKE_CURRENT_SOURCE_DIR}/riff
-  ${CMAKE_CURRENT_SOURCE_DIR}/riff/aiff
-  ${CMAKE_CURRENT_SOURCE_DIR}/riff/wav
-  ${CMAKE_CURRENT_SOURCE_DIR}/mod
-  ${CMAKE_CURRENT_SOURCE_DIR}/s3m
-  ${CMAKE_CURRENT_SOURCE_DIR}/it
-  ${CMAKE_CURRENT_SOURCE_DIR}/xm
-  ${CMAKE_CURRENT_SOURCE_DIR}/dsf
-  ${CMAKE_CURRENT_SOURCE_DIR}/dsdiff
 )
+if(WITH_ASF)
+  set(tag_HDR_DIRS ${tag_HDR_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/asf
+  )
+endif()
+if(WITH_VORBIS)
+  set(tag_HDR_DIRS ${tag_HDR_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/ogg
+    ${CMAKE_CURRENT_SOURCE_DIR}/ogg/flac
+    ${CMAKE_CURRENT_SOURCE_DIR}/flac
+    ${CMAKE_CURRENT_SOURCE_DIR}/ogg/vorbis
+    ${CMAKE_CURRENT_SOURCE_DIR}/ogg/speex
+    ${CMAKE_CURRENT_SOURCE_DIR}/ogg/opus
+  )
+endif()
+if(WITH_APE)
+  set(tag_HDR_DIRS ${tag_HDR_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/mpc
+    ${CMAKE_CURRENT_SOURCE_DIR}/ape
+    ${CMAKE_CURRENT_SOURCE_DIR}/wavpack
+  )
+endif()
+if(WITH_MP4)
+  set(tag_HDR_DIRS ${tag_HDR_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/mp4
+  )
+endif()
+if(WITH_TRUEAUDIO)
+  set(tag_HDR_DIRS ${tag_HDR_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/trueaudio
+  )
+endif()
+if(WITH_RIFF)
+  set(tag_HDR_DIRS ${tag_HDR_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/riff
+    ${CMAKE_CURRENT_SOURCE_DIR}/riff/aiff
+    ${CMAKE_CURRENT_SOURCE_DIR}/riff/wav
+  )
+endif()
+if(WITH_MOD)
+  set(tag_HDR_DIRS ${tag_HDR_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/mod
+    ${CMAKE_CURRENT_SOURCE_DIR}/s3m
+    ${CMAKE_CURRENT_SOURCE_DIR}/it
+    ${CMAKE_CURRENT_SOURCE_DIR}/xm
+  )
+endif()
+if(WITH_DSF)
+  set(tag_HDR_DIRS ${tag_HDR_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/dsf
+    ${CMAKE_CURRENT_SOURCE_DIR}/dsdiff
+  )
+endif()
+if(WITH_SHORTEN)
+  set(tag_HDR_DIRS ${tag_HDR_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/shorten
+  )
+endif()
+if(WITH_MATROSKA)
+  set(tag_HDR_DIRS ${tag_HDR_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/matroska
+    ${CMAKE_CURRENT_SOURCE_DIR}/matroska/ebml
+  )
+endif()
+include_directories(${tag_HDR_DIRS})
 
+set(tag_PRIVATE_HDRS)
 set(tag_HDRS
   tag.h
   fileref.h
   audioproperties.h
   taglib_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/../taglib_config.h
   toolkit/taglib.h
   toolkit/tstring.h
   toolkit/tlist.h
@@ -82,66 +128,141 @@ set(tag_HDRS
   mpeg/id3v2/frames/chapterframe.h
   mpeg/id3v2/frames/tableofcontentsframe.h
   mpeg/id3v2/frames/podcastframe.h
-  ogg/oggfile.h
-  ogg/oggpage.h
-  ogg/oggpageheader.h
-  ogg/xiphcomment.h
-  ogg/vorbis/vorbisfile.h
-  ogg/vorbis/vorbisproperties.h
-  ogg/flac/oggflacfile.h
-  ogg/speex/speexfile.h
-  ogg/speex/speexproperties.h
-  ogg/opus/opusfile.h
-  ogg/opus/opusproperties.h
-  flac/flacfile.h
-  flac/flacpicture.h
-  flac/flacproperties.h
-  flac/flacmetadatablock.h
-  ape/apefile.h
-  ape/apeproperties.h
-  ape/apetag.h
-  ape/apefooter.h
-  ape/apeitem.h
-  mpc/mpcfile.h
-  mpc/mpcproperties.h
-  wavpack/wavpackfile.h
-  wavpack/wavpackproperties.h
-  trueaudio/trueaudiofile.h
-  trueaudio/trueaudioproperties.h
-  riff/rifffile.h
-  riff/aiff/aifffile.h
-  riff/aiff/aiffproperties.h
-  riff/wav/wavfile.h
-  riff/wav/wavproperties.h
-  riff/wav/infotag.h
-  asf/asffile.h
-  asf/asfproperties.h
-  asf/asftag.h
-  asf/asfattribute.h
-  asf/asfpicture.h
-  mp4/mp4file.h
-  mp4/mp4atom.h
-  mp4/mp4tag.h
-  mp4/mp4item.h
-  mp4/mp4properties.h
-  mp4/mp4coverart.h
-  mp4/mp4itemfactory.h
-  mod/modfilebase.h
-  mod/modfile.h
-  mod/modtag.h
-  mod/modproperties.h
-  it/itfile.h
-  it/itproperties.h
-  s3m/s3mfile.h
-  s3m/s3mproperties.h
-  xm/xmfile.h
-  xm/xmproperties.h
-  dsf/dsffile.h
-  dsf/dsfproperties.h
-  dsdiff/dsdifffile.h
-  dsdiff/dsdiffproperties.h
-  dsdiff/dsdiffdiintag.h
 )
+if(WITH_VORBIS)
+  set(tag_HDRS ${tag_HDRS}
+    ogg/oggfile.h
+    ogg/oggpage.h
+    ogg/oggpageheader.h
+    ogg/xiphcomment.h
+    ogg/vorbis/vorbisfile.h
+    ogg/vorbis/vorbisproperties.h
+    ogg/flac/oggflacfile.h
+    ogg/speex/speexfile.h
+    ogg/speex/speexproperties.h
+    ogg/opus/opusfile.h
+    ogg/opus/opusproperties.h
+    flac/flacfile.h
+    flac/flacpicture.h
+    flac/flacproperties.h
+    flac/flacmetadatablock.h
+  )
+endif()
+if(WITH_APE)
+  set(tag_HDRS ${tag_HDRS}
+    ape/apefile.h
+    ape/apeproperties.h
+    ape/apetag.h
+    ape/apefooter.h
+    ape/apeitem.h
+    mpc/mpcfile.h
+    mpc/mpcproperties.h
+    wavpack/wavpackfile.h
+    wavpack/wavpackproperties.h
+  )
+endif()
+if(WITH_TRUEAUDIO)
+  set(tag_HDRS ${tag_HDRS}
+    trueaudio/trueaudiofile.h
+    trueaudio/trueaudioproperties.h
+  )
+endif()
+if(WITH_RIFF)
+  set(tag_HDRS ${tag_HDRS}
+    riff/rifffile.h
+    riff/aiff/aifffile.h
+    riff/aiff/aiffproperties.h
+    riff/wav/wavfile.h
+    riff/wav/wavproperties.h
+    riff/wav/infotag.h
+  )
+endif()
+if(WITH_ASF)
+  set(tag_HDRS ${tag_HDRS}
+    asf/asffile.h
+    asf/asfproperties.h
+    asf/asftag.h
+    asf/asfattribute.h
+    asf/asfpicture.h
+  )
+endif()
+if(WITH_MP4)
+  set(tag_HDRS ${tag_HDRS}
+    mp4/mp4file.h
+    mp4/mp4atom.h
+    mp4/mp4tag.h
+    mp4/mp4item.h
+    mp4/mp4properties.h
+    mp4/mp4coverart.h
+    mp4/mp4stem.h
+    mp4/mp4itemfactory.h
+  )
+endif()
+if(WITH_MOD)
+  set(tag_HDRS ${tag_HDRS}
+    mod/modfilebase.h
+    mod/modfile.h
+    mod/modtag.h
+    mod/modproperties.h
+    it/itfile.h
+    it/itproperties.h
+    s3m/s3mfile.h
+    s3m/s3mproperties.h
+    xm/xmfile.h
+    xm/xmproperties.h
+  )
+endif()
+if(WITH_DSF)
+  set(tag_HDRS ${tag_HDRS}
+    dsf/dsffile.h
+    dsf/dsfproperties.h
+    dsdiff/dsdifffile.h
+    dsdiff/dsdiffproperties.h
+    dsdiff/dsdiffdiintag.h
+  )
+endif()
+if(WITH_SHORTEN)
+  set(tag_HDRS ${tag_HDRS}
+    shorten/shortenfile.h
+    shorten/shortenproperties.h
+    shorten/shortentag.h
+  )
+endif()
+if(WITH_MATROSKA)
+  set(tag_HDRS ${tag_HDRS}
+    matroska/matroskaattachedfile.h
+    matroska/matroskaattachments.h
+    matroska/matroskachapter.h
+    matroska/matroskachapteredition.h
+    matroska/matroskachapters.h
+    matroska/matroskaelement.h
+    matroska/matroskafile.h
+    matroska/matroskaproperties.h
+    matroska/matroskasimpletag.h
+    matroska/matroskatag.h
+  )
+  set(tag_PRIVATE_HDRS ${tag_PRIVATE_HDRS}
+    matroska/ebml/ebmlbinaryelement.h
+    matroska/ebml/ebmlelement.h
+    matroska/ebml/ebmlmasterelement.h
+    matroska/ebml/ebmlmkattachments.h
+    matroska/ebml/ebmlmkchapters.h
+    matroska/ebml/ebmlmkcues.h
+    matroska/ebml/ebmlmkseekhead.h
+    matroska/ebml/ebmlmksegment.h
+    matroska/ebml/ebmlmkinfo.h
+    matroska/ebml/ebmlmktracks.h
+    matroska/ebml/ebmlmktags.h
+    matroska/ebml/ebmlstringelement.h
+    matroska/ebml/ebmluintelement.h
+    matroska/ebml/ebmlfloatelement.h
+    matroska/ebml/ebmlutils.h
+    matroska/ebml/ebmlvoidelement.h
+    matroska/matroskacues.h
+    matroska/matroskaseekhead.h
+    matroska/matroskasegment.h
+  )
+endif()
 
 set(mpeg_SRCS
   mpeg/mpegfile.cpp
@@ -185,128 +306,190 @@ set(frames_SRCS
   mpeg/id3v2/frames/podcastframe.cpp
 )
 
-set(ogg_SRCS
-  ogg/oggfile.cpp
-  ogg/oggpage.cpp
-  ogg/oggpageheader.cpp
-  ogg/xiphcomment.cpp
-)
+if(WITH_VORBIS)
+  set(ogg_SRCS
+    ogg/oggfile.cpp
+    ogg/oggpage.cpp
+    ogg/oggpageheader.cpp
+    ogg/xiphcomment.cpp
+  )
 
-set(vorbis_SRCS
-  ogg/vorbis/vorbisfile.cpp
-  ogg/vorbis/vorbisproperties.cpp
-)
+  set(vorbis_SRCS
+    ogg/vorbis/vorbisfile.cpp
+    ogg/vorbis/vorbisproperties.cpp
+  )
 
-set(flacs_SRCS
-  flac/flacfile.cpp
-  flac/flacpicture.cpp
-  flac/flacproperties.cpp
-  flac/flacmetadatablock.cpp
-  flac/flacunknownmetadatablock.cpp
-)
+  set(flacs_SRCS
+    flac/flacfile.cpp
+    flac/flacpicture.cpp
+    flac/flacproperties.cpp
+    flac/flacmetadatablock.cpp
+    flac/flacunknownmetadatablock.cpp
+  )
 
-set(oggflacs_SRCS
-  ogg/flac/oggflacfile.cpp
-)
+  set(oggflacs_SRCS
+    ogg/flac/oggflacfile.cpp
+  )
 
-set(mpc_SRCS
-  mpc/mpcfile.cpp
-  mpc/mpcproperties.cpp
-)
+  set(speex_SRCS
+    ogg/speex/speexfile.cpp
+    ogg/speex/speexproperties.cpp
+  )
 
-set(mp4_SRCS
-  mp4/mp4file.cpp
-  mp4/mp4atom.cpp
-  mp4/mp4tag.cpp
-  mp4/mp4item.cpp
-  mp4/mp4properties.cpp
-  mp4/mp4coverart.cpp
-  mp4/mp4itemfactory.cpp
-)
+  set(opus_SRCS
+    ogg/opus/opusfile.cpp
+    ogg/opus/opusproperties.cpp
+  )
+endif()
 
-set(ape_SRCS
-  ape/apetag.cpp
-  ape/apefooter.cpp
-  ape/apeitem.cpp
-  ape/apefile.cpp
-  ape/apeproperties.cpp
-)
+if(WITH_APE)
+  set(mpc_SRCS
+    mpc/mpcfile.cpp
+    mpc/mpcproperties.cpp
+  )
 
-set(wavpack_SRCS
-  wavpack/wavpackfile.cpp
-  wavpack/wavpackproperties.cpp
-)
+  set(ape_SRCS
+    ape/apetag.cpp
+    ape/apefooter.cpp
+    ape/apeitem.cpp
+    ape/apefile.cpp
+    ape/apeproperties.cpp
+  )
 
-set(speex_SRCS
-  ogg/speex/speexfile.cpp
-  ogg/speex/speexproperties.cpp
-)
+  set(wavpack_SRCS
+    wavpack/wavpackfile.cpp
+    wavpack/wavpackproperties.cpp
+  )
+endif()
 
-set(opus_SRCS
-  ogg/opus/opusfile.cpp
-  ogg/opus/opusproperties.cpp
-)
+if(WITH_MP4)
+  set(mp4_SRCS
+    mp4/mp4file.cpp
+    mp4/mp4atom.cpp
+    mp4/mp4tag.cpp
+    mp4/mp4item.cpp
+    mp4/mp4properties.cpp
+    mp4/mp4coverart.cpp
+    mp4/mp4stem.cpp
+    mp4/mp4itemfactory.cpp
+  )
+endif()
 
-set(trueaudio_SRCS
-  trueaudio/trueaudiofile.cpp
-  trueaudio/trueaudioproperties.cpp
-)
+if(WITH_TRUEAUDIO)
+  set(trueaudio_SRCS
+    trueaudio/trueaudiofile.cpp
+    trueaudio/trueaudioproperties.cpp
+  )
+endif()
 
-set(asf_SRCS
-  asf/asftag.cpp
-  asf/asffile.cpp
-  asf/asfproperties.cpp
-  asf/asfattribute.cpp
-  asf/asfpicture.cpp
-)
+if(WITH_ASF)
+  set(asf_SRCS
+    asf/asftag.cpp
+    asf/asffile.cpp
+    asf/asfproperties.cpp
+    asf/asfattribute.cpp
+    asf/asfpicture.cpp
+  )
+endif()
 
-set(riff_SRCS
-  riff/rifffile.cpp
-)
+if(WITH_RIFF)
+  set(riff_SRCS
+    riff/rifffile.cpp
+  )
 
-set(aiff_SRCS
-  riff/aiff/aifffile.cpp
-  riff/aiff/aiffproperties.cpp
-)
+  set(aiff_SRCS
+    riff/aiff/aifffile.cpp
+    riff/aiff/aiffproperties.cpp
+  )
 
-set(wav_SRCS
-  riff/wav/wavfile.cpp
-  riff/wav/wavproperties.cpp
-  riff/wav/infotag.cpp
-)
+  set(wav_SRCS
+    riff/wav/wavfile.cpp
+    riff/wav/wavproperties.cpp
+    riff/wav/infotag.cpp
+  )
+endif()
 
-set(mod_SRCS
-  mod/modfilebase.cpp
-  mod/modfile.cpp
-  mod/modtag.cpp
-  mod/modproperties.cpp
-)
+if(WITH_MOD)
+  set(mod_SRCS
+    mod/modfilebase.cpp
+    mod/modfile.cpp
+    mod/modtag.cpp
+    mod/modproperties.cpp
+  )
 
-set(s3m_SRCS
-  s3m/s3mfile.cpp
-  s3m/s3mproperties.cpp
-)
+  set(s3m_SRCS
+    s3m/s3mfile.cpp
+    s3m/s3mproperties.cpp
+  )
 
-set(it_SRCS
-  it/itfile.cpp
-  it/itproperties.cpp
-)
+  set(it_SRCS
+    it/itfile.cpp
+    it/itproperties.cpp
+  )
 
-set(xm_SRCS
-  xm/xmfile.cpp
-  xm/xmproperties.cpp
-)
+  set(xm_SRCS
+    xm/xmfile.cpp
+    xm/xmproperties.cpp
+  )
+endif()
 
-set(dsf_SRCS
-  dsf/dsffile.cpp
-  dsf/dsfproperties.cpp
-)
+if(WITH_DSF)
+  set(dsf_SRCS
+    dsf/dsffile.cpp
+    dsf/dsfproperties.cpp
+  )
 
-set(dsdiff_SRCS
-  dsdiff/dsdifffile.cpp
-  dsdiff/dsdiffproperties.cpp
-  dsdiff/dsdiffdiintag.cpp
-)
+  set(dsdiff_SRCS
+    dsdiff/dsdifffile.cpp
+    dsdiff/dsdiffproperties.cpp
+    dsdiff/dsdiffdiintag.cpp
+  )
+endif()
+
+if(WITH_SHORTEN)
+  set(shorten_SRCS
+    shorten/shortenfile.cpp
+    shorten/shortenproperties.cpp
+    shorten/shortentag.cpp
+  )
+endif()
+
+if(WITH_MATROSKA)
+  set(matroska_SRCS
+    matroska/matroskaattachedfile.cpp
+    matroska/matroskaattachments.cpp
+    matroska/matroskachapter.cpp
+    matroska/matroskachapteredition.cpp
+    matroska/matroskachapters.cpp
+    matroska/matroskacues.cpp
+    matroska/matroskaelement.cpp
+    matroska/matroskafile.cpp
+    matroska/matroskaproperties.cpp
+    matroska/matroskaseekhead.cpp
+    matroska/matroskasegment.cpp
+    matroska/matroskasimpletag.cpp
+    matroska/matroskatag.cpp
+  )
+
+  set(ebml_SRCS
+    matroska/ebml/ebmlbinaryelement.cpp
+    matroska/ebml/ebmlelement.cpp
+    matroska/ebml/ebmlmasterelement.cpp
+    matroska/ebml/ebmlmkattachments.cpp
+    matroska/ebml/ebmlmkchapters.cpp
+    matroska/ebml/ebmlmkcues.cpp
+    matroska/ebml/ebmlmkseekhead.cpp
+    matroska/ebml/ebmlmksegment.cpp
+    matroska/ebml/ebmlmkinfo.cpp
+    matroska/ebml/ebmlmktracks.cpp
+    matroska/ebml/ebmlmktags.cpp
+    matroska/ebml/ebmlstringelement.cpp
+    matroska/ebml/ebmluintelement.cpp
+    matroska/ebml/ebmlfloatelement.cpp
+    matroska/ebml/ebmlutils.cpp
+    matroska/ebml/ebmlvoidelement.cpp
+  )
+endif()
 
 set(toolkit_SRCS
   toolkit/tstring.cpp
@@ -331,7 +514,7 @@ set(tag_LIB_SRCS
   ${vorbis_SRCS} ${oggflacs_SRCS} ${mpc_SRCS} ${ape_SRCS} ${toolkit_SRCS} ${flacs_SRCS}
   ${wavpack_SRCS} ${speex_SRCS} ${trueaudio_SRCS} ${riff_SRCS} ${aiff_SRCS} ${wav_SRCS}
   ${asf_SRCS} ${mp4_SRCS} ${mod_SRCS} ${s3m_SRCS} ${it_SRCS} ${xm_SRCS} ${opus_SRCS}
-  ${dsf_SRCS} ${dsdiff_SRCS}
+  ${dsf_SRCS} ${dsdiff_SRCS} ${shorten_SRCS} ${matroska_SRCS} ${ebml_SRCS}
   tag.cpp
   tagunion.cpp
   fileref.cpp
@@ -339,7 +522,7 @@ set(tag_LIB_SRCS
   tagutils.cpp
 )
 
-add_library(tag ${tag_LIB_SRCS} ${tag_HDRS})
+add_library(tag ${tag_LIB_SRCS} ${tag_HDRS} ${tag_PRIVATE_HDRS})
 
 target_include_directories(tag INTERFACE
   $<INSTALL_INTERFACE:include>
@@ -359,6 +542,9 @@ set_target_properties(tag PROPERTIES
   INTERFACE_LINK_LIBRARIES "${ZLIB_INTERFACE_LINK_LIBRARIES}"
   PUBLIC_HEADER "${tag_HDRS}"
 )
+if(NOT BUILD_SHARED_LIBS)
+  target_compile_definitions(tag PUBLIC TAGLIB_STATIC)
+endif()
 if(VISIBILITY_HIDDEN)
   set_target_properties(tag PROPERTIES C_VISIBILITY_PRESET hidden)
   set_target_properties(tag PROPERTIES CXX_VISIBILITY_PRESET hidden)

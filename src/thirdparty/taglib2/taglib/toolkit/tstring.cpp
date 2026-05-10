@@ -195,23 +195,27 @@ String::String(const wchar_t *s) :
 String::String(const wchar_t *s, Type t) :
   d(std::make_shared<StringPrivate>())
 {
-  if(t == UTF16 || t == UTF16BE || t == UTF16LE) {
-    copyFromUTF16(d->data, s, ::wcslen(s), t);
-  }
-  else {
-    debug("String::String() -- const wchar_t * should not contain Latin1 or UTF-8.");
+  if(s) {
+    if(t == UTF16 || t == UTF16BE || t == UTF16LE) {
+      copyFromUTF16(d->data, s, ::wcslen(s), t);
+    }
+    else {
+      debug("String::String() -- const wchar_t * should not contain Latin1 or UTF-8.");
+    }
   }
 }
 
 String::String(const char *s, Type t) :
   d(std::make_shared<StringPrivate>())
 {
-  if(t == Latin1)
-    copyFromLatin1(d->data, s, ::strlen(s));
-  else if(t == String::UTF8)
-    copyFromUTF8(d->data, s, ::strlen(s));
-  else {
-    debug("String::String() -- const char * should not contain UTF16.");
+  if(s) {
+    if(t == Latin1)
+      copyFromLatin1(d->data, s, ::strlen(s));
+    else if(t == String::UTF8)
+      copyFromUTF8(d->data, s, ::strlen(s));
+    else {
+      debug("String::String() -- const char * should not contain UTF16.");
+    }
   }
 }
 
@@ -491,6 +495,30 @@ int String::toInt(bool *ok) const
   return static_cast<int>(value);
 }
 
+long long String::toLongLong(bool *ok, int base) const
+{
+  const wchar_t *beginPtr = d->data.c_str();
+  wchar_t *endPtr;
+  errno = 0;
+  const long long value = ::wcstoll(beginPtr, &endPtr, base);
+  if(ok) {
+    *ok = errno == 0 && endPtr > beginPtr && *endPtr == L'\0';
+  }
+  return value;
+}
+
+unsigned long long String::toULongLong(bool *ok, int base) const
+{
+  const wchar_t *beginPtr = d->data.c_str();
+  wchar_t *endPtr;
+  errno = 0;
+  const unsigned long long value = ::wcstoull(beginPtr, &endPtr, base);
+  if(ok) {
+    *ok = errno == 0 && endPtr > beginPtr && *endPtr == L'\0';
+  }
+  return value;
+}
+
 String String::stripWhiteSpace() const
 {
   static const wchar_t *WhiteSpaceChars = L"\t\n\f\r ";
@@ -523,6 +551,11 @@ String String::fromLongLong(long long n) // static
   return std::to_string(n);
 }
 
+String String::fromULongLong(unsigned long long n) // static
+{
+  return std::to_string(n);
+}
+
 wchar_t &String::operator[](int i)
 {
   detach();
@@ -546,6 +579,10 @@ bool String::operator!=(const String &s) const
 
 bool String::operator==(const char *s) const
 {
+  if(!s) {
+    return isEmpty();
+  }
+
   const wchar_t *p = toCWString();
 
   while(*p != L'\0' || *s != '\0') {
@@ -562,6 +599,10 @@ bool String::operator!=(const char *s) const
 
 bool String::operator==(const wchar_t *s) const
 {
+  if(!s) {
+    return isEmpty();
+  }
+
   return d->data == s;
 }
 
@@ -580,18 +621,22 @@ String &String::operator+=(const String &s)
 
 String &String::operator+=(const wchar_t *s)
 {
-  detach();
+  if(s) {
+    detach();
 
-  d->data += s;
+    d->data += s;
+  }
   return *this;
 }
 
 String &String::operator+=(const char *s)
 {
-  detach();
+  if(s) {
+    detach();
 
-  for(int i = 0; s[i] != 0; i++)
-    d->data += static_cast<unsigned char>(s[i]);
+    for(int i = 0; s[i] != 0; i++)
+      d->data += static_cast<unsigned char>(s[i]);
+  }
   return *this;
 }
 

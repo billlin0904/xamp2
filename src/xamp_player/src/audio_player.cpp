@@ -99,10 +99,10 @@ void AudioPlayer::Destroy() {
     timer_.Stop();
     try {
         CloseDevice(true, true);
+        Stop(false, true);
     }
     catch (...) {
-    }
-    Stop(false, true);
+    }    
     file_stream_.reset();
     read_buffer_.reset();
 #if defined(XAMP_OS_WIN)

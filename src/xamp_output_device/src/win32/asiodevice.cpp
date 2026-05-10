@@ -30,6 +30,7 @@ namespace {
 		bool is_xrun{ false };
 		bool post_output{ false };
 		bool mmcss_registered{ false };
+		bool enable_host_mmcss_priority{ false };
 		AsioDevice* device{ nullptr };
 		ScopedPtr<AsioDrivers> drivers{};
 		AudioConvertContext data_context{};
@@ -533,7 +534,7 @@ void AsioDevice::GetSamples(long index, double sample_time) noexcept {
 	}
 	
 	auto cache_played_bytes = output_bytes_.load();
-	if (cache_played_bytes == 0) {
+	if (the_driver_context.enable_host_mmcss_priority && cache_played_bytes == 0) {
 		the_driver_context.mmcss.BoostPriority();
 	}
 	
@@ -541,12 +542,15 @@ void AsioDevice::GetSamples(long index, double sample_time) noexcept {
 	output_bytes_ = cache_played_bytes;	
 
 	size_t num_filled_frame = 0;
-
-	if (std::invoke(get_samples_, index, sample_time, num_filled_frame)) {
-		the_driver_context.Post();
-	} else {
+	const bool filled = std::invoke(get_samples_, index, sample_time, num_filled_frame);
+	if (!filled) {
 		FillSilentData();
 	}
+
+	// ASIO SDK: ASIOOutputReady tells a supporting driver that the host has
+	// completed processing the output buffer, allowing the driver to transfer
+	// it to the next DMA buffer and reduce output latency by one block.
+	the_driver_context.Post();
 }
 
 void AsioDevice::OpenStream(AudioFormat const & output_format) {
@@ -651,6 +655,10 @@ void AsioDevice::StopStream(bool wait_for_stop_stream) {
 	is_streaming_ = false;
 	is_stop_streaming_.store(false, std::memory_order_release);
 
+	lock.unlock();
+	::ASIOStop();
+	lock.lock();
+
 	if (wait_for_stop_stream) {
 		bool ok = condition_.wait_for(lock, std::chrono::milliseconds(500), [&]() {
 			return is_stop_streaming_.load(std::memory_order_acquire);
@@ -660,18 +668,7 @@ void AsioDevice::StopStream(bool wait_for_stop_stream) {
 			XAMP_LOG_D(logger_, "StopStream timeout waiting for callback to quiesce.");
 		}
 	}
-	
-	lock.unlock();
-
-	// TODO: Workaround!
-	// 等待10ms這段期間OnBufferSwitch會填充靜音的資料.	
-	//MSleep(std::chrono::milliseconds(10));
-
-	::ASIOStop();
-
-	lock.lock();
 }
-
 void AsioDevice::CloseStream() {
 	XAMP_LOG_D(logger_, "CloseStream");
 
@@ -732,7 +729,9 @@ ASIOTime* AsioDevice::OnBufferSwitchTimeInfoCallback(ASIOTime* timeInfo, long in
 }
 
 void AsioDevice::OnBufferSwitchCallback(long index, ASIOBool processNow) {
-	if (!the_driver_context.mmcss_registered) {
+	// ASIO callback threads are owned by the driver. Leave host-side MMCSS
+	// boosting opt-in only for broken drivers that do not register Pro Audio.
+	if (the_driver_context.enable_host_mmcss_priority && !the_driver_context.mmcss_registered) {
 		the_driver_context.mmcss.BoostPriority(kMmcssProfileProAudio, MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL);
 		the_driver_context.mmcss_registered = true;
 	}
@@ -861,13 +860,9 @@ long AsioDevice::OnAsioMessagesCallback(long selector, long value, void* message
 
 void AsioDevice::OnSampleRateChangedCallback(ASIOSampleRate sampleRate) {
 	// The ASIO documentation says that this usually only happens during
-	// external sync.  Audio processing is not stopped by the driver,
-	// actual sample rate might not have even changed, maybe only the
-	// sample rate status of an AES/EBU or S/PDIF digital input at the
-	// audio device.
-
-	the_driver_context.device->StopStream();
-	the_driver_context.device->callback_->OnError(SampleRateChangedException());
+	// external sync. Audio processing is not stopped by the driver, and the
+	// actual sample rate may not have changed.
+	XAMP_LOG_INFO("Driver sample rate changed: {}.", sampleRate);
 }
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

@@ -1,68 +1,110 @@
 #include <base/exception.h>
 #include <base/com_error_category.h>
-#include <base/dll.h>
 
 #ifdef XAMP_OS_WIN
 #include <Audioclient.h>
 #include <comdef.h>
-#include <comutil.h>
+#include <Windows.h>
 
 using namespace xamp::base;
 
 namespace {
-    std::string GetAudioClientErrors(HRESULT error) {
-        static const std::vector<std::string> messages {
-          "The IAudioClient object is not initialized.",
-          "The IAudioClient object is already initialized.",
-          "The endpoint device is a capture device, not a rendering device.",
-          "The audio device has been unplugged or otherwise made unavailable.",
-          "The audio stream was not stopped at the time of the Start call.",
-          "The buffer is too large.",
-          "A previous GetBuffer call is still in effect.",
-          "The specified audio format is not supported.",
-          "The wrong NumFramesWritten value.",
-          "The endpoint device is already in use.",
-          "Buffer operation pending",
-          "The thread is not registered.",
-          "The session spans more than one process.",
-          "Exclusive mode is disabled on the device.",
-          "Failed to create the audio endpoint.",
-          "The Windows audio service is not running.",
-          "The audio stream was not initialized for event-driven buffering.",
-          "Exclusive mode only.",
-          "The hnsBufferDuration and hnsPeriodicity parameters are not equal.",
-          "Event handle not set.",
-          "Incorrect buffer size.",
-          "Buffer size error.",
-          "CPU usage exceeded.",
-          "Buffer error",
-          "Buffer size not aligned."
-        };
-
-        auto index = error - AUDCLNT_E_NOT_INITIALIZED;
-        if (index > messages.size()) {
-	        return _com_error{ error }.ErrorMessage();
+    std::string WideToUtf8(const wchar_t* value) {
+        if (value == nullptr || *value == L'\0') {
+            return {};
         }
-        return messages[index];
-	}
 
-    void FreeBstr(char* bstr) noexcept {
-        ::SysFreeString((BSTR)bstr);
-	}
+        const auto size = ::WideCharToMultiByte(CP_UTF8, 0, value, -1, nullptr, 0, nullptr, nullptr);
+        if (size <= 0) {
+            return {};
+        }
 
-    using narrow_ptr = std::unique_ptr<char, void(*)(char*)>;
-    narrow_ptr to_narrow(BSTR msg) {
-        return {
-            _com_util::ConvertBSTRToString(msg), FreeBstr
-        };
+        std::string result(static_cast<size_t>(size - 1), '\0');
+        ::WideCharToMultiByte(CP_UTF8, 0, value, -1, result.data(), size, nullptr, nullptr);
+        return result;
     }
 
-    narrow_ptr to_narrow(const wchar_t* msg) {
-        static_assert(std::is_same_v<wchar_t*, BSTR>);
-        // const_cast is fine:
-        // BSTR is a wchar_t*;
-        // ConvertBSTRToString internally uses _wcslen and WideCharToMultiByte;
-        return to_narrow(const_cast<wchar_t*>(msg));
+    std::string NarrowMessage(const char* value) {
+        return value != nullptr ? value : "";
+    }
+
+    std::string NarrowMessage(const wchar_t* value) {
+        return WideToUtf8(value);
+    }
+
+    const char* GetAudioClientError(HRESULT hr) noexcept {
+        switch (hr) {
+        case AUDCLNT_E_NOT_INITIALIZED:
+            return "The IAudioClient object is not initialized.";
+        case AUDCLNT_E_ALREADY_INITIALIZED:
+            return "The IAudioClient object is already initialized.";
+        case AUDCLNT_E_WRONG_ENDPOINT_TYPE:
+            return "The endpoint device is a capture device, not a rendering device.";
+        case AUDCLNT_E_DEVICE_INVALIDATED:
+            return "The audio device has been unplugged or otherwise made unavailable.";
+        case AUDCLNT_E_NOT_STOPPED:
+            return "The audio stream was not stopped at the time of the Start call.";
+        case AUDCLNT_E_BUFFER_TOO_LARGE:
+            return "The buffer is too large.";
+        case AUDCLNT_E_OUT_OF_ORDER:
+            return "A previous GetBuffer call is still in effect.";
+        case AUDCLNT_E_UNSUPPORTED_FORMAT:
+            return "The specified audio format is not supported.";
+        case AUDCLNT_E_INVALID_SIZE:
+            return "The wrong NumFramesWritten value.";
+        case AUDCLNT_E_DEVICE_IN_USE:
+            return "The endpoint device is already in use.";
+        case AUDCLNT_E_BUFFER_OPERATION_PENDING:
+            return "Buffer operation pending.";
+        case AUDCLNT_E_THREAD_NOT_REGISTERED:
+            return "The thread is not registered.";
+        case AUDCLNT_E_EXCLUSIVE_MODE_NOT_ALLOWED:
+            return "Exclusive mode is disabled on the device.";
+        case AUDCLNT_E_ENDPOINT_CREATE_FAILED:
+            return "Failed to create the audio endpoint.";
+        case AUDCLNT_E_SERVICE_NOT_RUNNING:
+            return "The Windows audio service is not running.";
+        case AUDCLNT_E_EVENTHANDLE_NOT_EXPECTED:
+            return "The audio stream was not initialized for event-driven buffering.";
+        case AUDCLNT_E_EXCLUSIVE_MODE_ONLY:
+            return "Exclusive mode only.";
+        case AUDCLNT_E_BUFDURATION_PERIOD_NOT_EQUAL:
+            return "The hnsBufferDuration and hnsPeriodicity parameters are not equal.";
+        case AUDCLNT_E_EVENTHANDLE_NOT_SET:
+            return "Event handle not set.";
+        case AUDCLNT_E_INCORRECT_BUFFER_SIZE:
+            return "Incorrect buffer size.";
+        case AUDCLNT_E_BUFFER_SIZE_ERROR:
+            return "Buffer size error.";
+        case AUDCLNT_E_CPUUSAGE_EXCEEDED:
+            return "CPU usage exceeded.";
+        case AUDCLNT_E_BUFFER_ERROR:
+            return "Buffer error.";
+        case AUDCLNT_E_BUFFER_SIZE_NOT_ALIGNED:
+            return "Buffer size not aligned.";
+        case AUDCLNT_E_INVALID_DEVICE_PERIOD:
+            return "Invalid device period.";
+        case AUDCLNT_E_INVALID_STREAM_FLAG:
+            return "Invalid stream flag.";
+        case AUDCLNT_E_ENDPOINT_OFFLOAD_NOT_CAPABLE:
+            return "The endpoint does not support offload mode.";
+        case AUDCLNT_E_OUT_OF_OFFLOAD_RESOURCES:
+            return "The endpoint does not have enough offload resources.";
+        case AUDCLNT_E_OFFLOAD_MODE_ONLY:
+            return "Offload mode only.";
+        case AUDCLNT_E_NONOFFLOAD_MODE_ONLY:
+            return "Non-offload mode only.";
+        case AUDCLNT_E_RESOURCES_INVALIDATED:
+            return "Audio resources were invalidated.";
+        case AUDCLNT_E_RAW_MODE_UNSUPPORTED:
+            return "Raw mode is not supported.";
+        case AUDCLNT_E_ENGINE_PERIODICITY_LOCKED:
+            return "Engine periodicity is locked.";
+        case AUDCLNT_E_ENGINE_FORMAT_LOCKED:
+            return "Engine format is locked.";
+        default:
+            return nullptr;
+        }
     }
 }
 
@@ -71,42 +113,34 @@ std::error_code make_error_code(com_error_enum e) noexcept {
 }
 
 const std::error_category& com_category() noexcept {
-    // immortalized object would be perfect, but isn¡¦t subject of this post
     static com_error_category ecat;
     return ecat;
 }
 
 std::string com_error_category::message(int hr) const {
-    // leverage _com_error::ErrorMessage
-#ifdef _UNICODE
-    auto narrow = detail::to_narrow(_com_error{ hr }.ErrorMessage());
-    return narrow.get();
-#else
-    return GetAudioClientErrors(hr);
-#endif
+    if (const auto* message = GetAudioClientError(static_cast<HRESULT>(hr))) {
+        return message;
+    }
+    return NarrowMessage(_com_error{ static_cast<HRESULT>(hr) }.ErrorMessage());
 }
 
 std::error_condition com_error_category::default_error_condition(int hr) const noexcept {
-    if (HRESULT_CODE(hr) || hr == 0)
-        // system error condition
+    if (HRESULT_CODE(hr) != 0 || hr == 0) {
         return std::system_category().default_error_condition(HRESULT_CODE(hr));
-    else
-        // special error condition
-        return { hr, com_category() };
-}
-
-std::system_error com_to_system_error(HRESULT hr, const std::string& msg) {
-    // simply forward to com_to_system_error taking a C string
-    return com_to_system_error(hr, msg.c_str());
+    }
+    return { hr, com_category() };
 }
 
 std::system_error com_to_system_error(HRESULT hr, const char* msg) {
-    // construct from error_code and message
     return { { static_cast<com_error_enum>(hr) }, msg };
 }
 
+std::system_error com_to_system_error(HRESULT hr, const std::string& msg) {
+    return com_to_system_error(hr, msg.c_str());
+}
+
 std::system_error com_to_system_error(HRESULT hr, const wchar_t* msg) {
-    return com_to_system_error(hr, *msg ? to_narrow(msg).get() : "");
+    return com_to_system_error(hr, NarrowMessage(msg));
 }
 
 std::system_error com_to_system_error(HRESULT hr, const std::wstring& msg) {
@@ -114,54 +148,11 @@ std::system_error com_to_system_error(HRESULT hr, const std::wstring& msg) {
 }
 
 std::system_error com_to_system_error(const _com_error& e) {
-    // note: by forwarding to com_to_system_error(HRESULT, IErrorInfo*)
-    // we benefit from hoisting _com_error::Description because _bstr_t wraps
-    // up both unicode/ascii strings in a ref counter allocated on the heap
-    return com_to_system_error(e.Error(), IErrorInfoPtr{ e.ErrorInfo(), false });
+    return com_to_system_error(e.Error(), e.ErrorMessage());
 }
 
-std::system_error com_to_system_error(HRESULT hr, IErrorInfo* help) {
-    _com_error e(hr);
-
-    using com_cstr = std::unique_ptr<OLECHAR[], decltype(::SysFreeString)*>;
-
-    auto get_description = [](IErrorInfo* help) -> com_cstr {
-            BSTR description = nullptr;
-            if (help)
-                help->GetDescription(&description);
-            return { description, &::SysFreeString };
-        };
-
-    com_cstr&& description = get_description(help);
-    // remove trailing newline or dot (end of last sentence)
-    if (unsigned int length = description ? ::SysStringLen(description.get()) : 0) {
-        unsigned int n = length;
-        // place sentinel, other than [\r\n.]
-        OLECHAR ch0 = std::exchange(description[0], L'\0');
-        for (;;) {
-            switch (description[n - 1]) {
-            case L'\r':
-            case L'\n':
-            case L'.':
-                continue;
-			default: ;
-            }
-            break;
-        }
-        // note: null-terminating is less ideal than just finding the new EOS,
-        // but system_error copies its description string argument,
-        // hence we don't gain anything from range-construction
-        if (n < length && n)
-            description[n] = L'\0';
-        // reestablish 1st character
-        if (n)
-            description[0] = ch0;
-
-        return com_to_system_error(e.Error(), description.get());
-    }
-
-    // no description available
-    return com_to_system_error(e.Error());
+std::system_error com_to_system_error(HRESULT hr, IErrorInfo*) {
+    return com_to_system_error(hr);
 }
 
 void WINAPI throw_translated_com_error(HRESULT hr, IErrorInfo* help) {

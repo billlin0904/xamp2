@@ -116,14 +116,21 @@ public:
     [[nodiscard]] bool IsSharedDevice(const Uuid& type) const noexcept override;
 
     /*
+    * Is ASIO device
+    *
+    * @param type: device type
+    */
+    [[nodiscard]] bool IsASIODevice(const Uuid& type) const noexcept override;
+
+    /*
     * Shutdown global device resource.
     */
     void Shutdown() override;
-private:
-    class DeviceStateNotificationImpl;
-    ScopedPtr<DeviceStateNotificationImpl> impl_;    
-    DeviceTypeFactoryMap factory_;
+private:    
     bool is_initialized_{ false };
+    class DeviceStateNotificationImpl;
+    ScopedPtr<DeviceStateNotificationImpl> impl_;        
+    DeviceTypeFactoryMap factory_;    
 };
 
 XAMP_OUTPUT_DEVICE_NAMESPACE_END

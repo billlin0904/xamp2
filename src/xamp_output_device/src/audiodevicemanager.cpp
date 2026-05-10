@@ -175,6 +175,14 @@ bool AudioDeviceManager::IsSharedDevice(const Uuid& type) const noexcept {
 #endif
 }
 
+bool AudioDeviceManager::IsASIODevice(const Uuid& type) const noexcept {
+#ifdef XAMP_OS_WIN
+    return type == XAMP_UUID_OF(win32::AsioDeviceType);
+#else
+    return false;
+#endif
+}
+
 void AudioDeviceManager::Shutdown() {
     impl_.reset();
     if (!is_initialized_) {

@@ -13,11 +13,11 @@
 #include <output_device/idsddevice.h>
 #include <output_device/ioutputdevice.h>
 #include <output_device/win32/glitchdetector.h>
+#include <output_device/win32/wasapiworkqueue.h>
 
 #include <base/logger.h>
 #include <base/dataconverter.h>
 #include <base/buffer.h>
-#include <base/task.h>
 #include <base/platfrom_handle.h>
 #include <base/threadpoolexecutor.h>
 
@@ -210,6 +210,8 @@ private:
 	*/
 	bool GetSample(bool is_silence) noexcept;
 
+	HRESULT OnInvoke(IMFAsyncResult* async_result);
+
 	void SetVolumeLevelScalar(float level);
 
 	bool raw_mode_;
@@ -223,9 +225,6 @@ private:
 	DWORD volume_support_mask_;
 	std::atomic<int64_t> stream_time_;
 	WinHandle sample_ready_;
-	WinHandle thread_start_;
-	WinHandle thread_exit_;
-	WinHandle close_request_;
 	std::wstring mmcss_name_;
 	REFERENCE_TIME aligned_period_;
 	CComPtr<IMMDevice> device_;
@@ -236,9 +235,8 @@ private:
 	CComHeapPtr<WAVEFORMATEX> mix_format_;
 	Buffer<float> buffer_;
 	IAudioCallback* callback_;
-	Future<void> render_task_;
+	CComPtr<WasapiWorkQueue<ExclusiveWasapiDevice>> rt_work_queue_;
 	FastMutex mutex_;
-	std::shared_ptr<IThreadPoolExecutor> thread_pool_;
 	AudioConverter convert_;
 	mutable AudioConvertContext data_convert_;
 	GlitchDetector glitch_detector_;

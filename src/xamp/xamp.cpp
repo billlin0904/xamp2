@@ -186,10 +186,19 @@ void Xamp::initialDeviceList(const std::string& device_id) {
         menu->addAction(createDeviceMenuWidget(translateDeviceDescription(device_type.get())));
 
         for (const auto& device_info : device_info_list) {
-            auto* device_action = new QAction(qTheme.connectTypeIcon(device_info.connect_type), QString::fromStdWString(device_info.name), this);
+            const auto device_name = QString::fromStdWString(device_info.name);
+            auto* device_action = new QAction(qTheme.connectTypeIcon(device_info.connect_type), device_name, this);
             device_action_group->addAction(device_action);
             device_action->setCheckable(true);
             device_action->setChecked(false);
+            device_action->setProperty("deviceName", device_name);
+            auto update_device_action = [device_action]() {
+                const auto device_name = device_action->property("deviceName").toString();
+                device_action->setText(device_action->isChecked()
+                    ? QStringLiteral("%1 %2").arg(QChar(0x2713), device_name)
+                    : device_name);
+            };
+            (void)QObject::connect(device_action, &QAction::toggled, this, update_device_action);
             device_id_action[device_info.device_id] = device_action;
 
             if (device_info_) {
@@ -354,11 +363,22 @@ void Xamp::playLocalFile(const QString& file_name, bool queue) {
         playback_queue_page_->addQueue(track_info);
     }
 
-    player_->Stop();
+    try {
+        player_->Stop();
+    }
+    catch (...) {
+        logAndShowMessage(std::current_exception());
+        return;
+    }
 
     auto output_mode = DsdModes::DSD_MODE_PCM;
+
     if (IsDsdFile(file_name.toStdWString())) {
-        output_mode = DsdModes::DSD_MODE_DOP;
+        const auto is_asio_device = player_->GetAudioDeviceManager()->IsASIODevice(
+            device_info_.value().device_type_id);
+
+        output_mode = is_asio_device ? DsdModes::DSD_MODE_NATIVE
+            : DsdModes::DSD_MODE_DOP;
     }
 
     if (player_->GetAudioDeviceManager()->IsSharedDevice(device_info_.value().device_type_id)) {

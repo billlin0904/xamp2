@@ -96,6 +96,13 @@ public:
 	* @param type: device type
 	*/
 	[[nodiscard]] virtual bool IsSharedDevice(const Uuid& type) const noexcept = 0;
+
+	/*
+	* Is ASIO device
+	*
+	* @param type: device type
+	*/
+	[[nodiscard]] virtual bool IsASIODevice(const Uuid& type) const noexcept = 0;
 protected:
 	/*
 	* Constructor.

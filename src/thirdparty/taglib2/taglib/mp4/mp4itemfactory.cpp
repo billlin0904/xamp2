@@ -87,6 +87,8 @@ std::pair<String, Item> ItemFactory::parseItem(
     return parseGnre(atom, data);
   case ItemHandlerType::Covr:
     return parseCovr(atom, data);
+  case ItemHandlerType::Stem:
+    return parseStem(atom, data);
   case ItemHandlerType::TextImplicit:
     return parseText(atom, data, -1);
   case ItemHandlerType::Text:
@@ -128,6 +130,8 @@ ByteVector ItemFactory::renderItem(
     return renderInt(name, item);
   case ItemHandlerType::Covr:
     return renderCovr(name, item);
+  case ItemHandlerType::Stem:
+    return renderStem(name, item);
   case ItemHandlerType::TextImplicit:
     return renderText(name, item, TypeImplicit);
   case ItemHandlerType::Text:
@@ -175,8 +179,8 @@ std::pair<ByteVector, Item> ItemFactory::itemFromProperty(
     case ItemHandlerType::TextImplicit:
     case ItemHandlerType::Text:
       return {name, values};
-
     case ItemHandlerType::Covr:
+    case ItemHandlerType::Stem:
       debug("MP4: Invalid item \"" + name + "\" for property");
       break;
     case ItemHandlerType::Unknown:
@@ -222,6 +226,7 @@ std::pair<String, StringList> ItemFactory::itemToProperty(
       return {key, item.toStringList()};
 
     case ItemHandlerType::Covr:
+    case ItemHandlerType::Stem:
       debug("MP4: Invalid item \"" + itemName + "\" for property");
       break;
     case ItemHandlerType::Unknown:
@@ -303,6 +308,7 @@ ItemFactory::NameHandlerMap ItemFactory::nameHandlerMap() const
     {"akID", ItemHandlerType::Byte},
     {"gnre", ItemHandlerType::Gnre},
     {"covr", ItemHandlerType::Covr},
+    {"stem", ItemHandlerType::Stem},
     {"purl", ItemHandlerType::TextImplicit},
     {"egid", ItemHandlerType::TextImplicit},
   };
@@ -400,7 +406,7 @@ Map<ByteVector, String> ItemFactory::namePropertyMap() const
 }
 
 MP4::AtomDataList ItemFactory::parseData2(
-  const MP4::Atom *atom, const ByteVector &data, int expectedFlags,
+  const MP4::Atom *, const ByteVector &data, int expectedFlags,
   bool freeForm)
 {
   AtomDataList result;
@@ -633,6 +639,12 @@ std::pair<String, Item> ItemFactory::parseCovr(
   };
 }
 
+std::pair<String, Item> ItemFactory::parseStem(
+  const MP4::Atom *atom, const ByteVector &data)
+{
+  return {atom->name(), Item(Stem(data))};
+}
+
 
 ByteVector ItemFactory::renderAtom(
   const ByteVector &name, const ByteVector &data)
@@ -663,7 +675,7 @@ ByteVector ItemFactory::renderInt(
   const ByteVector &name, const MP4::Item &item)
 {
   ByteVectorList data;
-  data.append(ByteVector::fromShort(item.toInt()));
+  data.append(ByteVector::fromShort(static_cast<short>(item.toInt())));
   return renderData(name, TypeInteger, data);
 }
 
@@ -703,8 +715,8 @@ ByteVector ItemFactory::renderIntPair(
 {
   ByteVectorList data;
   data.append(ByteVector(2, '\0') +
-              ByteVector::fromShort(item.toIntPair().first) +
-              ByteVector::fromShort(item.toIntPair().second) +
+              ByteVector::fromShort(static_cast<short>(item.toIntPair().first)) +
+              ByteVector::fromShort(static_cast<short>(item.toIntPair().second)) +
               ByteVector(2, '\0'));
   return renderData(name, TypeImplicit, data);
 }
@@ -714,8 +726,8 @@ ByteVector ItemFactory::renderIntPairNoTrailing(
 {
   ByteVectorList data;
   data.append(ByteVector(2, '\0') +
-              ByteVector::fromShort(item.toIntPair().first) +
-              ByteVector::fromShort(item.toIntPair().second));
+              ByteVector::fromShort(static_cast<short>(item.toIntPair().first)) +
+              ByteVector::fromShort(static_cast<short>(item.toIntPair().second)));
   return renderData(name, TypeImplicit, data);
 }
 
@@ -739,6 +751,13 @@ ByteVector ItemFactory::renderCovr(
     data.append(renderAtom("data", ByteVector::fromUInt(value.format()) +
                                    ByteVector(4, '\0') + value.data()));
   }
+  return renderAtom(name, data);
+}
+
+ByteVector ItemFactory::renderStem(
+  const ByteVector &name, const MP4::Item &item)
+{
+  auto data = item.toStem().data();
   return renderAtom(name, data);
 }
 

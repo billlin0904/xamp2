@@ -62,18 +62,13 @@ XAMP_BASE_API std::system_error com_to_system_error(HRESULT hr, const wchar_t* m
 XAMP_BASE_API std::system_error com_to_system_error(HRESULT hr, const std::wstring& msg);
 
 // Factory function creating a std::system_error from a _com_error.
-// If an error description is available, removes trailing newline or dot (end of last sentence) and prepends it to the error code message.
-// @note The error description gets converted to an ANSI string using the CP_ACP codepage.
 XAMP_BASE_API std::system_error com_to_system_error(const _com_error& e);
 
-// Factory function creating a std::system_error from a HRESULT error code and optionally from an error information.
-// If an error description is available, removes trailing newline or dot (end of last sentence) and prepends it to the error code message.
-// @note The error description gets converted to an ANSI string using the CP_ACP codepage.
+// Factory function creating a std::system_error from a HRESULT error code.
 XAMP_BASE_API std::system_error com_to_system_error(HRESULT hr, IErrorInfo* help);
 
 // Translate COM error and throw std::system_error.
 // Suitable as alternative COM error handler, settable with _set_com_error_handler
-// @note The error description gets converted to an ANSI string using the CP_ACP codepage.
 XAMP_BASE_API void WINAPI throw_translated_com_error(HRESULT hr, IErrorInfo* help = nullptr);
 
 #define XAMP_HR_IF_FAIL_THROW(hr) \

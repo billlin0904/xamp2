@@ -127,7 +127,6 @@ ExclusiveWasapiDevice::ExclusiveWasapiDevice(const std::shared_ptr<IThreadPoolEx
 	, aligned_period_(0)
 	, device_(device)
 	, callback_(nullptr)
-	, thread_pool_(thread_pool)
 	, logger_(XampLoggerFactory.GetLogger(XAMP_LOG_NAME(ExclusiveWasapiDevice))) {
 }
 
@@ -158,7 +157,6 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 	if (buffer_period_ == 0) {
 		// If buffer_period_ is not set, use default device period.
 		HrIfFailThrow(client_->GetDevicePeriod(&default_device_period, &minimum_device_period));
-		default_device_period = kGlitchFreePeriod;
 	} else {
 		default_device_period = buffer_period_;
 	}
@@ -331,20 +329,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 		HrIfFailThrow(client_->SetEventHandle(sample_ready_.get()));
 	}
 
-	// Create thread start event handle.
-	if (!thread_start_) {
-		thread_start_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
-	}
-
-	// Create thread exit event handle.
-	if (!thread_exit_) {
-		thread_exit_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
-	}
-
-	// Create close request event handle.
-	if (!close_request_) {
-		close_request_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
-	}
+	rt_work_queue_ = MakeWasapiWorkQueue(mmcss_name_, this, &ExclusiveWasapiDevice::OnInvoke);
 
 	// Calculate buffer size.
     const size_t buffer_size = buffer_frames_ * output_format.GetChannels();
@@ -444,11 +429,11 @@ bool ExclusiveWasapiDevice::IsStreamRunning() const noexcept {
 void ExclusiveWasapiDevice::CloseStream() {
 	XAMP_LOG_D(logger_, "CloseStream is_running_: {}", is_running_);
 
+	if (rt_work_queue_) {
+		rt_work_queue_->Destroy();
+		rt_work_queue_.Release();
+	}
 	sample_ready_.Close();
-	thread_start_.Close();
-	thread_exit_.Close();
-	close_request_.Close();
-	render_task_ = Future<void>();
 	render_client_.Release();
 	clock_.Release();
 	endpoint_volume_.Release();
@@ -475,22 +460,14 @@ void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
 	std::unique_lock lock{ mutex_ };
 
 	XAMP_LOG_D(logger_, "StopStream is_running_: {}", is_running_);
-	if (!is_running_) {
-		return;
-	}
-
 	ignore_wait_slow_ = true;
-
-	// Signal thread to exit.
-	::SignalObjectAndWait(close_request_.get(), 
-		thread_exit_.get(), 
-		INFINITE,
-		FALSE);
-
-	if (render_task_.valid()) {
-		render_task_.get();
-	}
 	is_running_ = false;
+	if (rt_work_queue_) {
+		rt_work_queue_->Destroy();
+	}
+	if (client_) {
+		HrIfFailThrow(client_->Stop());
+	}
 }
 
 void ExclusiveWasapiDevice::StartStream() {
@@ -503,19 +480,7 @@ void ExclusiveWasapiDevice::StartStream() {
 	}
 
 	XAMP_ENSURES(sample_ready_);
-	XAMP_ENSURES(thread_start_);
-	XAMP_ENSURES(thread_exit_);
-	XAMP_ENSURES(close_request_);
 
-	// Calculate buffer duration.	
-	const std::chrono::milliseconds buffer_duration((buffer_frames_ *
-		kMicrosecondsPerSecond /
-		mix_format_->nSamplesPerSec) / 1000);
-	const std::chrono::milliseconds glitch_time = kGlitchFreeDuration + buffer_duration;
-
-	XAMP_LOG_D(logger_, "WASAPI wait timeout {}msec.", glitch_time.count());
-	// Reset event.
-	::ResetEvent(close_request_.get());
 
 	// TODO: Add check 24/32 bit format.
 	convert_.SetFormat(mix_format_->wBitsPerSample, is_2432_format_);
@@ -523,94 +488,48 @@ void ExclusiveWasapiDevice::StartStream() {
 	// Must be active device and prefill buffer.
 	GetSample(true);
 
-	render_task_ = Executor::Spawn(thread_pool_, [this, glitch_time](const auto& stop_token) {
-		XAMP_LOG_D(logger_, "Start exclusive mode stream task! thread: {}", GetCurrentThreadId());
-		DWORD current_timeout = INFINITE;
-		Stopwatch watch;
-		Mmcss mmcss;
-
-		ignore_wait_slow_ = true;
+	try {
+		rt_work_queue_->LoadStream();
+		rt_work_queue_->WaitAsync(sample_ready_.get());
 		is_running_ = true;
-
-		// Boost thread priority.
-		mmcss.BoostPriority(mmcss_name_, thread_priority_);
-
-		const std::array<HANDLE, 2> objects{
-			sample_ready_.get(),
-			close_request_.get()
-		};		
-
-		auto thread_exit = false;
-		// Signal thread start.
-		::SetEvent(thread_start_.get());
-
-		XAMP_ON_SCOPE_EXIT(
-			// Stop stream.
-			client_->Stop();
-
-			// Signal thread exit.
-			::SetEvent(thread_exit_.get());
-
-			// Revert thread priority.
-			mmcss.RevertPriority();
-
-			XAMP_LOG_D(logger_, "End exclusive mode stream task!");
-		);
-
-		while (!thread_exit && !stop_token.stop_requested()) {
-			watch.Reset();
-
-			// Wait for sample ready or stop event.
-			auto result = ::WaitForMultipleObjects(static_cast<DWORD>(objects.size()),
-				objects.data(),
-				FALSE, 
-				current_timeout);
-
-			// Check wait time.
-			const auto elapsed = watch.Elapsed<std::chrono::milliseconds>();
-			if (elapsed > glitch_time) {
-				XAMP_LOG_D(logger_, "WASAPI output got glitch! {}ms > {}ms.", elapsed.count(), glitch_time.count());
-				if (!ignore_wait_slow_) {
-					thread_exit = true;
-					continue;
-				}
-			}
-
-			switch (result) {
-			case WAIT_OBJECT_0 + 0:
-				if (!GetSample(false)) {
-					thread_exit = true;
-				}
-				if (!ignore_wait_slow_) {
-					current_timeout = static_cast<DWORD>(glitch_time.count());
-				}
-				break;
-			case WAIT_OBJECT_0 + 1:
-				thread_exit = true;
-				XAMP_LOG_D(logger_, "Stop event trigger!");
-				break;
-			case WAIT_TIMEOUT:
-				XAMP_LOG_D(logger_, "Wait event timeout! {}ms.", elapsed.count());
-				thread_exit = true;
-				break;
-			default:
-				XAMP_LOG_D(logger_, "Other error({})!", result);
-				thread_exit = true;
-				break;
-			}
-		}
-		}, ExecuteFlags::EXECUTE_LONG_RUNNING);
-
-	is_running_ = false;
-	while (!is_running_) {
-		if (::WaitForSingleObject(thread_start_.get(), kWaitStreamStartTimeout.count()) == WAIT_TIMEOUT) {
-			XAMP_LOG_E(logger_, "ExclusiveWasapiDevice start render timeout.");
-			return;
-		}
+		HrIfFailThrow(client_->Start());
 	}
-	HrIfFailThrow(client_->Start());
+	catch (...) {
+		is_running_ = false;
+		if (rt_work_queue_) {
+			rt_work_queue_->Destroy();
+		}
+		throw;
+	}
 }
 
+HRESULT ExclusiveWasapiDevice::OnInvoke(IMFAsyncResult*) {
+	if (!is_running_ || rt_work_queue_ == nullptr) {
+		return S_OK;
+	}
+
+	try {
+		if (!GetSample(false)) {
+			is_running_ = false;
+			if (client_) {
+				client_->Stop();
+			}
+			return S_OK;
+		}
+		rt_work_queue_->WaitAsync(sample_ready_.get());
+	}
+	catch (const std::exception& e) {
+		XAMP_LOG_D(logger_, e.what());
+		if (callback_ != nullptr) {
+			callback_->OnError(e);
+		}
+		is_running_ = false;
+		if (client_) {
+			client_->Stop();
+		}
+	}
+	return S_OK;
+}
 void ExclusiveWasapiDevice::SetStreamTime(const double stream_time) noexcept {
 	ThrowIf<std::invalid_argument>(mix_format_->nSamplesPerSec != 0,
 		"Output sample rate can not set zero.");
