@@ -1,4 +1,4 @@
-#include <QPixmap>
+ï»¿#include <QPixmap>
 
 #include <widget/worker/ytmusicservice.h>
 #include <widget/util/json_util.h>
@@ -71,7 +71,7 @@ namespace {
 			if (trackObj.contains("likeStatus"_str)) {
 				track.like_status = trackObj["likeStatus"_str].toString();
 			}
-			// ¸ÑªR artists
+			// è§£æ artists
 			if (trackObj.contains("artists"_str) && trackObj["artists"_str].isArray()) {
 				track.artists = parseArtists(trackObj["artists"_str].toArray());
 			}
@@ -100,17 +100,17 @@ namespace {
 			album.description = album_obj["description"_str].toString();
 		}
 
-		// ¸ÑªR artists
+		// è§£æ artists
 		if (album_obj.contains("artists"_str) && album_obj["artists"_str].isArray()) {
 			album.artists = parseArtists(album_obj["artists"_str].toArray());
 		}
 
-		// ¸ÑªR thumbnails
+		// è§£æ thumbnails
 		if (album_obj.contains("thumbnails"_str) && album_obj["thumbnails"_str].isArray()) {
 			album.thumbnails = parseThumbnails(album_obj["thumbnails"_str].toArray());
 		}
 
-		// ¸ÑªR tracks
+		// è§£æ tracks
 		if (album_obj.contains("tracks"_str) && album_obj["tracks"_str].isArray()) {
 			album.tracks = parseTracks(album_obj["tracks"_str].toArray());
 		}
@@ -146,21 +146,21 @@ namespace {
 
 	template <typename T>
 	void parsePlaylistJson(LibraryPlaylist& playlist, const T& playlist_obj) {
-		// ¸ÑªR "title" ©M "playlistId"
+		// è§£æ "title" å’Œ "playlistId"
 		QString title = playlist_obj["title"_str].toString();
 		QString playlist_id = playlist_obj["playlistId"_str].toString();
 
 		playlist.title = title;
 		playlist.playlist_id = playlist_id;
 
-		// ¸ÑªR "tracks" °}¦C
+		// è§£æ "tracks" é™£åˆ—
 		QJsonArray tracks_array = playlist_obj["tracks"_str].toArray();
 		for (const QJsonValue& track_value : tracks_array) {
 			playlist::Track track;
 
 			QJsonObject track_obj = track_value.toObject();
 
-			// ¸ÑªR track ªº¬ÛÃö¸ê°T
+			// è§£æ track çš„ç›¸é—œè³‡è¨Š
 			QString video_id = track_obj["videoId"_str].toString();
 			QString track_title = track_obj["title"_str].toString();
 			QString like_status = track_obj["likeStatus"_str].toString();
@@ -172,7 +172,7 @@ namespace {
 			track.duration = duration;
 			track.set_video_id = track_obj["setVideoId"_str].toString();
 
-			// ¸ÑªR "artists" °}¦C
+			// è§£æ "artists" é™£åˆ—
 			QJsonArray artists_array = track_obj["artists"_str].toArray();
 			for (const QJsonValue& artist_value : artists_array) {
 				QJsonObject artistObj = artist_value.toObject();
@@ -184,7 +184,7 @@ namespace {
 				track.artists.push_back(artist);
 			}
 
-			// ¸ÑªR "album" ª«¥ó
+			// è§£æ "album" ç‰©ä»¶
 			QJsonObject album_obj = track_obj["album"_str].toObject();
 			QString album_name = album_obj["name"_str].toString();
 			QString album_id = album_obj["id"_str].toString();
@@ -193,7 +193,7 @@ namespace {
 			album.id = album_id;
 			track.album = album;
 
-			// ¸ÑªR "thumbnails" °}¦C
+			// è§£æ "thumbnails" é™£åˆ—
 			QJsonArray thumbnails_array = track_obj["thumbnails"_str].toArray();
 			for (const QJsonValue& thumbnail_value : thumbnails_array) {
 				QJsonObject thumbnail_obj = thumbnail_value.toObject();
@@ -497,7 +497,7 @@ QCoro::Task<std::optional<QList<LibraryPlaylist>>> YtMusicHttpService::fetchLibr
 
 	const auto json_array = doc.array();
 
-	// ¹M¾ú JSON °}¦C¤¤ªºª«¥ó
+	// éæ­· JSON é™£åˆ—ä¸­çš„ç‰©ä»¶
 	for (const QJsonValue& value : json_array) {
 		LibraryPlaylist playlist;
 		QJsonObject playlist_obj = value.toObject();

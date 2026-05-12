@@ -1,4 +1,4 @@
-#include <output_device/win32/mmcss.h>
+﻿#include <output_device/win32/mmcss.h>
 
 #ifdef XAMP_OS_WIN
 
@@ -43,7 +43,7 @@ public:
 		, avrt_handle_(nullptr) {
 	}
 
-	void BoostPriority(std::wstring_view task_name, MmcssThreadPriority priority) noexcept {
+	void BoostPriority(std::wstring_view task_name, MmcssThreadPriority priority) {
 		RevertPriority();
 
 		avrt_handle_ = AvrtLibDLL.AvSetMmThreadCharacteristicsW(task_name.data(), &avrt_task_index_);
@@ -59,7 +59,7 @@ public:
 			GetLastErrorMessage());
 	}
 
-	void RevertPriority() noexcept {
+	void RevertPriority() {
 		if (!avrt_handle_) {
 			return;
 		}
@@ -83,11 +83,11 @@ Mmcss::Mmcss()
 
 XAMP_PIMPL_IMPL(Mmcss)
 
-void Mmcss::BoostPriority(std::wstring_view task_name, MmcssThreadPriority priority) noexcept {
+void Mmcss::BoostPriority(std::wstring_view task_name, MmcssThreadPriority priority) {
 	impl_->BoostPriority(task_name, priority);
 }
 
-void Mmcss::RevertPriority() noexcept {
+void Mmcss::RevertPriority() {
 	impl_->RevertPriority();
 }
 

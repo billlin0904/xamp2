@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2019 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -19,7 +19,7 @@
 namespace xamp::output_device::osx {
 
 struct SystemVolume {
-    explicit SystemVolume(AudioObjectPropertySelector selector, AudioDeviceID device_id = kAudioObjectUnknown) noexcept;
+    explicit SystemVolume(AudioObjectPropertySelector selector, AudioDeviceID device_id = kAudioObjectUnknown) ;
 
     double GetGain() const;
 
@@ -33,11 +33,11 @@ struct SystemVolume {
 
     void SetMuted(bool mute) const;
 
-    bool HasProperty() const noexcept;
+    bool HasProperty() const ;
 
-    bool HasProperty(const AudioObjectPropertyAddress &property) const noexcept;
+    bool HasProperty(const AudioObjectPropertyAddress &property) const ;
 
-    bool CanSetVolume() const noexcept;
+    bool CanSetVolume() const ;
 private:
     AudioDeviceID device_id_;
     AudioObjectPropertyAddress property_;

@@ -1,4 +1,4 @@
-#include <output_device/audiodevicemanager.h>
+﻿#include <output_device/audiodevicemanager.h>
 #include <output_device/api.h>
 
 #ifdef XAMP_OS_WIN
@@ -137,7 +137,7 @@ ScopedPtr<IDeviceType> AudioDeviceManager::Create(const Uuid & id) const {
     return itr->second();
 }
 
-bool AudioDeviceManager::IsSupportAsio() const noexcept {
+bool AudioDeviceManager::IsSupportAsio() const {
 #if defined(XAMP_OS_WIN)
     return IsDeviceTypeExist(XAMP_UUID_OF(win32::AsioDeviceType));
 #else
@@ -162,11 +162,11 @@ std::vector<Uuid> AudioDeviceManager::GetAvailableDeviceType() const {
     return device_types;
 }
 
-bool AudioDeviceManager::IsDeviceTypeExist(Uuid const& id) const noexcept {
+bool AudioDeviceManager::IsDeviceTypeExist(Uuid const& id) const {
     return factory_.find(id) != factory_.end();
 }
 
-bool AudioDeviceManager::IsSharedDevice(const Uuid& type) const noexcept {
+bool AudioDeviceManager::IsSharedDevice(const Uuid& type) const {
 #ifdef XAMP_OS_WIN
     return type == XAMP_UUID_OF(win32::SharedWasapiDeviceType);
 #else
@@ -175,7 +175,7 @@ bool AudioDeviceManager::IsSharedDevice(const Uuid& type) const noexcept {
 #endif
 }
 
-bool AudioDeviceManager::IsASIODevice(const Uuid& type) const noexcept {
+bool AudioDeviceManager::IsASIODevice(const Uuid& type) const {
 #ifdef XAMP_OS_WIN
     return type == XAMP_UUID_OF(win32::AsioDeviceType);
 #else

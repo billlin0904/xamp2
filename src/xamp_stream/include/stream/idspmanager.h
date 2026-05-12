@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -46,9 +46,9 @@ public:
 
     [[nodiscard]] virtual bool IsEnableSampleRateConverter() const = 0;
 
-    [[nodiscard]] virtual bool CanProcess() const noexcept = 0;
+    [[nodiscard]] virtual bool CanProcess() const = 0;
 
-    [[nodiscard]] virtual bool Contains(const Uuid &type) const noexcept = 0;
+    [[nodiscard]] virtual bool Contains(const Uuid &type) const = 0;
 
 protected:
     IDSPManager() = default;

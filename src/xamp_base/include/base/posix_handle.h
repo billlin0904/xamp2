@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2021 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -22,31 +22,31 @@
 namespace xamp::base {
 
 struct ModuleHandleTraits final {
-    static void* invalid() noexcept {
+    static void* invalid() {
         return nullptr;
     }
 
-    static void close(void* value) noexcept {
+    static void close(void* value) {
         ::dlclose(value);
     }
 };
 
 struct FileHandleTraits final {
-    static int invalid() noexcept {
+    static int invalid() {
         return -1;
     }
 
-    static void close(int value) noexcept {
+    static void close(int value) {
         ::close(value);
     }
 };
 
 struct TimerFdTraits final {
-    static int invalid() noexcept {
+    static int invalid() {
         return -1;
     }
 
-    static void close(int value) noexcept {
+    static void close(int value) {
         ::close(value);
     }
 };

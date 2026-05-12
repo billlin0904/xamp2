@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -48,7 +48,7 @@ public:
 
 	void Open(ArchiveEntry archive_entry) override;
 
-	void Close() noexcept override;
+	void Close() override;
 
 	void SetRate(float rate = 0.0f) override;
 
@@ -60,13 +60,13 @@ public:
 
 	void Seek(double stream_time) const override;
 
-	[[nodiscard]] uint32_t GetSampleSize() const noexcept override;
+	[[nodiscard]] uint32_t GetSampleSize() const override;
 
 	[[nodiscard]] uint32_t GetBitDepth() const override;
 
 	[[nodiscard]] uint32_t GetBitRate() const override;
 
-	[[nodiscard]] bool IsActive() const noexcept override;
+	[[nodiscard]] bool IsActive() const override;
 
 private:
 	class MqaFileStreamImpl;

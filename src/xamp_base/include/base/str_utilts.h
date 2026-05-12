@@ -8,6 +8,9 @@
 #include <string>
 #include <string>
 #include <algorithm>
+#include <cstddef>
+#include <cstdint>
+#include <iterator>
 #include <vector>
 
 #include <spdlog/fmt/fmt.h>
@@ -78,6 +81,43 @@ void Remove(std::basic_string<CharType>& s, const CharType* target) {
 }
 
 XAMP_BASE_API std::string FormatBytes(size_t bytes);
+
+XAMP_ALWAYS_INLINE std::string ToHex(const void* data,
+    size_t size,
+    size_t max_size = 256,
+    std::string_view separator = " ") {
+    if (data == nullptr || size == 0 || max_size == 0) {
+        return {};
+    }
+
+    const auto dump_size = (std::min)(size, max_size);
+    const auto* bytes = static_cast<const uint8_t*>(data);
+
+    std::string output;
+    output.reserve(dump_size * (2 + separator.size()) + 16);
+    for (size_t i = 0; i < dump_size; ++i) {
+        if (i != 0) {
+            output.append(separator);
+        }
+        fmt::format_to(std::back_inserter(output), "{:02X}", bytes[i]);
+    }
+
+    if (dump_size < size) {
+        fmt::format_to(std::back_inserter(output), "{}...({}/{})",
+            separator,
+            dump_size,
+            size);
+    }
+    return output;
+}
+
+template <typename T>
+XAMP_ALWAYS_INLINE std::string ToHex(const T* data,
+    size_t count,
+    size_t max_bytes = 256,
+    std::string_view separator = " ") {
+    return ToHex(static_cast<const void*>(data), sizeof(T) * count, max_bytes, separator);
+}
 
 template <typename T>
 XAMP_ALWAYS_INLINE std::string FormatBytesBy(size_t bytes) {

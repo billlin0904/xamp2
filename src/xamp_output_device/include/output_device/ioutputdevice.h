@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -36,21 +36,21 @@ public:
 	* @param callback: audio callback
 	* @return void
 	*/
-	virtual void SetAudioCallback(IAudioCallback* callback) noexcept = 0;
+	virtual void SetAudioCallback(IAudioCallback* callback) = 0;
 
 	/*
 	* Is stream open.
 	* 
 	* @return bool
 	*/
-	[[nodiscard]] virtual bool IsStreamOpen() const noexcept = 0;
+	[[nodiscard]] virtual bool IsStreamOpen() const = 0;
 
 	/*
 	* Is stream running.
 	* 
 	* @return bool
 	*/
-	[[nodiscard]] virtual bool IsStreamRunning() const noexcept = 0;
+	[[nodiscard]] virtual bool IsStreamRunning() const = 0;
 
 	/*
 	* Stop stream.
@@ -74,14 +74,14 @@ public:
 	* 
 	* @param stream_time: stream time
 	*/
-	virtual void SetStreamTime(double stream_time) noexcept = 0;
+	virtual void SetStreamTime(double stream_time) = 0;
 
 	/*
 	* Get stream time.
 	* 
 	* @return double
 	*/
-	[[nodiscard]] virtual double GetStreamTime() const noexcept = 0;
+	[[nodiscard]] virtual double GetStreamTime() const = 0;
 
 	/*
 	* Get volume.
@@ -123,19 +123,19 @@ public:
 	* 
 	* @return PackedFormat
 	*/
-	[[nodiscard]] virtual PackedFormat GetPackedFormat() const noexcept = 0;
+	[[nodiscard]] virtual PackedFormat GetPackedFormat() const = 0;
 
 	/*
 	* Get device buffer size.
 	* 
 	* @return uint32_t
 	*/
-	[[nodiscard]] virtual uint32_t GetBufferSize() const noexcept = 0;
+	[[nodiscard]] virtual uint32_t GetBufferSize() const = 0;
 
 	/*
 	* Abort stream.
 	*/	
-	virtual void AbortStream() noexcept = 0;
+	virtual void AbortStream() = 0;
 
 protected:
 	/*

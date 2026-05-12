@@ -1,4 +1,4 @@
-#include <stream/bassaacfileencoder.h>
+﻿#include <stream/bassaacfileencoder.h>
 
 #ifdef XAMP_OS_MAC
 
@@ -21,7 +21,7 @@
 namespace xamp { namespace stream {
 
 struct XAMP_STREAM_API AudioConverterDeleter final {
-    static AudioConverterRef invalid() noexcept {
+    static AudioConverterRef invalid() {
         return nullptr;
     }
 

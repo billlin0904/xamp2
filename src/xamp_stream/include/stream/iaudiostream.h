@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -27,13 +27,13 @@ public:
     * 
     * @return true if the stream is a file, otherwise false.
     */
-    [[nodiscard]] virtual bool IsFile() const noexcept = 0;
+    [[nodiscard]] virtual bool IsFile() const = 0;
 
     /*
     * Close the stream.
     * 
     */
-	virtual void Close() noexcept = 0;
+	virtual void Close() = 0;
 
     /*
     * Get the duration of the stream.
@@ -71,14 +71,14 @@ public:
     * 
     * @return The size of a sample.
     */
-    [[nodiscard]] virtual uint32_t GetSampleSize() const noexcept = 0;
+    [[nodiscard]] virtual uint32_t GetSampleSize() const = 0;
 
     /*
     * Check if the stream is active.
     * 
     * @return true if the stream is active, otherwise false.
     */
-    [[nodiscard]] virtual bool IsActive() const noexcept = 0;
+    [[nodiscard]] virtual bool IsActive() const = 0;
 
     /*
     * Get file bit depth.

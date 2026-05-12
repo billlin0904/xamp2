@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -89,7 +89,7 @@ class XAMP_BASE_API Exception : public std::exception {
      /*
      * Destructor.
      */
-     virtual ~Exception() noexcept override = default;
+     virtual ~Exception() override = default;
 
      /*
      * what function.
@@ -99,22 +99,22 @@ class XAMP_BASE_API Exception : public std::exception {
      /*
      * Get error code.
      */
-     [[nodiscard]] virtual Errors GetError() const noexcept;
+     [[nodiscard]] virtual Errors GetError() const ;
 
      /*
      * Get error message.
      */
-     [[nodiscard]] char const* GetErrorMessage() const noexcept;
+     [[nodiscard]] char const* GetErrorMessage() const ;
 
      /*
      * Get expression.
      */
-     [[nodiscard]] virtual const char* GetExpression() const noexcept;
+     [[nodiscard]] virtual const char* GetExpression() const ;
 
      /*
      * Get stack trace.
      */
-     [[nodiscard]] char const* GetStackTrace() const noexcept;
+     [[nodiscard]] char const* GetStackTrace() const ;
 
      /*
      * Get error code string.

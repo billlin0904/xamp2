@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -16,7 +16,7 @@ struct archive;
 XAMP_BASE_NAMESPACE_BEGIN
 
 struct ArchivePtrDeleter final {
-	static archive* invalid() noexcept;
+	static archive* invalid() ;
 	static void Close(archive* value);
 };
 
@@ -37,19 +37,18 @@ public:
 		Path                  archive_path,
 		long                  length,
 		archive_entry*        entry,
-		ArchivePtrHandle      archive_ptr) noexcept
-		: name(name)
+		ArchivePtrHandle      archive_ptr) : name(name)
 		, archive_path(std::move(archive_path))
 		, length(length)
 		, entry(entry)
 		, archive_ptr(std::move(archive_ptr)) {
 	}
 
-	ArchiveEntry(ArchiveEntry&& other) noexcept {
+	ArchiveEntry(ArchiveEntry&& other) {
 		*this = std::move(other);
 	}
 
-	ArchiveEntry& operator=(ArchiveEntry&& other) noexcept {
+	ArchiveEntry& operator=(ArchiveEntry&& other) {
 		if (this != &other) {
 			name         = std::move(other.name);
 			archive_path = std::move(other.archive_path);
@@ -64,23 +63,23 @@ public:
 
 	std::expected<ptrdiff_t, std::string> Read(char *buffer, long length);
 
-	const std::wstring& Name() const noexcept {
+	const std::wstring& Name() const {
 		return name; 
 	}
 
-	const Path& ArchivePath() const noexcept { 
+	const Path& ArchivePath() const { 
 		return archive_path;
 	}
 
-	long Length() const noexcept {
+	long Length() const {
 		return length;
 	}
 
-	archive_entry* Entry() const noexcept {
+	archive_entry* Entry() const {
 		return entry;
 	}
 
-	const ArchivePtrHandle& Handle() const noexcept { 
+	const ArchivePtrHandle& Handle() const { 
 		return archive_ptr; 
 	}
 };

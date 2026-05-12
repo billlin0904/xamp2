@@ -1,4 +1,4 @@
-#include <base/base.h>
+﻿#include <base/base.h>
 
 #ifdef XAMP_OS_MAC
 
@@ -22,8 +22,7 @@ namespace xamp::output_device::osx {
 // Minimal DOP DSD64 samplerate
 inline constexpr int32_t kMinDopSamplerate = 176400;
 
-SystemVolume::SystemVolume(AudioObjectPropertySelector selector, AudioDeviceID device_id) noexcept
-    : device_id_ (device_id) {
+SystemVolume::SystemVolume(AudioObjectPropertySelector selector, AudioDeviceID device_id) : device_id_ (device_id) {
     if (device_id != kAudioObjectUnknown) {
         property_.mElement  = kAudioObjectPropertyElementMaster;
         property_.mSelector = selector;
@@ -140,15 +139,15 @@ void SystemVolume::SetMuted(bool mute) const {
     }
 }
 
-bool SystemVolume::HasProperty() const noexcept {
+bool SystemVolume::HasProperty() const {
     return HasProperty(property_);
 }
 
-bool SystemVolume::HasProperty(const AudioObjectPropertyAddress &property) const noexcept {
+bool SystemVolume::HasProperty(const AudioObjectPropertyAddress &property) const {
     return ::AudioObjectHasProperty(device_id_, &property) > 0;
 }
 
-bool SystemVolume::CanSetVolume() const noexcept {
+bool SystemVolume::CanSetVolume() const {
     Boolean is_settable = false;
     return ::AudioObjectIsPropertySettable(device_id_,
                                            &property_,

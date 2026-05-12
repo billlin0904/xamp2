@@ -30,7 +30,7 @@ public:
 
     virtual size_t GetThreadSize() const = 0;
 
-    virtual void Destroy() noexcept = 0;
+    virtual void Destroy() = 0;
 protected:
     ITaskScheduler() = default;
 };

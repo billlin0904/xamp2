@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -45,7 +45,7 @@ public:
 	* @param error: asio error
 	* @return error message
 	*/
-	static std::string_view ErrorMessage(ASIOError error) noexcept;
+	static std::string_view ErrorMessage(ASIOError error) ;
 };
 
 #define LogAsioIfFailed(expr) \

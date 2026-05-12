@@ -1,4 +1,4 @@
-#include <output_device/api.h>
+﻿#include <output_device/api.h>
 
 #include <output_device/win32/exclusivewasapidevicetype.h>
 #include <output_device/win32/asiodevice.h>
@@ -62,7 +62,7 @@ ScopedPtr<IAudioDeviceManager> MakeAudioDeviceManager() {
 	return manager;
 }
 
-bool IsExclusiveDevice(const DeviceInfo& info) noexcept {
+bool IsExclusiveDevice(const DeviceInfo& info) {
 #ifdef XAMP_OS_WIN
     const Uuid device_type_id(info.device_type_id);
     return device_type_id == XAMP_UUID_OF(win32::ExclusiveWasapiDeviceType)
@@ -74,7 +74,7 @@ bool IsExclusiveDevice(const DeviceInfo& info) noexcept {
 #endif
 }
 
-bool IsAsioDevice(const Uuid& id) noexcept {
+bool IsAsioDevice(const Uuid& id) {
 #if defined(XAMP_OS_WIN)
     return id == XAMP_UUID_OF(win32::AsioDeviceType);
 #else

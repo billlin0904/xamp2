@@ -1,4 +1,4 @@
-#include <widget/util/image_util.h>
+﻿#include <widget/util/image_util.h>
 #include <widget/albumviewstyleddelegate.h>
 #include <widget/util/ui_util.h>
 #include <widget/imagecache.h>
@@ -22,7 +22,7 @@ namespace {
 
     XAMP_DECLARE_LOG_NAME(AlbumViewStyledDelegate);
 
-    inline QRect moreButtonRect(const QStyleOptionViewItem& option, const QSize& cover_size) noexcept {
+    inline QRect moreButtonRect(const QStyleOptionViewItem& option, const QSize& cover_size) {
         const QRect more_button_rect(
             option.rect.left() + cover_size.width() - 10,
             option.rect.top() + cover_size.height() + 35,
@@ -30,7 +30,7 @@ namespace {
         return more_button_rect;
     }
 
-    inline QRect hiResIconRect(const QStyleOptionViewItem& option, const QSize& cover_size) noexcept {
+    inline QRect hiResIconRect(const QStyleOptionViewItem& option, const QSize& cover_size) {
         const QRect hi_res_icon_rect(
             option.rect.left() + cover_size.width() - 10,
             option.rect.top() + cover_size.height() + 15,
@@ -38,7 +38,7 @@ namespace {
         return hi_res_icon_rect;
     }
 
-    inline QRect checkBoxIconRect(const QStyleOptionViewItem& option, const QSize& cover_size) noexcept {
+    inline QRect checkBoxIconRect(const QStyleOptionViewItem& option, const QSize& cover_size) {
         const QRect checkbox_icon_rect(
             option.rect.left() + cover_size.width() + 15,
             option.rect.top() + 2,
@@ -46,7 +46,7 @@ namespace {
         return checkbox_icon_rect;
     }
 
-    inline QRect albumTextRect(const QStyleOptionViewItem& option, const QSize& cover_size, uint32_t album_artist_text_width) noexcept {
+    inline QRect albumTextRect(const QStyleOptionViewItem& option, const QSize& cover_size, uint32_t album_artist_text_width) {
         const QRect album_text_rect(option.rect.left() + kPaddingSize,
             option.rect.top() + cover_size.height() + 15,
             album_artist_text_width,
@@ -54,7 +54,7 @@ namespace {
         return album_text_rect;
     }
 
-    inline QRect artistTextRect(const QStyleOptionViewItem& option, const QSize& cover_size) noexcept {
+    inline QRect artistTextRect(const QStyleOptionViewItem& option, const QSize& cover_size) {
         const QRect artist_text_rect(option.rect.left() + kPaddingSize,
             option.rect.top() + cover_size.height() + 30,
             cover_size.width(),
@@ -62,7 +62,7 @@ namespace {
         return artist_text_rect;
     }
 
-    inline QRect selectedAlbumRect(const QStyleOptionViewItem& option) noexcept {
+    inline QRect selectedAlbumRect(const QStyleOptionViewItem& option) {
         const QRect selected_rect(option.rect.left() + 5,
             option.rect.top() + 5,
             option.rect.width() - 5,
@@ -70,7 +70,7 @@ namespace {
         return selected_rect;
     }
 
-    inline QRect playButtonRect(const QStyleOptionViewItem& option, const QSize& cover_size) noexcept {
+    inline QRect playButtonRect(const QStyleOptionViewItem& option, const QSize& cover_size) {
         const QRect play_button_rect(
             option.rect.left() + cover_size.width() / 2 - 10,
             option.rect.top() + cover_size.height() / 2 - 10,

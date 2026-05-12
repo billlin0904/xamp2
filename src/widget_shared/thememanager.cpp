@@ -287,7 +287,7 @@ QColor ThemeManager::textColor() const {
     return color;
 }
 
-QColor ThemeManager::backgroundColor() const noexcept {
+QColor ThemeManager::backgroundColor() const {
     return background_color_;
 }
 
@@ -460,11 +460,11 @@ QPixmap ThemeManager::githubIcon() const {
 	}
 }
 
-const QPixmap& ThemeManager::unknownCover() noexcept {
+const QPixmap& ThemeManager::unknownCover() {
     return unknown_cover_;
 }
 
-const QPixmap& ThemeManager::defaultSizeUnknownCover() noexcept {
+const QPixmap& ThemeManager::defaultSizeUnknownCover() {
     return default_size_unknown_cover_;
 }
 
@@ -490,15 +490,15 @@ void ThemeManager::setPlayOrPauseButton(QToolButton *playButton, bool is_playing
     }
 }
 
-const QSize& ThemeManager::defaultCoverSize() const noexcept {
+const QSize& ThemeManager::defaultCoverSize() const {
     return cover_size_;
 }
 
-QSize ThemeManager::cacheCoverSize() const noexcept {
+QSize ThemeManager::cacheCoverSize() const {
     return cache_cover_size_;
 }
 
-QSize ThemeManager::albumCoverSize() const noexcept {
+QSize ThemeManager::albumCoverSize() const {
     return album_cover_size_;
 }
 

@@ -136,10 +136,10 @@ inline constexpr auto kMaxEnumSize = 100;
 static constexpr const std::array<std::string_view, kMaxEnumSize> EnumName##_enum_names = {\
     ALL_ARGUMENTS_TO_STRING(__VA_ARGS__)\
 };\
-inline constexpr size_t Get##EnumName##Size() noexcept {\
+inline constexpr size_t Get##EnumName##Size() {\
     return EnumName##_enum_names.size();\
 }\
-inline constexpr std::string_view EnumToString(EnumName value) noexcept {\
+inline constexpr std::string_view EnumToString(EnumName value) {\
     size_t index = static_cast<size_t>(value); \
     return (index < EnumName##_enum_names.size() - 1) ? EnumName##_enum_names[index] : "Unknown";\
 }\

@@ -1,4 +1,4 @@
-#include <metadata/taglib.h>
+ï»¿#include <metadata/taglib.h>
 #include <metadata/taglibiostream.h>
 #include <metadata/taglibmetawriter.h>
 
@@ -218,11 +218,11 @@ namespace {
 				return std::to_string(static_cast<int>(std::round(db * 256.0)));
 				};
 
-			tag->addField("R128_TRACK_GAIN", toQ78(replay_gain.track_gain));  // dB ¡÷ Q7.8
+			tag->addField("R128_TRACK_GAIN", toQ78(replay_gain.track_gain));  // dB â†’ Q7.8
 			tag->addField("R128_ALBUM_GAIN", toQ78(replay_gain.album_gain));
 
-			/* Opus ¤£¬O¥Î REPLAYGAIN_*¡A¤]¨S¦³ peak Äæ¦ìªº¼Ð·Ç¡F
-		   ­Y§A¤´·Q«O¯dÂÂÄæ¦ì¡A¥i¦Û¦æ¥[¤W¡G
+			/* Opus ä¸æ˜¯ç”¨ REPLAYGAIN_*ï¼Œä¹Ÿæ²’æœ‰ peak æ¬„ä½çš„æ¨™æº–ï¼›
+		   è‹¥ä½ ä»æƒ³ä¿ç•™èˆŠæ¬„ä½ï¼Œå¯è‡ªè¡ŒåŠ ä¸Šï¼š
 		   tag->addField("REPLAYGAIN_TRACK_PEAK", ...); */
 		}
 

@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -37,7 +37,7 @@ public:
 
 	[[nodiscard]] char const* what() const noexcept override;
 
-	[[nodiscard]] int32_t GetErrorCode() const noexcept;
+	[[nodiscard]] int32_t GetErrorCode() const ;
 
 private:
 	int32_t error_code_;

@@ -1,4 +1,4 @@
-#include <base/assert.h>
+﻿#include <base/assert.h>
 #include <base/platfrom_handle.h>
 #include <base/fastmutex.h>
 #include <shared_mutex>
@@ -11,17 +11,17 @@ class SRWMutex::SRWMutexImpl {
 public:
     SRWMutexImpl() = default;
 
-    void lock() noexcept {
+    void lock() {
         //while (!lock_.try_lock()) {            
         //}
         lock_.lock();
     }
 
-    void unlock() noexcept {
+    void unlock() {
         lock_.unlock();
     }
 
-    bool try_lock() noexcept {
+    bool try_lock() {
         return lock_.try_lock();
     }
 
@@ -30,19 +30,18 @@ public:
 
 XAMP_PIMPL_IMPL(SRWMutex)
 
-SRWMutex::SRWMutex() noexcept
-	: impl_(MakeAlign<SRWMutexImpl>()) {
+SRWMutex::SRWMutex() : impl_(MakeAlign<SRWMutexImpl>()) {
 }
 
-void SRWMutex::lock() noexcept {
+void SRWMutex::lock() {
     return impl_->lock();
 }
 
-void SRWMutex::unlock() noexcept {
+void SRWMutex::unlock() {
     return impl_->unlock();
 }
 
-bool SRWMutex::try_lock() noexcept {
+bool SRWMutex::try_lock() {
     return impl_->try_lock();
 }
 

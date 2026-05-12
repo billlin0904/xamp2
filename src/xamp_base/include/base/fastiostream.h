@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -18,22 +18,22 @@ public:
 
     ~CTemporaryFile();
 
-    XAMP_ALWAYS_INLINE size_t Read(void* buffer, size_t size, size_t count) noexcept {
+    XAMP_ALWAYS_INLINE size_t Read(void* buffer, size_t size, size_t count) {
         return std::fread(buffer, size, count, file());
     }
 
-    XAMP_ALWAYS_INLINE size_t Write(const void* buffer, size_t size, size_t count) noexcept {
+    XAMP_ALWAYS_INLINE size_t Write(const void* buffer, size_t size, size_t count) {
         return std::fwrite(buffer, size, count, file());
     }
 
-    bool Seek(uint64_t off, int32_t origin) noexcept;
+    bool Seek(uint64_t off, int32_t origin) ;
 
-    uint64_t Tell() noexcept;
+    uint64_t Tell() ;
 
-    void Close() noexcept;
+    void Close() ;
 
 private:
-    FILE* file() noexcept {
+    FILE* file() {
         return file_.get();
     }
 
@@ -49,15 +49,15 @@ public:
 
     XAMP_PIMPL(TemporaryFile)
 
-    size_t Read(void* buffer, size_t size, size_t count) noexcept;
+    size_t Read(void* buffer, size_t size, size_t count) ;
 
-    size_t Write(const void* buffer, size_t size, size_t count) noexcept;
+    size_t Write(const void* buffer, size_t size, size_t count) ;
 
-    bool Seek(uint64_t off, int32_t origin) noexcept;
+    bool Seek(uint64_t off, int32_t origin) ;
 
-    uint64_t Tell() noexcept;
+    uint64_t Tell() ;
 
-    void Close() noexcept;
+    void Close() ;
 
 private:
     class TemporaryFileImpl;

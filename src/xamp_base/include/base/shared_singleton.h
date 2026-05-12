@@ -14,7 +14,7 @@ XAMP_BASE_NAMESPACE_BEGIN
 namespace detail {
 	constexpr std::string_view ExtractClassNameFromFunSig(std::string_view sig) {
 		// MSVC 格式假設:
-		// "static class std::basic_string_view<...> __cdecl xamp::base::Logger::GetSingletonName(void) noexcept"
+		// "static class std::basic_string_view<...> __cdecl xamp::base::Logger::GetSingletonName(void)"
 
 		constexpr std::string_view kCdecl = " __cdecl ";
 		constexpr std::string_view kFunc = "::GetSingletonName";
@@ -35,7 +35,7 @@ namespace detail {
 }
 
 #define XAMP_DECLARE_SINGLETON_NAME() \
-	static constexpr std::string_view GetSingletonName() noexcept {          \
+	static constexpr std::string_view GetSingletonName() {          \
         constexpr std::string_view sig  = __FUNCSIG__;                       \
         constexpr std::string_view name =                                    \
             detail::ExtractClassNameFromFunSig(sig);						 \
@@ -87,8 +87,8 @@ protected:
 	}
 
 public:
-	SharedSingleton() noexcept = delete;
-	~SharedSingleton() noexcept = delete;
+	SharedSingleton() = delete;
+	~SharedSingleton() = delete;
 
 	XAMP_DISABLE_COPY(SharedSingleton)
 };

@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -33,12 +33,12 @@ XAMP_STREAM_NAMESPACE_BEGIN
 inline constexpr DWORD kBassError{ 0xFFFFFFFF };
 
 struct BassPluginLoadDeleter final {
-    static HPLUGIN invalid() noexcept;
+    static HPLUGIN invalid() ;
     static void Close(HPLUGIN value);
 };
 
 struct BassStreamDeleter final {
-    static HSTREAM invalid() noexcept;
+    static HSTREAM invalid() ;
     static void Close(HSTREAM value);
 };
 
@@ -207,7 +207,7 @@ public:
 
     void Free();
 
-    XAMP_ALWAYS_INLINE bool IsLoaded() const noexcept {
+    XAMP_ALWAYS_INLINE bool IsLoaded() const {
         return !plugins_.empty();
     }
 

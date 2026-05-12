@@ -1,4 +1,4 @@
-#include <base/exception.h>
+﻿#include <base/exception.h>
 #include <base/com_error_category.h>
 
 #ifdef XAMP_OS_WIN
@@ -32,7 +32,7 @@ namespace {
         return WideToUtf8(value);
     }
 
-    const char* GetAudioClientError(HRESULT hr) noexcept {
+    const char* GetAudioClientError(HRESULT hr) {
         switch (hr) {
         case AUDCLNT_E_NOT_INITIALIZED:
             return "The IAudioClient object is not initialized.";
@@ -108,11 +108,11 @@ namespace {
     }
 }
 
-std::error_code make_error_code(com_error_enum e) noexcept {
+std::error_code make_error_code(com_error_enum e) {
     return { static_cast<int>(e), com_category() };
 }
 
-const std::error_category& com_category() noexcept {
+const std::error_category& com_category() {
     static com_error_category ecat;
     return ecat;
 }

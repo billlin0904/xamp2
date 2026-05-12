@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -33,7 +33,7 @@ XAMP_BASE_NAMESPACE_BEGIN
          , ema_value_(0.0) {
      }
 
-     void Update(double new_value) noexcept {
+     void Update(double new_value) {
          if (!has_value_) {
              ema_value_ = new_value;
              has_value_ = true;
@@ -44,7 +44,7 @@ XAMP_BASE_NAMESPACE_BEGIN
          }
      }
 
-     [[nodiscard]] double GetValue() const noexcept {
+     [[nodiscard]] double GetValue() const {
          return ema_value_;
      }
 
@@ -89,7 +89,7 @@ public:
     /*
     * Destroy thread pool.
     */
-    void Destroy() noexcept override;
+    void Destroy() override;
 private:
     /*
     * Set thread name.

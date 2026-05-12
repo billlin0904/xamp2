@@ -1,4 +1,4 @@
-#include <vector>
+﻿#include <vector>
 #include <mach/mach.h>
 #include <mach/mach_time.h>
 #include <mach/thread_policy.h>
@@ -165,15 +165,15 @@ void CoreAudioDevice::OpenStream(AudioFormat const &output_format) {
     SetBlance();
 }
 
-void CoreAudioDevice::SetAudioCallback(IAudioCallback *callback) noexcept {
+void CoreAudioDevice::SetAudioCallback(IAudioCallback *callback) {
     callback_ = callback;
 }
 
-bool CoreAudioDevice::IsStreamOpen() const noexcept {
+bool CoreAudioDevice::IsStreamOpen() const {
     return ioproc_id_ != nullptr;
 }
 
-bool CoreAudioDevice::IsStreamRunning() const noexcept {
+bool CoreAudioDevice::IsStreamRunning() const {
     return is_running_;
 }
 
@@ -203,12 +203,12 @@ void CoreAudioDevice::StartStream() {
     is_running_ = true;
 }
 
-void CoreAudioDevice::SetStreamTime(double stream_time) noexcept {
+void CoreAudioDevice::SetStreamTime(double stream_time) {
     stream_time_ = stream_time
                    * static_cast<double>(format_.GetAvgFramesPerSec());
 }
 
-double CoreAudioDevice::GetStreamTime() const noexcept {
+double CoreAudioDevice::GetStreamTime() const {
     return stream_time_ / static_cast<double>(format_.GetAvgFramesPerSec());
 }
 
@@ -238,11 +238,11 @@ bool CoreAudioDevice::IsHardwareControlVolume() const {
     return false;
 }
 
-PackedFormat CoreAudioDevice::GetPackedFormat() const noexcept {
+PackedFormat CoreAudioDevice::GetPackedFormat() const {
     return PackedFormat::INTERLEAVED;
 }
 
-uint32_t CoreAudioDevice::GetBufferSize() const noexcept {
+uint32_t CoreAudioDevice::GetBufferSize() const {
     return buffer_size_;
 }
 
@@ -303,7 +303,7 @@ OSStatus CoreAudioDevice::OnAudioDeviceIOProc(AudioDeviceID,
     return noErr;
 }
 
-void CoreAudioDevice::AbortStream() noexcept {
+void CoreAudioDevice::AbortStream() {
 }
 
 void CoreAudioDevice::SetVolumeLevelScalar(float level) {

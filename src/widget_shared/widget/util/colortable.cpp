@@ -3,7 +3,7 @@
 #include <base/base.h>
 #include <base/math.h>
 
-const std::array<QRgb, ColorTable::kLutSize> ColorTable::kSoxrLut = [] noexcept {
+const std::array<QRgb, ColorTable::kLutSize> ColorTable::kSoxrLut = [] {
     std::array<QRgb, kLutSize> lut{};
     for (size_t i = 0; i < kLutSize; ++i) {
         const double ratio = static_cast<double>(i) / (kLutSize - 1);
@@ -12,7 +12,7 @@ const std::array<QRgb, ColorTable::kLutSize> ColorTable::kSoxrLut = [] noexcept 
     return lut;
     }();
 
-const std::array<QRgb, ColorTable::kLutSize> ColorTable::kDanBrutonLut = [] noexcept {
+const std::array<QRgb, ColorTable::kLutSize> ColorTable::kDanBrutonLut = [] {
     std::array<QRgb, kLutSize> lut{};
     for (size_t i = 0; i < kLutSize; ++i) {
         const double ratio = static_cast<double>(i) / (kLutSize - 1);
@@ -32,7 +32,7 @@ void ColorTable::setSpectrogramColor(SpectrogramColor color) {
         : kSoxrLut.data();
 }
 
-QRgb ColorTable::operator[](double dB_val) const noexcept {
+QRgb ColorTable::operator[](double dB_val) const {
     dB_val = std::clamp(dB_val, kMinDb, kMaxDb);
     const double ratio = (dB_val - kMinDb) / kDbRange;    
     /*if (color_ == SpectrogramColor::SPECTROGRAM_COLOR_DEFAULT) {
@@ -43,7 +43,7 @@ QRgb ColorTable::operator[](double dB_val) const noexcept {
     return color_lut_ptr_[idx];
 }
 
-QRgb ColorTable::danBrutonColor(double level) noexcept {
+QRgb ColorTable::danBrutonColor(double level) {
     level *= 0.6625;
     double r = 0.0, g = 0.0, b = 0.0;
     if (level >= 0 && level < 0.15) {
@@ -87,7 +87,7 @@ QRgb ColorTable::danBrutonColor(double level) noexcept {
     return qRgb(rr, gg, bb);
 }
 
-QRgb ColorTable::soxrColor(double level) noexcept {
+QRgb ColorTable::soxrColor(double level) {
     double r = 0.0;
     if (level >= 0.13 && level < 0.73) {
         r = sin((level - 0.13) / 0.60 * XAMP_PI / 2.0);

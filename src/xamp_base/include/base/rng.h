@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -18,47 +18,47 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 class XAMP_BASE_API PRNG final {
 public:
-    PRNG() noexcept;
+    PRNG() ;
 
     template <typename T, std::enable_if_t<std::is_same_v<T, float>>* = nullptr>
-    T operator()(T min, T max) noexcept {
+    T operator()(T min, T max) {
         return std::uniform_real_distribution<T>(min, max)(engine_);
     }
 
     template <typename T, std::enable_if_t<std::is_integral_v<T>>* = nullptr>
-    T operator()(T min, T max) noexcept {
+    T operator()(T min, T max) {
         return std::uniform_int_distribution<T>(min, max)(engine_);
     }
 
-    uint64_t operator()() noexcept {
+    uint64_t operator()() {
         return engine_();
     }
 
-    size_t Next(size_t max = (std::numeric_limits<size_t>::max)()) noexcept {
+    size_t Next(size_t max = (std::numeric_limits<size_t>::max)()) {
         return (*this)(size_t{0}, max);
     }
 
     uint32_t NextUInt32(
         const uint32_t min = (std::numeric_limits<uint32_t>::min)(),
-        const uint32_t max = (std::numeric_limits<uint32_t>::max)())  noexcept {
+        const uint32_t max = (std::numeric_limits<uint32_t>::max)())  {
         return (*this)(min, max);
     }
 
     int32_t NextInt32(
         const int32_t min = (std::numeric_limits<int32_t>::min)(),
-        const int32_t max = (std::numeric_limits<int32_t>::max)())  noexcept {
+        const int32_t max = (std::numeric_limits<int32_t>::max)())  {
         return (*this)(min, max);
     }
 
     int64_t NextInt64(
         const int64_t min = (std::numeric_limits<int64_t>::min)(),
-        const int64_t max = (std::numeric_limits<int64_t>::max)())  noexcept {
+        const int64_t max = (std::numeric_limits<int64_t>::max)())  {
         return (*this)(min, max);
     }
 
     float NextSingle(
         const float min = 0.0f,
-        const float max = 1.0f) noexcept {
+        const float max = 1.0f) {
         return (*this)(min, max);
     }
 
@@ -66,7 +66,7 @@ public:
         const int32_t min = (std::numeric_limits<int8_t>::min)(),
         const int32_t max = (std::numeric_limits<int8_t>::max)()) {
         std::vector<int8_t> output(size);
-        const auto gen = [this, min, max]() noexcept {
+        const auto gen = [this, min, max]() {
             return static_cast<int8_t>(NextInt32(min, max));
         };
         std::generate_n(output.begin(), size, gen);
@@ -78,7 +78,7 @@ public:
 		const T min = (std::numeric_limits<T>::min)(),
 		const T max = (std::numeric_limits<T>::max)()) {        
         std::vector<T> output(size);
-        const auto gen = [this, min, max]() noexcept {
+        const auto gen = [this, min, max]() {
             return static_cast<T>((*this)(min, max));
         };
         std::generate_n(output.begin(), size, gen);
@@ -89,7 +89,7 @@ public:
         const float min = 0.0f,
         const float max = 1.0f) {
         std::vector<float> output(size);
-		const auto gen = [this, min, max]() noexcept {
+		const auto gen = [this, min, max]() {
 			return NextSingle(min, max);
 			};
         std::generate_n(output.begin(), size, gen);

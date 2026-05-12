@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -16,15 +16,11 @@ XAMP_BASE_NAMESPACE_BEGIN
 template <typename T, bool ExceptedSuccess, bool ExceptedFailure>
 class XAMP_BASE_API_ONLY_EXPORT ScopeGuard final {
 public:
-    ScopeGuard(T&& f) noexcept(
-        std::is_nothrow_move_constructible_v<T> ||
-        std::is_nothrow_copy_constructible_v<T>)
+    ScopeGuard(T&& f) 
         : f_(std::forward<T>(f)) {
     }
 
-    ScopeGuard(ScopeGuard&& other)noexcept(
-        std::is_nothrow_move_constructible_v<T> ||
-        std::is_nothrow_copy_constructible_v<T>)
+    ScopeGuard(ScopeGuard&& other)
         : f_(std::move_if_noexcept(other.f_)) {
     }
 
@@ -32,7 +28,7 @@ public:
 
     XAMP_DISABLE_COPY(ScopeGuard)
 
-    ~ScopeGuard() noexcept {
+    ~ScopeGuard() {
         if ((ExceptedSuccess && !detector_) || (ExceptedFailure && detector_)) {
             f_();
         }
@@ -40,11 +36,10 @@ public:
 private:
     class UncaughtExceptionDetector final {
     public:
-        UncaughtExceptionDetector() noexcept
-            : count_(std::uncaught_exceptions()) {
+        UncaughtExceptionDetector() : count_(std::uncaught_exceptions()) {
         }
 
-        operator bool() const noexcept {
+        operator bool() const {
             return std::uncaught_exceptions() > count_;
         }
     private:

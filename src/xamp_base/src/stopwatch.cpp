@@ -1,12 +1,12 @@
-#include <base/stopwatch.h>
+﻿#include <base/stopwatch.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-Stopwatch::Stopwatch() noexcept {
+Stopwatch::Stopwatch() {
 	Reset();
 }
 
-void Stopwatch::Reset() noexcept {
+void Stopwatch::Reset() {
 	start_time_ = clock_.now();
 }
 

@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -22,11 +22,11 @@ public:
 
     [[nodiscard]] bool Open(std::wstring const &file_path, bool is_module = false);
 
-    [[nodiscard]] void const * GetData() const noexcept;
+    [[nodiscard]] void const * GetData() const ;
 
     [[nodiscard]] size_t GetLength() const;
 
-	void Close() noexcept;
+	void Close() ;
 
 private:
 	class MemoryMappedFileImpl;

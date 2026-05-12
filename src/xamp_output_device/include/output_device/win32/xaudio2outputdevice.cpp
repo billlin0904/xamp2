@@ -1,4 +1,4 @@
-#include <output_device/win32/xaudio2outputdevice.h>
+﻿#include <output_device/win32/xaudio2outputdevice.h>
 
 #include <base/executor.h>
 #include <base/ithreadpoolexecutor.h>
@@ -16,7 +16,7 @@ namespace {
 	/*
 	* Set wave format.
 	*/
-	void SetWaveformatEx(WAVEFORMATEX& format, uint32_t sample_rate) noexcept {
+	void SetWaveformatEx(WAVEFORMATEX& format, uint32_t sample_rate) {
 		// Fixed float format.
 		format.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
 		format.nChannels = 2;
@@ -159,11 +159,11 @@ XAudio2OutputDevice::~XAudio2OutputDevice() {
 	CloseStream();
 }
 
-bool XAudio2OutputDevice::IsStreamOpen() const noexcept {
+bool XAudio2OutputDevice::IsStreamOpen() const {
 	return mastering_voice_ != nullptr;
 }
 
-void XAudio2OutputDevice::SetAudioCallback(IAudioCallback* callback) noexcept {
+void XAudio2OutputDevice::SetAudioCallback(IAudioCallback* callback) {
 	XAMP_EXPECTS(callback != nullptr);
 	callback_ = callback;
 }
@@ -289,11 +289,11 @@ void XAudio2OutputDevice::SetMute(bool mute) const {
 	}
 }
 
-PackedFormat XAudio2OutputDevice::GetPackedFormat() const noexcept {
+PackedFormat XAudio2OutputDevice::GetPackedFormat() const {
 	return PackedFormat::INTERLEAVED;
 }
 
-uint32_t XAudio2OutputDevice::GetBufferSize() const noexcept {
+uint32_t XAudio2OutputDevice::GetBufferSize() const {
 	// todo: return buffer_frames_ * output_format_.GetChannels();
 	return buffer_frames_ * AudioFormat::kMaxChannel;
 }
@@ -316,12 +316,12 @@ void XAudio2OutputDevice::SetVolume(uint32_t volume) const {
 	HrIfFailThrow(source_voice_->SetVolume(mapped_volume));
 }
 
-void XAudio2OutputDevice::SetStreamTime(double stream_time) noexcept {
+void XAudio2OutputDevice::SetStreamTime(double stream_time) {
 	stream_time_ = static_cast<int64_t>(stream_time
 		* static_cast<double>(output_format_.GetSampleRate()));
 }
 
-double XAudio2OutputDevice::GetStreamTime() const noexcept {
+double XAudio2OutputDevice::GetStreamTime() const {
 	return stream_time_ / static_cast<double>(output_format_.GetSampleRate());
 }
 
@@ -445,18 +445,18 @@ HRESULT XAudio2OutputDevice::FillSamples(bool &end_of_stream) {
 	}
 }
 
-bool XAudio2OutputDevice::IsStreamRunning() const noexcept {
+bool XAudio2OutputDevice::IsStreamRunning() const {
 	return is_running_;
 }
 
-void XAudio2OutputDevice::AbortStream() noexcept {
+void XAudio2OutputDevice::AbortStream() {
 	is_running_ = false;
 	if (close_request_) {
 		::SetEvent(close_request_.get());
 	}
 }
 
-void XAudio2OutputDevice::ReportError(HRESULT hr) noexcept {
+void XAudio2OutputDevice::ReportError(HRESULT hr) {
 	if (FAILED(hr)) {
 		callback_->OnError(com_to_system_error(hr));
 		is_running_ = false;

@@ -1,4 +1,4 @@
-#include <base/stacktrace.h>
+﻿#include <base/stacktrace.h>
 
 #include <base/fs.h>
 #include <base/stl.h>
@@ -71,7 +71,7 @@ namespace {
             }
         }
 
-        [[nodiscard]] bool IsInit() const noexcept {
+        [[nodiscard]] bool IsInit() const {
             return init_state_;
         }
 
@@ -79,7 +79,7 @@ namespace {
             ::SymCleanup(process_.get());
         }
 
-        HANDLE GetCurrentProcess() const noexcept {
+        HANDLE GetCurrentProcess() const {
             return process_.get();
         }
 
@@ -192,7 +192,7 @@ namespace {
 
 #endif
 
-StackTrace::StackTrace() noexcept = default;
+StackTrace::StackTrace() = default;
 
 bool StackTrace::LoadSymbol() {
 #ifdef XAMP_OS_WIN

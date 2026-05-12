@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -38,7 +38,7 @@ public:
 	    }
     }
 
-    Uuid() noexcept;
+    Uuid() ;
 
     constexpr Uuid(const UuidBuffer& buffer)
         : bytes_(buffer) {
@@ -46,23 +46,23 @@ public:
 
     Uuid(const std::string_view &hex_string);
 
-    explicit Uuid(const uint8_t(&byte_array)[kMaxUuidSize]) noexcept;
+    explicit Uuid(const uint8_t(&byte_array)[kMaxUuidSize]) ;
 
-	[[nodiscard]] bool IsValid() const noexcept;
+	[[nodiscard]] bool IsValid() const ;
 
-    Uuid(const Uuid &other) noexcept;
+    Uuid(const Uuid &other) ;
     
-    Uuid& operator=(const Uuid &other) noexcept;
+    Uuid& operator=(const Uuid &other) ;
 
-    Uuid(Uuid &&other) noexcept;
+    Uuid(Uuid &&other) ;
     
-    Uuid& operator=(Uuid &&other) noexcept;
+    Uuid& operator=(Uuid &&other) ;
 
-	[[nodiscard]] size_t GetHash() const noexcept;
+	[[nodiscard]] size_t GetHash() const ;
 
 	operator std::string() const;
 
-    const UuidBuffer & GetBytes() const noexcept {
+    const UuidBuffer & GetBytes() const {
         return bytes_;
     }
 
@@ -70,15 +70,15 @@ public:
 
     XAMP_BASE_API friend bool operator==(std::string const &str, Uuid const &id);
 
-    XAMP_BASE_API friend bool operator==(Uuid const & other1, Uuid const & other2) noexcept;
+    XAMP_BASE_API friend bool operator==(Uuid const & other1, Uuid const & other2) ;
 
-    XAMP_BASE_API friend bool operator!=(Uuid const & other1, Uuid const & other2) noexcept;
+    XAMP_BASE_API friend bool operator!=(Uuid const & other1, Uuid const & other2) ;
 
 private:
     UuidBuffer bytes_{0};
 };
 
-XAMP_ALWAYS_INLINE bool Uuid::IsValid() const noexcept {
+XAMP_ALWAYS_INLINE bool Uuid::IsValid() const {
     return bytes_[0] ||
         bytes_[1] ||
         bytes_[2] ||
@@ -97,11 +97,11 @@ XAMP_ALWAYS_INLINE bool Uuid::IsValid() const noexcept {
         bytes_[15];
 }
 
-XAMP_ALWAYS_INLINE bool operator!=(Uuid const & other1, Uuid const & other2) noexcept {
+XAMP_ALWAYS_INLINE bool operator!=(Uuid const & other1, Uuid const & other2) {
     return !(std::memcmp(other1.bytes_.data(), other2.bytes_.data(), other2.bytes_.size()) == 0);
 }
 
-XAMP_ALWAYS_INLINE bool operator==(Uuid const & other1, Uuid const & other2) noexcept {
+XAMP_ALWAYS_INLINE bool operator==(Uuid const & other1, Uuid const & other2) {
     return std::memcmp(other1.bytes_.data(), other2.bytes_.data(), other2.bytes_.size()) == 0;
 }
 
@@ -109,7 +109,7 @@ XAMP_ALWAYS_INLINE bool operator==(std::string const &str, Uuid const &id) {
 	return Uuid(str) == id;
 }
 
-XAMP_ALWAYS_INLINE size_t Uuid::GetHash() const noexcept {
+XAMP_ALWAYS_INLINE size_t Uuid::GetHash() const {
     size_t seed = 0;
     for (const auto data : bytes_) {
         seed ^= static_cast<size_t>(data) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
@@ -126,7 +126,7 @@ struct hash<xamp::base::Uuid> {
 	typedef size_t result_type;
 	typedef xamp::base::Uuid argument_type;
 
-	result_type operator()(argument_type const& uuid) const noexcept {
+	result_type operator()(argument_type const& uuid) const {
 		return uuid.GetHash();
 	}
 };
@@ -136,7 +136,7 @@ struct less<xamp::base::Uuid> {
     typedef bool result_type;
     typedef xamp::base::Uuid argument_type;
 
-    result_type operator()(argument_type const& other1, argument_type const& other2) const noexcept {
+    result_type operator()(argument_type const& other1, argument_type const& other2) const {
         return std::memcmp(other1.GetBytes().data(), other2.GetBytes().data(), other2.GetBytes().size()) < 0;
     }
 };

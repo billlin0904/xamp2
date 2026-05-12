@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -144,7 +144,7 @@ public:
     * 
     * After this call, the buffer is empty.    
     */
-    void clear() noexcept { 
+    void clear() { 
         head_ = -1; size_ = 0;
     }
 
@@ -153,7 +153,7 @@ public:
     * 
     * @return true if the buffer is empty, false otherwise.     
     */
-    [[nodiscard]] bool empty() const noexcept {
+    [[nodiscard]] bool empty() const {
         return size_ == 0;
     }
 
@@ -162,7 +162,7 @@ public:
     * 
     * @return true if the buffer is full, false otherwise.
     */
-    [[nodiscard]] bool full() const noexcept {
+    [[nodiscard]] bool full() const {
         return size_ == data_.size();
     }
 
@@ -171,7 +171,7 @@ public:
     * 
     * @return The capacity of the buffer.     
     */
-    [[nodiscard]] size_t capacity() const noexcept { 
+    [[nodiscard]] size_t capacity() const { 
         return data_.size();
     }
 
@@ -180,7 +180,7 @@ public:
     * 
     * @return The size of the buffer.
     */
-    [[nodiscard]] size_t size() const noexcept { 
+    [[nodiscard]] size_t size() const { 
         return size_;
     }
 
@@ -270,7 +270,7 @@ private:
     * 
     * @return The next position.
     */
-    [[nodiscard]] size_t next_pos() const noexcept {
+    [[nodiscard]] size_t next_pos() const {
         return size_ == 0 ? 0 : (head_ + 1) % data_.size(); 
     }
 
@@ -279,7 +279,7 @@ private:
     * 
     * @return The first position.
     */
-    [[nodiscard]] size_t first_pos() const noexcept {
+    [[nodiscard]] size_t first_pos() const {
         return size_ == 0 ? 0 : (head_ + data_.size() - size_ + 1) % data_.size(); 
     }
 

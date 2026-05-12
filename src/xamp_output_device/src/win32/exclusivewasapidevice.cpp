@@ -1,4 +1,4 @@
-#include <output_device/win32/exclusivewasapidevice.h>
+Ôªø#include <output_device/win32/exclusivewasapidevice.h>
 
 #ifdef XAMP_OS_WIN
 #include <output_device/iaudiocallback.h>
@@ -7,8 +7,6 @@
 #include <output_device/win32/wasapi.h>
 
 #include <base/volume.h>
-#include <base/executor.h>
-#include <base/ithreadpoolexecutor.h>
 #include <base/logger.h>
 #include <base/str_utilts.h>
 #include <base/stopwatch.h>
@@ -29,7 +27,7 @@ namespace {
 	* @param input_format: input format
 	* @param audio_format: audio format
 	*/
-	void SetWaveformatEx(WAVEFORMATEX* input_format, const AudioFormat& audio_format, const int32_t valid_bits_samples) noexcept {
+	void SetWaveformatEx(WAVEFORMATEX* input_format, const AudioFormat& audio_format, const int32_t valid_bits_samples) {
 		XAMP_EXPECTS(input_format != nullptr);
 		XAMP_EXPECTS(audio_format.GetChannels() == AudioFormat::kMaxChannel);
 		XAMP_EXPECTS(valid_bits_samples > 0);
@@ -72,12 +70,12 @@ namespace {
 		format.dwChannelMask = KSAUDIO_SPEAKER_STEREO;
 	}
 
-	uint32_t BackwardAligned(const uint32_t bytes_frame, const uint32_t align_size) noexcept {
+	uint32_t BackwardAligned(const uint32_t bytes_frame, const uint32_t align_size) {
 		return (bytes_frame - (align_size ? (bytes_frame % align_size) : 0));
 	}
 
 	template <typename Predicate>
-	uint32_t CalcAlignedFramePerBuffer(const uint32_t frames, const uint32_t block_align, Predicate f) noexcept {
+	uint32_t CalcAlignedFramePerBuffer(const uint32_t frames, const uint32_t block_align, Predicate f) {
 		constexpr UINT32 kHdAudioPacketSize = 128;
 
 		const auto bytes_frame = frames * block_align;
@@ -94,7 +92,7 @@ namespace {
 	}
 
 	template <typename Predicate>
-	int32_t MakeAlignedPeriod(const AudioFormat& format, uint32_t frames_per_latency, Predicate f) noexcept {
+	int32_t MakeAlignedPeriod(const AudioFormat& format, uint32_t frames_per_latency, Predicate f) {
 		return CalcAlignedFramePerBuffer(frames_per_latency, format.GetBlockAlign(), f);
 	}
 
@@ -111,7 +109,7 @@ namespace {
 	constexpr std::chrono::milliseconds kGlitchFreeDuration{35};
 }
 
-ExclusiveWasapiDevice::ExclusiveWasapiDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const CComPtr<IMMDevice> & device)
+ExclusiveWasapiDevice::ExclusiveWasapiDevice(const CComPtr<IMMDevice>& device)
 	: raw_mode_(false)
 	, ignore_wait_slow_(false)
 	, is_2432_format_(true)
@@ -348,14 +346,14 @@ void ExclusiveWasapiDevice::SetSchedulerService(std::wstring const &mmcss_name, 
 	mmcss_name_ = mmcss_name;
 }
 
-void ExclusiveWasapiDevice::ReportError(HRESULT hr) noexcept {
+void ExclusiveWasapiDevice::ReportError(HRESULT hr) {
 	if (FAILED(hr)) {
 		callback_->OnError(com_to_system_error(hr));
 		is_running_ = false;
 	}	
 }
 
-bool ExclusiveWasapiDevice::GetSample(bool is_silence) noexcept {
+bool ExclusiveWasapiDevice::GetSample(bool is_silence) {
 	XAMP_ENSURES(render_client_ != nullptr);
 	XAMP_ENSURES(callback_ != nullptr);
 
@@ -413,16 +411,16 @@ bool ExclusiveWasapiDevice::GetSample(bool is_silence) noexcept {
 	return false;
 }
 
-void ExclusiveWasapiDevice::SetAudioCallback(IAudioCallback* callback) noexcept {
+void ExclusiveWasapiDevice::SetAudioCallback(IAudioCallback* callback) {
 	XAMP_EXPECTS(callback != nullptr);
 	callback_ = callback;
 }
 
-bool ExclusiveWasapiDevice::IsStreamOpen() const noexcept {
+bool ExclusiveWasapiDevice::IsStreamOpen() const {
     return client_ != nullptr;
 }
 
-bool ExclusiveWasapiDevice::IsStreamRunning() const noexcept {
+bool ExclusiveWasapiDevice::IsStreamRunning() const {
     return is_running_;
 }
 
@@ -441,7 +439,7 @@ void ExclusiveWasapiDevice::CloseStream() {
 	mix_format_.Free();
 }
 
-void ExclusiveWasapiDevice::AbortStream() noexcept {
+void ExclusiveWasapiDevice::AbortStream() {
 }
 
 void ExclusiveWasapiDevice::SetIoFormat(DsdIoFormat format) {
@@ -530,13 +528,13 @@ HRESULT ExclusiveWasapiDevice::OnInvoke(IMFAsyncResult*) {
 	}
 	return S_OK;
 }
-void ExclusiveWasapiDevice::SetStreamTime(const double stream_time) noexcept {
+void ExclusiveWasapiDevice::SetStreamTime(const double stream_time) {
 	ThrowIf<std::invalid_argument>(mix_format_->nSamplesPerSec != 0,
 		"Output sample rate can not set zero.");
 	stream_time_ = static_cast<int64_t>(stream_time * static_cast<double>(mix_format_->nSamplesPerSec));
 }
 
-double ExclusiveWasapiDevice::GetStreamTime() const noexcept {
+double ExclusiveWasapiDevice::GetStreamTime() const {
 	ThrowIf<std::invalid_argument>(mix_format_->nSamplesPerSec != 0,
 		"Output sample rate can not set zero.");
     return stream_time_ / static_cast<double>(mix_format_->nSamplesPerSec);
@@ -557,23 +555,23 @@ void ExclusiveWasapiDevice::SetVolume(uint32_t volume) const {
 		return;
 	}
 
-	// ±N≠µ∂q≠≠®Ó¶b0~100%§ß∂°
+	// Â∞áÈü≥ÈáèÈôêÂà∂Âú®0~100%‰πãÈñì
 	volume = std::clamp(volume, static_cast<uint32_t>(0), static_cast<uint32_t>(100));
 
-	// ¶p™G•ÿ´e¨∞¿R≠µ™¨∫A°A•˝∏—¿R≠µ
+	// Â¶ÇÊûúÁõÆÂâçÁÇ∫ÈùúÈü≥ÁãÄÊÖãÔºåÂÖàËß£ÈùúÈü≥
 	auto is_mute = FALSE;
 	HrIfFailThrow(endpoint_volume_->GetMute(&is_mute));
 	if (is_mute) {
 		HrIfFailThrow(endpoint_volume_->SetMute(FALSE, nullptr));
 	}
 
-	// ±N¶ §¿§Ò¬‡¥´¨∞Ωu© §Ò®“(0.0f ~ 1.0f)
+	// Â∞áÁôæÂàÜÊØîËΩâÊèõÁÇ∫Á∑öÊÄßÊØî‰æã(0.0f ~ 1.0f)
 	float target_volume_scale = static_cast<float>(volume) / 100.0f;
 
-	// ™Ω±µ•HΩu© §Ò®“≥]©w≠µ∂q
+	// Áõ¥Êé•‰ª•Á∑öÊÄßÊØî‰æãË®≠ÂÆöÈü≥Èáè
 	HrIfFailThrow(endpoint_volume_->SetMasterVolumeLevelScalar(target_volume_scale, nullptr));
 
-	// ≠Yª›¿À¨d∑Ì´edB≠»°A•i©I•sGetMasterVolumeLevel()®˙±o
+	// Ëã•ÈúÄÊ™¢Êü•Áï∂ÂâçdBÂÄºÔºåÂèØÂëºÂè´GetMasterVolumeLevel()ÂèñÂæó
 	float db_volume = 0.0f;
 	HrIfFailThrow(endpoint_volume_->GetMasterVolumeLevel(&db_volume));
 
@@ -596,11 +594,11 @@ void ExclusiveWasapiDevice::SetMute(const bool mute) const {
 	HrIfFailThrow(endpoint_volume_->SetMute(mute, nullptr));
 }
 
-PackedFormat ExclusiveWasapiDevice::GetPackedFormat() const noexcept {
+PackedFormat ExclusiveWasapiDevice::GetPackedFormat() const {
     return PackedFormat::INTERLEAVED;
 }
 
-uint32_t ExclusiveWasapiDevice::GetBufferSize() const noexcept {
+uint32_t ExclusiveWasapiDevice::GetBufferSize() const {
 	return buffer_frames_ * mix_format_->nChannels;
 }
 

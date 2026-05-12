@@ -280,7 +280,7 @@ bool KrcParser::isKaraoke() const {
     return is_karaoke_;
 }
 
-const LyricEntry& KrcParser::getLyrics(const std::chrono::milliseconds& time) const noexcept {
+const LyricEntry& KrcParser::getLyrics(const std::chrono::milliseconds& time) const {
     static LyricEntry last_subtitle;
     if (time < lyrics_.at(0).end_time) {
         return lyrics_.at(0);

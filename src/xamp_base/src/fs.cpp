@@ -1,4 +1,4 @@
-#include <base/fs.h>
+ï»¿#include <base/fs.h>
 #include <base/rng.h>
 #include <base/exception.h>
 #include <base/platform.h>
@@ -25,7 +25,7 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-bool IsFilePath(const Path& file_path) noexcept {
+bool IsFilePath(const Path& file_path) {
 	return file_path.has_extension();
 }
 
@@ -172,7 +172,7 @@ std::expected<std::string, TextEncodeingError> ReadFileToUtf8String(const Path& 
 std::expected<std::wstring, Errors> NormalizePathToWideString(const Path& path) {
 	const auto raw = path.wstring();
 
-	// GetFullPathNameW¡G¥ı°İªø«×¦A°t¸m¡AÁ×§K MAX_PATH °İÃD
+	// GetFullPathNameWï¼šå…ˆå•é•·åº¦å†é…ç½®ï¼Œé¿å… MAX_PATH å•é¡Œ
 	DWORD needed = ::GetFullPathNameW(raw.c_str(), 0, nullptr, nullptr);
 	if (needed == 0) return std::unexpected(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR);
 
@@ -183,7 +183,7 @@ std::expected<std::wstring, Errors> NormalizePathToWideString(const Path& path) 
 		return std::unexpected(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR);
 	full.resize(written);
 
-	// normalize¡G¥h§Àºİ slash + ¤p¼g¤Æ¡]¥Î¨Ó¥h­«¡^
+	// normalizeï¼šå»å°¾ç«¯ slash + å°å¯«åŒ–ï¼ˆç”¨ä¾†å»é‡ï¼‰
 	while (!full.empty() && (full.back() == L'\\' || full.back() == L'/')) {
 		full.pop_back();
 	}

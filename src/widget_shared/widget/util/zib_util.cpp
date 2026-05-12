@@ -1,4 +1,4 @@
-#include <widget/util/zib_util.h>
+Ôªø#include <widget/util/zib_util.h>
 #include <widget/widget_shared.h>
 #include <base/dll.h>
 #include <base/scopeguard.h>
@@ -35,7 +35,7 @@ std::expected<QByteArray, GzipDecompressError> gzipCompress(const QByteArray& da
 
     int level = Z_DEFAULT_COMPRESSION;
 
-    // windowBits = 15 | 16 -> 15+16=31 ™Ì•‹≤£•Õ gzip •]∏À
+    // windowBits = 15 | 16 -> 15+16=31 Ë°®Á§∫Áî¢Áîü gzip ÂåÖË£ù
     if (XAMP_deflateInit2(&stream, level, 31) != Z_OK)
         return std::unexpected(GzipDecompressError::GZIP_COMPRESS_ERROR_UNKNOWN);
 
@@ -174,21 +174,21 @@ namespace {
         }
 
         struct LibdeflateDecompressorHandleTraits final {
-            static libdeflate_decompressor* invalid() noexcept {
+            static libdeflate_decompressor* invalid() {
                 return nullptr;
             }
 
-            static void Close(libdeflate_decompressor* value) noexcept {
+            static void Close(libdeflate_decompressor* value) {
                 LIBDEFLATE_LIB.libdeflate_free_decompressor(value);
             }
         };
 
         struct LibdeflateCompressorHandleTraits final {
-            static libdeflate_compressor* invalid() noexcept {
+            static libdeflate_compressor* invalid() {
                 return nullptr;
             }
 
-            static void Close(libdeflate_compressor* value) noexcept {
+            static void Close(libdeflate_compressor* value) {
                 LIBDEFLATE_LIB.libdeflate_free_compressor(value);
             }
         };
@@ -202,7 +202,7 @@ std::expected<QByteArray, GzipDecompressError> gzipCompress(const QByteArray& da
         return std::unexpected(GzipDecompressError::GZIP_COMPRESS_ERROR_EMPTY_INPUT);
     }
 
-    // πw≥]¿£¡Yµ•Ø≈°G 0~12 (libdeflate v1.20)°F6 ¨∞ zlib πw≥]™∫•≠ø≈≠»
+    // È†êË®≠Â£ìÁ∏ÆÁ≠âÁ¥öÔºö 0~12 (libdeflate v1.20)Ôºõ6 ÁÇ∫ zlib È†êË®≠ÁöÑÂπ≥Ë°°ÂÄº
     constexpr int kDefaultLevel = 6;
 
     LibdeflateCompressorHandle handle(LIBDEFLATE_LIB.libdeflate_alloc_compressor(kDefaultLevel)); // 6: Default

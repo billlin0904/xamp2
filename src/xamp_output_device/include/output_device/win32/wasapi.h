@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -54,7 +54,7 @@ using ComString = CComHeapPtr<wchar_t>;
 * @param[in] ref: reference time
 * @return seconds
 */
-XAMP_ALWAYS_INLINE constexpr double Nano100ToSeconds(REFERENCE_TIME ref) noexcept {
+XAMP_ALWAYS_INLINE constexpr double Nano100ToSeconds(REFERENCE_TIME ref) {
 	//  1 nano = 0.000000001 seconds
 	//100 nano = 0.0000001   seconds
 	//100 nano = 0.0001   milliseconds
@@ -68,7 +68,7 @@ XAMP_ALWAYS_INLINE constexpr double Nano100ToSeconds(REFERENCE_TIME ref) noexcep
 * @param[in] ref: reference time
 * @return milliseconds
 */
-XAMP_ALWAYS_INLINE constexpr double Nano100ToMillis(REFERENCE_TIME ref) noexcept {
+XAMP_ALWAYS_INLINE constexpr double Nano100ToMillis(REFERENCE_TIME ref) {
 	constexpr double ratio = 0.0001;
 	return (static_cast<double>(ref) * ratio);
 }
@@ -80,7 +80,7 @@ XAMP_ALWAYS_INLINE constexpr double Nano100ToMillis(REFERENCE_TIME ref) noexcept
 * @param samplerate: samplerate
 * @return frames
 */
-XAMP_ALWAYS_INLINE constexpr UINT32 ReferenceTimeToFrames(REFERENCE_TIME period, UINT32 samplerate) noexcept {
+XAMP_ALWAYS_INLINE constexpr UINT32 ReferenceTimeToFrames(REFERENCE_TIME period, UINT32 samplerate) {
 	return static_cast<UINT32>(
 		1.0 * period * // hns *
 		samplerate / // (frames / s) /
@@ -97,7 +97,7 @@ XAMP_ALWAYS_INLINE constexpr UINT32 ReferenceTimeToFrames(REFERENCE_TIME period,
 * @param[in] samplerate: samplerate
 * @return reference time
 */
-XAMP_ALWAYS_INLINE constexpr REFERENCE_TIME MakeHnsPeriod(UINT32 frames, UINT32 samplerate) noexcept {
+XAMP_ALWAYS_INLINE constexpr REFERENCE_TIME MakeHnsPeriod(UINT32 frames, UINT32 samplerate) {
 	return static_cast<REFERENCE_TIME>(10000.0 * 1000.0 / static_cast<double>(samplerate) * static_cast<double>(frames) + 0.5);
 }
 
@@ -107,7 +107,7 @@ XAMP_ALWAYS_INLINE constexpr REFERENCE_TIME MakeHnsPeriod(UINT32 frames, UINT32 
 * @param[in] ms: milliseconds
 * @return reference time
 */
-XAMP_ALWAYS_INLINE constexpr REFERENCE_TIME MsToPeriod(uint32_t ms) noexcept {
+XAMP_ALWAYS_INLINE constexpr REFERENCE_TIME MsToPeriod(uint32_t ms) {
 	return ms * 10000;
 }
 

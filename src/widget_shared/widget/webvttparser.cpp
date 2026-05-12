@@ -1,4 +1,4 @@
-#include <fstream>
+﻿#include <fstream>
 #include <locale>
 #include <regex>
 
@@ -106,7 +106,7 @@ void WebVTTParser::addLrc(const LyricEntry& lrc) {
     lyrics_.push_back(lrc);
 }
 
-const LyricEntry& WebVTTParser::getLyrics(const std::chrono::milliseconds& time) const noexcept {
+const LyricEntry& WebVTTParser::getLyrics(const std::chrono::milliseconds& time) const {
     static LyricEntry last_subtitle;
     if (time < lyrics_.at(0).end_time) {
         return lyrics_.at(0);

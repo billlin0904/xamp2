@@ -1,4 +1,4 @@
-#include <base/waitabletimer.h>
+ï»¿#include <base/waitabletimer.h>
 
 #include <base/exception.h>
 #include <base/logger.h>
@@ -18,7 +18,7 @@ class XAMP_NO_VTABLE IWaitableTimer {
 public:
 	virtual ~IWaitableTimer() = default;
 	
-	virtual void SetTimeout(std::chrono::milliseconds timeout) noexcept = 0;
+	virtual void SetTimeout(std::chrono::milliseconds timeout) = 0;
 
 	virtual void Wait() = 0;
 protected:
@@ -28,7 +28,7 @@ protected:
 #ifdef XAMP_OS_WIN
 class TimePeriod {
 public:
-	TimePeriod() noexcept {
+	TimePeriod() {
 		TIMECAPS tc{ 0 };
 		if (::timeGetDevCaps(&tc, sizeof(TIMECAPS)) == TIMERR_NOERROR) {
 			const auto timer_res = (std::min)((std::max)(tc.wPeriodMin, kDesiredSchedulerMS), tc.wPeriodMax);
@@ -38,22 +38,22 @@ public:
 		}
 	}
 
-	~TimePeriod() noexcept {
+	~TimePeriod() {
 		if (sleep_is_granular_) {
 			::timeEndPeriod(kDesiredSchedulerMS);
 		}
 	}
 
-	bool IsSleepSranular() const noexcept {
+	bool IsSleepSranular() const {
 		return sleep_is_granular_;
 	}
 private:
 	bool sleep_is_granular_;
 };
 
-// Windows 10 2004 Sleep¤w¸g¤£·Ç½T, §ï´«¬°¨Ï¥Î CreateWaitableTimerEx
-// ¨Ã¥[¤JCREATE_WAITABLE_TIMER_HIGH_RESOLUTION³o­ÓFlag.
-// «ØÄ³¬O¦b¥þ®MACP¨Ï¥Î, ©Ò¥H¥Ø«e¤£¨Ï¥ÎAPC Timer¤è¦¡.
+// Windows 10 2004 Sleepå·²ç¶“ä¸æº–ç¢º, æ”¹æ›ç‚ºä½¿ç”¨ CreateWaitableTimerEx
+// ä¸¦åŠ å…¥CREATE_WAITABLE_TIMER_HIGH_RESOLUTIONé€™å€‹Flag.
+// å»ºè­°æ˜¯åœ¨å…¨å¥—ACPä½¿ç”¨, æ‰€ä»¥ç›®å‰ä¸ä½¿ç”¨APC Timeræ–¹å¼.
 class APCWaitableTimerImpl : public IWaitableTimer {
 public:
 	APCWaitableTimerImpl()
@@ -61,7 +61,7 @@ public:
 		, timeout_(0) {
 	}
 
-	void SetTimeout(std::chrono::milliseconds timeout) noexcept override {
+	void SetTimeout(std::chrono::milliseconds timeout) override {
 		timeout_ = timeout;
 		Reset();
 	}
@@ -94,7 +94,7 @@ public:
 		, tp_(std::chrono::steady_clock::now()) {
 	}
 
-	void SetTimeout(std::chrono::milliseconds timeout) noexcept override {
+	void SetTimeout(std::chrono::milliseconds timeout) override {
 		timeout_ = timeout;
 	}
 
@@ -119,7 +119,7 @@ public:
 #endif
 	}
 
-	void SetTimeout(std::chrono::milliseconds timeout) noexcept {
+	void SetTimeout(std::chrono::milliseconds timeout) {
 		impl_->SetTimeout(timeout);
 	}
 
@@ -134,13 +134,12 @@ public:
 #ifdef XAMP_OS_WIN
 TimePeriod WaitableTimer::WaitableTimerImpl::time_period_;
 #endif
-WaitableTimer::WaitableTimer() noexcept
-	: impl_(MakeAlign<WaitableTimerImpl>()) {
+WaitableTimer::WaitableTimer() : impl_(MakeAlign<WaitableTimerImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(WaitableTimer)
 	
-void WaitableTimer::SetTimeout(std::chrono::milliseconds timeout) noexcept {
+void WaitableTimer::SetTimeout(std::chrono::milliseconds timeout) {
 	impl_->SetTimeout(timeout);
 }
 

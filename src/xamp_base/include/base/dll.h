@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -137,7 +137,7 @@ public:
         return func_(std::forward<decltype(args)>(args)...);
     }
 
-    [[nodiscard]] T* Get() const noexcept XAMP_CHECK_LIFETIME {
+    [[nodiscard]] T* Get() const XAMP_CHECK_LIFETIME {
         XAMP_ASSERT(func_ != nullptr);
         return func_;
     }

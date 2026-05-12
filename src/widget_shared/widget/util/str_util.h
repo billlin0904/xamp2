@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -15,16 +15,14 @@
 #include <widget/widget_shared_global.h>
 
 struct XAMP_WIDGET_SHARED_EXPORT ConstexprQString final : public QLatin1String {
-    constexpr ConstexprQString(char const* const s) noexcept
-        : QLatin1String(s, static_cast<int>(std::char_traits<char>::length(s))) {
+    constexpr ConstexprQString(char const* const s) : QLatin1String(s, static_cast<int>(std::char_traits<char>::length(s))) {
     }
 
-	constexpr ConstexprQString(char const* const s, const int length) noexcept
-		: QLatin1String(s, length) {
+	constexpr ConstexprQString(char const* const s, const int length) : QLatin1String(s, length) {
 	}
 };
 
-inline constexpr ConstexprQString operator"" _str(const char* s, size_t length) noexcept {
+inline constexpr ConstexprQString operator"" _str(const char* s, size_t length) {
 	return ConstexprQString(s, static_cast<int>(length));
 }
 
@@ -34,7 +32,7 @@ namespace std {
 		typedef size_t result_type;
 		typedef ConstexprQString argument_type;
 
-		result_type operator()(const argument_type& s) const noexcept {
+		result_type operator()(const argument_type& s) const {
 			return qHash(s);
 		}
 	};
@@ -43,7 +41,7 @@ namespace std {
 inline constexpr ConstexprQString kEmptyString{ "" };
 inline constexpr ConstexprQString kPlatformKey{ "windows" };
 
-inline constexpr ConstexprQString fromStdStringView(const std::string_view& s) noexcept {
+inline constexpr ConstexprQString fromStdStringView(const std::string_view& s) {
 	return { s.data(), static_cast<int>(s.length()) };
 }
 

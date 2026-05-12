@@ -1,4 +1,4 @@
-#include <ebur128/ebur128.h>
+﻿#include <ebur128/ebur128.h>
 
 #include <base/exception.h>
 #include <base/math.h>
@@ -90,7 +90,7 @@ public:
 
 private:
 	struct Ebur128Deleter final {
-		static ebur128_state* invalid() noexcept {
+		static ebur128_state* invalid() {
 			return nullptr;
 		}
 		static void Close(ebur128_state* value) {

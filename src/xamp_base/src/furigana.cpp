@@ -1,4 +1,4 @@
-#include <base/furigana.h>
+ï»¿#include <base/furigana.h>
 #include <base/str_utilts.h>
 #include <base/unique_handle.h>
 #include <sstream>
@@ -9,7 +9,7 @@
 XAMP_BASE_NAMESPACE_BEGIN
 namespace {
     struct UTransliteratorDeleter final {
-        static UTransliterator* invalid() noexcept {
+        static UTransliterator* invalid() {
             return nullptr;
         }
 
@@ -167,7 +167,7 @@ public:
 
             auto furigana = converter_.Convert(features[7]);
             if (surface != furigana) {
-                // ¦b³o¸ÌÀ³¥Î TrimOverlappingSuffix
+                // åœ¨é€™è£¡æ‡‰ç”¨ TrimOverlappingSuffix
                 if (trim_overlapping) {
 					TrimOverlappingSuffix(surface, furigana);
                 }
@@ -178,7 +178,7 @@ public:
             }
         }
 
-        // ÌÛ«Ø final_result
+        // æž„å»º final_result
         std::vector<FuriganaEntity> final_result;
         size_t current_pos = 0;
         for (const auto& entity : result) {

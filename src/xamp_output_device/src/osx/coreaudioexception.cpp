@@ -1,11 +1,11 @@
-#include <Security/Security.h>
+﻿#include <Security/Security.h>
 
 #include <output_device/osx/osx_str_utitl.h>
 #include <output_device/osx/coreaudioexception.h>
 
 namespace xamp::output_device::osx {
 
-static std::string FormatErrorMessage(OSStatus status) noexcept {
+static std::string FormatErrorMessage(OSStatus status) {
     switch (status) {
     case kAudioHardwareNotRunningError:
         return "kAudioHardwareNotRunningError";

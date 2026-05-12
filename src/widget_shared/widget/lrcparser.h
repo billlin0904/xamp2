@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -50,7 +50,7 @@ public:
 
     int32_t getInterval() const;
 
-    const LyricEntry& getLyrics(const std::chrono::milliseconds &time) const noexcept override;
+    const LyricEntry& getLyrics(const std::chrono::milliseconds &time) const override;
 
     int32_t size() const override;
 

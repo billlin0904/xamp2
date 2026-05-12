@@ -1,4 +1,4 @@
-#include <base/shared_singleton.h>
+﻿#include <base/shared_singleton.h>
 #include <base/platform.h>
 #include <base/fastmutex.h>
 #include <base/logger_impl.h>
@@ -12,10 +12,10 @@ namespace {
 	struct StringHash {
 		using is_transparent = void;
 
-		size_t operator()(std::string_view v) const noexcept {
+		size_t operator()(std::string_view v) const {
 			return std::hash<std::string_view>{}(v);
 		}
-		size_t operator()(const std::string& s) const noexcept {
+		size_t operator()(const std::string& s) const {
 			return std::hash<std::string_view>{}(s);
 		}
 	};
@@ -23,10 +23,10 @@ namespace {
 	struct StringEqual {
 		using is_transparent = void;
 
-		bool operator()(std::string_view lhs, std::string_view rhs) const noexcept {
+		bool operator()(std::string_view lhs, std::string_view rhs) const {
 			return lhs == rhs;
 		}
-		bool operator()(const std::string& lhs, const std::string& rhs) const noexcept {
+		bool operator()(const std::string& lhs, const std::string& rhs) const {
 			return lhs == rhs;
 		}
 	};

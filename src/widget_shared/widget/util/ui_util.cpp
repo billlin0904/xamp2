@@ -1,4 +1,4 @@
-#include <widget/util/ui_util.h>
+﻿#include <widget/util/ui_util.h>
 
 #include <QApplication>
 #include <QDirIterator>
@@ -177,7 +177,7 @@ void moveToTopWidget(QWidget* source_widget, const QWidget* target_widget) {
     source_widget->move(center_pos);
 }
 
-PlayerOrder getNextOrder(PlayerOrder cur) noexcept {
+PlayerOrder getNextOrder(PlayerOrder cur) {
     auto next = static_cast<int32_t>(cur) + 1;
     auto max = static_cast<int32_t>(PlayerOrder::PLAYER_ORDER_MAX);
     return static_cast<PlayerOrder>(next % max);

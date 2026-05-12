@@ -1,4 +1,4 @@
-#include <output_device/win32/xaudio2devicetype.h>
+﻿#include <output_device/win32/xaudio2devicetype.h>
 
 #include <output_device/win32/wasapi.h>
 #include <output_device/win32/comexception.h>
@@ -15,7 +15,7 @@ XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
 class XAudio2DeviceType::XAudio2DeviceTypeImpl final {
 public:
-	XAudio2DeviceTypeImpl() noexcept;
+	XAudio2DeviceTypeImpl() ;
 
 	~XAudio2DeviceTypeImpl();
 
@@ -39,7 +39,7 @@ private:
 	LoggerPtr logger_;
 };
 
-XAudio2DeviceType::XAudio2DeviceTypeImpl::XAudio2DeviceTypeImpl() noexcept {
+XAudio2DeviceType::XAudio2DeviceTypeImpl::XAudio2DeviceTypeImpl() {
 	logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(XAudio2DeviceType));	
 }
 

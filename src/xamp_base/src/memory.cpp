@@ -1,4 +1,4 @@
-#include <base/memory.h>
+﻿#include <base/memory.h>
 
 #include <base/base.h>
 #include <base/assert.h>
@@ -16,13 +16,13 @@
 XAMP_BASE_NAMESPACE_BEGIN
 
 #ifdef XAMP_OS_WIN
-size_t GetPageSize() noexcept {
+size_t GetPageSize() {
 	SYSTEM_INFO system_info;
 	::GetSystemInfo(&system_info);
 	return system_info.dwPageSize;
 }
 
-bool PrefetchMemory(void* addr, size_t length) noexcept {
+bool PrefetchMemory(void* addr, size_t length) {
 	XAMP_EXPECTS(addr != nullptr);
 	XAMP_EXPECTS(length > 0);	
 
@@ -40,11 +40,11 @@ bool PrefetchMemory(void* addr, size_t length) noexcept {
 	return false;
 }
 #else
-size_t GetPageSize() noexcept {
+size_t GetPageSize() {
     return static_cast<size_t>(::getpagesize());
 }
 
-bool PrefetchMemory(void* adddr, size_t length) noexcept {
+bool PrefetchMemory(void* adddr, size_t length) {
     return ::madvise(adddr, length, MADV_SEQUENTIAL) == 0;
 }
 #endif
@@ -96,12 +96,12 @@ bool PrefetchFile(std::wstring const & file_path) {
 
 
 #ifndef XAMP_OS_WIN
-void* AlignedMalloc(size_t size, size_t aligned_size) noexcept {
+void* AlignedMalloc(size_t size, size_t aligned_size) {
 	void* p = nullptr;
 	return ::posix_memalign(&p, aligned_size, size) == 0 ? p : nullptr;
 }
 
-void AlignedFree(void* p) noexcept {
+void AlignedFree(void* p) {
 	return ::free(p);
 }
 
@@ -115,12 +115,12 @@ void StackFree(void* p) {
 }
 
 #else
-void* AlignedMalloc(size_t size, size_t aligned_size) noexcept {
+void* AlignedMalloc(size_t size, size_t aligned_size) {
 	XAMP_EXPECTS(IsPowerOfTwo(aligned_size));
 	return ::_aligned_malloc(size, aligned_size);
 }
 
-void AlignedFree(void* p) noexcept {
+void AlignedFree(void* p) {
 	XAMP_EXPECTS(p != nullptr);
 	::_aligned_free(p);
 }

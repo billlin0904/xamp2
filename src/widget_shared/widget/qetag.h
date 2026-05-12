@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -9,8 +9,8 @@
 
 namespace qetag {
 
-QString getTagId(const QByteArray& buffer) noexcept;
-QString getTagId(const QString& file_name) noexcept;
+QString getTagId(const QByteArray& buffer) ;
+QString getTagId(const QString& file_name) ;
 
 }
 

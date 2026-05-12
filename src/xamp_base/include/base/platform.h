@@ -1,4 +1,4 @@
-//====================================================================================================================
+﻿//====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -58,21 +58,21 @@ XAMP_BASE_API void MSleep(std::chrono::milliseconds timeout);
 
 XAMP_BASE_API int32_t AtomicWait(std::atomic<uint32_t>& to_wait_on, 
     uint32_t expected, 
-    const timespec* to) noexcept;
+    const timespec* to) ;
 
 XAMP_BASE_API bool AtomicWait(std::atomic<uint32_t>& to_wait_on,
     uint32_t expected, 
-    uint32_t milliseconds) noexcept;
+    uint32_t milliseconds) ;
 
-XAMP_BASE_API void AtomicWakeSingle(std::atomic<uint32_t>& to_wake) noexcept;
+XAMP_BASE_API void AtomicWakeSingle(std::atomic<uint32_t>& to_wake) ;
 
-XAMP_BASE_API void AtomicWakeAll(std::atomic<uint32_t>& to_wake) noexcept;
+XAMP_BASE_API void AtomicWakeAll(std::atomic<uint32_t>& to_wake) ;
 
-XAMP_BASE_API uint64_t GenRandomSeed() noexcept;
+XAMP_BASE_API uint64_t GenRandomSeed() ;
 
-XAMP_BASE_API uint64_t GetSystemEntropy() noexcept;
+XAMP_BASE_API uint64_t GetSystemEntropy() ;
 
-XAMP_BASE_API void CpuRelax() noexcept;
+XAMP_BASE_API void CpuRelax() ;
 
 XAMP_BASE_API void Assert(const char* message, const char* file_, uint32_t line);
 

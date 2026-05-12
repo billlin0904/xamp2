@@ -9,20 +9,20 @@ constexpr int32_t kTagIdChunkSize = 1 << 22; // 4MB
 constexpr char kPrepareHeader = static_cast<char>(0x96);
 
 namespace {
-    QByteArray sha1(const QByteArray& data) noexcept {
+    QByteArray sha1(const QByteArray& data) {
         QCryptographicHash sha1_hash(QCryptographicHash::Sha1);
         sha1_hash.addData(data);
         return sha1_hash.result();
     }
 
-    QString urlSafeBase64Encode(const QByteArray& data) noexcept {
+    QString urlSafeBase64Encode(const QByteArray& data) {
         return QLatin1String(data.toBase64(QByteArray::Base64UrlEncoding));
     }
 }
 
 namespace qetag {
 
-QString getTagId(const QByteArray &buffer) noexcept {
+QString getTagId(const QByteArray &buffer) {
     //return QString::fromStdString(GetSequentialUUID());
     // 七牛雲儲存etag演算法
 	// https://github.com/qiniu/qetag
@@ -63,7 +63,7 @@ QString getTagId(const QByteArray &buffer) noexcept {
     }
 }
 
-QString getTagId(const QString& file_name) noexcept {
+QString getTagId(const QString& file_name) {
 	//return QString::fromStdString(GetSequentialUUID());
 	QString etag;
 	const QFileInfo fi(file_name);

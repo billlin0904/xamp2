@@ -1,11 +1,10 @@
-#include <base/stl.h>
+﻿#include <base/stl.h>
 #include <base/trackinfo.h>
 #include <base/algorithm.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-TrackInfo::TrackInfo() noexcept
-	: is_cue_file(0)
+TrackInfo::TrackInfo() : is_cue_file(0)
 	, is_zip_file(0)
 	, rating(false)
 	, track(0)

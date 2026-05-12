@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -16,7 +16,7 @@ class XAMP_STREAM_API XAMP_NO_VTABLE FileStream : public IAudioStream {
 public:
     XAMP_BASE_CLASS(FileStream)
 
-    [[nodiscard]] bool IsFile() const noexcept override {
+    [[nodiscard]] bool IsFile() const override {
 		return true;
 	}
 

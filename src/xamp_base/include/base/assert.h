@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -20,7 +20,7 @@
 
 namespace xamp {
     namespace details {
-        inline void terminate() noexcept {
+        inline void terminate() {
             using std::terminate;
             std::terminate();
         }

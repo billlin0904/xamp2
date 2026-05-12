@@ -1,4 +1,4 @@
-#include <base/threadpoolexecutor.h>
+﻿#include <base/threadpoolexecutor.h>
 
 #include <base/str_utilts.h>
 #include <base/logger.h>
@@ -74,7 +74,7 @@ size_t TaskScheduler::GetThreadSize() const {
 	return max_thread_;
 }
 
-void TaskScheduler::Destroy() noexcept {
+void TaskScheduler::Destroy() {
 	if (!task_pool_ || threads_.empty()) {
 		return;
 	}

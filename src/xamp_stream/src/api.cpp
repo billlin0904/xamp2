@@ -1,4 +1,4 @@
-#include <fstream>
+﻿#include <fstream>
 #include <base/memory_mapped_file.h>
 #include <base/str_utilts.h>
 #include <base/logger.h>
@@ -30,7 +30,7 @@
 
 XAMP_STREAM_NAMESPACE_BEGIN
 namespace {
-    bool IsDsdFileChunk(const std::string_view & file_chunks) noexcept {
+    bool IsDsdFileChunk(const std::string_view & file_chunks) {
         static constexpr std::array<std::string_view, 2> knows_chunks{
             "DSD ", // .dsd file
             "FRM8"  // .dsdiff file
@@ -170,15 +170,15 @@ ScopedPtr<ICDDevice> StreamFactory::MakeCDDevice(int32_t driver_letter) {
 }
 #endif
 
-IDsdStream* AsDsdStream(ScopedPtr<FileStream> const& stream) noexcept {
+IDsdStream* AsDsdStream(ScopedPtr<FileStream> const& stream) {
     return dynamic_cast<IDsdStream*>(stream.get());
 }
 
-FileStream* AsFileStream(ScopedPtr<IAudioStream> const& stream) noexcept {
+FileStream* AsFileStream(ScopedPtr<IAudioStream> const& stream) {
     return dynamic_cast<FileStream*>(stream.get());
 }
 
-IDsdStream* AsDsdStream(FileStream* stream) noexcept {
+IDsdStream* AsDsdStream(FileStream* stream) {
     return dynamic_cast<IDsdStream*>(stream);
 }
 

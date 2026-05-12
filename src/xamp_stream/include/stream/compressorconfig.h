@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -10,8 +10,7 @@
 XAMP_STREAM_NAMESPACE_BEGIN
 
 struct XAMP_STREAM_API CompressorConfig final {
-    CompressorConfig() noexcept
-        : gain(0.0)
+    CompressorConfig() : gain(0.0)
         , threshold(-1.0)
         , ratio(20)
         , attack(0.1f)

@@ -1,11 +1,11 @@
-#include <bass/bass.h>
+﻿#include <bass/bass.h>
 #include <stream/basslib.h>
 #include <stream/bassexception.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
 namespace {
-    Errors TranslateBassError(int error) noexcept {
+    Errors TranslateBassError(int error) {
         switch (error) {
         case BASS_ERROR_FORMAT:
         case BASS_ERROR_FILEFORM:

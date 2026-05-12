@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -15,7 +15,6 @@
 #include <base/dsdsampleformat.h>
 #include <base/memory.h>
 #include <base/uuid.h>
-#include <base/workstealingtaskqueue.h>
 #include <base/buffer.h>
 #include <base/fastmutex.h>
 #include <base/fastconditionvariable.h>
@@ -29,28 +28,8 @@
 #include <future>
 #include <optional>
 #include <any>
-#include <variant>
 
 XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
-
-XAMP_MAKE_ENUM(PlayerActionId,
-    PLAYER_SEEK);
-
-struct SeekAction {
-    double stream_time;
-};
-
-using PlayerActionContent = std::variant<SeekAction>;
-
-/*
-* PlayerAction is a struct that contains the player action.
-* 
-* @see PlayerActionId
-*/
-struct PlayerAction {
-    PlayerActionId id;
-    PlayerActionContent content;
-};
 
 struct PlaybackState {
 	std::atomic<bool> is_seeking = false;
@@ -80,7 +59,6 @@ class AudioPlayer final :
     public std::enable_shared_from_this<AudioPlayer> {
 public:
 	static constexpr auto kStopStreamTime = std::numeric_limits<uint32_t>::max();
-    static constexpr auto kFadeTimeSeconds = 1;
     
     AudioPlayer(const std::shared_ptr<IThreadPoolExecutor>& playback_thread_pool,
         const std::shared_ptr<IThreadPoolExecutor>& player_thread_pool);
@@ -134,9 +112,9 @@ public:
 
     void SetMute(bool mute) override;
     
-    bool IsPlaying() const noexcept override;
+    bool IsPlaying() const override;
 
-    DsdModes GetDsdModes() const noexcept override;
+    DsdModes GetDsdModes() const override;
 
     bool IsDsdFile() const override;
 
@@ -144,11 +122,11 @@ public:
 
     double GetDuration() const override;
 
-    PlayerState GetState() const noexcept override;
+    PlayerState GetState() const override;
 
-    AudioFormat GetInputFormat() const noexcept override;
+    AudioFormat GetInputFormat() const override;
 
-    AudioFormat GetOutputFormat() const noexcept override;
+    AudioFormat GetOutputFormat() const override;
 
     const ScopedPtr<IAudioDeviceManager>& GetAudioDeviceManager() override;
 
@@ -172,17 +150,17 @@ private:
         size_t num_buffer_frames, 
         size_t& num_filled_frames,
         double stream_time, 
-        double sample_time) noexcept override;
+        double sample_time) override;
 
-    void OnVolumeChange(int32_t vol) noexcept override;
+    void OnVolumeChange(int32_t vol) override;
 
-    void OnError(const std::exception& e) noexcept override;
+    void OnError(const std::exception& e) override;
 
     void OnDeviceStateChange(DeviceState state, std::string const& device_id) override;
 
-    void OnGlitch(std::chrono::milliseconds duration, uint32_t count) noexcept override;
+    void OnGlitch(std::chrono::milliseconds duration, uint32_t count) override;
 
-    void DoSeek(double stream_time);        
+    void DoSeek(double stream_time);
     	
     void OpenStream(Path const& file_path, DsdModes dsd_mode, float rate, bool use_mqa_decode);
 
@@ -206,41 +184,34 @@ private:
 
     void BufferSamples(const ScopedPtr<FileStream>& stream, int32_t buffer_count = 1);
 
-    void UpdatePlayerStreamTime(uint32_t stream_time_sec_unit = 0) noexcept;
+    void UpdatePlayerStreamTime(uint32_t stream_time_sec_unit = 0) ;
 
     void ResizeReadBuffer(uint32_t allocate_size);
 
     void ResizeFIFO(uint32_t fifo_size);
 
-    void ReadPlayerAction();
-
     void ReadStreamInfo(DsdModes dsd_mode, const ScopedPtr<FileStream>& stream);
-
-    void ProcessFadeOut();
-
-    void FadeOut();
 
     void WaitForReadFinishAndSeekSignal(std::unique_lock<FastMutex>& stopped_lock);
 
-    bool ShouldKeepReading() const noexcept;
+    bool ShouldKeepReading() const ;
 
     void SetReadSampleSize(uint32_t num_samples);
 
-    bool IsAvailableWrite() const noexcept;
+    bool IsAvailableWrite() const ;
 
     bool is_muted_;
     bool is_dsd_file_;
-    bool enable_fadeout_;
     bool enable_file_cache_;
     uint32_t num_read_buffer_size_;
     uint32_t num_write_buffer_size_;
     std::optional<uint32_t> dsd_speed_;
-    std::atomic<bool> is_fade_out_;
     std::atomic<double> sample_end_time_;
     AudioConfig audio_config_;
-	PlaybackState playback_state_;
+    PlaybackState playback_state_;
     mutable FastMutex pause_mutex_;
-    mutable FastMutex stopped_mutex_;    
+    mutable FastMutex stopped_mutex_;
+    mutable FastMutex stream_mutex_;
     Uuid device_type_id_;
     Timer timer_;    
     AudioFormat input_format_;
@@ -249,7 +220,6 @@ private:
     ScopedPtr<IDeviceType> device_type_;
     ScopedPtr<IOutputDevice> device_;
     ScopedPtr<IDSPManager> dsp_manager_;
-    ScopedPtr<IAudioProcessor> fader_;
     ScopedPtr<IAudioDeviceManager> device_manager_;
     std::weak_ptr<IPlaybackStateAdapter> state_adapter_;    
     Future<void> stream_task_;
@@ -261,7 +231,6 @@ private:
     std::optional<DeviceInfo> device_info_;
     FastConditionVariable pause_cond_;
     FastConditionVariable read_finish_and_wait_seek_signal_cond_;
-    ConcurrentQueue<PlayerAction> action_queue_;
     AudioBuffer<std::byte> fifo_;
     std::shared_ptr<IThreadPoolExecutor> playback_thread_pool_;
 	std::shared_ptr<IThreadPoolExecutor> player_thread_pool_;

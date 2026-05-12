@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -98,7 +98,7 @@ public:
     * 
     * @return true if support asio
     */
-    [[nodiscard]] bool IsSupportAsio() const noexcept;
+    [[nodiscard]] bool IsSupportAsio() const ;
 
     /*
     * Is device type exist
@@ -106,21 +106,21 @@ public:
     * @param id: device type id
     * @return true if device type exist
     */
-    [[nodiscard]] bool IsDeviceTypeExist(const Uuid& id) const noexcept;
+    [[nodiscard]] bool IsDeviceTypeExist(const Uuid& id) const ;
 
     /*
     * Is shared device
     * 
     * @param type: device type
     */
-    [[nodiscard]] bool IsSharedDevice(const Uuid& type) const noexcept override;
+    [[nodiscard]] bool IsSharedDevice(const Uuid& type) const override;
 
     /*
     * Is ASIO device
     *
     * @param type: device type
     */
-    [[nodiscard]] bool IsASIODevice(const Uuid& type) const noexcept override;
+    [[nodiscard]] bool IsASIODevice(const Uuid& type) const override;
 
     /*
     * Shutdown global device resource.

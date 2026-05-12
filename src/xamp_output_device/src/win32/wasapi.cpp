@@ -1,4 +1,4 @@
-#include <sstream>
+﻿#include <sstream>
 #include <base/base.h>
 #include <base/enum.h>
 
@@ -43,7 +43,7 @@ namespace {
 		/*
 		* Constructor.
 		*/
-		PropVariant() noexcept {
+		PropVariant() {
 			::PropVariantInit(this);
 		}
 
@@ -52,7 +52,7 @@ namespace {
 		/*
 		* Destructor.
 		*/
-		~PropVariant() noexcept {
+		~PropVariant() {
 			::PropVariantClear(this);
 		}
 
@@ -61,7 +61,7 @@ namespace {
 		*
 		* @return std::wstring
 		*/
-		[[nodiscard]] std::wstring ToString() const noexcept {
+		[[nodiscard]] std::wstring ToString() const {
 			std::wstring result;
 			PWSTR psz = nullptr;
 			if (SUCCEEDED(::PropVariantToStringAlloc(*this, &psz))) {

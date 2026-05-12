@@ -1,4 +1,4 @@
-#include <base/dataconverter.h>
+﻿#include <base/dataconverter.h>
 #include <metadata/chromaprintlib.h>
 #include <metadata/chromaprint.h>
 
@@ -77,11 +77,11 @@ private:
 	}
 
 	struct ChromaprintContextTraits final {
-		static ChromaprintContext* invalid() noexcept {
+		static ChromaprintContext* invalid() {
 			return nullptr;
 		}
 
-		static void Close(ChromaprintContext* value) noexcept {
+		static void Close(ChromaprintContext* value) {
 			CHROMAPRINT_LIB.chromaprint_free(value);
 		}
 	};

@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -29,14 +29,14 @@ public:
 	* Construct.
 	* 
 	*/
-	FastConditionVariable() noexcept = default;
+	FastConditionVariable() = default;
 
 	XAMP_DISABLE_COPY(FastConditionVariable)
 
 	/*
 	* Destruct.
 	*/
-	~FastConditionVariable() noexcept = default;
+	~FastConditionVariable() = default;
 
 	/*
 	* Wait for the condition variable.
@@ -84,13 +84,13 @@ public:
 	* Notify one thread.
 	* 
 	*/
-	void notify_one() noexcept;
+	void notify_one() ;
 
 	/*
 	* Notify all threads.
 	* 
 	*/
-	void notify_all() noexcept;
+	void notify_all() ;
 private:
 	/*
 	* Wait for the condition variable.

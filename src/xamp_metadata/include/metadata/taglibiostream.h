@@ -1,4 +1,4 @@
-//=====================================================================================================================
+ï»¿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -85,11 +85,11 @@ public:
 			io_stream_.write(buf.data(), n);
 		}
 
-		// 2) ¼g¤J·s¸ê®Æ
+		// 2) å¯«å…¥æ–°è³‡æ–™
 		seek(start, Beginning);
 		writeBlock(data);
 
-		// 3) ¦p¦³ replace > insert_len¡A¬å±¼¦h¾l
+		// 3) å¦‚æœ‰ replace > insert_lenï¼Œç æ‰å¤šé¤˜
 		if (insert_len < remove_len) {
 			truncate(total + insert_len - remove_len);
 		}

@@ -1,4 +1,4 @@
-#include <output_device/win32/sharedwasapidevice.h>
+ï»¿#include <output_device/win32/sharedwasapidevice.h>
 
 #ifdef XAMP_OS_WIN
 #include <output_device/iaudiocallback.h>
@@ -24,7 +24,7 @@ namespace {
 	* @param[in] input_format WAVEFORMATEX*
 	* @param[in] sample_rate uint32_t
 	*/
-	void SetWaveformatEx(WAVEFORMATEX* input_format, uint32_t sample_rate) noexcept {
+	void SetWaveformatEx(WAVEFORMATEX* input_format, uint32_t sample_rate) {
 		XAMP_EXPECTS(input_format != nullptr);
 		XAMP_EXPECTS(input_format->nChannels == AudioFormat::kMaxChannel);
 		XAMP_EXPECTS(sample_rate > 0);
@@ -49,6 +49,19 @@ namespace {
 	constexpr auto kAudioRenderClientID = __uuidof(IAudioRenderClient);
 	constexpr auto kAudioClient3ID = __uuidof(IAudioClient3);
 	constexpr auto kAudioClockID = __uuidof(IAudioClock);
+	constexpr uint32_t kSharedWasapiLatencyMs = 30;
+	constexpr REFERENCE_TIME kHnsPerMillisecond = 10000;
+
+	uint32_t AlignPeriodToFundamental(uint32_t period_in_frames, uint32_t fundamental_period_in_frames) {
+		if (fundamental_period_in_frames == 0) {
+			return period_in_frames;
+		}
+		const auto remainder = period_in_frames % fundamental_period_in_frames;
+		if (remainder == 0) {
+			return period_in_frames;
+		}
+		return period_in_frames + (fundamental_period_in_frames - remainder);
+	}
 }
 
 /*
@@ -60,8 +73,7 @@ public:
 	/*
 	* Constructor
 	*/
-	explicit DeviceEventNotification(IAudioCallback* callback) noexcept
-		: callback_(callback) {
+	explicit DeviceEventNotification(IAudioCallback* callback) : callback_(callback) {
 		XAMP_EXPECTS(callback_ != nullptr);
 	}
 
@@ -116,7 +128,8 @@ SharedWasapiDevice::SharedWasapiDevice(bool is_low_latency, CComPtr<IMMDevice> c
 	, is_running_(false)
 	, stream_time_(0)
 	, buffer_frames_(0)
-	, buffer_time_(0)
+	, buffer_period_in_frames_(0)
+	, buffer_duration_hns_(0)
 	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_HIGH)
 	, sample_ready_(nullptr)
 	, device_(device)
@@ -150,11 +163,11 @@ void SharedWasapiDevice::RegisterDeviceVolumeChange() {
 	HrIfFailThrow(endpoint_volume_->RegisterControlChangeNotify(device_volume_notification_));
 }
 
-bool SharedWasapiDevice::IsStreamOpen() const noexcept {
+bool SharedWasapiDevice::IsStreamOpen() const {
 	return render_client_ != nullptr;
 }
 
-void SharedWasapiDevice::SetAudioCallback(IAudioCallback* callback) noexcept {
+void SharedWasapiDevice::SetAudioCallback(IAudioCallback* callback) {
 	callback_ = callback;
 }
 
@@ -211,10 +224,22 @@ void SharedWasapiDevice::InitialDeviceFormat(const AudioFormat& output_format) {
 		min_period_in_frame * ms_per_samples,
 		max_period_in_frame * ms_per_samples);
 
-	buffer_time_ = default_period_in_frame;
-	//buffer_time_ = current_period_in_frame;
+	const auto requested_period_in_frame = static_cast<uint32_t>(
+		(static_cast<uint64_t>(output_format.GetSampleRate()) * kSharedWasapiLatencyMs + 999) / 1000);
+	auto period_in_frame = AlignPeriodToFundamental(requested_period_in_frame, fundamental_period_in_frame);
+	period_in_frame = (std::max)(period_in_frame, min_period_in_frame);
+	if (max_period_in_frame != 0) {
+		period_in_frame = (std::min)(period_in_frame, max_period_in_frame);
+	}
 
-	XAMP_LOG_D(logger_, "Use latency: {:.2f}", buffer_time_ * ms_per_samples);
+	buffer_period_in_frames_ = period_in_frame;
+	buffer_duration_hns_ = kSharedWasapiLatencyMs * kHnsPerMillisecond;
+
+	XAMP_LOG_D(logger_,
+		"Use latency: {:.2f} msec (request:{} msec, period:{} frames).",
+		buffer_period_in_frames_ * ms_per_samples,
+		kSharedWasapiLatencyMs,
+		buffer_period_in_frames_);
 }
 
 void SharedWasapiDevice::InitialDevice(const AudioFormat& output_format) {
@@ -222,22 +247,22 @@ void SharedWasapiDevice::InitialDevice(const AudioFormat& output_format) {
 		InitialDeviceFormat(output_format);
 		auto hr = client_->Initialize(AUDCLNT_SHAREMODE_SHARED,
 			AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
-			buffer_time_,
-			buffer_time_,
+			buffer_duration_hns_,
+			buffer_duration_hns_,
 			mix_format_,
 			nullptr);
 		if (hr == HRESULT_FROM_WIN32(ERROR_BUSY)) {
 			throw DeviceInUseException();
 		}
 		if (hr == AUDCLNT_E_ENGINE_PERIODICITY_LOCKED) {
-			// ·|¥X²{³o­Ó¿ù»~, ¥Nªí­µ®Ä³]³Æ¤£¤ä´©¦P®É¦h­Ó sample rate, ©Ò¥H»Ý­n¶i¦æ­«±Ä¼ËÂà´«.			
+			// æœƒå‡ºç¾é€™å€‹éŒ¯èª¤, ä»£è¡¨éŸ³æ•ˆè¨­å‚™ä¸æ”¯æ´åŒæ™‚å¤šå€‹ sample rate, æ‰€ä»¥éœ€è¦é€²è¡Œé‡æŽ¡æ¨£è½‰æ›.			
 			throw DeviceNeedSetMatchFormatException();
 		}
 		HrIfFailThrow(hr);
 	} else {
 		InitialDeviceFormat(output_format);
 		auto hr = client_->InitializeSharedAudioStream(AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
-			buffer_time_,
+			buffer_period_in_frames_,
 			mix_format_,
 			nullptr);
 		if (hr == HRESULT_FROM_WIN32(ERROR_BUSY)) {
@@ -324,11 +349,11 @@ void SharedWasapiDevice::SetMute(bool mute) const {
 	HrIfFailThrow(simple_audio_volume_->SetMute(mute, nullptr));
 }
 
-PackedFormat SharedWasapiDevice::GetPackedFormat() const noexcept {
+PackedFormat SharedWasapiDevice::GetPackedFormat() const {
 	return PackedFormat::INTERLEAVED;
 }
 
-uint32_t SharedWasapiDevice::GetBufferSize() const noexcept {
+uint32_t SharedWasapiDevice::GetBufferSize() const {
 	return buffer_frames_ * mix_format_->nChannels;
 }
 
@@ -354,12 +379,15 @@ void SharedWasapiDevice::SetVolume(uint32_t volume) const {
 	XAMP_LOG_D(logger_, "Current volume: {}", GetVolume());
 }
 
-void SharedWasapiDevice::SetStreamTime(double stream_time) noexcept {
-	stream_time_ = stream_time * static_cast<double>(mix_format_->nSamplesPerSec);
+void SharedWasapiDevice::SetStreamTime(double stream_time) {
+	stream_time_.store(static_cast<int64_t>(
+		stream_time * static_cast<double>(mix_format_->nSamplesPerSec)),
+		std::memory_order_relaxed);
 }
 
-double SharedWasapiDevice::GetStreamTime() const noexcept {
-	return stream_time_ / static_cast<double>(mix_format_->nSamplesPerSec);
+double SharedWasapiDevice::GetStreamTime() const {
+	return static_cast<double>(stream_time_.load(std::memory_order_relaxed))
+		/ static_cast<double>(mix_format_->nSamplesPerSec);
 }
 
 void SharedWasapiDevice::ReportError(HRESULT hr) {
@@ -374,9 +402,11 @@ HRESULT SharedWasapiDevice::GetSample(uint32_t frame_available, bool is_silence)
 	XAMP_EXPECTS(callback_ != nullptr);
 
 	// Calculate stream time.
-	const double stream_time = stream_time_ + frame_available;
-	stream_time_ = stream_time;
-	const auto stream_time_float = stream_time / static_cast<double>(mix_format_->nSamplesPerSec);
+	const auto stream_time = stream_time_.load(std::memory_order_relaxed)
+		+ static_cast<int64_t>(frame_available);
+	stream_time_.store(stream_time, std::memory_order_relaxed);
+	const auto stream_time_float = static_cast<double>(stream_time)
+		/ static_cast<double>(mix_format_->nSamplesPerSec);
 
 	DWORD flags = is_silence ? AUDCLNT_BUFFERFLAGS_SILENT : 0;
 
@@ -392,13 +422,14 @@ HRESULT SharedWasapiDevice::GetSample(uint32_t frame_available, bool is_silence)
 	size_t num_filled_frames = 0;
 
 	// Get sample from callback.
-	if (callback_->OnGetSamples(data, frame_available, num_filled_frames, stream_time_float, sample_time) == DataCallbackResult::CONTINUE) {
+	const auto callback_result = callback_->OnGetSamples(data, frame_available, num_filled_frames, stream_time_float, sample_time);
+	if (callback_result == DataCallbackResult::CONTINUE) {
 		if (num_filled_frames != frame_available) {
 			flags = AUDCLNT_BUFFERFLAGS_SILENT;
-		}
+		}				
 		hr = render_client_->ReleaseBuffer(frame_available, flags);
 	}
-	else {
+	else {		
 		hr = render_client_->ReleaseBuffer(frame_available, AUDCLNT_BUFFERFLAGS_SILENT);
 	}
 	return hr;
@@ -451,7 +482,7 @@ void SharedWasapiDevice::StartStream() {
 	}
 
 	is_playing_ = false;
-	// Note: ¥²­n! ¬Y¨Ç­µ®Ä¥d·|Ãz­µ!
+	// Note: å¿…è¦! æŸäº›éŸ³æ•ˆå¡æœƒçˆ†éŸ³!
 	GetSample(true);
 	rt_work_queue_->LoadStream();
 	rt_work_queue_->WaitAsync(sample_ready_.get());
@@ -466,7 +497,7 @@ void SharedWasapiDevice::StartStream() {
 	}
 }
 
-bool SharedWasapiDevice::IsStreamRunning() const noexcept {
+bool SharedWasapiDevice::IsStreamRunning() const {
 	return is_running_;
 }
 
@@ -475,12 +506,14 @@ HRESULT SharedWasapiDevice::GetSample(bool is_silence) {
 
 	const auto hr = client_->GetCurrentPadding(&padding_frames);
 	if (FAILED(hr)) {
+		XAMP_LOG_DEBUG("Failure");
 		return hr;
 	}
 
 	const auto frames_available = buffer_frames_ - padding_frames;
 
 	if (frames_available > 0) {
+		XAMP_LOG_DEBUG("Get {} samples ({}).", frames_available, padding_frames);
 		if (is_silence) {
 			return GetSample(frames_available, true);
 		}
@@ -488,10 +521,11 @@ HRESULT SharedWasapiDevice::GetSample(bool is_silence) {
 			return GetSample(frames_available, false);
 		}
 	}
+	XAMP_LOG_DEBUG("frames_available = 0");
 	return S_OK;
 }
 
-void SharedWasapiDevice::AbortStream() noexcept {
+void SharedWasapiDevice::AbortStream() {
 	is_running_ = false;
 }
 

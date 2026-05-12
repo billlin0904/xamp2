@@ -1,10 +1,10 @@
-#include <output_device/win32/asioexception.h>
+﻿#include <output_device/win32/asioexception.h>
 
 #if defined(XAMP_OS_WIN)
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
-std::string_view AsioException::ErrorMessage(ASIOError error) noexcept {
+std::string_view AsioException::ErrorMessage(ASIOError error) {
 	switch (error) {
 	case ASE_NotPresent:
 		return "Hardware input or output is not present or available.";

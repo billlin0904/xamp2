@@ -1,4 +1,4 @@
-#include <stream/dspmanager.h>
+﻿#include <stream/dspmanager.h>
 
 #include <stream/api.h>
 #include <stream/bassequalizer.h>
@@ -76,7 +76,7 @@ IDSPManager& DSPManager::RemoveSampleRateConverter() {
     return *this;
 }
 
-bool DSPManager::CanProcess() const noexcept {
+bool DSPManager::CanProcess() const {
     if (pre_dsp_.empty() && post_dsp_.empty()) {
         return false;
     }
@@ -89,7 +89,7 @@ bool DSPManager::CanProcess() const noexcept {
     return false;
 }
 
-bool DSPManager::Contains(const Uuid& type) const noexcept {
+bool DSPManager::Contains(const Uuid& type) const {
     return Contains([type](const auto& id) {
         return id == type;
         });

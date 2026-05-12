@@ -1,4 +1,4 @@
-#include <base/stl.h>
+﻿#include <base/stl.h>
 #include <base/audioformat.h>
 
 #include <sstream>
@@ -31,7 +31,7 @@ DECLARE_AUDIO_FORMAT_IMPL(PCM768Khz, 768000);
 
 const AudioFormat AudioFormat::kUnknownFormat;
 
-AudioFormat AudioFormat::ToFloatFormat(AudioFormat const& source_format) noexcept {
+AudioFormat AudioFormat::ToFloatFormat(AudioFormat const& source_format) {
 	return AudioFormat{
 		DataFormat::FORMAT_PCM,
 		source_format.GetChannels(),

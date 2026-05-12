@@ -1,4 +1,4 @@
-#include <stream/bassfilestream.h>
+Ôªø#include <stream/bassfilestream.h>
 
 #include <stream/bassexception.h>
 #include <stream/basslib.h>
@@ -132,8 +132,7 @@ public:
 
 class BassFileStream::BassFileStreamImpl {
 public:
-    BassFileStreamImpl() noexcept
-        : mode_(DsdModes::DSD_MODE_PCM)
+    BassFileStreamImpl() : mode_(DsdModes::DSD_MODE_PCM)
 		, download_size_(0) {
         logger_ = XAMP_LOG_CREATE_LOGGER(BassFileStream);
         Close();
@@ -170,7 +169,7 @@ public:
                 0
             ));
             // BassLib DSD module default use 6dB gain.
-            // §£≥]©w™∫∏‹∑|√z≠µ!
+            // ‰∏çË®≠ÂÆöÁöÑË©±ÊúÉÁàÜÈü≥!
             BassLibDLL.BASS_ChannelSetAttribute(impl_.get(), BASS_ATTRIB_DSD_GAIN, 0.0f);
         }
     }
@@ -404,7 +403,7 @@ public:
         }
     }
 
-    void Close() noexcept {   
+    void Close() {   
         tempo_stream_.reset();
         impl_.reset();
         mix_stream_.reset();        
@@ -415,7 +414,7 @@ public:
         playback_rate_ = 1.0f;
     }
 
-    [[nodiscard]] bool IsDsdFile() const noexcept {
+    [[nodiscard]] bool IsDsdFile() const {
         return info_.ctype == BASS_CTYPE_STREAM_DSD;
     }
 
@@ -458,7 +457,7 @@ public:
 				info_.freq);
     }
 
-    DWORD GetSetPositionFlags() const noexcept {
+    DWORD GetSetPositionFlags() const {
         if (tempo_stream_.is_valid()) {
             return BASS_POS_DECODETO;
         }
@@ -518,32 +517,32 @@ public:
         return static_cast<uint32_t>(rate);
     }
 
-    [[nodiscard]] bool SupportDOP() const noexcept {
+    [[nodiscard]] bool SupportDOP() const {
         return true;
     }
 
-    [[nodiscard]] bool SupportDOP_AA() const noexcept {
+    [[nodiscard]] bool SupportDOP_AA() const {
         return false;
     }
 
-    [[nodiscard]] bool SupportNativeSD() const noexcept {
+    [[nodiscard]] bool SupportNativeSD() const {
         return true;
     }
 
-    void SetDSDMode(DsdModes mode) noexcept {
+    void SetDSDMode(DsdModes mode) {
         mode_ = mode;
     }
 
-    [[nodiscard]] DsdModes GetDSDMode() const noexcept {
+    [[nodiscard]] DsdModes GetDSDMode() const {
         return mode_;       
     }
 
-    [[nodiscard]] uint32_t GetSampleSize() const noexcept {
+    [[nodiscard]] uint32_t GetSampleSize() const {
         return mode_ == DsdModes::DSD_MODE_NATIVE
     	? sizeof(int8_t) : sizeof(float);
     }
 
-    [[nodiscard]] DsdFormat GetDsdFormat() const noexcept {
+    [[nodiscard]] DsdFormat GetDsdFormat() const {
         return DsdFormat::DSD_INT8MSB;
     }
 
@@ -551,11 +550,11 @@ public:
         BassLibDLL.BASS_SetConfig(BASS_CONFIG_DSD_FREQ, sample_rate);
     }
 
-    [[nodiscard]] uint32_t GetDsdSpeed() const noexcept {
+    [[nodiscard]] uint32_t GetDsdSpeed() const {
         return GetDsdSampleRate() / kPcmSampleRate441;
     }
 
-    [[nodiscard]] HSTREAM GetHStream() const noexcept {      
+    [[nodiscard]] HSTREAM GetHStream() const {      
         if (tempo_stream_.is_valid()) {
             return tempo_stream_.get();
         }
@@ -565,7 +564,7 @@ public:
         return impl_.get();
     }
 
-    [[nodiscard]] bool IsActive() const noexcept {
+    [[nodiscard]] bool IsActive() const {
         return BassLibDLL.BASS_ChannelIsActive(GetSourceStream()) == BASS_ACTIVE_PLAYING;
     }
 	
@@ -597,7 +596,7 @@ public:
     }
 
 private:
-    uint32_t InternalGetSamples(void* buffer, uint32_t length) const noexcept {
+    uint32_t InternalGetSamples(void* buffer, uint32_t length) const {
         const auto bytes_read =
             BassLibDLL.BASS_ChannelGetData(GetHStream(), buffer, length);
         if (bytes_read == kBassError) {            			
@@ -606,11 +605,11 @@ private:
         return static_cast<uint32_t>(bytes_read);
     }
 
-    bool CanUseTempo() const noexcept {
+    bool CanUseTempo() const {
         return mode_ != DsdModes::DSD_MODE_NATIVE;
     }
 
-    HSTREAM GetSourceStream() const noexcept {
+    HSTREAM GetSourceStream() const {
         return impl_.get();
     }
 
@@ -664,7 +663,7 @@ void BassFileStream::Open(ArchiveEntry archive_entry) {
 void BassFileStream::SetRate(float rate) {
 }
 
-void BassFileStream::Close() noexcept {
+void BassFileStream::Close() {
     impl_->Close();
 }
 
@@ -688,15 +687,15 @@ uint32_t BassFileStream::GetSamples(void *buffer, uint32_t length) const {
     return impl_->GetSamples(buffer, length);
 }
 
-void BassFileStream::SetDSDMode(DsdModes mode) noexcept {
+void BassFileStream::SetDSDMode(DsdModes mode) {
     impl_->SetDSDMode(mode);
 }
 
-DsdModes BassFileStream::GetDsdMode() const noexcept {
+DsdModes BassFileStream::GetDsdMode() const {
     return impl_->GetDSDMode();
 }
 
-bool BassFileStream::IsDsdFile() const noexcept {
+bool BassFileStream::IsDsdFile() const {
     return impl_->IsDsdFile();
 }
 
@@ -704,11 +703,11 @@ uint32_t BassFileStream::GetDsdSampleRate() const {
     return impl_->GetDsdSampleRate();
 }
 
-uint32_t BassFileStream::GetSampleSize() const noexcept {
+uint32_t BassFileStream::GetSampleSize() const {
     return impl_->GetSampleSize();
 }
 
-DsdFormat BassFileStream::GetDsdFormat() const noexcept {
+DsdFormat BassFileStream::GetDsdFormat() const {
     return impl_->GetDsdFormat();
 }
 
@@ -728,23 +727,23 @@ uint32_t BassFileStream::GetBitRate() const {
     return impl_->GetBitRate();
 }
 
-uint32_t BassFileStream::GetHStream() const noexcept {
+uint32_t BassFileStream::GetHStream() const {
     return impl_->GetHStream();
 }
 
-bool BassFileStream::IsActive() const noexcept {
+bool BassFileStream::IsActive() const {
     return impl_->IsActive();
 }
 
-bool BassFileStream::SupportDOP() const noexcept {
+bool BassFileStream::SupportDOP() const {
     return impl_->SupportDOP();
 }
 
-bool BassFileStream::SupportDOP_AA() const noexcept {
+bool BassFileStream::SupportDOP_AA() const {
     return impl_->SupportDOP_AA();
 }
 
-bool BassFileStream::SupportNativeSD() const noexcept {
+bool BassFileStream::SupportNativeSD() const {
     return impl_->SupportNativeSD();
 }
 

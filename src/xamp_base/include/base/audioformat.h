@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -91,53 +91,53 @@ public:
     explicit AudioFormat(DataFormat format = DataFormat::FORMAT_PCM,
                          uint16_t number_of_channels = 0,
                          uint32_t bits_per_sample = 0,
-                         uint32_t sample_rate = 0) noexcept;
+                         uint32_t sample_rate = 0) ;
 
     explicit AudioFormat(DataFormat format,
                          uint16_t number_of_channels,
                          ByteFormat byte_format,
                          uint32_t sample_rate,
-                         PackedFormat packed_format = PackedFormat::INTERLEAVED) noexcept;
+                         PackedFormat packed_format = PackedFormat::INTERLEAVED) ;
 
-    void SetFormat(DataFormat format) noexcept;
+    void SetFormat(DataFormat format) ;
 
-    void SetSampleRate(uint32_t sample_rate) noexcept;
+    void SetSampleRate(uint32_t sample_rate) ;
 
-    void SetBitPerSample(uint32_t bits_per_sample) noexcept;
+    void SetBitPerSample(uint32_t bits_per_sample) ;
 
-    void SetChannel(uint16_t num_channels) noexcept;
+    void SetChannel(uint16_t num_channels) ;
 
-    void SetByteFormat(ByteFormat format) noexcept;
+    void SetByteFormat(ByteFormat format) ;
 
-    void SetPackedFormat(PackedFormat format) noexcept;
+    void SetPackedFormat(PackedFormat format) ;
 
-    [[nodiscard]] DataFormat GetFormat() const noexcept;
+    [[nodiscard]] DataFormat GetFormat() const ;
 
-    [[nodiscard]] PackedFormat GetPackedFormat() const noexcept;
+    [[nodiscard]] PackedFormat GetPackedFormat() const ;
 
-    [[nodiscard]] uint32_t GetSampleRate() const noexcept;
+    [[nodiscard]] uint32_t GetSampleRate() const ;
 
-    [[nodiscard]] uint32_t GetAvgBytesPerSec() const noexcept;
+    [[nodiscard]] uint32_t GetAvgBytesPerSec() const ;
 
-    [[nodiscard]] uint32_t GetAvgFramesPerSec() const noexcept;
+    [[nodiscard]] uint32_t GetAvgFramesPerSec() const ;
 
-    [[nodiscard]] uint16_t GetChannels() const noexcept;
+    [[nodiscard]] uint16_t GetChannels() const ;
 
-    [[nodiscard]] uint32_t GetBitsPerSample() const noexcept;
+    [[nodiscard]] uint32_t GetBitsPerSample() const ;
 
-    [[nodiscard]] uint32_t GetBytesPerSample() const noexcept;
+    [[nodiscard]] uint32_t GetBytesPerSample() const ;
 
-    [[nodiscard]] uint32_t GetSampleSize() const noexcept;
+    [[nodiscard]] uint32_t GetSampleSize() const ;
 
-    [[nodiscard]] uint32_t GetBlockAlign() const noexcept;
+    [[nodiscard]] uint32_t GetBlockAlign() const ;
 
-    [[nodiscard]] ByteFormat GetByteFormat() const noexcept;
+    [[nodiscard]] ByteFormat GetByteFormat() const ;
 
-    [[nodiscard]] uint64_t GetSecondsSize(double sec) const noexcept;
+    [[nodiscard]] uint64_t GetSecondsSize(double sec) const ;
 
-    void Reset() noexcept;
+    void Reset() ;
 
-    static AudioFormat ToFloatFormat(AudioFormat const& source_format) noexcept;
+    static AudioFormat ToFloatFormat(AudioFormat const& source_format) ;
 
     [[nodiscard]] std::string ToString() const;
 
@@ -146,11 +146,11 @@ public:
     [[nodiscard]] size_t GetHash() const;
 
 private:
-    XAMP_BASE_API friend bool operator>(const AudioFormat& format, const AudioFormat& other) noexcept;
+    XAMP_BASE_API friend bool operator>(const AudioFormat& format, const AudioFormat& other) ;
 
-    XAMP_BASE_API friend bool operator==(const AudioFormat& format, const AudioFormat& other) noexcept;
+    XAMP_BASE_API friend bool operator==(const AudioFormat& format, const AudioFormat& other) ;
 
-    XAMP_BASE_API friend bool operator!=(const AudioFormat& format, const AudioFormat& other) noexcept;
+    XAMP_BASE_API friend bool operator!=(const AudioFormat& format, const AudioFormat& other) ;
 
     XAMP_BASE_API friend std::ostream& operator<<(std::ostream& ostr, const AudioFormat& format);
 
@@ -166,8 +166,7 @@ XAMP_ALWAYS_INLINE AudioFormat::AudioFormat(DataFormat format,
     uint16_t number_of_channels,
     ByteFormat byte_format,
     uint32_t sample_rate,
-    PackedFormat interleaved_format) noexcept
-    : format_(format)
+    PackedFormat interleaved_format) : format_(format)
     , byte_format_(ByteFormat::INVALID_FORMAT)
     , packed_format_(interleaved_format)
     , num_channels_(number_of_channels)
@@ -178,8 +177,7 @@ XAMP_ALWAYS_INLINE AudioFormat::AudioFormat(DataFormat format,
 XAMP_ALWAYS_INLINE AudioFormat::AudioFormat(DataFormat format,
     uint16_t number_of_channels,
     uint32_t bits_per_sample,
-    uint32_t sample_rate) noexcept
-    : format_(format)
+    uint32_t sample_rate) : format_(format)
     , byte_format_(ByteFormat::INVALID_FORMAT)
     , packed_format_(PackedFormat::INTERLEAVED)
     , num_channels_(number_of_channels)
@@ -187,39 +185,39 @@ XAMP_ALWAYS_INLINE AudioFormat::AudioFormat(DataFormat format,
     SetBitPerSample(bits_per_sample);
 }
 
-XAMP_ALWAYS_INLINE DataFormat AudioFormat::GetFormat() const noexcept {
+XAMP_ALWAYS_INLINE DataFormat AudioFormat::GetFormat() const {
     return format_;
 }
 
-XAMP_ALWAYS_INLINE void AudioFormat::SetFormat(DataFormat format) noexcept {
+XAMP_ALWAYS_INLINE void AudioFormat::SetFormat(DataFormat format) {
     format_ = format;
 }
 
-XAMP_ALWAYS_INLINE uint16_t AudioFormat::GetChannels() const noexcept {
+XAMP_ALWAYS_INLINE uint16_t AudioFormat::GetChannels() const {
     return num_channels_;
 }
 
-XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetBitsPerSample() const noexcept {
+XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetBitsPerSample() const {
     return bits_per_sample_;
 }
 
-XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetBytesPerSample() const noexcept {
+XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetBytesPerSample() const {
     return bits_per_sample_ / 8;
 }
 
-XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetSampleSize() const noexcept {
+XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetSampleSize() const {
     return GetBytesPerSample() * GetChannels();
 }
 
-XAMP_ALWAYS_INLINE void AudioFormat::SetSampleRate(uint32_t sample_rate) noexcept {
+XAMP_ALWAYS_INLINE void AudioFormat::SetSampleRate(uint32_t sample_rate) {
     sample_rate_ = sample_rate;
 }
 
-XAMP_ALWAYS_INLINE void AudioFormat::SetChannel(uint16_t num_channels) noexcept {
+XAMP_ALWAYS_INLINE void AudioFormat::SetChannel(uint16_t num_channels) {
     num_channels_ = num_channels;
 }
 
-XAMP_ALWAYS_INLINE void AudioFormat::SetBitPerSample(uint32_t bits_per_sample) noexcept {
+XAMP_ALWAYS_INLINE void AudioFormat::SetBitPerSample(uint32_t bits_per_sample) {
     switch (bits_per_sample) {
     case 8:
         SetByteFormat(ByteFormat::SINT8);
@@ -239,31 +237,31 @@ XAMP_ALWAYS_INLINE void AudioFormat::SetBitPerSample(uint32_t bits_per_sample) n
     }
 }
 
-XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetSampleRate() const noexcept {
+XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetSampleRate() const {
     return sample_rate_;
 }
 
-XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetAvgBytesPerSec() const noexcept {
+XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetAvgBytesPerSec() const {
     return GetSampleRate() * GetBlockAlign();
 }
 
-XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetAvgFramesPerSec() const noexcept {
+XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetAvgFramesPerSec() const {
     return GetSampleRate() * GetChannels();
 }
 
-XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetBlockAlign() const noexcept {
+XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetBlockAlign() const {
     return GetBytesPerSample() * GetChannels();
 }
 
-XAMP_ALWAYS_INLINE ByteFormat AudioFormat::GetByteFormat() const noexcept {
+XAMP_ALWAYS_INLINE ByteFormat AudioFormat::GetByteFormat() const {
     return byte_format_;
 }
 
-XAMP_ALWAYS_INLINE uint64_t AudioFormat::GetSecondsSize(double sec) const noexcept {
+XAMP_ALWAYS_INLINE uint64_t AudioFormat::GetSecondsSize(double sec) const {
     return static_cast<uint64_t>(GetSampleRate() * GetBytesPerSample() * GetChannels() * sec);
 }
 
-XAMP_ALWAYS_INLINE void AudioFormat::SetByteFormat(ByteFormat format) noexcept {
+XAMP_ALWAYS_INLINE void AudioFormat::SetByteFormat(ByteFormat format) {
     switch (format) {
     case ByteFormat::FLOAT64:
         bits_per_sample_ = 64;
@@ -294,11 +292,11 @@ XAMP_ALWAYS_INLINE void AudioFormat::SetByteFormat(ByteFormat format) noexcept {
     }
 }
 
-XAMP_ALWAYS_INLINE void AudioFormat::SetPackedFormat(PackedFormat format) noexcept {
+XAMP_ALWAYS_INLINE void AudioFormat::SetPackedFormat(PackedFormat format) {
     packed_format_ = format;
 }
 
-XAMP_ALWAYS_INLINE PackedFormat AudioFormat::GetPackedFormat() const noexcept {
+XAMP_ALWAYS_INLINE PackedFormat AudioFormat::GetPackedFormat() const {
     return packed_format_;
 }
 
@@ -308,20 +306,20 @@ XAMP_ALWAYS_INLINE std::ostream& operator<<(std::ostream& ostr, AudioFormat cons
     return ostr;
 }
 
-XAMP_ALWAYS_INLINE bool operator>(const AudioFormat& format, const AudioFormat& other) noexcept {
+XAMP_ALWAYS_INLINE bool operator>(const AudioFormat& format, const AudioFormat& other) {
     return format.GetBitsPerSample() > other.GetBitsPerSample()
         && format.GetSampleRate() > other.GetSampleRate();
 }
 
-XAMP_ALWAYS_INLINE bool operator!=(AudioFormat const & format, AudioFormat const & other) noexcept {
+XAMP_ALWAYS_INLINE bool operator!=(AudioFormat const & format, AudioFormat const & other) {
     return format.GetHash() != other.GetHash();
 }
 
-XAMP_ALWAYS_INLINE bool operator==(AudioFormat const & format, AudioFormat const & other) noexcept {
+XAMP_ALWAYS_INLINE bool operator==(AudioFormat const & format, AudioFormat const & other) {
     return format.GetHash() == other.GetHash();
 }
 
-XAMP_ALWAYS_INLINE void AudioFormat::Reset() noexcept {
+XAMP_ALWAYS_INLINE void AudioFormat::Reset() {
     *this = kUnknownFormat;
 }
 
@@ -329,7 +327,7 @@ XAMP_BASE_NAMESPACE_END
 
 template <>
 struct std::hash<xamp::base::AudioFormat> {
-    size_t operator()(xamp::base::AudioFormat const& f) const noexcept {
+    size_t operator()(xamp::base::AudioFormat const& f) const {
         return f.GetHash();
     }
 };

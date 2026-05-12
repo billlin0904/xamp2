@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -95,14 +95,14 @@ public:
 	*
 	* @param type: device type
 	*/
-	[[nodiscard]] virtual bool IsSharedDevice(const Uuid& type) const noexcept = 0;
+	[[nodiscard]] virtual bool IsSharedDevice(const Uuid& type) const = 0;
 
 	/*
 	* Is ASIO device
 	*
 	* @param type: device type
 	*/
-	[[nodiscard]] virtual bool IsASIODevice(const Uuid& type) const noexcept = 0;
+	[[nodiscard]] virtual bool IsASIODevice(const Uuid& type) const = 0;
 protected:
 	/*
 	* Constructor.

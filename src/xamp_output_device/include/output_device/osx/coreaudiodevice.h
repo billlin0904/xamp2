@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2019 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -31,11 +31,11 @@ public:
 
     void OpenStream(AudioFormat const &output_format) override;
 
-    void SetAudioCallback(IAudioCallback *callback) noexcept override;
+    void SetAudioCallback(IAudioCallback *callback) override;
 
-    bool IsStreamOpen() const noexcept override;
+    bool IsStreamOpen() const override;
 
-    bool IsStreamRunning() const noexcept override;
+    bool IsStreamRunning() const override;
 
     void StopStream(bool wait_for_stop_stream = true) override;
 
@@ -43,9 +43,9 @@ public:
 
     void StartStream() override;
 
-    void SetStreamTime(double stream_time) noexcept override;
+    void SetStreamTime(double stream_time) override;
 
-    double GetStreamTime() const noexcept override;
+    double GetStreamTime() const override;
 
     uint32_t GetVolume() const override;
 
@@ -55,13 +55,13 @@ public:
 
     bool IsMuted() const override;
 
-    PackedFormat GetPackedFormat() const noexcept override;
+    PackedFormat GetPackedFormat() const override;
 
-    uint32_t GetBufferSize() const noexcept override;
+    uint32_t GetBufferSize() const override;
 
     bool IsHardwareControlVolume() const override;
 
-    void AbortStream() noexcept override;
+    void AbortStream() override;
 
     void SetVolumeLevelScalar(float level) override;
 

@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -55,7 +55,7 @@ XAMP_WIDGET_SHARED_EXPORT QSharedPointer<XProgressDialog> makeProgressDialog(QSt
     QString const& cancel,
     QWidget* parent = nullptr);
 
-XAMP_WIDGET_SHARED_EXPORT PlayerOrder getNextOrder(PlayerOrder cur) noexcept;
+XAMP_WIDGET_SHARED_EXPORT PlayerOrder getNextOrder(PlayerOrder cur) ;
 
 XAMP_WIDGET_SHARED_EXPORT ScopedPtr<IAudioProcessor> makeR8BrainSampleRateConverter();
 

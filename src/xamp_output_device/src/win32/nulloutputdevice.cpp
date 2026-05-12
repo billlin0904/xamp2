@@ -1,4 +1,4 @@
-#include <output_device/win32/nulloutputdevice.h>
+﻿#include <output_device/win32/nulloutputdevice.h>
 
 #include <base/executor.h>
 #include <base/ithreadpoolexecutor.h>
@@ -29,11 +29,11 @@ NullOutputDevice::NullOutputDevice(const std::shared_ptr<IThreadPoolExecutor>& t
 
 NullOutputDevice::~NullOutputDevice() = default;
 
-bool NullOutputDevice::IsStreamOpen() const noexcept {
+bool NullOutputDevice::IsStreamOpen() const {
 	return true;
 }
 
-void NullOutputDevice::SetAudioCallback(IAudioCallback* callback) noexcept {
+void NullOutputDevice::SetAudioCallback(IAudioCallback* callback) {
 	callback_ = callback;
 }
 
@@ -90,11 +90,11 @@ void NullOutputDevice::SetMute(bool mute) const {
 	is_muted_ = mute;
 }
 
-PackedFormat NullOutputDevice::GetPackedFormat() const noexcept {
+PackedFormat NullOutputDevice::GetPackedFormat() const {
 	return PackedFormat::INTERLEAVED;
 }
 
-uint32_t NullOutputDevice::GetBufferSize() const noexcept {
+uint32_t NullOutputDevice::GetBufferSize() const {
 	return buffer_frames_ * AudioFormat::kMaxChannel;
 }
 
@@ -102,12 +102,12 @@ void NullOutputDevice::SetVolume(uint32_t volume) const {
 	volume_ = std::clamp(volume, static_cast<uint32_t>(0), static_cast<uint32_t>(100));
 }
 
-void NullOutputDevice::SetStreamTime(double stream_time) noexcept {
+void NullOutputDevice::SetStreamTime(double stream_time) {
 	stream_time_ = static_cast<int64_t>(stream_time 
 		* static_cast<double>(output_format_.GetSampleRate()));
 }
 
-double NullOutputDevice::GetStreamTime() const noexcept {
+double NullOutputDevice::GetStreamTime() const {
 	return stream_time_ / static_cast<double>(output_format_.GetSampleRate());
 }
 
@@ -147,11 +147,11 @@ void NullOutputDevice::StartStream() {
 		}, ExecuteFlags::EXECUTE_LONG_RUNNING);
 }
 
-bool NullOutputDevice::IsStreamRunning() const noexcept {
+bool NullOutputDevice::IsStreamRunning() const {
 	return is_running_;
 }
 
-void NullOutputDevice::AbortStream() noexcept {
+void NullOutputDevice::AbortStream() {
 	is_running_ = false;
 }
 

@@ -1,4 +1,4 @@
-#include <stream/srcresampler.h>
+﻿#include <stream/srcresampler.h>
 
 #include <base/dll.h>
 #include <base/logger.h>
@@ -105,11 +105,11 @@ private:
 	}
 
 	struct SrcStateHandleTraits final {
-		static SRC_STATE* invalid() noexcept {
+		static SRC_STATE* invalid() {
 			return nullptr;
 		}
 
-		static void Close(SRC_STATE* value) noexcept {
+		static void Close(SRC_STATE* value) {
 			LibSrcDLL.src_delete(value);
 		}
 	};

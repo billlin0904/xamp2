@@ -33,11 +33,11 @@ public:
 
 	XAMP_DISABLE_COPY(Buffer)
 
-    Buffer(Buffer<T>&& other) noexcept {
+    Buffer(Buffer<T>&& other) {
         *this = std::move(other);
     }
 
-    Buffer<T>& operator=(Buffer<T>&& other) noexcept {
+    Buffer<T>& operator=(Buffer<T>&& other) {
         if (this != &other) {
             ptr_ = std::move(other.ptr_);
             lock_ = std::move(other.lock_);
@@ -47,27 +47,27 @@ public:
         return *this;
     }
 
-    [[nodiscard]] T* Get() noexcept XAMP_CHECK_LIFETIME {
+    [[nodiscard]] T* Get() XAMP_CHECK_LIFETIME {
         return ptr_.get();
     }
 
-    [[nodiscard]] const T* Get() const noexcept XAMP_CHECK_LIFETIME {
+    [[nodiscard]] const T* Get() const XAMP_CHECK_LIFETIME {
         return ptr_.get();
     }
 
-    [[nodiscard]] const T* data() const noexcept XAMP_CHECK_LIFETIME {
+    [[nodiscard]] const T* data() const XAMP_CHECK_LIFETIME {
         return ptr_.get();
     }
 
-    [[nodiscard]] size_t GetSize() const noexcept {
+    [[nodiscard]] size_t GetSize() const {
         return size_;
     }
 
-    [[nodiscard]] size_t GetByteSize() const noexcept {
+    [[nodiscard]] size_t GetByteSize() const {
         return size_ * sizeof(T);
     }
 
-    [[nodiscard]] std::string GetByteSizeString() const noexcept {
+    [[nodiscard]] std::string GetByteSizeString() const {
         return String::FormatBytesBy<T>(GetByteSize());
     }
 
@@ -77,23 +77,23 @@ public:
 
     // 兼容STL容器相關函數.
 
-    [[nodiscard]] T* data() noexcept XAMP_CHECK_LIFETIME {
+    [[nodiscard]] T* data() XAMP_CHECK_LIFETIME {
         return ptr_.get();
     }
 
-    [[nodiscard]] T* get() noexcept XAMP_CHECK_LIFETIME {
+    [[nodiscard]] T* get() XAMP_CHECK_LIFETIME {
         return ptr_.get();
     }
 
-    [[nodiscard]] T& operator[](size_t i) noexcept XAMP_CHECK_LIFETIME {
+    [[nodiscard]] T& operator[](size_t i) XAMP_CHECK_LIFETIME {
         return ptr_[i]; 
     }
 
-    [[nodiscard]] const T& operator[](size_t i) const noexcept XAMP_CHECK_LIFETIME {
+    [[nodiscard]] const T& operator[](size_t i) const XAMP_CHECK_LIFETIME {
         return ptr_[i]; 
     }
 
-    [[nodiscard]] size_t size() const noexcept {
+    [[nodiscard]] size_t size() const {
         return size_;
     }
 
@@ -166,7 +166,7 @@ struct XAMP_BASE_API_ONLY_EXPORT BufferRef {
         }
     }
 
-    void maybe_resize(size_t size) noexcept {
+    void maybe_resize(size_t size) {
         if (size > ref_.size()) {
             ref_.resize(size);
             buffer_ = ref_.get();
@@ -174,11 +174,11 @@ struct XAMP_BASE_API_ONLY_EXPORT BufferRef {
         size_ = size;
     }
 
-    [[nodiscard]] reference operator[](size_type pos) noexcept XAMP_CHECK_LIFETIME {
+    [[nodiscard]] reference operator[](size_type pos) XAMP_CHECK_LIFETIME {
         return buffer_[pos];
     }
 
-    [[nodiscard]] const_reference operator[](size_type pos) const noexcept XAMP_CHECK_LIFETIME {
+    [[nodiscard]] const_reference operator[](size_type pos) const XAMP_CHECK_LIFETIME {
         return buffer_[pos];
     }
 
@@ -197,47 +197,47 @@ struct XAMP_BASE_API_ONLY_EXPORT BufferRef {
     }
 
     // Iterators
-    iterator begin() noexcept {
+    iterator begin() {
 	    return buffer_;
     }
 
-    const_iterator begin() const noexcept {
+    const_iterator begin() const {
 	    return buffer_;
     }
 
-    const_iterator cbegin() const noexcept {
+    const_iterator cbegin() const {
 	    return buffer_;
     }
 
-    iterator end() noexcept {
+    iterator end() {
 	    return buffer_ + size_;
     }
 
-    const_iterator end() const noexcept {
+    const_iterator end() const {
 	    return buffer_ + size_;
     }
 
-    const_iterator cend() const noexcept {
+    const_iterator cend() const {
         return buffer_ + size_;
     }
 
-    [[nodiscard]] bool empty() const noexcept {
+    [[nodiscard]] bool empty() const {
         return size_ == 0;
     }
 
-    [[nodiscard]] pointer data() noexcept XAMP_CHECK_LIFETIME {
+    [[nodiscard]] pointer data() XAMP_CHECK_LIFETIME {
         return buffer_;
     }
 
-    [[nodiscard]] const_pointer data() const noexcept XAMP_CHECK_LIFETIME {
+    [[nodiscard]] const_pointer data() const XAMP_CHECK_LIFETIME {
         return buffer_;
     }
 
-    [[nodiscard]] size_t size() const noexcept {
+    [[nodiscard]] size_t size() const {
         return size_;
     }
 
-    [[nodiscard]] size_t GetByteSize() const noexcept {
+    [[nodiscard]] size_t GetByteSize() const {
         return size_ * sizeof(T);
     }
 

@@ -1,4 +1,4 @@
-#include <base/fastiostream.h>
+﻿#include <base/fastiostream.h>
 #include <base/platform.h>
 
 #include <base/logger.h>
@@ -27,7 +27,7 @@ CTemporaryFile::~CTemporaryFile() {
 	Close();
 }
 
-bool CTemporaryFile::Seek(uint64_t off, int32_t origin) noexcept {
+bool CTemporaryFile::Seek(uint64_t off, int32_t origin) {
 #ifdef XAMP_OS_WIN
 	return _fseeki64(file(), static_cast<uint64_t>(off), origin) == 0;
 #else
@@ -35,7 +35,7 @@ bool CTemporaryFile::Seek(uint64_t off, int32_t origin) noexcept {
 #endif
 }
 
-uint64_t CTemporaryFile::Tell() noexcept {
+uint64_t CTemporaryFile::Tell() {
 #ifdef XAMP_OS_WIN
 	return static_cast<uint64_t>(_ftelli64(file()));
 #else
@@ -43,7 +43,7 @@ uint64_t CTemporaryFile::Tell() noexcept {
 #endif
 }
 
-void CTemporaryFile::Close() noexcept {
+void CTemporaryFile::Close() {
 	if (!file_) {
 		return;
 	}
@@ -92,7 +92,7 @@ public:
 		}
 	}
 
-	size_t Write(const void* buffer, size_t size, size_t count) noexcept {
+	size_t Write(const void* buffer, size_t size, size_t count) {
 		if (!handle_.is_valid())
 			return 0;
 
@@ -112,7 +112,7 @@ public:
 		return bytes / size;
 	}
 
-	size_t Read(void* buffer, size_t size, size_t count) noexcept {
+	size_t Read(void* buffer, size_t size, size_t count) {
 		if (!handle_.is_valid())
 			return 0;
 
@@ -132,7 +132,7 @@ public:
 		return bytes / size;
 	}
 
-	bool Seek(uint64_t off, int origin) noexcept {
+	bool Seek(uint64_t off, int origin) {
 		switch (origin) {
 		case SEEK_SET: pos_ = off;                 break;
 		case SEEK_CUR: pos_ += off;                 break;
@@ -146,11 +146,11 @@ public:
 		return true;
 	}
 
-	uint64_t Tell() const noexcept {
+	uint64_t Tell() const {
 		return pos_;
 	}
 
-	void Close() noexcept {
+	void Close() {
 		auto res = handle_.close();
 	}
 
@@ -165,23 +165,23 @@ TemporaryFile::TemporaryFile()
 
 XAMP_PIMPL_IMPL(TemporaryFile)
 
-size_t TemporaryFile::Read(void* buffer, size_t size, size_t count) noexcept {
+size_t TemporaryFile::Read(void* buffer, size_t size, size_t count) {
 	return impl_->Read(buffer, size, count);
 }
 
-size_t TemporaryFile::Write(const void* buffer, size_t size, size_t count) noexcept {
+size_t TemporaryFile::Write(const void* buffer, size_t size, size_t count) {
 	return impl_->Write(buffer, size, count);
 }
 
-bool TemporaryFile::Seek(uint64_t off, int32_t origin) noexcept {
+bool TemporaryFile::Seek(uint64_t off, int32_t origin) {
 	return impl_->Seek(off, origin);
 }
 
-uint64_t TemporaryFile::Tell() noexcept {
+uint64_t TemporaryFile::Tell() {
 	return impl_->Tell();
 }
 
-void TemporaryFile::Close() noexcept {
+void TemporaryFile::Close() {
 	return impl_->Close();
 }
 

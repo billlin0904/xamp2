@@ -1,4 +1,4 @@
-#include <base/uuid.h>
+﻿#include <base/uuid.h>
 
 #include <iomanip>
 #include <sstream>
@@ -7,7 +7,7 @@
 XAMP_BASE_NAMESPACE_BEGIN
 
 namespace {
-    bool TryParseHex(const char a, const char b, uint8_t& data) noexcept {
+    bool TryParseHex(const char a, const char b, uint8_t& data) {
         const char buffer[] = { a, b, '\0' };
         uint32_t result = 0;
         auto [_, ec] = std::from_chars(std::cbegin(buffer), std::cend(buffer), result, 16);
@@ -18,7 +18,7 @@ namespace {
         return true;
     }
 
-    bool TryParseUuid(std::string_view const& hex_string, UuidBuffer& result) noexcept {
+    bool TryParseUuid(std::string_view const& hex_string, UuidBuffer& result) {
         if (hex_string.length() != kMaxUuidHexStringLength) {
             return false;
         }
@@ -83,26 +83,24 @@ std::ostream &operator<<(std::ostream &s, Uuid const &id) {
 
 Uuid const Uuid::kNullUuid;
 
-Uuid::Uuid() noexcept = default;
+Uuid::Uuid() = default;
 
-Uuid::Uuid(const Uuid& other) noexcept
-	: Uuid() {
+Uuid::Uuid(const Uuid& other) : Uuid() {
     *this = other;
 }
 
-Uuid& Uuid::operator=(const Uuid& other) noexcept {
+Uuid& Uuid::operator=(const Uuid& other) {
     if (this != &other) {
         bytes_ = other.bytes_;
     }
     return *this;
 }
 
-Uuid::Uuid(Uuid&& other) noexcept
-	: Uuid() {
+Uuid::Uuid(Uuid&& other) : Uuid() {
     *this = std::move(other);
 }
 
-Uuid& Uuid::operator=(Uuid&& other) noexcept {
+Uuid& Uuid::operator=(Uuid&& other) {
     if (this != &other) {
         bytes_ = other.bytes_;
         other.bytes_.fill(0);
@@ -110,7 +108,7 @@ Uuid& Uuid::operator=(Uuid&& other) noexcept {
     return *this;
 }
 
-Uuid::Uuid(const uint8_t(&byte_array)[kMaxUuidSize]) noexcept {
+Uuid::Uuid(const uint8_t(&byte_array)[kMaxUuidSize]) {
     std::copy(std::cbegin(byte_array),
         std::cend(byte_array),
         std::begin(bytes_));

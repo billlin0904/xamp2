@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <system_error>
 #include <type_traits>
@@ -20,9 +20,9 @@ namespace std {
 	};
 }
 
-XAMP_BASE_API std::error_code make_error_code(com_error_enum e) noexcept;
+XAMP_BASE_API std::error_code make_error_code(com_error_enum e) ;
 
-XAMP_BASE_API const std::error_category& com_category() noexcept;
+XAMP_BASE_API const std::error_category& com_category() ;
 
 class XAMP_BASE_API com_error_category : public std::error_category {
 public:

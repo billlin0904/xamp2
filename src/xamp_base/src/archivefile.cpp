@@ -1,4 +1,4 @@
-#include <archive.h>
+﻿#include <archive.h>
 #include <archive_entry.h>
 
 #include <base/unique_handle.h>
@@ -25,7 +25,7 @@ namespace {
 		return msg;
 	}
 
-	bool IsRegularFile(archive_entry* e) noexcept {
+	bool IsRegularFile(archive_entry* e) {
 		return (LIBARCHIVE_LIB.archive_entry_filetype(e) == AE_IFREG);
 	}
 
@@ -41,7 +41,7 @@ namespace {
 	}
 }
 
-archive* ArchivePtrDeleter::invalid() noexcept {
+archive* ArchivePtrDeleter::invalid() {
 	return nullptr;
 }
 

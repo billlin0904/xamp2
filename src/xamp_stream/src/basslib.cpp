@@ -1,4 +1,4 @@
-#include <stream/basslib.h>
+﻿#include <stream/basslib.h>
 
 #include <base/logger_impl.h>
 #include <base/str_utilts.h>
@@ -10,22 +10,22 @@ XAMP_STREAM_NAMESPACE_BEGIN
 XAMP_DECLARE_LOG_NAME(BASS);
 
 template <typename T>
-constexpr uint8_t HiByte(T val) noexcept {
+constexpr uint8_t HiByte(T val) {
     return static_cast<uint8_t>(val >> 8);
 }
 
 template <typename T>
-constexpr uint8_t LowByte(T val) noexcept {
+constexpr uint8_t LowByte(T val) {
     return static_cast<uint8_t>(val);
 }
 
 template <typename T>
-constexpr uint16_t HiWord(T val) noexcept {
+constexpr uint16_t HiWord(T val) {
     return static_cast<uint16_t>((static_cast<uint32_t>(val) >> 16) & 0xFFFF);
 }
 
 template <typename T>
-constexpr uint16_t LoWord(T val) noexcept {
+constexpr uint16_t LoWord(T val) {
     return static_cast<uint16_t>(static_cast<uint32_t>(val) & 0xFFFF);
 }
 
@@ -213,7 +213,7 @@ std::string BassLib::GetName() const {
     return GetSharedLibraryName("bass");
 }
 
-HPLUGIN BassPluginLoadDeleter::invalid() noexcept {
+HPLUGIN BassPluginLoadDeleter::invalid() {
     return 0;
 }
 
@@ -221,7 +221,7 @@ HPLUGIN BassPluginLoadDeleter::invalid() noexcept {
      BassLibDLL.BASS_PluginFree(value);
 }
 
-HSTREAM BassStreamDeleter::invalid() noexcept {
+HSTREAM BassStreamDeleter::invalid() {
     return 0;
 }
 

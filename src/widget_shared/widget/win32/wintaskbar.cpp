@@ -1,4 +1,4 @@
-#include <QTimer>
+ï»¿#include <QTimer>
 #include <QPainter>
 
 #include <widget/win32/wintaskbar.h>
@@ -41,7 +41,7 @@ Q_GUI_EXPORT HBITMAP qt_pixmapToWinHBITMAP(const QPixmap& p, int hbitmapFormat =
 
 namespace {
 	struct GdiDeleter final {
-		static HBITMAP invalid() noexcept {
+		static HBITMAP invalid() {
 			return nullptr;
 		}
 
@@ -53,7 +53,7 @@ namespace {
 	using GdiHandle = UniqueHandle<HBITMAP, GdiDeleter>;
 
 	struct HIconDeleter final {
-		static HICON invalid() noexcept {
+		static HICON invalid() {
 			return nullptr;
 		}
 
@@ -123,7 +123,7 @@ namespace {
 		HBITMAP hbmp = CreateDIBSection(nullptr, &bmi, DIB_RGB_COLORS, &bits, nullptr, 0);
 		if (!hbmp || !bits) return GdiHandle();
 
-		// QImage::Format_ARGB32_Premultiplied ¦b little-endian ¤U´N¬O BGRA °O¾ĞÅé±Æ¦C¡]DWM ¥i¦Y¡^
+		// QImage::Format_ARGB32_Premultiplied åœ¨ little-endian ä¸‹å°±æ˜¯ BGRA è¨˜æ†¶é«”æ’åˆ—ï¼ˆDWM å¯åƒï¼‰
 		const int bytes = img.bytesPerLine() * img.height();
 		memcpy(bits, img.bits(), bytes);
 		return GdiHandle(hbmp);

@@ -1,4 +1,4 @@
-#include <base/memory_mapped_file.h>
+﻿#include <base/memory_mapped_file.h>
 
 #include <base/base.h>
 #include <base/platfrom_handle.h>
@@ -34,16 +34,16 @@ public:
         return false;
     }
 
-    ~MemoryMappedFileImpl() noexcept {
+    ~MemoryMappedFileImpl() {
         Close();
     }
 
-    void Close() noexcept {
+    void Close() {
         address_.reset();
         file_.reset();
     }
 
-    [[nodiscard]] void const * GetData() const noexcept {
+    [[nodiscard]] void const * GetData() const {
         return address_.get();
     }
 
@@ -95,11 +95,11 @@ public:
         }
     }
 
-    ~MemoryMappedFileImpl() noexcept {
+    ~MemoryMappedFileImpl() {
         Close();
     }
 
-    void Close() noexcept {
+    void Close() {
         if (!mem_) {
             return;
         }
@@ -108,7 +108,7 @@ public:
         file_.close();
     }
 
-    void const * GetData() const noexcept {
+    void const * GetData() const {
         return mem_;
     }
 
@@ -134,7 +134,7 @@ bool MemoryMappedFile::Open(std::wstring const &file_path, bool is_module) {
     return impl_->Open(file_path, is_module);
 }
 
-void const * MemoryMappedFile::GetData() const noexcept {
+void const * MemoryMappedFile::GetData() const {
     return impl_->GetData();
 }
 
@@ -142,7 +142,7 @@ size_t MemoryMappedFile::GetLength() const {
     return impl_->GetLength();
 }
 
-void MemoryMappedFile::Close() noexcept {
+void MemoryMappedFile::Close() {
     impl_->Close();
 }
 

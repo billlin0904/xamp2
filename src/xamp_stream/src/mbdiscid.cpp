@@ -1,4 +1,4 @@
-#include <base/platfrom_handle.h>
+﻿#include <base/platfrom_handle.h>
 #include <base/dll.h>
 #include <base/exception.h>
 #include <base/logger.h>
@@ -13,7 +13,7 @@
 XAMP_STREAM_NAMESPACE_BEGIN
 
 struct DiscIdDeleter final {
-	static DiscId* invalid() noexcept {
+	static DiscId* invalid() {
 		return nullptr;
 	}
 

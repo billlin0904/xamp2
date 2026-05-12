@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -20,33 +20,33 @@ public:
 	template <typename... Args>
 	explicit PimplPtr(Args&&...);
 
-	PimplPtr(PimplPtr<T>&& other) noexcept;
+	PimplPtr(PimplPtr<T>&& other) ;
 
-	PimplPtr<T>& operator=(PimplPtr<T>&& other) noexcept;
+	PimplPtr<T>& operator=(PimplPtr<T>&& other) ;
 
 	~PimplPtr();
 
-	T* operator->() noexcept {
+	T* operator->() {
 		return reinterpret_cast<T*>(buffer_.data());
 	}
 
-	XAMP_CHECK_LIFETIME [[nodiscard]] const T* operator->() const noexcept {
+	XAMP_CHECK_LIFETIME [[nodiscard]] const T* operator->() const {
 		return reinterpret_cast<const T*>(buffer_.data());
 	}
 
-	XAMP_CHECK_LIFETIME [[nodiscard]] T& operator*() noexcept {
+	XAMP_CHECK_LIFETIME [[nodiscard]] T& operator*() {
 		return *get();
 	}
 
-	XAMP_CHECK_LIFETIME [[nodiscard]] const T& operator*() const noexcept {
+	XAMP_CHECK_LIFETIME [[nodiscard]] const T& operator*() const {
 		return *get();
 	}
 
-	XAMP_CHECK_LIFETIME [[nodiscard]] T* get() noexcept {
+	XAMP_CHECK_LIFETIME [[nodiscard]] T* get() {
 		return reinterpret_cast<T*>(buffer_.data());
 	}
 
-	XAMP_CHECK_LIFETIME [[nodiscard]] const T* get() const noexcept {
+	XAMP_CHECK_LIFETIME [[nodiscard]] const T* get() const {
 		return reinterpret_cast<const T*>(buffer_.data());
 	}
 private:
@@ -78,12 +78,12 @@ PimplPtr<T>::~PimplPtr() {
 }
 
 template <typename T>
-PimplPtr<T>::PimplPtr(PimplPtr<T>&& other) noexcept {
+PimplPtr<T>::PimplPtr(PimplPtr<T>&& other) {
 	*this = std::move(other);
 }
 
 template <typename T>
-PimplPtr<T>& PimplPtr<T>::operator=(PimplPtr<T>&& other) noexcept {
+PimplPtr<T>& PimplPtr<T>::operator=(PimplPtr<T>&& other) {
 	if (this != &other) {
 		other.is_moved_ = true;
 		buffer_ = std::move(other.buffer_);

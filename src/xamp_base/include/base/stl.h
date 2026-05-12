@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -56,7 +56,7 @@ using std::bind_front;
 #endif
 
 template <typename T, size_t N>
-constexpr size_t CountOf(T const (&)[N]) noexcept {
+constexpr size_t CountOf(T const (&)[N]) {
 	return N;
 }
 

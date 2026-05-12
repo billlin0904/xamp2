@@ -1,4 +1,4 @@
-#include <base/base.h>
+﻿#include <base/base.h>
 
 #include <output_device/win32/nulloutputdevicetype.h>
 #include <output_device/win32/nulloutputdevice.h>
@@ -13,7 +13,7 @@ public:
 	static constexpr std::wstring_view kDescription = L"Null Output Device";
 	static constexpr std::string_view kDeviceId = "16AE95CF-6173-41DA-859D-EFF9D45CC504";
 
-	NullOutputDeviceTypeImpl() noexcept;
+	NullOutputDeviceTypeImpl() ;
 
 	void ScanNewDevice();
 
@@ -31,7 +31,7 @@ private:
 	LoggerPtr logger_;
 };
 
-NullOutputDeviceType::NullOutputDeviceTypeImpl::NullOutputDeviceTypeImpl() noexcept {
+NullOutputDeviceType::NullOutputDeviceTypeImpl::NullOutputDeviceTypeImpl() {
 	logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(NullOutputDeviceType));
 }
 
@@ -66,8 +66,7 @@ std::optional<DeviceInfo> NullOutputDeviceType::NullOutputDeviceTypeImpl::GetDef
 	return MakeOptional<DeviceInfo>(std::move(info));
 }
 
-NullOutputDeviceType::NullOutputDeviceType() noexcept
-	: impl_(MakeAlign<NullOutputDeviceTypeImpl>()) {
+NullOutputDeviceType::NullOutputDeviceType() : impl_(MakeAlign<NullOutputDeviceTypeImpl>()) {
 }
 
 void NullOutputDeviceType::ScanNewDevice() {

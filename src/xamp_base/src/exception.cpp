@@ -1,4 +1,4 @@
-#include <base/exception.h>
+﻿#include <base/exception.h>
 
 #include <base/base.h>
 #include <base/platfrom_handle.h>
@@ -66,7 +66,7 @@ Exception::Exception(Errors error, const std::string& message, std::string_view 
 	}    
 }
 
-char const* Exception::GetStackTrace() const noexcept {
+char const* Exception::GetStackTrace() const {
     return stacktrace_.c_str();
 }
 
@@ -74,15 +74,15 @@ char const * Exception::what() const noexcept {
     return what_.data();
 }
 
-Errors Exception::GetError() const noexcept {
+Errors Exception::GetError() const {
 	return error_;
 }
 
-char const * Exception::GetErrorMessage() const noexcept {
+char const * Exception::GetErrorMessage() const {
 	return message_.c_str();
 }
 
-char const * Exception::GetExpression() const noexcept {
+char const * Exception::GetExpression() const {
 	return "";
 }
 

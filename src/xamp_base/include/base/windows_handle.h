@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -28,45 +28,45 @@
 XAMP_BASE_NAMESPACE_BEGIN
 
 struct XAMP_BASE_API HandleTraits final {
-	static HANDLE invalid() noexcept;
+	static HANDLE invalid() ;
 
-	static void Close(HANDLE value) noexcept;
+	static void Close(HANDLE value) ;
 };
 
 struct XAMP_BASE_API FileHandleTraits final {
-	static HANDLE invalid() noexcept;
+	static HANDLE invalid() ;
 
-	static void Close(HANDLE value) noexcept;
+	static void Close(HANDLE value) ;
 };
 
 struct XAMP_BASE_API ModuleHandleTraits final {
-	static HMODULE invalid() noexcept;
+	static HMODULE invalid() ;
 
-	static void Close(HMODULE value) noexcept;
+	static void Close(HMODULE value) ;
 };
 
 struct XAMP_BASE_API MappingFileHandleTraits final {
-	static HANDLE invalid() noexcept;
+	static HANDLE invalid() ;
 
-	static void Close(HANDLE value) noexcept;
+	static void Close(HANDLE value) ;
 };
 
 struct XAMP_BASE_API MappingMemoryAddressTraits final {
-	static void* invalid() noexcept;
+	static void* invalid() ;
 
-	static void Close(void* value) noexcept;
+	static void Close(void* value) ;
 };
 
 struct XAMP_BASE_API TimerQueueTraits final {
-	static HANDLE invalid() noexcept;
+	static HANDLE invalid() ;
 
-	static void Close(HANDLE value) noexcept;
+	static void Close(HANDLE value) ;
 };
 
 struct XAMP_BASE_API RegTraits final {
-	static HKEY invalid() noexcept;
+	static HKEY invalid() ;
 
-	static void Close(HKEY value) noexcept;
+	static void Close(HKEY value) ;
 };
 
 using WinHandle = UniqueHandle<HANDLE, HandleTraits>;

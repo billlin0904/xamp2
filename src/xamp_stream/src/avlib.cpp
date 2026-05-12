@@ -1,4 +1,4 @@
-#include <set>
+﻿#include <set>
 #include <stream/avlib.h>
 
 #include <base/logger.h>
@@ -22,7 +22,7 @@ char const* AvException::what() const noexcept {
 	return message_.c_str();
 }
 
-int32_t AvException::GetErrorCode() const noexcept {
+int32_t AvException::GetErrorCode() const {
 	return error_code_;
 }
 

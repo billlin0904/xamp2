@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -23,23 +23,22 @@ public:
     using state_type = uint64_t;
     using result_type = uint64_t;
 
-    explicit Sfc64Engine(uint64_t init_seed = 0xcafef00dbeef5eedULL) noexcept
-		: a_(0)
+    explicit Sfc64Engine(uint64_t init_seed = 0xcafef00dbeef5eedULL) : a_(0)
 		, b_(0)
 		, c_(0)
 		, inc_(0) {
 	    seed(init_seed);
     }
 
-    Sfc64Engine(uint64_t seed1, uint64_t seed2, uint64_t seed3, int32_t warmup_round = 12) noexcept {
+    Sfc64Engine(uint64_t seed1, uint64_t seed2, uint64_t seed3, int32_t warmup_round = 12) {
         seed(seed1, seed2, seed3, warmup_round);
     }
 
-    void seed(uint64_t init_seed) noexcept {
+    void seed(uint64_t init_seed) {
         seed(init_seed, init_seed, init_seed);
     }
 
-    void seed(uint64_t seed1, uint64_t seed2, uint64_t seed3, int32_t warmup_round = 12) noexcept {
+    void seed(uint64_t seed1, uint64_t seed2, uint64_t seed3, int32_t warmup_round = 12) {
         c_ = seed3;
         b_ = seed2;
         a_ = seed1;
@@ -49,7 +48,7 @@ public:
             operator()();
     }
 
-    result_type operator()() noexcept {
+    result_type operator()() {
         auto const tmp = a_ + b_ + inc_++;
         a_ = b_ ^ (b_ >> TRightShift);
         b_ = c_ + (c_ << TLeftShift);
@@ -57,21 +56,21 @@ public:
         return tmp;
     }
 
-    static constexpr result_type(min)() noexcept {
+    static constexpr result_type(min)() {
         return std::numeric_limits<result_type>::lowest();
     }
 
-    static constexpr result_type(max)() noexcept {
+    static constexpr result_type(max)() {
         return (std::numeric_limits<result_type>::max)();
     }
 
 private:
-    XAMP_BASE_API friend bool operator ==(const Sfc64Engine& lhs, const Sfc64Engine& rhs) noexcept {
+    XAMP_BASE_API friend bool operator ==(const Sfc64Engine& lhs, const Sfc64Engine& rhs) {
         return (lhs.a_ == rhs.a_) && (lhs.b_ == rhs.b_)
             && (lhs.c_ == rhs.c_) && (lhs.inc_ == rhs.inc_);
     }
 
-    XAMP_BASE_API friend bool operator !=(const Sfc64Engine& lhs, const Sfc64Engine& rhs) noexcept {
+    XAMP_BASE_API friend bool operator !=(const Sfc64Engine& lhs, const Sfc64Engine& rhs) {
         return (lhs.a_ != rhs.a_)
         || (lhs.b_ != rhs.b_)
         || (lhs.c_ != rhs.c_)

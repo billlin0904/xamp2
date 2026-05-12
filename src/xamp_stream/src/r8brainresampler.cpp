@@ -1,4 +1,4 @@
-#include <stream/r8brainresampler.h>
+﻿#include <stream/r8brainresampler.h>
 
 #include <stream/r8brainlib.h>
 #include <r8bbase.h>
@@ -62,11 +62,11 @@ public:
 	}
 
 	struct CR8BResamplerHandleTraits final {
-		static CR8BResampler invalid() noexcept {
+		static CR8BResampler invalid() {
 			return nullptr;
 		}
 
-		static void Close(CR8BResampler value) noexcept {
+		static void Close(CR8BResampler value) {
 			LibR8brainDLL.r8b_clear(value);
 			LibR8brainDLL.r8b_delete(value);
 		}

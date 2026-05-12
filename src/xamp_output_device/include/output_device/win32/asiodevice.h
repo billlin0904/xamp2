@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -56,21 +56,21 @@ public:
 	*
 	* @param callback: audio callback
 	*/
-	void SetAudioCallback(IAudioCallback* callback) noexcept override;
+	void SetAudioCallback(IAudioCallback* callback) override;
 
 	/*
 	* Is stream open
 	*
 	* return bool
 	*/
-	bool IsStreamOpen() const noexcept override;
+	bool IsStreamOpen() const override;
 
 	/*
 	* Is stream running
 	*
 	* @return bool
 	*/
-	bool IsStreamRunning() const noexcept override;
+	bool IsStreamRunning() const override;
 
 	/*
 	* Stop stream
@@ -96,13 +96,13 @@ public:
 	*
 	* @param stream_time: stream time
 	*/
-	void SetStreamTime(double stream_time) noexcept override;
+	void SetStreamTime(double stream_time) override;
 
 	/*
 	* Get stream time
 	*
 	*/
-	double GetStreamTime() const noexcept override;
+	double GetStreamTime() const override;
 
 	/*
 	* Get volume
@@ -129,7 +129,7 @@ public:
 	*
 	* @return PackedFormat
 	*/
-	PackedFormat GetPackedFormat() const noexcept override;
+	PackedFormat GetPackedFormat() const override;
 
 	/*
 	* Set DSD IO format
@@ -150,14 +150,14 @@ public:
 	*
 	* @return PackedFormat
 	*/
-	DsdFormat GetSampleFormat() const noexcept;
+	DsdFormat GetSampleFormat() const ;
 
 	/*
 	* Get device buffer size
 	*
 	* @return uint32_t
 	*/
-	uint32_t GetBufferSize() const noexcept override;
+	uint32_t GetBufferSize() const override;
 
 	/*
 	* Is muted
@@ -178,7 +178,7 @@ public:
 	*
 	* @return void
 	*/
-	void AbortStream() noexcept override;
+	void AbortStream() override;
 
 	/*
 	* Reopen stream
@@ -216,7 +216,7 @@ private:
 	* @param[in] processNow: process now
 	* @return ASIOTime*
 	*/
-	static ASIOTime* OnBufferSwitchTimeInfoCallback(ASIOTime* timeInfo, long index, ASIOBool processNow) noexcept;
+	static ASIOTime* OnBufferSwitchTimeInfoCallback(ASIOTime* timeInfo, long index, ASIOBool processNow) ;
 
 	/*
 	* On buffer switch callback
@@ -264,7 +264,7 @@ private:
 	* @param[in] index: index
 	* @param[in] sample_time: sample time
 	*/
-	void GetSamples(long index, double sample_time) noexcept;
+	void GetSamples(long index, double sample_time) ;
 
 	/*
 	* Get device buffer size
@@ -276,7 +276,7 @@ private:
 	/*
 	* Fill silent data
 	*/
-	void FillSilentData() noexcept;
+	void FillSilentData() ;
 
 	/*
 	* Get PCM samples
@@ -286,12 +286,12 @@ private:
 	* @param[in] num_filled_frame: num filled frame
 	* @return bool
 	*/
-	bool GetPCMSamples(long index, double sample_time, size_t& num_filled_frame) noexcept;
+	bool GetPCMSamples(long index, double sample_time, size_t& num_filled_frame) ;
 
 	/*
 	* Get DSD samples
 	*/
-	bool GetDSDSamples(long index, double sample_time, size_t& num_filled_frame) noexcept;
+	bool GetDSDSamples(long index, double sample_time, size_t& num_filled_frame) ;
 
 	bool is_hardware_control_volume_;
 	bool is_removed_driver_;

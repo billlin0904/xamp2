@@ -1,62 +1,62 @@
-#include <base/windows_handle.h>
+﻿#include <base/windows_handle.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
 
 #ifdef XAMP_OS_WIN
 
-HANDLE HandleTraits::invalid() noexcept {
+HANDLE HandleTraits::invalid() {
 	return nullptr;
 }
 
-void HandleTraits::Close(HANDLE value) noexcept {
+void HandleTraits::Close(HANDLE value) {
 	::CloseHandle(value);
 }
 
-HANDLE FileHandleTraits::invalid() noexcept {
+HANDLE FileHandleTraits::invalid() {
 	return INVALID_HANDLE_VALUE;
 }
 
-void FileHandleTraits::Close(HANDLE value) noexcept {
+void FileHandleTraits::Close(HANDLE value) {
 	::CloseHandle(value);
 }
 
-HMODULE ModuleHandleTraits::invalid() noexcept {
+HMODULE ModuleHandleTraits::invalid() {
 	return nullptr;
 }
 
-void ModuleHandleTraits::Close(HMODULE value) noexcept {
+void ModuleHandleTraits::Close(HMODULE value) {
 	::FreeLibrary(value);
 }
 
-HANDLE MappingFileHandleTraits::invalid() noexcept {
+HANDLE MappingFileHandleTraits::invalid() {
 	return nullptr;
 }
 
-void MappingFileHandleTraits::Close(HANDLE value) noexcept {
+void MappingFileHandleTraits::Close(HANDLE value) {
 	::CloseHandle(value);
 }
 
-void* MappingMemoryAddressTraits::invalid() noexcept {
+void* MappingMemoryAddressTraits::invalid() {
 	return nullptr;
 }
 
-void MappingMemoryAddressTraits::Close(void* value) noexcept {
+void MappingMemoryAddressTraits::Close(void* value) {
 	::UnmapViewOfFile(value);
 }
 
-HANDLE TimerQueueTraits::invalid() noexcept {
+HANDLE TimerQueueTraits::invalid() {
 	return nullptr;
 }
 
-void TimerQueueTraits::Close(HANDLE value) noexcept {
+void TimerQueueTraits::Close(HANDLE value) {
 	(void) ::DeleteTimerQueueEx(value, INVALID_HANDLE_VALUE);
 }
 
-HKEY RegTraits::invalid() noexcept {
+HKEY RegTraits::invalid() {
 	return nullptr;
 }
 
-void RegTraits::Close(HKEY value) noexcept {
+void RegTraits::Close(HKEY value) {
 	::RegCloseKey(value);
 }
 

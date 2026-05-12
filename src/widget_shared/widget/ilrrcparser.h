@@ -43,7 +43,7 @@ public:
 
     virtual LyricEntry lineAt(int32_t index) const = 0;
 
-    virtual const LyricEntry& getLyrics(const std::chrono::milliseconds& time) const noexcept = 0;
+    virtual const LyricEntry& getLyrics(const std::chrono::milliseconds& time) const = 0;
 
     virtual std::vector<LyricEntry>::iterator end() = 0;
 

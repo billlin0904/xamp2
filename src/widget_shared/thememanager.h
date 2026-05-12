@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -41,9 +41,9 @@ public:
         return ui_font_;
     }
 
-    const QPixmap& unknownCover() noexcept;
+    const QPixmap& unknownCover() ;
 
-	const QPixmap& defaultSizeUnknownCover() noexcept;
+	const QPixmap& defaultSizeUnknownCover() ;
 
     QString countryFlagFilePath(const QString& country_iso_code);
     
@@ -57,11 +57,11 @@ public:
 
     void setBackgroundColor(QColor color);
 
-    const QSize& defaultCoverSize() const noexcept;
+    const QSize& defaultCoverSize() const ;
 
-    QSize cacheCoverSize() const noexcept;
+    QSize cacheCoverSize() const ;
 
-    QSize albumCoverSize() const noexcept;
+    QSize albumCoverSize() const ;
 
     QIcon playCircleIcon() const;
 
@@ -93,7 +93,7 @@ public:
 
     QString backgroundColorString() const;
 
-    QColor backgroundColor() const noexcept;
+    QColor backgroundColor() const ;
 
     QColor hoverColor() const;
 

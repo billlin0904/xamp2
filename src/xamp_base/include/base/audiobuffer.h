@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -27,7 +27,7 @@ public:
 	/*
 	* Constructor.
 	*/
-	AudioBuffer() noexcept;
+	AudioBuffer() ;
 
 	/*
 	* Constructor.
@@ -37,7 +37,7 @@ public:
 	/*
 	* Destructor.
 	*/
-	~AudioBuffer() noexcept;
+	~AudioBuffer() ;
 
 	XAMP_DISABLE_COPY_AND_MOVE(AudioBuffer)
 
@@ -46,13 +46,13 @@ public:
 	* 
 	* @return the buffer data.
 	*/
-	T* GetData() const noexcept;
+	T* GetData() const ;
 
 	/*
 	* Clear the buffer.
 	* 
 	*/
-	void Clear() noexcept;
+	void Clear() ;
 
 	/*
 	* Resize the buffer.
@@ -66,28 +66,28 @@ public:
 	* 
 	* @return the buffer size.
 	*/
-	size_t GetSize() const noexcept;
+	size_t GetSize() const ;
 
 	/*
 	* Get the buffer byte size.
 	* 
 	* @return the buffer byte size.
 	*/
-	size_t GetByteSize() const noexcept;
+	size_t GetByteSize() const ;
 
 	/*
 	* Get the available write size.
 	* 
 	* @return the available write size.
 	*/
-	size_t GetAvailableWrite() const noexcept;
+	size_t GetAvailableWrite() const ;
 
 	/*
 	* Get the available read size.
 	* 
 	* @return the available read size.
 	*/
-	size_t GetAvailableRead() const noexcept;
+	size_t GetAvailableRead() const ;
 
 	/*
 	* Write data to the buffer.
@@ -96,7 +96,7 @@ public:
 	* @param[in] count is the number of data to write.
 	* @return true if write success.
 	*/
-	bool TryWrite(const T* data, size_t count) noexcept;
+	bool TryWrite(const T* data, size_t count) ;
 
 	/*
 	* Read data from the buffer.
@@ -106,14 +106,14 @@ public:
 	* @param[out] num_filled_count is the number of data read.
 	* @return true if read success.
 	*/
-	bool TryRead(T* data, size_t count, size_t& num_filled_count) noexcept;
+	bool TryRead(T* data, size_t count, size_t& num_filled_count) ;
 
 	/*
 	* Fill the buffer with value.
 	* 
 	* @param[in] value is the value to fill.
 	*/
-	void Fill(T value) noexcept;
+	void Fill(T value) ;
 
 private:
 	/*
@@ -123,7 +123,7 @@ private:
 	* @param[in] tail is the tail of the buffer.
 	* @return the available write size.
 	*/
-	size_t GetAvailableWrite(size_t head, size_t tail) const noexcept;
+	size_t GetAvailableWrite(size_t head, size_t tail) const ;
 
 	/*
 	* Get the available read size.
@@ -132,7 +132,7 @@ private:
 	* @param[in] tail is the tail of the buffer.
 	* @return the available read size.
 	*/
-	size_t GetAvailableRead(size_t head, size_t tail) const noexcept;
+	size_t GetAvailableRead(size_t head, size_t tail) const ;
 
 	XAMP_CACHE_ALIGNED(kCacheAlignSize) size_t size_;
 	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> head_;
@@ -141,8 +141,7 @@ private:
 };
 
 template <typename Type, typename U>
-AudioBuffer<Type, U>::AudioBuffer() noexcept
-	: size_(0)
+AudioBuffer<Type, U>::AudioBuffer() : size_(0)
 	, head_(0)
 	, tail_(0) {
 }
@@ -154,20 +153,20 @@ AudioBuffer<Type, U>::AudioBuffer(size_t size)
 }
 
 template <typename Type, typename U>
-AudioBuffer<Type, U>::~AudioBuffer() noexcept = default;
+AudioBuffer<Type, U>::~AudioBuffer() = default;
 
 template <typename Type, typename U>
-Type* AudioBuffer<Type, U>::GetData() const noexcept {
+Type* AudioBuffer<Type, U>::GetData() const {
 	return buffer_.get();
 }
 
 template <typename Type, typename U>
-size_t AudioBuffer<Type, U>::GetSize() const noexcept {
+size_t AudioBuffer<Type, U>::GetSize() const {
 	return size_;
 }
 
 template <typename Type, typename U>
-size_t AudioBuffer<Type, U>::GetByteSize() const noexcept {
+size_t AudioBuffer<Type, U>::GetByteSize() const {
 	return GetSize() * 8;
 }
 
@@ -184,28 +183,28 @@ void AudioBuffer<Type, U>::Resize(size_t size) {
 }
 
 template <typename Type, typename U>
-void AudioBuffer<Type, U>::Clear() noexcept {
+void AudioBuffer<Type, U>::Clear() {
 	head_ = 0;
 	tail_ = 0;
 }
 
 template <typename Type, typename U>
-void AudioBuffer<Type, U>::Fill(Type value) noexcept {
+void AudioBuffer<Type, U>::Fill(Type value) {
 	MemorySet(buffer_.get(), value, sizeof(Type) * size_);
 }
 
 template <typename Type, typename U>
-size_t AudioBuffer<Type, U>::GetAvailableWrite() const noexcept {
+size_t AudioBuffer<Type, U>::GetAvailableWrite() const {
 	return GetAvailableWrite(head_, tail_);
 }
 
 template <typename Type, typename U>
-size_t AudioBuffer<Type, U>::GetAvailableRead() const noexcept {
+size_t AudioBuffer<Type, U>::GetAvailableRead() const {
 	return GetAvailableRead(head_, tail_);
 }
 
 template <typename Type, typename U>
-XAMP_ALWAYS_INLINE size_t AudioBuffer<Type, U>::GetAvailableWrite(size_t head, size_t tail) const noexcept {
+XAMP_ALWAYS_INLINE size_t AudioBuffer<Type, U>::GetAvailableWrite(size_t head, size_t tail) const {
 	auto result = tail - head - 1;
 	if (head >= tail) {
 		result += size_;
@@ -214,7 +213,7 @@ XAMP_ALWAYS_INLINE size_t AudioBuffer<Type, U>::GetAvailableWrite(size_t head, s
 }
 
 template <typename Type, typename U>
-XAMP_ALWAYS_INLINE size_t AudioBuffer<Type, U>::GetAvailableRead(size_t head, size_t tail) const noexcept {
+XAMP_ALWAYS_INLINE size_t AudioBuffer<Type, U>::GetAvailableRead(size_t head, size_t tail) const {
 	if (head >= tail) {
 		return head - tail;
 	}
@@ -222,7 +221,7 @@ XAMP_ALWAYS_INLINE size_t AudioBuffer<Type, U>::GetAvailableRead(size_t head, si
 }
 
 template <typename Type, typename U>
-XAMP_ALWAYS_INLINE bool AudioBuffer<Type, U>::TryWrite(const Type* data, size_t count) noexcept {
+XAMP_ALWAYS_INLINE bool AudioBuffer<Type, U>::TryWrite(const Type* data, size_t count) {
 	const auto head = head_.load(std::memory_order_relaxed);
 	const auto tail = tail_.load(std::memory_order_acquire);
 
@@ -250,7 +249,7 @@ XAMP_ALWAYS_INLINE bool AudioBuffer<Type, U>::TryWrite(const Type* data, size_t 
 }
 
 template <typename Type, typename U>
-XAMP_ALWAYS_INLINE bool AudioBuffer<Type, U>::TryRead(Type* data, size_t count, size_t& num_filled_count) noexcept {
+XAMP_ALWAYS_INLINE bool AudioBuffer<Type, U>::TryRead(Type* data, size_t count, size_t& num_filled_count) {
 	const auto head = head_.load(std::memory_order_acquire);
 	const auto tail = tail_.load(std::memory_order_relaxed);
 

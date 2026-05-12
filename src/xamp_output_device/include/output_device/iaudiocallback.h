@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -24,13 +24,13 @@ public:
 		size_t num_buffer_frames,
 		size_t & num_filled_bytes, 
 		double stream_time, 
-		double sample_time) noexcept = 0;
+		double sample_time) = 0;
 
-    virtual void OnError(const std::exception& exception) noexcept = 0;
+    virtual void OnError(const std::exception& exception) = 0;
 
-	virtual void OnVolumeChange(int32_t vol) noexcept = 0;
+	virtual void OnVolumeChange(int32_t vol) = 0;
 	
-	virtual void OnGlitch(std::chrono::milliseconds duration, uint32_t count) noexcept = 0;
+	virtual void OnGlitch(std::chrono::milliseconds duration, uint32_t count) = 0;
 protected:
 	IAudioCallback() = default;
 };

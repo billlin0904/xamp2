@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -15,21 +15,21 @@ class MemoryMappedFile;
 
 inline constexpr size_t kMaxPreReadFileSize = 65536;
 
-XAMP_BASE_API size_t GetPageSize() noexcept;
+XAMP_BASE_API size_t GetPageSize() ;
 
 XAMP_BASE_API bool PrefetchFile(std::wstring const& file_path);
 
 XAMP_BASE_API bool PrefetchFile(MemoryMappedFile& file_, size_t prefech_size = kMaxPreReadFileSize);
 
-XAMP_BASE_API bool PrefetchMemory(void* adddr, size_t length) noexcept;
+XAMP_BASE_API bool PrefetchMemory(void* adddr, size_t length) ;
 
 #define MemorySet(dest, c, size) std::memset(dest, c, size)
 #define MemoryCopy(dest, src, size) std::memcpy(dest, src, size)
 #define MemoryMove(dest, src, size) std::memmove(dest, src, size)
 
-XAMP_BASE_API XAMP_CHECK_LIFETIME void* AlignedMalloc(size_t size, size_t aligned_size) noexcept;
+XAMP_BASE_API XAMP_CHECK_LIFETIME void* AlignedMalloc(size_t size, size_t aligned_size) ;
 
-XAMP_BASE_API void AlignedFree(void* p) noexcept;
+XAMP_BASE_API void AlignedFree(void* p) ;
 
 XAMP_BASE_API XAMP_CHECK_LIFETIME void* StackAlloc(size_t size);
 
@@ -41,18 +41,18 @@ constexpr T AlignUp(T value, size_t aligned_size = kMallocAlignSize) {
 }
 
 template <typename T>
-XAMP_BASE_API_ONLY_EXPORT XAMP_CHECK_LIFETIME T* AlignedMallocObject(size_t aligned_size) noexcept {
+XAMP_BASE_API_ONLY_EXPORT XAMP_CHECK_LIFETIME T* AlignedMallocObject(size_t aligned_size) {
     return static_cast<T*>(AlignedMalloc(sizeof(T), aligned_size));
 }
 
 template <typename Type>
-XAMP_BASE_API_ONLY_EXPORT XAMP_CHECK_LIFETIME Type* AlignedMallocArray(size_t n, size_t aligned_size) noexcept {
+XAMP_BASE_API_ONLY_EXPORT XAMP_CHECK_LIFETIME Type* AlignedMallocArray(size_t n, size_t aligned_size) {
     return static_cast<Type*>(AlignedMalloc(sizeof(Type) * n, aligned_size));
 }
 
 template <typename Type>
 struct XAMP_BASE_API_ONLY_EXPORT AlignedDeleter {
-    void operator()(Type* p) const noexcept {
+    void operator()(Type* p) const {
         AlignedFree(p);
     }
 };
@@ -69,14 +69,14 @@ struct XAMP_BASE_API_ONLY_EXPORT AlignedClassDeleter {
 
 template <typename Type>
 struct XAMP_BASE_API_ONLY_EXPORT StackBufferDeleter {
-    void operator()(Type* p) const noexcept {
+    void operator()(Type* p) const {
         StackFree(p);
     }
 };
 
 template <typename Type>
 struct XAMP_BASE_API_ONLY_EXPORT FreeDeleter {
-    void operator()(Type* p) const noexcept {
+    void operator()(Type* p) const {
         free(p);
     }
 };

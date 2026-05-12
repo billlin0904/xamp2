@@ -31,8 +31,7 @@ namespace {
     }
 }
 
-PRNG::PRNG() noexcept
-    : engine_(MakeRandomEngine()) {
+PRNG::PRNG() : engine_(MakeRandomEngine()) {
 }
 
 void PRNG::SetSeed(uint64_t seed) {

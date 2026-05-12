@@ -1,4 +1,4 @@
-#include <metadata/taglibmetareader.h>
+ï»¿#include <metadata/taglibmetareader.h>
 #include <metadata/taglibiostream.h>
 #include <metadata/taglib.h>
 
@@ -347,11 +347,11 @@ namespace {
             ReplayGain replay_gain;
             for (auto& field : field_map) {
                 if (field.first == "R128_TRACK_GAIN") {             // RFC 7845
-                    replay_gain.track_gain = get_q78(field.second); // Q7.8 ¡÷ dB
+                    replay_gain.track_gain = get_q78(field.second); // Q7.8 â†’ dB
                     found = true;
                 }
                 else if (field.first == "R128_ALBUM_GAIN") {        // RFC 7845
-                    replay_gain.track_gain = get_q78(field.second); // Q7.8 ¡÷ dB
+                    replay_gain.track_gain = get_q78(field.second); // Q7.8 â†’ dB
                     found = true;
                 }
                 else if (field.first == kReplaygainAlbumGain) {
@@ -452,7 +452,7 @@ namespace {
                 }                
                 track_info.track = tag->track();
                 track_info.year = tag->year();
-                // ¦pªGÅª¨ú¨ì¦~¤À¬O20211126
+                // å¦‚æžœè®€å–åˆ°å¹´åˆ†æ˜¯20211126
                 if (track_info.year > 0) {
                     if (track_info.year > 10000) {
                         track_info.year = track_info.year / 10000;
@@ -481,11 +481,11 @@ namespace {
     public:
         XAMP_DECLARE_SINGLETON_NAME(xamp::metadata::TaglibHelper)
 
-        [[nodiscard]] HashSet<std::string> const& GetSupportFileExtensions() const noexcept {
+        [[nodiscard]] HashSet<std::string> const& GetSupportFileExtensions() const {
             return support_file_extensions_;
         }
 
-        [[nodiscard]] bool IsSupported(const std::string& file_ext) const noexcept {
+        [[nodiscard]] bool IsSupported(const std::string& file_ext) const {
             return support_file_extensions_.find(file_ext) != support_file_extensions_.end();
         }
 
@@ -690,7 +690,7 @@ public:
         return ReadEmbeddedCover(fileref_opt_->file());
     }
 
-    XAMP_ALWAYS_INLINE bool IsSupported() const noexcept {
+    XAMP_ALWAYS_INLINE bool IsSupported() const {
 		return SharedSingleton<TaglibHelper>::GetInstance().IsSupported(file_ext_);
     }
 

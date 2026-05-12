@@ -1,4 +1,4 @@
-#include <output_device/win32/exclusivewasapidevicetype.h>
+﻿#include <output_device/win32/exclusivewasapidevicetype.h>
 
 #ifdef XAMP_OS_WIN
 #include <output_device/win32/comexception.h>
@@ -16,7 +16,7 @@ XAMP_DECLARE_LOG_NAME(ExclusiveWasapiDeviceType);
 
 class ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl final {
 public:
-	ExclusiveWasapiDeviceTypeImpl() noexcept;
+	ExclusiveWasapiDeviceTypeImpl() ;
 
 	~ExclusiveWasapiDeviceTypeImpl() = default;
 
@@ -45,7 +45,7 @@ private:
 	LoggerPtr logger_;
 };
 
-ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::ExclusiveWasapiDeviceTypeImpl() noexcept {
+ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::ExclusiveWasapiDeviceTypeImpl() {
 	logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(ExclusiveWasapiDeviceType));	
 }
 
@@ -76,8 +76,8 @@ CComPtr<IMMDevice> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::Get
 	return device;
 }
 
-ScopedPtr<IOutputDevice> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::string & device_id) {
-	return MakeAlign<IOutputDevice, ExclusiveWasapiDevice>(thread_pool, GetDeviceById(String::ToStdWString(device_id)));
+ScopedPtr<IOutputDevice> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& /*thread_pool*/, const std::string & device_id) {
+	return MakeAlign<IOutputDevice, ExclusiveWasapiDevice>(GetDeviceById(String::ToStdWString(device_id)));
 }
 
 size_t ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::GetDeviceCount() const {
@@ -185,8 +185,7 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl
 
 XAMP_PIMPL_IMPL(ExclusiveWasapiDeviceType)
 
-ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceType() noexcept
-	: impl_(MakeAlign<ExclusiveWasapiDeviceTypeImpl>()) {
+ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceType() : impl_(MakeAlign<ExclusiveWasapiDeviceTypeImpl>()) {
 }
 
 void ExclusiveWasapiDeviceType::ScanNewDevice() {

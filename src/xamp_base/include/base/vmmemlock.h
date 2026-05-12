@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -13,17 +13,17 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 class XAMP_BASE_API VmMemLock final {
 public:
-	VmMemLock() noexcept;
+	VmMemLock() ;
 
-	~VmMemLock() noexcept;
+	~VmMemLock() ;
 
 	XAMP_DISABLE_COPY(VmMemLock)
 
 	void Lock(void* address, size_t size);
 
-	void UnLock() noexcept;
+	void UnLock() ;
 	
-	VmMemLock& operator=(VmMemLock&& other) noexcept;
+	VmMemLock& operator=(VmMemLock&& other) ;
 private:
 	void* address_{ nullptr };
 	size_t size_{ 0 };

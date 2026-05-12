@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -19,7 +19,7 @@ XAMP_BASE_NAMESPACE_BEGIN
         return XAMP_UUID_OF(ClassName); \
     } \
     \
-    [[nodiscard]] std::string_view GetDescription() const noexcept override { \
+    [[nodiscard]] std::string_view GetDescription() const override { \
         return Description; \
     }
 
@@ -31,7 +31,7 @@ XAMP_BASE_NAMESPACE_BEGIN
         return XAMP_UUID_OF(ClassName); \
     } \
     \
-    [[nodiscard]] std::string_view GetDescription() const noexcept override { \
+    [[nodiscard]] std::string_view GetDescription() const override { \
         return Description; \
     }
 
@@ -51,7 +51,7 @@ public:
      *
      * @return the description of the audio processor.
      */
-    [[nodiscard]] virtual std::string_view GetDescription() const noexcept = 0;
+    [[nodiscard]] virtual std::string_view GetDescription() const = 0;
 
 protected:
     IUUIDClass() = default;

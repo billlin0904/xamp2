@@ -1,4 +1,4 @@
-#include <base/str_utilts.h>
+ï»¿#include <base/str_utilts.h>
 #include <base/platform.h>
 #include <base/logger.h>
 #include <base/logger_impl.h>
@@ -23,7 +23,6 @@
 #include <stream/iaudiostream.h>
 #include <stream/idsdstream.h>
 #include <stream/filestream.h>
-#include <stream/bassfader.h>
 #include <stream/iaudioprocessor.h>
 #include <stream/bassfilestream.h>
 #include <stream/r8brainresampler.h>
@@ -50,7 +49,6 @@ namespace {
     constexpr uint32_t kMaxWriteRatio = 20;
     constexpr uint32_t kMaxReadRatio = 4;
     constexpr uint32_t kMaxBufferSecs = 5;
-    constexpr uint32_t kActionQueueSize = 30;
 
     constexpr std::chrono::milliseconds kUpdateSampleIntervalMs(15);
     constexpr std::chrono::milliseconds kReadSampleWaitTimeMs(15);
@@ -64,7 +62,7 @@ namespace {
     }
 
 #if defined(XAMP_OS_WIN)
-    IDsdDevice* AsDsdDevice(ScopedPtr<IOutputDevice> const& device) noexcept {
+    IDsdDevice* AsDsdDevice(ScopedPtr<IOutputDevice> const& device) {
         return dynamic_cast<IDsdDevice*>(device.get());
     }
 #endif
@@ -75,16 +73,13 @@ AudioPlayer::AudioPlayer(
     const std::shared_ptr<IThreadPoolExecutor>& player_thread_pool)
     : is_muted_(false)
 	, is_dsd_file_(false)
-    , enable_fadeout_(false)
 	, enable_file_cache_(true)
     , num_read_buffer_size_(0)
     , num_write_buffer_size_(0)
-    , is_fade_out_(false)
     , sample_end_time_(0)
     , dsp_manager_(StreamFactory::MakeDSPManager())
     , device_manager_(MakeAudioDeviceManager())
     , logger_(XampLoggerFactory.GetLogger(XAMP_LOG_NAME(AudioPlayer)))
-    , action_queue_(kActionQueueSize)
 	, fifo_(AlignUp(kPreallocateBufferSize, GetPageSize()))
 	, playback_thread_pool_(playback_thread_pool)
 	, player_thread_pool_(player_thread_pool) {
@@ -169,7 +164,7 @@ void AudioPlayer::CreateDevice(const Uuid& device_type_id,
         || device_type_id_ != device_type_id
         || open_always) {
         if (device_type_id_ != device_type_id) {
-            // device¥i¯à¬OASIO¸Ñ«á¦A²¾°£driver.
+            // ASIO drivers may be unloaded after the device type changes.
             device_.reset();
             ResetAsioDriver();
             XAMP_LOG_D(logger_, "ResetASIODriver!");
@@ -247,38 +242,6 @@ void AudioPlayer::SetState(const PlayerState play_state) {
     XAMP_LOG_D(logger_, "Set state: {}.", EnumToString(playback_state_.state));
 }
 
-void AudioPlayer::ReadPlayerAction() {
-    PlayerAction msg;
-    while (action_queue_.try_dequeue(msg)) {
-        try {
-            switch (msg.id) {
-            case PlayerActionId::PLAYER_SEEK:
-            {
-                const auto& seek_action = std::get<SeekAction>(msg.content);
-                double stream_time = seek_action.stream_time;
-                XAMP_LOG_D(logger_, "Receive seek {:.2f} message.", stream_time);
-                DoSeek(stream_time);
-				playback_state_.is_seeking = false;
-            }
-            break;
-
-            default:
-                XAMP_LOG_D(logger_, 
-                    "Unknown action id: {}.", EnumToString(msg.id));
-                break;
-            }
-        }
-        catch (const std::bad_variant_access& e) {
-            XAMP_LOG_D(logger_, "Failed to get variant content for {}: {}.",
-                EnumToString(msg.id), e.what());
-        }
-        catch (const std::exception& e) {
-            XAMP_LOG_D(logger_, "Receive {} {}.", 
-                EnumToString(msg.id), e.what());
-        }
-    }
-}
-	
 void AudioPlayer::Pause() {
     if (!device_) {
         return;
@@ -307,46 +270,6 @@ void AudioPlayer::Resume() {
         read_finish_and_wait_seek_signal_cond_.notify_all();
         device_->StartStream();
         SetState(PlayerState::PLAYER_STATE_RUNNING);
-    }
-}
-
-void AudioPlayer::FadeOut() {
-    const auto sample_count =
-        output_format_.GetSecondsSize(kFadeTimeSeconds) / sizeof(float);
-
-    Buffer<float> buffer(sample_count);
-    size_t num_filled_count = 0;
-    dynamic_cast<BassFader*>(fader_.get())->SetTime(1.0f,
-        0.0f, kFadeTimeSeconds);
-
-    if (!fifo_.TryRead(reinterpret_cast<std::byte*>(buffer.data()),
-        buffer.GetByteSize(),
-        num_filled_count)) {
-        return;
-    }
-
-    Buffer<float> fade_buf(sample_count);
-    BufferRef<float> buf_ref(fade_buf);
-    if (!fader_->Process(buffer.data(),
-        buffer.size(),
-        buf_ref)) {
-        XAMP_LOG_W(logger_, "Fade out audio process failure!");
-    }
-
-    fifo_.Clear();
-    fifo_.TryWrite(reinterpret_cast<std::byte*>(buf_ref.data()), 
-        buf_ref.GetByteSize());
-}
-
-void AudioPlayer::ProcessFadeOut() {
-    if (!device_) {
-        return;
-    }
-    if (audio_config_.dsd_mode == DsdModes::DSD_MODE_PCM
-        || audio_config_.dsd_mode == DsdModes::DSD_MODE_DSD2PCM) {
-        XAMP_LOG_D(logger_, "Process fadeout.");
-        is_fade_out_ = true;
-        delay_callback_(kFadeTimeSeconds);
     }
 }
 
@@ -425,25 +348,25 @@ double AudioPlayer::GetDuration() const {
     return playback_state_.stream_duration;
 }
 
-PlayerState AudioPlayer::GetState() const noexcept {
+PlayerState AudioPlayer::GetState() const {
     return playback_state_.state;
 }
 
-AudioFormat AudioPlayer::GetInputFormat() const noexcept {
+AudioFormat AudioPlayer::GetInputFormat() const {
     auto file_format = input_format_;
     file_format.SetBitPerSample(file_stream_->GetBitDepth());
     return file_format;
 }
 
-AudioFormat AudioPlayer::GetOutputFormat() const noexcept {
+AudioFormat AudioPlayer::GetOutputFormat() const {
     return output_format_;
 }
 
-bool AudioPlayer::IsPlaying() const noexcept {
+bool AudioPlayer::IsPlaying() const {
     return playback_state_.is_playing;
 }
 
-DsdModes AudioPlayer::GetDsdModes() const noexcept {
+DsdModes AudioPlayer::GetDsdModes() const {
     return audio_config_.dsd_mode;
 }
 
@@ -470,12 +393,6 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream, bool quit) {
 
     playback_state_.stream_offset_time = 0;
 
-    if (!quit && enable_fadeout_) {
-        fader_ = StreamFactory::MakeFader();
-        fader_->Initialize(config_);
-        ProcessFadeOut();
-    }
-
     if (device_ != nullptr) {
         if (device_->IsStreamOpen()) {
             XAMP_LOG_D(logger_, "Stop output device");
@@ -491,9 +408,6 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream, bool quit) {
 
     fifo_.Clear();
 
-    PlayerAction dummy;
-    while (action_queue_.try_dequeue(dummy)) {
-    }
 }
 
 void AudioPlayer::ResizeReadBuffer(uint32_t allocate_size) {
@@ -613,14 +527,14 @@ void AudioPlayer::SetDeviceFormat() {
     }
 }
 
-void AudioPlayer::OnVolumeChange(int32_t vol) noexcept {
+void AudioPlayer::OnVolumeChange(int32_t vol) {
     if (const auto adapter = state_adapter_.lock()) {
         adapter->OnVolumeChanged(vol);
         XAMP_LOG_D(logger_, "Volume change: {}.", vol);
     }
 }
 
-void AudioPlayer::OnError(const std::exception& e) noexcept {
+void AudioPlayer::OnError(const std::exception& e) {
     playback_state_.is_playing = false;
     if (const auto adapter = state_adapter_.lock()) {
         adapter->OnError(e);
@@ -663,7 +577,7 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, const std::string & dev
     }
 }
 
-void AudioPlayer::OnGlitch(std::chrono::milliseconds duration, uint32_t count) noexcept {
+void AudioPlayer::OnGlitch(std::chrono::milliseconds duration, uint32_t count) {
     if (duration.count() == 0) {
         return;
     }
@@ -720,14 +634,13 @@ void AudioPlayer::BufferStream(double stream_time,
     fifo_.Clear();
     file_stream_->Seek(playback_state_.stream_offset_time + stream_time);
     audio_config_.sample_size = file_stream_->GetSampleSize();
-    BufferSamples(file_stream_, GetBufferCount(output_format_.GetSampleRate()));
+    BufferSamples(file_stream_, GetBufferCount(output_format_.GetSampleRate()) * 2);
 }
 
-void AudioPlayer::EnableFadeOut(bool enable) {
-    enable_fadeout_ = enable;
+void AudioPlayer::EnableFadeOut(bool /*enable*/) {
 }
 
-void AudioPlayer::UpdatePlayerStreamTime(uint32_t stream_time_sec_unit) noexcept {
+void AudioPlayer::UpdatePlayerStreamTime(uint32_t stream_time_sec_unit) {
     playback_state_.stream_time_sec_unit.exchange(stream_time_sec_unit);
 }
 
@@ -768,18 +681,32 @@ void AudioPlayer::SetStateAdapter(const std::weak_ptr<IPlaybackStateAdapter>& ad
 }
 
 void AudioPlayer::Seek(double stream_time) {
-    if (!device_) {
+    if (!device_ || !device_->IsStreamOpen()) {
         return;
     }
 
-    if (device_->IsStreamOpen()) {
-        read_finish_and_wait_seek_signal_cond_.notify_one();
-		playback_state_.is_seeking = true;
-        action_queue_.try_enqueue(PlayerAction{
-            PlayerActionId::PLAYER_SEEK,
-            SeekAction{ stream_time }
-            });
+    bool expected = false;
+    if (!playback_state_.is_seeking.compare_exchange_strong(expected, true)) {
+        return;
     }
+
+    try {
+        read_finish_and_wait_seek_signal_cond_.notify_all();
+        Pause();
+
+        std::unique_lock<FastMutex> stream_lock{ stream_mutex_ };
+        DoSeek(stream_time);
+    }
+    catch (const std::exception& e) {
+        XAMP_LOG_D(logger_, "Seek failed: {}.", e.what());
+        Resume();
+    }
+    catch (...) {
+        XAMP_LOG_D(logger_, "Seek failed.");
+        Resume();
+    }
+
+    playback_state_.is_seeking = false;
 }
 
 void AudioPlayer::DoSeek(double stream_time) {
@@ -861,8 +788,8 @@ void AudioPlayer::WaitForReadFinishAndSeekSignal(
     }
 }
 
-bool AudioPlayer::ShouldKeepReading() const noexcept {
-    return playback_state_.is_playing && file_stream_->IsActive();
+bool AudioPlayer::ShouldKeepReading() const {
+    return playback_state_.is_playing && !playback_state_.is_seeking && file_stream_->IsActive();
 }
 
 void AudioPlayer::ReadSampleLoop(std::byte* buffer,
@@ -873,7 +800,12 @@ void AudioPlayer::ReadSampleLoop(std::byte* buffer,
             WaitForReadFinishAndSeekSignal(stopped_lock);
         }
         return;
-    }    
+    }
+
+    std::lock_guard<FastMutex> stream_lock{ stream_mutex_ };
+    if (!file_stream_->IsActive()) {
+        return;
+    }
 
 	auto* bass_stream = dynamic_cast<BassFileStream*>(file_stream_.get());
 
@@ -902,7 +834,7 @@ void AudioPlayer::ReadSampleLoop(std::byte* buffer,
     }
 }
 
-bool AudioPlayer::IsAvailableWrite() const noexcept {
+bool AudioPlayer::IsAvailableWrite() const {
     const auto num_write_buffer_size =
         num_write_buffer_size_ * kMaxWriteRatio;
     return fifo_.GetAvailableWrite() >= num_write_buffer_size;
@@ -919,27 +851,31 @@ void AudioPlayer::Play() {
         state->OutputFormatChanged(output_format_, device_->GetBufferSize());
     }
 
-    is_fade_out_ = false;
     playback_state_.is_playing = true;
-    if (device_->IsStreamOpen()) {
-        if (!device_->IsStreamRunning()) {
+
+    auto start_stream = [this]() {
+        if (device_->IsStreamOpen() && !device_->IsStreamRunning()) {
             XAMP_LOG_D(logger_, "Play volume:{} muted:{}.",
                 audio_config_.volume, is_muted_);
             device_->StartStream();
             SetState(PlayerState::PLAYER_STATE_RUNNING);
         }
-    }
+    };
 
     if (stream_task_.valid()) {
         XAMP_LOG_W(logger_, "Stream task is valid!");
+        start_stream();
         return;
     }
 
     XAMP_LOG_W(logger_, "Stream task is spawning!");
+    auto stream_task_started = std::make_shared<std::promise<void>>();
+    auto stream_task_started_future = stream_task_started->get_future();
 
     stream_task_ = Executor::Spawn(player_thread_pool_,
-        [player = shared_from_this()](const auto& stop_token) {
+        [player = shared_from_this(), stream_task_started](const auto& stop_token) {
         XAMP_LOG_W(player->logger_, "Stream task is spawn done!");
+        stream_task_started->set_value();
 
         auto* p = player.get();
 
@@ -963,11 +899,12 @@ void AudioPlayer::Play() {
                 // Wait for pause signal.
                 while (p->playback_state_.is_paused) {
                     p->pause_cond_.wait_for(pause_lock, kPauseWaitTimeout);
-                    p->ReadPlayerAction();
                 }
 
-                // Read action queue.
-                p->ReadPlayerAction();
+                if (p->playback_state_.is_seeking) {
+                    wait_timer.Wait();
+                    continue;
+                }
 
                 // Check stream is active.
                 if (!p->IsAvailableWrite()) {
@@ -993,6 +930,12 @@ void AudioPlayer::Play() {
         XAMP_LOG_D(p->logger_, "Stream thread done!");
         p->file_stream_.reset();
     }, ExecuteFlags::EXECUTE_LONG_RUNNING);
+
+    if (stream_task_started_future.wait_for(kReadSampleWaitTimeMs) == std::future_status::timeout) {
+        XAMP_LOG_W(logger_, "Stream task start wait timeout.");
+    }
+
+    start_stream();
 }
 
 void AudioPlayer::CopySamples(void* samples, size_t num_buffer_frames) const {
@@ -1022,16 +965,11 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples,
     size_t num_buffer_frames, 
     size_t & num_filled_frames, 
     double stream_time, 
-    double /*sample_time*/) noexcept {
-    // sample_time: «üªº¬O³]³Æ¼·©ñ®É¶¡, ·|³Qstop®É­Ô­«¸m¬°0.
-    // stream time: samples¤j¤p²Ö­p±q¶}©l¼·©ñ¨ìµ²§ôªº®É¶¡.
+    double /*sample_time*/) {
+    // sample_time is the device playback clock and may be reset to zero after stop.
+    // stream_time is accumulated from rendered sample frames.
     const auto num_samples = num_buffer_frames * output_format_.GetChannels();
     const auto sample_size = num_samples * audio_config_.sample_size;
-
-    if (is_fade_out_) {
-        FadeOut();
-        is_fade_out_ = false;
-    }
 
     if (stream_time >= playback_state_.stream_duration) {
         UpdatePlayerStreamTime(kStopStreamTime);
@@ -1039,20 +977,20 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples,
     }
 
     size_t num_filled_bytes = 0;
-    if (fifo_.TryRead(static_cast<std::byte*>(samples),
-        sample_size, 
-        num_filled_bytes)) {
+    if (fifo_.TryRead(static_cast<std::byte*>(samples), sample_size, num_filled_bytes)) {
         num_filled_frames = num_filled_bytes
-    	/ audio_config_.sample_size
-    	/ output_format_.GetChannels();
-        num_filled_frames = num_buffer_frames;
+    	    / audio_config_.sample_size
+    	    / output_format_.GetChannels();
+        if (num_filled_frames != num_buffer_frames) {            
+            return DataCallbackResult::STOP;
+        }
         UpdatePlayerStreamTime(static_cast<int32_t>(stream_time * 1000));
         CopySamples(samples, num_samples);
         return DataCallbackResult::CONTINUE;
     }
 
-    // note: ¬°¤FÁ×§K´£¦­±NÁn­µ¤ÁÂ_(¬Y¨Ç­µ®Ä¤¶­±frames¤j¤p,§C©ó¬Y­Óframe¤j¤p´NµLªk¼·©ñ),
-    // ¤U¦¸render frameªº®É­Ô¤~±NÁn­µ°±¤î.
+    // Avoid stopping too early when the remaining audio is smaller than one render buffer.
+    // Stop on the next render callback after the logical stream end is reached.
     // 
     // (WASAPI render frame)       (WASAPI render end frame)
     //       |               |                 |

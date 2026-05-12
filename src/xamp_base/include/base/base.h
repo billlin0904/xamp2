@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -89,13 +89,13 @@
     virtual ~Class(); \
     Class(const Class &) = delete; \
 	Class& operator=(const Class &) = delete; \
-    Class(Class &&) noexcept; \
-	Class& operator=(Class &&) noexcept;
+    Class(Class &&) ; \
+	Class& operator=(Class &&) ;
 
 #define XAMP_PIMPL_IMPL(Class) \
     Class::~Class() = default; \
-    Class::Class(Class &&) noexcept = default; \
-    Class& Class::operator=(Class &&) noexcept = default;
+    Class::Class(Class &&) = default; \
+    Class& Class::operator=(Class &&) = default;
 
 #ifdef XAMP_OS_WIN
 #define XAMP_NO_VTABLE __declspec(novtable)

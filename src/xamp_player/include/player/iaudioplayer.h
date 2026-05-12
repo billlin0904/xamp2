@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -83,9 +83,9 @@ public:
 
     virtual void EnableFadeOut(bool enable) = 0;
 
-    [[nodiscard]] virtual bool IsPlaying() const noexcept = 0;
+    [[nodiscard]] virtual bool IsPlaying() const = 0;
 
-    [[nodiscard]] virtual DsdModes GetDsdModes() const noexcept = 0;
+    [[nodiscard]] virtual DsdModes GetDsdModes() const = 0;
 
     [[nodiscard]] virtual bool IsDsdFile() const = 0;
 
@@ -93,11 +93,11 @@ public:
 
     [[nodiscard]] virtual double GetDuration() const = 0;
 
-    [[nodiscard]] virtual PlayerState GetState() const noexcept = 0;
+    [[nodiscard]] virtual PlayerState GetState() const = 0;
 
-    [[nodiscard]] virtual AudioFormat GetInputFormat() const noexcept = 0;
+    [[nodiscard]] virtual AudioFormat GetInputFormat() const = 0;
 
-    [[nodiscard]] virtual AudioFormat GetOutputFormat() const noexcept = 0;
+    [[nodiscard]] virtual AudioFormat GetOutputFormat() const = 0;
 
     [[nodiscard]] virtual uint32_t GetBitRate() const = 0;
 

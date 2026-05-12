@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -27,7 +27,7 @@ inline constexpr double XAMP_PI{ 3.14159265358979323846 };
 * @return uint64_t
 */
 template <uint32_t TShiftBits>
-uint64_t Rotl64(const uint64_t x) noexcept {
+uint64_t Rotl64(const uint64_t x) {
 	const uint64_t left = x << TShiftBits;
 	const uint64_t right = x >> (64 - TShiftBits);
 	return left | right;
@@ -40,7 +40,7 @@ uint64_t Rotl64(const uint64_t x) noexcept {
 * @param[in] shift
 * @return uint64_t
 */
-XAMP_ALWAYS_INLINE uint64_t Rotl64(const uint64_t x, uint32_t shift) noexcept {
+XAMP_ALWAYS_INLINE uint64_t Rotl64(const uint64_t x, uint32_t shift) {
 #ifdef XAMP_OS_WIN
 	return _rotl64(x, shift);
 #else
@@ -54,7 +54,7 @@ XAMP_ALWAYS_INLINE uint64_t Rotl64(const uint64_t x, uint32_t shift) noexcept {
 * @param[in] v
 * @return int32_t
 */
-XAMP_ALWAYS_INLINE size_t IsPowerOfTwo(size_t v) noexcept {
+XAMP_ALWAYS_INLINE size_t IsPowerOfTwo(size_t v) {
 	return v > 0 && !(v & (v - 1));
 }
 
@@ -90,7 +90,7 @@ T Round(T a, int32_t places) {
 
 // This is a fast approximation to log2()
 // Y = C[0]*F*F*F + C[1]*F*F + C[2]*F + C[3] + E;
-XAMP_ALWAYS_INLINE float log2f_approx(float X) noexcept {
+XAMP_ALWAYS_INLINE float log2f_approx(float X) {
 	float Y, F;
 	int E;
 	F = frexpf(fabsf(X), &E);

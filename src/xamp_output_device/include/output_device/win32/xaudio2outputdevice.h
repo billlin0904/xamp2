@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -58,21 +58,21 @@ public:
 	*
 	* @param callback: audio callback
 	*/
-	void SetAudioCallback(IAudioCallback* callback) noexcept override;
+	void SetAudioCallback(IAudioCallback* callback) override;
 
 	/*
 	* Is stream open.
 	*
 	* return bool
 	*/
-	bool IsStreamOpen() const noexcept override;
+	bool IsStreamOpen() const override;
 
 	/*
 	* Is stream running.
 	*
 	* @return bool
 	*/
-	bool IsStreamRunning() const noexcept override;
+	bool IsStreamRunning() const override;
 
 	/*
 	* Stop stream.
@@ -98,13 +98,13 @@ public:
 	*
 	* @param stream_time: stream time
 	*/
-	void SetStreamTime(double stream_time) noexcept override;
+	void SetStreamTime(double stream_time) override;
 
 	/*
 	* Get stream time.
 	*
 	*/
-	double GetStreamTime() const noexcept override;
+	double GetStreamTime() const override;
 
 	/*
 	* Get volume.
@@ -138,14 +138,14 @@ public:
 	*
 	* @return PackedFormat
 	*/
-	PackedFormat GetPackedFormat() const noexcept override;
+	PackedFormat GetPackedFormat() const override;
 
 	/*
 	* Get device buffer size.
 	*
 	* @return uint32_t
 	*/
-	uint32_t GetBufferSize() const noexcept override;
+	uint32_t GetBufferSize() const override;
 
 	/*
 	* Is hardware control volume.
@@ -157,7 +157,7 @@ public:
 	/*
 	* Abort stream.
 	*/
-	void AbortStream() noexcept override;
+	void AbortStream() override;
 
 private:
 	/*
@@ -165,7 +165,7 @@ private:
 	*
 	* @param hr: HRESULT
 	*/
-	void ReportError(HRESULT hr) noexcept;
+	void ReportError(HRESULT hr) ;
 
 	HRESULT FillSamples(bool& end_of_stream);
 

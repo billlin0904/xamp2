@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -12,16 +12,16 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 class XAMP_BASE_API Stopwatch final {
 public:
-	Stopwatch() noexcept;
+	Stopwatch() ;
 	
-	void Reset() noexcept;
+	void Reset() ;
 
 	template <typename Resolution = std::chrono::microseconds>
-	[[nodiscard]] Resolution Elapsed() const noexcept {
+	[[nodiscard]] Resolution Elapsed() const {
 		return std::chrono::duration_cast<Resolution>(Clock::now() - start_time_);
 	}
 
-	[[nodiscard]] double ElapsedSeconds() const noexcept {		
+	[[nodiscard]] double ElapsedSeconds() const {		
 		return static_cast<double>(Elapsed<std::chrono::milliseconds>().count()) / 1000.0;
 	}
 

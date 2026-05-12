@@ -47,7 +47,7 @@ namespace {
     constexpr float kPower2FFSize = kFFTSize * kFFTSize;
     constexpr size_t kFreqBins = (kFFTSize / 2);
 
-    float toDbFromNorm(float p) noexcept {
+    float toDbFromNorm(float p) {
         // p 已是功率（re^2+im^2），保底避免 log(0)
         if (p <= 0.0f) 
             return ColorTable::kMinDb;
@@ -76,7 +76,7 @@ namespace {
         const int den = n - 1;
 
         uchar* base = chunk_img.bits() + col * 3;
-        auto toRow = [&](int f) noexcept {
+        auto toRow = [&](int f) {
             return ((h - 1) - (f * num + den / 2) / den) * stride;
             };
 

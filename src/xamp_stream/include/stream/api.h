@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -78,13 +78,13 @@ public:
 
 XAMP_STREAM_API bool IsDsdFile(Path const& path);
 
-XAMP_STREAM_API IDsdStream* AsDsdStream(FileStream* stream) noexcept;
+XAMP_STREAM_API IDsdStream* AsDsdStream(FileStream* stream) ;
 
 XAMP_STREAM_API OrderedMap<std::string, std::string> GetBassDLLVersion();
 
-XAMP_STREAM_API IDsdStream* AsDsdStream(ScopedPtr<FileStream> const & stream) noexcept;
+XAMP_STREAM_API IDsdStream* AsDsdStream(ScopedPtr<FileStream> const & stream) ;
 
-XAMP_STREAM_API FileStream* AsFileStream(ScopedPtr<IAudioStream> const& stream) noexcept;
+XAMP_STREAM_API FileStream* AsFileStream(ScopedPtr<IAudioStream> const& stream) ;
 
 XAMP_STREAM_API void LoadFFTLib();
 

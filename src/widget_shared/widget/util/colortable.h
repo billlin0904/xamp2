@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -23,14 +23,14 @@ public:
 
 	void setSpectrogramColor(SpectrogramColor color);
 
-	QRgb operator[](double dB_val) const noexcept;
+	QRgb operator[](double dB_val) const ;
 
 private:
 	SpectrogramColor color_ = SpectrogramColor::SPECTROGRAM_COLOR_SOX;
 
-	static QRgb danBrutonColor(double level) noexcept;
+	static QRgb danBrutonColor(double level) ;
 
-	static QRgb soxrColor(double level) noexcept;
+	static QRgb soxrColor(double level) ;
 
 	static const std::array<QRgb, kLutSize> kSoxrLut;
 	static const std::array<QRgb, kLutSize> kDanBrutonLut;

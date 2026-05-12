@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -14,11 +14,11 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 class XAMP_BASE_API WaitableTimer final {
 public:
-	WaitableTimer() noexcept;
+	WaitableTimer() ;
 
 	XAMP_PIMPL(WaitableTimer)
 
-	void SetTimeout(std::chrono::milliseconds timeout) noexcept;
+	void SetTimeout(std::chrono::milliseconds timeout) ;
 
 	void Wait();
 private:

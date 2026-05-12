@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -28,7 +28,7 @@ struct XAMP_WIDGET_SHARED_EXPORT ImageCacheEntity {
 };
 
 struct ImageCacheSizeOfPolicy {
-	int64_t operator()(const QString&, const ImageCacheEntity& entity) const noexcept {
+	int64_t operator()(const QString&, const ImageCacheEntity& entity) const {
 		return entity.size;
 	}
 };

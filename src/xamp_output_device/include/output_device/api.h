@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -21,14 +21,14 @@ XAMP_OUTPUT_DEVICE_API ScopedPtr<IAudioDeviceManager> MakeAudioDeviceManager();
 * 
 * @param[in] info: device info.
 */
-XAMP_OUTPUT_DEVICE_API [[nodiscard]] bool IsExclusiveDevice(const DeviceInfo& info) noexcept;
+XAMP_OUTPUT_DEVICE_API [[nodiscard]] bool IsExclusiveDevice(const DeviceInfo& info) ;
 
 /*
 * Is asio device.
 * 
 * @param[in] id: device id.
 */
-XAMP_OUTPUT_DEVICE_API [[nodiscard]] bool IsAsioDevice(const Uuid& id) noexcept;
+XAMP_OUTPUT_DEVICE_API [[nodiscard]] bool IsAsioDevice(const Uuid& id) ;
 
 /*
 * Reset asio driver.

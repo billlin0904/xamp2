@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -112,7 +112,7 @@ public:
 
     XAMP_DECLARE_SINGLETON_NAME()
 
-    LoggerManager() noexcept;
+    LoggerManager() ;
 
     ~LoggerManager();
 
@@ -126,7 +126,7 @@ public:
 
     LoggerManager& AddSink(spdlog::sink_ptr sink);
 
-    XAMP_CHECK_LIFETIME [[nodiscard]] Logger* GetDefaultLogger() const noexcept {
+    XAMP_CHECK_LIFETIME [[nodiscard]] Logger* GetDefaultLogger() const {
         return default_logger_.get();
     }
 

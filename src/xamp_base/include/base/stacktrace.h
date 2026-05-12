@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -17,7 +17,7 @@ using CaptureStackAddress = std::array<void*, kMaxStackFrameSize>;
 
 class XAMP_BASE_API StackTrace final {
 public:
-    StackTrace() noexcept;   
+    StackTrace() ;   
 
     static bool LoadSymbol();
 

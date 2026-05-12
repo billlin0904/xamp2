@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -18,13 +18,12 @@ class XAMP_BASE_API SpinLock final {
 public:
 	static constexpr int32_t kMaxSpinCount = 64;
 
-	SpinLock() noexcept
-		: flag_{ false } {
+	SpinLock() : flag_{ false } {
 	}
 
 	XAMP_DISABLE_COPY(SpinLock)
 
-		void lock() noexcept {
+		void lock() {
 		int32_t mask = 1;
 
 		while (flag_.exchange(true, std::memory_order_acquire)) {
@@ -36,12 +35,12 @@ public:
 		}
 	}
 
-	[[nodiscard]] bool try_lock() noexcept {
+	[[nodiscard]] bool try_lock() {
 		return !flag_.load(std::memory_order_relaxed)
 			&& !flag_.exchange(true, std::memory_order_acquire);
 	}
 
-	void unlock() noexcept {
+	void unlock() {
 		flag_.store(false, std::memory_order_release);
 	}
 private:

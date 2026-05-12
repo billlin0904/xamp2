@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -162,7 +162,7 @@ public:
     * 
     * @return true if the queue is empty, false otherwise.    
     */
-    bool is_empty() const noexcept {
+    bool is_empty() const {
         std::lock_guard guard{ mutex_ };
         return queue_.empty();
     }
@@ -172,7 +172,7 @@ public:
     * 
     * @return true if the queue is full, false otherwise.
     */
-    bool is_full() const noexcept {
+    bool is_full() const {
         std::lock_guard guard{ mutex_ };
         return queue_.full();
     }
@@ -182,7 +182,7 @@ public:
     * 
     * @return The queue size.
     */
-    [[nodiscard]] size_t size() const noexcept {
+    [[nodiscard]] size_t size() const {
         std::lock_guard guard{ mutex_ };
         return queue_.size();
     }

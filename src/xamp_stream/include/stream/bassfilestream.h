@@ -1,4 +1,4 @@
-//=====================================================================================================================
+﻿//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -32,7 +32,7 @@ public:
 
 	void SetRate(float rate = 0.0f) override;
 
-	void Close() noexcept override;
+	void Close() override;
 
 	// Check if the stream is at the end.
 	// If read CD or use BASS_ASYNCFILE flag, Must use this function to check.
@@ -46,17 +46,17 @@ public:
 
 	void Seek(double stream_time) const override;
 
-	[[nodiscard]] uint32_t GetSampleSize() const noexcept override;
+	[[nodiscard]] uint32_t GetSampleSize() const override;
 
-	[[nodiscard]] bool IsDsdFile() const noexcept override;
+	[[nodiscard]] bool IsDsdFile() const override;
 
-	void SetDSDMode(DsdModes mode) noexcept override;
+	void SetDSDMode(DsdModes mode) override;
 
-	[[nodiscard]] DsdModes GetDsdMode() const noexcept override;
+	[[nodiscard]] DsdModes GetDsdMode() const override;
 
 	[[nodiscard]] uint32_t GetDsdSampleRate() const override;
 
-	[[nodiscard]] DsdFormat GetDsdFormat() const noexcept override;
+	[[nodiscard]] DsdFormat GetDsdFormat() const override;
 
     void SetDsdToPcmSampleRate(uint32_t sample_rate) override;
 
@@ -66,15 +66,15 @@ public:
 
 	[[nodiscard]] uint32_t GetBitRate() const override;
 
-	[[nodiscard]] uint32_t GetHStream() const noexcept;
+	[[nodiscard]] uint32_t GetHStream() const ;
 
-	[[nodiscard]] bool IsActive() const noexcept override;
+	[[nodiscard]] bool IsActive() const override;
 
-	[[nodiscard]] bool SupportDOP() const noexcept override;
+	[[nodiscard]] bool SupportDOP() const override;
 
-	[[nodiscard]] bool SupportDOP_AA() const noexcept override;
+	[[nodiscard]] bool SupportDOP_AA() const override;
 
-	[[nodiscard]] bool SupportNativeSD() const noexcept override;
+	[[nodiscard]] bool SupportNativeSD() const override;
 
 private:	
 	class BassFileStreamImpl;
