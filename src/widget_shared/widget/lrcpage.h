@@ -146,6 +146,10 @@ private:
 
 	void startBackgroundAnimation(int durationMs);
 
+	void invalidateBackgroundCache();
+
+	void updateBackgroundCache();
+
 	void paintEvent(QPaintEvent*) override;
 
 	void resizeEvent(QResizeEvent* event) override;
@@ -168,6 +172,10 @@ private:
 	QPixmap cover_;
 	QImage background_image_;
 	QImage prev_background_image_;
+	QPixmap background_cache_;
+	QPixmap prev_background_cache_;
+	QSize background_cache_size_;
+	bool background_cache_dirty_{ true };
 	PlayListEntity entity_;
 	QList<SearchLyricsResult> lyrics_results_;
 };

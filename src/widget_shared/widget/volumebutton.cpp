@@ -21,6 +21,7 @@ VolumeButton::~VolumeButton() = default;
 
 void VolumeButton::setAudioPlayer(const std::shared_ptr<IAudioPlayer>& player) {
 	dialog_.reset(new VolumeControlDialog(player, this));
+	dialog_->installEventFilter(this);
 	(void)QObject::connect(dialog_.get(),
 		&VolumeControlDialog::volumeChanged,
 		this,
@@ -58,21 +59,31 @@ void VolumeButton::onThemeChangedFinished(ThemeColor theme_color) {
 }
 
 void VolumeButton::onVolumeChanged(uint32_t volume) {
-	dialog_->setVolume(volume, false);
+	if (sender() != dialog_.get()) {
+		dialog_->setVolume(volume, false);
+	}
 	qTheme.setMuted(this, volume == 0);
 	hide_timer_.stop();
 	hide_timer_.start(kAutoHideDelayMs);
 }
 
 bool VolumeButton::eventFilter(QObject* obj, QEvent* e) {
+	if (obj == dialog_.get()) {
+		if (e->type() == QEvent::Hide) {
+			is_show_ = false;
+			show_timer_.stop();
+			hide_timer_.stop();
+		}
+		return QToolButton::eventFilter(obj, e);
+	}
 	if (obj == this) {
 		if (QEvent::WindowDeactivate == e->type()) {
-			hide();
+			dialog_->hide();
 			hide_timer_.stop();
 			return true;
 		}
 	}
-	return QWidget::eventFilter(obj, e);
+	return QToolButton::eventFilter(obj, e);
 }
 
 void VolumeButton::enterEvent(QEnterEvent* event) {

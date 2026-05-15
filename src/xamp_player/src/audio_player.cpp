@@ -1,7 +1,6 @@
-﻿#include <base/str_utilts.h>
+#include <base/str_utilts.h>
 #include <base/platform.h>
 #include <base/logger.h>
-#include <base/logger_impl.h>
 #include <base/stl.h>
 #include <base/threadpoolexecutor.h>
 #include <base/dsdsampleformat.h>
@@ -37,18 +36,18 @@ XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 namespace {
     XAMP_DECLARE_LOG_NAME(AudioPlayer);
 
-    constexpr int32_t kBufferStreamCount = 8;
-    // 32MB
+    constexpr int32_t kBufferStreamCount = 6;
+    // 1MB
     constexpr uint32_t kPreallocateBufferSize = 1 * 1024 * 1024;
-    // 128MB
-    constexpr uint32_t kMaxPreAllocateBufferSize = 128 * 1024 * 1024;
+    // 32MB
+    constexpr uint32_t kMaxPreAllocateBufferSize = 32 * 1024 * 1024;
     // 8KB
     constexpr uint32_t kMinReadBufferSize = 8192;
 
-    constexpr int32_t  kTotalBufferStreamCount = 32;
+    constexpr int32_t  kTotalBufferStreamCount = 8;
     constexpr uint32_t kMaxWriteRatio = 20;
     constexpr uint32_t kMaxReadRatio = 4;
-    constexpr uint32_t kMaxBufferSecs = 5;
+    constexpr uint32_t kMaxBufferSecs = 3;
 
     constexpr std::chrono::milliseconds kUpdateSampleIntervalMs(15);
     constexpr std::chrono::milliseconds kReadSampleWaitTimeMs(15);
@@ -157,6 +156,17 @@ void AudioPlayer::OpenArchiveEntry(ArchiveEntry archive_entry,
     audio_config_.target_sample_rate = target_sample_rate;
 }
 
+void AudioPlayer::Open(ScopedPtr<FileStream> file_stream,
+    const DeviceInfo& device_info,
+    uint32_t target_sample_rate,
+    DsdModes output_mode) {
+    CloseDevice(true);
+    UpdatePlayerStreamTime();
+    OpenStream(std::move(file_stream), output_mode);
+    device_info_ = device_info;
+    audio_config_.target_sample_rate = target_sample_rate;
+}
+
 void AudioPlayer::CreateDevice(const Uuid& device_type_id,
     const std::string & device_id, bool open_always) {
     if (device_ == nullptr
@@ -226,6 +236,18 @@ void AudioPlayer::OpenStream(ArchiveEntry archive_entry, DsdModes dsd_mode, floa
         dsd_mode, 
         rate, 
         use_mqa_decode);
+
+    ReadStreamInfo(dsd_mode, file_stream_);
+    XAMP_LOG_D(logger_, "Open stream type: {} {} duration:{:.2f} sec.",
+        file_stream_->GetDescription(),
+        audio_config_.dsd_mode,
+        playback_state_.stream_duration);
+}
+
+void AudioPlayer::OpenStream(ScopedPtr<FileStream> file_stream, DsdModes dsd_mode) {
+    ThrowIf<Exception>(file_stream != nullptr, "File stream is null.");
+
+    file_stream_ = std::move(file_stream);
 
     ReadStreamInfo(dsd_mode, file_stream_);
     XAMP_LOG_D(logger_, "Open stream type: {} {} duration:{:.2f} sec.",
@@ -486,7 +508,12 @@ void AudioPlayer::CreateBuffer() {
             fifo_size = align_page_size(multiply(fifo_seconds, GetBufferCount(output_format_.GetSampleRate())));
         }
         else {
-            fifo_size = kMaxPreAllocateBufferSize;
+            const uint32_t preferred_fifo_size = multiply(output_bytes_per_sec, kMaxBufferSecs);
+            const uint32_t min_fifo_headroom = multiply(
+                num_write_buffer_size_,
+                static_cast<uint32_t>(GetBufferCount(output_format_.GetSampleRate())));
+            fifo_size = align_page_size(cap_preallocate_size(
+                (std::max)(preferred_fifo_size, min_fifo_headroom)));
         }
 
         const uint32_t min_read_buffer_size = multiply(num_read_buffer_size_, file_sample_size);

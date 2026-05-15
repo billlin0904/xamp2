@@ -281,20 +281,25 @@ bool KrcParser::isKaraoke() const {
 }
 
 const LyricEntry& KrcParser::getLyrics(const std::chrono::milliseconds& time) const {
-    static LyricEntry last_subtitle;
-    if (time < lyrics_.at(0).end_time) {
-        return lyrics_.at(0);
+    if (lyrics_.empty()) {
+        static const LyricEntry kEmptyLyric;
+        return kEmptyLyric;
     }
-	if (time >= last_subtitle.start_time && time <= last_subtitle.end_time) {
-		return last_subtitle;
+
+    const auto* last_subtitle = &lyrics_.front();
+    if (time < lyrics_.front().end_time) {
+        return lyrics_.front();
     }
+
     for (const auto& subtitle : lyrics_) {
         if (time >= subtitle.start_time && time <= subtitle.end_time) {
-            last_subtitle = subtitle;
             return subtitle;
         }
+        if (time >= subtitle.start_time) {
+            last_subtitle = &subtitle;
+        }
     }
-    return last_subtitle;
+    return *last_subtitle;
 }
 
 bool KrcParser::parse(std::wistream& istr) {

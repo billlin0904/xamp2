@@ -12,7 +12,9 @@
 #include <base/crashhandler.h>
 
 #include <player/audio_player.h>
+#include <stream/api.h>
 #include <stream/idspmanager.h>
+#include <stream/mqafilestream.h>
 
 #include <output_device/audiodevicemanager.h>
 
@@ -191,10 +193,6 @@ void Xamp::setAlbumCover(const QPixmap& cover) {
 }
 
 void Xamp::playLocalFile(const QString& file_name, bool queue) {
-    uint32_t target_sample_rate = 0;
-    auto byte_format = ByteFormat::SINT32;
-    auto use_mqa_decode = false;
-
     auto file_sample_rate = 44100;
     auto file_duration = 0.0;
     QPixmap embedded_cover = qTheme.unknownCover();
@@ -235,34 +233,18 @@ void Xamp::playLocalFile(const QString& file_name, bool queue) {
         return;
     }
 
-    auto output_mode = DsdModes::DSD_MODE_PCM;
+    const auto is_shared_device = player_->GetAudioDeviceManager()->IsSharedDevice(
+        device_info_.value().device_type_id);
+    const auto is_asio_device = player_->GetAudioDeviceManager()->IsASIODevice(
+        device_info_.value().device_type_id);
+    const auto playback_plan = resolvePlaybackPlan(device_info_.value(),
+        file_sample_rate,
+        IsDsdFile(file_name.toStdWString()),
+        is_shared_device,
+        is_asio_device);
 
-    if (IsDsdFile(file_name.toStdWString()) && device_info_.value().connect_type != DeviceConnectType::BLUE_TOOTH) {
-        const auto is_asio_device = player_->GetAudioDeviceManager()->IsASIODevice(
-            device_info_.value().device_type_id);
-
-        output_mode = is_asio_device ? DsdModes::DSD_MODE_NATIVE
-            : DsdModes::DSD_MODE_DOP;
-    }
-
-    auto is_shared_device = player_->GetAudioDeviceManager()->IsSharedDevice(
-		device_info_.value().device_type_id);
-
-    if (is_shared_device) {
-        const auto shared_mode_config = resolveSharedModePlaybackConfig(device_info_.value(),
-            file_sample_rate,
-            output_mode,
-            byte_format);
-        target_sample_rate = shared_mode_config.target_sample_rate;
-        byte_format = shared_mode_config.byte_format;
-
-        if (shared_mode_config.needs_resample) {
-            player_->GetDspManager()->AddPreDSP(makeSoxrSampleRateConverter(target_sample_rate));
-        }
-    }
-    else {       
-        byte_format = ByteFormat::SINT24;
-        use_mqa_decode = true;
+    if (playback_plan.needs_resample) {
+        player_->GetDspManager()->AddPreDSP(makeSoxrSampleRateConverter(playback_plan.target_sample_rate));
     }
 
     if (qAppSettings.valueAsBool(kAppSettingEnableEQ)) {
@@ -275,16 +257,19 @@ void Xamp::playLocalFile(const QString& file_name, bool queue) {
     }
 
     try {
-        player_->Open(file_name.toStdWString(),
-            device_info_.value(),
-            target_sample_rate,
-            output_mode,
+        auto file_stream = StreamFactory::MakeFileStream(file_name.toStdWString(),
+            playback_plan.output_mode,
             0.0f,
-            use_mqa_decode);
+            playback_plan.use_mqa_decode);
+        const auto byte_format = resolvePreparedPlaybackByteFormat(
+            playback_plan,
+            dynamic_cast<MqaFileStream*>(file_stream.get()) != nullptr);
+
+        player_->Open(std::move(file_stream),
+            device_info_.value(),
+            playback_plan.target_sample_rate,
+            playback_plan.output_mode);
         player_->GetDspManager()->SetSampleWriter();
-        if (!player_->IsMQA()) {
-            byte_format = ByteFormat::SINT32;
-        }
         player_->PrepareToPlay(byte_format);
         player_->BufferStream(0, 0, std::nullopt);
         player_->Play();

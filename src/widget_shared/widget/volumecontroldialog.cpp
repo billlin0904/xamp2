@@ -1,10 +1,13 @@
 #include <QPainter>
+#include <QSignalBlocker>
 #include <widget/volumecontroldialog.h>
 #include <ui_volumecontroldialog.h>
 #include <thememanager.h>
 #include <widget/util/str_util.h>
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
+
+#include <algorithm>
 
 VolumeControlDialog::VolumeControlDialog(const std::shared_ptr<IAudioPlayer> &player, QWidget* parent)
 	: QDialog(parent)
@@ -22,16 +25,10 @@ VolumeControlDialog::VolumeControlDialog(const std::shared_ptr<IAudioPlayer> &pl
     ui_->volumeSlider->setSingleStep(1);
     ui_->volumeSlider->setInvertedAppearance(false);
     ui_->volumeSlider->setInvertedControls(false);
+    ui_->volumeSlider->enableAnimation(false);
 
     (void)QObject::connect(ui_->volumeSlider, &QSlider::valueChanged, [this](auto volume) {
         setVolume(volume);
-        });
-
-    (void)QObject::connect(ui_->volumeSlider, &SeekSlider::leftButtonValueChanged, [this](auto volume) {
-		setVolume(volume);
-        });
-
-    (void)QObject::connect(ui_->volumeSlider, &QSlider::sliderMoved, [](auto volume) {
         });
 
     setThemeColor();
@@ -58,7 +55,11 @@ VolumeControlDialog::~VolumeControlDialog() {
 }
 
 void VolumeControlDialog::updateVolume() {
-    ui_->volumeSlider->setValue(player_->GetVolume());
+    if (player_->IsHardwareControlVolume()) {
+        setVolumeUi(100, false);
+        return;
+    }
+    setVolumeUi(player_->GetVolume(), true);
 }
 
 void VolumeControlDialog::paintEvent(QPaintEvent* event) {
@@ -89,14 +90,10 @@ void VolumeControlDialog::updateState() {
         else {
             const auto vol = qAppSettings.valueAs(kAppSettingVolume).toUInt();
             setVolume(vol);
-            ui_->volumeSlider->setValue(vol);
         }
     }
     else {
-        ui_->volumeSlider->setValue(100);
-        ui_->volumeSlider->setDisabled(true);
-        ui_->volumeLabel->setText(QString::number(100));
-        ui_->volumeLabel->adjustSize();
+        setVolumeUi(100, false);
     }
 }
 
@@ -106,6 +103,11 @@ void VolumeControlDialog::setVolume(uint32_t volume, bool notify) {
     }
 
     try {
+        if (player_->IsHardwareControlVolume()) {
+            setVolumeUi(100, false);
+            return;
+        }
+
         if (volume > 0) {
             player_->SetMute(false);
         }
@@ -115,24 +117,26 @@ void VolumeControlDialog::setVolume(uint32_t volume, bool notify) {
 
         qAppSettings.setValue(kAppSettingVolume, volume);
 
-        if (!player_->IsHardwareControlVolume()) {            
-            if (!player_->IsMute()) {
-                player_->SetVolume(volume);
-            }
-            ui_->volumeSlider->setDisabled(false);
+        if (!player_->IsMute()) {
+            player_->SetVolume(volume);
         }
-        else {
-            ui_->volumeSlider->setDisabled(true);
-            return;
-        }
+
+        setVolumeUi(volume, true);
 
         if (notify) {
             emit volumeChanged(volume);
         }
-        ui_->volumeLabel->setText(QString::number(volume));
-        ui_->volumeLabel->adjustSize();
     }
     catch (const std::exception& e) {
         player_->Stop(false);
     }
+}
+
+void VolumeControlDialog::setVolumeUi(uint32_t volume, bool enabled) {
+    volume = (std::min)(volume, 100u);
+    const QSignalBlocker blocker(ui_->volumeSlider);
+    ui_->volumeSlider->setEnabled(enabled);
+    ui_->volumeSlider->setValue(static_cast<int>(volume));
+    ui_->volumeLabel->setText(QString::number(volume));
+    ui_->volumeLabel->adjustSize();
 }

@@ -59,10 +59,12 @@ private:
 	bool event(QEvent *event) override;
 
 protected:
+	int32_t itemStepHeight() const;
+
 	bool is_scrolled_;
 	bool do_signal_;
 	int32_t item_;
-	int32_t item_offset_; // 0-itemHeight()
+	int32_t item_offset_;
 	float mask_length_;
 	QRect current_roll_rect_;
 	QFont current_mask_font_;

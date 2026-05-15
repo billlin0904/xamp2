@@ -86,6 +86,11 @@ public:
         float rate = 0.0f,
         bool use_mqa_decode = false) override;
 
+    void Open(ScopedPtr<FileStream> file_stream,
+        const DeviceInfo& device_info,
+        uint32_t target_sample_rate = 0,
+        DsdModes output_mode = DsdModes::DSD_MODE_AUTO) override;
+
     void Destroy() override;
 
     void SetStateAdapter(const std::weak_ptr<IPlaybackStateAdapter>& adapter) override;
@@ -165,6 +170,8 @@ private:
     void OpenStream(Path const& file_path, DsdModes dsd_mode, float rate, bool use_mqa_decode);
 
     void OpenStream(ArchiveEntry archive_entry, DsdModes dsd_mode, float rate, bool use_mqa_decode);
+
+    void OpenStream(ScopedPtr<FileStream> file_stream, DsdModes dsd_mode);
 
     void CreateDevice(Uuid const& device_type_id, const  std::string & device_id, bool open_always);
 

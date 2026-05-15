@@ -23,7 +23,19 @@
 #include <widget/util/str_util.h>
 #include <widget/util/ui_util.h>
 
+#include <algorithm>
+
 namespace {
+	constexpr int kRubySpacing = 5;
+
+	struct RubyLayoutSegment {
+		QString text;
+		QString ruby;
+		int text_width{ 0 };
+		int ruby_width{ 0 };
+		int column_width{ 0 };
+	};
+
 	QSharedPointer<ILrcParser> makeLrcParser(const QString& file_path, QString& lrc_path, bool& use_default) {
 		const QFileInfo file_info(file_path);
 		const QString file_dir = file_info.path();
@@ -76,6 +88,79 @@ namespace {
 		}
 		return make_parser_func();
 	}
+
+	std::vector<RubyLayoutSegment> makeRubyLayout(
+		const std::vector<FuriganaEntity>& furiganas,
+		const QFontMetrics& text_metrics,
+		const QFontMetrics& ruby_metrics) {
+		std::vector<RubyLayoutSegment> layout;
+		layout.reserve(furiganas.size());
+
+		for (const auto& entity : furiganas) {
+			RubyLayoutSegment segment;
+			segment.text = QString::fromStdWString(entity.text);
+			segment.ruby = QString::fromStdWString(entity.furigana);
+			segment.text_width = text_metrics.horizontalAdvance(segment.text);
+			segment.ruby_width = ruby_metrics.horizontalAdvance(segment.ruby);
+			segment.column_width = (std::max)(segment.text_width, segment.ruby_width);
+			layout.push_back(std::move(segment));
+		}
+		return layout;
+	}
+
+	int rubyLayoutWidth(const std::vector<RubyLayoutSegment>& layout) {
+		auto width = 0;
+		for (const auto& segment : layout) {
+			width += segment.column_width;
+		}
+		return width;
+	}
+
+	int lyricVisualWidth(
+		const LyricEntry& entry,
+		int32_t index,
+		const std::vector<std::vector<FuriganaEntity>>& furiganas,
+		const QFontMetrics& text_metrics,
+		const QFontMetrics& ruby_metrics) {
+		if (index >= 0 && index < static_cast<int32_t>(furiganas.size()) && !furiganas[index].empty()) {
+			return rubyLayoutWidth(makeRubyLayout(furiganas[index], text_metrics, ruby_metrics));
+		}
+		return text_metrics.horizontalAdvance(QString::fromStdWString(entry.lrc));
+	}
+
+	int karaokeHighlightWidth(
+		const LyricEntry& entry,
+		int32_t stream_time,
+		const QFontMetrics& metrics) {
+		const auto delta = stream_time - static_cast<int32_t>(entry.timestamp.count());
+		auto highlight_width = 0.0;
+
+		for (const auto& word : entry.words) {
+			const auto text = QString::fromStdWString(word.content);
+			const auto word_width = metrics.horizontalAdvance(text);
+			const auto word_start = static_cast<int32_t>(word.offset.count());
+			const auto word_length = static_cast<int32_t>(word.length.count());
+			const auto word_end = word_start + word_length;
+
+			if (delta <= word_start) {
+				break;
+			}
+
+			if (word_length <= 0 || delta >= word_end) {
+				highlight_width += word_width;
+				continue;
+			}
+
+			const auto fraction = std::clamp(
+				static_cast<double>(delta - word_start) / static_cast<double>(word_length),
+				0.0,
+				1.0);
+			highlight_width += word_width * fraction;
+			break;
+		}
+
+		return static_cast<int>(highlight_width + 0.5);
+	}
 }
 
 LyricsShowWidget::LyricsShowWidget(QWidget* parent) 
@@ -92,37 +177,37 @@ void LyricsShowWidget::resizeFontSize() {
 	}
 
 	auto font_size = 16;
-	QFontMetrics lrc_metrics(lrc_font_);
-    const auto itr 
-		= std::max_element(lyric_->begin(), lyric_->end(),
-	    [&lrc_metrics](const auto &a, const auto &b) {
-		    return lrc_metrics.horizontalAdvance(QString::fromStdWString(a.lrc))
-		        < lrc_metrics.horizontalAdvance(QString::fromStdWString(b.lrc));
-	    });
-	if (itr == lyric_->end()) {
-		lrc_font_.setPointSize(font_size);
-		return;
-	}
+	constexpr int kMinFontSize = 8;
+	const auto max_width = (std::max)(0, size().width() - 30);
 
-	const auto max_lrc = QString::fromStdWString((*itr).lrc);
-	if (max_lrc.isEmpty()) {
-		lrc_font_.setPointSize(font_size);
-		return;
-	}
+	auto max_lyric_width = [this]() {
+		QFont ruby_font = lrc_font_;
+		ruby_font.setPointSizeF(lrc_font_.pointSizeF() * 0.5);
+		const QFontMetrics text_metrics(lrc_font_);
+		const QFontMetrics ruby_metrics(ruby_font);
+
+		auto width = 0;
+		auto index = 0;
+		for (const auto& entry : *lyric_) {
+			width = (std::max)(width,
+				lyricVisualWidth(entry,
+					index,
+					furiganas_,
+					text_metrics,
+					ruby_metrics));
+			++index;
+		}
+		return width;
+	};
 
 	lrc_font_.setPointSize(font_size);
-
-	lrc_metrics = QFontMetrics(lrc_font_);
-	constexpr int kMinFontSize = 8;
-
-	while (lrc_metrics.horizontalAdvance(max_lrc) > size().width() - 30) {
+	while (max_width > 0 && max_lyric_width() > max_width) {
 		font_size -= 5;
 		if (font_size < kMinFontSize) {
 			font_size = kMinFontSize;
 			break;
 		}
 		lrc_font_.setPointSize(font_size);
-		lrc_metrics = QFontMetrics(lrc_font_);
 	}
 }
 
@@ -302,13 +387,13 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 	// (A) 若沒有逐字資訊 (words.empty())，整行繪製
 	// ------------------------------------------------------------------------
 	if (words.empty()) {
-		if (!furiganas_.empty()) {
-			double x = (rect.width() - metrics.horizontalAdvance(
-				QString::fromStdWString(entry.lrc))) / 2.0;
-
+		if (!furiganas_.empty() && index < static_cast<int32_t>(furiganas_.size())) {
 			// Furigana 字體縮小
 			furigana_font.setPointSizeF(lrc_font_.pointSizeF() * 0.5);
-			auto furigana_result = furiganas_[index];
+			furigana_metrics = QFontMetrics(furigana_font);
+			const auto& furigana_result = furiganas_[index];
+			const auto ruby_layout = makeRubyLayout(furigana_result, metrics, furigana_metrics);
+			double x = (rect.width() - rubyLayoutWidth(ruby_layout)) / 2.0;
 
 			if (global_time >= line_start) {
 				// 當前行 => 用同一個高亮色
@@ -319,31 +404,28 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 				painter->setPen(lrc_color_);
 			}
 
-			for (const auto& entity : furigana_result) {
-				auto kanji_text = QString::fromStdWString(entity.text);
-				int kanji_width = metrics.horizontalAdvance(kanji_text);
-				auto furigana_length = entity.furigana.size();
+			const int content_height = furigana_metrics.height() + kRubySpacing + metrics.height();
+			const int content_top = rect.y() + (rect.height() - content_height) / 2;
+			const int furigana_baseline = content_top + furigana_metrics.ascent();
+			const int text_baseline = content_top + furigana_metrics.height() + kRubySpacing + metrics.ascent();
 
+			for (const auto& segment : ruby_layout) {
 				// 先繪製 Furigana (若有)
-				if (furigana_length > 0) {
+				if (!segment.ruby.isEmpty()) {
 					painter->setFont(furigana_font);
-					double furigana_char_width = static_cast<double>(kanji_width) / furigana_length;
-					int furigana_y = rect.y()
-						+ (rect.height() - metrics.height()) / 2
-						- furigana_metrics.height();
-					for (int i = 0; i < static_cast<int>(furigana_length); ++i) {
-						auto furigana_char = QString::fromStdWString(entity.furigana).mid(i, 1);
-						painter->drawText(x + i * furigana_char_width, furigana_y, furigana_char);
-					}
+					painter->drawText(
+						x + (segment.column_width - segment.ruby_width) / 2.0,
+						furigana_baseline,
+						segment.ruby);
 				}
 				// 再繪製主字 (Kanji)
 				painter->setFont(kanji_font);
 				painter->drawText(
-					x,
-					rect.y() + (rect.height() - metrics.height()) / 2,
-					kanji_text
+					x + (segment.column_width - segment.text_width) / 2.0,
+					text_baseline,
+					segment.text
 				);
-				x += kanji_width;
+				x += segment.column_width;
 			}
 		}
 		return;
@@ -355,10 +437,14 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 		// ------------------------------------------------------------------------
 		// 5) 先繪製整行 Furigana (不需要對 words 做 1:1 大小)
 		furigana_font.setPointSizeF(lrc_font_.pointSizeF() * 0.5);
-		double x_f = (rect.width() - metrics.horizontalAdvance(
-			QString::fromStdWString(entry.lrc))) / 2.0;
-		auto furigana_result = furiganas_[index];
-		int base_line = rect.y() + (rect.height() + metrics.ascent()) / 2;
+		furigana_metrics = QFontMetrics(furigana_font);
+		const auto& furigana_result = furiganas_[index];
+		const auto ruby_layout = makeRubyLayout(furigana_result, metrics, furigana_metrics);
+		double x_f = (rect.width() - rubyLayoutWidth(ruby_layout)) / 2.0;
+		const int content_height = furigana_metrics.height() + kRubySpacing + metrics.height();
+		const int content_top = rect.y() + (rect.height() - content_height) / 2;
+		const int furigana_baseline = content_top + furigana_metrics.ascent();
+		const int base_line = content_top + furigana_metrics.height() + kRubySpacing + metrics.ascent();
 
 		if (global_time >= line_start) {
 			// 當前行 => 用同一個高亮色
@@ -371,22 +457,15 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 
 		// 先用較小字體繪 Furigana
 		painter->setFont(furigana_font);
-		for (const auto& entity : furigana_result) {
-			auto kanji_text = QString::fromStdWString(entity.text);
-			int kanji_width = metrics.horizontalAdvance(kanji_text);
-			int furigana_length = static_cast<int>(entity.furigana.size());
-
-			int furigana_y = base_line - furigana_metrics.height();
-
+		for (const auto& segment : ruby_layout) {
 			// 逐字畫出 Furigana
-			if (furigana_length > 0) {
-				double furigana_char_width = static_cast<double>(kanji_width) / furigana_length;
-				for (int i = 0; i < furigana_length; ++i) {
-					QString fchar = QString::fromStdWString(entity.furigana).mid(i, 1);
-					painter->drawText(x_f + i * furigana_char_width, furigana_y, fchar);
-				}
+			if (!segment.ruby.isEmpty()) {
+				painter->drawText(
+					x_f + (segment.column_width - segment.ruby_width) / 2.0,
+					furigana_baseline,
+					segment.ruby);
 			}
-			x_f += kanji_width;
+			x_f += segment.column_width;
 		}
 	}
 
@@ -486,6 +565,9 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 }
 
 void LyricsShowWidget::paintBackground(QPainter* painter) {
+	if (!background_color_.isValid()) {
+		return;
+	}
 	painter->fillRect(rect(), background_color_);
 }
 
@@ -494,11 +576,20 @@ void LyricsShowWidget::paintItemMask(QPainter* painter) {
 
 int32_t LyricsShowWidget::itemHeight() const {
 	const QFontMetrics metrics(lrc_font_);
-	auto ratio = 1.5;
-	if (lyric_->hasTranslation()) {
-		ratio = 2.5;
+	auto height = static_cast<int32_t>(metrics.height() * 1.5);
+
+	if (!furiganas_.empty()) {
+		QFont furigana_font = lrc_font_;
+		furigana_font.setPointSizeF(lrc_font_.pointSizeF() * 0.5);
+		const QFontMetrics furigana_metrics(furigana_font);
+		height += furigana_metrics.height() + kRubySpacing;
 	}
-    return static_cast<int32_t>(metrics.height() * ratio);
+
+	if (lyric_->hasTranslation()) {
+		height += static_cast<int32_t>(metrics.height() * 0.8) + 5;
+	}
+
+    return height;
 }
 
 int32_t LyricsShowWidget::itemCount() const {
@@ -511,7 +602,17 @@ int32_t LyricsShowWidget::itemCount() const {
 void LyricsShowWidget::stop() {
 	furiganas_.clear();
 	mask_length_ = -1000;
+	item_ = 0;
+	item_offset_ = 0;
+	item_percent_ = 0;
 	last_lyric_index_ = -1;
+	last_karaoke_index_ = -1;
+	last_karaoke_highlight_width_ = -1;
+	pos_ = 0;
+	is_scrolled_ = false;
+	do_signal_ = true;
+	is_lrc_valid_ = false;
+	is_fulled_ = false;
 	current_roll_rect_ = QRect(0, 0, 0, 0);
 	real_current_text_.clear();
 	if (lyric_ != nullptr) {
@@ -566,6 +667,7 @@ void LyricsShowWidget::loadFromParser(const QSharedPointer<ILrcParser>& parser) 
 	}
 	is_lrc_valid_ = true;
 	is_fulled_ = false;
+	setCurrentIndex(0);
 	resizeFontSize();
 	update();
 }
@@ -636,6 +738,8 @@ void LyricsShowWidget::setFullLrc(const QString& lrc, double duration) {
 
 	// 5) 標記為「純文字模式」
 	is_fulled_ = true;
+	is_lrc_valid_ = true;
+	setCurrentIndex(0);
 
 	// 6) 重新繪製
 	update();
@@ -649,6 +753,8 @@ void LyricsShowWidget::loadLrc(const QString& lrc) {
 	}
 	else {
 		stop_scroll_time_ = false;
+		is_lrc_valid_ = true;
+		is_fulled_ = false;
 		LanguageDetector detector;
 		for (auto& lrc : *lyric_) {
 			if (detector.IsJapanese(lrc.lrc)) {
@@ -676,7 +782,7 @@ void LyricsShowWidget::setLrc(const QString &lrc, const QString& trlyrc) {
 QRect LyricsShowWidget::itemBoundingRect(int index, int offset) const {
 	const int w = width();
 	const int h = height();
-	const int iH = itemHeight() + 10; // 你 paintEvent() 也 +10
+	const int iH = itemStepHeight();
 
 	// 與 paintEvent() 內部一致：
 	//   "中心行" item_ 大約畫在 y = h/2 - item_offset_
@@ -695,54 +801,51 @@ void LyricsShowWidget::setLrcTime(int32_t stream_time) {
 	stream_time = stream_time + kScrollTime;
 	pos_ = stream_time;
 
-	if (is_fulled_ || is_scrolled_ || !lyric_->size()) {
+	if (is_scrolled_) {
 		update();
 		return;
 	}
 
-    const auto &ly =
+	if (is_fulled_ || !lyric_ || !lyric_->size()) {
+		return;
+	}
+
+    const auto& ly =
 		lyric_->getLyrics(std::chrono::milliseconds(stream_time));
 
-	if (item_ != ly.index && item_offset_ == 0) {
+	auto line_changed = false;
+	if (last_lyric_index_ != ly.index && item_offset_ == 0) {
 		mask_length_ = -1000;
 		current_roll_rect_ = QRect(0, 0, 0, 0);
 		real_current_text_ = QString::fromStdWString(ly.lrc);
-		item_offset_ = -1;
+		last_lyric_index_ = ly.index;
+		last_karaoke_index_ = -1;
+		last_karaoke_highlight_width_ = -1;
+		line_changed = true;
 		onScrollTo(ly.index);
-		setCurrentIndex(ly.index);
 	}
 
 	if (item_offset_ != 0) {
-		//QRect lineRect = itemBoundingRect(item_, 0);
-		//update(lineRect);
 		update();
 		return;
 	}
 
-    const auto &post_ly = 
-		lyric_->getLyrics(std::chrono::milliseconds(pos_));
-
-	const auto text = QString::fromStdWString(post_ly.lrc);
-	const auto interval = post_ly.index;
-	const auto precent = static_cast<float>(post_ly.index) / static_cast<float>(lyric_->size());
-
-	const QFontMetrics metrics(current_mask_font_);
-
-	if (item_percent_ == precent) {
-		const auto count = static_cast<double>(interval) / 25.0;
-		const float lrc_mask_mini_step = metrics.horizontalAdvance(text) / count;
-		mask_length_ += lrc_mask_mini_step;
-	}
-	else {
-		mask_length_ = metrics.horizontalAdvance(real_current_text_) * precent;
+	if (ly.words.empty()) {
+		if (line_changed) {
+			update();
+		}
+		return;
 	}
 
-	item_percent_ = precent;
-	
-	// Only use the last highlight rect
-	//QRect lineRect = itemBoundingRect(item_, item_offset_);
-	//update(lineRect);	
-	update();
+	const QFontMetrics metrics(lrc_font_);
+	const auto highlight_width = karaokeHighlightWidth(ly, stream_time, metrics);
+	if (line_changed
+		|| last_karaoke_index_ != ly.index
+		|| qAbs(highlight_width - last_karaoke_highlight_width_) >= 1) {
+		last_karaoke_index_ = ly.index;
+		last_karaoke_highlight_width_ = highlight_width;
+		update();
+	}
 }
 
 void LyricsShowWidget::setLrcFont(const QFont & font) {

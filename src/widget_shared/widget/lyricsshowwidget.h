@@ -104,7 +104,9 @@ private:
 	bool stop_scroll_time_{ false };
 	bool is_fulled_{ false };
 	int32_t pos_{ 0 };
-    int32_t last_lyric_index_{ 0 };
+    int32_t last_lyric_index_{ -1 };
+	int32_t last_karaoke_index_{ -1 };
+	int32_t last_karaoke_highlight_width_{ -1 };
 	float item_percent_{ 0 };
 	float old_fraction_ = 0.f;
 	float highlight_fraction_ = 0.f;

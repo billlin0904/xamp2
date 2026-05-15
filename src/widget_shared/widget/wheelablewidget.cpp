@@ -28,6 +28,10 @@ void WheelableWidget::setCurrentIndex(const int32_t index) {
 	}
 }
 
+int32_t WheelableWidget::itemStepHeight() const {
+	return qMax(1, itemHeight() + 10);
+}
+
 void WheelableWidget::paintEvent(QPaintEvent*) {
 	QPainter painter(this);
 	painter.setRenderHints(QPainter::Antialiasing, true);
@@ -37,8 +41,9 @@ void WheelableWidget::paintEvent(QPaintEvent*) {
 	const auto w = width();
 	const auto h = height();
 
-	// 每個 item 高度 (假設 itemHeight() 回傳的是不含額外邊距)
-	const auto iH = itemHeight() + 10;
+	paintBackground(&painter);
+
+	const auto iH = itemStepHeight();
 	const auto iC = itemCount();
 
 	// ★ 1) 用 qMax(1, ...) 讓繪製範圍至少包含 1
@@ -96,7 +101,7 @@ void WheelableWidget::mouseReleaseEvent(QMouseEvent* event) {
 void WheelableWidget::onScrollTo(const int32_t index) {
 	do_signal_ = false;
 	auto* scroller = QScroller::scroller(this);
-	scroller->scrollTo(QPointF(0, kWheelScrollOffset + index * itemHeight()), kScrollTime);
+	scroller->scrollTo(QPointF(0, kWheelScrollOffset + index * itemStepHeight()), kScrollTime);
 }
 
 bool WheelableWidget::event(QEvent* event) {
@@ -105,7 +110,7 @@ bool WheelableWidget::event(QEvent* event) {
 			auto* scroll_prepare_event = dynamic_cast<QScrollPrepareEvent *>(event);
 			scroll_prepare_event->setViewportSize(QSizeF(size()));
 			scroll_prepare_event->setContentPosRange(QRectF(0.0, 0.0, 0.0, kWheelScrollOffset * 2));
-			scroll_prepare_event->setContentPos(QPointF(0.0, kWheelScrollOffset + item_ * itemHeight() + item_offset_));
+			scroll_prepare_event->setContentPos(QPointF(0.0, kWheelScrollOffset + item_ * itemStepHeight() + item_offset_));
 			event->accept();
 			return true;
 		}
@@ -114,7 +119,7 @@ bool WheelableWidget::event(QEvent* event) {
 			const auto scroll_event = dynamic_cast<QScrollEvent *>(event);
 			const auto y = scroll_event->contentPos().y();
 			const int32_t iy = y - kWheelScrollOffset;
-			const auto ih = itemHeight();
+			const auto ih = itemStepHeight();
 			const auto ic = itemCount();
 			if (ic > 0) {
 				item_ = iy / ih;

@@ -65,3 +65,48 @@ SharedModePlaybackConfig resolveSharedModePlaybackConfig(
 
     return config;
 }
+
+PlaybackPlan resolvePlaybackPlan(
+    const DeviceInfo& device_info,
+    uint32_t input_sample_rate,
+    bool is_dsd_file,
+    bool is_shared_device,
+    bool is_asio_device) {
+    PlaybackPlan plan;
+    plan.is_shared_device = is_shared_device;
+
+    if (is_dsd_file) {
+        if (plan.is_shared_device || device_info.connect_type == DeviceConnectType::BLUE_TOOTH) {
+            plan.output_mode = DsdModes::DSD_MODE_DSD2PCM;
+        }
+        else {
+            plan.output_mode = is_asio_device
+                ? DsdModes::DSD_MODE_NATIVE
+                : DsdModes::DSD_MODE_DOP;
+        }
+    }
+
+    if (plan.is_shared_device) {
+        const auto shared_mode_config = resolveSharedModePlaybackConfig(device_info,
+            input_sample_rate,
+            plan.output_mode,
+            plan.byte_format);
+        plan.target_sample_rate = shared_mode_config.target_sample_rate;
+        plan.byte_format = shared_mode_config.byte_format;
+        plan.needs_resample = shared_mode_config.needs_resample;
+        return plan;
+    }
+
+    plan.byte_format = ByteFormat::SINT24;
+    plan.use_mqa_decode = true;
+    return plan;
+}
+
+ByteFormat resolvePreparedPlaybackByteFormat(
+    const PlaybackPlan& plan,
+    bool is_mqa_stream) {
+    if (!is_mqa_stream) {
+        return ByteFormat::SINT32;
+    }
+    return plan.byte_format;
+}

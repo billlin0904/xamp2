@@ -36,6 +36,8 @@ signals:
     void volumeChanged(uint32_t volume);
 
 private:
+	void setVolumeUi(uint32_t volume, bool enabled);
+
 	Ui::VolumeControlDialog* ui_;
 	std::shared_ptr<IAudioPlayer> player_;
 };

@@ -227,6 +227,8 @@ ScrollLabel* LrcPage::title() {
 
 void LrcPage::clearBackground() {
 	background_image_ = QImage();
+	prev_background_image_ = QImage();
+	invalidateBackgroundCache();
 	update();
 }
 
@@ -294,18 +296,25 @@ QSize LrcPage::coverSizeHint() const {
 
 void LrcPage::resizeEvent(QResizeEvent* event) {
 	setFullScreen();
+	invalidateBackgroundCache();
+	QFrame::resizeEvent(event);
 }
 
 void LrcPage::setBackground(const QImage& cover) {
 	if (cover.isNull()) {
 		background_image_ = QImage();
+		prev_background_image_ = QImage();
 	}
 	else {
 		prev_bg_alpha_ = current_bg_alpha_;
-		prev_background_image_ = cover;
+		prev_background_image_ = background_image_;
         background_image_ = cover;
+		invalidateBackgroundCache();
 		startBackgroundAnimation(kBlurBackgroundAnimationMs);
+		update();
+		return;
 	}
+	invalidateBackgroundCache();
 	update();
 }
 
@@ -330,10 +339,45 @@ void LrcPage::startBackgroundAnimation(const int durationMs) {
 	fade_out_animation->setEasingCurve(QEasingCurve::OutCubic);
 	(void)QObject::connect(fade_out_animation, &QPropertyAnimation::finished, this, [this, fade_out_animation] {
 		prev_background_image_ = QImage();
+		invalidateBackgroundCache();
 		fade_out_animation->deleteLater();
 		update();
 		});
 	fade_out_animation->start();
+}
+
+void LrcPage::invalidateBackgroundCache() {
+	background_cache_dirty_ = true;
+	background_cache_size_ = QSize();
+}
+
+void LrcPage::updateBackgroundCache() {
+	if (!background_cache_dirty_ && background_cache_size_ == size()) {
+		return;
+	}
+
+	background_cache_ = QPixmap();
+	prev_background_cache_ = QPixmap();
+	background_cache_size_ = size();
+	background_cache_dirty_ = false;
+
+	if (background_cache_size_.isEmpty()) {
+		return;
+	}
+
+	if (!background_image_.isNull()) {
+		background_cache_ = QPixmap::fromImage(background_image_.scaled(
+			background_cache_size_,
+			Qt::IgnoreAspectRatio,
+			Qt::SmoothTransformation));
+	}
+
+	if (!prev_background_image_.isNull()) {
+		prev_background_cache_ = QPixmap::fromImage(prev_background_image_.scaled(
+			background_cache_size_,
+			Qt::IgnoreAspectRatio,
+			Qt::SmoothTransformation));
+	}
 }
 
 void LrcPage::paintEvent(QPaintEvent*) {
@@ -345,15 +389,17 @@ void LrcPage::paintEvent(QPaintEvent*) {
 		return;
 	}
 
+	updateBackgroundCache();
+
 	painter.setCompositionMode(QPainter::CompositionMode_Overlay);
-	if (!background_image_.isNull()) {
+	if (!background_cache_.isNull()) {
 		painter.setOpacity(current_bg_alpha_ / 255.0);
-		painter.drawImage(rect(), background_image_);
+		painter.drawPixmap(0, 0, background_cache_);
 		painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
 	}
-	if (!prev_background_image_.isNull() && prev_bg_alpha_) {
+	if (!prev_background_cache_.isNull() && prev_bg_alpha_) {
 		painter.setOpacity(prev_bg_alpha_ / 255.0);
-		painter.drawImage(rect(), prev_background_image_);
+		painter.drawPixmap(0, 0, prev_background_cache_);
 		painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
 	}
 }
