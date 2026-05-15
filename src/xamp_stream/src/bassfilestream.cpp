@@ -1,4 +1,4 @@
-﻿#include <stream/bassfilestream.h>
+#include <stream/bassfilestream.h>
 
 #include <stream/bassexception.h>
 #include <stream/basslib.h>
@@ -9,7 +9,6 @@
 #include <base/stopwatch.h>
 #include <base/memory_mapped_file.h>
 #include <base/logger.h>
-#include <base/logger_impl.h>
 #include <bass/bassdsd.h>
 #include <base/fastiostream.h>
 

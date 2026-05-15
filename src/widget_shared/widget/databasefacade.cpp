@@ -1,10 +1,10 @@
-﻿#include <widget/databasefacade.h>
+#include <widget/databasefacade.h>
 #include <widget/worker/filesystemservice.h>
 #include <widget/tagio.h>
 
 #include <base/base.h>
 #include <base/threadpoolexecutor.h>
-#include <base/logger_impl.h>
+#include <base/logger.h>
 
 #include <widget/util/str_util.h>
 #include <widget/widget_shared.h>

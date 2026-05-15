@@ -1,10 +1,10 @@
-﻿#include <stream/r8brainresampler.h>
+#include <stream/r8brainresampler.h>
 
 #include <stream/r8brainlib.h>
 #include <r8bbase.h>
 
 #include <base/assert.h>
-#include <base/logger_impl.h>
+#include <base/logger.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
 

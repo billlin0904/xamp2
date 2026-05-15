@@ -5,7 +5,7 @@
 #include <stream/basslib.h>
 
 #include <base/buffer.h>
-#include <base/logger_impl.h>
+#include <base/logger.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
 

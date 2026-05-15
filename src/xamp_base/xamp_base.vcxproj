@@ -180,7 +180,6 @@
     <ClInclude Include="include\base\fastmutex.h" />
     <ClInclude Include="include\base\fs.h" />
     <ClInclude Include="include\base\int24.h" />
-    <ClInclude Include="include\base\logger_impl.h" />
     <ClInclude Include="include\base\object_pool.h" />
     <ClInclude Include="include\base\pimplptr.h" />
     <ClInclude Include="include\base\platfrom_handle.h" />

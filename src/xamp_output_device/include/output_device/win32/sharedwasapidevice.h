@@ -1,4 +1,4 @@
-﻿//=====================================================================================================================
+//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -9,6 +9,7 @@
 
 #ifdef XAMP_OS_WIN
 
+#include <output_device/idsddevice.h>
 #include <output_device/ioutputdevice.h>
 #include <output_device/win32/wasapiworkqueue.h>
 
@@ -24,7 +25,7 @@ XAMP_DECLARE_LOG_NAME(SharedWasapiDevice);
 /*
  * SharedWasapiDevice is a shared mode output device.
  */
-class SharedWasapiDevice final : public IOutputDevice {
+class SharedWasapiDevice final : public IOutputDevice, public IDsdDevice {
 public:
 	/*
 	* Constructor.
@@ -126,6 +127,20 @@ public:
 	void SetMute(bool mute) const override;
 
 	/*
+	* Set DSD IO format.
+	*
+	* @param[in] format: DSD IO format
+	*/
+	void SetIoFormat(DsdIoFormat format) override;
+
+	/*
+	* Get DSD IO format.
+	*
+	* @return DsdIoFormat
+	*/
+	[[nodiscard]] DsdIoFormat GetIoFormat() const override;
+
+	/*
 	* Get packed format.
 	*
 	* @return PackedFormat
@@ -174,12 +189,17 @@ private:
 
 	void InitialDeviceFormat(const AudioFormat & output_format);
 
+	[[nodiscard]] bool IsBitstreamVolumeLocked() const;
+
+	void ForceBitstreamSessionVolume() const;
+
 	HRESULT OnInvoke(IMFAsyncResult* async_result);
 
 	class DeviceEventNotification;
 
 	bool is_low_latency_{ true };
 	bool is_playing_{ false };
+	bool raw_mode_{ false };
 	std::atomic<bool> is_running_;
 	std::atomic<int64_t> stream_time_;	
 	uint32_t buffer_frames_;

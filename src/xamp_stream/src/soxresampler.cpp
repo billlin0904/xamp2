@@ -1,11 +1,10 @@
-﻿#include <stream/soxresampler.h>
+#include <stream/soxresampler.h>
 
 #include <stream/soxrlib.h>
 
 #include <base/assert.h>
 #include <base/dll.h>
 #include <base/logger.h>
-#include <base/logger_impl.h>
 #include <base/buffer.h>
 
 #include <soxr.h>

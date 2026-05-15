@@ -11,7 +11,6 @@
 
 #include <base/logger.h>
 #include <base/scopeguard.h>
-#include <base/logger_impl.h>
 #include <base/str_utilts.h>
 #include <base/object_pool.h>
 
@@ -25,7 +24,7 @@
 #include <widget/dao/dbfacade.h>
 
 constexpr size_t kDefaultCacheSize = 24;
-constexpr qint64 kMaxCacheImageSize = 256 * 1024 * 1024;
+constexpr qint64 kMaxCacheImageSize = 8 * 1024 * 1024; //256 * 1024 * 1024;
 auto kCacheFileExtension = "."_str + qFormat(ImageCache::kImageFileFormat).toLower();
 
 XAMP_DECLARE_LOG_NAME(ImageCache);

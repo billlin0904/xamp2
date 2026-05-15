@@ -1,9 +1,8 @@
-﻿#include <base/logger_impl.h>
+#include <base/logger.h>
 
 #include <base/platform.h>
 #include <base/fs.h>
 #include <base/str_utilts.h>
-#include <base/logger.h>
 
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
@@ -189,6 +188,7 @@ LoggerManager& LoggerManager::AddDebugOutput() {
 	// Handler會遞迴的呼叫下去, 所以只有在除錯模式下才使用.
 	// https://stackoverflow.com/questions/25634376/why-does-addvectoredexceptionhandler-crash-my-dll
 	if (IsDebuging()) {
+		std::lock_guard<FastMutex> guard{ lock_ };
 		sinks_.push_back(std::make_shared<DebugOutputSink>());
 	}
 #endif
@@ -196,6 +196,7 @@ LoggerManager& LoggerManager::AddDebugOutput() {
 }
 
 LoggerManager& LoggerManager::AddSink(spdlog::sink_ptr sink) {
+	std::lock_guard<FastMutex> guard{ lock_ };
     sinks_.push_back(sink);
     return *this;
 }
@@ -205,6 +206,7 @@ LoggerManager& LoggerManager::AddLogFile(const std::string &file_name) {
 
 	std::ostringstream ostr;
 	ostr << "logs/" << file_name;
+	std::lock_guard<FastMutex> guard{ lock_ };
 	sinks_.push_back(std::make_shared<spdlog::sinks::rotating_file_sink<LoggerMutex>>(
 		ostr.str(), kMaxLogFileSize, 0));
 	return *this;

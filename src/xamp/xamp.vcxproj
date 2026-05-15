@@ -67,6 +67,11 @@
     <QtModules>core;gui;network;widgets;core5compat;sql</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnabled>false</VcpkgEnabled>
+    <VcpkgManifestInstall>true</VcpkgManifestInstall>
+    <VcpkgApplocalDeps>false</VcpkgApplocalDeps>
+  </PropertyGroup>
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
     <Import Project="$(QtMsBuild)\qt.props" />
   </ImportGroup>
@@ -181,7 +186,9 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="deviceselectormenu.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="sharedmodeplayback.cpp" />
     <ClCompile Include="xapplication.cpp" />
     <ClCompile Include="style_util.cpp" />
     <ClCompile Include="xamp.cpp" />
@@ -199,8 +206,10 @@
     <ResourceCompile Include="xamp.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="deviceselectormenu.h" />
     <ClInclude Include="xapplication.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="sharedmodeplayback.h" />
     <ClInclude Include="style_util.h" />
     <QtMoc Include="xamp.h">
     </QtMoc>

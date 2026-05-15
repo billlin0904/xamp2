@@ -14,13 +14,12 @@
 #include <xampplayer.h>
 #include <ui_xamp.h>
 
-class QWidgetAction;
-
 class BackgroundService;
 class PlaybackQueueViewPage;
 class FileSystemViewPage;
 class LrcPage;
 class CdPage;
+class DeviceSelectorMenu;
 
 class Xamp final : public IXFrame {
 	Q_OBJECT
@@ -68,10 +67,6 @@ private:
 
     void initialDeviceList(const std::string& device_id = "");
 
-    QWidgetAction* createDeviceMenuWidget(const QString& desc);
-
-    QString translateDeviceDescription(const IDeviceType* device_type);
-
     void showNaviBarButton();
 
 	void setAlbumCover(const QPixmap& cover);
@@ -96,10 +91,10 @@ private:
     QScopedPointer<LrcPage> lrc_page_;
     QScopedPointer<FileSystemViewPage> file_explorer_page_;
 	QScopedPointer<CdPage> cd_page_;
+    QScopedPointer<DeviceSelectorMenu> device_menu_;
     QScopedPointer<QSystemTrayIcon> tray_icon_;
     QScopedPointer<BackgroundService> background_service_;
 	QScopedArrayPointer<PlaybackQueueViewPage> playback_queue_page_;
-    QList<QFrame*> device_type_frame_;
     QList<QWidget*> widgets_;
     std::shared_ptr<IThreadPoolExecutor> thread_pool_;
     std::shared_ptr<UIPlayerStateAdapter> state_adapter_;

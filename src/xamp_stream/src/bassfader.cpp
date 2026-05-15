@@ -2,7 +2,7 @@
 #include <base/memory.h>
 #include <base/buffer.h>
 #include <stream/bass_util.h>
-#include <base/logger_impl.h>
+#include <base/logger.h>
 #include <stream/bassfader.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN

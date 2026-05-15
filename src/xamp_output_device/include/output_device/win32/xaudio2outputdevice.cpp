@@ -1,8 +1,8 @@
-﻿#include <output_device/win32/xaudio2outputdevice.h>
+#include <output_device/win32/xaudio2outputdevice.h>
 
 #include <base/executor.h>
 #include <base/ithreadpoolexecutor.h>
-#include <base/logger_impl.h>
+#include <base/logger.h>
 #include <base/timer.h>
 #include <base/scopeguard.h>
 #include <base/ithreadpoolexecutor.h>

@@ -1,10 +1,9 @@
-﻿#include <base/base.h>
+#include <base/base.h>
 
 #include <output_device/win32/nulloutputdevicetype.h>
 #include <output_device/win32/nulloutputdevice.h>
 
 #include <base/logger.h>
-#include <base/logger_impl.h>
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 

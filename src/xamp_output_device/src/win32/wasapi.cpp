@@ -1,4 +1,4 @@
-﻿#include <sstream>
+#include <sstream>
 #include <base/base.h>
 #include <base/enum.h>
 
@@ -11,7 +11,6 @@
 #include <base/scopeguard.h>
 #include <base/str_utilts.h>
 #include <base/logger.h>
-#include <base/logger_impl.h>
 #include <base/platfrom_handle.h>
 #include <output_device/idevicetype.h>
 #include <output_device/win32/comexception.h>

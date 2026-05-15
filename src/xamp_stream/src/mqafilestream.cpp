@@ -1,4 +1,4 @@
-﻿#include <FLAC/stream_decoder.h>
+#include <FLAC/stream_decoder.h>
 
 #include <cstdint>
 #include <cstdio>
@@ -11,7 +11,7 @@
 #include <algorithm>
 
 #include <base/fastiostream.h>
-#include <base/logger_impl.h>
+#include <base/logger.h>
 #include <stream/mqafilestream.h>
 #include <FLAC++/decoder.h>
 

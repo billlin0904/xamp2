@@ -1,4 +1,4 @@
-﻿#include <thememanager.h>
+#include <thememanager.h>
 
 #include <widget/util/image_util.h>
 #include <widget/util/json_util.h>
@@ -166,7 +166,7 @@ QFont ThemeManager::loadFonts() {
     //ui_fonts.push_back("TX-02"_str);
     ui_fonts.push_back("Arial"_str);
     installFileFonts("NotoSans"_str, mono_fonts);
-    installFileFonts("SourceHanSans"_str, ui_fonts);
+    installFileFonts("Microsoft JhengHei UI"_str, ui_fonts);
 
     sortFontWeight(ui_fonts.begin(), ui_fonts.end());
 

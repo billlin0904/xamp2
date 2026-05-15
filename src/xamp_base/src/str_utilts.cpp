@@ -2,7 +2,6 @@
 
 #include <base/platfrom_handle.h>
 #include <base/logger.h>
-#include <base/logger_impl.h>
 
 #include <utf8.h>
 

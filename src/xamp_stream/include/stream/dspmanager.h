@@ -13,6 +13,10 @@
 #include <base/stl.h>
 #include <base/audiobuffer.h>
 
+XAMP_BASE_NAMESPACE_BEGIN
+class Logger;
+XAMP_BASE_NAMESPACE_END
+
 XAMP_STREAM_NAMESPACE_BEGIN
 
 class DSPManager : public IDSPManager {
@@ -128,7 +132,7 @@ private:
     ScopedPtr<ISampleWriter> sample_writer_;
     Buffer<float> pre_dsp_buffer_;
     Buffer<float> post_dsp_buffer_;
-    LoggerPtr logger_;
+    std::shared_ptr<Logger> logger_;
     Property config_;
     std::move_only_function<bool(float const*, uint32_t, AudioBuffer<std::byte>&)> dispatch_;
 };

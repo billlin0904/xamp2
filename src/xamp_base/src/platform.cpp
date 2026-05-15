@@ -1,15 +1,15 @@
-﻿#include <base/platform.h>
+#include <base/platform.h>
 
 #include <base/dll.h>
 #include <base/str_utilts.h>
 #include <base/logger.h>
-#include <base/logger_impl.h>
 #include <base/rng.h>
 #include <base/assert.h>
 #include <base/waitabletimer.h>
 #include <base/exception.h>
 #include <base/memory.h>
 #include <base/platfrom_handle.h>
+#include <base/shared_singleton.h>
 
 #ifdef XAMP_OS_WIN
 #include <rpcnterr.h>
@@ -29,6 +29,10 @@
 
 #include <base/scopeguard.h>
 
+#include <algorithm>
+#include <limits>
+#include <mutex>
+
 #ifdef XAMP_OS_MAC
 extern "C" int __ulock_wait(uint32_t operation, void* addr, uint64_t value,
                             uint32_t timeout); /* timeout is specified in microseconds */
@@ -47,6 +51,114 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 namespace {
 #ifdef XAMP_OS_WIN
+    SIZE_T SaturatingAdd(SIZE_T lhs, size_t rhs) {
+        const auto max_value = std::numeric_limits<SIZE_T>::max();
+        if (rhs > max_value - lhs) {
+            return max_value;
+        }
+        return lhs + rhs;
+    }
+
+    class WorkingSetLocker final {
+    public:
+        XAMP_DECLARE_SINGLETON_NAME()
+
+        void RecordLocked(size_t size) {
+            if (size == 0) {
+                return;
+            }
+
+            std::lock_guard lock{ mutex_ };
+            active_locked_bytes_ = SaturatingAdd(active_locked_bytes_, size);
+            XAMP_LOG_DEBUG("VirtualLock succeeded without working set resize. locked: {} active_locked: {}.",
+                String::FormatBytes(size),
+                String::FormatBytes(active_locked_bytes_));
+        }
+
+        bool ReserveForLock(size_t size) {
+            if (size == 0) {
+                return true;
+            }
+
+            std::lock_guard lock{ mutex_ };
+            if (!EnsureInitialized()) {
+                return false;
+            }
+
+            const auto requested_locked_bytes = SaturatingAdd(active_locked_bytes_, size);
+            const auto target_minimum = SaturatingAdd(initial_minimum_, requested_locked_bytes);
+            const auto target_maximum = std::max(initial_maximum_, target_minimum);
+
+            if (requested_minimum_ < target_minimum || requested_maximum_ < target_maximum) {
+                const auto current_process = ::GetCurrentProcess();
+                if (!::SetProcessWorkingSetSize(current_process, target_minimum, target_maximum)) {
+                    XAMP_LOG_DEBUG(
+                        "SetProcessWorkingSetSize failed. locked: {} active_locked: {} target_minimum: {} target_maximum: {} error:{}.",
+                        String::FormatBytes(size),
+                        String::FormatBytes(active_locked_bytes_),
+                        String::FormatBytes(target_minimum),
+                        String::FormatBytes(target_maximum),
+                        GetLastErrorMessage());
+                    return false;
+                }
+                requested_minimum_ = target_minimum;
+                requested_maximum_ = target_maximum;
+                XAMP_LOG_DEBUG(
+                    "SetProcessWorkingSetSize succeeded. locked: {} active_locked: {} minimum: {} maximum: {}.",
+                    String::FormatBytes(size),
+                    String::FormatBytes(requested_locked_bytes),
+                    String::FormatBytes(requested_minimum_),
+                    String::FormatBytes(requested_maximum_));
+            }
+
+            active_locked_bytes_ = requested_locked_bytes;
+            return true;
+        }
+
+        void ReleaseLocked(size_t size) {
+            if (size == 0) {
+                return;
+            }
+
+            std::lock_guard lock{ mutex_ };
+            active_locked_bytes_ = size >= active_locked_bytes_
+                ? 0
+                : active_locked_bytes_ - size;
+            XAMP_LOG_DEBUG("VirtualUnlock released locked memory. unlocked: {} active_locked: {}.",
+                String::FormatBytes(size),
+                String::FormatBytes(active_locked_bytes_));
+        }
+
+    private:
+        bool EnsureInitialized() {
+            if (initialized_) {
+                return true;
+            }
+
+            const auto current_process = ::GetCurrentProcess();
+            if (!::GetProcessWorkingSetSize(current_process, &initial_minimum_, &initial_maximum_)) {
+                XAMP_LOG_DEBUG("GetProcessWorkingSetSize return failure! error:{}.", GetLastErrorMessage());
+                return false;
+            }
+
+            requested_minimum_ = initial_minimum_;
+            requested_maximum_ = initial_maximum_;
+            initialized_ = true;
+            XAMP_LOG_TRACE("Initial process working set. minimum: {} maximum: {}.",
+                String::FormatBytes(initial_minimum_),
+                String::FormatBytes(initial_maximum_));
+            return true;
+        }
+
+        std::mutex mutex_;
+        bool initialized_{ false };
+        SIZE_T initial_minimum_{ 0 };
+        SIZE_T initial_maximum_{ 0 };
+        SIZE_T requested_minimum_{ 0 };
+        SIZE_T requested_maximum_{ 0 };
+        SIZE_T active_locked_bytes_{ 0 };
+    };
+
     void SetProcessPriority(const WinHandle& handle, ProcessPriority priority) {
         if (handle) {
             DWORD priority_class = NORMAL_PRIORITY_CLASS;
@@ -339,18 +451,16 @@ bool ExtendProcessWorkingSetSize(size_t size) {
     SIZE_T minimum = 0;
     SIZE_T maximum = 0;
 
-    const WinHandle current_process(::GetCurrentProcess());
+    const auto current_process = ::GetCurrentProcess();
 
-    if (!::GetProcessWorkingSetSize(current_process.get(), &minimum, &maximum)) {
+    if (!::GetProcessWorkingSetSize(current_process, &minimum, &maximum)) {
         XAMP_LOG_DEBUG("GetProcessWorkingSetSize return failure! error:{}.", GetLastErrorMessage());
         return false;
     }   
 
-    minimum += size;
-    if (maximum < minimum + size) {
-        maximum = minimum + size;
-    }
-    return ::SetProcessWorkingSetSize(current_process.get(), minimum, maximum);
+    minimum = SaturatingAdd(minimum, size);
+    maximum = std::max(maximum, minimum);
+    return ::SetProcessWorkingSetSize(current_process, minimum, maximum);
 }
 
 bool EnablePrivilege(std::string_view privilege, bool enable) {
@@ -481,15 +591,25 @@ void SetProcessMitigation() {
 #endif
 
 bool VirtualMemoryLock(void* address, size_t size) {
+    if (size == 0) {
+        return true;
+    }
+    if (address == nullptr) {
+        return false;
+    }
+
 #ifdef XAMP_OS_WIN
     if (!::VirtualLock(address, size)) { // try lock memory!
-        if (!ExtendProcessWorkingSetSize(size)) {
+        if (!SharedSingleton<WorkingSetLocker>::GetInstance().ReserveForLock(size)) {
             return false;
         }
         if (!::VirtualLock(address, size)) {
+            SharedSingleton<WorkingSetLocker>::GetInstance().ReleaseLocked(size);
             return false;
         }
+        return true;
     }
+    SharedSingleton<WorkingSetLocker>::GetInstance().RecordLocked(size);
     return true;
 #else
     return ::mlock(address, size) != -1;
@@ -497,8 +617,24 @@ bool VirtualMemoryLock(void* address, size_t size) {
 }
 
 bool VirtualMemoryUnLock(void* address, size_t size) {
+    if (size == 0) {
+        return true;
+    }
+    if (address == nullptr) {
+        return false;
+    }
+
 #ifdef XAMP_OS_WIN
-    return ::VirtualUnlock(address, size);
+    if (!::VirtualUnlock(address, size)) {
+        const auto last_error = ::GetLastError();
+        if (last_error == ERROR_NOT_LOCKED) {
+            SharedSingleton<WorkingSetLocker>::GetInstance().ReleaseLocked(size);
+        }
+        ::SetLastError(last_error);
+        return false;
+    }
+    SharedSingleton<WorkingSetLocker>::GetInstance().ReleaseLocked(size);
+    return true;
 #else
     return ::munlock(address, size) != -1;
 #endif

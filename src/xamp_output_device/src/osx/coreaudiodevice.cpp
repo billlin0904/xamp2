@@ -1,4 +1,4 @@
-﻿#include <vector>
+#include <vector>
 #include <mach/mach.h>
 #include <mach/mach_time.h>
 #include <mach/thread_policy.h>
@@ -7,7 +7,7 @@
 #include <AudioToolbox/AudioToolbox.h>
 
 #include <base/stl.h>
-#include <base/logger_impl.h>
+#include <base/logger.h>
 #include <base/singleton.h>
 #include <base/memory.h>
 #include <base/timer.h>

@@ -1,4 +1,4 @@
-﻿//=====================================================================================================================
+//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -213,7 +213,11 @@ private:
 
 	void SetVolumeLevelScalar(float level);
 
-	bool raw_mode_;
+	[[nodiscard]] bool IsBitstreamVolumeLocked() const;
+
+	void ForceBitstreamEndpointVolume() const;
+
+	DsdIoFormat io_format_{ DsdIoFormat::IO_FORMAT_PCM };
 	bool ignore_wait_slow_;
 	bool is_2432_format_;	
 	std::atomic<bool> is_running_;

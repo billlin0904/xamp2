@@ -1,4 +1,4 @@
-﻿#include <base/base.h>
+#include <base/base.h>
 
 #if XAMP_OS_WIN
 
@@ -10,9 +10,9 @@
 #include <base/str_utilts.h>
 #include <base/dataconverter.h>
 #include <base/logger.h>
-#include <base/logger_impl.h>
 #include <base/platform.h>
 #include <base/stopwatch.h>
+#include <base/stl.h>
 
 #include <output_device/win32/mmcss.h>
 #include <output_device/win32/asiodevice.h>

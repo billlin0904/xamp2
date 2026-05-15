@@ -1,5 +1,4 @@
 #include <base/logger.h>
-#include <base/logger_impl.h>
 #include <stream/basslib.h>
 #include <stream/bass_util.h>
 #include <stream/eqsettings.h>

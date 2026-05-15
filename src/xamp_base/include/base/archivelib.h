@@ -8,7 +8,6 @@
 #include <base/base.h>
 #include <base/dll.h>
 #include <base/logger.h>
-#include <base/logger_impl.h>
 
 #include <base/shared_singleton.h>
 #include <archive.h>

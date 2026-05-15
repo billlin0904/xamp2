@@ -1,10 +1,9 @@
-﻿#include <metadata/taglib.h>
+#include <metadata/taglib.h>
 #include <metadata/taglibiostream.h>
 #include <metadata/taglibmetawriter.h>
 
 #include <base/exception.h>
 #include <base/logger.h>
-#include <base/logger_impl.h>
 #include <base/platfrom_handle.h>
 #include <base/fastiostream.h>
 #include <base/str_utilts.h>

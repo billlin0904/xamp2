@@ -109,6 +109,7 @@ SOURCES += \
 ./widget/youtubedl/ytmusic_disckcache.cpp \
 ./widget/youtubedl/ytmusicoauth.cpp \
 ./widget/seekslider.cpp \
+./widget/waveformslider.cpp \
 ./widget/m3uparser.cpp \
 ./widgetframe/windowbar.cpp \
 ./widgetframe/windowbutton.cpp \
@@ -200,6 +201,7 @@ HEADERS += \
 ./widget/playliststyleditemdelegate.h \
 ./widget/imagecache.h \
 ./widget/seekslider.h \
+./widget/waveformslider.h \
 ./widget/playlistpage.h \
 ./widget/playlisttableview.h \
 ./widget/lrcparser.h \

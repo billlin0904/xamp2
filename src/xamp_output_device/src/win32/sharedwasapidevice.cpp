@@ -1,4 +1,4 @@
-﻿#include <output_device/win32/sharedwasapidevice.h>
+#include <output_device/win32/sharedwasapidevice.h>
 
 #ifdef XAMP_OS_WIN
 #include <output_device/iaudiocallback.h>
@@ -10,7 +10,6 @@
 #include <base/base.h>
 #include <base/assert.h>
 #include <base/logger.h>
-#include <base/logger_impl.h>
 #include <base/waitabletimer.h>
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
@@ -49,7 +48,7 @@ namespace {
 	constexpr auto kAudioRenderClientID = __uuidof(IAudioRenderClient);
 	constexpr auto kAudioClient3ID = __uuidof(IAudioClient3);
 	constexpr auto kAudioClockID = __uuidof(IAudioClock);
-	constexpr uint32_t kSharedWasapiLatencyMs = 30;
+	constexpr uint32_t kSharedWasapiLatencyMs = 15;
 	constexpr REFERENCE_TIME kHnsPerMillisecond = 10000;
 
 	uint32_t AlignPeriodToFundamental(uint32_t period_in_frames, uint32_t fundamental_period_in_frames) {
@@ -331,21 +330,41 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 
 	// Get the device volume interface.
 	HrIfFailThrow(client_->GetService(kSimpleAudioVolumeID, reinterpret_cast<void**>(&simple_audio_volume_)));
+	if (IsBitstreamVolumeLocked()) {
+		ForceBitstreamSessionVolume();
+	}
 }
 
 bool SharedWasapiDevice::IsMuted() const {
+	if (IsBitstreamVolumeLocked()) {
+		return false;
+	}
 	BOOL is_muted = FALSE;
 	HrIfFailThrow(simple_audio_volume_->GetMute(&is_muted));
 	return is_muted;
 }
 
 uint32_t SharedWasapiDevice::GetVolume() const {	
+	if (IsBitstreamVolumeLocked()) {
+		return 100;
+	}
 	float channel_volume = 0.0;
 	HrIfFailThrow(simple_audio_volume_->GetMasterVolume(&channel_volume));
 	return static_cast<uint32_t>(channel_volume * 100);
 }
 
 void SharedWasapiDevice::SetMute(bool mute) const {
+	if (IsBitstreamVolumeLocked()) {
+		if (mute) {
+			XAMP_LOG_D(logger_, "Ignore mute in shared WASAPI DoP mode to keep bitstream intact.");
+			if (callback_ != nullptr) {
+				callback_->OnVolumeChange(100);
+			}
+			return;
+		}
+		ForceBitstreamSessionVolume();
+		return;
+	}
 	HrIfFailThrow(simple_audio_volume_->SetMute(mute, nullptr));
 }
 
@@ -366,6 +385,17 @@ void SharedWasapiDevice::SetSchedulerService(std::wstring const & mmcss_name, Mm
 void SharedWasapiDevice::SetVolume(uint32_t volume) const {
 	volume = std::clamp(volume, static_cast<uint32_t>(0), static_cast<uint32_t>(100));
 
+	if (IsBitstreamVolumeLocked()) {
+		if (volume != 100) {
+			XAMP_LOG_D(logger_, "Ignore shared WASAPI volume {} in DoP mode to keep bitstream intact.", volume);
+			if (callback_ != nullptr) {
+				callback_->OnVolumeChange(100);
+			}
+		}
+		ForceBitstreamSessionVolume();
+		return;
+	}
+
 	BOOL is_mute = FALSE;
 	HrIfFailThrow(simple_audio_volume_->GetMute(&is_mute));
 
@@ -377,6 +407,14 @@ void SharedWasapiDevice::SetVolume(uint32_t volume) const {
 	HrIfFailThrow(simple_audio_volume_->SetMasterVolume(channel_volume, nullptr));
 
 	XAMP_LOG_D(logger_, "Current volume: {}", GetVolume());
+}
+
+void SharedWasapiDevice::SetIoFormat(DsdIoFormat format) {
+	raw_mode_ = format == DsdIoFormat::IO_FORMAT_DOP;
+}
+
+DsdIoFormat SharedWasapiDevice::GetIoFormat() const {
+	return raw_mode_ ? DsdIoFormat::IO_FORMAT_DOP : DsdIoFormat::IO_FORMAT_PCM;
 }
 
 void SharedWasapiDevice::SetStreamTime(double stream_time) {
@@ -506,14 +544,14 @@ HRESULT SharedWasapiDevice::GetSample(bool is_silence) {
 
 	const auto hr = client_->GetCurrentPadding(&padding_frames);
 	if (FAILED(hr)) {
-		XAMP_LOG_DEBUG("Failure");
+		//XAMP_LOG_DEBUG("Failure");
 		return hr;
 	}
 
 	const auto frames_available = buffer_frames_ - padding_frames;
 
 	if (frames_available > 0) {
-		XAMP_LOG_DEBUG("Get {} samples ({}).", frames_available, padding_frames);
+		//XAMP_LOG_DEBUG("Get {} samples ({}).", frames_available, padding_frames);
 		if (is_silence) {
 			return GetSample(frames_available, true);
 		}
@@ -521,7 +559,7 @@ HRESULT SharedWasapiDevice::GetSample(bool is_silence) {
 			return GetSample(frames_available, false);
 		}
 	}
-	XAMP_LOG_DEBUG("frames_available = 0");
+	//XAMP_LOG_DEBUG("frames_available = 0");
 	return S_OK;
 }
 
@@ -531,6 +569,18 @@ void SharedWasapiDevice::AbortStream() {
 
 bool SharedWasapiDevice::IsHardwareControlVolume() const {
 	return false;
+}
+
+bool SharedWasapiDevice::IsBitstreamVolumeLocked() const {
+	return GetIoFormat() == DsdIoFormat::IO_FORMAT_DOP;
+}
+
+void SharedWasapiDevice::ForceBitstreamSessionVolume() const {
+	if (simple_audio_volume_ == nullptr) {
+		return;
+	}
+	HrIfFailThrow(simple_audio_volume_->SetMute(false, nullptr));
+	HrIfFailThrow(simple_audio_volume_->SetMasterVolume(1.0f, nullptr));
 }
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

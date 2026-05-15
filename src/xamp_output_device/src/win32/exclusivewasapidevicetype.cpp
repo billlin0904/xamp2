@@ -1,4 +1,4 @@
-﻿#include <output_device/win32/exclusivewasapidevicetype.h>
+#include <output_device/win32/exclusivewasapidevicetype.h>
 
 #ifdef XAMP_OS_WIN
 #include <output_device/win32/comexception.h>
@@ -8,7 +8,7 @@
 #include <base/base.h>
 #include <base/scopeguard.h>
 #include <base/str_utilts.h>
-#include <base/logger_impl.h>
+#include <base/logger.h>
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 

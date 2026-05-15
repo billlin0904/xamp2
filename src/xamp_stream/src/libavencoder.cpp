@@ -1,8 +1,7 @@
-﻿#include <immintrin.h>
+#include <immintrin.h>
 
 #include <base/dll.h>
 #include <base/logger.h>
-#include <base/logger_impl.h>
 #include <base/buffer.h>
 #include <base/dataconverter.h>
 #include <base/port.h>

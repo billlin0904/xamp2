@@ -1,10 +1,11 @@
-﻿#include <functional>
+#include <functional>
 
 #include <base/memory.h>
 #include <base/buffer.h>
 #include <base/assert.h>
 #include <base/math.h>
-#include <base/logger_impl.h>
+#include <base/logger.h>
+#include <base/stl.h>
 #include <base/exception.h>
 #include <stream/fft.h>
 

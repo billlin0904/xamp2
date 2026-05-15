@@ -1,7 +1,6 @@
 #include <stream/fftwlib.h>
 
 #include <base/logger.h>
-#include <base/logger_impl.h>
 #include <base/exception.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN

@@ -1,8 +1,7 @@
-﻿#include <stream/srcresampler.h>
+#include <stream/srcresampler.h>
 
 #include <base/dll.h>
 #include <base/logger.h>
-#include <base/logger_impl.h>
 
 #include <stream/srclib.h>
 

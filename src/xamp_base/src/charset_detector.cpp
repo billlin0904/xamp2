@@ -2,7 +2,7 @@
 #include <base/assert.h>
 #include <uchardet.h>
 #include <base/dll.h>
-#include <base/logger_impl.h>
+#include <base/logger.h>
 
 #include <opencc.h>
 #include <cld3/nnet_language_identifier.h>

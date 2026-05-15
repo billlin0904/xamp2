@@ -7,7 +7,6 @@
 
 #include <base/dll.h>
 #include <base/logger.h>
-#include <base/logger_impl.h>
 #include <stream/stream.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN

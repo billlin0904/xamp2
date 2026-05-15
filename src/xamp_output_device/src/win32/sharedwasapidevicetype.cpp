@@ -9,7 +9,6 @@
 #include <output_device/win32/sharedwasapidevicetype.h>
 
 #include <base/logger.h>
-#include <base/logger_impl.h>
 #include <base/str_utilts.h>
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN

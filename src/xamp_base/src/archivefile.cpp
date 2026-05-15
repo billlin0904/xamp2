@@ -1,4 +1,4 @@
-﻿#include <archive.h>
+#include <archive.h>
 #include <archive_entry.h>
 
 #include <base/unique_handle.h>
@@ -6,7 +6,6 @@
 #include <base/dll.h>
 #include <base/shared_singleton.h>
 #include <base/logger.h>
-#include <base/logger_impl.h>
 #include <base/fastiostream.h>
 
 #include <fstream>

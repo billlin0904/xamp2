@@ -1,11 +1,10 @@
-﻿#include <widget/lrcparser.h>
+#include <widget/lrcparser.h>
 #include <fstream>
 
 #include <base/fs.h>
 #include <base/algorithm.h>
 #include <base/str_utilts.h>
 #include <base/logger.h>
-#include <base/logger_impl.h>
 
 #include <widget/widget_shared_global.h>
 #include <widget/widget_shared.h>

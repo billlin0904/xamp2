@@ -624,17 +624,17 @@
             </widget>
            </item>
            <item>
-            <widget class="SeekSlider" name="seekSlider">
+            <widget class="WaveformSlider" name="seekSlider">
              <property name="minimumSize">
               <size>
                <width>10</width>
-               <height>0</height>
+               <height>24</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>16</height>
+               <height>32</height>
               </size>
              </property>
              <property name="orientation">
@@ -899,9 +899,9 @@
    <header>widget/navbarlistview.h</header>
   </customwidget>
   <customwidget>
-   <class>SeekSlider</class>
+   <class>WaveformSlider</class>
    <extends>QSlider</extends>
-   <header>widget/seekslider.h</header>
+   <header>widget/waveformslider.h</header>
   </customwidget>
   <customwidget>
    <class>ScrollLabel</class>

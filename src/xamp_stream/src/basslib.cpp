@@ -1,6 +1,6 @@
-﻿#include <stream/basslib.h>
+#include <stream/basslib.h>
 
-#include <base/logger_impl.h>
+#include <base/logger.h>
 #include <base/str_utilts.h>
 
 #include <bass/bassdsd.h>

@@ -1,4 +1,4 @@
-﻿//=====================================================================================================================
+//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -7,9 +7,10 @@
 
 #include <memory>
 #include <base/base.h>
-#include <base/logger.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
+
+class Logger;
 
 class XAMP_BASE_API VmMemLock final {
 public:
@@ -27,7 +28,7 @@ public:
 private:
 	void* address_{ nullptr };
 	size_t size_{ 0 };
-	LoggerPtr logger_;
+	std::shared_ptr<Logger> logger_;
 };
 
 XAMP_BASE_NAMESPACE_END

@@ -6,7 +6,7 @@
 #pragma once
 
 #include <QString>
-#include <base/logger_impl.h>
+#include <base/logger.h>
 #include <widget/widget_shared_global.h>
 
 namespace log_util {

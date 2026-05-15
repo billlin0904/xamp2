@@ -1,4 +1,4 @@
-﻿#include <base/base.h>
+#include <base/base.h>
 
 #ifdef XAMP_OS_MAC
 
@@ -10,7 +10,6 @@
 #include <IOKit/IOCFPlugIn.h>
 
 #include <base/logger.h>
-#include <base/logger_impl.h>
 #include <base/str_utilts.h>
 
 #include <output_device/osx/coreaudioexception.h>

@@ -1,4 +1,4 @@
-﻿#include <widget/worker/backgroundservice.h>
+#include <widget/worker/backgroundservice.h>
 
 #include <widget/util/ui_util.h>
 #include <widget/util/str_util.h>
@@ -28,7 +28,7 @@
 #include <stream/stft.h>
 #include <stream/ebur128scanner.h>
 
-#include <base/logger_impl.h>
+#include <base/logger.h>
 #include <base/math.h>
 
 #if defined(Q_OS_WIN)

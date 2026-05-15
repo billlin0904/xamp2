@@ -1,6 +1,5 @@
 #include <base/logger.h>
 #include <base/threadpoolexecutor.h>
-#include <base/logger_impl.h>
 #include <base/ithreadpoolexecutor.h>
 
 XAMP_BASE_NAMESPACE_BEGIN

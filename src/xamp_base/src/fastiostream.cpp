@@ -1,8 +1,7 @@
-﻿#include <base/fastiostream.h>
+#include <base/fastiostream.h>
 #include <base/platform.h>
 
 #include <base/logger.h>
-#include <base/logger_impl.h>
 #include <base/executor.h>
 
 #include <deque>

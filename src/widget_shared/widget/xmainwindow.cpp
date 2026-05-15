@@ -2,7 +2,7 @@
 
 #include <thememanager.h>
 
-#include <base/logger_impl.h>
+#include <base/logger.h>
 
 #include <widget/util/ui_util.h>
 #include <widget/appsettingnames.h>

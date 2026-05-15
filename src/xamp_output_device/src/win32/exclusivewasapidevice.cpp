@@ -1,4 +1,4 @@
-﻿#include <output_device/win32/exclusivewasapidevice.h>
+#include <output_device/win32/exclusivewasapidevice.h>
 
 #ifdef XAMP_OS_WIN
 #include <output_device/iaudiocallback.h>
@@ -10,7 +10,6 @@
 #include <base/logger.h>
 #include <base/str_utilts.h>
 #include <base/stopwatch.h>
-#include <base/logger_impl.h>
 #include <base/scopeguard.h>
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
@@ -110,8 +109,7 @@ namespace {
 }
 
 ExclusiveWasapiDevice::ExclusiveWasapiDevice(const CComPtr<IMMDevice>& device)
-	: raw_mode_(false)
-	, ignore_wait_slow_(false)
+	: ignore_wait_slow_(false)
 	, is_2432_format_(true)
 	, is_running_(false)
 	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL)
@@ -230,12 +228,15 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 			nullptr,
 			reinterpret_cast<void**>(&client_)));
 
-        HrIfFailThrow(device_->Activate(kAudioEndpointVolumeID,
-			CLSCTX_ALL,
-			nullptr,
-			reinterpret_cast<void**>(&endpoint_volume_)));
+	HrIfFailThrow(device_->Activate(kAudioEndpointVolumeID,
+		CLSCTX_ALL,
+		nullptr,
+		reinterpret_cast<void**>(&endpoint_volume_)));
+	if (IsBitstreamVolumeLocked()) {
+		ForceBitstreamEndpointVolume();
+	}
 
-		HrIfFailThrow(client_->GetMixFormat(&mix_format_));		
+	HrIfFailThrow(client_->GetMixFormat(&mix_format_));
 
 		HRESULT hr = S_OK;
 		if (output_format.GetByteFormat() == ByteFormat::SINT32) {
@@ -290,6 +291,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 				is_2432_format_ = true;
 			}
 		} else {
+			is_2432_format_ = false;
 			switch (output_format.GetBitsPerSample()) {
 			case 16:
 				InitialDeviceFormat(output_format, 16);
@@ -443,15 +445,11 @@ void ExclusiveWasapiDevice::AbortStream() {
 }
 
 void ExclusiveWasapiDevice::SetIoFormat(DsdIoFormat format) {
-	if (format == DsdIoFormat::IO_FORMAT_DSD || format == DsdIoFormat::IO_FORMAT_DOP) {
-		raw_mode_ = true;
-	} else {
-		raw_mode_ = false;
-	}
+	io_format_ = format;
 }
 
 DsdIoFormat ExclusiveWasapiDevice::GetIoFormat() const {
-	return raw_mode_ ? DsdIoFormat::IO_FORMAT_DSD : DsdIoFormat::IO_FORMAT_PCM;
+	return io_format_;
 }
 
 void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
@@ -541,6 +539,9 @@ double ExclusiveWasapiDevice::GetStreamTime() const {
 }
 
 uint32_t ExclusiveWasapiDevice::GetVolume() const {
+	if (IsBitstreamVolumeLocked()) {
+		return 100;
+	}
 	if (!IsHardwareControlVolume()) {
 		return GainToVolumeLevel(data_convert_.volume_factor);
 	}
@@ -550,6 +551,17 @@ uint32_t ExclusiveWasapiDevice::GetVolume() const {
 }
 
 void ExclusiveWasapiDevice::SetVolume(uint32_t volume) const {
+	if (IsBitstreamVolumeLocked()) {
+		if (volume != 100) {
+			XAMP_LOG_D(logger_, "Ignore exclusive WASAPI volume {} in DSD bitstream mode to keep data intact.", volume);
+			if (callback_ != nullptr) {
+				callback_->OnVolumeChange(100);
+			}
+		}
+		ForceBitstreamEndpointVolume();
+		return;
+	}
+
 	if (!IsHardwareControlVolume()) {
 		data_convert_.volume_factor = VolumeLevelToGain(volume);
 		return;
@@ -585,12 +597,26 @@ void ExclusiveWasapiDevice::SetVolumeLevelScalar(float level) {
 }
 
 bool ExclusiveWasapiDevice::IsMuted() const {
+	if (IsBitstreamVolumeLocked()) {
+		return false;
+	}
 	auto is_mute = FALSE;
 	HrIfFailThrow(endpoint_volume_->GetMute(&is_mute));
 	return is_mute;
 }
 
 void ExclusiveWasapiDevice::SetMute(const bool mute) const {
+	if (IsBitstreamVolumeLocked()) {
+		if (mute) {
+			XAMP_LOG_D(logger_, "Ignore mute in exclusive WASAPI DSD bitstream mode to keep data intact.");
+			if (callback_ != nullptr) {
+				callback_->OnVolumeChange(100);
+			}
+			return;
+		}
+		ForceBitstreamEndpointVolume();
+		return;
+	}
 	HrIfFailThrow(endpoint_volume_->SetMute(mute, nullptr));
 }
 
@@ -606,6 +632,19 @@ bool ExclusiveWasapiDevice::IsHardwareControlVolume() const {
 	const auto hw_support = (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_VOLUME)
 		&& (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_MUTE);
 	return hw_support;
+}
+
+bool ExclusiveWasapiDevice::IsBitstreamVolumeLocked() const {
+	return io_format_ == DsdIoFormat::IO_FORMAT_DSD
+		|| io_format_ == DsdIoFormat::IO_FORMAT_DOP;
+}
+
+void ExclusiveWasapiDevice::ForceBitstreamEndpointVolume() const {
+	if (endpoint_volume_ == nullptr) {
+		return;
+	}
+	HrIfFailThrow(endpoint_volume_->SetMute(FALSE, nullptr));
+	HrIfFailThrow(endpoint_volume_->SetMasterVolumeLevelScalar(1.0f, nullptr));
 }
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

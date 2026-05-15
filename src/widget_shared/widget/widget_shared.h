@@ -11,7 +11,6 @@
 #include <base/rng.h>
 #include <base/shared_singleton.h>
 #include <base/logger.h>
-#include <base/logger_impl.h>
 #include <base/exception.h>
 #include <base/ithreadpoolexecutor.h>
 #include <base/stopwatch.h>

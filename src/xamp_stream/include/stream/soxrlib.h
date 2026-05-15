@@ -8,7 +8,6 @@
 #include <stream/stream.h>
 
 #include <base/logger.h>
-#include <base/logger_impl.h>
 
 #include <base/base.h>
 #include <base/dll.h>

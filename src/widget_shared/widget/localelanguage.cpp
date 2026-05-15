@@ -6,7 +6,6 @@
 #include <widget/util/str_util.h>
 #include <widget/widget_shared.h>
 #include <base/logger.h>
-#include <base/logger_impl.h>
 
 namespace {
 	void switchTranslator(QTranslator& translator, const QString& filename) {

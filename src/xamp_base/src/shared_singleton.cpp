@@ -1,7 +1,7 @@
-﻿#include <base/shared_singleton.h>
+#include <base/shared_singleton.h>
 #include <base/platform.h>
 #include <base/fastmutex.h>
-#include <base/logger_impl.h>
+#include <base/logger.h>
 #include <base/stl.h>
 
 #include <mutex>

@@ -1,10 +1,12 @@
 ﻿#include <thememanager.h>
 #include <version.h>
 #include <xamp.h>
+#include <deviceselectormenu.h>
+#include <sharedmodeplayback.h>
 
-#include <QWidgetAction>
-#include <QActionGroup>
+#include <QAction>
 #include <QDirIterator>
+#include <QMap>
 
 #include <base/ithreadpoolexecutor.h>
 #include <base/crashhandler.h>
@@ -13,14 +15,12 @@
 #include <stream/idspmanager.h>
 
 #include <output_device/audiodevicemanager.h>
-#include <output_device/idevicetype.h>
 
 #include <widget/util/image_util.h>
 #include <widget/util/ui_util.h>
 #include <widget/equalizerview.h>
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
-#include <widget/actionmap.h>
 #include <widget/lrcpage.h>
 #include <widget/lyricsshowwidget.h>
 #include <widget/filesystemviewpage.h>
@@ -31,12 +31,9 @@
 #include <widget/logview.h>
 #include <widget/preferencepage.h>
 #include <widget/cdpage.h>
+#include <widget/waveformslider.h>
 
 #include <style_util.h>
-
-namespace {
-    
-}
 
 Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
     : IXFrame(parent)
@@ -44,6 +41,7 @@ Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
     thread_pool_ = ThreadPoolBuilder::MakeBackgroundThreadPool();
     setAttribute(Qt::WA_DontCreateNativeAncestors);
     ui_.setupUi(this);
+    device_menu_.reset(new DeviceSelectorMenu(ui_.selectDeviceButton, ui_.deviceDescLabel, this));
 }
 
 Xamp::~Xamp() {
@@ -63,48 +61,6 @@ Xamp::~Xamp() {
     quit_and_wait_thread(background_service_thread_);
     qGuiDb.Close();
     XampCrashHandler.Cleanup();
-}
-
-QString Xamp::translateDeviceDescription(const IDeviceType* device_type) {
-    static const QMap<std::string_view, ConstexprQString> lut{
-        { "WASAPI (Exclusive Mode)", QT_TRANSLATE_NOOP("Xamp", "WASAPI (Exclusive Mode)") },
-        { "WASAPI (Shared Mode)",    QT_TRANSLATE_NOOP("Xamp", "WASAPI (Shared Mode)") },
-        { "Null Output",             QT_TRANSLATE_NOOP("Xamp", "Null Output") },
-        { "XAudio2",                 QT_TRANSLATE_NOOP("Xamp", "XAudio2") },
-        { "ASIO",                    QT_TRANSLATE_NOOP("Xamp", "ASIO") },
-    };
-    const auto str = lut.value(device_type->GetDescription(),
-        fromStdStringView(device_type->GetDescription()));
-    return tr(str.data());
-}
-
-QWidgetAction* Xamp::createDeviceMenuWidget(const QString& desc) {
-    auto* desc_label = new QLabel(desc);
-
-    desc_label->setObjectName("textSeparator"_str);
-
-    QFont f = font();
-    f.setPointSize(qTheme.fontSize(9));
-    f.setBold(true);
-    desc_label->setFont(f);
-    desc_label->setAlignment(Qt::AlignCenter);
-
-    auto* device_type_frame = new QFrame();
-    device_type_frame->setObjectName("deviceTypeFrame"_str);
-    qTheme.setFrameBackgroundColor(device_type_frame);
-
-    auto* default_layout = new QHBoxLayout(device_type_frame);
-    default_layout->addWidget(desc_label);
-
-    default_layout->setSpacing(0);
-    default_layout->setContentsMargins(0, 0, 0, 0);
-    device_type_frame->setLayout(default_layout);
-
-    auto* separator = new QWidgetAction(this);
-    separator->setDefaultWidget(device_type_frame);
-
-    device_type_frame_.push_back(device_type_frame);
-    return separator;
 }
 
 void Xamp::pushWidget(QWidget* widget) {
@@ -143,112 +99,27 @@ void Xamp::setCurrentTab(int32_t table_id) {
 void Xamp::initialDeviceList(const std::string& device_id) {
     XAMP_LOG_DEBUG("Initial device list");
 
-    auto f = qTheme.defaultFont();
-    f.setPointSize(10);
-    ui_.deviceDescLabel->setFont(f);
-
-    auto* menu = ui_.selectDeviceButton->menu();
-    if (!menu) {
-        menu = new XMenu();
-        ui_.selectDeviceButton->setMenu(menu);
-    }
-
-    menu->clear();
-
-    DeviceInfo init_device_info;
-    auto is_find_setting_device = false;
-
-    auto* device_action_group = new QActionGroup(this);
-    device_action_group->setExclusive(true);
-
-    OrderedMap<std::string, QAction*> device_id_action;
-
     const auto device_type_id = qAppSettings.valueAsId(kAppSettingDeviceType);
     auto current_device_id = device_id;
     if (current_device_id.empty()) {
         current_device_id = qAppSettings.valueAsString(kAppSettingDeviceId).toStdString();
     }
-    const auto& device_manager = player_->GetAudioDeviceManager();
 
-    auto max_width = 0;
-    const QFontMetrics metrics(ui_.deviceDescLabel->font());
+    auto apply_device = [this](const DeviceInfo& device_info) {
+        device_info_ = device_info;
+        qAppSettings.setValue(kAppSettingDeviceType, device_info.device_type_id);
+        qAppSettings.setValue(kAppSettingDeviceId, device_info.device_id);
+    };
 
-    for (auto itr = device_manager->Begin(); itr != device_manager->End(); ++itr) {
-        const auto device_type = itr->second();
-        device_type->ScanNewDevice();
+    const auto selected_device = device_menu_->rebuild(player_->GetAudioDeviceManager(),
+        device_type_id,
+        current_device_id,
+        device_info_,
+        apply_device);
 
-        const auto device_info_list = device_type->GetDeviceInfo();
-        if (device_info_list.empty()) {
-            return;
-        }
-
-        menu->addSeparator();
-        menu->addAction(createDeviceMenuWidget(translateDeviceDescription(device_type.get())));
-
-        for (const auto& device_info : device_info_list) {
-            const auto device_name = QString::fromStdWString(device_info.name);
-            auto* device_action = new QAction(qTheme.connectTypeIcon(device_info.connect_type), device_name, this);
-            device_action_group->addAction(device_action);
-            device_action->setCheckable(true);
-            device_action->setChecked(false);
-            device_action->setProperty("deviceName", device_name);
-            auto update_device_action = [device_action]() {
-                const auto device_name = device_action->property("deviceName").toString();
-                device_action->setText(device_action->isChecked()
-                    ? QStringLiteral("%1 %2").arg(QChar(0x2713), device_name)
-                    : device_name);
-            };
-            (void)QObject::connect(device_action, &QAction::toggled, this, update_device_action);
-            device_id_action[device_info.device_id] = device_action;
-
-            if (device_info_) {
-                max_width = std::max(metrics.horizontalAdvance(QString::fromStdWString(device_info_.value().name)), max_width);
-            }
-
-            auto trigger_callback = [device_info, this]() {
-                qTheme.setDeviceConnectTypeIcon(ui_.selectDeviceButton, device_info.connect_type);
-                device_info_ = device_info;
-                ui_.deviceDescLabel->setText(QString::fromStdWString(device_info_.value().name));
-                qAppSettings.setValue(kAppSettingDeviceType, device_info_.value().device_type_id);
-                qAppSettings.setValue(kAppSettingDeviceId, device_info_.value().device_id);
-                };
-
-            (void)QObject::connect(device_action, &QAction::triggered, trigger_callback);
-            menu->addAction(device_action);
-
-            if (device_type_id == device_info.device_type_id && current_device_id == device_info.device_id) {
-                device_info_ = device_info;
-                is_find_setting_device = true;
-                device_action->setChecked(true);
-                // BUG! not show current connect icon.
-                qTheme.setDeviceConnectTypeIcon(ui_.selectDeviceButton, device_info.connect_type);
-                ui_.deviceDescLabel->setMinimumWidth(max_width + 60);
-                ui_.deviceDescLabel->setText(QString::fromStdWString(device_info_.value().name));
-            }
-        }
-
-        if (!is_find_setting_device) {
-            auto itr = std::find_if(device_info_list.begin(),
-                device_info_list.end(), [](const auto& info) {
-                    return info.is_default_device && !IsExclusiveDevice(info);
-                });
-            if (itr != device_info_list.end()) {
-                init_device_info = (*itr);
-            }
-        }
-    }
-
-    if (!is_find_setting_device) {
-        device_info_ = init_device_info;
-        qTheme.setDeviceConnectTypeIcon(ui_.selectDeviceButton, device_info_.value().connect_type);
-        if (device_id_action.find(device_info_.value().device_id) != device_id_action.end()) {
-            device_id_action[device_info_.value().device_id]->setChecked(true);
-            ui_.deviceDescLabel->setMinimumWidth(max_width + 60);
-            ui_.deviceDescLabel->setText(QString::fromStdWString(device_info_.value().name));
-            qAppSettings.setValue(kAppSettingDeviceType, device_info_.value().device_type_id);
-            qAppSettings.setValue(kAppSettingDeviceId, device_info_.value().device_id);
-        }
-        XAMP_LOG_DEBUG("Use default device Id : {}", device_info_.value().device_id);
+    if (selected_device.has_value()) {
+        apply_device(*selected_device);
+        XAMP_LOG_DEBUG("Use device Id : {}", selected_device->device_id);
     }
 }
 
@@ -320,16 +191,9 @@ void Xamp::setAlbumCover(const QPixmap& cover) {
 }
 
 void Xamp::playLocalFile(const QString& file_name, bool queue) {
-#ifdef Q_OS_WIN            
-    const auto kDefaultFormat = AudioFormat::k16BitPCM441Khz;
-#else
-    const auto kDefaultFormat = AudioFormat::k16BitPCM48Khz;
-#endif
-
     uint32_t target_sample_rate = 0;
     auto byte_format = ByteFormat::SINT32;
     auto use_mqa_decode = false;
-	auto is_file_path = true;
 
     auto file_sample_rate = 44100;
     auto file_duration = 0.0;
@@ -373,7 +237,7 @@ void Xamp::playLocalFile(const QString& file_name, bool queue) {
 
     auto output_mode = DsdModes::DSD_MODE_PCM;
 
-    if (IsDsdFile(file_name.toStdWString())) {
+    if (IsDsdFile(file_name.toStdWString()) && device_info_.value().connect_type != DeviceConnectType::BLUE_TOOTH) {
         const auto is_asio_device = player_->GetAudioDeviceManager()->IsASIODevice(
             device_info_.value().device_type_id);
 
@@ -381,27 +245,20 @@ void Xamp::playLocalFile(const QString& file_name, bool queue) {
             : DsdModes::DSD_MODE_DOP;
     }
 
-    if (player_->GetAudioDeviceManager()->IsSharedDevice(device_info_.value().device_type_id)) {
-        AudioFormat default_format;
-        if (device_info_.value().default_format) {
-            default_format = device_info_.value().default_format.value();
-        }
-        else {
-            default_format = kDefaultFormat;
-        }
+    auto is_shared_device = player_->GetAudioDeviceManager()->IsSharedDevice(
+		device_info_.value().device_type_id);
 
-        auto sample_rate = is_file_path
-            ? file_sample_rate : AudioFormat::k16BitPCM48Khz.GetSampleRate();
+    if (is_shared_device) {
+        const auto shared_mode_config = resolveSharedModePlaybackConfig(device_info_.value(),
+            file_sample_rate,
+            output_mode,
+            byte_format);
+        target_sample_rate = shared_mode_config.target_sample_rate;
+        byte_format = shared_mode_config.byte_format;
 
-        if (sample_rate != default_format.GetSampleRate()) {
-            target_sample_rate = default_format.GetSampleRate();
+        if (shared_mode_config.needs_resample) {
+            player_->GetDspManager()->AddPreDSP(makeSoxrSampleRateConverter(target_sample_rate));
         }
-        else {
-            target_sample_rate = sample_rate;
-        }
-        byte_format = ByteFormat::SINT16;
-        player_->GetDspManager()->AddPreDSP(
-            makeSoxrSampleRateConverter(target_sample_rate));
     }
     else {       
         byte_format = ByteFormat::SINT24;
@@ -455,6 +312,7 @@ void Xamp::playLocalFile(const QString& file_name, bool queue) {
     duration = Round(file_duration) * 1000;
     ui_.seekSlider->setRange(0, duration);
     ui_.seekSlider->setValue(0);
+    ui_.seekSlider->loadFile(file_name);
 
     ui_.titleLabel->setText(QString::fromStdWString(track_info.title));
     ui_.artistLabel->setText(QString::fromStdWString(track_info.artist));
@@ -643,7 +501,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         moveToTopWidget(playback_queue_page_.get(), ui_.repeatButton);
         });
 
-    (void)QObject::connect(ui_.seekSlider, &SeekSlider::leftButtonValueChanged, [this](auto value) {
+    (void)QObject::connect(ui_.seekSlider, &WaveformSlider::leftButtonValueChanged, [this](auto value) {
         try {
             is_seeking_ = true;
             player_->Seek(value / 1000.0);
@@ -806,6 +664,7 @@ void Xamp::onDeviceStateChanged(DeviceState state, const QString& device_id) {
     if (state == DeviceState::DEVICE_STATE_REMOVED) {
         player_->Stop(true, true, true);
         ui_.seekSlider->setValue(0);
+        ui_.seekSlider->clearWaveform();
         ui_.startPosLabel->setText(formatDuration(0));
         ui_.endPosLabel->setText(formatDuration(0));
     }
@@ -906,6 +765,7 @@ void Xamp::playOrPause() {
 void Xamp::playNextItem(int32_t forward) {
     auto file_path = playback_queue_page_->popQueue();
     if (file_path.isEmpty()) {
+        ui_.seekSlider->clearWaveform();
         return;
     }
     playLocalFile(file_path, false);
@@ -915,6 +775,7 @@ void Xamp::stopPlay() {
     player_->Stop();
     qTheme.setPlayOrPauseButton(ui_.playButton, false);
 	ui_.seekSlider->setValue(0);
+    ui_.seekSlider->clearWaveform();
 	ui_.startPosLabel->setText(formatDuration(0));
     ui_.endPosLabel->setText(formatDuration(0));
 }

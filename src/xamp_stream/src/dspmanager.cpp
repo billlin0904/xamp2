@@ -1,4 +1,4 @@
-﻿#include <stream/dspmanager.h>
+#include <stream/dspmanager.h>
 
 #include <stream/api.h>
 #include <stream/bassequalizer.h>
@@ -10,7 +10,8 @@
 #include <stream/bassparametriceq.h>
 
 #include <base/exception.h>
-#include <base/logger_impl.h>
+#include <base/logger.h>
+#include <base/stl.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
 

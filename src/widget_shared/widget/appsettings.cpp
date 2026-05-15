@@ -4,7 +4,7 @@
 #include <QDirIterator>
 #include <QTextStream>
 
-#include <base/logger_impl.h>
+#include <base/logger.h>
 #include <base/crashhandler.h>
 #include <base/port.h>
 

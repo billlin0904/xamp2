@@ -1,4 +1,4 @@
-﻿#include <metadata/taglibmetareader.h>
+#include <metadata/taglibmetareader.h>
 #include <metadata/taglibiostream.h>
 #include <metadata/taglib.h>
 
@@ -6,7 +6,6 @@
 #include <base/str_utilts.h>
 #include <base/memory.h>
 #include <base/logger.h>
-#include <base/logger_impl.h>
 #include <base/exception.h>
 #include <base/fastmutex.h>
 

@@ -3,7 +3,7 @@
 #include <QLocalSocket>
 #include <QSysInfo>
 
-#include <base/logger_impl.h>
+#include <base/logger.h>
 #include <base/platform.h>
 #include <base/crashhandler.h>
 #include <base/platform.h>

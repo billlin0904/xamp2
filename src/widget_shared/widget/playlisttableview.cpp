@@ -1,4 +1,4 @@
-﻿#include <widget/playlisttableview.h>
+#include <widget/playlisttableview.h>
 
 #include <QHeaderView>
 #include <QDesktopServices>
@@ -14,7 +14,7 @@
 #include <QStyledItemDelegate>
 #include <QElapsedTimer>
 
-#include <base/logger_impl.h>
+#include <base/logger.h>
 #include <base/assert.h>
 
 #include <widget/playlistsqlquerytablemodel.h>

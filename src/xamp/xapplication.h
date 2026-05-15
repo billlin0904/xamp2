@@ -7,7 +7,7 @@
 
 #include <QApplication>
 #include <QScopedPointer>
-#include <base/logger_impl.h>
+#include <base/logger.h>
 
 #include <widget/widget_shared_global.h>
 

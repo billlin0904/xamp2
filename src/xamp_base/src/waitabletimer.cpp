@@ -1,4 +1,4 @@
-﻿#include <base/waitabletimer.h>
+#include <base/waitabletimer.h>
 
 #include <base/exception.h>
 #include <base/logger.h>

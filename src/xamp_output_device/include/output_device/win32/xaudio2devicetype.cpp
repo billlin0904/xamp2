@@ -1,4 +1,4 @@
-﻿#include <output_device/win32/xaudio2devicetype.h>
+#include <output_device/win32/xaudio2devicetype.h>
 
 #include <output_device/win32/wasapi.h>
 #include <output_device/win32/comexception.h>
@@ -8,7 +8,6 @@
 #include <xaudio2.h>
 
 #include <base/logger.h>
-#include <base/logger_impl.h>
 #include <base/str_utilts.h>
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN

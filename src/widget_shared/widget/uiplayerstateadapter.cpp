@@ -2,7 +2,6 @@
 
 #include <base/math.h>
 #include <base/logger.h>
-#include <base/logger_impl.h>
 #include <player/audio_player.h>
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>

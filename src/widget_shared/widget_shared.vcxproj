@@ -34,12 +34,12 @@
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
     <QtInstall>6.8.3_msvc2022_64</QtInstall>
-    <QtModules>core;gui;network;widgets;core5compat;sql</QtModules>
+    <QtModules>core;gui;network;widgets;core5compat;sql;concurrent</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
     <QtInstall>6.8.3_msvc2022_64</QtInstall>
-    <QtModules>core;gui;network;widgets;core5compat;multimedia;sql</QtModules>
+    <QtModules>core;gui;network;widgets;core5compat;multimedia;sql;concurrent</QtModules>
     <QtBuildConfig>release</QtBuildConfig>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
@@ -59,6 +59,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnabled>false</VcpkgEnabled>
+    <VcpkgApplocalDeps>false</VcpkgApplocalDeps>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -212,6 +216,7 @@
     <ClInclude Include="widget\qetag.h" />
     <ClInclude Include="widget\scrolllabel.h" />
     <QtMoc Include="widget\seekslider.h" />
+    <QtMoc Include="widget\waveformslider.h" />
     <QtMoc Include="widget\spectrumwidget.h" />
     <QtMoc Include="widget\navbarlistview.h" />
     <ClInclude Include="widget\themecolor.h" />
@@ -300,6 +305,7 @@
     <ClCompile Include="widget\scanfileprogresspage.cpp" />
     <ClCompile Include="widget\scrolllabel.cpp" />
     <ClCompile Include="widget\seekslider.cpp" />
+    <ClCompile Include="widget\waveformslider.cpp" />
     <ClCompile Include="widget\slidingstackedwidget.cpp" />
     <ClCompile Include="widget\spectrumwidget.cpp" />
     <ClCompile Include="widget\supereqview.cpp" />

@@ -5,7 +5,6 @@
 #include <base/fastmutex.h>
 #include <base/dll.h>
 #include <base/logger.h>
-#include <base/logger_impl.h>
 
 extern "C" {
 #include <libcue.h>
