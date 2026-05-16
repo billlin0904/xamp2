@@ -50,7 +50,6 @@ void VolumeControlDialog::setThemeColor() {
 }
 
 VolumeControlDialog::~VolumeControlDialog() {
-    qAppSettings.setValue(kAppSettingVolume, ui_->volumeSlider->value());
     delete ui_;
 }
 

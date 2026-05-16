@@ -6,7 +6,9 @@
 
 #include <QAction>
 #include <QDirIterator>
+#include <QGuiApplication>
 #include <QMap>
+#include <QScreen>
 
 #include <base/ithreadpoolexecutor.h>
 #include <base/crashhandler.h>
@@ -34,8 +36,24 @@
 #include <widget/preferencepage.h>
 #include <widget/cdpage.h>
 #include <widget/waveformslider.h>
+#include <widget/musicbrainzeditpage.h>
 
 #include <style_util.h>
+
+namespace {
+    QSize dialogContentSize(QWidget* dialog, const QWidget* content) {
+        auto* screen = dialog != nullptr ? dialog->screen() : QGuiApplication::primaryScreen();
+        if (screen == nullptr) {
+            return content->sizeHint();
+        }
+
+        const auto available = screen->availableGeometry().size();
+        const QSize max_size(static_cast<int>(available.width() * 0.85), static_cast<int>(available.height() * 0.85));
+        return content->sizeHint()
+            .expandedTo(content->minimumSizeHint())
+            .boundedTo(max_size);
+    }
+}
 
 Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
     : IXFrame(parent)
@@ -412,34 +430,34 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
 
     (void)QObject::connect(file_explorer_page_.get(),
         &FileSystemViewPage::addPathToPlaylist, [this](const QString& parent_dir_path, bool append_to_playlist) {
-        QDirIterator itr(parent_dir_path,
-            getTrackInfoFileNameFilter(),
-            QDir::NoDotAndDotDot | QDir::Files);
+            QDirIterator itr(parent_dir_path,
+                getTrackInfoFileNameFilter(),
+                QDir::NoDotAndDotDot | QDir::Files);
 
-        auto reader = MakeMetadataReader();
+            auto reader = MakeMetadataReader();
 
-        while (itr.hasNext()) {
-            const auto path_str = toNativeSeparators(itr.next());
-            auto file_path = path_str.toStdWString();
+            while (itr.hasNext()) {
+                const auto path_str = toNativeSeparators(itr.next());
+                auto file_path = path_str.toStdWString();
 
-            try {
-                reader->Open(file_path);
-                auto track_info = reader->Extract();
-                if (track_info) {
-                    if (track_info.value().sample_rate == 0) {
-                        auto file_stream = StreamFactory::MakeFileStream(file_path);
-                        file_stream->OpenFile(file_path);
-                        auto sampler_rate = file_stream->GetFormat().GetSampleRate();
-                        track_info.value().sample_rate = sampler_rate;
+                try {
+                    reader->Open(file_path);
+                    auto track_info = reader->Extract();
+                    if (track_info) {
+                        if (track_info.value().sample_rate == 0) {
+                            auto file_stream = StreamFactory::MakeFileStream(file_path);
+                            file_stream->OpenFile(file_path);
+                            auto sampler_rate = file_stream->GetFormat().GetSampleRate();
+                            track_info.value().sample_rate = sampler_rate;
+                        }
+                        playback_queue_page_->addQueue(track_info.value());
                     }
-                    playback_queue_page_->addQueue(track_info.value());
+                }
+                catch (...) {
+                    logAndShowMessage(std::current_exception());
                 }
             }
-            catch (...) {
-                logAndShowMessage(std::current_exception());
-            }
-        }
-    });
+        });
 
     (void)QObject::connect(file_explorer_page_->playlistPage()->playlist(),
         &PlaylistTableView::addPlaylist, [this](int32_t playlist_id, const QList<PlayListEntity>& entities) {
@@ -594,6 +612,23 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         this,
         &Xamp::onUpdateCdTrackInfo,
         Qt::QueuedConnection);
+
+    (void)QObject::connect(file_explorer_page_->playlistPage()->playlist(),
+        &PlaylistTableView::findMusicbrainRecording,
+        this,
+        &Xamp::OnReadMusicBrainzAlbums);
+}
+
+void Xamp::OnReadMusicBrainzAlbums(const QList<PlayListEntity>& entities) {
+    QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
+    QScopedPointer<XDialog> dialog(new XDialog(this));
+    QScopedPointer<MusicbrainzEditPage> eq(new MusicbrainzEditPage(entities, dialog.get()));
+    dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_DRAFT));
+    dialog->setTitle(tr("Musicbrainz Edit Page"));
+    dialog->setContentWidget(eq.get(), false, false);
+    dialog->setMinimumSize(eq->minimumSizeHint());
+    dialog->resize(dialogContentSize(dialog.get(), eq.get()));
+    dialog->exec();
 }
 
 void Xamp::onCheckForUpdate() {

@@ -16,7 +16,6 @@
 #include <widget/lrcparser.h>
 #include <widget/neteaseparser.h>
 #include <widget/util/json_util.h>
-#include <widget/musicbrainzparser.h>
 
 #include <widget/util/read_util.h>
 #include <widget/util/colortable.h>
@@ -38,6 +37,9 @@
 #include <QDir>
 #include <QFuture>
 #include <QJsonValueRef>
+
+#include <algorithm>
+#include <cmath>
 
 namespace {
     XAMP_DECLARE_LOG_NAME(BackgroundService);
@@ -329,141 +331,6 @@ QCoro::Task<std::optional<QByteArray>> BackgroundService::fetchCoverArtByUrl(con
         co_return std::nullopt;
 	}
 	co_return b;
-}
-
-QCoro::Task<> BackgroundService::onFindMusicBrainzRecording(const QList<PlayListEntity>& entities) {
-	auto temp = entities;
-
-    QMap<QString, QList<PlayListEntity>> album_unique_map;
-    Q_FOREACH(auto entity, temp) {
-        album_unique_map[entity.album].append(entity);
-    }
-
-    QList<MusicBrainzAlbum> total_album;
-	for (const auto& list_entities : album_unique_map) {
-        for (const auto & entity : list_entities) {
-            auto albums = co_await fetchMusicBrainzRecording(entity);
-            if (!albums.has_value()) {
-                continue;
-			}
-            XAMP_LOG_DEBUG("Found {} tracks.", albums.value().recordings.count());
-            total_album.append(albums.value());
-            break;
-		}        
-	}
-    emit readMusicBrainzAlbums(temp, total_album);
-}
-
-QCoro::Task<std::optional<MusicBrainzAlbum>> BackgroundService::fetchMusicBrainzRecording(const PlayListEntity& entity) {
-    static constexpr size_t kDefaultSize = 500;
-
-    MusicBrainzAlbum result;
-
-    http_client_.setUrl("https://api.acoustid.org/v2/lookup"_str);
-    http_client_.param("client"_str, "J0OsCydP14"_str);
-    http_client_.param("format"_str, "json"_str);
-    http_client_.param("meta"_str, "recordings+recordingids+releases+releaseids+releasegroups+releasegroupids+tracks+compress+usermeta+sources"_str);
-    http_client_.param("duration"_str, static_cast<uint32_t>(Round(entity.duration)));
-    http_client_.param("fingerprint"_str, readChromaprint(entity.file_path.toStdWString()));
-    auto content = co_await http_client_.get();
-
-    auto resp = acoustid::parseAcoustidResponse(content);
-    if (!resp) {
-        XAMP_LOG_DEBUG("Not found recording.");
-        co_return std::nullopt;
-    }    
-
-    for (const auto& search_result : resp.value().results) {
-        for (const auto& recording : search_result.recordings) {
-            http_client_.setUrl("https://musicbrainz.org/ws/2/recording/"_str + recording.id);
-            http_client_.param("inc"_str, "artists+releases+release-groups"_str);
-            http_client_.param("fmt"_str, "json"_str);
-            http_client_.param("client"_str, "J0OsCydP14"_str);
-
-            content = co_await http_client_.get();
-            auto root_recording = musicbrain::parseRootRecording(content);
-            if (!root_recording.has_value()) {
-                co_return result;
-            }
-
-            for (const auto& r : root_recording.value().releases) {
-                MusicBrainzRecording music_brainz_recording;
-
-                music_brainz_recording.release_id = r.id;
-
-                http_client_.setUrl("https://musicbrainz.org/ws/2/release/"_str + r.id);
-                http_client_.param("inc"_str, "release-groups+recordings+media+artist-credits"_str);
-                http_client_.param("fmt"_str, "json"_str);
-                http_client_.param("client"_str, "J0OsCydP14"_str);
-
-                content = co_await http_client_.get();
-                auto tracks = musicbrain::parseReleaseTracklist(content.toUtf8(), root_recording.value().releases);
-                if (tracks.has_value()) {
-                    XAMP_LOG_DEBUG("Total {} tracks.", tracks->count());
-
-                    auto cover_art = co_await fetchCoverArtByUrl("release"_str,
-                        r.id,
-                        kDefaultSize);
-                    if (cover_art.has_value() && !cover_art->isEmpty()) {
-                        XAMP_LOG_DEBUG("Download image size: {}", String::FormatBytes(cover_art->size()));
-                        music_brainz_recording.cover_art.loadFromData(cover_art.value());
-                        music_brainz_recording.tracks = tracks.value();
-                        music_brainz_recording.title = qFormat("%1 (%2 %3)")
-                    	.arg(root_recording.value().title)
-                    	.arg(r.status)
-                    	.arg(r.country);
-                        result.recordings.append(music_brainz_recording);
-                    }
-                    music_brainz_recording.tracks = tracks.value();
-                    music_brainz_recording.title = qFormat("%1 (%2 %3)")
-                        .arg(root_recording.value().title)
-                        .arg(r.status)
-                        .arg(r.country);
-                    result.recordings.append(music_brainz_recording);
-                }
-            }
-        }
-	}
-
-    /*auto content = readAll("test-data.txt"_str);
-    auto root_recording = musicbrain::parseRootRecording(content);
-    if (!root_recording.has_value()) {
-        co_return result;
-    }
-
-    for (const auto& r : root_recording.value().releases) {
-        MusicBrainzRecording music_brainz_recording;
-
-        music_brainz_recording.release_id = r.id;
-
-        http_client_.setUrl("https://musicbrainz.org/ws/2/release/"_str + r.id);
-        http_client_.param("inc"_str, "release-groups+recordings+media+artist-credits"_str);
-        http_client_.param("fmt"_str, "json"_str);
-        http_client_.param("client"_str, "J0OsCydP14"_str);
-
-        content = co_await http_client_.get();
-        auto tracks = musicbrain::parseReleaseTracklist(content.toUtf8(), root_recording.value().releases);
-        if (tracks.has_value()) {
-            XAMP_LOG_DEBUG("Total {} tracks.", tracks->count());
-
-            auto cover_art = co_await fetchCoverArtByUrl("release"_str,
-                r.id,
-                kDefaultSize);
-            if (cover_art.has_value() && !cover_art->isEmpty()) {
-                XAMP_LOG_DEBUG("Download image size: {}", String::FormatBytes(cover_art->size()));
-                music_brainz_recording.cover_art.loadFromData(cover_art.value());
-            }
-            music_brainz_recording.tracks = tracks.value();
-            music_brainz_recording.title = qFormat("%1 (%2 %3)")
-                .arg(root_recording.value().title)
-                .arg(r.status)
-                .arg(r.country);
-            music_brainz_recording.root_recording = root_recording.value();
-            result.recordings.append(music_brainz_recording);
-        }
-    }*/
-
-    co_return MakeOptional<MusicBrainzAlbum>(result);
 }
 
 void BackgroundService::parallelEncode(const QString& dir_name, QList<EncodeJob> jobs) {

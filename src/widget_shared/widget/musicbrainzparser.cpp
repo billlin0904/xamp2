@@ -6,6 +6,11 @@
 #include <QJsonArray>
 #include <QString>
 #include <QDebug>
+#include <QRegularExpression>
+#include <QVector>
+
+#include <algorithm>
+#include <cmath>
 
 namespace acoustid {
 
@@ -177,6 +182,195 @@ namespace acoustid {
 }
 
 namespace musicbrain {
+    namespace {
+        constexpr double kLengthScoreThresholdMs = 30000.0;
+
+        struct WeightedPart {
+            double value = 0;
+            double weight = 0;
+        };
+
+        QString normalizedText(const QString& text) {
+            static const QRegularExpression nonAlnum(QStringLiteral("[^\\p{L}\\p{N}]"));
+            auto normalized = text.toCaseFolded();
+            normalized.remove(nonAlnum);
+            return normalized.isEmpty() ? text.toCaseFolded() : normalized;
+        }
+
+        QStringList splitWords(const QString& text) {
+            static const QRegularExpression nonAlnum(QStringLiteral("[^\\p{L}\\p{N}]+"));
+            return text.toCaseFolded().split(nonAlnum, Qt::SkipEmptyParts);
+        }
+
+        int levenshteinDistance(const QString& a, const QString& b) {
+            if (a == b) {
+                return 0;
+            }
+            if (a.isEmpty()) {
+                return b.size();
+            }
+            if (b.isEmpty()) {
+                return a.size();
+            }
+
+            QVector<int> previous(b.size() + 1);
+            QVector<int> current(b.size() + 1);
+            for (int j = 0; j <= b.size(); ++j) {
+                previous[j] = j;
+            }
+            for (int i = 1; i <= a.size(); ++i) {
+                current[0] = i;
+                for (int j = 1; j <= b.size(); ++j) {
+                    const auto substitution = previous[j - 1] + (a[i - 1] == b[j - 1] ? 0 : 1);
+                    current[j] = std::min({ previous[j] + 1, current[j - 1] + 1, substitution });
+                }
+                previous.swap(current);
+            }
+            return previous[b.size()];
+        }
+
+        double wordSimilarity(const QString& a, const QString& b) {
+            const auto left = normalizedText(a);
+            const auto right = normalizedText(b);
+            if (left.isEmpty() || right.isEmpty()) {
+                return 0;
+            }
+            if (left == right) {
+                return 1;
+            }
+            const auto maxLen = std::max(left.size(), right.size());
+            if (maxLen == 0) {
+                return 0;
+            }
+            return std::max(0.0, 1.0 - static_cast<double>(levenshteinDistance(left, right)) / maxLen);
+        }
+
+        double textSimilarity(const QString& a, const QString& b) {
+            if (a.isEmpty() || b.isEmpty()) {
+                return 0;
+            }
+            if (a == b) {
+                return 1;
+            }
+
+            auto leftWords = splitWords(a);
+            auto rightWords = splitWords(b);
+            if (leftWords.isEmpty() || rightWords.isEmpty()) {
+                return 0;
+            }
+            if (leftWords.size() > rightWords.size()) {
+                std::swap(leftWords, rightWords);
+            }
+
+            double score = 0;
+            for (const auto& left : leftWords) {
+                double best = 0;
+                int bestIndex = -1;
+                for (int i = 0; i < rightWords.size(); ++i) {
+                    const auto current = wordSimilarity(left, rightWords[i]);
+                    if (current > best) {
+                        best = current;
+                        bestIndex = i;
+                    }
+                }
+                score += best;
+                if (best > 0.6 && bestIndex >= 0) {
+                    rightWords.removeAt(bestIndex);
+                }
+            }
+
+            return score / (leftWords.size() + rightWords.size() * 0.4);
+        }
+
+        double weightedAverage(const QList<WeightedPart>& parts) {
+            double total = 0;
+            double sum = 0;
+            for (const auto& part : parts) {
+                if (part.weight <= 0) {
+                    continue;
+                }
+                const auto value = std::clamp(part.value, 0.0, 1.0);
+                total += part.weight;
+                sum += value * part.weight;
+            }
+            return total > 0 ? sum / total : 0;
+        }
+
+        double trackCountScore(int actual, int expected) {
+            if (actual <= 0 || expected <= 0) {
+                return 0;
+            }
+            if (actual > expected) {
+                return 0;
+            }
+            return actual < expected ? 0.3 : 1.0;
+        }
+
+        int yearFromDate(const QString& date) {
+            bool ok = false;
+            const auto year = date.left(4).toInt(&ok);
+            return ok ? year : 0;
+        }
+
+        double dateScore(const QString& metadataDate, const QString& releaseDate) {
+            if (releaseDate.isEmpty()) {
+                return 0.25;
+            }
+            if (metadataDate.isEmpty()) {
+                return 0.65;
+            }
+            if (metadataDate == releaseDate) {
+                return 1;
+            }
+            const auto metadataYear = yearFromDate(metadataDate);
+            const auto releaseYear = yearFromDate(releaseDate);
+            if (metadataYear <= 0 || releaseYear <= 0) {
+                return 0;
+            }
+            if (metadataYear == releaseYear) {
+                return 0.95;
+            }
+            return std::abs(metadataYear - releaseYear) <= 2 ? 0.85 : 0;
+        }
+
+        QString artistCreditName(const QList<ArtistCredit>& credits) {
+            QStringList names;
+            for (const auto& credit : credits) {
+                if (!credit.name.isEmpty()) {
+                    names.append(credit.name);
+                }
+                else if (!credit.artist.name.isEmpty()) {
+                    names.append(credit.artist.name);
+                }
+            }
+            return names.join(QString());
+        }
+
+        QString trackArtistName(const TrackInfo& track) {
+            return track.artistCredits.join(QStringLiteral(", "));
+        }
+
+        double mbScoreFactor(double score) {
+            if (score <= 0) {
+                return 1;
+            }
+            return score > 1 ? std::clamp(score / 100.0, 0.0, 1.0) : std::clamp(score, 0.0, 1.0);
+        }
+
+        double releaseTypeScore(const ReleaseGroup& group) {
+            if (group.primaryType.compare(QStringLiteral("Album"), Qt::CaseInsensitive) == 0) {
+                return 1;
+            }
+            if (group.primaryType.compare(QStringLiteral("EP"), Qt::CaseInsensitive) == 0) {
+                return 0.8;
+            }
+            if (group.primaryType.compare(QStringLiteral("Single"), Qt::CaseInsensitive) == 0) {
+                return 0.6;
+            }
+            return group.primaryType.isEmpty() ? 0.5 : 0.7;
+        }
+    }
+
     TextRepresentation parseTextRep(const QJsonObject& obj) {
         TextRepresentation tr;
         tr.language = obj.value("language"_str).toString();
@@ -234,6 +428,8 @@ namespace musicbrain {
         return g;
     }
 
+    ArtistCredit parseArtistCredit(const QJsonObject& obj);
+
     Release parseRelease(const QJsonObject& obj) {
         Release r;
         r.id = obj.value("id"_str).toString();
@@ -247,6 +443,8 @@ namespace musicbrain {
         r.disambiguation = obj.value("disambiguation"_str).toString();
         r.quality = obj.value("quality"_str).toString();
         r.date = obj.value("date"_str).toString();
+        r.mbSearchScore = obj.value("score"_str).toDouble(0);
+        r.trackCount = obj.value("track-count"_str).toInt(0);
 
         if (obj.contains("text-representation"_str) && obj["text-representation"_str].isObject()) {
             r.textRep = parseTextRep(obj["text-representation"_str].toObject());
@@ -258,6 +456,30 @@ namespace musicbrain {
         }
         if (obj.contains("release-group"_str) && obj["release-group"_str].isObject()) {
             r.releaseGroup = parseReleaseGroup(obj["release-group"_str].toObject());
+        }
+        if (obj.contains("artist-credit"_str) && obj["artist-credit"_str].isArray()) {
+            for (const auto& v : obj["artist-credit"_str].toArray()) {
+                if (v.isObject()) {
+                    r.artistCredits.append(parseArtistCredit(v.toObject()));
+                }
+            }
+        }
+        if (obj.contains("media"_str) && obj["media"_str].isArray()) {
+            int mediaTrackCount = 0;
+            for (const auto& v : obj["media"_str].toArray()) {
+                if (!v.isObject()) {
+                    continue;
+                }
+                const auto media = v.toObject();
+                const auto format = media.value("format"_str).toString();
+                if (!format.isEmpty()) {
+                    r.mediaFormats.append(format);
+                }
+                mediaTrackCount += media.value("track-count"_str).toInt(0);
+            }
+            if (r.trackCount <= 0) {
+                r.trackCount = mediaTrackCount;
+            }
         }
         return r;
     }
@@ -317,16 +539,8 @@ namespace musicbrain {
         return ac;
     }    
 
-    std::expected<RootRecording, ParserError> parseRootRecording(const QString& jsonText) {
+    RootRecording parseRootRecordingObject(const QJsonObject& rootObj) {
         RootRecording rec;
-
-        // 將 JSON 字串轉成 QJsonDocument
-        QJsonDocument doc = QJsonDocument::fromJson(jsonText.toUtf8());
-        if (doc.isNull() || !doc.isObject()) {            
-            return std::unexpected(ParserError::PARSE_ERROR_JSON_ERROR);
-        }
-
-        QJsonObject rootObj = doc.object();
 
         // 1) 基本欄位
         rec.id = rootObj.value("id"_str).toString();
@@ -334,6 +548,7 @@ namespace musicbrain {
         rec.video = rootObj.value("video"_str).toBool(false);
         rec.disambiguation = rootObj.value("disambiguation"_str).toString();
         rec.lengthMs = rootObj.value("length"_str).toInt(0);
+        rec.mbSearchScore = rootObj.value("score"_str).toDouble(0);
         rec.firstReleaseDate = rootObj.value("first-release-date"_str).toString();
 
         // 2) "artist-credit" -> array
@@ -378,6 +593,58 @@ namespace musicbrain {
         return rec;
     }
 
+    std::expected<RootRecording, ParserError> parseRootRecording(const QString& jsonText) {
+        // 將 JSON 字串轉成 QJsonDocument
+        QJsonDocument doc = QJsonDocument::fromJson(jsonText.toUtf8());
+        if (doc.isNull() || !doc.isObject()) {
+            return std::unexpected(ParserError::PARSE_ERROR_JSON_ERROR);
+        }
+
+        return parseRootRecordingObject(doc.object());
+    }
+
+    std::expected<QList<RootRecording>, ParserError> parseRootRecordingList(const QString& jsonText) {
+        QJsonDocument doc = QJsonDocument::fromJson(jsonText.toUtf8());
+        if (doc.isNull() || !doc.isObject()) {
+            return std::unexpected(ParserError::PARSE_ERROR_JSON_ERROR);
+        }
+
+        QList<RootRecording> recordings;
+        const auto rootObj = doc.object();
+        const auto recordingsValue = rootObj.value("recordings"_str);
+        if (!recordingsValue.isArray()) {
+            return std::unexpected(ParserError::PARSE_ERROR_JSON_ERROR);
+        }
+
+        for (const auto& value : recordingsValue.toArray()) {
+            if (value.isObject()) {
+                recordings.append(parseRootRecordingObject(value.toObject()));
+            }
+        }
+        return recordings;
+    }
+
+    std::expected<QList<Release>, ParserError> parseReleaseList(const QString& jsonText) {
+        QJsonDocument doc = QJsonDocument::fromJson(jsonText.toUtf8());
+        if (doc.isNull() || !doc.isObject()) {
+            return std::unexpected(ParserError::PARSE_ERROR_JSON_ERROR);
+        }
+
+        QList<Release> releases;
+        const auto rootObj = doc.object();
+        const auto releasesValue = rootObj.value("releases"_str);
+        if (!releasesValue.isArray()) {
+            return std::unexpected(ParserError::PARSE_ERROR_JSON_ERROR);
+        }
+
+        for (const auto& value : releasesValue.toArray()) {
+            if (value.isObject()) {
+                releases.append(parseRelease(value.toObject()));
+            }
+        }
+        return releases;
+    }
+
     std::optional<QList<TrackInfo>> parseReleaseTracklist(const QByteArray& json, const QList<Release> &releases) {
         QJsonParseError err{};
         const auto doc = QJsonDocument::fromJson(json, &err);
@@ -385,6 +652,20 @@ namespace musicbrain {
             return std::nullopt;
 
         const auto obj = doc.object();
+        auto trackReleases = releases;
+        auto release = parseRelease(obj);
+        if (!release.id.isEmpty()) {
+            if (!releases.isEmpty() && releases.front().id == release.id) {
+                if (release.mbSearchScore <= 0) {
+                    release.mbSearchScore = releases.front().mbSearchScore;
+                }
+                if (release.releaseGroup.primaryType.isEmpty()) {
+                    release.releaseGroup = releases.front().releaseGroup;
+                }
+            }
+            trackReleases = { release };
+        }
+
         const auto mediaArr = obj.value("media"_str).toArray();
         QList<TrackInfo> out;
 
@@ -395,11 +676,12 @@ namespace musicbrain {
             for (const auto& t : tracks) {
                 const auto tr = t.toObject();
                 TrackInfo ti;
+                ti.id = tr.value("id"_str).toString();
                 ti.disc = disc;
                 ti.trackNo = tr.value("position"_str).toInt(0);
                 ti.title = tr.value("title"_str).toString();
                 ti.lengthMs = tr.contains("length"_str) ? tr.value("length"_str).toInt(-1) : -1;
-                ti.releases = releases;
+                ti.releases = trackReleases;
 
                 const auto recObj = tr.value("recording"_str).toObject();
                 ti.recordingId = recObj.value("id"_str).toString();
@@ -429,5 +711,95 @@ namespace musicbrain {
         if (out.isEmpty()) 
             return std::nullopt;
         return out;
+    }
+
+    double lengthScore(int a, int b) {
+        if (a <= 0 || b <= 0) {
+            return 0;
+        }
+        return 1.0 - std::min(std::abs(a - b), static_cast<int>(kLengthScoreThresholdMs)) / kLengthScoreThresholdMs;
+    }
+
+    double compareToRelease(const FileMeta& meta, const Release& release) {
+        QList<WeightedPart> parts;
+        if (!meta.album.isEmpty() && !release.title.isEmpty()) {
+            parts.append({ textSimilarity(meta.album, release.title), 17 });
+        }
+
+        const auto albumArtist = meta.albumArtist.isEmpty() ? meta.artist : meta.albumArtist;
+        const auto releaseArtist = artistCreditName(release.artistCredits);
+        if (!albumArtist.isEmpty() && !releaseArtist.isEmpty()) {
+            parts.append({ textSimilarity(albumArtist, releaseArtist), 6 });
+        }
+
+        const auto totalTracks = meta.totalAlbumTracks > 0 ? meta.totalAlbumTracks : meta.totalTracks;
+        if (totalTracks > 0 && release.trackCount > 0) {
+            parts.append({ trackCountScore(totalTracks, release.trackCount), 5 });
+        }
+
+        parts.append({ dateScore(meta.date, release.date), 4 });
+        parts.append({ releaseTypeScore(release.releaseGroup), 10 });
+
+        if (!meta.barcode.isEmpty()) {
+            if (release.barcode.isEmpty()) {
+                parts.append({ 0.5, 6 });
+            }
+            else {
+                parts.append({ meta.barcode == release.barcode ? 1.0 : 0.0, 6 });
+            }
+        }
+
+        return weightedAverage(parts) * mbScoreFactor(release.mbSearchScore);
+    }
+
+    double compareToRecording(const FileMeta& meta, const RootRecording& recording) {
+        QList<WeightedPart> parts;
+        if (!meta.title.isEmpty() && !recording.title.isEmpty()) {
+            parts.append({ textSimilarity(meta.title, recording.title), 13 });
+        }
+        const auto recordingArtist = artistCreditName(recording.artistCredits);
+        if (!meta.artist.isEmpty() && !recordingArtist.isEmpty()) {
+            parts.append({ textSimilarity(meta.artist, recordingArtist), 4 });
+        }
+        if (meta.lengthMs > 0 && recording.lengthMs > 0) {
+            parts.append({ lengthScore(meta.lengthMs, recording.lengthMs), 10 });
+        }
+        parts.append({ meta.video == recording.video ? 1.0 : 0.0, 2 });
+
+        double bestReleaseScore = 0;
+        for (const auto& release : recording.releases) {
+            bestReleaseScore = std::max(bestReleaseScore, compareToRelease(meta, release));
+        }
+        if (bestReleaseScore > 0) {
+            parts.append({ bestReleaseScore, 33 });
+        }
+
+        return weightedAverage(parts) * mbScoreFactor(recording.mbSearchScore);
+    }
+
+    double compareToTrack(const FileMeta& meta, const TrackInfo& track) {
+        QList<WeightedPart> parts;
+        if (!meta.title.isEmpty() && !track.title.isEmpty()) {
+            parts.append({ textSimilarity(meta.title, track.title), 22 });
+        }
+        const auto artist = trackArtistName(track);
+        if (!meta.artist.isEmpty() && !artist.isEmpty()) {
+            parts.append({ textSimilarity(meta.artist, artist), 6 });
+        }
+        if (meta.lengthMs > 0 && track.lengthMs > 0) {
+            parts.append({ lengthScore(meta.lengthMs, track.lengthMs), 8 });
+        }
+        if (meta.trackNumber > 0 && track.trackNo > 0) {
+            parts.append({ meta.trackNumber == track.trackNo ? 1.0 : 0.0, 6 });
+        }
+        if (meta.discNumber > 0 && track.disc > 0) {
+            parts.append({ meta.discNumber == track.disc ? 1.0 : 0.0, 5 });
+        }
+
+        if (!track.releases.isEmpty()) {
+            parts.append({ compareToRelease(meta, track.releases.front()), 12 });
+        }
+
+        return weightedAverage(parts);
     }
 }

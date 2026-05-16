@@ -171,7 +171,7 @@ namespace musicbrain {
         QString quality; // "normal"
         ReleaseGroup releaseGroup;
         QList<ArtistCredit> artistCredits;
-        double mbSearchScore; // mb search api 回傳的 score
+        double mbSearchScore = 0; // mb search api 回傳的 score
         int lengthMs = 0;
         int trackCount = 0; // total tracks of this release
         QStringList mediaFormats; // per medium, aggregated names, e.g., {"CD","CD"}
@@ -193,6 +193,7 @@ namespace musicbrain {
     };
 
     struct XAMP_WIDGET_SHARED_EXPORT TrackInfo {
+        QString id;
         int disc{};
         int trackNo{};
         bool video{ false };
@@ -203,15 +204,52 @@ namespace musicbrain {
         QList<Release> releases;
     };
 
+    struct XAMP_WIDGET_SHARED_EXPORT FileMeta {
+        QString title;
+        QString album;
+        QString artist;
+        QString albumArtist;
+        QString date;
+        QString barcode;
+        QString recordingId;
+        QString trackId;
+        int trackNumber = 0;
+        int totalTracks = 0;
+        int discNumber = 0;
+        int totalDiscs = 0;
+        int totalAlbumTracks = 0;
+        int lengthMs = 0;
+        bool video = false;
+    };
+
+    struct XAMP_WIDGET_SHARED_EXPORT TrackMatchResult {
+        double similarity = 0;
+        int fileIndex = -1;
+        int trackIndex = -1;
+    };
+
     std::expected<RootRecording, ParserError> parseRootRecording(const QString& jsonText);
 
+    std::expected<QList<RootRecording>, ParserError> parseRootRecordingList(const QString& jsonText);
+
+    std::expected<QList<Release>, ParserError> parseReleaseList(const QString& jsonText);
+
     std::optional<QList<TrackInfo>> parseReleaseTracklist(const QByteArray& json, const QList<Release> &releases);
+
+    XAMP_WIDGET_SHARED_EXPORT double lengthScore(int a, int b);
+
+    XAMP_WIDGET_SHARED_EXPORT double compareToRelease(const FileMeta& meta, const Release& release);
+
+    XAMP_WIDGET_SHARED_EXPORT double compareToRecording(const FileMeta& meta, const RootRecording& recording);
+
+    XAMP_WIDGET_SHARED_EXPORT double compareToTrack(const FileMeta& meta, const TrackInfo& track);
 }
 
 struct XAMP_WIDGET_SHARED_EXPORT MusicBrainzRecording {
     QString release_id;
     QString title;
     QPixmap cover_art;
+    double similarity = 0;
     musicbrain::RootRecording root_recording;
     QList<musicbrain::TrackInfo> tracks;
 };

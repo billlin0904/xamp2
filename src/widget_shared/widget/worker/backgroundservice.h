@@ -22,8 +22,6 @@
 #include <widget/neteaseparser.h>
 #include <widget/util/colortable.h>
 
-#include <widget/musicbrainzparser.h>
-
 Q_DECLARE_METATYPE(ReplayGain);
 
 struct LyricsParser {
@@ -72,8 +70,6 @@ signals:
 	void readAudioDataCompleted();
 
 	void transcribeFileCompleted(const QSharedPointer<ILrcParser>& parser);
-
-	void readMusicBrainzAlbums(const QList<PlayListEntity>& entities, const QList<MusicBrainzAlbum>& albums);
 public Q_SLOT:
 	void cancelAllJob();
 
@@ -108,10 +104,6 @@ public Q_SLOT:
 	void sequenceEncode(const QString& dir_name, QList<EncodeJob> jobs);
 
 	void executeEncodeJob(const QString& dir_name, const EncodeJob& job);
-
-	QCoro::Task<> onFindMusicBrainzRecording(const QList<PlayListEntity>& entities);
-
-	QCoro::Task<std::optional<MusicBrainzAlbum>> fetchMusicBrainzRecording(const PlayListEntity& entity);
 
 	QCoro::Task<std::optional<QByteArray>> fetchCoverArtByUrl(const QString& tag, const QString& release_id, size_t prefer_size = 1200);
 private:

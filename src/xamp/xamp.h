@@ -11,6 +11,7 @@
 
 #include <widget/widget_shared.h>
 #include <widget/uiplayerstateadapter.h>
+#include <widget/playlistentity.h>
 #include <xampplayer.h>
 #include <ui_xamp.h>
 
@@ -60,6 +61,8 @@ public slots:
     void onDeviceStateChanged(DeviceState state, const QString& device_id);
 
     void onUpdateCdTrackInfo(const QString& disc_id, const std::forward_list<TrackInfo>& track_infos);
+
+    void OnReadMusicBrainzAlbums(const QList<PlayListEntity>& entities);
 private:
     void pushWidget(QWidget* widget);
 
