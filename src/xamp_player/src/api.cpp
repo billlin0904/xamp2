@@ -1,7 +1,7 @@
 #include <player/api.h>
 
 #include <base/ithreadpoolexecutor.h>
-#include <base/logger_impl.h>
+#include <base/logger.h>
 #include <base/text_encoding.h>
 #include <base/charset_detector.h>
 

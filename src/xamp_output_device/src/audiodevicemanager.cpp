@@ -1,4 +1,4 @@
-﻿#include <output_device/audiodevicemanager.h>
+#include <output_device/audiodevicemanager.h>
 #include <output_device/api.h>
 
 #ifdef XAMP_OS_WIN
@@ -26,7 +26,6 @@
 #include <base/base.h>
 #include <base/assert.h>
 #include <base/logger.h>
-#include <base/logger_impl.h>
 #include <base/exception.h>
 #include <base/dataconverter.h>
 

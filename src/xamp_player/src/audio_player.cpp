@@ -638,6 +638,8 @@ void AudioPlayer::OpenDevice(double stream_time) {
     }
 #endif
     device_->OpenStream(output_format_);
+    device_->SetVolume(audio_config_.volume);
+    device_->SetMute(is_muted_);
     device_->SetStreamTime(stream_time);
 }
 
