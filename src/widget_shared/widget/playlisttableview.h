@@ -50,6 +50,7 @@ public:
 
 	static constexpr auto kColumnWidth            = 48;
 	static constexpr auto kColumnHeight           = 46;
+	static constexpr auto kRichAlbumHeaderHeight  = 112;
 
 	explicit PlaylistTableView(QWidget* parent = nullptr, int32_t playlist_id = 1);
 
@@ -66,6 +67,12 @@ public:
 	void setPlayListGroup(PlayListGroup group) {
 		group_ = group;
 	}
+
+	void setRichAlbumHeaderEnabled(bool enabled) {
+		rich_album_header_enabled_ = enabled;
+	}
+
+	void setAlbumFilterId(std::optional<int32_t> album_id);
 
 	void setNavigationViewMode(NavigationViewMode mode) {
 		navigation_view_mode_ = mode;
@@ -158,6 +165,10 @@ public:
 
 	void showProgressPage();
 
+	void setProgressPageHost(QWidget* host);
+
+	void setShowProgressOnAppend(bool enabled);
+
 	PlayListEntity item(const QModelIndex& index) const;
 signals:
 	void updatePlayingState(const PlayListEntity &entity, PlayingState playing_state);
@@ -222,11 +233,16 @@ private:
 
 	void initial();
 
+	bool isAlbumHeaderRow(const QModelIndex& index) const;
+
+	void updateRichAlbumHeaderRowHeights();
+
 protected:
 	bool cloud_mode_{ false };
 	bool enable_delete_{ true };
 	bool enable_load_file_{ true };
 	bool enable_scroll_{ false };
+	bool rich_album_header_enabled_{ false };
 	int32_t hover_row_{ -1 };
 	int32_t hover_column_{ -1 };
 	int32_t playlist_id_{ -1 };
@@ -243,6 +259,8 @@ protected:
 	QList<int32_t> always_hidden_columns_;
 	QHash<int32_t, QList<int32_t>> album_songs_id_cache_;
 	ScanFileProgressPage* progress_page_;
+	QWidget* progress_page_host_{ nullptr };
+	bool show_progress_on_append_{ true };
 };
 
 

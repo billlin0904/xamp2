@@ -5,7 +5,6 @@
 #include <sharedmodeplayback.h>
 
 #include <QAction>
-#include <QDirIterator>
 #include <QGuiApplication>
 #include <QMap>
 #include <QScreen>
@@ -28,8 +27,8 @@
 #include <widget/lrcpage.h>
 #include <widget/lyricsshowwidget.h>
 #include <widget/filesystemviewpage.h>
+#include <widget/richplaylistpage.h>
 #include <widget/databasefacade.h>
-#include <widget/playbackqueueviewpage.h>
 #include <widget/playlisttableview.h>
 #include <widget/playlistpage.h>
 #include <widget/logview.h>
@@ -37,6 +36,8 @@
 #include <widget/cdpage.h>
 #include <widget/waveformslider.h>
 #include <widget/musicbrainzeditpage.h>
+#include <widget/scanfileprogresspage.h>
+#include <widget/worker/filesystemservice.h>
 
 #include <style_util.h>
 
@@ -52,6 +53,26 @@ namespace {
         return content->sizeHint()
             .expandedTo(content->minimumSizeHint())
             .boundedTo(max_size);
+    }
+
+    std::optional<EqSettings> storedParametricEqSettings() {
+        if (!qAppSettings.contains(kAppSettingEQName)) {
+            return std::nullopt;
+        }
+        const auto app_settings = qAppSettings.eqSettings();
+        const auto preset_settings = qAppSettings.eqPreset().value(app_settings.name);
+        if (app_settings.name != QStringLiteral("Manual") && !preset_settings.bands.empty()) {
+            auto settings = preset_settings;
+            settings.preamp = app_settings.settings.preamp;
+            return settings;
+        }
+        return app_settings.settings;
+    }
+
+    void applyParametricEqToPlayer(const std::shared_ptr<IAudioPlayer>& player,
+        bool enabled,
+        const EqSettings& settings) {
+        player->SetParametricEq(enabled, settings);
     }
 }
 
@@ -77,7 +98,14 @@ Xamp::~Xamp() {
         }
         };
 
-    background_service_->cancelRequested();
+    if (file_system_service_ != nullptr) {
+        file_system_service_->cancelRequested();
+    }
+    quit_and_wait_thread(file_system_service_thread_);
+
+    if (background_service_ != nullptr) {
+        background_service_->cancelRequested();
+    }
     quit_and_wait_thread(background_service_thread_);
     qGuiDb.Close();
     XampCrashHandler.Cleanup();
@@ -97,6 +125,10 @@ void Xamp::setCurrentTab(int32_t table_id) {
         ui_.currentView->setCurrentWidget(file_explorer_page_.get());
         return;
         break;
+    case TAB_RICH_PLAYLIST:
+        ui_.currentView->setCurrentWidget(rich_playlist_page_.get());
+        return;
+        break;
     case TAB_PLAYLIST:
         break;
     case TAB_LYRICS:
@@ -104,6 +136,7 @@ void Xamp::setCurrentTab(int32_t table_id) {
         break;
     case TAB_CD:
         ui_.currentView->setCurrentWidget(cd_page_.get());
+        return;
         break;
     case TAB_YT_MUSIC_PLAYLIST:
         break;
@@ -214,7 +247,7 @@ void Xamp::playLocalFile(const QString& file_name, bool queue) {
     auto file_sample_rate = 44100;
     auto file_duration = 0.0;
     QPixmap embedded_cover = qTheme.unknownCover();
-	TrackInfo track_info;
+    TrackInfo track_info;
 
     try {
         auto metadata_reader = MakeMetadataReader();
@@ -222,10 +255,10 @@ void Xamp::playLocalFile(const QString& file_name, bool queue) {
 
         auto metadata_opt = metadata_reader->Extract();
         if (metadata_opt.has_value()) {
-			track_info = metadata_opt.value();
+            track_info = metadata_opt.value();
             file_sample_rate = track_info.sample_rate;
             file_duration = track_info.duration;
-			auto buffer = metadata_reader->ReadEmbeddedCover();
+            auto buffer = metadata_reader->ReadEmbeddedCover();
             if (buffer.has_value() && buffer.value().size() > 0) {
                 embedded_cover.loadFromData(reinterpret_cast<uchar*>(buffer.value().data()), buffer.value().size());
             }
@@ -239,9 +272,7 @@ void Xamp::playLocalFile(const QString& file_name, bool queue) {
         return;
     }
 
-    if (queue) {
-        playback_queue_page_->addQueue(track_info);
-    }
+    (void)queue;
 
     try {
         player_->Stop();
@@ -266,12 +297,13 @@ void Xamp::playLocalFile(const QString& file_name, bool queue) {
     }
 
     if (qAppSettings.valueAsBool(kAppSettingEnableEQ)) {
-        if (qAppSettings.contains(kAppSettingEQName)) {
-            auto [name, _] = qAppSettings.eqSettings();
-            auto eq_settings = qAppSettings.eqPreset()[name];
-            player_->GetDspConfig().Create(DspConfig::kEQSettings, eq_settings);
+        if (const auto eq_settings = storedParametricEqSettings()) {
+            player_->GetDspConfig().Create(DspConfig::kEQSettings, *eq_settings);
             player_->GetDspManager()->AddParametricEq();
         }
+    }
+    else {
+        player_->GetDspManager()->RemoveParametricEq();
     }
 
     try {
@@ -308,6 +340,7 @@ void Xamp::playLocalFile(const QString& file_name, bool queue) {
     lrc_page_->setBackground(image_util::blurImage(thread_pool_,
         embedded_cover,
         lrc_page_->size()));
+    rich_playlist_page_->setNowPlaying(track_info, embedded_cover);
 
     main_window_->setIconicThumbnail(embedded_cover);
 
@@ -374,11 +407,14 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
 
     setAlbumCover(qTheme.unknownCover());
 
-    ui_.repeatButton->setIcon(qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
+    setRepeatButtonIcon(ui_, qAppSettings.valueAsEnum<PlayerOrder>(kAppSettingOrder));
 
     ui_.naviBar->addTab(translateText("Now Playing"),
         TAB_LYRICS,
         qTheme.fontIcon(Glyphs::ICON_PLAYING));
+    ui_.naviBar->addTab(translateText("Rich Playlist"),
+        TAB_RICH_PLAYLIST,
+        qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
     ui_.naviBar->addTab(translateText("File Browser"),
         TAB_FILE_EXPLORER,
         qTheme.fontIcon(Glyphs::ICON_DESKTOP));
@@ -396,6 +432,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     }
 
     lrc_page_.reset(new LrcPage(this));
+    rich_playlist_page_.reset(new RichPlaylistPage(this));
     file_explorer_page_.reset(new FileSystemViewPage(this));
 
     state_adapter_.reset(new UIPlayerStateAdapter(this));
@@ -428,56 +465,14 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         &Xamp::onDeviceStateChanged,
         Qt::QueuedConnection);
 
-    (void)QObject::connect(file_explorer_page_.get(),
-        &FileSystemViewPage::addPathToPlaylist, [this](const QString& parent_dir_path, bool append_to_playlist) {
-            QDirIterator itr(parent_dir_path,
-                getTrackInfoFileNameFilter(),
-                QDir::NoDotAndDotDot | QDir::Files);
-
-            auto reader = MakeMetadataReader();
-
-            while (itr.hasNext()) {
-                const auto path_str = toNativeSeparators(itr.next());
-                auto file_path = path_str.toStdWString();
-
-                try {
-                    reader->Open(file_path);
-                    auto track_info = reader->Extract();
-                    if (track_info) {
-                        if (track_info.value().sample_rate == 0) {
-                            auto file_stream = StreamFactory::MakeFileStream(file_path);
-                            file_stream->OpenFile(file_path);
-                            auto sampler_rate = file_stream->GetFormat().GetSampleRate();
-                            track_info.value().sample_rate = sampler_rate;
-                        }
-                        playback_queue_page_->addQueue(track_info.value());
-                    }
-                }
-                catch (...) {
-                    logAndShowMessage(std::current_exception());
-                }
-            }
+    (void)QObject::connect(file_explorer_page_->playlistPage()->playlist(),
+        &PlaylistTableView::playMusic,
+        this,
+        [this](int32_t playlist_id, const PlayListEntity& item, bool is_play) {
+            playLocalFile(item.file_path, is_play);
         });
 
-    (void)QObject::connect(file_explorer_page_->playlistPage()->playlist(),
-        &PlaylistTableView::addPlaylist, [this](int32_t playlist_id, const QList<PlayListEntity>& entities) {
-            auto metadata_reader = MakeMetadataReader();
-            Q_FOREACH(auto entity, entities) {
-                try {
-                    metadata_reader->Open(entity.file_path.toStdWString());
-
-                    auto track_info_opt = metadata_reader->Extract();
-                    if (track_info_opt.has_value()) {
-                        playback_queue_page_->addQueue(track_info_opt.value());
-                    }
-                }
-                catch (...) {
-                    logAndShowMessage(std::current_exception());
-                }
-            }
-        });
-
-    (void)QObject::connect(file_explorer_page_->playlistPage()->playlist(),
+    (void)QObject::connect(rich_playlist_page_->playlist(),
         &PlaylistTableView::playMusic,
         this,
         [this](int32_t playlist_id, const PlayListEntity& item, bool is_play) {
@@ -492,16 +487,10 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         setCurrentTab(table_id);
         });
 
-    playback_queue_page_.reset(new PlaybackQueueViewPage(this));
-
-    (void)QObject::connect(playback_queue_page_.get(),
-        &PlaybackQueueViewPage::playFile,
-        this, 
-        &Xamp::playLocalFile);
-
     (void)QObject::connect(ui_.repeatButton, &QToolButton::clicked, [this](auto table_id) {
-        playback_queue_page_->show();
-        moveToTopWidget(playback_queue_page_.get(), ui_.repeatButton);
+        const auto order = getNextOrder(qAppSettings.valueAsEnum<PlayerOrder>(kAppSettingOrder));
+        qAppSettings.setEnumValue(kAppSettingOrder, order);
+        setRepeatButtonIcon(ui_, order);
         });
 
     (void)QObject::connect(ui_.seekSlider, &WaveformSlider::leftButtonValueChanged, [this](auto value) {
@@ -526,9 +515,27 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         QScopedPointer<XDialog> dialog(new XDialog(this));
         QScopedPointer<EqualizerView> eq(new EqualizerView(dialog.get()));
+        (void)QObject::connect(eq.get(),
+            &EqualizerView::parametricEqChanged,
+            this,
+            [this](bool enabled, const EqSettings& settings) {
+                applyParametricEqToPlayer(player_, enabled, settings);
+            });
+        (void)QObject::connect(state_adapter_.get(),
+            &UIPlayerStateAdapter::outputFormatChanged,
+            eq.get(),
+            &EqualizerView::outputFormatChanged,
+            Qt::QueuedConnection);
+        (void)QObject::connect(state_adapter_.get(),
+            &UIPlayerStateAdapter::samplesChanged,
+            eq.get(),
+            &EqualizerView::samplesChanged,
+            Qt::QueuedConnection);
+        eq->outputFormatChanged(state_adapter_->sampleRate(), state_adapter_->outputBufferSize());
         dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_EQUALIZER));
         dialog->setTitle(tr("Equalizer"));
         dialog->setContentWidget(eq.get(), false);
+        dialog->resize(dialogContentSize(dialog.get(), eq.get()));
         dialog->setFixedSize(dialog->size());
         dialog->exec();
         });
@@ -593,7 +600,81 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     cd_page_->playlistPage()->playlist()->setHeaderViewHidden(false);
     cd_page_->playlistPage()->playlist()->setOtherPlaylist(kDefaultPlaylistId);
 
+    file_system_service_.reset(new FileSystemService());
+    file_system_service_->moveToThread(&file_system_service_thread_);
+    file_system_service_thread_.start(QThread::LowestPriority);
+
+    auto* rich_playlist = rich_playlist_page_->playlist();
+    auto* rich_playlist_progress = rich_playlist->progressPage();
+
+    (void)QObject::connect(rich_playlist,
+        &PlaylistTableView::extractFile,
+        file_system_service_.get(),
+        &FileSystemService::onExtractFile,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(rich_playlist_progress,
+        &ScanFileProgressPage::cancelRequested,
+        file_system_service_.get(),
+        &FileSystemService::cancelRequested,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(file_system_service_.get(),
+        &FileSystemService::batchInsertDatabase,
+        this,
+        [this](const std::vector<std::forward_list<TrackInfo>>& results, int32_t playlist_id) {
+            qDatabaseFacade.insertMultipleTrackInfo(results, playlist_id, StoreType::LOCAL_STORE);
+            rich_playlist_page_->reload();
+        },
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(file_system_service_.get(),
+        &FileSystemService::insertDatabase,
+        this,
+        [this](const std::forward_list<TrackInfo>& result, int32_t playlist_id) {
+            qDatabaseFacade.insertTrackInfo(result, playlist_id, StoreType::LOCAL_STORE);
+            rich_playlist_page_->reload();
+        },
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(file_system_service_.get(),
+        &FileSystemService::readFileStart,
+        rich_playlist_progress,
+        &ScanFileProgressPage::onReadFileStart,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(file_system_service_.get(),
+        &FileSystemService::readFileProgress,
+        rich_playlist_progress,
+        &ScanFileProgressPage::setFileProgress,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(file_system_service_.get(),
+        &FileSystemService::foundFileCount,
+        rich_playlist_progress,
+        &ScanFileProgressPage::setFileCount,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(file_system_service_.get(),
+        &FileSystemService::readFilePath,
+        rich_playlist_progress,
+        &ScanFileProgressPage::onReadFilePath,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(file_system_service_.get(),
+        &FileSystemService::remainingTimeEstimation,
+        rich_playlist_progress,
+        &ScanFileProgressPage::onRemainingTimeEstimation,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(file_system_service_.get(),
+        &FileSystemService::readCompleted,
+        rich_playlist_progress,
+        &ScanFileProgressPage::onReadCompleted,
+        Qt::QueuedConnection);
+
     pushWidget(lrc_page_.get());
+    pushWidget(rich_playlist_page_.get());
     pushWidget(file_explorer_page_.get());
     pushWidget(cd_page_.get());
     ui_.naviBar->setCurrentIndex(TAB_LYRICS);
@@ -783,12 +864,16 @@ void Xamp::playOrPause() {
 }
 
 void Xamp::playNextItem(int32_t forward) {
-    auto file_path = playback_queue_page_->popQueue();
-    if (file_path.isEmpty()) {
+    auto* playlist = rich_playlist_page_->playlist();
+    auto index = playlist->nextIndex(forward);
+    if (!index.isValid()) {
+        index = playlist->firstIndex();
+    }
+    if (!index.isValid()) {
         ui_.seekSlider->clearWaveform();
         return;
     }
-    playLocalFile(file_path, false);
+    playlist->onPlayIndex(index, true);
 }
 
 void Xamp::stopPlay() {

@@ -202,6 +202,10 @@ void PlaylistTableView::search(const QString& keyword) const {
     proxy_model_->setFilterRegularExpression(reg_exp);
 }
 
+void PlaylistTableView::setAlbumFilterId(std::optional<int32_t> album_id) {
+    proxy_model_->setAlbumFilterId(album_id);
+}
+
 PlaylistStyledItemDelegate* PlaylistTableView::styledDelegate() {
     return dynamic_cast<PlaylistStyledItemDelegate*>(itemDelegate());
 }
@@ -351,16 +355,24 @@ void PlaylistTableView::reload(bool is_scroll_to, bool order_by) {
 
     const QSqlQuery query(query_string, qGuiDb.database());
     model_->setQuery(query);
+    while (model_->canFetchMore()) {
+        model_->fetchMore();
+    }
+    model_->setRichAlbumHeaderEnabled(rich_album_header_enabled_ && group_ == PLAYLIST_GROUP_ALBUM);
+    model_->refreshRichAlbumHeaderRows();
     if (model_->lastError().type() != QSqlError::NoError) {
         XAMP_LOG_DEBUG("SqlException: {}", model_->lastError().text().toStdString());
     }
 
     // NOTE: 呼叫此函數就會更新index, 會導致playing index失效    
     model_->dataChanged(QModelIndex(), QModelIndex());
-
+    updateRichAlbumHeaderRowHeights();
     // NOTE: playing index失效必須要重新尋找playlist_music_id
     if (entity) {
         for (auto i = 0; i < proxy_model_->rowCount(); ++i) {
+            if (isAlbumHeaderRow(proxy_model_->index(i, 0))) {
+                continue;
+            }
             auto temp = item(proxy_model_->index(i, 0));
             if (temp.playlist_music_id == entity->playlist_music_id) {
                 play_index_ = proxy_model_->index(i, 0);
@@ -373,6 +385,7 @@ void PlaylistTableView::reload(bool is_scroll_to, bool order_by) {
 
     play_index_ = QModelIndex();
     album_songs_id_cache_.clear();
+    updateRichAlbumHeaderRowHeights();
     update();
 }
 
@@ -552,6 +565,9 @@ QList<PlayListEntity> PlaylistTableView::selectItems() const {
     QList<PlayListEntity> entities;
     const auto rows = selectItemIndex();
     for (const auto& row : rows) {
+        if (isAlbumHeaderRow(row.second)) {
+            continue;
+        }
         const auto entity = this->item(row.second);
         entities.push_back(entity);
     }
@@ -584,7 +600,7 @@ void PlaylistTableView::initial() {
     });
 
     (void)QObject::connect(this, &QTableView::doubleClicked, [this](const QModelIndex& index) {
-        if (model_->rowCount() > 0) {
+        if (model_->rowCount() > 0 && !isAlbumHeaderRow(index)) {
             playItem(index);
         }
     });
@@ -596,7 +612,7 @@ void PlaylistTableView::initial() {
         ActionMap<PlaylistTableView> action_map(this);
 
         PlayListEntity entity;
-        if (model_->rowCount() > 0 && index.isValid()) {
+        if (model_->rowCount() > 0 && index.isValid() && !isAlbumHeaderRow(index)) {
             entity = getEntity(index);
         }             
 
@@ -698,22 +714,24 @@ void PlaylistTableView::initial() {
             return;
         }
 
-        auto* load_file_act = action_map.addAction(tr("Load local file"), [this]() {
-            getOpenMusicFileName(this, tr("Open file"), tr("Music Files "), [this](const auto& file_name) {
-                append(file_name);
+        if (enable_load_file_) {
+            auto* load_file_act = action_map.addAction(tr("Load local file"), [this]() {
+                getOpenMusicFileName(this, tr("Open file"), tr("Music Files "), [this](const auto& file_name) {
+                    append(file_name);
+                    });
                 });
-            });
-        load_file_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FILE_OPEN));
+            load_file_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FILE_OPEN));
 
-        auto* load_dir_act = action_map.addAction(tr("Load file directory"), [this]() {
-            const auto dir_name = getExistingDirectory(this, tr("Select a directory"));
-            if (dir_name.isEmpty()) {
-                return;
-            }
-            showProgressPage();
-            append(dir_name);
-            });
-        load_dir_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FOLDER_OPEN));
+            auto* load_dir_act = action_map.addAction(tr("Load file directory"), [this]() {
+                const auto dir_name = getExistingDirectory(this, tr("Select a directory"));
+                if (dir_name.isEmpty()) {
+                    return;
+                }
+                showProgressPage();
+                append(dir_name);
+                });
+            load_dir_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FOLDER_OPEN));
+        }
 
         if (enable_delete_ && model()->rowCount() > 0) {            
             auto* remove_all_act = action_map.addAction(tr("Remove all"));
@@ -877,10 +895,28 @@ void PlaylistTableView::initial() {
 }
 
 void PlaylistTableView::showProgressPage() {
+    auto* host = progress_page_host_ != nullptr ? progress_page_host_ : this;
+    if (progress_page_->parentWidget() != host) {
+        progress_page_->setParent(host);
+    }
+
     progress_page_->show();
-    const auto list_view_rect = this->rect();
-    progress_page_->setFixedSize(QSize(list_view_rect.size().width() - 2, 80));
-    progress_page_->move(0, height() - 80);
+    progress_page_->raise();
+    const auto host_rect = host->rect();
+    progress_page_->setFixedSize(QSize(host_rect.size().width() - 2, 80));
+    progress_page_->move(0, host_rect.height() - 80);
+}
+
+void PlaylistTableView::setProgressPageHost(QWidget* host) {
+    progress_page_host_ = host;
+    if (progress_page_ != nullptr && host != nullptr) {
+        progress_page_->setParent(host);
+        progress_page_->hide();
+    }
+}
+
+void PlaylistTableView::setShowProgressOnAppend(bool enabled) {
+    show_progress_on_append_ = enabled;
 }
 
 void PlaylistTableView::onReloadEntity(const PlayListEntity& item) {
@@ -894,6 +930,22 @@ void PlaylistTableView::onReloadEntity(const PlayListEntity& item) {
             play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());
         }        
         );
+}
+
+bool PlaylistTableView::isAlbumHeaderRow(const QModelIndex& index) const {
+    return index.isValid()
+        && index.data(PLAYLIST_ROW_TYPE_ROLE).toInt() == PLAYLIST_ROW_ALBUM_HEADER;
+}
+
+void PlaylistTableView::updateRichAlbumHeaderRowHeights() {
+    if (!rich_album_header_enabled_) {
+        return;
+    }
+
+    for (auto row = 0; row < proxy_model_->rowCount(); ++row) {
+        const auto index = proxy_model_->index(row, 0);
+        setRowHeight(row, isAlbumHeaderRow(index) ? kRichAlbumHeaderHeight : kColumnHeight);
+    }
 }
 
 void PlaylistTableView::pauseItem(const QModelIndex& index) {
@@ -948,7 +1000,9 @@ bool PlaylistTableView::eventFilter(QObject* obj, QEvent* ev) {
 }
 
 void PlaylistTableView::append(const QString& file_name) {
-    showProgressPage();
+    if (show_progress_on_append_) {
+        showProgressPage();
+    }
     emit extractFile(file_name, playlistId());
 }
 
@@ -1052,7 +1106,13 @@ int32_t PlaylistTableView::playlistId() const {
 }
 
 QModelIndex PlaylistTableView::firstIndex() const {
-    return model()->index(0, 0);
+    for (auto row = 0; row < proxy_model_->rowCount(); ++row) {
+        const auto index = model()->index(row, 0);
+        if (!isAlbumHeaderRow(index)) {
+            return index;
+        }
+    }
+    return {};
 }
 
 void PlaylistTableView::setOtherPlaylist(int32_t playlist_id) {
@@ -1061,22 +1121,41 @@ void PlaylistTableView::setOtherPlaylist(int32_t playlist_id) {
 
 QModelIndex PlaylistTableView::nextIndex(int forward) const {
     const auto count = proxy_model_->rowCount();
+    if (count == 0) {
+        return {};
+    }
     const auto play_index = currentIndex();
-    const auto next_index = (play_index.row() + forward) % count;
-    return model()->index(next_index, PLAYLIST_IS_PLAYING);
+    auto next_index = play_index.isValid() ? play_index.row() : 0;
+    for (auto i = 0; i < count; ++i) {
+        next_index = (next_index + forward + count) % count;
+        const auto index = model()->index(next_index, PLAYLIST_IS_PLAYING);
+        if (!isAlbumHeaderRow(index)) {
+            return index;
+        }
+    }
+    return {};
 }
 
 QModelIndex PlaylistTableView::shuffleIndex() {
     auto current_playlist_music_id = 0;
     if (play_index_.isValid()) {
         current_playlist_music_id = indexValue(play_index_, PLAYLIST_PLAYLIST_MUSIC_ID).toInt();
-    }    
+    }
     if (current_playlist_music_id != 0) {
         rng_.SetSeed(current_playlist_music_id);
     }
     const auto count = proxy_model_->rowCount();
-    const auto selected = rng_.NextInt32(0, count - 1);
-    return model()->index(selected, PLAYLIST_IS_PLAYING);
+    if (count == 0) {
+        return {};
+    }
+    for (auto i = 0; i < count; ++i) {
+        const auto selected = rng_.NextInt32(0, count - 1);
+        const auto index = model()->index(selected, PLAYLIST_IS_PLAYING);
+        if (!isAlbumHeaderRow(index)) {
+            return index;
+        }
+    }
+    return firstIndex();
 }
 
 QModelIndex PlaylistTableView::shuffleAlbumIndex() {
@@ -1098,6 +1177,9 @@ QModelIndex PlaylistTableView::shuffleAlbumIndex() {
 
     if (album_songs_id_cache_.isEmpty()) {
         for (auto index = 0; index < count; ++index) {
+            if (isAlbumHeaderRow(proxy_model_->index(index, 0))) {
+                continue;
+            }
             auto album_id = proxy_model_->index(index, PLAYLIST_ALBUM_ID).data().toInt();
             if (album_id != 0) {
                 album_songs_id_cache_[album_id].append(index);
@@ -1205,7 +1287,11 @@ QList<PlayListEntity> PlaylistTableView::items() const {
     QList<PlayListEntity> items;
     items.reserve(proxy_model_->rowCount());
     for (auto i = 0; i < proxy_model_->rowCount(); ++i) {
-        items.push_back(item(proxy_model_->index(i, 0)));
+        const auto index = proxy_model_->index(i, 0);
+        if (isAlbumHeaderRow(index)) {
+            continue;
+        }
+        items.push_back(item(index));
     }
     return items;
 }
@@ -1215,6 +1301,9 @@ OrderedMap<int32_t, QModelIndex> PlaylistTableView::selectItemIndex() const {
 
     Q_FOREACH(auto index, selectionModel()->selectedRows()) {
         if (!index.isValid()) {
+            continue;
+        }
+        if (isAlbumHeaderRow(index)) {
             continue;
         }
         auto const row = index.row();

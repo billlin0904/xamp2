@@ -25,4 +25,7 @@ public:
 
 signals:
     void findAlbumCover(const DatabaseCoverId& id) const;
+
+private:
+    void paintTrackCell(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const;
 };

@@ -16,8 +16,9 @@
 #include <ui_xamp.h>
 
 class BackgroundService;
-class PlaybackQueueViewPage;
+class FileSystemService;
 class FileSystemViewPage;
+class RichPlaylistPage;
 class LrcPage;
 class CdPage;
 class DeviceSelectorMenu;
@@ -92,17 +93,19 @@ private:
     IXMainWindow* main_window_{ nullptr };
     QAction* preference_action_{ nullptr };
     QScopedPointer<LrcPage> lrc_page_;
+    QScopedPointer<RichPlaylistPage> rich_playlist_page_;
     QScopedPointer<FileSystemViewPage> file_explorer_page_;
 	QScopedPointer<CdPage> cd_page_;
     QScopedPointer<DeviceSelectorMenu> device_menu_;
-    QScopedPointer<QSystemTrayIcon> tray_icon_;
+	QScopedPointer<QSystemTrayIcon> tray_icon_;
+    QScopedPointer<FileSystemService> file_system_service_;
     QScopedPointer<BackgroundService> background_service_;
-	QScopedArrayPointer<PlaybackQueueViewPage> playback_queue_page_;
     QList<QWidget*> widgets_;
     std::shared_ptr<IThreadPoolExecutor> thread_pool_;
     std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
     std::shared_ptr<IAudioPlayer> player_;
     std::optional<DeviceInfo> device_info_;
+    QThread file_system_service_thread_;
     QThread background_service_thread_;
 	Ui::XampWindow ui_;
 };

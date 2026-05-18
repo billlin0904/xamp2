@@ -1,18 +1,22 @@
 #include <QPainter>
 #include <QHeaderView>
-#include <QPainterPath>
 
 #include <thememanager.h>
 #include <widget/imagecache.h>
 #include <widget/playlisttableview.h>
 #include <widget/playlisttablemodel.h>
 #include <widget/playliststyleditemdelegate.h>
+#include <widget/util/ui_util.h>
 
 PlaylistStyledItemDelegate::PlaylistStyledItemDelegate(QObject* parent)
     : QStyledItemDelegate(parent) {
 }
 
 void PlaylistStyledItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
+    paintTrackCell(painter, option, index);
+}
+
+void PlaylistStyledItemDelegate::paintTrackCell(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
     if (!index.isValid()) {
         return;
     }

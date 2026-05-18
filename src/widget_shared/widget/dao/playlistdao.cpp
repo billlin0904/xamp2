@@ -153,7 +153,7 @@ namespace dao {
     
     void PlaylistDao::clearNowPlaying(int32_t playlist_id) {
       SqlQuery query(db_);
-      query.prepare("UPDATE playlistMusics SET playing = :playing"_str);
+      query.prepare("UPDATE playlistMusics SET playing = :playing WHERE playlistId = :playlistId"_str);
       query.bindValue(":playing"_str, PlayingState::PLAY_CLEAR);
       query.bindValue(":playlistId"_str, playlist_id);
       DbIfFailedThrow1(query);
@@ -165,7 +165,7 @@ namespace dao {
 
     void PlaylistDao::clearNowPlayingSkipMusicId(int32_t playlist_id, int32_t skip_playlist_music_id) {
         SqlQuery query(db_);
-        query.prepare("UPDATE playlistMusics SET playing = :playing WHERE (playlistMusicsId != :skipPlaylistMusicsId)"_str);
+        query.prepare("UPDATE playlistMusics SET playing = :playing WHERE (playlistId = :playlistId AND playlistMusicsId != :skipPlaylistMusicsId)"_str);
         query.bindValue(":playing"_str, PlayingState::PLAY_CLEAR);
         query.bindValue(":playlistId"_str, playlist_id);
         query.bindValue(":skipPlaylistMusicsId"_str, skip_playlist_music_id);

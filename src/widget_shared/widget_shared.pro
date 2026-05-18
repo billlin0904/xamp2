@@ -98,6 +98,7 @@ SOURCES += \
 ./widget/worker/backgroundservice.cpp \
 ./widget/worker/filesystemservice.cpp \
 ./widget/playlistpage.cpp \
+./widget/richplaylistpage.cpp \
 ./widget/win32/wintaskbar.cpp \
 ./widget/networkdiskcache.cpp \
 ./widget/xdialog.cpp \
@@ -203,6 +204,7 @@ HEADERS += \
 ./widget/seekslider.h \
 ./widget/waveformslider.h \
 ./widget/playlistpage.h \
+./widget/richplaylistpage.h \
 ./widget/playlisttableview.h \
 ./widget/lrcparser.h \
 ./widget/processindicator.h \

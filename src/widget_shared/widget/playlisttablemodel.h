@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <Qt>
+
 enum PlayListColumn {	
 	PLAYLIST_ALBUM_COVER_ID = 0,
 	PLAYLIST_MUSIC_ID,
@@ -43,4 +45,15 @@ enum PlayListColumn {
 	PLAYLIST_IS_ZIP_FILE,
 	PLAYLIST_ARCHVI_ENTRY_NAME,
 	PLAYLIST_MAX_COLUMN,
+};
+
+enum PlayListRowType {
+	PLAYLIST_ROW_TRACK = 0,
+	PLAYLIST_ROW_ALBUM_HEADER,
+};
+
+enum PlayListDataRole {
+	PLAYLIST_ROW_TYPE_ROLE = Qt::UserRole + 100,
+	PLAYLIST_ALBUM_TRACK_COUNT_ROLE,
+	PLAYLIST_ALBUM_DURATION_ROLE,
 };

@@ -155,7 +155,6 @@
     <QtMoc Include="widget\playliststyleditemdelegate.h" />
     <QtMoc Include="widget\slidingstackedwidget.h" />
     <QtMoc Include="widget\scanfileprogresspage.h" />
-    <QtMoc Include="widget\playbackqueueviewpage.h" />
     <ClInclude Include="widget\tabpage.h" />
     <ClInclude Include="widget\tagio.h" />
     <ClInclude Include="widget\util\colortable.h" />
@@ -207,6 +206,7 @@
     <ClInclude Include="widget\playerorder.h" />
     <ClInclude Include="widget\playlistentity.h" />
     <QtMoc Include="widget\playlistpage.h" />
+    <ClInclude Include="widget\richplaylistpage.h" />
     <ClInclude Include="widget\playlistsqlquerytablemodel.h" />
     <ClInclude Include="widget\playlisttablemodel.h" />
     <QtMoc Include="widget\playlisttableproxymodel.h" />
@@ -290,9 +290,9 @@
     <ClCompile Include="widget\musicbrainzparser.cpp" />
     <ClCompile Include="widget\neteaseparser.cpp" />
     <ClCompile Include="widget\networkdiskcache.cpp" />
-    <ClCompile Include="widget\playbackqueueviewpage.cpp" />
     <ClCompile Include="widget\playlistentity.cpp" />
     <ClCompile Include="widget\playlistpage.cpp" />
+    <ClCompile Include="widget\richplaylistpage.cpp" />
     <ClCompile Include="widget\playlistsqlquerytablemodel.cpp" />
     <ClCompile Include="widget\playliststyleditemdelegate.cpp" />
     <ClCompile Include="widget\playlisttabbar.cpp" />
@@ -347,7 +347,6 @@
     <QtUic Include="filesystemviewpage.ui" />
     <QtUic Include="logview.ui" />
     <QtUic Include="musicbrainzeditpage.ui" />
-    <QtUic Include="playbackqueueviewpage.ui" />
     <QtUic Include="preferencedialog.ui" />
     <QtUic Include="supereqdialog.ui" />
     <QtUic Include="tageditpage.ui" />
