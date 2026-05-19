@@ -233,16 +233,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="3006"/>
-        <source>YouTube search</source>
-        <translation type="unfinished">YouTube 查詢</translation>
-    </message>
-    <message>
-        <location filename="xamp.cpp" line="3007"/>
-        <source>YouTube playlist</source>
-        <translation type="unfinished">YouTube 播放清單</translation>
-    </message>
-    <message>
         <location filename="xamp.cpp" line="2423"/>
         <source>Create playlist</source>
         <translation type="unfinished"></translation>

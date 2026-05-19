@@ -198,13 +198,8 @@ void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result,
         auto album_id = kInvalidDatabaseId;
 
         if (album != unknown_album_) {
-            if (isCloudStore(store_type)) {
-                album_id = dao_facade_->album_dao.getAlbumId(album);
-            }
-            else {
-                // Avoid cue file album name create new album id.
-                album_id = dao_facade_->album_dao.getAlbumIdFromAlbumMusic(music_id);
-            }
+            // Avoid cue file album name create new album id.
+            album_id = dao_facade_->album_dao.getAlbumIdFromAlbumMusic(music_id);
         }
         else {
             album_id = kUnknownAlbumId;
@@ -221,15 +216,10 @@ void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result,
                 disc_id,
                 is_hires);
 
-            if (isCloudStore(store_type)) {
-                dao_facade_->album_dao.addAlbumCategory(album_id, kYouTubeCategory);
-            }
-            else {
-                dao_facade_->album_dao.addAlbumCategory(album_id, kLocalCategory);
-                auto disk = "Disk("_str +
-                    QString::fromStdWString(track_info.file_path.root_name().wstring()) + ")"_str;
-                dao_facade_->album_dao.addAlbumCategory(album_id, disk);
-            }
+            dao_facade_->album_dao.addAlbumCategory(album_id, kLocalCategory);
+            auto disk = "Disk("_str +
+                QString::fromStdWString(track_info.file_path.root_name().wstring()) + ")"_str;
+            dao_facade_->album_dao.addAlbumCategory(album_id, disk);
 
             if (track_info.file_ext() == kDsfFileExtension 
                 || track_info.file_ext() == kDffFileExtension) {

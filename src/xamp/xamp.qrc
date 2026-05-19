@@ -25,5 +25,6 @@
         <file>migrations/2024-01-12-093210_init/up.sql</file>
         <file>Resource/Theme/dark/darkstyle.qss</file>
         <file>Resource/Theme/light/lightstyle.qss</file>
+        <file>xamp_startup.png</file>
     </qresource>
 </RCC>

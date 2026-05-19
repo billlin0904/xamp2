@@ -48,8 +48,6 @@ struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
     QString comment;
     QString lyrc;
     QString trlyrc;
-    QString yt_music_album_id;
-    QString yt_music_artist_id;
 
     std::optional<QString> archive_entry_name;
     std::optional<QString> music_cover_id;    

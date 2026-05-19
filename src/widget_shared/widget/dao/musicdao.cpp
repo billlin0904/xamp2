@@ -40,15 +40,13 @@ INSERT
 		heart,
 		isCueFile,
         isZipFile,
-		ytMusicAlbumId,
-		ytMusicArtistId,
         archiveEntryName
 	)
 VALUES
 	(
-		( SELECT musicId FROM musics WHERE path = :path AND durationStr = :durationStr AND ytMusicAlbumId = :ytMusicAlbumId AND isZipFile = :isZipFile AND archiveEntryName = :archiveEntryName ), 
+		( SELECT musicId FROM musics WHERE path = :path AND durationStr = :durationStr AND isZipFile = :isZipFile AND archiveEntryName = :archiveEntryName ), 
 	:title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitRate, :sampleRate, :offset, :dateTime, :albumReplayGain, :trackReplayGain, 
-    :albumPeak, :trackPeak, :genre, :comment, :fileSize, :heart, :isCueFile, :isZipFile, :ytMusicAlbumId, :ytMusicArtistId, :archiveEntryName 
+    :albumPeak, :trackPeak, :genre, :comment, :fileSize, :heart, :isCueFile, :isZipFile, :archiveEntryName 
 	)
     )"_str
         );
@@ -68,8 +66,6 @@ VALUES
         query.bindValue(":heart"_str, track_info.rating ? 1 : 0);
         query.bindValue(":isCueFile"_str, track_info.is_cue_file ? 1 : 0);
         query.bindValue(":isZipFile"_str, track_info.is_zip_file ? 1 : 0);
-        query.bindValue(":ytMusicAlbumId"_str, QString::fromStdString(track_info.yt_album_id));
-        query.bindValue(":ytMusicArtistId"_str, QString::fromStdString(track_info.yt_artist_id));
 
         if (track_info.replay_gain) {
             query.bindValue(":albumReplayGain"_str, track_info.replay_gain.value().album_gain);

@@ -27,8 +27,6 @@ CREATE TABLE IF NOT EXISTS musics (
     coverId TEXT DEFAULT NULL,
     isCueFile integer,
     isZipFile integer,
-    ytMusicAlbumId TEXT,
-    ytMusicArtistId TEXT,
     archiveEntryName TEXT,
     UNIQUE (path, offset, durationStr)
 );

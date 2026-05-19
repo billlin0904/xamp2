@@ -41,8 +41,6 @@ public slots:
 
 	void onFindAlbumCover(const DatabaseCoverId& id);
 
-	void onFetchYoutubeThumbnailUrl(const QString& video_id, const QString& thumbnail_url);
-
 	void onFetchThumbnailUrl(const DatabaseCoverId& id, const QString& thumbnail_url);
 
 	void onFetchArtistThumbnailUrl(int32_t artist_id, const QString& thumbnail_url);

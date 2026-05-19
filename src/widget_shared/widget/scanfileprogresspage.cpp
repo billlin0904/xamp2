@@ -50,7 +50,7 @@ ScanFileProgressPage::ScanFileProgressPage(QWidget* parent)
     message_text_label_->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     message_text_label_->setObjectName("messageTextLabel"_str);
     message_text_label_->setOpenExternalLinks(false);
-    message_text_label_->setFixedHeight(10);
+    message_text_label_->setFixedHeight(QFontMetrics(message_text_label_->font()).height() + 4);
     message_text_label_->setSizePolicy(QSizePolicy::Expanding,
         QSizePolicy::Fixed);
     message_text_label_->setStyleSheet("background: transparent;"_str);

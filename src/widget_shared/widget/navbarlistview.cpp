@@ -157,12 +157,6 @@ void NavBarListView::onThemeChangedFinished(ThemeColor theme_color) {
         case TAB_CD:
             item->setIcon(qTheme.fontIcon(Glyphs::ICON_CD));
             break;
-        case TAB_YT_MUSIC_SEARCH:
-            item->setIcon(qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
-            break;
-        case TAB_YT_MUSIC_PLAYLIST:
-            item->setIcon(qTheme.fontIcon(Glyphs::ICON_YOUTUBE_PLAYLIST));
-            break;
         case TAB_AI:
             item->setIcon(qTheme.fontIcon(Glyphs::ICON_AI));
             break;
@@ -176,7 +170,7 @@ void NavBarListView::onThemeChangedFinished(ThemeColor theme_color) {
     while (itr.hasNext()) {
         itr.next();
         switch (itr.key()) {
-        case TAB_PLAYLIST:
+        case TAB_RICH_PLAYLIST:
             itr.value()->setIcon(qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
             break;
         case TAB_FILE_EXPLORER:
@@ -191,15 +185,6 @@ void NavBarListView::onThemeChangedFinished(ThemeColor theme_color) {
         case TAB_CD:
             itr.value()->setIcon(qTheme.fontIcon(Glyphs::ICON_CD));
             break;
-        /*case TAB_YT_MUSIC_SEARCH:
-            itr.value()->setIcon(qTheme.fontIcon(Glyphs::ICON_YOUTUBE));
-            break;
-        case TAB_YT_MUSIC_PLAYLIST:
-            itr.value()->setIcon(qTheme.fontIcon(Glyphs::ICON_YOUTUBE_PLAYLIST));
-            break;
-        case TAB_AI:
-            itr.value()->setIcon(qTheme.fontIcon(Glyphs::ICON_AI));
-            break;*/
         }
     }
     tooltip_->onThemeChangedFinished(theme_color);

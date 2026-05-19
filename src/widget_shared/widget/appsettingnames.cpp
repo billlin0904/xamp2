@@ -75,5 +75,4 @@ IMPL_APP_SETTING_NAME(AppSettingLastPlaylistTabIndex, "AppSettings/playlist/last
 IMPL_APP_SETTING_NAME(AppSettingEnableTray, "AppSettings/enableTray");
 
 IMPL_APP_SETTING_NAME(AppSettingReplayGainMode, "AppSettings/replayGainMode");
-IMPL_APP_SETTING_NAME(AppSettingYtMusicPoToken, "AppSettings/YtMusic/ptToken");
 IMPL_APP_SETTING_NAME(AppSettingPlaybackSpeed, "AppSettings/playbackSpeed");

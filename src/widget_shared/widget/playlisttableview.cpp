@@ -73,8 +73,6 @@ namespace {
 	musics.coverId as musicCoverId,
     musics.offset,
     musics.isCueFile,
-    musics.ytMusicAlbumId,
-	musics.ytMusicArtistId,
     musics.isZipFile,
     musics.archiveEntryName
 FROM
@@ -125,8 +123,6 @@ WHERE
 	musics.coverId as musicCoverId,
     musics.offset,
     musics.isCueFile,
-	musics.ytMusicAlbumId,
-	musics.ytMusicArtistId,
     musics.isZipFile,
     musics.archiveEntryName
 FROM
@@ -178,8 +174,6 @@ ORDER BY
 	musics.coverId as musicCoverId,
     musics.offset,
 	musics.isCueFile,
-	musics.ytMusicAlbumId,
-	musics.ytMusicArtistId,
     musics.isZipFile,
     musics.archiveEntryName
 FROM
@@ -489,8 +483,6 @@ void PlaylistTableView::setPlaylistId(const int32_t playlist_id, const QString &
             PLAYLIST_LIKE,
             PLAYLIST_YEAR,
             PLAYLIST_OFFSET,
-            PLAYLIST_YT_MUSIC_ALBUM_ID,
-            PLAYLIST_YT_MUSIC_ARIST_ID,
             PLAYLIST_IS_ZIP_FILE,
             PLAYLIST_ARCHVI_ENTRY_NAME
         };
@@ -636,20 +628,12 @@ void PlaylistTableView::initial() {
             action_map.addSeparator();
 
             const auto rows = selectItemIndex();
-            std::vector<std::string> video_ids;
             std::vector<PlayListEntity> play_list_entities;
-            video_ids.reserve(rows.size());
             play_list_entities.reserve(rows.size());
             for (const auto& row : rows) {
                 const auto play_list_entity = this->item(row.second);
-                video_ids.push_back(play_list_entity.file_path.toStdString());
                 play_list_entities.push_back(play_list_entity);
             }
-
-            auto* remove_select_cloud_music_act = action_map.addAction(tr("Remove select music"));
-            action_map.setCallback(remove_select_cloud_music_act, [this, video_ids]() {
-                emit removePlaylistItems(cloud_playlist_id_.value(), video_ids);
-            });
 
             QString menu_name;
             QIcon like_icon;
@@ -701,7 +685,7 @@ void PlaylistTableView::initial() {
                 if (navigation_view_mode_ == NavigationViewMode::NAVIGATION_VIEW_ALBUM_AND_ARTIST) {
                     auto* navigate_to_artist_page = action_map.addAction("Navigate To artist"_str);
                     action_map.setCallback(navigate_to_artist_page, [this, entity]() {
-                        emit navigateToArtistPage(entity.artist_id, entity.yt_music_artist_id);
+                        emit navigateToArtistPage(entity.artist_id);
                         });
                 }
             }

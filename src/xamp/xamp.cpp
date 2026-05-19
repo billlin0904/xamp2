@@ -129,16 +129,12 @@ void Xamp::setCurrentTab(int32_t table_id) {
         ui_.currentView->setCurrentWidget(rich_playlist_page_.get());
         return;
         break;
-    case TAB_PLAYLIST:
-        break;
     case TAB_LYRICS:
         ui_.currentView->setCurrentWidget(lrc_page_.get());
         break;
     case TAB_CD:
         ui_.currentView->setCurrentWidget(cd_page_.get());
         return;
-        break;
-    case TAB_YT_MUSIC_PLAYLIST:
         break;
     }
     if (widgets_.size() > table_id) {
@@ -368,28 +364,28 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     initialDeviceList();
     showNaviBarButton();
 
+    if (!qDaoFacade.playlist_dao.isPlaylistExist(kDefaultPlaylistId)) {
+        qDaoFacade.playlist_dao.addPlaylist(
+            tr("Default Playlist"),
+            kDefaultPlaylistId,
+            StoreType::LOCAL_STORE);
+    }
     if (!qDaoFacade.playlist_dao.isPlaylistExist(kFileSystemPlaylistId)) {
         qDaoFacade.playlist_dao.addPlaylist(
             tr("FileSystem Playlist"),
             kFileSystemPlaylistId,
             StoreType::LOCAL_STORE);
-    }
-    if (!qDaoFacade.playlist_dao.isPlaylistExist(kNowPlayingPlaylistId)) {
-        qDaoFacade.playlist_dao.addPlaylist(
-            tr("NowPlaying Playlist"),
-            kNowPlayingPlaylistId,
-            StoreType::LOCAL_STORE);
-    }
-    if (!qDaoFacade.playlist_dao.isPlaylistExist(kNextInQueuePlaylistId)) {
-        qDaoFacade.playlist_dao.addPlaylist(
-            tr("NextInQueue Playlist"),
-            kNextInQueuePlaylistId,
-            StoreType::LOCAL_STORE);
-    }
+    }    
     if (!qDaoFacade.playlist_dao.isPlaylistExist(kCdPlaylistId)) {
         qDaoFacade.playlist_dao.addPlaylist(
             tr("CD Playlist"),
             kCdPlaylistId,
+            StoreType::LOCAL_STORE);
+    }
+    if (!qDaoFacade.playlist_dao.isPlaylistExist(kAlbumPlaylistId)) {
+        qDaoFacade.playlist_dao.addPlaylist(
+            tr("Album Playlist"),
+            kAlbumPlaylistId,
             StoreType::LOCAL_STORE);
     }
 
@@ -472,8 +468,8 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
             playLocalFile(item.file_path, is_play);
         });
 
-    (void)QObject::connect(rich_playlist_page_->playlist(),
-        &PlaylistTableView::playMusic,
+    (void)QObject::connect(rich_playlist_page_.get(),
+        &RichPlaylistPage::playMusic,
         this,
         [this](int32_t playlist_id, const PlayListEntity& item, bool is_play) {
             playLocalFile(item.file_path, is_play);
@@ -604,11 +600,10 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     file_system_service_->moveToThread(&file_system_service_thread_);
     file_system_service_thread_.start(QThread::LowestPriority);
 
-    auto* rich_playlist = rich_playlist_page_->playlist();
-    auto* rich_playlist_progress = rich_playlist->progressPage();
+    auto* rich_playlist_progress = rich_playlist_page_->progressPage();
 
-    (void)QObject::connect(rich_playlist,
-        &PlaylistTableView::extractFile,
+    (void)QObject::connect(rich_playlist_page_.get(),
+        &RichPlaylistPage::extractFile,
         file_system_service_.get(),
         &FileSystemService::onExtractFile,
         Qt::QueuedConnection);
@@ -677,7 +672,9 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     pushWidget(rich_playlist_page_.get());
     pushWidget(file_explorer_page_.get());
     pushWidget(cd_page_.get());
-    ui_.naviBar->setCurrentIndex(TAB_LYRICS);
+
+    ui_.naviBar->setCurrentIndex(TAB_RICH_PLAYLIST);
+    setCurrentTab(TAB_RICH_PLAYLIST);
 
     background_service_.reset(new BackgroundService());
     background_service_->moveToThread(&background_service_thread_);
@@ -864,16 +861,9 @@ void Xamp::playOrPause() {
 }
 
 void Xamp::playNextItem(int32_t forward) {
-    auto* playlist = rich_playlist_page_->playlist();
-    auto index = playlist->nextIndex(forward);
-    if (!index.isValid()) {
-        index = playlist->firstIndex();
-    }
-    if (!index.isValid()) {
+    if (!rich_playlist_page_->playNextItem(forward)) {
         ui_.seekSlider->clearWaveform();
-        return;
     }
-    playlist->onPlayIndex(index, true);
 }
 
 void Xamp::stopPlay() {

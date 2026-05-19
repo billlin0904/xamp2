@@ -42,8 +42,6 @@ namespace dao {
             entity.lyrc = query.value("lyrc"_str).toString();
             entity.trlyrc = query.value("trLyrc"_str).toString();
 
-            entity.yt_music_album_id = query.value("ytMusicAlbumId"_str).toString();
-
             QFileInfo file_info(entity.file_path);
             entity.file_extension = file_info.suffix();
             entity.file_name = file_info.completeBaseName();

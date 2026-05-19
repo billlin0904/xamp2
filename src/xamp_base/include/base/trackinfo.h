@@ -48,8 +48,6 @@ struct XAMP_BASE_API TrackInfo final {
     std::wstring album;
     std::wstring genre;
     std::wstring comment;
-    std::string yt_album_id;
-    std::string yt_artist_id;
     std::optional<std::wstring> archive_entry_name;
     std::optional<ReplayGain> replay_gain;
 

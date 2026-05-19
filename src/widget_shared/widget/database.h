@@ -70,27 +70,20 @@ struct XAMP_WIDGET_SHARED_EXPORT ArtistStats {
 constexpr auto kMaxDatabasePoolSize = 8;
 
 constexpr int32_t kInvalidDatabaseId = -1;
-constexpr int32_t kYtMusicSampleRate = 44100;
 
 enum PlaylistId {
 	kDefaultPlaylistId = 1,
-	kAlbumPlaylistId,
-	kCdPlaylistId,
 	kFileSystemPlaylistId,
-	kArtistSongPlaylistId,
-	kNowPlayingPlaylistId,
-	kNextInQueuePlaylistId,
+	kCdPlaylistId,
+	kAlbumPlaylistId,
 	kMaxExistPlaylist,
 };
 
-constexpr auto kYouTubeCategory = "YouTube"_str;
 constexpr auto kLocalCategory = "Local"_str;
 constexpr auto kHiResCategory = "HiRes"_str;
 constexpr auto kDsdCategory = "DSD"_str;
 constexpr auto kZipCategory = "Zip"_str;
 constexpr auto kCueCategory = "Cue"_str;
-
-inline std::wstring kYoutubeMusicLibraryAlbumPrefix = L"YoutubeMusicLibrary ";
 
 enum PlayingState {
 	PLAY_CLEAR = 0,

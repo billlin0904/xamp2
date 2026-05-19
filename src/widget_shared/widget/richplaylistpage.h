@@ -10,36 +10,39 @@
 
 #include <base/trackinfo.h>
 
+#include <widget/playlistentity.h>
 #include <widget/tabpage.h>
+#include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
 
-class PlaylistTableView;
 class QPixmap;
-class QScrollArea;
-class QVBoxLayout;
-class RichPlaylistAlbumHeaderPanel;
+class QModelIndex;
 class RichPlaylistCoverPanel;
+class RichPlaylistView;
+class ScanFileProgressPage;
 
 class XAMP_WIDGET_SHARED_EXPORT RichPlaylistPage final : public QFrame, public TabPage {
+	Q_OBJECT
 public:
 	explicit RichPlaylistPage(QWidget* parent = nullptr);
 
 	void reload() override;
 
-	PlaylistTableView* playlist() const {
-		return playlist_;
-	}
-
 	void setNowPlaying(const xamp::base::TrackInfo& track_info, const QPixmap& cover);
 
 	void clearNowPlaying();
 
+	ScanFileProgressPage* progressPage() const;
+
+	bool playNextItem(int32_t forward);
+
+signals:
+	void playMusic(int32_t playlist_id, const PlayListEntity& item, bool is_play);
+
+	void extractFile(const QString& file_path, int32_t playlist_id);
+
 private:
 	void initial();
-
-	void updateAlbumHeaderFromPlaylist();
-
-	void rebuildAlbumGroups();
 
 	void showImportMenu(const QPoint& pos);
 
@@ -47,9 +50,13 @@ private:
 
 	void loadFileDirectory();
 
+	void clearAll();
+
+	void playIndex(const QModelIndex& index, bool is_play);
+
+	void showProgressPage();
+
 	RichPlaylistCoverPanel* cover_panel_{ nullptr };
-	QScrollArea* album_groups_scroll_area_{ nullptr };
-	QWidget* album_groups_widget_{ nullptr };
-	QVBoxLayout* album_groups_layout_{ nullptr };
-	PlaylistTableView* playlist_{ nullptr };
+	RichPlaylistView* rich_playlist_view_{ nullptr };
+	ScanFileProgressPage* progress_page_{ nullptr };
 };

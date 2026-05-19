@@ -106,9 +106,6 @@ SOURCES += \
 ./widget/webvttparser.cpp \
 ./widget/playlistsqlquerytablemodel.cpp \
 ./widget/filesystemmodel.cpp \
-./widget/youtubedl/ytmusicservice.cpp \
-./widget/youtubedl/ytmusic_disckcache.cpp \
-./widget/youtubedl/ytmusicoauth.cpp \
 ./widget/seekslider.cpp \
 ./widget/waveformslider.cpp \
 ./widget/m3uparser.cpp \
@@ -211,9 +208,6 @@ HEADERS += \
 ./widget/equalizerview.h \
 ./widget/genre_view.h \
 ./widget/actionmap.h \
-./widget/youtubedl/ytmusic_disckcache.h \
-./widget/youtubedl/ytmusicservice.h \
-./widget/youtubedl/ytmusicoauth.h \
 ./widget/fonticon.h \
 ./widget/appsettingnames.h \
 ./widget/m3uparser.h \

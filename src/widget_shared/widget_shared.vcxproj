@@ -155,6 +155,7 @@
     <QtMoc Include="widget\playliststyleditemdelegate.h" />
     <QtMoc Include="widget\slidingstackedwidget.h" />
     <QtMoc Include="widget\scanfileprogresspage.h" />
+    <QtMoc Include="widget\richplaylistpage.h" />
     <ClInclude Include="widget\tabpage.h" />
     <ClInclude Include="widget\tagio.h" />
     <ClInclude Include="widget\util\colortable.h" />
@@ -173,10 +174,8 @@
     <QtMoc Include="widget\worker\filesystemservice.h" />
     <QtMoc Include="widget\worker\albumcoverservice.h" />
     <ClInclude Include="widget\win32\wintaskbar.h" />
-    <ClInclude Include="widget\worker\ytmusicservice.h" />
     <ClInclude Include="widget\xmessagebox.h" />
     <QtMoc Include="widget\xtooltip.h" />
-    <ClInclude Include="widget\ytmusicserverprocessor.h" />
     <ClInclude Include="xampplayer.h" />
     <QtMoc Include="widget\actionmap.h" />
     <QtMoc Include="widget\albumartistpage.h" />
@@ -206,7 +205,6 @@
     <ClInclude Include="widget\playerorder.h" />
     <ClInclude Include="widget\playlistentity.h" />
     <QtMoc Include="widget\playlistpage.h" />
-    <ClInclude Include="widget\richplaylistpage.h" />
     <ClInclude Include="widget\playlistsqlquerytablemodel.h" />
     <ClInclude Include="widget\playlisttablemodel.h" />
     <QtMoc Include="widget\playlisttableproxymodel.h" />
@@ -292,7 +290,6 @@
     <ClCompile Include="widget\networkdiskcache.cpp" />
     <ClCompile Include="widget\playlistentity.cpp" />
     <ClCompile Include="widget\playlistpage.cpp" />
-    <ClCompile Include="widget\richplaylistpage.cpp" />
     <ClCompile Include="widget\playlistsqlquerytablemodel.cpp" />
     <ClCompile Include="widget\playliststyleditemdelegate.cpp" />
     <ClCompile Include="widget\playlisttabbar.cpp" />
@@ -302,6 +299,7 @@
     <ClCompile Include="widget\preferencepage.cpp" />
     <ClCompile Include="widget\processindicator.cpp" />
     <ClCompile Include="widget\qetag.cpp" />
+    <ClCompile Include="widget\richplaylistpage.cpp" />
     <ClCompile Include="widget\scanfileprogresspage.cpp" />
     <ClCompile Include="widget\scrolllabel.cpp" />
     <ClCompile Include="widget\seekslider.cpp" />
@@ -331,13 +329,11 @@
     <ClCompile Include="widget\worker\backgroundservice.cpp" />
     <ClCompile Include="widget\worker\filesystemservice.cpp" />
     <ClCompile Include="widget\worker\albumcoverservice.cpp" />
-    <ClCompile Include="widget\worker\ytmusicservice.cpp" />
     <ClCompile Include="widget\xdialog.cpp" />
     <ClCompile Include="widget\xmainwindow.cpp" />
     <ClCompile Include="widget\xmessagebox.cpp" />
     <ClCompile Include="widget\xprogressdialog.cpp" />
     <ClCompile Include="widget\xtooltip.cpp" />
-    <ClCompile Include="widget\ytmusicserverprocessor.cpp" />
     <ClCompile Include="xampplayer.cpp" />
   </ItemGroup>
   <ItemGroup>

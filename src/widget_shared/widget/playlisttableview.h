@@ -187,10 +187,6 @@ signals:
 
 	void extractFile(const QString& file_path, int32_t playlist_id);
 
-	void addToPlaylist(const QString& source_playlist_id, const QString& playlist_id, const std::vector<std::string> &video_ids);
-
-	void removePlaylistItems(const QString& playlist_id, const std::vector<std::string>& video_ids);
-
 	void likeSong(bool like, const PlayListEntity& entity);	
 
 	void addPlaylist(int32_t playlist_id, const QList<PlayListEntity>& entities);
@@ -199,7 +195,7 @@ signals:
 
 	void navigateToAlbumPage(const PlayListEntity& entity);
 
-	void navigateToArtistPage(int32_t artist_id, const QString& yt_artist_id);
+	void navigateToArtistPage(int32_t artist_id);
 
 	void scanReplayGain(const QList<PlayListEntity>& entities);
 

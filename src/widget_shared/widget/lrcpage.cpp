@@ -642,12 +642,7 @@ void LrcPage::initial() {
 				XAMP_LOG_DEBUG("Lrc content is empty!");
 				return;
 			}
-			QString save_parent_path;
-			if (!entity_.yt_music_album_id.isEmpty()) {
-				save_parent_path = qAppSettings.getOrCreateLrcCachePath();
-			} else {
-				save_parent_path = entity_.parent_path;
-			}
+			const auto save_parent_path = entity_.parent_path;
 			auto krc_file_name = save_parent_path
 				+ "\\"_str
 				+ entity_.file_name.trimmed()

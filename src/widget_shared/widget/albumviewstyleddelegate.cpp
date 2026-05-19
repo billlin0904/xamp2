@@ -204,8 +204,6 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     auto is_selected = indexValue(index, ALBUM_INDEX_IS_SELECTED).toBool();
     auto store_type = static_cast<StoreType>(indexValue(index, ALBUM_INDEX_STORE_TYPE).toInt());
 
-    album = album.remove(QString::fromStdWString(kYoutubeMusicLibraryAlbumPrefix));
-
     // Process edit album view 
     if (enable_album_view_ && enable_selected_mode_ && is_selected) {
         painter->save();

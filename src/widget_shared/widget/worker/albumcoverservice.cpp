@@ -52,30 +52,6 @@ void AlbumCoverService::onFetchArtistThumbnailUrl(int32_t artist_id, const QStri
     pending_request_urls_.insert(thumbnail_url);
 }
 
-void AlbumCoverService::onFetchYoutubeThumbnailUrl(const QString& video_id, const QString& thumbnail_url) {
-    if (is_stop_) {
-        return;
-    }
-
-    if (pending_request_urls_.contains(thumbnail_url)) {
-        return;
-    }
-
-    if (enable_) {        
-        http_client_.setUrl(thumbnail_url);
-        http_client_.download().then([thumbnail_url, video_id, this](const auto& content) {
-            QPixmap image;
-            if (!image.loadFromData(content)) {
-                return;
-            }
-            qImageCache.addCache(video_id, image);
-            pending_request_urls_.erase(thumbnail_url);
-            });
-    }
-    
-    pending_request_urls_.insert(thumbnail_url);
-}
-
 void AlbumCoverService::onFetchThumbnailUrl(const DatabaseCoverId& id, const QString& thumbnail_url) {
     if (is_stop_) {
         return;
