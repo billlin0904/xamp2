@@ -1,4 +1,4 @@
-﻿//=====================================================================================================================
+//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -7,10 +7,12 @@
 
 #include <base/base.h>
 
+#include <utility>
+
 XAMP_BASE_NAMESPACE_BEGIN
 
 template <typename T, typename Traits>
-class XAMP_BASE_API_ONLY_EXPORT UniqueHandle final {
+class UniqueHandle final {
 public:
 	explicit UniqueHandle(T value = Traits::invalid()) : value_(value) {
 	}
@@ -48,6 +50,10 @@ public:
 
 	[[nodiscard]] bool is_valid() const {
 		return value_ != Traits::invalid();
+	}
+
+	void swap(UniqueHandle& other) noexcept {
+		std::swap(value_, other.value_);
 	}
 
 	explicit operator bool() const {

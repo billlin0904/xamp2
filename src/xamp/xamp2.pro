@@ -67,6 +67,7 @@ INCLUDEPATH += /System/Library/Frameworks/Foundation.framework/Versions/C/Header
     ../xamp_output_device/include \
     ../xamp_stream/include \
     ../xamp_player/include \
+    ../thirdparty/mimalloc/include \
     ../thirdparty/spdlog/include \
     ../thirdparty/rapidxml/ \
     ../thirdparty/zlib/ \

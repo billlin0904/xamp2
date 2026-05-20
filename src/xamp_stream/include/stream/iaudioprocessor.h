@@ -25,7 +25,6 @@ namespace DspConfig {
     inline constexpr static auto kOutputFormat     = std::string_view("OutputFormat");
     inline constexpr static auto kSampleSize       = std::string_view("SampleSize");
     inline constexpr static auto kEQSettings       = std::string_view("EQSettings");
-    inline constexpr static auto kCompressorConfig = std::string_view("CompressorConfig");
     inline constexpr static auto kVolume           = std::string_view("Volume");
 };
 

@@ -25,8 +25,6 @@
 #include <stream/bassfilestream.h>
 #include <stream/fft.h>
 #include <stream/stft.h>
-#include <stream/ebur128scanner.h>
-
 #include <base/logger.h>
 #include <base/math.h>
 
@@ -661,20 +659,17 @@ void BackgroundService::onReadSpectrogram(SpectrogramColor color, const PlayList
 	try {        
         ArchiveFileStream afs;
 
-        auto setting_speed = qAppSettings.valueAsInt(kAppSettingPlaybackSpeed);
-
         if (entity.is_zip_file && entity.archive_entry_name.has_value()) {
             auto result = StreamFactory::MakeArchiveFileStream(
                 entity.file_path.toStdWString(),
-                entity.archive_entry_name.value().toStdWString(),
-                setting_speed);
+                entity.archive_entry_name.value().toStdWString());
             if (!result.has_value()) {
 				throw Exception(result.error());
             }
             afs = std::move(result.value());
         }
         else {
-            afs.file_stream = makePcmFileStream(entity.file_path.toStdWString(), setting_speed);
+            afs.file_stream = makePcmFileStream(entity.file_path.toStdWString());
         }
         if (afs.file_stream->GetDuration() <= 0.0) {
             return;

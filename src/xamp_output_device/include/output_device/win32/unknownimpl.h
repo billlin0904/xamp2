@@ -9,7 +9,9 @@
 #include <cassert>
 
 #include <base/base.h>
-#include <output_device/win32/wasapi.h>
+#include <output_device/output_device.h>
+
+#include <unknwn.h>
 
 #ifdef XAMP_OS_WIN
 
@@ -36,8 +38,7 @@ public:
 	* @return reference count
 	*/	
 	ULONG STDMETHODCALLTYPE AddRef() override {
-		auto result = refcount_.fetch_add(1);
-		return result;
+		return refcount_.fetch_add(1, std::memory_order_relaxed) + 1;
 	}
 
 	/*
@@ -46,7 +47,10 @@ public:
 	* @return reference count
 	*/
 	ULONG STDMETHODCALLTYPE Release() override {
-		auto result = refcount_.fetch_sub(1);
+		const auto result = refcount_.fetch_sub(1, std::memory_order_acq_rel) - 1;
+		if (result == 0) {
+			delete this;
+		}
 		return result;
 	}
 

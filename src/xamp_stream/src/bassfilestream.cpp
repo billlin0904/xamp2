@@ -12,8 +12,6 @@
 #include <bass/bassdsd.h>
 #include <base/fastiostream.h>
 
-#include <stream/compressorconfig.h>
-
 XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(BassFileStream);
@@ -131,7 +129,9 @@ public:
 
 class BassFileStream::BassFileStreamImpl {
 public:
-    BassFileStreamImpl() : mode_(DsdModes::DSD_MODE_PCM)
+    explicit BassFileStreamImpl(float rate = 0.0f)
+        : mode_(DsdModes::DSD_MODE_PCM)
+        , rate_(rate)
 		, download_size_(0) {
         logger_ = XAMP_LOG_CREATE_LOGGER(BassFileStream);
         Close();
@@ -239,7 +239,7 @@ public:
             flags = BASS_DSD_RAW;
             break;
         default:
-            XAMP_NO_DEFAULT;
+            throw LibraryException("Unsupported DSD mode for archive stream.");
         }
 
         archive_context_ = MakeAlign<ArchiveContext>(std::move(archive_entry));
@@ -265,7 +265,7 @@ public:
         }
 
         XAMP_LOG_DEBUG("Open track is a {} secs", measure_stream_time.ElapsedSeconds());
-        LoadStream(0.0f);
+        LoadStream(rate_);
     }
 
     void Open(Path const& file_path) {
@@ -284,7 +284,7 @@ public:
             flags = BASS_DSD_RAW;
             break;
         default:
-            XAMP_NO_DEFAULT;
+            throw LibraryException("Unsupported DSD mode for file stream.");
         }
 
         XAMP_LOG_D(logger_, "Use DsdModes: {}", mode_);
@@ -294,7 +294,7 @@ public:
         XAMP_LOG_D(logger_, "Start open file");
 
         CreateFileOrURL(file_path.wstring(), !is_http, mode_, flags);        
-        LoadStream(0.0f);
+        LoadStream(rate_);
     }
 
     void CheckZeroDuration() {
@@ -635,6 +635,7 @@ private:
     DsdModes mode_;
     bool tempo_enabled_ = true;
     float playback_rate_ = 1.0f;    
+    float rate_ = 0.0f;
     size_t download_size_;
     BassStreamHandle impl_;
     BassStreamHandle mix_stream_;
@@ -645,8 +646,8 @@ private:
     LoggerPtr logger_;
 };
 
-BassFileStream::BassFileStream()
-    : impl_(MakeAlign<BassFileStreamImpl>()) {
+BassFileStream::BassFileStream(float rate)
+    : impl_(MakeAlign<BassFileStreamImpl>(rate)) {
 }
 
 XAMP_PIMPL_IMPL(BassFileStream)
@@ -657,9 +658,6 @@ void BassFileStream::OpenFile(Path const& file_path)  {
 
 void BassFileStream::Open(ArchiveEntry archive_entry) {
     impl_->Open(std::move(archive_entry));
-}
-
-void BassFileStream::SetRate(float rate) {
 }
 
 void BassFileStream::Close() {

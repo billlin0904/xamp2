@@ -1,4 +1,4 @@
-﻿//=====================================================================================================================
+//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -24,7 +24,7 @@ template
     typename Queue = CircularBuffer<T>,
     typename ConditionVariable = FastConditionVariable
 >
-class XAMP_BASE_API_ONLY_EXPORT BlockingQueue final {
+class BlockingQueue final {
 public:
     /*
     * Constructor.

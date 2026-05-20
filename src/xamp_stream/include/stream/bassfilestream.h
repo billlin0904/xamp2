@@ -22,15 +22,13 @@ class XAMP_STREAM_API BassFileStream final : public FileStream, public IDsdStrea
 public:
 	XAMP_DECLARE_UUID_CLASS(BassFileStream)
 
-	BassFileStream();
+	explicit BassFileStream(float rate = 0.0f);
 
 	XAMP_PIMPL(BassFileStream)
 
     void OpenFile(const Path& file_path) override;
 
 	void Open(ArchiveEntry archive_entry) override;
-
-	void SetRate(float rate = 0.0f) override;
 
 	void Close() override;
 

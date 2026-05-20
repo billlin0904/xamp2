@@ -1,4 +1,4 @@
-﻿//=====================================================================================================================
+//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -19,7 +19,7 @@ XAMP_BASE_NAMESPACE_BEGIN
 * @tparam U Enable if T is trivially copyable.
 */
 template <typename T>
-class XAMP_BASE_API_ONLY_EXPORT Buffer {
+class Buffer {
 public:
     static_assert(std::is_trivially_copyable_v<T>, "Buffer only supports trivially copyable types.");
 
@@ -131,7 +131,7 @@ private:
 * @note BufferRef<T> is not thread safe.
 */
 template <typename T, typename U = std::enable_if_t<std::is_trivially_copyable_v<T>>>
-struct XAMP_BASE_API_ONLY_EXPORT BufferRef {
+struct BufferRef {
     using value_type = T;
     using size_type = size_t;
     using difference_type = std::ptrdiff_t;
@@ -248,7 +248,7 @@ private:
 };
 
 template <typename T>
-XAMP_BASE_API_ONLY_EXPORT Buffer<T> MakeBuffer(size_t size) {
+Buffer<T> MakeBuffer(size_t size) {
     XAMP_ENSURES(size > 0);
     return Buffer<T>(size);
 }

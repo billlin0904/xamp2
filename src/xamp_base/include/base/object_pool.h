@@ -26,7 +26,7 @@ template
     typename T,
     typename FactoryType = DefaultFactory<T>
 >
-class XAMP_BASE_API_ONLY_EXPORT ObjectPool : public std::enable_shared_from_this<ObjectPool<T, FactoryType>> {
+class ObjectPool : public std::enable_shared_from_this<ObjectPool<T, FactoryType>> {
 private:
     class ReturnToPool;
 

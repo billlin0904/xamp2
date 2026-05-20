@@ -28,7 +28,12 @@ inline constexpr auto kIteratorOptions{
 };
 
 XAMP_BASE_API inline [[nodiscard]] bool IsFileReadOnly(const Path& path) {
-    return (Fs::status(path).permissions() & Fs::perms::owner_read) != Fs::perms::none;
+    std::error_code ec;
+    const auto permissions = Fs::status(path, ec).permissions();
+    if (ec) {
+        return false;
+    }
+    return (permissions & Fs::perms::owner_write) == Fs::perms::none;
 }
 
 XAMP_BASE_API bool IsFilePath(const Path& file_path) ;

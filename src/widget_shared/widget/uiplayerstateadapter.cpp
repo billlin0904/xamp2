@@ -1,21 +1,14 @@
 #include <widget/uiplayerstateadapter.h>
 
-#include <base/math.h>
 #include <base/logger.h>
 #include <player/audio_player.h>
-#include <widget/appsettingnames.h>
-#include <widget/appsettings.h>
+
+#include <QMetaMethod>
 
 UIPlayerStateAdapter::UIPlayerStateAdapter(QObject *parent)
     : QObject(parent)
-	, enable_spectrum_(false)
-	, band_size_(128)
-	, fft_size_(8192)
-	, desired_band_width_(44100.0) {
-}
-
-void UIPlayerStateAdapter::setBandSize(size_t band_size) {
-	band_size_ = band_size;
+	, sample_rate_(0)
+	, output_buffer_size_(0) {
 }
 
 void UIPlayerStateAdapter::OnSampleTime(double stream_time) {
@@ -39,37 +32,27 @@ void UIPlayerStateAdapter::OnVolumeChanged(int32_t vol) {
     emit volumeChanged(vol);
 }
 
-size_t UIPlayerStateAdapter::fftSize() const {
-	return fft_size_;
+int32_t UIPlayerStateAdapter::sampleRate() const {
+	return sample_rate_;
+}
+
+size_t UIPlayerStateAdapter::outputBufferSize() const {
+	return output_buffer_size_;
 }
 
 void UIPlayerStateAdapter::OutputFormatChanged(const AudioFormat output_format, size_t buffer_size) {
-	enable_spectrum_ = qAppSettings.valueAsBool(kAppSettingEnableSpectrum);
-	if (!enable_spectrum_) {
-		return;
-	}
-	stft_.reset();
-	if (output_format.GetSampleRate() > 48000) {
-		return;
-	}
-	size_t fft_shift_size = buffer_size * 0.55;	
-	size_t frame_size = 0;
-	fft_size_ = 4096;
-	if (buffer_size > fft_size_) {
-		stft_.reset();
-		return;
-	}
-	frame_size = fft_size_ * AudioFormat::kMaxChannel;
-	XAMP_LOG_DEBUG("fft size:{} shift size:{} buffer size:{}", frame_size, fft_shift_size, buffer_size);
-	stft_ = MakeAlign<STFT>(frame_size, fft_shift_size);
-	stft_->SetWindowType(WindowType::HAMMING);
+	sample_rate_ = static_cast<int32_t>(output_format.GetSampleRate());
+	output_buffer_size_ = buffer_size;
+	emit outputFormatChanged(sample_rate_, output_buffer_size_);
 }
 
 void UIPlayerStateAdapter::OnSamplesChanged(const float* samples, size_t num_buffer_frames) {
-	if (!enable_spectrum_ || !stft_) {
+	if (samples == nullptr
+		|| num_buffer_frames == 0
+		|| !isSignalConnected(QMetaMethod::fromSignal(&UIPlayerStateAdapter::samplesChanged))) {
 		return;
 	}
-#ifndef _DEBUG
-	emit fftResultChanged(stft_->Process(samples, num_buffer_frames));
-#endif
+
+	std::vector<float> copied_samples(samples, samples + num_buffer_frames);
+	emit samplesChanged(std::move(copied_samples), num_buffer_frames);
 }

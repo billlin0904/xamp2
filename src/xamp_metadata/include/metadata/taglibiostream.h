@@ -11,6 +11,8 @@
 #include <base/fastiostream.h>
 #include <base/memory.h>
 
+#include <limits>
+
 XAMP_METADATA_NAMESPACE_BEGIN
 
 class TaglibIOStream final : public TagLib::IOStream {
@@ -61,46 +63,90 @@ public:
 	}
 
 	void insert(const TagLib::ByteVector& data, offset_t start = 0, size_t replace = 0) override {
-		if (io_stream_.read_only())
+		if (io_stream_.read_only() || start < 0)
 			return;
 
-		const auto total = length();
+		const auto total = static_cast<uint64_t>(length());
+		const auto start_pos = static_cast<uint64_t>(start);
+		if (start_pos > total)
+			return;
+
 		const uint64_t insert_len = data.size();
-		const uint64_t remove_len = replace;
+		const uint64_t remove_len = std::min<uint64_t>(replace, total - start_pos);
+		const uint64_t tail_pos = start_pos + remove_len;
+		const uint64_t write_data_end = start_pos + insert_len;
+		const uint64_t new_total = total - remove_len + insert_len;
 
 		static constexpr size_t BUF = 64 * 1024;
 		std::vector<char> buf(BUF);
 
-		uint64_t read_pos = total;
-		uint64_t write_pos = total + insert_len - remove_len;
+		auto seek_absolute = [this](uint64_t pos) {
+			if (pos > static_cast<uint64_t>((std::numeric_limits<int64_t>::max)()))
+				throw PlatformException();
+			io_stream_.seek(static_cast<int64_t>(pos), SEEK_SET);
+			};
 
-		while (read_pos > start + remove_len) {
-			size_t chunk = std::min<uint64_t>(BUF, read_pos - (start + remove_len));
-			read_pos -= chunk;
-			write_pos -= chunk;
+		auto write_all = [this](const char* data, size_t len) {
+			size_t total_written = 0;
+			while (total_written < len) {
+				const auto written = io_stream_.write(data + total_written, len - total_written);
+				if (written == 0)
+					throw PlatformException();
+				total_written += written;
+			}
+			};
 
-			io_stream_.seek(read_pos, Beginning);
-			size_t n = io_stream_.read(buf.data(), chunk);
-			io_stream_.seek(write_pos, Beginning);
-			io_stream_.write(buf.data(), n);
+		if (insert_len > remove_len) {
+			uint64_t read_pos = total;
+			uint64_t write_pos = new_total;
+			while (read_pos > tail_pos) {
+				const size_t chunk = static_cast<size_t>(std::min<uint64_t>(BUF, read_pos - tail_pos));
+				read_pos -= chunk;
+				write_pos -= chunk;
+
+				seek_absolute(read_pos);
+				const size_t n = io_stream_.read(buf.data(), chunk);
+				if (n == 0)
+					throw PlatformException();
+				seek_absolute(write_pos);
+				write_all(buf.data(), n);
+			}
+		}
+		else if (insert_len < remove_len) {
+			uint64_t read_pos = tail_pos;
+			uint64_t write_pos = write_data_end;
+			while (read_pos < total) {
+				const size_t chunk = static_cast<size_t>(std::min<uint64_t>(BUF, total - read_pos));
+				seek_absolute(read_pos);
+				const size_t n = io_stream_.read(buf.data(), chunk);
+				if (n == 0)
+					throw PlatformException();
+				seek_absolute(write_pos);
+				write_all(buf.data(), n);
+				read_pos += n;
+				write_pos += n;
+			}
 		}
 
-		// 2) 寫入新資料
 		seek(start, Beginning);
 		writeBlock(data);
 
-		// 3) 如有 replace > insert_len，砍掉多餘
 		if (insert_len < remove_len) {
-			truncate(total + insert_len - remove_len);
+			truncate(static_cast<long long>(new_total));
 		}
 	}
 
 	void removeBlock(offset_t start = 0, size_t len = 0) override {
-		if (io_stream_.read_only() || len == 0)
+		if (io_stream_.read_only() || len == 0 || start < 0)
 			return;
 
-		const auto total = length();
-		if (start + len >= total) {
+		const auto total = static_cast<uint64_t>(length());
+		const auto start_pos = static_cast<uint64_t>(start);
+		if (start_pos >= total)
+			return;
+
+		const auto remove_len = std::min<uint64_t>(len, total - start_pos);
+		if (start_pos + remove_len >= total) {
 			truncate(start);
 			return;
 		}
@@ -108,19 +154,37 @@ public:
 		static constexpr size_t BUF = 64 * 1024;
 		std::vector<char> buf(BUF);
 
-		uint64_t read_pos = start + len;
-		uint64_t write_pos = start;
+		auto seek_absolute = [this](uint64_t pos) {
+			if (pos > static_cast<uint64_t>((std::numeric_limits<int64_t>::max)()))
+				throw PlatformException();
+			io_stream_.seek(static_cast<int64_t>(pos), SEEK_SET);
+			};
+
+		auto write_all = [this](const char* data, size_t len) {
+			size_t total_written = 0;
+			while (total_written < len) {
+				const auto written = io_stream_.write(data + total_written, len - total_written);
+				if (written == 0)
+					throw PlatformException();
+				total_written += written;
+			}
+			};
+
+		uint64_t read_pos = start_pos + remove_len;
+		uint64_t write_pos = start_pos;
 
 		while (read_pos < total) {
-			size_t chunk = std::min<uint64_t>(BUF, total - read_pos);
-			io_stream_.seek(read_pos, Beginning);
-			size_t n = io_stream_.read(buf.data(), chunk);
-			io_stream_.seek(write_pos, Beginning);
-			io_stream_.write(buf.data(), n);
+			const size_t chunk = static_cast<size_t>(std::min<uint64_t>(BUF, total - read_pos));
+			seek_absolute(read_pos);
+			const size_t n = io_stream_.read(buf.data(), chunk);
+			if (n == 0)
+				throw PlatformException();
+			seek_absolute(write_pos);
+			write_all(buf.data(), n);
 			read_pos += n;
 			write_pos += n;
 		}
-		truncate(write_pos);
+		truncate(static_cast<long long>(write_pos));
 	}
 
 	bool readOnly() const override {

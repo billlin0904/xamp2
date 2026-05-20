@@ -16,7 +16,7 @@
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
-class BassParametricEq final : public IAudioProcessor {
+class XAMP_STREAM_API BassParametricEq final : public IAudioProcessor {
     XAMP_DECLARE_MAKE_CLASS_UUID(BassParametricEq, "EBFA0111-594F-4F9D-9131-256451C3BF46")
 
 public:

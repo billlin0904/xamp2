@@ -13,7 +13,6 @@
 
 #include <thememanager.h>
 
-#include <widget/spectrumwidget.h>
 #include <widget/util/image_util.h>
 #include <widget/scrolllabel.h>
 #include <widget/lyricsshowwidget.h>
@@ -174,10 +173,6 @@ LyricsShowWidget* LrcPage::lyrics() {
 
 QLabel* LrcPage::cover() {
     return cover_label_;
-}
-
-SpectrumWidget* LrcPage::spectrum() {
-	return spectrum_;
 }
 
 void LrcPage::addCoverShadow(bool found_cover) {
@@ -611,11 +606,6 @@ void LrcPage::initial() {
 	lyrics_widget_->setMinimumSize(QSize(180, 60));
 	vertical_layout_2->addWidget(lyrics_widget_);
 
-	spectrum_ = new SpectrumWidget(this);
-	spectrum_->setMinimumSize(QSize(180, 60));
-	spectrum_->setStyleSheet("background-color: transparent"_str);
-	vertical_layout_2->addWidget(spectrum_);
-
 	auto horizontal_layout_11 = new QHBoxLayout();
 	change_lrc_button_ = new QToolButton(this);
 	change_lrc_button_->setText(tr("Load LRC"));
@@ -725,8 +715,6 @@ void LrcPage::initial() {
 
 	//lyrics_widget_->hide();
 	//cover_label_->hide();
-	spectrum_->hide();
-
 	main_layout->addLayout(horizontal_layout_10);
 	//setStyleSheet("QFrame#lrcPage{ background-color: transparent; border: none; }"_str);
 	//setStyleSheet(qFormat("background-color: %1; border: none;").arg(

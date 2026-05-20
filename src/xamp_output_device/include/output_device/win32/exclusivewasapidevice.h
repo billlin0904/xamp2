@@ -20,6 +20,9 @@
 #include <base/buffer.h>
 #include <base/platfrom_handle.h>
 
+#include <atlbase.h>
+#include <endpointvolume.h>
+
 #include <atomic>
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN

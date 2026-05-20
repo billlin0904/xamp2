@@ -51,8 +51,6 @@ SOURCES += \
 ./widget/playlisttabwidget.cpp \
 ./widget/volumecontroldialog.cpp \
 ./widget/albumviewstyleddelegate.cpp \
-./widget/supereqview.cpp \
-./widget/spectrumwidget.cpp \
 ./widget/playlisttableproxymodel.cpp \
 ./widget/xmainwindow.cpp \
 ./widget/fonticon.cpp \
@@ -169,7 +167,6 @@ HEADERS += \
 ./widget/playlisttablemodel.h \
 ./widget/themecolor.h \
 ./widget/maskwidget.h \
-./widget/supereqview.h \
 ./widget/qetag.h \
 ./widget/playlisttabwidget.h \
 ./widget/accountauthorizationpage.h \
@@ -180,7 +177,6 @@ HEADERS += \
 ./widget/widget_shared_global.h \
 ./widget/clickablelabel.h \
 ./widget/preferencepage.h \
-./widget/spectrumwidget.h \
 ./widget/database.h \
 ./widget/artistinfopage.h \
 ./widget/qdebugsink.h \
@@ -261,7 +257,6 @@ FORMS += \
     equalizerdialog.ui \
     filesystemviewpage.ui \
     preferencedialog.ui \
-    supereqdialog.ui \
     tageditpage.ui \
     chatgptwindow.ui \
     volumecontroldialog.ui

@@ -8,6 +8,8 @@
 #include <dispatch/dispatch.h>
 #endif
 
+#include <limits>
+
 XAMP_BASE_NAMESPACE_BEGIN
 
 #if defined(XAMP_OS_WIN)
@@ -65,12 +67,17 @@ public:
 		timer_queue_.reset(::CreateTimerQueue());
 		callback_ = std::move(callback);
 		HANDLE timer = nullptr;
+		const auto interval_ms = interval.count();
+		const auto timer_interval = static_cast<DWORD>(
+			interval_ms <= 0
+			? 1
+			: (std::min)(interval_ms, static_cast<decltype(interval_ms)>((std::numeric_limits<DWORD>::max)())));
 		if (!::CreateTimerQueueTimer(&timer,
 			timer_queue_.get(),
 			TimerProc,
 			this,
-			immediately ? 0 : interval.count(),
-			once ? 0 : interval.count(),
+			immediately ? 0 : timer_interval,
+			once ? 0 : timer_interval,
 			WT_EXECUTEINTIMERTHREAD | WT_EXECUTELONGFUNCTION)) {
 			throw PlatformException();
 		}

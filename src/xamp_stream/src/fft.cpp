@@ -128,7 +128,7 @@ public:
 		descriptor_.reset();
 	}
 
-	void Init(size_t frame_size) {
+	void Initialize(size_t frame_size) {
 		XAMP_EXPECTS(frame_size >= 2);
 
 		descriptor_.reset();
@@ -188,7 +188,7 @@ public:
 	~FFTImpl() {
 	}
 
-	void Init(size_t frame_size) {
+	void Initialize(size_t frame_size) {
 		XAMP_ASSERT(IsPowerOfTwo(frame_size));
 		frame_size_ = frame_size;
 		complex_size_ = ComplexSize(frame_size);
@@ -263,7 +263,7 @@ class FFT::FFTImpl {
 public:
 	FFTImpl() = default;
 
-	void Init(size_t frame_size) {
+	void Initialize(size_t frame_size) {
 		XAMP_ASSERT(IsPowerOfTwo(frame_size));
 		frame_size_ = frame_size;
         size_over2_ = frame_size_ / 2;
@@ -343,8 +343,8 @@ FFT::FFT()
 
 XAMP_PIMPL_IMPL(FFT)
 
-void FFT::Init(size_t frame_size) {
-	impl_->Init(frame_size);
+void FFT::Initialize(size_t frame_size) {
+	impl_->Initialize(frame_size);
 }
 
 const ComplexValarray& FFT::Forward(float const* data, size_t size) {

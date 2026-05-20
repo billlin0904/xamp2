@@ -1,4 +1,4 @@
-﻿//=====================================================================================================================
+//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -65,7 +65,7 @@ XAMP_BASE_API void GetSharedInstance(std::string_view type_name,
 * 
 */
 template <typename T>
-class XAMP_BASE_API_ONLY_EXPORT SharedSingleton {
+class SharedSingleton {
 public:
 	static T& GetInstance() {
 		static void* instance = nullptr;

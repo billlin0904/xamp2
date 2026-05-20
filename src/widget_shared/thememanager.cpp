@@ -161,8 +161,8 @@ QFont ThemeManager::loadFonts() {
     installFileFonts("FiraCode-Regular"_str, debug_fonts);
     
     installFileFonts("Aldrich-Regular"_str, format_font);
-    installFileFonts("Lato"_str, mono_fonts);
-    //installFileFonts("Inter"_str, ui_fonts);
+    //installFileFonts("Lato"_str, mono_fonts);
+    //installFileFonts("Lato-Regular"_str, ui_fonts);
     //ui_fonts.push_back("TX-02"_str);
     //ui_fonts.push_back("Arial"_str);
     installFileFonts("NotoSans"_str, mono_fonts);

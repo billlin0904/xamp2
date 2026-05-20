@@ -17,6 +17,7 @@
 #include <base/archivefile.h>
 #include <stream/filestream.h>
 #include <stream/iaudioprocessor.h>
+#include <stream/eqsettings.h>
 
 #include <optional>
 
@@ -34,24 +35,10 @@ public:
 
     virtual void Destroy() = 0;
 
-	virtual void Open(Path const& file_path,
-                    const Uuid& device_id = Uuid::kNullUuid,
-                    float rate = 0.0f,
-                    bool use_mqa_decode = false) = 0;
-
-    virtual void Open(Path const& file_path,
-                      const DeviceInfo& device_info,
-                      uint32_t target_sample_rate = 0,
-                      DsdModes output_mode = DsdModes::DSD_MODE_AUTO,
-                      float rate = 0.0f,
-                      bool use_mqa_decode = false) = 0;
-
     virtual void OpenArchiveEntry(ArchiveEntry archive_entry,
                     const DeviceInfo& device_info,
                     uint32_t target_sample_rate = 0,
-                    DsdModes output_mode = DsdModes::DSD_MODE_AUTO,
-                    float rate = 0.0f,
-                    bool use_mqa_decode = false) = 0;
+                    DsdModes output_mode = DsdModes::DSD_MODE_AUTO) = 0;
 
     virtual void Open(ScopedPtr<FileStream> file_stream,
                       const DeviceInfo& device_info,
@@ -77,6 +64,8 @@ public:
 
     virtual void Seek(double stream_time) = 0;
 
+    virtual void SetParametricEq(bool enabled, const EqSettings& settings) = 0;
+
     virtual void SetVolume(uint32_t volume) = 0;
 
     [[nodiscard]] virtual uint32_t GetVolume() const = 0;
@@ -86,8 +75,6 @@ public:
     [[nodiscard]] virtual bool IsMute() const = 0;
 
     virtual void SetMute(bool mute) = 0;
-
-    virtual void EnableFadeOut(bool enable) = 0;
 
     [[nodiscard]] virtual bool IsPlaying() const = 0;
 
@@ -113,11 +100,6 @@ public:
 
     virtual Property& GetDspConfig() = 0;
 
-    virtual void SetDelayCallback(std::function<void(uint32_t)>&& delay_callback) = 0;
-
-    virtual void SeFileCacheMode(bool enable) = 0;
-
-    virtual bool IsMQA() const = 0;
 protected:
 	IAudioPlayer() = default;
 };

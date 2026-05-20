@@ -80,15 +80,15 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/;../thirdparty/libsamplerate/include/;../thirdparty/supereq/;../thirdparty/LibALAC/;../thirdparty/libebur128/;C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\include\;../thirdparty/libflac/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/;../thirdparty/libsamplerate/include/;../thirdparty/LibALAC/;C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\include\;../thirdparty/libflac/include/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STREAM_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996;4819;4200;</DisableSpecificWarnings>
       <BrowseInformation>true</BrowseInformation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/supereq/supereq/x64/Debug;C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\lib;../thirdparty/libflac/include/lib/</AdditionalLibraryDirectories>
-      <AdditionalDependencies>xamp_base.lib;supereq.lib;Mfplat.lib;Mf.lib;FLAC.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../xamp/x64/Debug/;C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\lib;../thirdparty/libflac/include/lib/</AdditionalLibraryDirectories>
+      <AdditionalDependencies>xamp_base.lib;Mfplat.lib;Mf.lib;FLAC.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>
@@ -128,7 +128,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/;../thirdparty/libsamplerate/include/;../thirdparty/supereq/;../thirdparty/libebur128/;C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/;../thirdparty/libsamplerate/include/;C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\include\</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STREAM_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4996;4819;4200;</DisableSpecificWarnings>
@@ -145,8 +145,8 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>../xamp/x64/Release/;../thirdparty/supereq/supereq/x64/Release;C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>xamp_base.lib;supereq.lib;Mfplat.lib;Mf.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../xamp/x64/Release/;C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>xamp_base.lib;Mfplat.lib;Mf.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
@@ -158,19 +158,13 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="include\stream\ebur128lib.h" />
-    <ClInclude Include="include\stream\ebur128scanner.h" />
     <ClInclude Include="include\stream\libavencoder.h" />
     <ClInclude Include="include\stream\anymap.h" />
     <ClInclude Include="include\stream\avlib.h" />
     <ClInclude Include="include\stream\bassaacfileencoder.h" />
-    <ClInclude Include="include\stream\basscompressor.h" />
-    <ClInclude Include="include\stream\bassequalizer.h" />
-    <ClInclude Include="include\stream\bassfader.h" />
     <ClInclude Include="include\stream\basslib.h" />
     <ClInclude Include="include\stream\bassparametriceq.h" />
     <ClInclude Include="include\stream\bass_util.h" />
-    <ClInclude Include="include\stream\compressorconfig.h" />
     <ClInclude Include="include\stream\discIdlib.h" />
     <ClInclude Include="include\stream\dsd_times.h" />
     <ClInclude Include="include\stream\dspmanager.h" />
@@ -199,18 +193,13 @@
     <ClInclude Include="include\stream\stft.h" />
     <ClInclude Include="include\stream\stream.h" />
     <ClInclude Include="include\stream\api.h" />
-    <ClInclude Include="include\stream\supereqequalizer.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\ebur128scanner.cpp" />
     <ClCompile Include="src\libavencoder.cpp" />
     <ClCompile Include="src\avlib.cpp" />
     <ClCompile Include="src\bassaacfileencoder.cpp" />
     <ClCompile Include="src\basscddevice.cpp" />
-    <ClCompile Include="src\basscompressor.cpp" />
-    <ClCompile Include="src\bassequalizer.cpp" />
     <ClCompile Include="src\bassexception.cpp" />
-    <ClCompile Include="src\bassfader.cpp" />
     <ClCompile Include="src\bassfilestream.cpp" />
     <ClCompile Include="src\bassparametriceq.cpp" />
     <ClCompile Include="src\basslib.cpp" />
@@ -226,7 +215,6 @@
     <ClCompile Include="src\soxresampler.cpp" />
     <ClCompile Include="src\srcresampler.cpp" />
     <ClCompile Include="src\stft.cpp" />
-    <ClCompile Include="src\supereqequalizer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

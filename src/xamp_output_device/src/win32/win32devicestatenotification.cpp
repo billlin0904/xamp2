@@ -30,11 +30,15 @@ void Win32DeviceStateNotification::Run() {
 }
 
 STDMETHODIMP Win32DeviceStateNotification::QueryInterface(REFIID iid, void** object) {
-	if (iid == IID_IUnknown || iid == kMMNotificationClientID) {
-		*object = static_cast<IMMNotificationClient*>(this);
-		return S_OK;
+	if (object == nullptr) {
+		return E_POINTER;
 	}
 	*object = nullptr;
+	if (iid == IID_IUnknown || iid == kMMNotificationClientID) {
+		*object = static_cast<IMMNotificationClient*>(this);
+		AddRef();
+		return S_OK;
+	}
 	return E_NOINTERFACE;
 }
 

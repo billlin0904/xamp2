@@ -164,6 +164,10 @@ namespace {
 	}
 
 	bool updateIconicThumbnail(const QSize &aero_peak_size, HWND hwnd, const QPixmap& thumbnail) {
+		if (thumbnail.isNull() || thumbnail.width() <= 0 || thumbnail.height() <= 0) {
+			return false;
+		}
+
 		const auto src_width = static_cast<float>(thumbnail.width());
 		const auto src_height = static_cast<float>(thumbnail.height());
 		auto width_ratio = static_cast<float>(aero_peak_size.width()) / src_width;
@@ -236,17 +240,18 @@ WinTaskbar::WinTaskbar(XMainWindow* window, IXFrame* frame)
 	auto hr = ::CoCreateInstance(CLSID_TaskbarList,
 		nullptr,
 		CLSCTX_INPROC_SERVER,
-		IID_ITaskbarList3,
+		IID_ITaskbarList4,
 		reinterpret_cast<void**>(&taskbar_list_));
 
 	if (FAILED(hr)) {
-		XAMP_LOG_ERROR("Failure to create IID_ITaskbarList3 ({}).", GetLastErrorMessage());
+		XAMP_LOG_ERROR("Failure to create IID_ITaskbarList4 ({}).", GetPlatformErrorMessage(hr));
+		return;
 	}
 
 	hr = taskbar_list_->HrInit();
 	if (FAILED(hr)) {
 		taskbar_list_.Release();
-		XAMP_LOG_ERROR("Failure to create IID_ITaskbarList3 ({}).", GetLastErrorMessage());
+		XAMP_LOG_ERROR("Failure to init ITaskbarList4 ({}).", GetPlatformErrorMessage(hr));
 		return;
 	}
 
@@ -265,7 +270,11 @@ WinTaskbar::WinTaskbar(XMainWindow* window, IXFrame* frame)
 	setRange(0, 100);
 }
 
-WinTaskbar::~WinTaskbar() = default;
+WinTaskbar::~WinTaskbar() {
+	if (auto* app = QCoreApplication::instance()) {
+		app->removeNativeEventFilter(this);
+	}
+}
 
 void WinTaskbar::setTheme(ThemeColor theme_color) {
 	play_icon = qTheme.fontIcon(Glyphs::ICON_PLAY, theme_color);
@@ -398,6 +407,10 @@ void WinTaskbar::addThumbnailButtons() {
 		return;
 	}
 
+	if (thumbnail_buttons_added_) {
+		return;
+	}
+
 	HWND hwnd = reinterpret_cast<HWND>(window_->winId());
 	button_icons_->seek_backward_icon.reset(seek_backward_icon.pixmap(button_icons_->getIconSize()).toImage().toHICON());
 	button_icons_->play_icon.reset(play_icon.pixmap(button_icons_->getIconSize()).toImage().toHICON());
@@ -429,14 +442,31 @@ void WinTaskbar::addThumbnailButtons() {
 	                                               buttons.data());
 	if (FAILED(hr)) {
 		XAMP_LOG_ERROR("ThumbBarAddButtons failed: {}", GetPlatformErrorMessage(hr));
+		return;
 	}
+	thumbnail_buttons_added_ = true;
 }
 
 bool WinTaskbar::nativeEventFilter(const QByteArray& event_type, void* message, qintptr* result) {
+	(void)event_type;
+
+	if (!window_) {
+		return false;
+	}
+
 	const auto* msg = static_cast<MSG*>(message);
+	const auto hwnd = reinterpret_cast<HWND>(window_->winId());
+	if (msg->hwnd != hwnd) {
+		return false;
+	}
+
 	if (msg->message == MSG_TaskbarButtonCreated) {
 		updateProgressIndicator();
 		updateOverlay();
+		addThumbnailButtons();
+		if (result != nullptr) {
+			*result = 0;
+		}
 		return true;
 	}
 
@@ -445,19 +475,31 @@ bool WinTaskbar::nativeEventFilter(const QByteArray& event_type, void* message, 
 		const auto id = LOWORD(msg->wParam);
 		switch (id) {
 		case ID_BACKWARD:
+			if (!frame_) {
+				return false;
+			}
 			frame_->playPrevious();
 			break;
 		case ID_PLAY_PAUSE:
+			if (!frame_) {
+				return false;
+			}
 			frame_->playOrPause();
 			break;
 		case ID_STOP:
+			if (!frame_) {
+				return false;
+			}
 			frame_->stopPlay();
 			break;
 		case ID_FORWARD:
+			if (!frame_) {
+				return false;
+			}
 			frame_->playNext();
 			break;
 		default:
-			break;
+			return false;
 		}
 		if (result != nullptr) {
 			*result = 0;

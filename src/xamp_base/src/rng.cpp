@@ -47,8 +47,9 @@ std::string PRNG::GetRandomString(size_t size) {
     std::string temp;
     temp.reserve(size);
 
+    const auto max_index = static_cast<int32_t>(alphanum.size() - 1);
     for (size_t i = 0; i < size; ++i) {
-        temp += alphanum[NextInt32(0, alphanum.length() - 1)];
+        temp += alphanum[NextInt32(0, max_index)];
     }
     return temp;
 }

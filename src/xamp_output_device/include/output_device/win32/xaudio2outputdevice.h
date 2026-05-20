@@ -172,8 +172,7 @@ private:
 	class XAudio2EngineContext;
 	class XAudio2VoiceContext;
 
-	bool is_running_;
-	bool is_playing_;
+	std::atomic_bool is_running_;
 	uint32_t buffer_frames_;
 	std::atomic<int64_t> stream_time_;
 	IAudioCallback* callback_;

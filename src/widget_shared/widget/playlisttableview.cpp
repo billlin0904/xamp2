@@ -794,22 +794,6 @@ void PlaylistTableView::initial() {
             moveDown();
             });
 
-        action_map.addSeparator();
-
-        auto* scan_select_item_replay_gain_act = action_map.addAction(tr("Scan EBU R128 select items"));
-        action_map.setCallback(scan_select_item_replay_gain_act, [this]() {
-            QList<PlayListEntity> entities;
-            const auto rows = selectItemIndex();
-            for (const auto& row : rows) {
-                const auto entity = this->item(row.second);
-                entities.push_back(entity);
-            }
-            showProgressPage();
-            emit scanReplayGain(entities);
-            });
-
-        action_map.addSeparator();
-
         auto* add_to_playlist_act = action_map.addAction(tr("Add file to playlist"));
         add_to_playlist_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FILE_CIRCLE_PLUS));
         action_map.setCallback(add_to_playlist_act, [this]() {
@@ -952,19 +936,6 @@ void PlaylistTableView::playItem(const QModelIndex& index) {
 }
 
 void PlaylistTableView::onRetranslateUi() {
-}
-
-void PlaylistTableView::updateReplayGain(const QList<PlayListEntity>& entities) {
-    for (const auto& entity : entities) {
-        if (entity.replay_gain) {
-            qDaoFacade.music_dao.updateMusicReplayGain(entity.music_id,
-                entity.replay_gain.value().album_gain,
-                entity.replay_gain.value().album_peak,
-                entity.replay_gain.value().track_gain,
-                entity.replay_gain.value().track_peak);
-        }
-    }
-    reload();
 }
 
 void PlaylistTableView::keyPressEvent(QKeyEvent *event) {

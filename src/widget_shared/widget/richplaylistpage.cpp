@@ -248,7 +248,7 @@ protected:
         painter.fillRect(content_rect, QColor(12, 13, 13));
 
         if (!has_now_playing_) {
-            paintCoverImage(&painter, startup_cover_, scaledRect(content_rect, 0.85), Qt::KeepAspectRatio);
+            paintCoverImage(&painter, startup_cover_, content_rect, Qt::KeepAspectRatio);
             return;
         }
 

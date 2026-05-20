@@ -4,9 +4,8 @@
 #include <execution>
 #include <base/scopeguard.h>
 #include <base/archivefile.h>
-#include <widget/util/read_util.h>
 #include <metadata/taglibmetareader.h>
-#include <metadata/cueloader.h>
+#include <metadata/cuefilereader.h>
 
 #include <widget/albumview.h>
 #include <widget/database.h>
@@ -276,101 +275,6 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 			emit insertDatabase(tracks, playlist_id);
 		}
 		}, stop_source_.get_token());
-}
-
-void FileSystemService::scanReplayGain(const QList<PlayListEntity>& entities) {
-	FastMutex mutex;
-
-	total_work_ = 0;
-	completed_work_ = 0;
-	last_completed_work_ = 0;
-	total_time_elapsed_.Reset();
-	update_ui_elapsed_.Reset();
-	timer_.start(std::chrono::seconds(1));
-
-	HashMap<QString, QList<PlayListEntity>> album_entities;
-	for (const auto& entity : entities) {
-		album_entities[entity.album].push_back(entity);
-		total_work_++;
-	}	
-
-	XAMP_ON_SCOPE_EXIT(
-		timer_.stop();
-		emit readFileProgress(100);
-		emit readCompleted();
-		XAMP_LOG_D(logger_, "Finish to scan replay gain. ({} secs)",
-		total_time_elapsed_.ElapsedSeconds());
-	);
-
-	auto progress_cb = [this](int32_t progress) {
-		return true;
-		};
-
-	for (auto& album : album_entities) {
-		std::vector<Ebur128Scanner> scanners;
-		scanners.resize(album.second.size());
-
-		auto stop_token = stop_source_.get_token();
-		Executor::ParallelForEach(thread_pool_, 0, album.second.size(),
-			[&](auto index) {								
-				if (!stop_token.stop_requested()) {
-					std::scoped_lock lock(mutex);
-					try {
-						scanners[index] = readFileLoudness(
-							album.second[index].file_path.toStdWString(),
-							progress_cb);
-					}
-					catch (const Exception& e) {
-						XAMP_LOG_ERROR(e.GetErrorMessage());
-					}
-					++completed_work_;
-					emit readFilePath(
-						qFormat("Scan directory %1 completed.")
-						.arg(album.second[index].file_path));
-					updateProgress();
-				}				
-			});
-
-		if (stop_token.stop_requested()) {
-			return;
-		}
-
-		try {
-			double album_peak = std::numeric_limits<double>::min();
-			for (auto i = 0; i < album.second.size(); ++i) {
-				if (!scanners[i].IsValid()) {
-					XAMP_LOG_DEBUG("In-completed read file replay gain");
-					continue;
-				}
-				album.second[i].replay_gain.value().track_peak = scanners[i].GetTruePeek();
-				album.second[i].replay_gain.value().track_gain = scanners[i].GetLoudness();
-				album.second[i].replay_gain.value().ref_loudness = Ebur128Scanner::kReferenceLoudness;
-				album_peak = (std::max)(album_peak, scanners[i].GetTruePeek());
-			}
-
-			auto album_replay_gain = Ebur128Scanner::GetMultipleLoudness(scanners);
-			scanners.clear(); // !!!!! Key point
-
-			for (auto& entity : album.second) {
-				entity.replay_gain.value().album_peak = album_peak;
-				entity.replay_gain.value().album_gain = album_replay_gain;
-				try {
-					auto writer = MakeMetadataWriter();
-					writer->Open(entity.file_path.toStdWString());
-					writer->WriteReplayGain(entity.replay_gain.value());
-				}
-				catch (const Exception& e) {
-					XAMP_LOG_ERROR(e.GetErrorMessage());
-				}
-			}
-
-			emit scanReplayGainCompleted(album.second);
-		}
-		catch (const Exception& e) {
-			XAMP_LOG_ERROR(e.GetErrorMessage());
-			emit scanReplayGainError();
-		}
-	}
 }
 
 void FileSystemService::onExtractFile(const QString& file_path,

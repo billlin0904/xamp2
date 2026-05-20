@@ -67,24 +67,10 @@ public:
 
     XAMP_DISABLE_COPY(AudioPlayer)
 
-    void Open(const Path& file_path,
-        const Uuid& device_id = Uuid::kNullUuid,
-        float rate = 0.0f,
-        bool use_mqa_decode = false) override;
-
-    void Open(const Path& file_path,              
-        const DeviceInfo& device_info,
-        uint32_t target_sample_rate = 0,
-        DsdModes output_mode = DsdModes::DSD_MODE_AUTO,
-        float rate = 0.0f,
-        bool use_mqa_decode = false) override;
-
     void OpenArchiveEntry(ArchiveEntry archive_entry,
         const DeviceInfo& device_info,
         uint32_t target_sample_rate = 0,
-        DsdModes output_mode = DsdModes::DSD_MODE_AUTO,
-        float rate = 0.0f,
-        bool use_mqa_decode = false) override;
+        DsdModes output_mode = DsdModes::DSD_MODE_AUTO) override;
 
     void Open(ScopedPtr<FileStream> file_stream,
         const DeviceInfo& device_info,
@@ -106,6 +92,8 @@ public:
     void Stop(bool signal_to_stop = true, bool shutdown_device = false, bool wait_for_stop_stream = true) override;    
     	
     void Seek(double stream_time) override;
+
+    void SetParametricEq(bool enabled, const EqSettings& settings) override;
 
     void SetVolume(uint32_t volume) override;
 
@@ -139,17 +127,9 @@ public:
 
     void BufferStream(double stream_time = 0.0, const std::optional<double> & offset = std::nullopt, const std::optional<double>& duration = std::nullopt) override;
 
-    void EnableFadeOut(bool enable) override;
-
     Property& GetDspConfig() override;
 
-    void SetDelayCallback(std::function<void(uint32_t)> &&delay_callback) override;
-
-    void SeFileCacheMode(bool enable) override;
-
 	uint32_t GetBitRate() const override;
-
-	bool IsMQA() const override;
 private:
     DataCallbackResult OnGetSamples(void* samples,
         size_t num_buffer_frames, 
@@ -167,9 +147,7 @@ private:
 
     void DoSeek(double stream_time);
     	
-    void OpenStream(Path const& file_path, DsdModes dsd_mode, float rate, bool use_mqa_decode);
-
-    void OpenStream(ArchiveEntry archive_entry, DsdModes dsd_mode, float rate, bool use_mqa_decode);
+    void OpenStream(ArchiveEntry archive_entry, DsdModes dsd_mode);
 
     void OpenStream(ScopedPtr<FileStream> file_stream, DsdModes dsd_mode);
 
@@ -209,7 +187,6 @@ private:
 
     bool is_muted_;
     bool is_dsd_file_;
-    bool enable_file_cache_;
     uint32_t num_read_buffer_size_;
     uint32_t num_write_buffer_size_;
     std::optional<uint32_t> dsd_speed_;
@@ -234,7 +211,6 @@ private:
     LoggerPtr logger_;
     std::string device_id_;
     Buffer<std::byte> read_buffer_;
-    std::function<void(uint32_t)> delay_callback_;
     std::optional<DeviceInfo> device_info_;
     FastConditionVariable pause_cond_;
     FastConditionVariable read_finish_and_wait_seek_signal_cond_;

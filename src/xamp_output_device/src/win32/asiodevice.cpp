@@ -707,7 +707,7 @@ void AsioDevice::SetStreamTime(double stream_time) {
 	}
 	else {
 		const auto avg_byte_per_sec = format_.GetAvgBytesPerSec() / 8;
-		output_bytes_ = stream_time * avg_byte_per_sec;
+		output_bytes_ = static_cast<int64_t>(stream_time * static_cast<double>(avg_byte_per_sec));
 	}
 }
 

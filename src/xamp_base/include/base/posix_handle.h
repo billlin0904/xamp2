@@ -19,14 +19,14 @@
 
 #include <base/unique_handle.h>
 
-namespace xamp::base {
+XAMP_BASE_NAMESPACE_BEGIN
 
 struct ModuleHandleTraits final {
     static void* invalid() {
         return nullptr;
     }
 
-    static void close(void* value) {
+    static void Close(void* value) {
         ::dlclose(value);
     }
 };
@@ -36,7 +36,7 @@ struct FileHandleTraits final {
         return -1;
     }
 
-    static void close(int value) {
+    static void Close(int value) {
         ::close(value);
     }
 };
@@ -46,7 +46,7 @@ struct TimerFdTraits final {
         return -1;
     }
 
-    static void close(int value) {
+    static void Close(int value) {
         ::close(value);
     }
 };
@@ -54,7 +54,7 @@ struct TimerFdTraits final {
 using SharedLibraryHandle = UniqueHandle<void*, ModuleHandleTraits>;
 using FileHandle = UniqueHandle<int, FileHandleTraits>;
 using TimerFdHandle = UniqueHandle<int, TimerFdTraits>;
-#endif
 
-}
+XAMP_BASE_NAMESPACE_END
+#endif
 

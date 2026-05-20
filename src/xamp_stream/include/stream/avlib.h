@@ -72,11 +72,13 @@ public:
     XAMP_DECLARE_DLL_NAME(avformat_network_init);
     XAMP_DECLARE_DLL_NAME(avformat_network_deinit);
     XAMP_DECLARE_DLL_NAME(avformat_alloc_context);
+    XAMP_DECLARE_DLL_NAME(avformat_free_context);
     XAMP_DECLARE_DLL_NAME(avformat_new_stream);
     XAMP_DECLARE_DLL_NAME(avformat_query_codec);
     XAMP_DECLARE_DLL_NAME(av_demuxer_iterate);
     XAMP_DECLARE_DLL_NAME(avformat_alloc_output_context2);
     XAMP_DECLARE_DLL_NAME(avio_open);
+    XAMP_DECLARE_DLL_NAME(avio_closep);
     XAMP_DECLARE_DLL_NAME(av_interleaved_write_frame);
     XAMP_DECLARE_DLL_NAME(av_guess_format);
     XAMP_DECLARE_DLL_NAME(av_write_trailer);
@@ -212,7 +214,7 @@ template <>
 struct AvResourceDeleter<AVFormatContext> {
     void operator()(AVFormatContext* p) const {
         XAMP_EXPECTS(p != nullptr);
-        LibAvDLL.Format->avformat_close_input(&p);
+        LibAvDLL.Format->avformat_free_context(p);
     }
 };
 
@@ -220,7 +222,7 @@ template <>
 struct AvResourceDeleter<AVIOContext> {
     void operator()(AVIOContext* p) const {
         XAMP_EXPECTS(p != nullptr);
-        //LIBAV_LIB.Util->av_free(&p);
+        LibAvDLL.Format->avio_context_free(&p);
     }
 };
 
@@ -261,7 +263,7 @@ template <>
 struct AvResourceDeleter<AVFrame> {
     void operator()(AVFrame* p) const {
         XAMP_EXPECTS(p != nullptr);
-        LibAvDLL.Util->av_free(p);
+        LibAvDLL.Util->av_frame_free(&p);
     }
 };
 

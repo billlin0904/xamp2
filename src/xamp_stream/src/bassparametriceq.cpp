@@ -8,6 +8,18 @@ XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(BassParametricEq);
 
+namespace {
+    constexpr float kMinBqfBandwidth = 0.1F;
+    constexpr float kMaxBqfBandwidth = 10.0F;
+
+    float NormalizeBqfBandwidth(float bandwidth) noexcept {
+        if (bandwidth >= kMinBqfBandwidth && bandwidth < kMaxBqfBandwidth) {
+            return bandwidth;
+        }
+        return 0;
+    }
+}
+
 class BassParametricEq::BassParametricEqImpl {
 public:
     BassParametricEqImpl()
@@ -38,6 +50,10 @@ public:
         BASS_BFX_BQF bqf{};
 
         switch (filter) {
+        case EQFilterTypes::FT_UNKNOWN:
+            bqf.lFilter = BASS_BFX_BQF_PEAKINGEQ;
+            filter = EQFilterTypes::FT_ALL_PEAKING_EQ;
+            break;
         case EQFilterTypes::FT_LOW_SHELF:
             bqf.lFilter = BASS_BFX_BQF_LOWSHELF;
             fS = fQ;
@@ -69,10 +85,12 @@ public:
         case EQFilterTypes::FT_ALL_PEAKING_EQ:
             bqf.lFilter = BASS_BFX_BQF_PEAKINGEQ;
             break;
-        default:;
+        default:
+            BassLibDLL.BASS_ChannelRemoveFX(impl_.get(), fx_handle);
+            return;
         }
 
-        bqf.fBandwidth = fBandWidth;
+        bqf.fBandwidth = NormalizeBqfBandwidth(fBandWidth);
         bqf.fS = fS;
 
         bqf.fCenter = fCenter;
@@ -89,7 +107,7 @@ public:
     }
 
     void SetEq(const EqSettings& settings) {
-        uint32_t i = 0;
+        RemoveBandFx();
         for (const auto& band_setting : settings.bands) {
             AddBand(band_setting.type,
                 band_setting.frequency,
@@ -106,6 +124,7 @@ public:
         fv.lChannel = 0;
         fv.fVolume = static_cast<float>(std::pow(10, (preamp / 20)));
         BassIfFailedThrow(BassLibDLL.BASS_FXSetParameters(preamp_, &fv));
+        XAMP_LOG_D(logger_, "Preamp {:.02} dB", preamp);
     }
 
     bool Process(float const* samples, size_t num_samples, BufferRef<float>& out) {
@@ -117,11 +136,15 @@ public:
     }
 
 private:
-    void RemoveFx() {
+    void RemoveBandFx() {
         for (const auto fx_handle : fx_handles_) {
             BassLibDLL.BASS_ChannelRemoveFX(impl_.get(), fx_handle);
         }
         fx_handles_.clear();
+    }
+
+    void RemoveFx() {
+        RemoveBandFx();
         BassLibDLL.BASS_ChannelRemoveFX(impl_.get(), preamp_);
         preamp_ = 0;
     }
@@ -144,7 +167,6 @@ void BassParametricEq::Initialize(const Property& config) {
     impl_->Start(output_format.GetSampleRate());
 
     const auto settings = config.Get<EqSettings>(DspConfig::kEQSettings);
-    impl_->SetPreamp(settings.preamp);
     SetEq(settings);    
 }
 

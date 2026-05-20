@@ -2,6 +2,7 @@
 #include <base/str_utilts.h>
 #include <base/unique_handle.h>
 #include <sstream>
+#include <limits>
 
 #include <icu.h>
 #include <mecab/mecab.h>
@@ -44,21 +45,26 @@ namespace {
         std::wstring Convert(const std::wstring_view& name) {
             UErrorCode status = U_ZERO_ERROR;
 
-            // Convert std::wstring to UChar*
-            std::vector<UChar> buffer(name.length());
+            if (name.length() > static_cast<size_t>((std::numeric_limits<int32_t>::max)())) {
+                throw std::runtime_error("Name is too long to transliterate");
+            }
+
+            const auto source_length = static_cast<int32_t>(name.length());
+            std::vector<UChar> buffer(source_length + 1);
             int32_t dest_len = 0;
-            ::u_strFromWCS(buffer.data(), buffer.size(), &dest_len, name.data(), name.length(), &status);
+            ::u_strFromWCS(buffer.data(), static_cast<int32_t>(buffer.size()), &dest_len, name.data(), source_length, &status);
             if (U_FAILURE(status)) {
                 throw std::runtime_error("Failed to convert name to UChar*");
             }
 
-            const std::wstring unicode_name(reinterpret_cast<wchar_t*>(buffer.data()), dest_len);
-
             // Perform transliteration
-            const int32_t capacity = static_cast<int32_t>(unicode_name.size() * 4 + 10);
+            if (dest_len > ((std::numeric_limits<int32_t>::max)() - 10) / 4) {
+                throw std::runtime_error("Name is too long to transliterate");
+            }
+            const int32_t capacity = dest_len * 4 + 10;
             std::vector<UChar> result(capacity);
-            int32_t result_length = static_cast<int32_t>(unicode_name.size());
-            ::u_memcpy(result.data(), reinterpret_cast<const UChar*>(unicode_name.data()), result_length);
+            int32_t result_length = dest_len;
+            ::u_memcpy(result.data(), buffer.data(), result_length);
 
             int32_t limit = result_length;
             ::utrans_transUChars(trans_.get(), result.data(), &result_length, capacity, 0, &limit, &status);

@@ -9,6 +9,7 @@
 #include <stream/stream.h>
 #include <stream/iaudioprocessor.h>
 #include <stream/isameplewriter.h>
+#include <stream/eqsettings.h>
 
 #include <base/base.h>
 #include <base/audiobuffer.h>
@@ -28,17 +29,11 @@ public:
 
     virtual void AddPostDSP(ScopedPtr<IAudioProcessor> processor) = 0;
 
-    virtual IDSPManager& AddEqualizer() = 0;
-
     virtual IDSPManager& AddParametricEq() = 0;
 
-    virtual IDSPManager& AddCompressor() = 0;
-
-    virtual IDSPManager& RemoveEqualizer() = 0;
+    virtual IDSPManager& SetParametricEq(bool enabled, const EqSettings& settings, const Property& config) = 0;
 
     virtual IDSPManager& RemoveParametricEq() = 0;
-
-    virtual IDSPManager& RemoveCompressor() = 0;
 
     virtual IDSPManager& RemoveSampleRateConverter() = 0;
 

@@ -147,7 +147,6 @@
     <QtMoc Include="widget\tageditpage.h" />
     <QtMoc Include="widget\playlisttabwidget.h" />
     <QtMoc Include="widget\playlisttabbar.h" />
-    <QtMoc Include="widget\supereqview.h" />
     <QtMoc Include="widget\musicbrainzeditpage.h" />
     <ClInclude Include="widget\musicbrainzparser.h" />
     <ClInclude Include="widget\neteaseparser.h" />
@@ -215,7 +214,6 @@
     <ClInclude Include="widget\scrolllabel.h" />
     <QtMoc Include="widget\seekslider.h" />
     <QtMoc Include="widget\waveformslider.h" />
-    <QtMoc Include="widget\spectrumwidget.h" />
     <QtMoc Include="widget\navbarlistview.h" />
     <ClInclude Include="widget\themecolor.h" />
     <QtMoc Include="widget\uiplayerstateadapter.h" />
@@ -305,8 +303,6 @@
     <ClCompile Include="widget\seekslider.cpp" />
     <ClCompile Include="widget\waveformslider.cpp" />
     <ClCompile Include="widget\slidingstackedwidget.cpp" />
-    <ClCompile Include="widget\spectrumwidget.cpp" />
-    <ClCompile Include="widget\supereqview.cpp" />
     <ClCompile Include="widget\navbarlistview.cpp" />
     <ClCompile Include="widget\tageditpage.cpp" />
     <ClCompile Include="widget\tagio.cpp" />
@@ -344,7 +340,6 @@
     <QtUic Include="logview.ui" />
     <QtUic Include="musicbrainzeditpage.ui" />
     <QtUic Include="preferencedialog.ui" />
-    <QtUic Include="supereqdialog.ui" />
     <QtUic Include="tageditpage.ui" />
     <QtUic Include="volumecontroldialog.ui" />
   </ItemGroup>

@@ -11,11 +11,17 @@
 
 #include <output_device/idsddevice.h>
 #include <output_device/ioutputdevice.h>
+#include <output_device/win32/mmcss_types.h>
+#include <output_device/win32/wasapi.h>
 #include <output_device/win32/wasapiworkqueue.h>
 
 #include <base/logger.h>
 #include <base/platfrom_handle.h>
 #include <base/fastconditionvariable.h>
+
+#include <atlbase.h>
+#include <endpointvolume.h>
+
 #include <atomic>
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN

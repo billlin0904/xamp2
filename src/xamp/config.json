@@ -3,14 +3,17 @@
         "MinimumLevel": {
             "Default": "debug",
             "Override": {
-                "AsioDevice": "info",
-                "AudioPlayer": "debug",
-                "BASS": "info",
+                "AlbumCoverService": "debug",
+                "AlbumViewStyledDelegate": "info",
+                "AsioDevice": "debug",
+                "AudioPlayer": "info",
+                "BASS": "debug",
                 "BackgroundService": "info",
                 "BackgroundThreadPool": "info",
-                "BassFileStream": "info",
-                "BassParametricEq": "info",
+                "BassFileStream": "debug",
+                "BassParametricEq": "debug",
                 "CrashHandler": "debug",
+                "CueLoader": "info",
                 "Database": "info",
                 "DatabaseFacade": "info",
                 "DspManager": "info",
@@ -22,13 +25,15 @@
                 "Http": "info",
                 "ImageCache": "info",
                 "LibAv": "info",
+                "MqaFileStreamImpl": "info",
                 "NullOutputDevice": "info",
                 "NullOutputDeviceType": "info",
                 "PlaybackThreadPool": "info",
                 "PlayerThreadPool": "info",
                 "Qt": "info",
-                "SharedWasapiDevice": "info",
+                "SharedWasapiDevice": "debug",
                 "SoxrSampleRateConverter": "info",
+                "SrcSampleRateConverter": "info",
                 "VirtualMemory": "info",
                 "XApplication": "info",
                 "XAudio2DeviceType": "info",
@@ -36,6 +41,9 @@
                 "XAudio2OutputDevice": "info"
             }
         }
+    },
+    "R8Brain": {
+        "resampleSampleRate": 96000
     },
     "Soxr": {
         "default": {
@@ -46,5 +54,8 @@
             "rolloffLevel": 2,
             "stopBand": 100
         }
+    },
+    "Src": {
+        "resampleSampleRate": 48000
     }
 }

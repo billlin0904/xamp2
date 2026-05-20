@@ -46,7 +46,7 @@ namespace {
                 return result;
             }
 
-            const auto file_stream = makePcmFileStream(file_path.toStdWString(), 0.0f);
+            const auto file_stream = makePcmFileStream(file_path.toStdWString());
             const auto duration = file_stream->GetDuration();
             if (duration <= 0.0) {
                 return result;

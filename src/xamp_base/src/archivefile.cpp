@@ -50,7 +50,7 @@ void ArchivePtrDeleter::Close(archive* value) {
 	}
 }
 
-std::expected<ptrdiff_t, std::string> ArchiveEntry::Read(char* buffer, long length) {
+std::expected<ptrdiff_t, std::string> ArchiveEntry::Read(char* buffer, size_t length) {
 	auto ret = LIBARCHIVE_LIB.archive_read_data(archive_ptr.get(), buffer, length);
 	if (ret < 0) {
 		return std::unexpected(GetLinArchiveErrorMessage(archive_ptr));

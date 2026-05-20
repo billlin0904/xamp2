@@ -23,8 +23,6 @@ public:
     virtual void OpenFile(const Path & file_path) = 0;
 
     virtual void Open(ArchiveEntry archive_entry) = 0;
-
-    virtual void SetRate(float rate = 0.0f) = 0;
 protected:
     FileStream() = default;
 };

@@ -81,6 +81,7 @@ private:
     QIcon overlay_icon_;
     QString overlay_accessible_description_;
     QPixmap thumbnail_;
+    bool thumbnail_buttons_added_{ false };
     CComPtr<ITaskbarList4> taskbar_list_;
 	ScopedPtr<ButtonIcon> button_icons_;
 };

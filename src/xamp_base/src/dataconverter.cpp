@@ -255,8 +255,8 @@ void ConvertFloatToInt32SSE(const float* input, int32_t* left_ptr, int32_t* righ
 
 	// 尾端不足4 frames標量處理
 	for (; i < frames; i++) {
-		float L = input[0] * kFloat32Scale;
-		float R = input[1] * kFloat32Scale;
+		float L = input[0] * kFloat32Scale * volume;
+		float R = input[1] * kFloat32Scale * volume;
 		int32_t Li = static_cast<int32_t>(L);
 		int32_t Ri = static_cast<int32_t>(R);
 		*left_ptr++ = Li;
@@ -363,17 +363,18 @@ void AVX2Convert(TStoreType* output, const float* input, float float_scale, cons
 
 	while (input != end_input) {
 		XAMP_ASSERT(end_input - input > 0);
+		const auto scaled_value = *input * float_scale * context.volume_factor;
 		if constexpr (sizeof(T) == 3) {
-			int32_t temp = static_cast<int32_t>(*input * float_scale) << 8;
+			int32_t temp = static_cast<int32_t>(scaled_value) << 8;
 			*reinterpret_cast<int32_t*>(output) = temp;
 			output += 1;
 		}
 		else if constexpr (std::is_same_v<T, int16_t>) {
-			*output = static_cast<int16_t>(*input * float_scale);
+			*output = static_cast<int16_t>(scaled_value);
 			++output;
 		}
 		else {
-			*output = static_cast<T>(*input * float_scale);
+			*output = static_cast<T>(scaled_value);
 			++output;
 		}
 		++input;

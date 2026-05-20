@@ -197,8 +197,6 @@ signals:
 
 	void navigateToArtistPage(int32_t artist_id);
 
-	void scanReplayGain(const QList<PlayListEntity>& entities);
-
 public slots:
 	void onPlayIndex(const QModelIndex& index, bool is_play = false);
 
@@ -209,8 +207,6 @@ public slots:
 	void onReloadEntity(const PlayListEntity& item);
 
 	void onRetranslateUi();
-
-	void updateReplayGain(const QList<PlayListEntity>& entities);
 
 private:
 	QList<PlayListEntity> selectItems() const;

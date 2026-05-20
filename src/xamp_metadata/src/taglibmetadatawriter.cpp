@@ -8,6 +8,8 @@
 #include <base/fastiostream.h>
 #include <base/str_utilts.h>
 
+#include <limits>
+
 XAMP_DECLARE_LOG_NAME(TagLib);
 
 namespace {
@@ -369,9 +371,11 @@ public:
 
 	void WriteEmbeddedCover(const uint8_t *image, size_t image_size) const {
 		CheckFileRef()
-		const auto ext = String::ToLower(path_.extension().string());		
+		if (image_size > static_cast<size_t>((std::numeric_limits<unsigned int>::max)())) {
+			throw PlatformException();
+		}
 
-		const TagLib::ByteVector image_data(reinterpret_cast<const char*>(image), image_size);
+		const TagLib::ByteVector image_data(reinterpret_cast<const char*>(image), static_cast<unsigned int>(image_size));
 		auto* file_ = fileref_opt_->file();
 		if (tag_writer_ != nullptr) {
 			tag_writer_->WriteEmbeddedCover(file_, image_data);

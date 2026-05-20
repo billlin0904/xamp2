@@ -17,7 +17,6 @@ copy %BUILD_DIR%\taglib.dll %DEPLOY_DIR%\
 copy %BUILD_DIR%\libssl-1_1-x64.dll %DEPLOY_DIR%\
 copy %BUILD_DIR%\libsoxr.dll %DEPLOY_DIR%\
 copy %BUILD_DIR%\bassmix.dll %DEPLOY_DIR%\
-copy %BUILD_DIR%\ebur128.dll %DEPLOY_DIR%\
 copy %BUILD_DIR%\mimalloc-override.dll %DEPLOY_DIR%\
 copy %BUILD_DIR%\mimalloc-redirect.dll %DEPLOY_DIR%\
 copy %BUILD_DIR%\widget_shared.dll %DEPLOY_DIR%\
@@ -25,7 +24,6 @@ copy %BUILD_DIR%\QSimpleUpdater.dll %DEPLOY_DIR%\
 copy %BUILD_DIR%\r8bsrc.dll %DEPLOY_DIR%\
 copy %BUILD_DIR%\QWKCore.dll %DEPLOY_DIR%\
 copy %BUILD_DIR%\QWKWidgets.dll %DEPLOY_DIR%\
-copy %BUILD_DIR%\supereq.dll %DEPLOY_DIR%\
 copy %BUILD_DIR%\mecab.dll %DEPLOY_DIR%\
 copy %BUILD_DIR%\opencc.dll %DEPLOY_DIR%\
 copy %BUILD_DIR%\libprotobuf-lite.dll %DEPLOY_DIR%\

@@ -33,19 +33,13 @@ public:
 
     void AddPostDSP(ScopedPtr<IAudioProcessor> processor) override;
 
-    IDSPManager& AddEqualizer() override;
-
     IDSPManager& AddParametricEq() override;
 
-    IDSPManager& AddCompressor() override;
-
-    IDSPManager& RemoveEqualizer() override;
+    IDSPManager& SetParametricEq(bool enabled, const EqSettings& settings, const Property& config) override;
 
     IDSPManager& RemoveParametricEq() override;
 
     IDSPManager& RemoveSampleRateConverter() override;
-
-    IDSPManager& RemoveCompressor() override;
 
     void SetSampleWriter(ScopedPtr<ISampleWriter> writer = nullptr) override;
 
@@ -93,12 +87,12 @@ private:
     std::optional<TDSP*> GetDSP(
         DspIterator begin,
         DspIterator end
-    ) const {
+    ) {
         auto itr = Find<TDSP>(begin, end);
         if (itr == end) {
             return std::nullopt;
         }
-        return CreateOptional<TDSP*>(dynamic_cast<TDSP*>((*itr).get()));
+        return std::optional<TDSP*>{ dynamic_cast<TDSP*>((*itr).get()) };
     }
 
     template <typename TDSP>
@@ -118,12 +112,12 @@ private:
     }
 
     template <typename TDSP>
-    std::optional<TDSP*> GetPreDSP() const {
+    std::optional<TDSP*> GetPreDSP() {
         return GetDSP<TDSP>(pre_dsp_.begin(), pre_dsp_.end());
     }
 
     template <typename TDSP>
-    std::optional<TDSP*> GetPostDSP() const {
+    std::optional<TDSP*> GetPostDSP() {
         return GetDSP<TDSP>(post_dsp_.begin(), post_dsp_.end());
     }
 

@@ -1,12 +1,10 @@
 #include <stream/dspmanager.h>
 
 #include <stream/api.h>
-#include <stream/bassequalizer.h>
 #include <stream/soxresampler.h>
 #include <stream/r8brainresampler.h>
 #include <stream/srcresampler.h>
 #include <stream/dsdmodesamplewriter.h>
-#include <stream/basscompressor.h>
 #include <stream/bassparametriceq.h>
 
 #include <base/exception.h>
@@ -36,33 +34,46 @@ void DSPManager::AddPreDSP(ScopedPtr<IAudioProcessor> processor) {
     AddOrReplace(std::move(processor), pre_dsp_);
 }
 
-IDSPManager& DSPManager::AddEqualizer() {
-    AddPostDSP(StreamFactory::MakeEqualizer());
-    return *this;
-}
-
 IDSPManager& DSPManager::AddParametricEq() {
     AddPostDSP(StreamFactory::MakeParametricEq());
     return *this;
 }
 
-IDSPManager& DSPManager::RemoveCompressor() {
-    RemovePostDSP<BassCompressor>();
-    return *this;
-}
+IDSPManager& DSPManager::SetParametricEq(bool enabled, const EqSettings& settings, const Property& config) {
+    config_ = config;
+    const auto update_dispatch = [this]() {
+        if (!CanProcess()) {
+            dispatch_ = bind_front(&DSPManager::DefaultProcess, this);
+        }
+        else {
+            dispatch_ = bind_front(&DSPManager::Process, this);
+        }
+    };
 
-IDSPManager& DSPManager::AddCompressor() {
-    AddPostDSP(StreamFactory::MakeCompressor());
+    if (!enabled) {
+        RemovePostDSP<BassParametricEq>();
+        update_dispatch();
+        return *this;
+    }
+
+    config_.Create(DspConfig::kEQSettings, settings);
+    if (const auto parametric_eq = GetPostDSP<BassParametricEq>()) {
+        if (*parametric_eq != nullptr) {
+            (*parametric_eq)->SetEq(settings);
+            update_dispatch();
+            return *this;
+        }
+    }
+
+    auto processor = StreamFactory::MakeParametricEq();
+    processor->Initialize(config_);
+    AddPostDSP(std::move(processor));
+    update_dispatch();
     return *this;
 }
 
 void DSPManager::SetSampleWriter(ScopedPtr<ISampleWriter> writer) {
     sample_writer_ = std::move(writer);
-}
-
-IDSPManager& DSPManager::RemoveEqualizer() {
-    RemovePostDSP<BassEqualizer>();
-    return *this;
 }
 
 IDSPManager& DSPManager::RemoveParametricEq() {

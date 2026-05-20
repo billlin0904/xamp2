@@ -1,4 +1,4 @@
-﻿//=====================================================================================================================
+//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -18,7 +18,7 @@ XAMP_BASE_NAMESPACE_BEGIN
 // see PractRand: http://pracrand.sourceforge.net/PractRand.txt
 //
 template <int32_t TRotation = 24, int32_t TRightShift = 11, int32_t TLeftShift = 3>
-class XAMP_BASE_API_ONLY_EXPORT Sfc64Engine final {
+class Sfc64Engine final {
 public:
     using state_type = uint64_t;
     using result_type = uint64_t;

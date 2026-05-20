@@ -11,7 +11,7 @@ void readAll(Path const& file_path,
     uint64_t max_duration) {
     constexpr auto kReadSampleSize = 8192;
 
-    const auto file_stream = makePcmFileStream(file_path, 0.0f);
+    const auto file_stream = makePcmFileStream(file_path);
     file_stream->OpenFile(file_path.wstring());
 
     const auto source_format = file_stream->GetFormat();
@@ -43,18 +43,6 @@ void readAll(Path const& file_path,
     }
 }
 
-Ebur128Scanner readFileLoudness(const Path& file_path, const std::function<bool(uint32_t)> & progress) {
-    Ebur128Scanner scanner;
-    auto prepare = [&scanner](AudioFormat const& input_format) {
-        scanner.SetSampleRate(input_format.GetSampleRate());
-        };
-    auto dsp_process = [&scanner](auto const* samples, auto sample_size) {
-        scanner.Process(samples, sample_size);
-        };
-    readAll(file_path, progress, prepare, dsp_process);
-    return scanner;
-}
-
 QByteArray readChromaprint(const Path& file_path) {
     Chromaprint chromaprint;
     auto prepare = [&chromaprint](AudioFormat const& input_format) {
@@ -67,13 +55,14 @@ QByteArray readChromaprint(const Path& file_path) {
         return true;
         };
     readAll(file_path, progress, prepare, dsp_process);
+    chromaprint.Finish();
     auto fingerprint = chromaprint.GetFingerprint();
     QByteArray base64(reinterpret_cast<const char*>(fingerprint.data()), fingerprint.size());
     return base64;
 }
 
-ScopedPtr<FileStream> makePcmFileStream(const Path& file_path, float rate) {
-    return StreamFactory::MakeFileStream(file_path, rate);
+ScopedPtr<FileStream> makePcmFileStream(const Path& file_path) {
+    return StreamFactory::MakeFileStream(file_path);
 }
 
 QString readAll(const QString& file_path) {

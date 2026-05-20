@@ -28,47 +28,27 @@ public:
     StreamFactory() = delete;
 
     static ScopedPtr<FileStream> MakeFileStream(const Path& filePath,
-        float rate = 0.0f,
         bool use_mqa_decode = false);
 
     // Create a file stream object based on the file path and DSD mode
     static ScopedPtr<FileStream> MakeFileStream(const Path& filePath,
         DsdModes dsdMode, 
-        float rate = 0.0f,
         bool use_mqa_decode = false);
 
     static ScopedPtr<FileStream> MakeFileStream(ArchiveEntry archive_entry,
-        DsdModes dsd_mode,
-        float rate = 0.0f,
-        bool use_mqa_decode = false);
+        DsdModes dsd_mode);
 
 	static std::expected<ArchiveFileStream, std::string> MakeArchiveFileStream(const Path& archive_path,
-        const std::wstring& archive_entry_name,
-        float rate = 0.0f,
-        bool use_mqa_decode = false);
+        const std::wstring& archive_entry_name);
 
     // Create an AAC encoder object
     static ScopedPtr<IFileEncoder> MakeFileEncoder();
 
-    // Create an equalizer audio processor object
-    static ScopedPtr<IAudioProcessor> MakeEqualizer();
-
-    #ifdef XAMP_OS_WIN
-    // Create an super EQ equalizer audio processor object
-    static ScopedPtr<IAudioProcessor> MakeSuperEqEqualizer();
-    #endif
-
     // Create a parametric equalizer audio processor object
     static ScopedPtr<IAudioProcessor> MakeParametricEq();
 
-    // Create a compressor audio processor object
-    static ScopedPtr<IAudioProcessor> MakeCompressor();
-
     // Create a DSP manager object
     static ScopedPtr<IDSPManager> MakeDSPManager();
-
-    // Create a fader audio processor object
-    static ScopedPtr<IAudioProcessor> MakeFader();
 
     // Create a CD device object (specific to Windows OS)
     #ifdef XAMP_OS_WIN
@@ -102,7 +82,5 @@ XAMP_STREAM_API void LoadSoxrLib();
 XAMP_STREAM_API void LoadSrcLib();
 
 XAMP_STREAM_API void LoadBassLib();
-
-XAMP_STREAM_API void LoadEbur128Lib();
 
 XAMP_STREAM_NAMESPACE_END

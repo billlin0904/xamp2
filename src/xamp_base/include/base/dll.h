@@ -1,4 +1,4 @@
-﻿//=====================================================================================================================
+//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -103,7 +103,7 @@ template
     typename T,
     typename U = std::enable_if_t<std::is_function_v<T>>
 >
-class XAMP_BASE_API_ONLY_EXPORT SharedLibraryFunction final {
+class SharedLibraryFunction final {
 public:
     static_assert(std::is_function_v<std::remove_pointer_t<T>>, "T must be a function pointer type");
     

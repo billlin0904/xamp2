@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <expected>
 #include <base/unique_handle.h>
 #include <base/memory.h>
@@ -26,7 +27,7 @@ using ArchiveProgressCallback = std::function<bool(uint64_t, std::optional<uint6
 class XAMP_BASE_API ArchiveEntry {
 	std::wstring name;
 	Path archive_path;
-	long length{};
+	int64_t length{};
 	archive_entry* entry{};
 	ArchivePtrHandle archive_ptr;
 
@@ -35,7 +36,7 @@ public:
 
 	ArchiveEntry(const std::wstring &name,
 		Path                  archive_path,
-		long                  length,
+		int64_t               length,
 		archive_entry*        entry,
 		ArchivePtrHandle      archive_ptr) : name(name)
 		, archive_path(std::move(archive_path))
@@ -61,7 +62,7 @@ public:
 		return *this;
 	}
 
-	std::expected<ptrdiff_t, std::string> Read(char *buffer, long length);
+	std::expected<ptrdiff_t, std::string> Read(char *buffer, size_t length);
 
 	const std::wstring& Name() const {
 		return name; 
@@ -71,7 +72,7 @@ public:
 		return archive_path;
 	}
 
-	long Length() const {
+	int64_t Length() const {
 		return length;
 	}
 

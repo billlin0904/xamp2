@@ -11,8 +11,8 @@
 #include <widget/actionmap.h>
 #include <widget/globalshortcut.h>
 
+#include <QAction>
 #include <QLabel>
-#include <QSystemTrayIcon>
 #include <QStorageInfo>
 #include <QApplication>
 #include <QLayout>
@@ -73,6 +73,52 @@ void XMainWindow::setContentWidget(IXFrame *content_widget) {
     readDriveInfo();
 }
 
+void XMainWindow::resetNativeSystemMenu() {
+#ifdef Q_OS_WIN
+    const auto hwnd = reinterpret_cast<HWND>(winId());
+    (void)GetSystemMenu(hwnd, TRUE);
+    DrawMenuBar(hwnd);
+#endif
+}
+
+void XMainWindow::clearSystemMenuActions() {
+    system_menu_actions_.clear();
+    next_system_menu_id_ = 0xA000;
+    system_menu_separator_added_ = false;
+    resetNativeSystemMenu();
+}
+
+void XMainWindow::addSystemMenuAction(QAction* action) {
+    if (action == nullptr) {
+        return;
+    }
+
+#ifdef Q_OS_WIN
+    const auto hwnd = reinterpret_cast<HWND>(winId());
+    auto* system_menu = GetSystemMenu(hwnd, FALSE);
+    if (system_menu == nullptr) {
+        return;
+    }
+
+    if (!system_menu_separator_added_) {
+        (void)AppendMenuW(system_menu, MF_SEPARATOR, 0, nullptr);
+        system_menu_separator_added_ = true;
+    }
+
+    const auto command_id = next_system_menu_id_;
+    next_system_menu_id_ += 0x10;
+    system_menu_actions_.insert(command_id, action);
+
+    auto title = action->text();
+    title.remove("&"_str);
+    const auto flags = MF_STRING | (action->isEnabled() ? MF_ENABLED : MF_GRAYED);
+    (void)AppendMenuW(system_menu, flags, command_id, reinterpret_cast<LPCWSTR>(title.utf16()));
+    DrawMenuBar(hwnd);
+#else
+    (void)action;
+#endif
+}
+
 void XMainWindow::onThemeChangedFinished(ThemeColor theme_color) {
 }
 
@@ -91,6 +137,14 @@ void XMainWindow::saveAppGeometry() {
     qAppSettings.setValue(kAppSettingGeometry, saveGeometry());
     qAppSettings.setValue(kAppSettingWindowState, isMaximized());
     qAppSettings.setValue(kAppSettingScreenNumber, screen_number_);
+}
+
+void XMainWindow::closeEvent(QCloseEvent* event) {
+    if (!content_widget_) {
+        return;
+    }
+    content_widget_->destory();
+    task_bar_.reset();
 }
 
 void XMainWindow::systemThemeChanged(ThemeColor theme_color) {
@@ -219,6 +273,18 @@ bool XMainWindow::nativeEvent(const QByteArray& event_type, void* message, qintp
 #ifdef Q_OS_WIN
     const auto* msg = static_cast<MSG const*>(message);
     switch (msg->message) {
+    case WM_SYSCOMMAND: {
+        const auto command_id = static_cast<quint32>(msg->wParam) & 0xFFF0;
+        auto action = system_menu_actions_.value(command_id, nullptr);
+        if (action != nullptr && action->isEnabled()) {
+            action->trigger();
+            if (result != nullptr) {
+                *result = 0;
+            }
+            return true;
+        }
+        }
+        break;
     case DBT_DEVICEARRIVAL: {
 	    auto* lpdb = reinterpret_cast<PDEV_BROADCAST_HDR>(msg->lParam);
         if (lpdb->dbch_devicetype == DBT_DEVTYP_VOLUME) {
@@ -275,7 +341,7 @@ void XMainWindow::readDriveInfo() {
     QList<DriveInfo> drives;
     Q_FOREACH(auto & storage, QStorageInfo::mountedVolumes()) {
         if (!storage.isValid() || !storage.isReady()) {
-            return;
+            continue;
         }
 
         auto display_name = storage.displayName() + "("_str + storage.rootPath() + ")"_str;

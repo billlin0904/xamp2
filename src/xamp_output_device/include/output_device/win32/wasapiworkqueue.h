@@ -16,6 +16,10 @@
 
 #include <base/assert.h>
 
+#include <atlbase.h>
+#include <mfapi.h>
+#include <shlwapi.h>
+
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
 /*
@@ -56,7 +60,7 @@ public:
 	/*
 	* Destructor.
 	*/
-	virtual ~WasapiWorkQueue() override {
+	virtual ~WasapiWorkQueue() noexcept override {
 		Destroy();
 	}
 
@@ -73,7 +77,7 @@ public:
 	* Destroy.
 	* 
 	*/
-	void Destroy() {
+	void Destroy() noexcept {
 		std::lock_guard<SpinLock> guard{ mutex_ };
 		if (workitem_key_ != 0) {
 			::MFCancelWorkItem(workitem_key_);
@@ -83,11 +87,11 @@ public:
 		async_result_.Release();
 
 		if (queue_id_ != MAXDWORD) {
-			HrIfFailThrow(::MFUnlockWorkQueue(queue_id_));
+			(void)::MFUnlockWorkQueue(queue_id_);
 			queue_id_ = MAXDWORD;
 		}
 		if (shared_queue_id_ != MAXDWORD) {
-			HrIfFailThrow(::MFUnlockWorkQueue(shared_queue_id_));
+			(void)::MFUnlockWorkQueue(shared_queue_id_);
 			shared_queue_id_ = MAXDWORD;
 		}
 		task_id_ = 0;

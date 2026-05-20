@@ -57,8 +57,9 @@ void ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::ScanNewDevice() {
 std::optional<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::GetDefaultDeviceInfo() const {
 	CComPtr<IMMDevice> default_output_device;
 	const auto hr = enumerator_->GetDefaultAudioEndpoint(eRender, eConsole, &default_output_device);
-	HrIfNotEqualThrow(hr, ERROR_NOT_FOUND);
-	if (hr == ERROR_NOT_FOUND) {
+	constexpr auto kNotFoundHr = HRESULT_FROM_WIN32(ERROR_NOT_FOUND);
+	HrIfNotEqualThrow(hr, kNotFoundHr);
+	if (hr == kNotFoundHr) {
 		return std::nullopt;
 	}
 	return MakeOptional<DeviceInfo>(helper::GetDeviceInfo(default_output_device,

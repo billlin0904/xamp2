@@ -160,7 +160,7 @@
   <ItemGroup>
     <ClInclude Include="include\metadata\chromaprint.h" />
     <ClInclude Include="include\metadata\chromaprintlib.h" />
-    <ClInclude Include="include\metadata\cueloader.h" />
+    <ClInclude Include="include\metadata\cuefilereader.h" />
     <ClInclude Include="include\metadata\libcuelib.h" />
     <ClInclude Include="include\metadata\metadata.h" />
     <ClInclude Include="include\metadata\imetadatareader.h" />

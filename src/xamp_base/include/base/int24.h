@@ -37,7 +37,7 @@ XAMP_ALWAYS_INLINE int24_t::int24_t(float f) {
 }
 
 XAMP_ALWAYS_INLINE int24_t& int24_t::operator=(float f) {
-	*this = static_cast<int32_t>(f * kFloat24Scale);
+	*this = static_cast<int32_t>(f * 8388607.f);
 	return *this;
 }
 
@@ -52,15 +52,17 @@ XAMP_ALWAYS_INLINE int24_t& int24_t::operator=(int32_t i) {
 }
 
 XAMP_ALWAYS_INLINE int32_t int24_t::To2432Int() const {
-	int32_t v{ 0 };
-	MemoryCopy(&v, &data[0], 3);
-	return v << 8;
+	return static_cast<int32_t>(static_cast<uint32_t>(To32Int()) << 8);
 }
 
 XAMP_ALWAYS_INLINE int32_t int24_t::To32Int() const {
-	int32_t v{ 0 };
-	MemoryCopy(&v, &data[0], 3);
-	return v;
+	uint32_t v = static_cast<uint32_t>(data[0])
+		| (static_cast<uint32_t>(data[1]) << 8)
+		| (static_cast<uint32_t>(data[2]) << 16);
+	if ((v & 0x00800000u) != 0) {
+		v |= 0xFF000000u;
+	}
+	return static_cast<int32_t>(v);
 }
 
 XAMP_BASE_NAMESPACE_END

@@ -260,11 +260,11 @@ void CoreAudioDevice::FillSamples(AudioBufferList *output_data, double sample_ti
             MemorySet(buffer.mData, 0, buffer.mDataByteSize);
             continue;
         }
-        XAMP_LIKELY(callback_->OnGetSamples(static_cast<float*>(buffer.mData),
-                                            num_sample,
-                                            num_filled_frames,
-                                            stream_time,
-                                            sample_time) == DataCallbackResult::CONTINUE) {
+        if (callback_->OnGetSamples(static_cast<float*>(buffer.mData),
+                                    num_sample,
+                                    num_filled_frames,
+                                    stream_time,
+                                    sample_time) == DataCallbackResult::CONTINUE) {
             continue;
         } else {
             is_running_ = false;

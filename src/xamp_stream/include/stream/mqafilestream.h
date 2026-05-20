@@ -50,8 +50,6 @@ public:
 
 	void Close() override;
 
-	void SetRate(float rate = 0.0f) override;
-
 	[[nodiscard]] double GetDuration() const override;
 
 	[[nodiscard]] AudioFormat GetFormat() const override;

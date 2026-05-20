@@ -81,6 +81,7 @@ public:
 				llfio::file_handle::caching::all);
 			if (!r) {
 				XAMP_LOG_DEBUG(r.error().message());
+				continue;
 			}
 			handle_ = std::move(r.value());
 			path_ = handle_.current_path().value();
@@ -92,7 +93,7 @@ public:
 	}
 
 	size_t Write(const void* buffer, size_t size, size_t count) {
-		if (!handle_.is_valid())
+		if (!handle_.is_valid() || size == 0 || count == 0)
 			return 0;
 
 		llfio::file_handle::const_buffer_type buf{
@@ -112,7 +113,7 @@ public:
 	}
 
 	size_t Read(void* buffer, size_t size, size_t count) {
-		if (!handle_.is_valid())
+		if (!handle_.is_valid() || size == 0 || count == 0)
 			return 0;
 
 		llfio::file_handle::buffer_type buf{
@@ -151,6 +152,7 @@ public:
 
 	void Close() {
 		auto res = handle_.close();
+		pos_ = 0;
 	}
 
 	uint64_t pos_{};
@@ -201,6 +203,7 @@ public:
 
 		path_ = file_path;
 		readonly_ = (m == Mode::Read);
+		pos_ = 0;
 
 		auto mode = readonly_
 			? llfio::file_handle::mode::read
@@ -335,6 +338,7 @@ public:
 		if (!fh_.is_valid())
 			return;
 		auto res = fh_.close();
+		pos_ = 0;
 	}
 private:
 	bool               readonly_{ true };

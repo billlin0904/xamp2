@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <condition_variable>
+#include <chrono>
 #include <mutex>
 #include <base/base.h>
 #include <base/platform.h>
@@ -13,10 +15,6 @@
 XAMP_BASE_NAMESPACE_BEGIN
 
 #if defined(XAMP_OS_WIN) || defined(XAMP_OS_MAC)
-
-inline constexpr uint32_t kUnlocked = 0;
-inline constexpr uint32_t kLocked   = 1;
-inline constexpr uint32_t kSleeper  = 2;
 
 /*
 * FastConditionVariable is a condition variable that is faster than std::condition_variable.
@@ -53,8 +51,7 @@ public:
 	*/
 	template <typename Predicate>
 	void wait(std::unique_lock<FastMutex>& lock, Predicate&& predicate) {
-		auto wait_predicate = std::forward<Predicate>(predicate);
-		while (!wait_predicate()) {
+		while (!predicate()) {
 			wait(lock);
 		}
 	}
@@ -68,17 +65,34 @@ public:
 	*/
 	template <typename Rep, typename Period>
 	std::cv_status wait_for(std::unique_lock<FastMutex>& lock, const std::chrono::duration<Rep, Period>& rel_time) {
-		// We need to unlock the mutex before we can wait.
-		auto old_state = state_.load(std::memory_order_relaxed);
-		// If we are the first to try to wait, we need to set the state to kSleeper.
+        if (rel_time <= std::chrono::duration<Rep, Period>::zero()) {
+            return std::cv_status::timeout;
+        }
+
+		auto old_state = state_.load(std::memory_order_acquire);
 		lock.unlock();
-		// If we are the first to try to wait, we need to set the state to kSleeper.
 		auto ret = FastWait(state_, old_state, rel_time);
-		// We need to lock the mutex again before we can return.
 		lock.lock();
-		// If we are the first to try to wait, we need to set the state to kSleeper.
 		return ret;
 	}
+
+    template <typename Rep, typename Period, typename Predicate>
+    bool wait_for(std::unique_lock<FastMutex>& lock,
+        const std::chrono::duration<Rep, Period>& rel_time,
+        Predicate&& predicate) {
+        auto timeout_time = std::chrono::steady_clock::now() + rel_time;
+
+        while (!predicate()) {
+            auto now = std::chrono::steady_clock::now();
+            if (now >= timeout_time) {
+                return predicate();
+            }
+            if (wait_for(lock, timeout_time - now) == std::cv_status::timeout) {
+                return predicate();
+            }
+        }
+        return true;
+    }
 
 	/*
 	* Notify one thread.
@@ -110,8 +124,7 @@ private:
 			? std::cv_status::timeout : std::cv_status::no_timeout;
 	}
 
-	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<bool> condition_met_{ false };
-	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<uint32_t> state_{ kUnlocked };
+	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<uint32_t> state_{ 0 };
 };
 
 #else

@@ -1,4 +1,4 @@
-﻿//=====================================================================================================================
+//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -14,26 +14,14 @@
 #ifdef _WIN32
 	#ifdef BASE_API_EXPORTS
 		#define XAMP_BASE_API __declspec(dllexport)
-		#define XAMP_BASE_API_ONLY_EXPORT __declspec(dllexport)
 	#else
 		#define XAMP_BASE_API __declspec(dllimport)
-		#define XAMP_BASE_API_ONLY_EXPORT
 	#endif
-#if _MSVC_LANG >= XAMP_CPP20_LANG_VER // Only for C++20
-	#define XAMP_LIKELY(x) if((x)) [[likely]]
-	#define XAMP_UNLIKELY(x) if ((x)) [[unlikely]]	
-#else
-	#define XAMP_LIKELY(x) if (x)
-	#define XAMP_UNLIKELY(x) if (!(x))
-#endif
 	#pragma warning(disable: 4251)
 	#pragma warning(disable: 4275)
 	#define XAMP_OS_WIN 1	
 #else
     #define XAMP_BASE_API __attribute__((visibility("default")))
-	#define XAMP_BASE_API_ONLY_EXPORT
-	#define XAMP_LIKELY(x) if (__builtin_expect(!!(x), 1))
-	#define XAMP_UNLIKELY(x) if (__builtin_expect(!!(x), 0))
 	#define XAMP_OS_MAC 1
 #endif
 
@@ -52,11 +40,6 @@
 #define XAMP_COMBIN(x, y) x##y
 #define XAMP_COMBIN_NAME(x, y) XAMP_COMBIN(x, y)
 #define XAMP_ANON_VAR_NAME(x) XAMP_COMBIN_NAME(x, __COUNTER__)
-
-// XAMP_IS_LITTLE_ENDIAN
-// XAMP_IS_BIG_ENDIAN
-#define XAMP_IS_LITTLE_ENDIAN 1
-//#define XAMP_IS_BIG_ENDIAN 1
 
 // Rule of five
 // See more: http://en.cppreference.com/w/cpp/language/rule_of_three
@@ -112,18 +95,6 @@
 #define XAMP_NEVER_INLINE __attribute__((__noinline__))
 #endif
 
-#ifdef XAMP_OS_WIN
-#define XAMP_ALIGN_ASSUME_ALIGNED(ptr, alignment) ptr
-#else
-#define XAMP_ALIGN_ASSUME_ALIGNED(ptr, alignment) __builtin_assume_aligned(ptr, alignment)
-#endif
-
-#ifdef XAMP_OS_WIN
-# define XAMP_NO_DEFAULT __assume(0)
-#else
-#define XAMP_NO_DEFAULT ((void)0)
-#endif
-
 #if _MSVC_LANG >= XAMP_CPP20_LANG_VER
 #define XAMP_CACHE_ALIGNED(CacheLineSize) alignas(CacheLineSize)
 #else
@@ -151,12 +122,6 @@
 #define XAMP_BASE_NAMESPACE_BEGIN namespace xamp { namespace base {
 #define XAMP_BASE_NAMESPACE_END } }
 
-#ifdef XAMP_OS_WIN
-#define XAMP_VECTOR_CALL __vectorcall
-#else
-#define XAMP_VECTOR_CALL __attribute__((vectorcall))
-#endif
-
 XAMP_BASE_NAMESPACE_BEGIN
 
 /*
@@ -169,12 +134,5 @@ inline constexpr size_t kCacheAlignSize = 64;
 * Assume we need 32-byte alignment for AVX2 instructions.
 */
 inline constexpr size_t kMallocAlignSize{ 32 };
-
-inline constexpr float kFloat16Scale { 32767.f };
-inline constexpr float kFloat24Scale { 8388607.f };
-// note: 必須要加上.f否則是round to 2147483648.
-inline constexpr float kFloat32Scale { 2147483647.f };
-inline constexpr float kMaxFloatSample { 1.0F };
-inline constexpr float kMinFloatSample { -1.0F };
 
 XAMP_BASE_NAMESPACE_END

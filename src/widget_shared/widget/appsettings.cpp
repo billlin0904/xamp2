@@ -110,6 +110,9 @@ void AppSettings::parseGraphicEq(const QFileInfo file_info, QFile& file_) {
 		setting.Q = 1.4;
 		settings.bands.push_back(setting);
 	}
+	std::sort(settings.bands.begin(), settings.bands.end(), [](const auto &left, const auto &right) {
+		return left.frequency < right.frequency;
+		});
 	eq_settings_[file_info.baseName()] = settings;
 }
 
@@ -159,8 +162,8 @@ void AppSettings::parseEQPreset(const QFileInfo file_info, QFile& file_) {
 			XAMP_LOG_TRACE("Parse {}", line.toStdString());
 		}
 	}
-	std::sort(settings.bands.begin(), settings.bands.end(), [](auto a, auto b) {
-		return a.frequency < b.frequency;
+	std::sort(settings.bands.begin(), settings.bands.end(), [](const auto& left, const auto& right) {
+		return left.frequency < right.frequency;
 		});
 	eq_settings_[file_info.baseName()] = settings;
 }
@@ -489,6 +492,8 @@ void AppSettings::registerMetaType() {
 	qRegisterMetaType<ComplexValarray>("ComplexValarray");
 	qRegisterMetaType<QList<TrackInfo>>("QList<TrackInfo>");
 	qRegisterMetaType<std::vector<TrackInfo>>("std::vector<TrackInfo>");
+	qRegisterMetaType<std::forward_list<TrackInfo>>("std::forward_list<TrackInfo>");
+	qRegisterMetaType<std::vector<std::forward_list<TrackInfo>>>("std::vector<std::forward_list<TrackInfo>>");
 	qRegisterMetaType<DriveInfo>("DriveInfo");
 	qRegisterMetaType<std::wstring>("std::wstring");
 	qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
@@ -511,7 +516,6 @@ void AppSettings::loadAppSettings() {
 	setDefaultValue(kAppSettingMinimizeToTray, true);
 	setDefaultValue(kAppSettingWindowState, false);
 	setDefaultValue(kAppSettingScreenNumber, 1);
-	setDefaultValue(kAppSettingEnableSpectrum, false);
 	setDefaultValue(kAppSettingEnableShortcut, true);
 	setDefaultValue(kAppSettingEnterFullScreen, false);
 	setDefaultValue(kAppSettingEnableSandboxMode, true);

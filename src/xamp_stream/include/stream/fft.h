@@ -39,7 +39,7 @@ public:
 
     XAMP_PIMPL(FFT)
 
-	void Init(size_t frame_size);
+	void Initialize(size_t frame_size);
 
     const ComplexValarray& Forward(float const* data, size_t size);
 

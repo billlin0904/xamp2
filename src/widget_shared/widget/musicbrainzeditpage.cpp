@@ -693,6 +693,9 @@ QCoro::Task<> MusicbrainzEditPage::startFetchMusicBrainzRecording() {
             }
             ++completed_albums_;
             total_releases_ = pending_release_ids.size();
+            if (fetch_progress_bar_ != nullptr) {
+                fetch_progress_bar_->setValue(completed_albums_);
+            }
             updateFetchProgressText(tr("Fetching"));
         }
         total_releases_ = pending_release_ids.size();
@@ -722,17 +725,19 @@ QCoro::Task<> MusicbrainzEditPage::startFetchMusicBrainzRecording() {
         QHash<QString, QList<musicbrain::TrackInfo>> release_track_cache;
         QHash<QString, QPixmap> release_cover_cache;
         for (const auto& lookup : pending_lookups) {
-            completed_album_keys.insert(lookup.entities.isEmpty() ? QString() : lookup.entities.front().album);
-            completed_albums_ = std::min(static_cast<int>(completed_album_keys.size()), total_albums_);
-            if (fetch_progress_bar_ != nullptr) {
-                fetch_progress_bar_->setValue(completed_albums_);
-            }
             updateFetchProgressText(tr("Fetching"));
             co_await fetchMusicBrainzRelease(lookup.entities,
                 lookup.candidateReleases,
                 fetched_release_ids,
                 release_track_cache,
                 release_cover_cache);
+
+            completed_album_keys.insert(lookup.entities.isEmpty() ? QString() : lookup.entities.front().album);
+            completed_albums_ = std::min(static_cast<int>(completed_album_keys.size()), total_albums_);
+            if (fetch_progress_bar_ != nullptr) {
+                fetch_progress_bar_->setValue(completed_albums_);
+            }
+            updateFetchProgressText(tr("Fetching"));
         }
     }
     catch (...) {

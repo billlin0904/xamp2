@@ -113,7 +113,7 @@ private:
 	QStringList cover_ext_;
 	QStringList cache_ext_;
 
-	int32_t trim_target_size_;
+	int64_t trim_target_size_;
 	QString unknown_cover_id_;
 	LoggerPtr logger_;
 	mutable LruCache<QString, ImageCacheEntity, ImageCacheSizeOfPolicy> thumbnail_cache_;

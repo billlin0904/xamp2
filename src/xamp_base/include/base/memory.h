@@ -1,4 +1,4 @@
-﻿//=====================================================================================================================
+//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -41,24 +41,24 @@ constexpr T AlignUp(T value, size_t aligned_size = kMallocAlignSize) {
 }
 
 template <typename T>
-XAMP_BASE_API_ONLY_EXPORT XAMP_CHECK_LIFETIME T* AlignedMallocObject(size_t aligned_size) {
+XAMP_CHECK_LIFETIME T* AlignedMallocObject(size_t aligned_size) {
     return static_cast<T*>(AlignedMalloc(sizeof(T), aligned_size));
 }
 
 template <typename Type>
-XAMP_BASE_API_ONLY_EXPORT XAMP_CHECK_LIFETIME Type* AlignedMallocArray(size_t n, size_t aligned_size) {
+XAMP_CHECK_LIFETIME Type* AlignedMallocArray(size_t n, size_t aligned_size) {
     return static_cast<Type*>(AlignedMalloc(sizeof(Type) * n, aligned_size));
 }
 
 template <typename Type>
-struct XAMP_BASE_API_ONLY_EXPORT AlignedDeleter {
+struct AlignedDeleter {
     void operator()(Type* p) const {
         AlignedFree(p);
     }
 };
 
 template <typename Type>
-struct XAMP_BASE_API_ONLY_EXPORT AlignedClassDeleter {
+struct AlignedClassDeleter {
     void operator()(Type* p) const {
         if constexpr (!std::is_trivially_destructible_v<Type>) {
             p->~Type();
@@ -68,14 +68,14 @@ struct XAMP_BASE_API_ONLY_EXPORT AlignedClassDeleter {
 };
 
 template <typename Type>
-struct XAMP_BASE_API_ONLY_EXPORT StackBufferDeleter {
+struct StackBufferDeleter {
     void operator()(Type* p) const {
         StackFree(p);
     }
 };
 
 template <typename Type>
-struct XAMP_BASE_API_ONLY_EXPORT FreeDeleter {
+struct FreeDeleter {
     void operator()(Type* p) const {
         free(p);
     }
@@ -100,7 +100,7 @@ using ScopedArray = std::unique_ptr<Type[], AlignedDeleter<Type>>;
 * @note Type must be default constructor.
 */
 template <typename BaseType, typename ImplType, typename... Args, size_t AlignSize = kMallocAlignSize>
-XAMP_BASE_API_ONLY_EXPORT ScopedPtr<BaseType> MakeAlign(Args&& ... args) {
+ScopedPtr<BaseType> MakeAlign(Args&& ... args) {
     auto ptr = ScopedPtr<void>(AlignedMallocObject<ImplType>(AlignSize));
     if (!ptr) {
         throw std::bad_alloc();
@@ -125,7 +125,7 @@ XAMP_BASE_API_ONLY_EXPORT ScopedPtr<BaseType> MakeAlign(Args&& ... args) {
 * @note Type must be default constructor.
 */
 template <typename Type, typename... Args, size_t AlignSize = kMallocAlignSize>
-XAMP_BASE_API_ONLY_EXPORT ScopedPtr<Type> MakeAlign(Args&& ... args) {
+ScopedPtr<Type> MakeAlign(Args&& ... args) {
     auto ptr = ScopedPtr<void>(AlignedMallocObject<Type>(AlignSize));
     if (!ptr) {
         throw std::bad_alloc();
@@ -170,7 +170,7 @@ std::shared_ptr<BaseType> MakeShared(Args&&... args) {
 * @return ScopedArray<Type>
 */
 template <typename Type>
-XAMP_BASE_API_ONLY_EXPORT ScopedArray<Type> MakeAlignedArray(size_t n) {
+ScopedArray<Type> MakeAlignedArray(size_t n) {
     auto ptr = AlignedMallocArray<Type>(n, kMallocAlignSize);
     if (!ptr) {
         throw std::bad_alloc();
@@ -186,7 +186,7 @@ XAMP_BASE_API_ONLY_EXPORT ScopedArray<Type> MakeAlignedArray(size_t n) {
 * @note StackAlloc is not thread safe.
 */
 template <typename Type = std::byte>
-XAMP_BASE_API_ONLY_EXPORT StackBuffer<Type> MakeStackBuffer(size_t n) {
+StackBuffer<Type> MakeStackBuffer(size_t n) {
     auto* ptr = StackAlloc(sizeof(Type) * n);
     if (!ptr) {
             throw std::bad_alloc();

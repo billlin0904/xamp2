@@ -16,7 +16,6 @@ IMPL_APP_SETTING_NAME(AppSettingScreenNumber, "AppSettings/screenNumber");
 IMPL_APP_SETTING_NAME(AppSettingWindowState, "AppSettings/windowState");
 IMPL_APP_SETTING_NAME(AppSettingVolume, "AppSettings/volume");
 IMPL_APP_SETTING_NAME(AppSettingOrder, "AppSettings/order");
-IMPL_APP_SETTING_NAME(AppSettingEnableFadeOut, "AppSettings/enableFadeOut");
 IMPL_APP_SETTING_NAME(AppSettingCachePath, "AppSettings/cachePath");
 IMPL_APP_SETTING_NAME(AppSettingUseNativeDSDMode, "AppSettings/useNativeDSDMode");
 IMPL_APP_SETTING_NAME(AppSettingPlaylistColumnName, "AppSettings/columnName");
@@ -44,11 +43,6 @@ IMPL_APP_SETTING_NAME(AppSettingEnableEQ, "AppSettings/enableEQ");
 IMPL_APP_SETTING_NAME(AppSettingEQName, "AppSettings/EQName");
 
 IMPL_APP_SETTING_NAME(LyricsFontSize, "AppSettings/lyrics/fontSize");
-
-IMPL_APP_SETTING_NAME(AppSettingEnableSpectrum, "AppSettings/spectrum/enable");;
-IMPL_APP_SETTING_NAME(AppSettingSpectrumStyles, "AppSettings/spectrum/spectrumStyles");
-IMPL_APP_SETTING_NAME(AppSettingWindowType, "AppSettings/spectrum/windowType");
-
 
 IMPL_APP_SETTING_NAME(Soxr, "Soxr");
 IMPL_APP_SETTING_NAME(SoxrDefaultSettingName, "default");

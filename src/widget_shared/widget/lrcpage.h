@@ -23,7 +23,6 @@ class QLabel;
 class VinylWidget;
 class ScrollLabel;
 class LyricsShowWidget;
-class SpectrumWidget;
 class QPaintEvent;
 
 enum {
@@ -120,8 +119,6 @@ public:
 
 	QSize coverSize() const;
 
-	SpectrumWidget* spectrum();
-
 	void setFullScreen();
 
 	void disableLoadLrcButton();
@@ -164,7 +161,6 @@ private:
 	ScrollLabel* album_;
 	ScrollLabel* artist_;
 	ScrollLabel* title_;
-	SpectrumWidget* spectrum_;
 	QToolButton* change_lrc_button_;
 	QToolButton* change_color_button_;
 	QToolButton* change_highlight_button_;

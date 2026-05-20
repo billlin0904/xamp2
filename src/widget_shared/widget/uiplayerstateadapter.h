@@ -6,14 +6,12 @@
 #pragma once
 
 #include <QObject>
+#include <vector>
 
 #include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
 
-#include <base/memory.h>
 #include <base/audioformat.h>
-#include <stream/stream.h>
-#include <stream/stft.h>
 
 #include <player/playstate.h>
 
@@ -24,11 +22,11 @@ class XAMP_WIDGET_SHARED_EXPORT UIPlayerStateAdapter final
 public:
     explicit UIPlayerStateAdapter(QObject *parent = nullptr);
 
-    void setBandSize(size_t band_size);
-
     void OutputFormatChanged(const AudioFormat output_format, size_t buffer_size) override;
 
-    size_t fftSize() const;
+    int32_t sampleRate() const;
+
+    size_t outputBufferSize() const;
 
     void OnSampleTime(double stream_time) override;
 
@@ -53,12 +51,11 @@ signals:
 
     void volumeChanged(float vol);
 
-    void fftResultChanged(ComplexValarray const& result);
+    void outputFormatChanged(int32_t sample_rate, size_t buffer_size);
+
+    void samplesChanged(std::vector<float> samples, size_t num_samples);
 
 private:
-    bool enable_spectrum_;
-    size_t band_size_;
-    size_t fft_size_;
-    double desired_band_width_;
-    ScopedPtr<STFT> stft_;
+    int32_t sample_rate_;
+    size_t output_buffer_size_;
 };

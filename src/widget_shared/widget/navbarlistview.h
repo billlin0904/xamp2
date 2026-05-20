@@ -21,12 +21,10 @@
 
 enum TabIndex {
     TAB_LYRICS,
-    TAB_PLAYLIST,
+    TAB_RICH_PLAYLIST,
     TAB_FILE_EXPLORER,
     TAB_MUSIC_LIBRARY,
-    TAB_CD,
-    TAB_YT_MUSIC_PLAYLIST,
-    TAB_YT_MUSIC_SEARCH
+    TAB_CD
 };
 
 class XTooltip;

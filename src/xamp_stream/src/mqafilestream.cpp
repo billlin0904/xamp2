@@ -478,9 +478,6 @@ void MqaFileStream::OpenFile(Path const& file_path) {
 void MqaFileStream::Open(ArchiveEntry archive_entry) {
 }
 
-void MqaFileStream::SetRate(float rate) {
-}
-
 void MqaFileStream::Close() {
     impl_->Close();
 }

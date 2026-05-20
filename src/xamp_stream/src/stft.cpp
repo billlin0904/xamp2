@@ -12,7 +12,7 @@ STFT::STFT(size_t frame_size, size_t shift_size)
     XAMP_EXPECTS(shift_size > 0);
     XAMP_EXPECTS(shift_size_ < frame_size_);
     window_.Init(frame_size);
-    fft_.Init(frame_size);
+    fft_.Initialize(frame_size);
     output_size_ = frame_size - shift_size;
     buf_ = MakeBuffer<float>(frame_size);
     out_ = MakeBuffer<float>(frame_size);

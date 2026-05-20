@@ -30,7 +30,6 @@
 XAMP_STREAM_NAMESPACE_BEGIN
 	using namespace base;
 
-    struct CompressorConfig;
     struct EqSettings;
 
     class STFT;

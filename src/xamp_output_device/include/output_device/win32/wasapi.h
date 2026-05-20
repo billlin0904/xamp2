@@ -8,59 +8,16 @@
 #include <base/base.h>
 
 #ifdef XAMP_OS_WIN
-#include <output_device/output_device.h>
+#include <cstdint>
+#include <string_view>
 
 #include <output_device/deviceinfo.h>
-#include <output_device/win32/mmcss_types.h>
 
-#include <base/stl.h>
-#include <base/uuid.h>
-
+#include <mmdeviceapi.h>
+#include <audioclient.h>
 #include <atlcomcli.h>
-#include <mmdeviceapi.h>
-
-#include <atlbase.h>
-#include <mmdeviceapi.h>
-#include <Audioclient.h>
-#include <audiopolicy.h>
-#include <mfapi.h>
-#include <strmif.h>
-#include <endpointvolume.h>
-#include <functiondiscoverykeys_devpkey.h>
-
-#include <avrt.h>
-#include <Mferror.h>
-
-#include <chrono>
-
-struct IMMDevice;
-struct IMFAsyncResult;
-struct IAudioClient;
-struct IAudioRenderClient;
-struct IMMNotificationClient;
-struct IMMDeviceEnumerator;
 
 XAMP_OUTPUT_DEVICE_WIN32_HELPER_NAMESPACE_BEGIN
-
-inline constexpr int32_t kWasapiReftimesPerMillisec = 10000;
-inline constexpr double kWasapiReftimesPerSec = 10000000;
-inline constexpr auto kMicrosecondsPerSecond =  1000000;
-
-using ComString = CComHeapPtr<wchar_t>;
-
-/*
-* Convert reference time to seconds.
-* 
-* @param[in] ref: reference time
-* @return seconds
-*/
-XAMP_ALWAYS_INLINE constexpr double Nano100ToSeconds(REFERENCE_TIME ref) {
-	//  1 nano = 0.000000001 seconds
-	//100 nano = 0.0000001   seconds
-	//100 nano = 0.0001   milliseconds
-	constexpr double ratio = 0.0000001;
-	return (static_cast<double>(ref) * ratio);
-}
 
 /*
 * Convert reference time to milliseconds.

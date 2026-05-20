@@ -13,6 +13,7 @@
 #include <sstream>
 #include <functional>
 #include <regex>
+#include <limits>
 
 XAMP_METADATA_NAMESPACE_BEGIN
 namespace {
@@ -478,7 +479,7 @@ namespace {
 
     class TaglibHelper {
     public:
-        XAMP_DECLARE_SINGLETON_NAME(xamp::metadata::TaglibHelper)
+        XAMP_DECLARE_SINGLETON_NAME()
 
         [[nodiscard]] HashSet<std::string> const& GetSupportFileExtensions() const {
             return support_file_extensions_;
@@ -519,10 +520,10 @@ namespace {
 
             buffer_.resize(entry.Length());
 
-            long total_read = 0;
+            int64_t total_read = 0;
             while (total_read < entry.Length()) {
                 auto chunk = entry.Read(buffer_.data() + total_read,
-                    static_cast<long>(entry.Length() - total_read));
+                    static_cast<size_t>(entry.Length() - total_read));
                 if (!chunk) {
                     throw std::runtime_error(chunk.error().c_str());
                 }
@@ -557,11 +558,15 @@ namespace {
         ByteVector readBlock(size_t length) {
             ensureCached();
 
-            const size_t avail = buffer_.size() - static_cast<size_t>(pos_);
+            const auto offset = static_cast<size_t>(pos_);
+            const size_t avail = buffer_.size() - offset;
             const size_t n = std::min<size_t>(length, avail);
+            if (n > static_cast<size_t>((std::numeric_limits<unsigned int>::max)())) {
+                throw std::runtime_error("ArchiveEntry read block too large.");
+            }
 
-            ByteVector out(buffer_.data() + pos_, n);
-            pos_ += static_cast<long long>(n);
+            ByteVector out(buffer_.data() + offset, static_cast<unsigned int>(n));
+            pos_ += static_cast<int64_t>(n);
             return out;
         }
 
@@ -589,7 +594,7 @@ namespace {
         void truncate(long long) override {
         }
     private:
-        long pos_{};
+        int64_t pos_{};
         ArchiveEntry entry;
         std::vector<char> buffer_;
     };

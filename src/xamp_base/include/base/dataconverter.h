@@ -12,7 +12,25 @@
 #include <base/int24.h>
 #include <base/memory.h>
 
+#ifdef XAMP_OS_WIN
+#define XAMP_VECTOR_CALL __vectorcall
+#else
+#define XAMP_VECTOR_CALL __attribute__((vectorcall))
+#endif
+
+// XAMP_IS_LITTLE_ENDIAN
+// XAMP_IS_BIG_ENDIAN
+#define XAMP_IS_LITTLE_ENDIAN 1
+//#define XAMP_IS_BIG_ENDIAN 1
+
 XAMP_BASE_NAMESPACE_BEGIN
+
+inline constexpr float kFloat16Scale { 32767.f };
+inline constexpr float kFloat24Scale { 8388607.f };
+// note: 必須要加上.f否則是round to 2147483648.
+inline constexpr float kFloat32Scale { 2147483647.f };
+inline constexpr float kMaxFloatSample { 1.0F };
+inline constexpr float kMinFloatSample { -1.0F };
 
 struct XAMP_BASE_API AudioConvertContext {
     AudioConvertContext();

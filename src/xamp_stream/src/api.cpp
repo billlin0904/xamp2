@@ -11,11 +11,7 @@
 #include <stream/ifileencoder.h>
 #include <stream/bassaacfileencoder.h>
 #include <stream/bassparametriceq.h>
-#include <stream/supereqequalizer.h>
-#include <stream/bassfader.h>
 #include <stream/basscddevice.h>
-#include <stream/basscompressor.h>
-#include <stream/bassequalizer.h>
 #include <stream/dspmanager.h>
 #include <stream/fftwlib.h>
 #include <stream/r8brainlib.h>
@@ -24,7 +20,6 @@
 #include <stream/libavencoder.h>
 #include <stream/discIdlib.h>
 #include <stream/avlib.h>
-#include <stream/ebur128scanner.h>
 #include <stream/api.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
@@ -55,17 +50,16 @@ bool IsDsdFile(const Path & path) {
     return IsDsdFileChunk(file_chunks);
 }
 
-ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& filePath, float rate, bool use_mqa_decode) {
+ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& filePath, bool use_mqa_decode) {
     auto dsd_mode = DsdModes::DSD_MODE_DSD2PCM;
     if (!IsDsdFile(filePath)) {
         dsd_mode = DsdModes::DSD_MODE_PCM;
     }
-	return MakeFileStream(filePath, dsd_mode, rate, use_mqa_decode);
+	return MakeFileStream(filePath, dsd_mode, use_mqa_decode);
 }
 
 ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& file_path,
     DsdModes dsd_mode, 
-    float rate,
     bool use_mqa_decode) {
     ScopedPtr<FileStream> file_stream;
 
@@ -124,7 +118,6 @@ ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& file_path,
             dsd_stream->SetDSDMode(dsd_mode);
         }
     }
-	file_stream->SetRate(rate);
     file_stream->OpenFile(file_path);
     return file_stream;
 }
@@ -139,24 +132,6 @@ ScopedPtr<IFileEncoder> StreamFactory::MakeFileEncoder() {
 
 ScopedPtr<IAudioProcessor> StreamFactory::MakeParametricEq() {
     return MakeAlign<IAudioProcessor, BassParametricEq>();
-}
-
-ScopedPtr<IAudioProcessor> StreamFactory::MakeEqualizer() {
-    return MakeAlign<IAudioProcessor, BassEqualizer>();    
-}
-
-#ifdef XAMP_OS_WIN
-ScopedPtr<IAudioProcessor> StreamFactory::MakeSuperEqEqualizer() {
-    return MakeAlign<IAudioProcessor, SuperEqEqualizer>();
-}
-#endif
-
-ScopedPtr<IAudioProcessor> StreamFactory::MakeCompressor() {
-    return MakeAlign<IAudioProcessor, BassCompressor>();
-}
-
-ScopedPtr<IAudioProcessor> StreamFactory::MakeFader() {
-    return MakeAlign<IAudioProcessor, BassFader>();
 }
 
 ScopedPtr<IDSPManager> StreamFactory::MakeDSPManager() {
@@ -182,17 +157,14 @@ IDsdStream* AsDsdStream(FileStream* stream) {
 }
 
 std::expected<ArchiveFileStream, std::string> StreamFactory::MakeArchiveFileStream(const Path& archive_path,
-    const std::wstring& archive_entry_name,
-    float rate,
-    bool use_mqa_decode) {
+    const std::wstring& archive_entry_name) {
     ArchiveFile file_;
     
     auto enitities = file_.Open(archive_path);
     if (enitities.has_value()) {
         auto archive_entiry = file_.GetEntryByName(archive_entry_name);
         if (archive_entiry.has_value()) {
-            auto file_stream = StreamFactory::MakeFileStream(archive_path, use_mqa_decode);
-			file_stream->SetRate(rate);
+            auto file_stream = MakeAlign<FileStream, BassFileStream>();
             file_stream->Open(std::move(archive_entiry.value()));
 			ArchiveFileStream result;
 			result.archive_file = std::move(file_);
@@ -205,10 +177,7 @@ std::expected<ArchiveFileStream, std::string> StreamFactory::MakeArchiveFileStre
 }
 
 ScopedPtr<FileStream> StreamFactory::MakeFileStream(ArchiveEntry archive_entry, 
-    DsdModes dsd_mode,
-    float rate,
-    bool use_mqa_decode) {
-	// TODO: Implement MQA decoding for archive entries if needed
+    DsdModes dsd_mode) {
     auto file_stream = MakeAlign<FileStream, BassFileStream>();
 
     if (dsd_mode != DsdModes::DSD_MODE_PCM) {
@@ -243,7 +212,6 @@ ScopedPtr<FileStream> StreamFactory::MakeFileStream(ArchiveEntry archive_entry,
             dsd_stream->SetDSDMode(dsd_mode);            
         }
     }    
-	file_stream->SetRate(rate);
     file_stream->Open(std::move(archive_entry));
     return file_stream;
 }
@@ -308,10 +276,6 @@ void LoadSoxrLib() {
 
 void LoadSrcLib() {
     SharedSingleton<SrcLib>::GetInstance();
-}
-
-void LoadEbur128Lib() {
-    Ebur128Scanner::LoadEbur128Lib();
 }
 
 XAMP_STREAM_NAMESPACE_END

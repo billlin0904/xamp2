@@ -5,6 +5,12 @@
 
 #include <iostream>
 #include <QLoggingCategory>
+#include <QtGlobal>
+
+#ifdef Q_OS_WIN
+#include <mimalloc.h>
+#endif
+
 #include <base/scopeguard.h>
 #include <base/dll.h>
 #include <base/crashhandler.h>
@@ -28,6 +34,39 @@
 #include <fcntl.h>
 
 namespace {
+#ifdef Q_OS_WIN
+    void configureMimallocForPerformance() noexcept {
+        // Favor allocation throughput over returning memory to the OS quickly.
+        mi_option_set_default(mi_option_eager_commit, 1);
+        // Eagerly commit even the first per-thread segment to avoid first-use stalls.
+        mi_option_set_default(mi_option_eager_commit_delay, 0);
+        // Keep freed pages around a bit longer so bursty UI/audio workloads can reuse them.
+        mi_option_set_default(mi_option_purge_delay, 500);
+        // Apply an even longer purge delay for arena memory, trading RSS for steadier latency.
+        mi_option_set_default(mi_option_arena_purge_mult, 20);
+        // Reset pages instead of decommitting them; this is usually faster on Windows.
+        mi_option_set_enabled_default(mi_option_purge_decommits, false);
+        // Let active threads reclaim memory from finished threads during later frees.
+        mi_option_set_enabled_default(mi_option_abandoned_reclaim_on_free, true);
+    }
+
+    void logMimallocOptions() {
+        XAMP_LOG_DEBUG(
+            "mimalloc performance options: eager_commit={}, eager_commit_delay={}, purge_delay={}ms, purge_decommits={}, arena_purge_mult={}.",
+            mi_option_get(mi_option_eager_commit),
+            mi_option_get(mi_option_eager_commit_delay),
+            mi_option_get(mi_option_purge_delay),
+            mi_option_get(mi_option_purge_decommits),
+            mi_option_get(mi_option_arena_purge_mult));
+    }
+#else
+    void configureMimallocForPerformance() noexcept {
+    }
+
+    void logMimallocOptions() {
+    }
+#endif
+
 #ifdef Q_OS_MAC
     class QDebugSink : public spdlog::sinks::base_sink<LoggerMutex> {
     public:
@@ -41,28 +80,6 @@ namespace {
         void flush_() override {
         }
     };
-#else
-    std::vector<SharedLibraryHandle> prefetchDll() {
-        std::vector<SharedLibraryHandle> preload_module;
-#ifdef Q_OS_WIN
-        const std::vector<std::string_view> dll_file_names{
-            R"(C:\Program Files\Bonjour\mdnsNSP.dll)",
-        };
-        for (const auto& file_name : dll_file_names) {
-            try {
-                auto module = LoadSharedLibrary(file_name);
-                if (PrefetchSharedLibrary(module)) {
-                    preload_module.push_back(std::move(module));
-                    XAMP_LOG_DEBUG("\tPreload => {} success.", file_name);
-                }
-            }
-            catch (const Exception& e) {
-                XAMP_LOG_DEBUG("Preload {} failure! {}.", file_name, e.GetErrorMessage());
-            }
-        }
-#endif
-        return preload_module;
-    }
 #endif
 
 #ifdef _DEBUG
@@ -134,8 +151,6 @@ namespace {
             return -1;
         }
 
-        auto prefetch_dll = prefetchDll();
-        XAMP_LOG_DEBUG("Prefetch dll success.");
 #endif
         QApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 
@@ -207,7 +222,9 @@ namespace {
         main_window.restoreAppGeometry();
         main_window.showWindow();
 
-        XAMP_LOG_DEBUG("Initial XAMP window done!");
+        logMimallocOptions();
+
+        XAMP_LOG_DEBUG("<<<Initial XAMP window done!>>>");
 
         if (qAppSettings.valueAsBool(kAppSettingEnableShortcut)) {
             main_window.setShortcut(QKeySequence(Qt::Key_MediaPlay));
@@ -225,6 +242,8 @@ namespace {
 }
 
 int main() {
+    configureMimallocForPerformance();
+
     try {
         XampLoggerFactory
             .AddDebugOutput()
@@ -232,7 +251,7 @@ int main() {
             .AddSink(std::make_shared<QDebugSink>())
 #endif
             .AddLogFile("xamp.log")
-            .Startup();
+            .Startup();        
     }
     catch (const std::exception& e) {
         return -1;

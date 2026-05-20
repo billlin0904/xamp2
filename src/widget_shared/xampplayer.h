@@ -21,6 +21,7 @@ namespace QWK {
     class StyleAgent;
 }
 
+class QAction;
 
 class IXFrame;
 
@@ -53,6 +54,10 @@ public:
     virtual void showWindow() = 0;
 
 	virtual void setTitle(const QString& title) = 0;
+
+    virtual void clearSystemMenuActions() = 0;
+
+    virtual void addSystemMenuAction(QAction* action) = 0;
 protected:
     IXMainWindow();
 
@@ -82,6 +87,8 @@ public:
     virtual void shortcutsPressed(const QKeySequence& shortcut) = 0;
 
     virtual QString translateText(const std::string_view& text) = 0;
+
+    virtual void destory() = 0;
 protected:
     explicit IXFrame(QWidget* parent = nullptr);
 };

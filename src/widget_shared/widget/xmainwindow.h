@@ -7,9 +7,9 @@
 
 #include <xampplayer.h>
 #include <thememanager.h>
-#include <QSystemTrayIcon>
 #include <widget/driveinfo.h>
 
+class QAction;
 class WinTaskbar;
 
 class XAMP_WIDGET_SHARED_EXPORT XMainWindow final : public IXMainWindow {
@@ -55,6 +55,10 @@ public:
     IXFrame* contentWidget() const override;
 
     void setTitle(const QString& title) override;
+
+    void clearSystemMenuActions() override;
+
+    void addSystemMenuAction(QAction* action) override;
 protected:
     void dragEnterEvent(QDragEnterEvent *event) override;
 
@@ -66,6 +70,8 @@ protected:
 
     void saveAppGeometry() override;
 
+    void closeEvent(QCloseEvent* event) override;
+
 public slots:
     void onThemeChangedFinished(ThemeColor theme_color);
 
@@ -76,6 +82,8 @@ private:
 
     void ensureInitTaskbar();
 
+    void resetNativeSystemMenu();
+
     uint32_t screen_number_;
     QPoint last_pos_;
     QScopedPointer<WinTaskbar> task_bar_;
@@ -83,7 +91,9 @@ private:
     QMap<QString, DriveInfo> exist_drives_;
     QFrame* title_frame_{ nullptr };
 #endif
-    QScopedPointer<QSystemTrayIcon> tray_icon_;
+    QMap<quint32, QAction*> system_menu_actions_;
+    quint32 next_system_menu_id_{ 0xA000 };
+    bool system_menu_separator_added_{ false };
     QMap<QPair<quint32, quint32>, QKeySequence>  shortcuts_;
     IXFrame *content_widget_;
 };

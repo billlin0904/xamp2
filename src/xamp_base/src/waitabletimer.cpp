@@ -31,8 +31,8 @@ public:
 	TimePeriod() {
 		TIMECAPS tc{ 0 };
 		if (::timeGetDevCaps(&tc, sizeof(TIMECAPS)) == TIMERR_NOERROR) {
-			const auto timer_res = (std::min)((std::max)(tc.wPeriodMin, kDesiredSchedulerMS), tc.wPeriodMax);
-			sleep_is_granular_ = (::timeBeginPeriod(timer_res) == TIMERR_NOERROR);
+			timer_res_ = (std::min)((std::max)(tc.wPeriodMin, kDesiredSchedulerMS), tc.wPeriodMax);
+			sleep_is_granular_ = (::timeBeginPeriod(timer_res_) == TIMERR_NOERROR);
 		} else {
 			sleep_is_granular_ = false;
 		}
@@ -40,7 +40,7 @@ public:
 
 	~TimePeriod() {
 		if (sleep_is_granular_) {
-			::timeEndPeriod(kDesiredSchedulerMS);
+			::timeEndPeriod(timer_res_);
 		}
 	}
 
@@ -49,6 +49,7 @@ public:
 	}
 private:
 	bool sleep_is_granular_;
+	UINT timer_res_{ kDesiredSchedulerMS };
 };
 
 // Windows 10 2004 Sleep已經不準確, 改換為使用 CreateWaitableTimerEx
@@ -59,6 +60,9 @@ public:
 	APCWaitableTimerImpl()
 		: timer_(::CreateWaitableTimerEx(nullptr, nullptr, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS))
 		, timeout_(0) {
+		if (!timer_) {
+			throw PlatformException();
+		}
 	}
 
 	void SetTimeout(std::chrono::milliseconds timeout) override {

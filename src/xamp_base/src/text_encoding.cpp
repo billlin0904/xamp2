@@ -218,13 +218,19 @@ public:
 		size_t buf_size,
 		bool ignore_error) {
 		const auto encoding_name = detector_.Detect(input);
-		if (encoding_name) {
+		if (!encoding_name) {
+			return std::unexpected(TextEncodeingError::TEXT_ENCODING_DETECT_ERROR);
+		}
+
+		auto detected_encoding = encoding_name.value();
+		if (detected_encoding.empty()) {
+			return std::unexpected(TextEncodeingError::TEXT_ENCODING_UNKNOWN_ENCDOING);
+		}
+
+		if (String::ToLower(detected_encoding) == "utf-8") {
 			return input;
 		}
-		if (encoding_name != kUTF8Encoding) {
-			return ConvertToUtf8String(encoding_name.value(), input, buf_size, ignore_error);
-		}
-		return std::unexpected(TextEncodeingError::TEXT_ENCODING_INPUT_STRING_UTF8);
+		return ConvertToUtf8String(detected_encoding, input, buf_size, ignore_error);
 	}
 
 	EncodingDetector detector_;

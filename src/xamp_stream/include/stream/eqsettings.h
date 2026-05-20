@@ -12,7 +12,7 @@
 XAMP_STREAM_NAMESPACE_BEGIN
 
 inline constexpr size_t kEQMaxBand = 10;
-inline constexpr auto kDefaultQ = 1.41;
+inline constexpr auto kDefaultQ = 1.41F;
 inline constexpr auto kEQMaxDb = 15;
 inline constexpr auto kEQMinDb = -15;
 
@@ -57,8 +57,9 @@ struct XAMP_STREAM_API EqSettings final {
     void SetDefault() {
         bands.resize(kEqDefaultFrequencies.size());
         for (auto i = 0; i < kEqDefaultFrequencies.size(); ++i) {
+            bands[i].type = EQFilterTypes::FT_ALL_PEAKING_EQ;
             bands[i].frequency = kEqDefaultFrequencies[i];
-            bands[i].band_width = kEqDefaultFrequencies[i] / 2;
+            bands[i].band_width = 0;
             bands[i].Q = kDefaultQ;
         }
     }

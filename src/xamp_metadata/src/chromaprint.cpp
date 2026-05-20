@@ -27,7 +27,7 @@ public:
 		std::vector<int16_t> buffer(size);
 		DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Convert(
 			reinterpret_cast<int16_t*>(buffer.data()), data, ctx);
-		return Process(buffer.data(), buffer.size());
+		return Process(buffer.data(), static_cast<uint32_t>(buffer.size()));
 	}
 
 	int32_t Process(int16_t const* data, uint32_t size) const {

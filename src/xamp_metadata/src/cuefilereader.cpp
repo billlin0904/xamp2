@@ -1,10 +1,12 @@
 #include <metadata/api.h>
-#include <metadata/cueloader.h>
+#include <metadata/cuefilereader.h>
 #include <metadata/libcuelib.h>
 #include <base/fs.h>
 #include <base/fastmutex.h>
 #include <base/dll.h>
 #include <base/logger.h>
+
+#include <cmath>
 
 extern "C" {
 #include <libcue.h>
@@ -35,7 +37,7 @@ namespace {
 	}
 
 	long SecondToFrame(double second) {
-		return second * 75;
+		return static_cast<long>(std::lround(second * 75.0));
 	}
 }
 
@@ -196,7 +198,7 @@ public:
 			track_info.title = String::ToString(s);
 		if ((s = LIBCUE_LIB.cdtext_get(PTI_GENRE, cd_text)))
 			track_info.genre = String::ToString(s);
-		if ((s = LIBCUE_LIB.cdtext_get(PTI_COMPOSER, cd_text)))
+		if (track_info.artist.empty() && (s = LIBCUE_LIB.cdtext_get(PTI_COMPOSER, cd_text)))
 			track_info.artist = String::ToString(s);
 	}
 

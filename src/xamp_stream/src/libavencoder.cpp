@@ -41,6 +41,24 @@ namespace {
 
     using Converter = std::function<void(const float*, AVFrame*, size_t)>;
 
+    struct OutputIoContextDeleter {
+        bool close_file = false;
+
+        void operator()(AVIOContext* context) const {
+            if (context == nullptr) {
+                return;
+            }
+            if (close_file) {
+                LibAvDLL.Format->avio_closep(&context);
+            }
+            else {
+                LibAvDLL.Format->avio_context_free(&context);
+            }
+        }
+    };
+
+    using OutputIoContextPtr = std::unique_ptr<AVIOContext, OutputIoContextDeleter>;
+
     const HashMap<std::string, std::function<Converter(const ScopedPtr<FileStream>&, uint32_t&, AVCodecID&, AVSampleFormat&, std::string&)>>
         kConverterLut = {
             { "aac", [](const ScopedPtr<FileStream>&, uint32_t& sample_size, AVCodecID& codec_id, AVSampleFormat& sample_format, std::string& guess_file_name) ->Converter {
@@ -146,8 +164,7 @@ public:
         file_name_ = String::ToUtf8String(output_file_path.wstring());
 
         // 3) 建立輸入檔案讀取物件並打開
-        input_file_ = StreamFactory::MakeFileStream(input_file_path, 0.0);
-        input_file_->OpenFile(input_file_path);
+        input_file_ = StreamFactory::MakeFileStream(input_file_path);
 
         // 4) 若未指定 writer，則建立檔案寫入物件
         io_stream_ = io_stream;
@@ -173,7 +190,6 @@ public:
     void CreateAudioStream() {
         // 預設輸出檔名 (若未指定 writer 或 container)
         std::string guess_file_name = "output.m4a";
-        const char* file_name = file_name_.c_str();
 
         auto sample_format = AV_SAMPLE_FMT_NONE;
         const auto format = input_file_->GetFormat();
@@ -185,6 +201,8 @@ public:
         //----------------------------------------------------------------------
 
         InitialConverter(sample_size, codec_id, sample_format, guess_file_name);
+        const auto output_file_name = file_name_.empty() ? guess_file_name : file_name_;
+        const auto* file_name = output_file_name.c_str();
 
         //----------------------------------------------------------------------
         // 建立輸出 AVFormatContext + AVIOContext (若使用自訂 IO)
@@ -211,7 +229,7 @@ public:
                 throw Exception("Failed to create custom AVIOContext.");
             }
 
-            output_io_context_.reset(custom_io_ctx);
+            output_io_context_ = OutputIoContextPtr(custom_io_ctx, OutputIoContextDeleter{ false });
 
             format_context_.reset(LibAvDLL.Format->avformat_alloc_context());
             if (!format_context_) {
@@ -227,10 +245,10 @@ public:
             AVIOContext* output_io_context = nullptr;
             AvIfFailedThrow(LibAvDLL.Format->avio_open(
                 &output_io_context,
-                guess_file_name.c_str(),
+                file_name,
                 AVIO_FLAG_WRITE
             ));
-            output_io_context_.reset(output_io_context);
+            output_io_context_ = OutputIoContextPtr(output_io_context, OutputIoContextDeleter{ true });
 
             format_context_.reset(LibAvDLL.Format->avformat_alloc_context());
             if (!format_context_) {
@@ -242,7 +260,7 @@ public:
 
         // 猜測輸出封裝格式
         format_context_->oformat = LibAvDLL.Format->av_guess_format(
-            nullptr, guess_file_name.c_str(), nullptr
+            nullptr, file_name, nullptr
         );
 
         //----------------------------------------------------------------------
@@ -559,7 +577,7 @@ private:
     std::string file_name_;
 
     AvPtr<AVCodecContext> codec_context_;
-    AvPtr<AVIOContext> output_io_context_;
+    OutputIoContextPtr output_io_context_;
     AvPtr<AVFormatContext> format_context_;
 
     // 用於 float PCM => 對應格式的轉換函式    

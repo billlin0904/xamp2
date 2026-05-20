@@ -29,6 +29,19 @@ auto kCacheFileExtension = "."_str + qFormat(ImageCache::kImageFileFormat).toLow
 
 XAMP_DECLARE_LOG_NAME(ImageCache);
 
+namespace {
+	bool prepareBuffer(QBuffer& buffer) {
+		buffer.close();
+		buffer.setData(QByteArray());
+		return buffer.open(QIODevice::WriteOnly);
+	}
+
+	void resetBuffer(QBuffer& buffer) {
+		buffer.close();
+		buffer.setData(QByteArray());
+	}
+}
+
 ImageCache::ImageCache()
 	: logger_(XAMP_LOG_CREATE_LOGGER(ImageCache))
 	, thumbnail_cache_(kMaxCacheImageSize) {
@@ -55,7 +68,7 @@ void ImageCache::loadUnknownCover() {
 }
 
 QPixmap ImageCache::scanCoverFromDir(const QString& file_path) {
-    const std::array<QString, 4> kTargetFolders = { "scans"_str, "artwork"_str, "booklet"_str };
+    const std::array<QString, 3> kTargetFolders = { "scans"_str, "artwork"_str, "booklet"_str };
 	constexpr auto kMaxDirCdUp = 4;
 
 	// 1...
@@ -70,7 +83,10 @@ QPixmap ImageCache::scanCoverFromDir(const QString& file_path) {
 	// 10.Scans
 	constexpr auto kMaxUnexceptedDirSize = 10;
 
-	const QDir dir(file_path);
+	const QFileInfo input_info(file_path);
+	const QDir dir = input_info.isDir()
+		? QDir(input_info.absoluteFilePath())
+		: input_info.absoluteDir();
 	QDir scan_dir(dir);
 
 	auto find_dir_image = [this](const QDir &scan_dir, QDirIterator::IteratorFlags dir_iter_flag) -> std::optional<QPixmap> {
@@ -137,13 +153,11 @@ QPixmap ImageCache::scanCoverFromDir(const QString& file_path) {
 				break;
 			}
 		}
-		auto now_path = scan_dir.path();
 		// Parent path maybe contains image file.
 		if (auto image = find_dir_image(scan_dir, QDirIterator::Subdirectories)) {
 			return image.value();
 		}
 		scan_dir.cdUp();
-		now_path = scan_dir.path();
 		++cd_up_count;
 	}
 
@@ -224,12 +238,13 @@ QPixmap ImageCache::getOrAdd(const QString& tag_id, std::function<QPixmap()>&& v
 	}
 
 	const auto buffer = buffer_pool_->Acquire();
-	if (!buffer->open(QIODevice::WriteOnly)) {
+	if (!prepareBuffer(*buffer)) {
 		XAMP_LOG_DEBUG("Failure to create buffer.");
 	}
 
 	const auto cache_cover = value_factory();
     if (cache_cover.isNull()) {
+		resetBuffer(*buffer);
         return getOrAddDefault(tag_id);
     }
 
@@ -245,8 +260,7 @@ QPixmap ImageCache::getOrAdd(const QString& tag_id, std::function<QPixmap()>&& v
 	}
 
 	thumbnail_cache_.AddOrUpdate(tag_id, { buffer->size(), cache_cover });
-	buffer->close();
-	buffer->setData(QByteArray());	
+	resetBuffer(*buffer);
 	return getOrAddDefault(tag_id);
 }
 
@@ -254,18 +268,27 @@ void ImageCache::addCache(const QString& cover_id, const QPixmap& cover) {
 	const auto buffer = buffer_pool_->Acquire();
 	const auto file_path = makeImageCachePath(cover_id);
 
+	if (!prepareBuffer(*buffer)) {
+		XAMP_LOG_DEBUG("Failure to create buffer.");
+	}
+
+	if (!cover.save(buffer.get(), kImageFileFormat)) {
+		XAMP_LOG_DEBUG("Failure to save buffer.");
+	}
+
 	if (!cover.save(file_path, kImageFileFormat)) {
 		XAMP_LOG_DEBUG("Failure to save image cache.");
 	}
 
 	thumbnail_cache_.AddOrUpdate(cover_id, { buffer->size(), cover });
+	resetBuffer(*buffer);
 }
 
 QString ImageCache::addImage(const QPixmap& cover, bool save_only, bool resize) {
 	const auto cover_size = qTheme.cacheCoverSize();
 
 	const auto buffer = buffer_pool_->Acquire();
-	if (!buffer->open(QIODevice::WriteOnly)) {
+	if (!prepareBuffer(*buffer)) {
 		XAMP_LOG_DEBUG("Failure to create buffer.");
 	}
 
@@ -293,19 +316,18 @@ QString ImageCache::addImage(const QPixmap& cover, bool save_only, bool resize) 
 	}
 
 	if (save_only) {
-		buffer->close();
-		buffer->setData(QByteArray());
+		resetBuffer(*buffer);
 		return tag_id;
 	}
 	
 	thumbnail_cache_.AddOrUpdate(tag_id, { buffer->size(), resize_image });
 
 	if (!resize) {
+		resetBuffer(*buffer);
 		return tag_id;
 	}
 
-	buffer->close();
-	buffer->setData(QByteArray());
+	resetBuffer(*buffer);
 
 	addOrUpdateCover(kAlbumCacheTag, tag_id, resize_image);
 	return tag_id;

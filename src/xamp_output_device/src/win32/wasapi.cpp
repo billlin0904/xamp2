@@ -1,26 +1,27 @@
-#include <sstream>
-#include <base/base.h>
-#include <base/enum.h>
+#include <atlbase.h>
+#include <initguid.h>
+
+#include <output_device/win32/wasapi.h>
 
 #ifdef XAMP_OS_WIN
 
-#include <initguid.h>
-#include <cguid.h> // GUID_NULL
+#include <sstream>
 
-#include <base/stl.h>
-#include <base/scopeguard.h>
-#include <base/str_utilts.h>
+#include <base/enum.h>
 #include <base/logger.h>
-#include <base/platfrom_handle.h>
-#include <output_device/idevicetype.h>
-#include <output_device/win32/comexception.h>
-#include <output_device/win32/wasapi.h>
+#include <base/str_utilts.h>
 
+#include <output_device/win32/comexception.h>
+
+#include <devicetopology.h>
+#include <functiondiscoverykeys_devpkey.h>
 #include <propvarutil.h>
 
 XAMP_OUTPUT_DEVICE_WIN32_HELPER_NAMESPACE_BEGIN
 
 namespace {
+	using ComString = CComHeapPtr<wchar_t>;
+
 	XAMP_MAKE_ENUM(EndpointFactor,
 		RemoteNetworkDevice,
 		Speakers,

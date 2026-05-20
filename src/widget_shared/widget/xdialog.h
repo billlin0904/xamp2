@@ -12,7 +12,10 @@
 
 namespace QWK {
 	class WidgetWindowAgent;
+    class WindowBar;
 }
+
+class QColor;
 
 class XAMP_WIDGET_SHARED_EXPORT XDialog : public QDialog {
     Q_OBJECT
@@ -35,6 +38,8 @@ public:
 
     void setIcon(const QIcon& icon);
 
+    void setTitleBarBackgroundColor(const QColor& color);
+
 public slots:
     void onThemeChangedFinished(ThemeColor theme_color);
 
@@ -46,6 +51,7 @@ private:
     void installWindowAgent();
 
     QWK::WidgetWindowAgent* window_agent_{ nullptr };
+    QWK::WindowBar* window_bar_{ nullptr };
     QWidget* content_{ nullptr };
 };
 

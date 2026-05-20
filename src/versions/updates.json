@@ -3,16 +3,16 @@
     "windows": {
       "open-url": "",
       "latest-version": "1.0.0",
-      "download-url": "https://github.com/billlin0904/xamp2/archive/refs/tags/2022/06/04.zip",
-      "changelog": "<br>1.0.0</br><p><ul><li>紀錄最後打開的檔案路徑.</li></ul></p>",
-      "mandatory-update": true
+      "download-url": "https://github.com/billlin0904/xamp2/releases/latest/download/xamp2-setup.exe",
+      "changelog": "<h3>XAMP 2 1.0.0</h3><ul><li>公開發行版本。</li><li>提供 Windows 安裝檔下載。</li></ul>",
+      "mandatory-update": false
     },
     "osx": {
-      "open-url": "",
+      "open-url": "https://github.com/billlin0904/xamp2/releases",
       "latest-version": "1.0.0",
-      "download-url": "https://github.com/billlin0904/xamp2/archive/refs/tags/2022/06/04.zip",
-      "changelog": "<br>1.0.0</br><p><ul><li>紀錄最後打開的檔案路徑.</li></ul></p>",
-      "mandatory-update": true
+      "download-url": "",
+      "changelog": "<h3>XAMP 2 1.0.0</h3><ul><li>macOS 目前尚未提供正式安裝檔。</li></ul>",
+      "mandatory-update": false
     }
   }
 }

@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include <QSystemTrayIcon>
 #include <QThread>
 #include <optional>
 
@@ -51,6 +50,7 @@ public:
 
 	QString translateText(const std::string_view& text) override;
 
+    void destory() override;
 signals:
     void fetchCdInfo(const DriveInfo& drive);
 
@@ -83,11 +83,19 @@ private:
 
 	void setVolume(uint32_t volume);
 
+    void configureUpdater(bool notify_on_finish);
+
+    void installDownloadedUpdate(const QString& url, const QString& filepath);
+
+    void setupSystemMenu();
+
+    void showPreference();
+
+    void showLogViewer();
+
     void onCheckForUpdate();
 
     void showAbout();
-
-    void onActivated(QSystemTrayIcon::ActivationReason reason);
 
     bool is_seeking_{ false };
     IXMainWindow* main_window_{ nullptr };
@@ -97,7 +105,6 @@ private:
     QScopedPointer<FileSystemViewPage> file_explorer_page_;
 	QScopedPointer<CdPage> cd_page_;
     QScopedPointer<DeviceSelectorMenu> device_menu_;
-	QScopedPointer<QSystemTrayIcon> tray_icon_;
     QScopedPointer<FileSystemService> file_system_service_;
     QScopedPointer<BackgroundService> background_service_;
     QList<QWidget*> widgets_;

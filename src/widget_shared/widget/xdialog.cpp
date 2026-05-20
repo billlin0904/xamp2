@@ -1,5 +1,7 @@
 ﻿#include <QCloseEvent>
 
+#include <QColor>
+
 #include <widget/xdialog.h>
 
 #include <thememanager.h>
@@ -24,7 +26,7 @@ XDialog::XDialog(QWidget* parent, bool modal)
     default_layout->setObjectName(QString::fromUtf8("default_layout"));
     default_layout->setContentsMargins(0, 0, 0, 0);
     setLayout(default_layout);
-    //installWindowAgent();
+    installWindowAgent();
     setModal(modal);
 }
 
@@ -113,7 +115,9 @@ void XDialog::installWindowAgent() {
 
 #endif
 
-    auto* window_bar = new QWK::WindowBar();
+    auto* window_bar = new QWK::WindowBar(this);
+    window_bar_ = window_bar;
+    window_bar_->setObjectName("dialog-window-bar"_str);
 #ifndef Q_OS_MAC
     window_bar->setIconButton(icon_button);
     window_bar->setMinButton(min_button);
@@ -122,6 +126,7 @@ void XDialog::installWindowAgent() {
 #endif
     window_bar->setTitleLabel(title_label);
     window_bar->setHostWidget(this);
+    window_bar->setFixedHeight(kMaxTitleHeight);
 
     window_agent_->setTitleBar(window_bar);
 #ifndef Q_OS_MAC
@@ -139,7 +144,7 @@ void XDialog::installWindowAgent() {
 #endif
 
     auto* default_layout = dynamic_cast<QVBoxLayout*>(layout());
-    default_layout->addWidget(window_bar, 1);
+    default_layout->addWidget(window_bar, 0);
 
 #ifndef Q_OS_MAC
     QObject::connect(window_bar, &QWK::WindowBar::minimizeRequested, this, &QWidget::showMinimized);
@@ -169,6 +174,21 @@ void XDialog::setTitle(const QString& title) {
 
 void XDialog::setIcon(const QIcon& icon) {
     setWindowIcon(icon);
+}
+
+void XDialog::setTitleBarBackgroundColor(const QColor& color) {
+    if (window_bar_ == nullptr) {
+        return;
+    }
+    window_bar_->setStyleSheet(qFormat(R"(
+        QFrame#dialog-window-bar {
+            background-color: %1;
+            border: none;
+        }
+        QFrame#dialog-window-bar QLabel {
+            background-color: transparent;
+        }
+    )").arg(color.name()));
 }
 
 void XDialog::setContentWidget(QWidget* content, bool no_moveable, bool disable_resize) {

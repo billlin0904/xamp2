@@ -3,11 +3,19 @@
 #include <xamp.h>
 #include <deviceselectormenu.h>
 #include <sharedmodeplayback.h>
+#include <QSimpleUpdater.h>
+
+#include <algorithm>
 
 #include <QAction>
+#include <QApplication>
+#include <QColor>
 #include <QGuiApplication>
 #include <QMap>
+#include <QProcess>
 #include <QScreen>
+#include <QStandardPaths>
+#include <QTimer>
 
 #include <base/ithreadpoolexecutor.h>
 #include <base/crashhandler.h>
@@ -36,12 +44,16 @@
 #include <widget/cdpage.h>
 #include <widget/waveformslider.h>
 #include <widget/musicbrainzeditpage.h>
+#include <widget/aboutpage.h>
 #include <widget/scanfileprogresspage.h>
+#include <widget/xmessagebox.h>
 #include <widget/worker/filesystemservice.h>
 
 #include <style_util.h>
 
 namespace {
+    const auto kUpdateDefinitionsUrl = "https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json"_str;
+
     QSize dialogContentSize(QWidget* dialog, const QWidget* content) {
         auto* screen = dialog != nullptr ? dialog->screen() : QGuiApplication::primaryScreen();
         if (screen == nullptr) {
@@ -50,9 +62,18 @@ namespace {
 
         const auto available = screen->availableGeometry().size();
         const QSize max_size(static_cast<int>(available.width() * 0.85), static_cast<int>(available.height() * 0.85));
-        return content->sizeHint()
+        auto size = content->sizeHint()
             .expandedTo(content->minimumSizeHint())
             .boundedTo(max_size);
+        if (dialog != nullptr) {
+            const auto content_hint = content->sizeHint().expandedTo(content->minimumSizeHint());
+            const auto dialog_hint = dialog->sizeHint().expandedTo(dialog->minimumSizeHint());
+            const QSize chrome(
+                std::max(0, dialog_hint.width() - content_hint.width()),
+                std::max(0, dialog_hint.height() - content_hint.height()));
+            size = (size + chrome).boundedTo(max_size);
+        }
+        return size;
     }
 
     std::optional<EqSettings> storedParametricEqSettings() {
@@ -86,29 +107,7 @@ Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
 }
 
 Xamp::~Xamp() {
-    if (main_window_ != nullptr) {
-        main_window_->saveAppGeometry();
-    }
-
-    auto quit_and_wait_thread = [](auto& thread) {
-        if (!thread.isFinished()) {
-            thread.requestInterruption();
-            thread.quit();
-            thread.wait();
-        }
-        };
-
-    if (file_system_service_ != nullptr) {
-        file_system_service_->cancelRequested();
-    }
-    quit_and_wait_thread(file_system_service_thread_);
-
-    if (background_service_ != nullptr) {
-        background_service_->cancelRequested();
-    }
-    quit_and_wait_thread(background_service_thread_);
-    qGuiDb.Close();
-    XampCrashHandler.Cleanup();
+    destory();
 }
 
 void Xamp::pushWidget(QWidget* widget) {
@@ -174,6 +173,36 @@ void Xamp::initialDeviceList(const std::string& device_id) {
 
 QString Xamp::translateText(const std::string_view& text) {
     return tr(text.data());
+}
+
+void Xamp::destory() {
+    if (main_window_ != nullptr) {
+        main_window_->saveAppGeometry();
+    }
+    else {
+        return;
+    }
+
+    auto quit_and_wait_thread = [](auto& thread) {
+        if (!thread.isFinished()) {
+            thread.requestInterruption();
+            thread.quit();
+            thread.wait();
+        }
+        };
+
+    if (file_system_service_ != nullptr) {
+        file_system_service_->cancelRequested();
+    }
+    quit_and_wait_thread(file_system_service_thread_);
+
+    if (background_service_ != nullptr) {
+        background_service_->cancelRequested();
+    }
+    quit_and_wait_thread(background_service_thread_);
+    qGuiDb.Close();
+    XampCrashHandler.Cleanup();
+    main_window_ = nullptr;
 }
 
 void Xamp::shortcutsPressed(const QKeySequence& shortcut) {
@@ -305,7 +334,6 @@ void Xamp::playLocalFile(const QString& file_name, bool queue) {
     try {
         auto file_stream = StreamFactory::MakeFileStream(file_name.toStdWString(),
             playback_plan.output_mode,
-            0.0f,
             playback_plan.use_mqa_decode);
         const auto byte_format = resolvePreparedPlaybackByteFormat(
             playback_plan,
@@ -531,6 +559,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_EQUALIZER));
         dialog->setTitle(tr("Equalizer"));
         dialog->setContentWidget(eq.get(), false);
+        dialog->setTitleBarBackgroundColor(QColor(qTheme.backgroundColorString()));
         dialog->resize(dialogContentSize(dialog.get(), eq.get()));
         dialog->setFixedSize(dialog->size());
         dialog->exec();
@@ -538,58 +567,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
 
 	setCurrentTab(TAB_LYRICS);
 
-    tray_icon_.reset(new QSystemTrayIcon(this));
-    tray_icon_->setIcon(qTheme.applicationIcon());
-    tray_icon_->setToolTip(kApplicationTitle);
-    auto* tray_icon_menu = new QMenu(this);
-
-    preference_action_ = tray_icon_menu->addAction(qTheme.fontIcon(Glyphs::ICON_SETTINGS), tr("Preference"));
-    (void)QObject::connect(preference_action_, &QAction::triggered, [this]() {
-        const QScopedPointer<XDialog> dialog(new XDialog(this));
-        const QScopedPointer<PreferencePage> preference_page(new PreferencePage(dialog.get()));
-        preference_page->loadSettings();
-        dialog->setContentWidget(preference_page.get());
-        dialog->setFixedSize(dialog->size());
-        dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_SETTINGS));
-        dialog->setTitle(tr("Preference"));
-        dialog->exec();
-        preference_page->saveAll();
-        });
-
-    auto* check_for_update_action = new QAction(tr("Check for update"));
-    (void)QObject::connect(check_for_update_action, &QAction::triggered, this, &Xamp::onCheckForUpdate);
-    tray_icon_menu->addAction(check_for_update_action);
-
-    auto* about_action = new QAction(tr("About"));
-    (void)QObject::connect(about_action, &QAction::triggered, this, &Xamp::showAbout);
-    tray_icon_menu->addAction(about_action);
-    tray_icon_menu->addSeparator();
-
-    auto* log_action = new QAction(tr("Log Viewer"));
-    (void)QObject::connect(log_action, &QAction::triggered, [this]() {
-        QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
-        const QScopedPointer<XDialog> dialog(new XDialog(this));
-        dialog->setTitle(tr("Log Viewer"));
-        QScopedPointer<LogView> log_view(new LogView(dialog.get()));
-        log_view->loadLogFile("logs/xamp.log"_str);
-        log_view->setFixedSize(QSize(1200, 600));
-        dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_REPORT_BUG));
-        dialog->setContentWidget(log_view.get(), false);
-        dialog->setFixedSize(dialog->size());
-        dialog->exec();
-        });
-    tray_icon_menu->addAction(log_action);
-
-    auto* quit_action = new QAction(tr("Quit"));
-    (void)QObject::connect(quit_action, &QAction::triggered, [this]() {
-        tray_icon_->hide();
-        qApp->quit();
-        });
-    tray_icon_menu->addAction(quit_action);
-
-    tray_icon_->setContextMenu(tray_icon_menu);
-    (void)QObject::connect(tray_icon_.get(), &QSystemTrayIcon::activated, this, &Xamp::onActivated);
-    tray_icon_->show();
+    setupSystemMenu();
 
     cd_page_.reset(new CdPage(this));
     cd_page_->playlistPage()->playlist()->setPlaylistId(kCdPlaylistId, kAppSettingCdPlaylistColumnName);
@@ -695,6 +673,11 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         &PlaylistTableView::findMusicbrainRecording,
         this,
         &Xamp::OnReadMusicBrainzAlbums);
+
+    configureUpdater(false);
+    QTimer::singleShot(std::chrono::seconds(5), this, [this]() {
+        QSimpleUpdater::getInstance()->checkForUpdates(kUpdateDefinitionsUrl);
+        });
 }
 
 void Xamp::OnReadMusicBrainzAlbums(const QList<PlayListEntity>& entities) {
@@ -709,19 +692,129 @@ void Xamp::OnReadMusicBrainzAlbums(const QList<PlayListEntity>& entities) {
     dialog->exec();
 }
 
+void Xamp::setupSystemMenu() {
+    if (main_window_ == nullptr) {
+        return;
+    }
+
+    main_window_->clearSystemMenuActions();
+
+    preference_action_ = new QAction(tr("Preference") + "..."_str, this);
+    (void)QObject::connect(preference_action_, &QAction::triggered, this, &Xamp::showPreference);
+    main_window_->addSystemMenuAction(preference_action_);
+
+    auto* check_for_update_action = new QAction(tr("Check for update"), this);
+    (void)QObject::connect(check_for_update_action, &QAction::triggered, this, &Xamp::onCheckForUpdate);
+    main_window_->addSystemMenuAction(check_for_update_action);
+
+    auto* about_action = new QAction(tr("About") + "..."_str, this);
+    (void)QObject::connect(about_action, &QAction::triggered, this, &Xamp::showAbout);
+    main_window_->addSystemMenuAction(about_action);
+
+    auto* log_action = new QAction(tr("Log Viewer") + "..."_str, this);
+    (void)QObject::connect(log_action, &QAction::triggered, this, &Xamp::showLogViewer);
+    main_window_->addSystemMenuAction(log_action);
+}
+
+void Xamp::showPreference() {
+    const QScopedPointer<XDialog> dialog(new XDialog(this));
+    const QScopedPointer<PreferencePage> preference_page(new PreferencePage(dialog.get()));
+    preference_page->loadSettings();
+    dialog->setContentWidget(preference_page.get());
+    dialog->setFixedSize(dialog->size());
+    dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_SETTINGS));
+    dialog->setTitle(tr("Preference"));
+    dialog->exec();
+    preference_page->saveAll();
+}
+
+void Xamp::showLogViewer() {
+    QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
+    const QScopedPointer<XDialog> dialog(new XDialog(this));
+    dialog->setTitle(tr("Log Viewer"));
+    QScopedPointer<LogView> log_view(new LogView(dialog.get()));
+    log_view->loadLogFile("logs/xamp.log"_str);
+    log_view->setFixedSize(QSize(1200, 600));
+    dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_REPORT_BUG));
+    dialog->setContentWidget(log_view.get(), false);
+    dialog->setFixedSize(dialog->size());
+    dialog->exec();
+}
+
+void Xamp::configureUpdater(bool notify_on_finish) {
+    auto* updater = QSimpleUpdater::getInstance();
+    updater->setModuleName(kUpdateDefinitionsUrl, kApplicationTitle);
+    updater->setModuleVersion(kUpdateDefinitionsUrl, kApplicationVersion);
+    updater->setPlatformKey(kUpdateDefinitionsUrl, "windows"_str);
+    updater->setNotifyOnUpdate(kUpdateDefinitionsUrl, true);
+    updater->setNotifyOnFinish(kUpdateDefinitionsUrl, notify_on_finish);
+    updater->setDownloaderEnabled(kUpdateDefinitionsUrl, true);
+    updater->setUseCustomInstallProcedures(kUpdateDefinitionsUrl, true);
+    updater->setUserAgentString(kUpdateDefinitionsUrl, kDefaultUserAgent);
+
+    const auto download_dir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+    if (!download_dir.isEmpty()) {
+        updater->setDownloadDir(kUpdateDefinitionsUrl, download_dir);
+    }
+
+    (void)QObject::connect(updater,
+        &QSimpleUpdater::downloadFinished,
+        this,
+        &Xamp::installDownloadedUpdate,
+        Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
+}
+
+void Xamp::installDownloadedUpdate(const QString& url, const QString& filepath) {
+    if (url != kUpdateDefinitionsUrl || filepath.isEmpty()) {
+        return;
+    }
+
+    const QStringList args{
+        "/SILENT"_str,
+        "/SUPPRESSMSGBOXES"_str,
+        "/NORESTART"_str,
+        "/CLOSEAPPLICATIONS"_str,
+    };
+
+    if (QProcess::startDetached(filepath, args)) {
+        qApp->quit();
+    }
+    else {
+        XMessageBox::showError(tr("Failed to start the update installer."));
+    }
+}
+
 void Xamp::onCheckForUpdate() {
+    configureUpdater(true);
+    QSimpleUpdater::getInstance()->checkForUpdates(kUpdateDefinitionsUrl);
 
 }
 
 void Xamp::showAbout() {
-
-}
-
-void Xamp::onActivated(QSystemTrayIcon::ActivationReason reason) {
+    QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
+    QScopedPointer<XDialog> dialog(new XDialog(this));
+    QScopedPointer<AboutPage> about_page(new AboutPage(dialog.get()));
+    (void)QObject::connect(about_page.get(),
+        &AboutPage::CheckForUpdate,
+        this,
+        &Xamp::onCheckForUpdate);
+    (void)QObject::connect(about_page.get(),
+        &AboutPage::RestartApp,
+        []() {
+            qApp->exit(kRestartExistCode);
+        });
+    dialog->setIcon(qTheme.applicationIcon());
+    dialog->setTitle(tr("About"));
+    dialog->setContentWidget(about_page.get(), false);
+    dialog->setFixedSize(dialog->size());
+    dialog->exec();
 
 }
 
 void Xamp::setSeekPosValue(double stream_time) {
+    if (main_window_ == nullptr) {
+        return;
+    }
     auto duration = player_->GetDuration();
     const auto full_text = isMoreThan1Hours(duration);
     if (duration - stream_time >= 0.0) {

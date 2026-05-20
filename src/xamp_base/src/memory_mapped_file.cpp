@@ -14,6 +14,8 @@ XAMP_BASE_NAMESPACE_BEGIN
 class MemoryMappedFile::MemoryMappedFileImpl {
 public:
     bool Open(std::wstring const & file_path, bool is_module) {
+        Close();
+
         static constexpr DWORD kAccessMode = GENERIC_READ;
         static constexpr DWORD kCreateType = OPEN_EXISTING;
         static constexpr DWORD kAccess = FILE_MAP_READ;
@@ -28,7 +30,10 @@ public:
                                   nullptr));
 
         if (file_) {
-            return OpenMappingFile(is_module ? (kProtect | SEC_IMAGE_NO_EXECUTE) : kProtect, kAccess);            
+            if (OpenMappingFile(is_module ? (kProtect | SEC_IMAGE_NO_EXECUTE) : kProtect, kAccess)) {
+                return true;
+            }
+            Close();
         }
 
         return false;
@@ -81,18 +86,31 @@ private:
 class MemoryMappedFile::MemoryMappedFileImpl {
 public:
     MemoryMappedFileImpl()
-        : mem_(nullptr) {
+        : mem_(MAP_FAILED)
+        , length_(0) {
     }
 
-    void Open(std::wstring const& file_path, bool /*is_module*/) {
+    bool Open(std::wstring const& file_path, bool /*is_module*/) {
+        Close();
+
         file_.reset(::open(String::ToUtf8String(file_path).c_str(), O_RDONLY));
         if (!file_) {
             return false;
         }
-        mem_ = ::mmap(nullptr, GetLength(), PROT_READ, MAP_PRIVATE, file_.get(), 0);
-        if (!mem_) {
+
+        length_ = GetLength();
+        if (length_ == 0) {
+            file_.reset();
             return false;
         }
+
+        mem_ = ::mmap(nullptr, length_, PROT_READ, MAP_PRIVATE, file_.get(), 0);
+        if (mem_ == MAP_FAILED) {
+            length_ = 0;
+            file_.reset();
+            return false;
+        }
+        return true;
     }
 
     ~MemoryMappedFileImpl() {
@@ -100,16 +118,16 @@ public:
     }
 
     void Close() {
-        if (!mem_) {
-            return;
+        if (mem_ != MAP_FAILED) {
+            ::munmap(mem_, length_);
+            mem_ = MAP_FAILED;
         }
-        ::munmap(mem_, GetLength());
-        mem_ = nullptr;
-        file_.close();
+        length_ = 0;
+        file_.reset();
     }
 
     void const * GetData() const {
-        return mem_;
+        return mem_ == MAP_FAILED ? nullptr : mem_;
     }
 
     size_t GetLength() const {
@@ -120,6 +138,7 @@ public:
     }
 private:
     void *mem_;
+    size_t length_;
     FileHandle file_;
 };
 #endif

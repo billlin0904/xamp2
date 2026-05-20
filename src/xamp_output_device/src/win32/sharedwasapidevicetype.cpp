@@ -4,12 +4,13 @@
 
 #include <output_device/win32/wasapi.h>
 #include <output_device/win32/comexception.h>
-#include <output_device/win32/wasapi.h>
 #include <output_device/win32/sharedwasapidevice.h>
 #include <output_device/win32/sharedwasapidevicetype.h>
 
 #include <base/logger.h>
 #include <base/str_utilts.h>
+
+#include <atlbase.h>
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
@@ -78,8 +79,9 @@ std::vector<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetD
 std::optional<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDefaultDeviceInfo() const {
 	CComPtr<IMMDevice> default_output_device;
 	auto hr = enumerator_->GetDefaultAudioEndpoint(eRender, eConsole, &default_output_device);
-	HrIfNotEqualThrow(hr, ERROR_NOT_FOUND);
-	if (hr == ERROR_NOT_FOUND) {
+	constexpr auto kNotFoundHr = HRESULT_FROM_WIN32(ERROR_NOT_FOUND);
+	HrIfNotEqualThrow(hr, kNotFoundHr);
+	if (hr == kNotFoundHr) {
 		return std::nullopt;
 	}
 	return MakeOptional<DeviceInfo>(helper::GetDeviceInfo(default_output_device,

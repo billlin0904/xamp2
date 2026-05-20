@@ -25,13 +25,16 @@
 
 #include <bitset>
 #include <thread>
-#include <tlhelp32.h>
 
 #include <base/scopeguard.h>
 
 #include <algorithm>
 #include <limits>
 #include <mutex>
+
+#ifdef XAMP_OS_WIN
+#include <tlhelp32.h>
+#endif
 
 #ifdef XAMP_OS_MAC
 extern "C" int __ulock_wait(uint32_t operation, void* addr, uint64_t value,
@@ -300,34 +303,6 @@ static void SetThreadAffinity(pthread_t thread, int32_t cpu_set) {
 }
 #endif
 
-#pragma pack(push,8)
-typedef struct tagTHREADNAME_INFO
-{
-    DWORD dwType; // Must be 0x1000.
-    LPCSTR szName; // Pointer to name (in user addr space).
-    DWORD dwThreadID; // Thread Uuid (-1=caller thread).
-    DWORD dwFlags; // Reserved for future use, must be zero.
-} THREADNAME_INFO;
-#pragma pack(pop)
-
-void SetThreadNameById(DWORD dwThreadID, char const* threadName) {
-    static constexpr DWORD MS_VC_EXCEPTION = 0x406D1388;
-
-    THREADNAME_INFO info;
-    info.dwType = 0x1000;
-    info.szName = threadName;
-    info.dwThreadID = dwThreadID;
-    info.dwFlags = 0;
-
-    __try {
-        ::RaiseException(MS_VC_EXCEPTION,
-                         0,
-                         sizeof(info) / sizeof(ULONG_PTR),
-                         reinterpret_cast<ULONG_PTR*>(&info));
-    } __except (EXCEPTION_EXECUTE_HANDLER) {
-    }
-}
-
 void SetThreadName(std::wstring const& name) {
 #ifdef XAMP_OS_WIN
 	const WinHandle thread(::GetCurrentThread());
@@ -408,10 +383,12 @@ void SetThreadPriority(std::thread::native_handle_type handle, ThreadPriority pr
 #endif
 }
 
+#ifdef XAMP_OS_WIN
 void SetCurrentThreadPriority(ThreadPriority priority) {
     std::thread::native_handle_type current_thread = ::GetCurrentThread();
     SetThreadPriority(current_thread, priority);
 }
+#endif
 
 void SetThreadPriority(std::jthread& thread, ThreadPriority priority) {
 	SetThreadPriority(thread.native_handle(), priority);
@@ -511,16 +488,6 @@ bool SetProcessWorkingSetSize(size_t working_set_size) {
     }
     XAMP_LOG_TRACE("InitWorkingSetSize {} success.", String::FormatBytes(working_set_size));
     return true;
-}
-
-bool SetFileLowIoPriority(int32_t handle) {
-    FILE_IO_PRIORITY_HINT_INFO priority_hint;
-    priority_hint.PriorityHint = IoPriorityHintLow;
-    const auto file_handle = reinterpret_cast<HANDLE>(handle);
-    return ::SetFileInformationByHandle(file_handle,
-        FileIoPriorityHintInfo, 
-        &priority_hint, 
-        sizeof(priority_hint));
 }
 
 void SetCurrentThreadMitigation() {
@@ -641,6 +608,7 @@ bool VirtualMemoryUnLock(void* address, size_t size) {
 }
 
 std::string GetSequentialUUID() {
+#ifdef XAMP_OS_WIN
     UUID uuid{};
     std::string result;
     RPC_STATUS status = ::UuidCreateSequential(&uuid);
@@ -652,6 +620,15 @@ std::string GetSequentialUUID() {
         String::Remove(result, "-");
     }
     return result;
+#else
+    uuid_t uuid{};
+    char uuid_string[37]{};
+    ::uuid_generate_time(uuid);
+    ::uuid_unparse_lower(uuid, uuid_string);
+    std::string result(uuid_string);
+    String::Remove(result, "-");
+    return result;
+#endif
 }
 
 void MSleep(std::chrono::milliseconds timeout) {
@@ -716,6 +693,7 @@ void Assert(const char* message, const char* file_, uint32_t line) {
 #endif
 }
 
+#ifdef XAMP_OS_WIN
 bool KillProcessByNameAndChildren(const std::string& process_name) {
     // 建立系統中所有進程的快照
     FileHandle hSnapshot(::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0));
@@ -756,6 +734,11 @@ bool KillProcessByNameAndChildren(const std::string& process_name) {
 
 
 bool KillProcessByPidAndChildren(uint64_t pid) {
+    if (pid > (std::numeric_limits<DWORD>::max)()) {
+        return false;
+    }
+
+    const auto process_id = static_cast<DWORD>(pid);
     std::vector<DWORD> childPids;
 
     FileHandle snapshot(::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0));
@@ -769,7 +752,7 @@ bool KillProcessByPidAndChildren(uint64_t pid) {
 
     if (::Process32First(snapshot.get(), &pe)) {
         do {
-            if (pe.th32ParentProcessID == pid) {
+            if (pe.th32ParentProcessID == process_id) {
                 childPids.push_back(pe.th32ProcessID);
             }
         } while (::Process32Next(snapshot.get(), &pe));
@@ -781,7 +764,7 @@ bool KillProcessByPidAndChildren(uint64_t pid) {
         KillProcessByPidAndChildren(childPid);
     }
 
-    WinHandle hProcess(::OpenProcess(PROCESS_TERMINATE, FALSE, pid));
+    WinHandle hProcess(::OpenProcess(PROCESS_TERMINATE, FALSE, process_id));
     if (hProcess) {
         BOOL result = ::TerminateProcess(hProcess.get(), 1);
         hProcess.reset();
@@ -797,5 +780,6 @@ bool KillProcessByPidAndChildren(uint64_t pid) {
 
     return true;
 }
+#endif
 
 XAMP_BASE_NAMESPACE_END

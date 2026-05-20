@@ -11,6 +11,8 @@
 #include <output_device/iaudiocallback.h>
 #include <output_device/win32/comexception.h>
 
+#include <atlbase.h>
+
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 namespace {
 	/*
@@ -125,7 +127,6 @@ private:
 
 XAudio2OutputDevice::XAudio2OutputDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::wstring& device_id)
 	: is_running_(false)
-	, is_playing_(false)
 	, buffer_frames_(0)
 	, callback_(nullptr)
 	, device_id_(device_id)
@@ -169,28 +170,35 @@ void XAudio2OutputDevice::SetAudioCallback(IAudioCallback* callback) {
 }
 
 void XAudio2OutputDevice::StopStream(bool wait_for_stop_stream) {
-	std::unique_lock lock{ mutex_ };
+	auto render_task_done = false;
+	{
+		std::unique_lock lock{ mutex_ };
+		if (!is_running_.exchange(false, std::memory_order_acq_rel) && !render_task_.valid()) {
+			return;
+		}
+		render_task_done = !render_task_.valid();
 
-	if (!is_running_) {
-		return;
+		XAMP_LOG_D(logger_, "StopStream");
+		if (close_request_) {
+			::SetEvent(close_request_.get());
+		}
 	}
 
-	XAMP_LOG_D(logger_, "StopStream");
+	if (wait_for_stop_stream && !render_task_done && thread_exit_) {
+		const auto wait_result = ::WaitForSingleObject(thread_exit_.get(), static_cast<DWORD>(kWaitStreamStartTimeout.count()));
+		render_task_done = wait_result == WAIT_OBJECT_0;
+		if (!render_task_done) {
+			XAMP_LOG_E(logger_, "XAudio2OutputDevice stop render timeout.");
+		}
+	}
 
-	// Signal thread to exit.
-	::SignalObjectAndWait(close_request_.get(),
-		thread_exit_.get(),
-		INFINITE,
-		FALSE);
-
-	if (render_task_.valid()) {
+	std::unique_lock lock{ mutex_ };
+	if (wait_for_stop_stream && render_task_done && render_task_.valid()) {
 		render_task_.get();
 	}
-
 	if (source_voice_ != nullptr) {
 		source_voice_->Stop();
 	}
-	is_running_ = false;
 }
 
 void XAudio2OutputDevice::CloseStream() {
@@ -332,6 +340,9 @@ void XAudio2OutputDevice::StartStream() {
 	//stream_time_ = 0;
 
 	::ResetEvent(close_request_.get());
+	::ResetEvent(thread_start_.get());
+	::ResetEvent(thread_exit_.get());
+	is_running_.store(false, std::memory_order_release);
 
 	if (!source_voice_) {
 		WAVEFORMATEX waveformat{};
@@ -346,7 +357,7 @@ void XAudio2OutputDevice::StartStream() {
 	}
 
 	render_task_ = Executor::Spawn(thread_pool_, [this](const auto& stop_token) {
-		is_running_ = true;
+		is_running_.store(true, std::memory_order_release);
 
 		const std::array<HANDLE, 2> objects{
 			// WAIT_OBJECT_0
@@ -359,6 +370,7 @@ void XAudio2OutputDevice::StartStream() {
 		::SetEvent(thread_start_.get());
 
 		XAMP_ON_SCOPE_EXIT(
+			is_running_.store(false, std::memory_order_release);
 			// Signal thread exit.
 			::SetEvent(thread_exit_.get());
 			XAMP_LOG_D(logger_, "End XAudio2 stream task!");
@@ -398,10 +410,13 @@ void XAudio2OutputDevice::StartStream() {
 			if (!state.BuffersQueued) {
 				break;
 			}
-			::WaitForMultipleObjects(static_cast<DWORD>(objects.size()),
+			const auto wait_result = ::WaitForMultipleObjects(static_cast<DWORD>(objects.size()),
 				objects.data(),
 				FALSE,
 				INFINITE);
+			if (wait_result == WAIT_OBJECT_0 + 1) {
+				break;
+			}
 		}
 
 		XAMP_LOG_D(logger_, "Render task done!");
@@ -410,8 +425,8 @@ void XAudio2OutputDevice::StartStream() {
 	HrIfFailThrow(xaudio2_->StartEngine());
 	HrIfFailThrow(source_voice_->Start(0, XAUDIO2_COMMIT_NOW));
 
-	while (!is_running_) {
-		if (::WaitForSingleObject(thread_start_.get(), kWaitStreamStartTimeout.count()) == WAIT_TIMEOUT) {
+	while (!is_running_.load(std::memory_order_acquire)) {
+		if (::WaitForSingleObject(thread_start_.get(), static_cast<DWORD>(kWaitStreamStartTimeout.count())) == WAIT_TIMEOUT) {
 			XAMP_LOG_E(logger_, "XAudio2OutputDevice start render timeout.");
 			return;
 		}
@@ -432,7 +447,7 @@ HRESULT XAudio2OutputDevice::FillSamples(bool &end_of_stream) {
 		num_filled_frames,
 		stream_time_float,
 		sample_time) == DataCallbackResult::CONTINUE) {
-		buffer.AudioBytes = num_filled_frames * output_format_.GetChannels() * output_format_.GetBytesPerSample();
+		buffer.AudioBytes = static_cast<UINT32>(num_filled_frames * output_format_.GetChannels() * output_format_.GetBytesPerSample());
 		buffer.pAudioData = reinterpret_cast<const BYTE*>(buffer_.Get());
 		buffer.pContext = this;
 		end_of_stream = false;
@@ -446,11 +461,11 @@ HRESULT XAudio2OutputDevice::FillSamples(bool &end_of_stream) {
 }
 
 bool XAudio2OutputDevice::IsStreamRunning() const {
-	return is_running_;
+	return is_running_.load(std::memory_order_acquire);
 }
 
 void XAudio2OutputDevice::AbortStream() {
-	is_running_ = false;
+	is_running_.store(false, std::memory_order_release);
 	if (close_request_) {
 		::SetEvent(close_request_.get());
 	}
@@ -459,7 +474,7 @@ void XAudio2OutputDevice::AbortStream() {
 void XAudio2OutputDevice::ReportError(HRESULT hr) {
 	if (FAILED(hr)) {
 		callback_->OnError(com_to_system_error(hr));
-		is_running_ = false;
+		is_running_.store(false, std::memory_order_release);
 	}
 }
 

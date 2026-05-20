@@ -506,8 +506,12 @@ void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
 	}
 
 	is_running_ = false;
-	rt_work_queue_->Destroy();
-	HrIfFailThrow(client_->Stop());
+	if (rt_work_queue_) {
+		rt_work_queue_->Destroy();
+	}
+	if (client_) {
+		HrIfFailThrow(client_->Stop());
+	}
 }
 
 void SharedWasapiDevice::StartStream() {

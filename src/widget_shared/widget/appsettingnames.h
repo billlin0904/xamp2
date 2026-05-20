@@ -24,7 +24,6 @@ DECLARE_APP_SETTING_NAME(AppSettingWindowState);
 DECLARE_APP_SETTING_NAME(AppSettingVolume);
 DECLARE_APP_SETTING_NAME(AppSettingIsMuted);
 DECLARE_APP_SETTING_NAME(AppSettingOrder);
-DECLARE_APP_SETTING_NAME(AppSettingEnableFadeOut);
 DECLARE_APP_SETTING_NAME(AppSettingUseNativeDSDMode);
 DECLARE_APP_SETTING_NAME(AppSettingPlaylistColumnName);
 DECLARE_APP_SETTING_NAME(AppSettingAlbumPlaylistColumnName);
@@ -55,10 +54,6 @@ DECLARE_APP_SETTING_NAME(AppSettingResamplerEnable);
 DECLARE_APP_SETTING_NAME(AppSettingResamplerType);
 DECLARE_APP_SETTING_NAME(AppSettingSoxrSettingName);
 
-// Spectrum
-DECLARE_APP_SETTING_NAME(AppSettingEnableSpectrum);
-DECLARE_APP_SETTING_NAME(AppSettingSpectrumStyles);
-DECLARE_APP_SETTING_NAME(AppSettingWindowType);
 DECLARE_APP_SETTING_NAME(ResampleSampleRate);
 
 // Soxr
