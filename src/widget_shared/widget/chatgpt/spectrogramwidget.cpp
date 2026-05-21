@@ -3,15 +3,13 @@
 #include <QTimer>
 #include <QMouseEvent>
 #include <QPointer>
-#include <QFutureWatcher>
-#include <QtConcurrent>
+#include <QThread>
 #include <QVector>
 
 #include <base/math.h>
 #include <stream/bassfilestream.h>
 #include <stream/fft.h>
 #include <stream/filestream.h>
-#include <stream/stft.h>
 #include <widget/util/str_util.h>
 #include <widget/util/ui_util.h>
 #include <widget/util/image_util.h>
@@ -21,7 +19,12 @@
 #include <widget/appsettings.h>
 #include <widget/appsettingnames.h>
 
+#include <algorithm>
+#include <atomic>
+#include <cmath>
+#include <functional>
 #include <thread>
+#include <vector>
 
 namespace {
     constexpr size_t kFFTSize = 2048 * 2;
@@ -54,59 +57,23 @@ namespace {
         return toDbFromNorm(r * r);
     }
 
-    void fillSpectrogramColumn(const ColorTable& color_table,
-        QImage& chunk_img,
-        int col,
-        const ComplexValarray& freq_bins) {
-        const int h = chunk_img.height();
-        const int stride = chunk_img.bytesPerLine();
-        const int n = static_cast<int>(freq_bins.size());
-
-        const int num = h - 1;
-        const int den = n - 1;
-
-        uchar* base = chunk_img.bits() + col * 3;
-        auto toRow = [&](int f) {
-            return ((h - 1) - (f * num + den / 2) / den) * stride;
-            };
-
-        std::vector<int> row_of_f(n);
-        for (int f = 0; f < n; ++f) {
-            row_of_f[f] = toRow(f);
-        }
-
-        for (int f = 0; f < n; ++f) {
-            float db;
-            if ((f == 0) || (f == n - 1)) {
-                db = getRealDb(freq_bins[f].real());
-            }
-            else {
-                db = getDb(freq_bins[f]);
-            }
-
-            const QRgb c = color_table[db];
-
-            uchar* pix = base + row_of_f[f];
-            pix[0] = qRed(c);
-            pix[1] = qGreen(c);
-            pix[2] = qBlue(c);
-        }
-    }
-
-    bool getSamples(ScopedPtr<FileStream>& file_stream, Buffer<float>& buffer) {
+    uint32_t readFloatFrames(ScopedPtr<FileStream>& file_stream,
+        Buffer<float>& buffer,
+        uint16_t channels,
+        uint32_t frames) {
         auto retry_count = 0;
-        auto is_readable = true;
         auto* bass_file_stream = dynamic_cast<BassFileStream*>(file_stream.get());
-        if (!bass_file_stream) {
-            return false;
+        if (!bass_file_stream || channels == 0 || frames == 0) {
+            return 0;
         }
+
+        const auto samples_to_read = frames * channels;
         constexpr auto kMaxRetryCount = 4;
-        while (is_readable) {
+        while (true) {
             buffer.Fill(0.0f);
-            auto read_samples = file_stream->GetSamples(buffer.data(),
-                buffer.size());
-            if (read_samples > 0) {
-                break;
+            const auto samples_read = file_stream->GetSamples(buffer.data(), samples_to_read);
+            if (samples_read > 0) {
+                return samples_read / channels;
             }
             if (retry_count < kMaxRetryCount) {
                 if (!bass_file_stream->EndOfStream()) {
@@ -115,117 +82,224 @@ namespace {
                     continue;
                 }
             }
-            is_readable = false;
+            return 0;
         }
-        return is_readable;
     }
 
-    struct SpectrogramChunk {
-        QImage image;
-        int time_index{ 0 };
+    struct SpectrogramReadRequest {
+        SpectrogramColor color{ SpectrogramColor::SPECTROGRAM_COLOR_DEFAULT };
+        PlayListEntity entity;
+        int target_columns{ 1 };
     };
 
-    struct SpectrogramReadResult {
-        double duration_sec{ 0.0 };
-        uint32_t sample_rate{ 44100 };
-        size_t hop_size{ kHopSize };
-        QVector<SpectrogramChunk> chunks;
-        QString error_message;
-    };
+    void shiftLeft(std::vector<float>& buffer, size_t count) {
+        if (count >= buffer.size()) {
+            std::fill(buffer.begin(), buffer.end(), 0.0f);
+            return;
+        }
+        std::move(buffer.begin() + count, buffer.end(), buffer.begin());
+        std::fill(buffer.end() - count, buffer.end(), 0.0f);
+    }
 
-    SpectrogramReadResult readSpectrogram(SpectrogramColor color, const PlayListEntity& entity) {
-        SpectrogramReadResult result;
+    float downmixFrame(const float* samples, uint16_t channels) {
+        if (channels == 0) {
+            return 0.0f;
+        }
 
-        try {
-            ArchiveFileStream afs;
+        float mixed = 0.0f;
+        for (uint16_t channel = 0; channel < channels; ++channel) {
+            mixed += samples[channel];
+        }
+        return mixed / static_cast<float>(channels);
+    }
 
-            if (entity.is_zip_file && entity.archive_entry_name.has_value()) {
-                auto archive_result = StreamFactory::MakeArchiveFileStream(
-                    entity.file_path.toStdWString(),
-                    entity.archive_entry_name.value().toStdWString());
-                if (!archive_result.has_value()) {
-                    throw Exception(archive_result.error());
+    QImage makeSpectrogramChunk(const ColorTable& color_table,
+        int begin_column,
+        int end_column,
+        int bands,
+        const std::vector<double>& db_sums,
+        const std::vector<uint32_t>& counts) {
+        const auto columns = static_cast<int>(counts.size());
+        const auto chunk_columns = (std::max)(0, end_column - begin_column);
+        QImage image(chunk_columns, bands, QImage::Format_RGB888);
+        image.fill(Qt::black);
+
+        for (int x = begin_column; x < end_column; ++x) {
+            auto source_x = x;
+            if (counts[source_x] == 0) {
+                auto left = x - 1;
+                auto right = x + 1;
+                while (left >= begin_column || right < end_column) {
+                    if (left >= begin_column && counts[left] > 0) {
+                        source_x = left;
+                        break;
+                    }
+                    if (right < end_column && counts[right] > 0) {
+                        source_x = right;
+                        break;
+                    }
+                    --left;
+                    ++right;
                 }
-                afs = std::move(archive_result.value());
-            }
-            else {
-                afs.file_stream = makePcmFileStream(entity.file_path.toStdWString());
             }
 
-            if (!afs.file_stream || afs.file_stream->GetDuration() <= 0.0) {
-                return result;
+            const auto count = counts[source_x];
+            if (count == 0) {
+                continue;
             }
 
-            STFT fft(kFFTSize, kHopSize);
-            fft.SetWindowType(WindowType::HANN);
-
-            Buffer<float> buffer(kFFTSize);
-            int time_index = 0;
-            result.duration_sec = afs.file_stream->GetDuration();
-
-            ComplexValarray freq_bins;
-            freq_bins.resize(fft.GetShiftSize() + 1);
-
-            const auto format = afs.file_stream->GetFormat();
-            result.sample_rate = format.GetSampleRate();
-
-            const auto total_samples = static_cast<uint32_t>(result.duration_sec * result.sample_rate);
-            auto columns_per_chunk = (std::min)(100u, static_cast<uint32_t>(total_samples / fft.GetShiftSize()));
-            if (columns_per_chunk == 0) {
-                columns_per_chunk = 1;
+            for (int band = 0; band < bands; ++band) {
+                const auto db = db_sums[source_x * bands + band] / static_cast<double>(count);
+                const auto color = color_table[db];
+                image.setPixel(x - begin_column, bands - band - 1, color);
             }
+        }
 
-            ColorTable color_table;
-            color_table.setSpectrogramColor(color);
+        return image;
+    }
 
-            while (afs.file_stream->IsActive()) {
-                QImage chunk_img(columns_per_chunk,
-                    freq_bins.size(),
-                    QImage::Format_RGB888);
-                chunk_img.fill(Qt::black);
+    class SpectrogramWorker final : public QObject {
+    public:
+        using MetadataCallback = std::function<void(double, uint32_t, int, int)>;
+        using ChunkCallback = std::function<void(int, const QImage&)>;
+        using ErrorCallback = std::function<void(const QString&)>;
+        using FinishedCallback = std::function<void()>;
 
-                if (!getSamples(afs.file_stream, buffer)) {
-                    freq_bins = fft.Flush();
-                    fillSpectrogramColumn(color_table, chunk_img, 0, freq_bins);
-                    result.chunks.push_back(SpectrogramChunk{
-                        std::move(chunk_img),
-                        time_index
-                        });
-                    break;
+        void cancel() {
+            cancelled_.store(true, std::memory_order_relaxed);
+        }
+
+        void read(SpectrogramReadRequest request,
+            MetadataCallback metadata_ready,
+            ChunkCallback chunk_ready,
+            ErrorCallback error_ready,
+            FinishedCallback finished) {
+            constexpr int kChunkColumns = 32;
+
+            try {
+                request.target_columns = (std::max)(1, request.target_columns);
+                ArchiveFileStream afs;
+
+                if (request.entity.is_zip_file && request.entity.archive_entry_name.has_value()) {
+                    auto archive_result = StreamFactory::MakeArchiveFileStream(
+                        request.entity.file_path.toStdWString(),
+                        request.entity.archive_entry_name.value().toStdWString());
+                    if (!archive_result.has_value()) {
+                        throw Exception(archive_result.error());
+                    }
+                    afs = std::move(archive_result.value());
+                }
+                else {
+                    afs.file_stream = makePcmFileStream(request.entity.file_path.toStdWString());
                 }
 
-                freq_bins = fft.Process(buffer.data(), buffer.size());
-                fillSpectrogramColumn(color_table, chunk_img, 0, freq_bins);
+                if (!afs.file_stream || afs.file_stream->GetDuration() <= 0.0) {
+                    finished();
+                    return;
+                }
 
-                int actual_columns = columns_per_chunk;
-                for (int col = 1; col < static_cast<int>(columns_per_chunk); col++) {
-                    if (!getSamples(afs.file_stream, buffer)) {
-                        actual_columns = col;
-                        freq_bins = fft.Flush();
-                        fillSpectrogramColumn(color_table, chunk_img, col, freq_bins);
+                const auto duration_sec = afs.file_stream->GetDuration();
+                const auto format = afs.file_stream->GetFormat();
+                const auto sample_rate = format.GetSampleRate();
+                const auto channels = (std::max<uint16_t>)(1, format.GetChannels());
+                const auto total_frames = (std::max<uint64_t>)(1,
+                    static_cast<uint64_t>(std::llround(duration_sec * sample_rate)));
+
+                Window window;
+                window.Init(kFFTSize, WindowType::HANN);
+
+                FFT fft;
+                fft.Initialize(kFFTSize);
+
+                const auto bands = static_cast<int>((kFFTSize / 2) + 1);
+                metadata_ready(duration_sec, sample_rate, request.target_columns, bands);
+
+                std::vector<float> fft_input(kFFTSize, 0.0f);
+                Buffer<float> read_buffer(kHopSize * channels + 1024);
+                std::vector<double> db_sums(request.target_columns * bands, 0.0);
+                std::vector<uint32_t> counts(request.target_columns, 0);
+
+                ColorTable color_table;
+                color_table.setSpectrogramColor(request.color);
+
+                int emitted_column = 0;
+                uint64_t processed_frames = 0;
+                while (!cancelled_.load(std::memory_order_relaxed) && afs.file_stream->IsActive()) {
+                    const auto frames_read = readFloatFrames(afs.file_stream,
+                        read_buffer,
+                        channels,
+                        static_cast<uint32_t>(kHopSize));
+                    if (frames_read == 0) {
                         break;
                     }
 
-                    freq_bins = fft.Process(buffer.data(), buffer.size());
-                    fillSpectrogramColumn(color_table, chunk_img, col, freq_bins);
+                    shiftLeft(fft_input, kHopSize);
+                    const auto write_offset = kFFTSize - kHopSize;
+                    for (uint32_t frame = 0; frame < frames_read; ++frame) {
+                        fft_input[write_offset + frame] = downmixFrame(
+                            read_buffer.data() + frame * channels,
+                            channels);
+                    }
+
+                    auto windowed_input = fft_input;
+                    window(windowed_input.data(), windowed_input.size());
+                    const auto& freq_bins = fft.Forward(windowed_input.data(), windowed_input.size());
+
+                    const auto column = (std::min<int>)(
+                        request.target_columns - 1,
+                        static_cast<int>((processed_frames * request.target_columns) / total_frames));
+                    for (int band = 0; band < bands; ++band) {
+                        double db;
+                        if ((band == 0) || (band == bands - 1)) {
+                            db = getRealDb(freq_bins[band].real());
+                        }
+                        else {
+                            db = getDb(freq_bins[band]);
+                        }
+                        db_sums[column * bands + band] += db;
+                    }
+                    ++counts[column];
+                    processed_frames += frames_read;
+
+                    const auto next_column = (std::min<int>)(
+                        request.target_columns - 1,
+                        static_cast<int>((processed_frames * request.target_columns) / total_frames));
+                    if (next_column - emitted_column >= kChunkColumns) {
+                        const auto chunk = makeSpectrogramChunk(color_table,
+                            emitted_column,
+                            next_column,
+                            bands,
+                            db_sums,
+                            counts);
+                        chunk_ready(emitted_column, chunk);
+                        emitted_column = next_column;
+                    }
                 }
 
-                result.chunks.push_back(SpectrogramChunk{
-                    std::move(chunk_img),
-                    time_index
-                    });
-                time_index += actual_columns;
+                if (!cancelled_.load(std::memory_order_relaxed) && emitted_column < request.target_columns) {
+                    const auto chunk = makeSpectrogramChunk(color_table,
+                        emitted_column,
+                        request.target_columns,
+                        bands,
+                        db_sums,
+                        counts);
+                    chunk_ready(emitted_column, chunk);
+                }
             }
-        }
-        catch (const Exception& e) {
-            result.error_message = QString::fromUtf8(e.GetErrorMessage());
-        }
-        catch (const std::exception& e) {
-            result.error_message = QString::fromUtf8(e.what());
+            catch (const Exception& e) {
+                error_ready(QString::fromUtf8(e.GetErrorMessage()));
+            }
+            catch (const std::exception& e) {
+                error_ready(QString::fromUtf8(e.what()));
+            }
+
+            finished();
         }
 
-        return result;
-    }
+    private:
+        std::atomic_bool cancelled_{ false };
+    };
+
 }
 
 SpectrogramWidget::SpectrogramWidget(QWidget *parent)
@@ -252,7 +326,7 @@ SpectrogramWidget::SpectrogramWidget(QWidget *parent)
             });
 
         const auto last_dir = qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
-        const auto save_file_name = last_dir + "/"_str + "spectrogram.jpg"_str;
+        const auto save_file_name = last_dir + "/"_str + "spectrogram.png"_str;
         action_map.addAction(tr("Save Spectrogram to image"), [this, save_file_name]() {
             getSaveFileName(this, [this](const QString& file_path) {
                 if (file_path.isEmpty()) {
@@ -261,7 +335,7 @@ SpectrogramWidget::SpectrogramWidget(QWidget *parent)
                 if (static_cache_.isNull()) {
                     return;
                 }
-                if (!static_cache_.save(file_path, "JPG", 100)) {
+                if (!static_cache_.save(file_path, "PNG", 100)) {
                     XAMP_LOG_DEBUG("Failed to save spectrogram to {}", file_path.toStdString());
                 }
                 }, tr("Save Spectrogram to image"), save_file_name, "Image Files (*.png)"_str);
@@ -670,30 +744,24 @@ void SpectrogramWidget::updateStaticCache() {
 }
 
 void SpectrogramWidget::drawGainColorBar(QPainter& painter, const QRect& barRect) {
-    // barRect: 你要畫漸層條的範圍
-    QLinearGradient gradient(barRect.topLeft(), barRect.bottomLeft());
-    // top -> 0 dB
-    if (color_ == SPECTROGRAM_COLOR_DEFAULT) {
-        gradient.setColorAt(0.0, QColor("#ff0000"));    // 或自行調成某種亮色
-        gradient.setColorAt(0.2, QColor("#ff8000")); // ~ -20 dB
-        gradient.setColorAt(0.4, QColor("#ffff00")); // ~ -40 dB
-        gradient.setColorAt(0.6, QColor("#00ff00")); // ~ -60 dB
-        gradient.setColorAt(0.8, QColor("#0000ff")); // ~ -80 dB
-        gradient.setColorAt(1.0, QColor("#000000")); // -120 dB (接近黑)
-    } else {
-        gradient.setColorAt(0.0, Qt::white);    // 或自行調成某種亮色
-        gradient.setColorAt(0.2, QColor("#ffff00")); // ~ -20 dB
-        gradient.setColorAt(0.4, QColor("#ff0000")); // ~ -40 dB
-        gradient.setColorAt(0.6, QColor("#800080")); // ~ -60 dB
-        gradient.setColorAt(0.8, QColor("#000080")); // ~ -80 dB
-        gradient.setColorAt(1.0, QColor("#000000")); // -120 dB (接近黑)
-    }    
+    if (barRect.width() <= 0 || barRect.height() <= 0) {
+        return;
+    }
 
-    painter.save();
-    painter.setPen(Qt::NoPen);
-    painter.setBrush(gradient);
-    painter.drawRect(barRect);
-    painter.restore();
+    ColorTable color_table;
+    color_table.setSpectrogramColor(color_);
+
+    QImage color_bar(barRect.size(), QImage::Format_RGB888);
+    for (int y = 0; y < color_bar.height(); ++y) {
+        const auto ratio = 1.0 - static_cast<double>(y) / (std::max)(1, color_bar.height() - 1);
+        const auto db = ColorTable::kMinDb + ratio * ColorTable::kDbRange;
+        const auto color = color_table[db];
+        for (int x = 0; x < color_bar.width(); ++x) {
+            color_bar.setPixel(x, y, color);
+        }
+    }
+
+    painter.drawImage(barRect, color_bar);
 
     // 接著畫刻度
     drawGainColorBarTicks(painter, barRect);
@@ -804,7 +872,14 @@ void SpectrogramWidget::resizeEvent(QResizeEvent* event) {
         markCacheDirty();
         return;
     }
-    startReadSpectrogram(color_, file_path_);
+    const auto target_columns = (std::max)(1, drawRect().width());
+    if (target_columns != spectrogram_columns_) {
+        startReadSpectrogram(color_, file_path_);
+        update();
+        return;
+    }
+    resizeSpectrogramSize();
+    markCacheDirty();
 	update();
 }
 
@@ -821,6 +896,7 @@ void SpectrogramWidget::clear() {
     cancelReadSpectrogram();
     total_ms_ = 0.0f;
     cursor_ms_ = -1.f;
+    spectrogram_columns_ = 0;
     spectrogram_ = QImage();
     spectrogram_cache_ = QImage();
     markCacheDirty();
@@ -840,51 +916,124 @@ void SpectrogramWidget::startReadSpectrogram(SpectrogramColor color, const PlayL
     }
 
     const auto load_id = spectrogram_load_id_;
+    const auto target_columns = (std::max)(1, drawRect().width());
+    spectrogram_columns_ = target_columns;
     is_processing_ = true;
     spectrogram_ = QImage();
     spectrogram_cache_ = QImage();
     markCacheDirty();
     update();
 
-    auto* watcher = new QFutureWatcher<SpectrogramReadResult>(this);
-    current_load_watcher_ = watcher;
+    auto* thread = new QThread(this);
+    auto* worker = new SpectrogramWorker();
+    worker->moveToThread(thread);
+    spectrogram_thread_ = thread;
+    spectrogram_worker_ = worker;
 
-    (void)QObject::connect(watcher, &QFutureWatcher<SpectrogramReadResult>::finished, this, [this, watcher, load_id]() {
-        watcher->deleteLater();
-        if (load_id != spectrogram_load_id_) {
-            return;
+    (void)QObject::connect(thread, &QThread::finished, worker, &QObject::deleteLater);
+    (void)QObject::connect(thread, &QThread::finished, thread, &QObject::deleteLater);
+    (void)QObject::connect(thread, &QThread::finished, this, [this, thread]() {
+        if (spectrogram_thread_ == thread) {
+            spectrogram_thread_ = nullptr;
+            spectrogram_worker_ = nullptr;
         }
-        current_load_watcher_ = nullptr;
-
-        const auto result = watcher->result();
-        if (!result.error_message.isEmpty()) {
-            XAMP_LOG_ERROR("{}", result.error_message.toStdString());
-            doneRead();
-            return;
-        }
-
-        setSampleRate(result.sample_rate);
-        setTotalDuration(static_cast<float>(result.duration_sec));
-        for (const auto& chunk : result.chunks) {
-            setSpectrogramData(result.duration_sec,
-                result.hop_size,
-                chunk.image,
-                chunk.time_index);
-        }
-        doneRead();
     });
 
-    watcher->setFuture(QtConcurrent::run([color, entity]() {
-        return readSpectrogram(color, entity);
-    }));
+    const auto guard = QPointer<SpectrogramWidget>(this);
+    SpectrogramReadRequest request{
+        color,
+        entity,
+        target_columns
+    };
+
+    auto metadata_ready = [guard, load_id](double duration_sec,
+        uint32_t sample_rate,
+        int columns,
+        int bands) {
+        if (!guard) {
+            return;
+        }
+        QMetaObject::invokeMethod(guard, [guard, load_id, duration_sec, sample_rate, columns, bands]() {
+            if (!guard || guard->spectrogram_load_id_ != load_id) {
+                return;
+            }
+            guard->setSampleRate(sample_rate);
+            guard->setTotalDuration(static_cast<float>(duration_sec));
+            guard->spectrogram_ = QImage(columns, bands, QImage::Format_RGB888);
+            guard->spectrogram_.fill(Qt::black);
+            guard->spectrogram_cache_ = QImage();
+            guard->markCacheDirty();
+            guard->update();
+        }, Qt::QueuedConnection);
+    };
+
+    auto chunk_ready = [guard, load_id](int start_column, const QImage& chunk) {
+        if (!guard) {
+            return;
+        }
+        QMetaObject::invokeMethod(guard, [guard, load_id, start_column, chunk]() {
+            if (!guard || guard->spectrogram_load_id_ != load_id || guard->spectrogram_.isNull()) {
+                return;
+            }
+            QPainter painter(&guard->spectrogram_);
+            painter.drawImage(start_column, 0, chunk);
+            painter.end();
+            guard->spectrogram_cache_ = QImage();
+            guard->resizeSpectrogramSize();
+            guard->markCacheDirty();
+            guard->update();
+        }, Qt::QueuedConnection);
+    };
+
+    auto error_ready = [guard, load_id](const QString& message) {
+        if (!guard) {
+            return;
+        }
+        QMetaObject::invokeMethod(guard, [guard, load_id, message]() {
+            if (!guard || guard->spectrogram_load_id_ != load_id) {
+                return;
+            }
+            XAMP_LOG_ERROR("{}", message.toStdString());
+        }, Qt::QueuedConnection);
+    };
+
+    auto finished = [guard, thread, load_id]() {
+        if (guard) {
+            QMetaObject::invokeMethod(guard, [guard, load_id]() {
+                if (guard && guard->spectrogram_load_id_ == load_id) {
+                    guard->doneRead();
+                }
+            }, Qt::QueuedConnection);
+        }
+        thread->quit();
+    };
+
+    (void)QObject::connect(thread, &QThread::started, worker, [worker,
+        request,
+        metadata_ready = std::move(metadata_ready),
+        chunk_ready = std::move(chunk_ready),
+        error_ready = std::move(error_ready),
+        finished = std::move(finished)]() mutable {
+        worker->read(request,
+            std::move(metadata_ready),
+            std::move(chunk_ready),
+            std::move(error_ready),
+            std::move(finished));
+    });
+
+    thread->start(QThread::LowestPriority);
 }
 
 void SpectrogramWidget::cancelReadSpectrogram() {
     ++spectrogram_load_id_;
-    if (current_load_watcher_) {
-        current_load_watcher_->disconnect(this);
-        current_load_watcher_->deleteLater();
-        current_load_watcher_ = nullptr;
+    if (spectrogram_worker_) {
+        static_cast<SpectrogramWorker*>(spectrogram_worker_.data())->cancel();
+    }
+    if (spectrogram_thread_) {
+        spectrogram_thread_->quit();
+        spectrogram_thread_->wait();
+        spectrogram_thread_ = nullptr;
+        spectrogram_worker_ = nullptr;
     }
     is_processing_ = false;
 }

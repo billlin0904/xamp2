@@ -7,6 +7,7 @@
 
 #include <QFrame>
 #include <QPointer>
+#include <QThread>
 #include <QWidget>
 #include <QPainterPath>
 
@@ -110,6 +111,8 @@ private:
     QImage spectrogram_cache_;
     QPixmap static_cache_;
     SpectrogramColor color_ = SpectrogramColor::SPECTROGRAM_COLOR_DEFAULT;
-    QPointer<QObject> current_load_watcher_;
+    QPointer<QThread> spectrogram_thread_;
+    QPointer<QObject> spectrogram_worker_;
     int spectrogram_load_id_{ 0 };
+    int spectrogram_columns_{ 0 };
 };
