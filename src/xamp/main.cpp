@@ -280,10 +280,6 @@ int main() {
 		exist_code = -1;
 		XAMP_LOG_ERROR("message:{} {}", e.what(), StackTrace{}.CaptureStack());
 	}
-
-    if (exist_code == kRestartExistCode) {
-        QProcess::startDetached(qFormat(argv[0]), args);
-    }
     return exist_code;
 }
 

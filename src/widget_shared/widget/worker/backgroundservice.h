@@ -63,12 +63,8 @@ signals:
 	void jobError(const QString& job_id, const QString &message);
 
 	void readAudioData(const std::vector<float>& interleaved);
-
-	void transcribeFileCompleted(const QSharedPointer<ILrcParser>& parser);
 public Q_SLOT:
 	void cancelAllJob();
-
-	void onTranscribeFile(const QString& file_name);
 
 	void onAddJobs(const QString& dir_name, const QList<EncodeJob> &jobs);
 

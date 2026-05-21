@@ -120,8 +120,32 @@
       <PreserveSbr>false</PreserveSbr>
     </Bscmake>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>copy /Y "$(ProjectDir)..\thirdparty\mimalloc\out\msvc-x64\Debug\mimalloc-override.dll" "$(OutDir)"
+copy /Y "$(ProjectDir)..\thirdparty\mimalloc\out\msvc-x64\Debug\mimalloc-redirect.dll" "$(OutDir)"
+copy /Y "$(ProjectDir)..\thirdparty\OpenCC\msvc\src\Debug\opencc.dll" "$(OutDir)"
+copy /Y "$(ProjectDir)..\thirdparty\QSimpleUpdater\debug\QSimpleUpdater.dll" "$(OutDir)"
+copy /Y "$(ProjectDir)..\thirdparty\qwindowkit\msvc\out-amd64-Debug\bin\QWKCored.dll" "$(OutDir)"
+copy /Y "$(ProjectDir)..\thirdparty\qwindowkit\msvc\out-amd64-Debug\bin\QWKWidgetsd.dll" "$(OutDir)"
+copy /Y "$(ProjectDir)..\thirdparty\qcoro\msvc\qcoro\core\Debug\QCoro6Cored.dll" "$(OutDir)"
+copy /Y "$(ProjectDir)..\thirdparty\qcoro\msvc\qcoro\network\Debug\QCoro6Networkd.dll" "$(OutDir)"
+if not exist "$(OutDir)\components" mkdir "$(OutDir)\components"
+copy /Y "C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\bin\mkl_rt.2.dll" "$(OutDir)\components\"
+copy /Y "C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\bin\mkl_core.2.dll" "$(OutDir)\components\"
+copy /Y "C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\bin\mkl_intel_thread.2.dll" "$(OutDir)\components\"
+copy /Y "C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\bin\mkl_cdft_core.2.dll" "$(OutDir)\components\"
+copy /Y "C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\bin\mkl_def.2.dll" "$(OutDir)\components\"
+copy /Y "C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\bin\mkl_mc3.2.dll" "$(OutDir)\components\"
+copy /Y "C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\bin\mkl_avx2.2.dll" "$(OutDir)\components\"
+copy /Y "C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\bin\mkl_avx512.2.dll" "$(OutDir)\components\"
+copy /Y "C:\Program Files (x86)\Intel\oneAPI\compiler\2025.0\bin\libiomp5md.dll" "$(OutDir)\components\"
+copy /Y "$(ProjectDir)..\thirdparty\bass\bin\win32\bass*.dll" "$(OutDir)\components\"
+copy /Y "$(ProjectDir)..\thirdparty\libarchive\debug\bin\archive.dll" "$(OutDir)\components\"
+copy /Y "$(ProjectDir)..\thirdparty\chromaprint\msvc\src\Debug\chromaprint.dll" "$(OutDir)\components\"
+copy /Y "$(ProjectDir)..\thirdparty\libcue\bin\libcue.dll" "$(OutDir)\components\"
+copy /Y "$(ProjectDir)..\thirdparty\libiconv\output\x64\Debug\libiconv.dll" "$(OutDir)\components\"
+copy /Y "$(ProjectDir)..\thirdparty\libsamplerate\bin\samplerate.dll" "$(OutDir)\components\"
+copy /Y "$(ProjectDir)..\thirdparty\r8brain-free-src\DLL\Win64\r8bsrc.dll" "$(OutDir)\components\"
+copy /Y "$(ProjectDir)..\thirdparty\uchardet\msvc\src\Debug\uchardet.dll" "$(OutDir)\components\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -179,8 +203,32 @@
       <PreserveSbr>false</PreserveSbr>
     </Bscmake>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>copy /Y "$(ProjectDir)..\thirdparty\mimalloc\out\msvc-x64\Release\mimalloc-override.dll" "$(OutDir)"
+copy /Y "$(ProjectDir)..\thirdparty\mimalloc\out\msvc-x64\Release\mimalloc-redirect.dll" "$(OutDir)"
+copy /Y "$(ProjectDir)..\thirdparty\OpenCC\msvc\src\Release\opencc.dll" "$(OutDir)"
+copy /Y "$(ProjectDir)..\thirdparty\QSimpleUpdater\release\QSimpleUpdater.dll" "$(OutDir)"
+copy /Y "$(ProjectDir)..\thirdparty\qwindowkit\msvc\out-amd64-Release\bin\QWKCore.dll" "$(OutDir)"
+copy /Y "$(ProjectDir)..\thirdparty\qwindowkit\msvc\out-amd64-Release\bin\QWKWidgets.dll" "$(OutDir)"
+copy /Y "$(ProjectDir)..\thirdparty\qcoro\msvc\qcoro\core\Release\QCoro6Core.dll" "$(OutDir)"
+copy /Y "$(ProjectDir)..\thirdparty\qcoro\msvc\qcoro\network\Release\QCoro6Network.dll" "$(OutDir)"
+if not exist "$(OutDir)\components" mkdir "$(OutDir)\components"
+copy /Y "C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\bin\mkl_rt.2.dll" "$(OutDir)\components\"
+copy /Y "C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\bin\mkl_core.2.dll" "$(OutDir)\components\"
+copy /Y "C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\bin\mkl_intel_thread.2.dll" "$(OutDir)\components\"
+copy /Y "C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\bin\mkl_cdft_core.2.dll" "$(OutDir)\components\"
+copy /Y "C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\bin\mkl_def.2.dll" "$(OutDir)\components\"
+copy /Y "C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\bin\mkl_mc3.2.dll" "$(OutDir)\components\"
+copy /Y "C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\bin\mkl_avx2.2.dll" "$(OutDir)\components\"
+copy /Y "C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\bin\mkl_avx512.2.dll" "$(OutDir)\components\"
+copy /Y "C:\Program Files (x86)\Intel\oneAPI\compiler\2025.0\bin\libiomp5md.dll" "$(OutDir)\components\"
+copy /Y "$(ProjectDir)..\thirdparty\bass\bin\win32\bass*.dll" "$(OutDir)\components\"
+copy /Y "$(ProjectDir)..\thirdparty\libarchive\bin\archive.dll" "$(OutDir)\components\"
+copy /Y "$(ProjectDir)..\thirdparty\chromaprint\msvc\src\Release\chromaprint.dll" "$(OutDir)\components\"
+copy /Y "$(ProjectDir)..\thirdparty\libcue\bin\libcue.dll" "$(OutDir)\components\"
+copy /Y "$(ProjectDir)..\thirdparty\libiconv\output\x64\Release\libiconv.dll" "$(OutDir)\components\"
+copy /Y "$(ProjectDir)..\thirdparty\libsamplerate\bin\samplerate.dll" "$(OutDir)\components\"
+copy /Y "$(ProjectDir)..\thirdparty\r8brain-free-src\DLL\Win64\r8bsrc.dll" "$(OutDir)\components\"
+copy /Y "$(ProjectDir)..\thirdparty\uchardet\msvc\src\Release\uchardet.dll" "$(OutDir)\components\"</Command>
     </PostBuildEvent>
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>

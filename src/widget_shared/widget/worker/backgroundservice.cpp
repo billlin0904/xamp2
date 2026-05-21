@@ -48,19 +48,6 @@ void BackgroundService::cancelAllJob() {
     stop_source_.request_stop();
 }
 
-void BackgroundService::onTranscribeFile(const QString& file_name) {
-    http_client_.setUrl("http://127.0.0.1:9090/transcribe_file_krc/"_str);
-    http_client_.setTimeout(30000);
-    http_client_.postMultipart(file_name)
-		.then([this](const auto& content) {
-        QSharedPointer<KrcParser> parser(new KrcParser());
-        if (parser->parse(reinterpret_cast<const uint8_t*>(content.data()),
-            content.size())) {
-			emit transcribeFileCompleted(parser);
-        }
-    });
-}
-
 std::tuple<std::shared_ptr<FastIOStream>, Path> 
 BackgroundService::makeUniqueFile(const EncodeJob &job,
     const QString& dir_name) {

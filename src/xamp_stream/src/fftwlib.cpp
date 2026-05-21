@@ -3,14 +3,20 @@
 #include <base/logger.h>
 #include <base/exception.h>
 
+#ifdef XAMP_OS_WIN
+
 XAMP_STREAM_NAMESPACE_BEGIN
 
-#if defined(XAMP_OS_WIN) || defined(XAMP_OS_MAC)
-
-#if (USE_INTEL_MKL_LIB)
-
 MKLLib::MKLLib() try
-	: module_(OpenSharedLibrary("mkl_rt.2"))
+	: mkl_core_(OpenSharedLibrary("mkl_core.2"))
+	, libiomp_(OpenSharedLibrary("libiomp5md"))
+	, mkl_intel_thread_(OpenSharedLibrary("mkl_intel_thread.2"))
+	, mkl_cdft_core_(OpenSharedLibrary("mkl_cdft_core.2"))
+	, mkl_def_(OpenSharedLibrary("mkl_def.2"))
+	, mkl_mc3_(OpenSharedLibrary("mkl_mc3.2"))
+	, mkl_avx2_(OpenSharedLibrary("mkl_avx2.2"))
+	, mkl_avx512_(OpenSharedLibrary("mkl_avx512.2"))
+	, module_(OpenSharedLibrary("mkl_rt.2"))
 	, XAMP_LOAD_DLL_API(MKL_malloc)
 	, XAMP_LOAD_DLL_API(MKL_free)
 	, XAMP_LOAD_DLL_API(DftiErrorClass)
@@ -30,27 +36,6 @@ catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 }
 
-#else
-
-FFTWFLib::FFTWFLib() try
-    : module_(OpenSharedLibrary("fftw3f-3"))
-	, XAMP_LOAD_DLL_API(fftwf_destroy_plan)
-	, XAMP_LOAD_DLL_API(fftwf_malloc)
-	, XAMP_LOAD_DLL_API(fftwf_free)
-	, XAMP_LOAD_DLL_API(fftwf_plan_guru_split_dft_c2r)
-	, XAMP_LOAD_DLL_API(fftwf_plan_guru_split_dft_r2c)
-	, XAMP_LOAD_DLL_API(fftwf_execute_split_dft_r2c)
-	, XAMP_LOAD_DLL_API(fftwf_execute_split_dft_c2r)
-	, XAMP_LOAD_DLL_API(fftwf_plan_with_nthreads)
-	, XAMP_LOAD_DLL_API(fftwf_init_threads)
-	, XAMP_LOAD_DLL_API(fftwf_cleanup_threads) {
-}
-catch (const Exception& e) {
-	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
-}
-
-#endif
-
-#endif
-
 XAMP_STREAM_NAMESPACE_END
+
+#endif

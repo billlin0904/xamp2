@@ -147,7 +147,7 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 	std::vector<std::forward_list<TrackInfo>> batch_track_infos;
 
 	constexpr auto kMaxBatchTrackSize = 250UL;
-	size_t track_count = 0;
+	std::atomic<size_t> track_count = 0;
 
 	Executor::ParallelForEach(thread_pool_,
 		zip_files, [&](auto& files_path, const auto& stop_token) {
@@ -168,14 +168,14 @@ void FileSystemService::scanPathFiles(int32_t playlist_id, const QString& dir) {
 		}
 
 		std::forward_list<TrackInfo> tracks;
-		TaglibMetadataReader reader;
+		auto reader = MakeMetadataReader();
 
 		for (const auto& path : path_info.second) {
 			if (stop_token.stop_requested()) {
 				return;
 			}
-			reader.Open(path);			
-			auto track_info = reader.Extract();
+			reader->Open(path);
+			auto track_info = reader->Extract();
 			if (track_info) {
 				tracks.push_front(track_info.value());
 			}

@@ -55,6 +55,33 @@ Windows 使用者可以到 GitHub Releases 下載預先編譯好的安裝檔。
 
 目前建置流程仍偏向開發環境使用，之後會再整理更完整的編譯說明。
 
+## 開發與打包備忘
+
+### Intel oneMKL Runtime
+
+專案的 FFT 實作目前會透過 `mkl_rt.2.dll` 載入 Intel oneMKL。  
+如果缺少 MKL runtime，執行時可能會出現 `0xC06D007E: Module not found`，而且錯誤不一定會直接指出真正缺少哪一個 DLL。
+
+Windows Debug / Release 發行目錄的 `components` 資料夾需包含以下檔案：
+
+- `mkl_rt.2.dll`
+- `mkl_core.2.dll`
+- `mkl_intel_thread.2.dll`
+- `mkl_cdft_core.2.dll`
+- `mkl_def.2.dll`
+- `mkl_mc3.2.dll`
+- `mkl_avx2.2.dll`
+- `mkl_avx512.2.dll`
+- `libiomp5md.dll`
+
+上述檔案通常來自：
+
+- `C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\bin`
+- `C:\Program Files (x86)\Intel\oneAPI\compiler\2025.0\bin`
+
+其中 `mkl_intel_thread.2.dll` 會延遲載入 `mkl_core.2.dll` 與 `libiomp5md.dll`；`mkl_core.2.dll` 也會依 CPU 動態載入 `mkl_def.2.dll`、`mkl_mc3.2.dll`、`mkl_avx2.2.dll` 或 `mkl_avx512.2.dll` 等 kernel DLL。  
+因此打包時不要只帶 `mkl_rt.2.dll`，否則可能在不同 CPU 或不同執行路徑下才爆出 missing module。
+
 ## 授權
 
 XAMP 2 本身使用 MIT License。

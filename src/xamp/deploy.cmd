@@ -11,8 +11,6 @@ REM 複製 DLL 檔案 (可考慮使用通配符，但需確認無多餘不必要
 copy %BUILD_DIR%\xamp.exe %DEPLOY_DIR%\
 copy %BUILD_DIR%\opengl32sw.dll %DEPLOY_DIR%\
 copy %BUILD_DIR%\libcrypto-1_1-x64.dll %DEPLOY_DIR%\
-copy %BUILD_DIR%\libfftw3f-3.dll %DEPLOY_DIR%\
-copy %BUILD_DIR%\libfftw3-3.dll %DEPLOY_DIR%\
 copy %BUILD_DIR%\taglib.dll %DEPLOY_DIR%\
 copy %BUILD_DIR%\libssl-1_1-x64.dll %DEPLOY_DIR%\
 copy %BUILD_DIR%\libsoxr.dll %DEPLOY_DIR%\

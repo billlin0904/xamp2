@@ -80,7 +80,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/;../thirdparty/libsamplerate/include/;../thirdparty/LibALAC/;C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\include\;../thirdparty/libflac/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/;../thirdparty/soxr/src/;../thirdparty/r8brain-free-src/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/;../thirdparty/libsamplerate/include/;../thirdparty/LibALAC/;C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\include\;../thirdparty/libflac/include/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STREAM_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996;4819;4200;</DisableSpecificWarnings>
       <BrowseInformation>false</BrowseInformation>
@@ -128,7 +128,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/;../thirdparty/libsamplerate/include/;C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/;../thirdparty/soxr/src/;../thirdparty/r8brain-free-src/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/;../thirdparty/libsamplerate/include/;C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\include\</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STREAM_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4996;4819;4200;</DisableSpecificWarnings>

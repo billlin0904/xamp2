@@ -245,11 +245,8 @@ OrderedMap<std::string, std::string> GetBassDLLVersion() {
 }
 
 void LoadFFTLib() {
-#if (USE_INTEL_MKL_LIB)
+#ifdef XAMP_OS_WIN
     SharedSingleton<MKLLib>::GetInstance();
-#else
-    SharedSingleton<FFTWLib>::GetInstance();
-    SharedSingleton<FFTWFLib>::GetInstance();
 #endif
 }
 

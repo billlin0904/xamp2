@@ -99,8 +99,6 @@ private:
 
 #ifdef XAMP_OS_WIN
 
-#if (USE_INTEL_MKL_LIB)
-
 #define IfFailedThrowMKL(s) \
 	if ((s) != 0 && !MklDLL.DftiErrorClass((s), DFTI_NO_ERROR)) { \
 		throw LibraryException(MklDLL.DftiErrorMessage((s))); \
@@ -180,82 +178,6 @@ private:
 	ComplexValarray output_;
 	DftiDescriptor descriptor_;
 };
-#else
-class FFT::FFTImpl {
-public:
-	FFTImpl() = default;
-
-	~FFTImpl() {
-	}
-
-	void Initialize(size_t frame_size) {
-		XAMP_ASSERT(IsPowerOfTwo(frame_size));
-		frame_size_ = frame_size;
-		complex_size_ = ComplexSize(frame_size);
-		data_ = MakeFFTWFBuffer(frame_size);
-		re_ = MakeFFTWFBuffer(complex_size_);
-		im_ = MakeFFTWFBuffer(complex_size_);
-		output_ = ComplexValarray(Complex(), complex_size_);
-
-		fftwf_iodim dim;
-		dim.n = static_cast<int>(frame_size);
-		dim.is = 1;
-		dim.os = 1;
-		forward_.reset(FFTWF_LIB.fftwf_plan_guru_split_dft_r2c(1,
-			&dim,
-			0,
-			nullptr,
-			data_.get(),
-			re_.get(),
-			im_.get(),
-			FFTW_ESTIMATE));
-		if (!forward_) {
-			throw LibraryException("Failed call fftwf_plan_guru_split_dft_r2c.");
-		}
-
-		backward_.reset(FFTWF_LIB.fftwf_plan_guru_split_dft_c2r(1,
-			&dim,
-			0,
-			nullptr,
-			re_.get(),
-			im_.get(),
-			data_.get(),
-			FFTW_ESTIMATE));
-		if (!backward_) {
-			throw LibraryException("Failed call fftwf_plan_guru_split_dft_c2r.");
-		}
-	}
-
-	const ComplexValarray& Forward(float const* signals, size_t frame_size) {
-		XAMP_ASSERT(frame_size_ == frame_size);
-		XAMP_ASSERT(forward_);
-
-		MemoryCopy(data_.get(), signals, sizeof(float) * frame_size);
-
-		FFTWF_LIB.fftwf_execute_split_dft_r2c(forward_.get(),
-			data_.get(),
-			re_.get(),
-			im_.get());
-
-		auto const re = re_.get();
-		auto const im = im_.get();
-
-		for (size_t i = 0; i < complex_size_; ++i) {
-			output_[i] = Complex(re[i], im[i]);
-		}
-		return output_;
-	}
-
-	size_t frame_size_{ 0 };
-	size_t complex_size_{ 0 };
-	FFTWFPtr data_;
-	FFTWFPtr re_;
-	FFTWFPtr im_;
-	ComplexValarray output_;
-	FFTWFPlan forward_;
-	FFTWFPlan backward_;
-};
-#endif
 
 #else
 
