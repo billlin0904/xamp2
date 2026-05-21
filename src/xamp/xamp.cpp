@@ -36,6 +36,7 @@
 #include <widget/lrcpage.h>
 #include <widget/lyricsshowwidget.h>
 #include <widget/filesystemviewpage.h>
+#include <widget/chatgpt/spectrogramwidget.h>
 #include <widget/richplaylistpage.h>
 #include <widget/databasefacade.h>
 #include <widget/playlisttableview.h>
@@ -526,6 +527,31 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         this,
         &Xamp::onSampleTimeChanged,
         Qt::QueuedConnection);
+
+    (void)QObject::connect(state_adapter_.get(),
+        &UIPlayerStateAdapter::sampleTimeChanged,
+        file_explorer_page_.get(),
+        [this](double stream_time) {
+            file_explorer_page_->spectrogramWidget()->setCurrentPosition(static_cast<float>(stream_time));
+        },
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(file_explorer_page_->spectrogramWidget(),
+        &SpectrogramWidget::playAt,
+        this,
+        [this](float sec) {
+            try {
+                is_seeking_ = true;
+                player_->Seek(sec);
+                qTheme.setPlayOrPauseButton(ui_.playButton, true);
+                main_window_->setTaskbarPlayingResume();
+            }
+            catch (...) {
+                player_->Stop(false);
+                logAndShowMessage(std::current_exception());
+            }
+            is_seeking_ = false;
+        });
 
     (void)QObject::connect(state_adapter_.get(),
         &UIPlayerStateAdapter::deviceChanged,

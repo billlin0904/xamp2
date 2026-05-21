@@ -6,6 +6,7 @@
 #pragma once
 
 #include <QFrame>
+#include <QPointer>
 #include <QWidget>
 #include <QPainterPath>
 
@@ -14,7 +15,7 @@
 #include <widget/util/colortable.h>
 #include <widget/playlistentity.h>
 
-class XAMP_WIDGET_SHARED_EXPORT WaveformWidget : public QFrame {
+class XAMP_WIDGET_SHARED_EXPORT SpectrogramWidget : public QFrame {
     Q_OBJECT
 
 public:
@@ -33,7 +34,9 @@ public:
     static constexpr uint32_t kPadding = 4;    
     static constexpr int kTextOffsetY = -10;
 
-    explicit WaveformWidget(QWidget *parent = nullptr);
+    explicit SpectrogramWidget(QWidget *parent = nullptr);
+
+    ~SpectrogramWidget() override;
 
     void setCurrentPosition(float sec);
 
@@ -45,8 +48,6 @@ public:
 
 signals:
     void playAt(float sec);
-
-    void readAudioSpectrogram(SpectrogramColor color, const PlayListEntity& entity);
 
 public slots:
     void setSpectrogramData(double duration_sec, size_t hop_size, const QImage& chunk, int time_index);
@@ -95,6 +96,10 @@ private:
 
     QRect drawRect() const;
 
+    void startReadSpectrogram(SpectrogramColor color, const PlayListEntity& entity);
+
+    void cancelReadSpectrogram();
+
     bool cache_dirty_ = true;
     bool is_processing_ = false;
     float total_ms_ = 0.f;
@@ -105,4 +110,6 @@ private:
     QImage spectrogram_cache_;
     QPixmap static_cache_;
     SpectrogramColor color_ = SpectrogramColor::SPECTROGRAM_COLOR_DEFAULT;
+    QPointer<QObject> current_load_watcher_;
+    int spectrogram_load_id_{ 0 };
 };

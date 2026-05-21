@@ -32,7 +32,7 @@
      <property name="handleWidth">
       <number>1</number>
      </property>
-     <widget class="WaveformWidget" name="frame_2">
+     <widget class="SpectrogramWidget" name="spectrogramWidget">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>1</horstretch>
@@ -84,9 +84,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>WaveformWidget</class>
+   <class>SpectrogramWidget</class>
    <extends>QFrame</extends>
-   <header>widget/chatgpt/waveformwidget.h</header>
+   <header>widget/chatgpt/spectrogramwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

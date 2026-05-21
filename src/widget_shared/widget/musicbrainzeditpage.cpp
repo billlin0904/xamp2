@@ -440,6 +440,7 @@ void MusicbrainzEditPage::load(const QList<PlayListEntity>& entities) {
     ui_->albumRecordingView->setModel(album_track_model_);
     ui_->albumRecordingView->setRootIsDecorated(true);
     ui_->albumRecordingView->setAllColumnsShowFocus(true);
+    ui_->albumRecordingView->setIconSize(QSize(18, 18));
 
     (void)QObject::connect(ui_->albumRecordingView, &QTreeView::clicked,
         [this](const auto& index) {
@@ -607,6 +608,7 @@ void MusicbrainzEditPage::rebuildCandidateView() {
         auto* albumItem = albumItems.value(albumKey, nullptr);
         if (albumItem == nullptr) {
             albumItem = new QStandardItem(releaseTitle);
+            albumItem->setIcon(qTheme.fontIcon(Glyphs::ICON_CD));
             QList<QStandardItem*> albumRow;
             albumRow << albumItem
                 << new QStandardItem(similarityText(candidate.albumScore))
@@ -898,7 +900,7 @@ QCoro::Task<bool> MusicbrainzEditPage::fetchMusicBrainzRelease(const QList<PlayL
     QHash<QString, QList<musicbrain::TrackInfo>>& release_track_cache,
     QHash<QString, QPixmap>& release_cover_cache,
     QHash<QString, size_t>& release_cover_size_cache) {
-    static constexpr size_t kDefaultSize = 500;
+    static constexpr size_t kDefaultSize = 1200;
 
     bool found = false;
     if (entities.isEmpty()) {

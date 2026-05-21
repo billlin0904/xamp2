@@ -6,7 +6,6 @@
 #include <widget/database.h>
 #include <widget/databasefacade.h>
 #include <widget/util/mbdiscid_util.h>
-#include <widget/chatgpt/waveformwidget.h>
 #include <widget/appsettings.h>
 #include <widget/widget_shared.h>
 #include <widget/imagecache.h>
@@ -17,16 +16,10 @@
 #include <widget/util/json_util.h>
 #include <widget/util/tag_util.h>
 
-#include <widget/util/read_util.h>
-#include <widget/util/colortable.h>
 #include <widget/appsettingnames.h>
 
 #include <stream/filestream.h>
-#include <stream/bassfilestream.h>
-#include <stream/fft.h>
-#include <stream/stft.h>
 #include <base/logger.h>
-#include <base/math.h>
 
 #if defined(Q_OS_WIN)
 #include <stream/mbdiscid.h>
@@ -41,100 +34,7 @@
 
 namespace {
     XAMP_DECLARE_LOG_NAME(BackgroundService);
-
-    constexpr size_t kFFTSize = 2048 * 2;
-    constexpr size_t kHopSize = kFFTSize * 0.5;
-    constexpr float kPower2FFSize = kFFTSize * kFFTSize;
-    constexpr size_t kFreqBins = (kFFTSize / 2);
-
-    float toDbFromNorm(float p) {
-        // p 已是功率（re^2+im^2），保底避免 log(0)
-        if (p <= 0.0f) 
-            return ColorTable::kMinDb;
-        // 若常數很大，建議 kPower2FFSize 用 double 並在此轉回 float
-        return 10.0f * log10f_fast(p / kPower2FFSize);
-    }
-
-    float getDb(const std::complex<float>& c) {
-        return toDbFromNorm(std::norm(c));
-    }
-
-    float getRealDb(float r) {
-        return toDbFromNorm(r * r);
-    }
-
-    void fillSpectrogramColumn(const ColorTable &color_table,
-        QImage& chunk_img,
-        int col,
-        const ComplexValarray& freq_bins) {
-
-        const int h = chunk_img.height();
-        const int stride = chunk_img.bytesPerLine();
-        const int n = static_cast<int>(freq_bins.size());
-
-        const int num = h - 1;
-        const int den = n - 1;
-
-        uchar* base = chunk_img.bits() + col * 3;
-        auto toRow = [&](int f) {
-            return ((h - 1) - (f * num + den / 2) / den) * stride;
-            };
-
-        std::vector<int> row_of_f(n);
-        {
-            const int num = h - 1, den = n - 1;
-            for (int f = 0; f < n; ++f) {
-                const int row = toRow(f);
-                row_of_f[f] = row;
-            }
-        }
-
-        for (int f = 0; f < n; ++f) {
-            float db;
-            if ((f == 0) || (f == n - 1)) {
-                db = getRealDb(freq_bins[f].real());
-            }
-            else {
-                db = getDb(freq_bins[f]);
-            }
-
-            const QRgb c = color_table[db];
-
-            uchar* pix = base + row_of_f[f];
-            pix[0] = qRed(c);
-            pix[1] = qGreen(c);
-            pix[2] = qBlue(c);
-        }
-    }
-
-    bool getSamples(ScopedPtr<FileStream>& file_stream, Buffer<float>& buffer) {
-        auto retry_count = 0;
-        auto is_readable = true;
-        auto* bass_file_stream = dynamic_cast<BassFileStream*>(file_stream.get());
-        if (!bass_file_stream) {
-            return false;
-        }
-        constexpr auto kMaxRetryCount = 4;
-        while (is_readable) {
-            buffer.Fill(0.0f);
-            auto read_samples = file_stream->GetSamples(buffer.data(),
-                buffer.size());
-            if (read_samples > 0) {
-                break;
-            }
-            if (retry_count < kMaxRetryCount) {
-                if (!bass_file_stream->EndOfStream()) {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                    retry_count++;
-                    continue;
-                }
-            }
-            is_readable = false;
-        }
-        return is_readable;
-    }    
 }
-
 BackgroundService::BackgroundService()
     : nam_(this)
 	, http_client_(&nam_, QString(), this) {
@@ -659,104 +559,4 @@ void BackgroundService::onBlurImage(const QString& cover_id,
     emit blurImage(blur_image_cache_.GetOrAdd(cover_id, [&]() {
         return image_util::blurImage(thread_pool_, image, size);
         }));
-}
-
-void BackgroundService::onTranslation(const QString& keyword, 
-    const QString& from,
-    const QString& to) {
-    const auto url =
-        qFormat("https://translate.google.com/translate_a/single?client=gtx&sl=%3&tl=%2&dt=t&q=%1")
-        .arg(QString::fromStdString(QUrl::toPercentEncoding(keyword).toStdString()))
-        .arg(to)
-        .arg(from);
-    http_client_.setUrl(url);
-    http_client_.get().then([keyword, this](const auto& content) {
-        if (content.isEmpty()) {
-            return;
-        }
-        auto result = content;
-        result = result.replace("[[[\""_str, ""_str);
-        result = result.mid(0, result.indexOf(",\""_str) - 1);
-        emit translationCompleted(keyword, result);
-        });
-}
-
-void BackgroundService::onReadSpectrogram(SpectrogramColor color, const PlayListEntity& entity) {
-	try {        
-        ArchiveFileStream afs;
-
-        if (entity.is_zip_file && entity.archive_entry_name.has_value()) {
-            auto result = StreamFactory::MakeArchiveFileStream(
-                entity.file_path.toStdWString(),
-                entity.archive_entry_name.value().toStdWString());
-            if (!result.has_value()) {
-				throw Exception(result.error());
-            }
-            afs = std::move(result.value());
-        }
-        else {
-            afs.file_stream = makePcmFileStream(entity.file_path.toStdWString());
-        }
-        if (afs.file_stream->GetDuration() <= 0.0) {
-            return;
-        }
-
-        STFT fft(kFFTSize, kHopSize);
-        fft.SetWindowType(WindowType::HANN);
-
-        Buffer<float> buffer(kFFTSize);        
-		
-        int time_index = 0;
-        auto duration = afs.file_stream->GetDuration();
-        ComplexValarray freq_bins;
-        freq_bins.resize(fft.GetShiftSize() + 1);
-
-        auto format = afs.file_stream->GetFormat();
-		auto total_samples = static_cast<uint32_t>(duration * format.GetSampleRate());
-        auto kColumnsPerChunk = (std::min)(100u, static_cast<uint32_t>(total_samples / fft.GetShiftSize()));
-
-        color_table_.setSpectrogramColor(color);
-
-        while (!is_stop_ && afs.file_stream->IsActive()) {
-        	QImage chunk_img(kColumnsPerChunk, 
-                freq_bins.size(),
-                QImage::Format_RGB888);
-            chunk_img.fill(Qt::black);
-
-            if (!getSamples(afs.file_stream, buffer)) {
-                freq_bins = fft.Flush();
-                fillSpectrogramColumn(color_table_, chunk_img, 0, freq_bins);
-                emit readAudioSpectrogram(duration, kHopSize, chunk_img, time_index);
-                break;
-            }
-
-            freq_bins = fft.Process(buffer.data(), buffer.size());
-            fillSpectrogramColumn(color_table_, chunk_img, 0, freq_bins);
-
-            int actual_columns = kColumnsPerChunk;
-			
-            for (int col = 1; col < kColumnsPerChunk; col++) {                             
-				if (!getSamples(afs.file_stream, buffer)) {
-                    actual_columns = col;
-                    freq_bins = fft.Flush();
-                    fillSpectrogramColumn(color_table_, chunk_img, col, freq_bins);
-                    break;
-                }
-                else {
-                    freq_bins = fft.Process(buffer.data(), buffer.size());
-                    fillSpectrogramColumn(color_table_, chunk_img, col, freq_bins);
-                }
-            }
-            emit readAudioSpectrogram(duration, kHopSize, chunk_img, time_index);
-            time_index += actual_columns;
-        }
-
-        emit readAudioDataCompleted();
-    }
-    catch (const Exception& e) {
-        XAMP_LOG_ERROR(e.GetErrorMessage());
-    }
-    catch (const std::exception& e) {
-        XAMP_LOG_ERROR(e.what());
-    }
 }

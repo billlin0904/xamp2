@@ -12,6 +12,7 @@
 #include <widget/widget_shared.h>
 #include <widget/imagecache.h>
 #include <widget/scanfileprogresspage.h>
+#include <widget/chatgpt/spectrogramwidget.h>
 
 #include <stream/filestream.h>
 #include <base/workstealingtaskqueue.h>
@@ -124,8 +125,6 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     progress_page_->hide();
     progress_page_->move(0, height() - 80);
 
-	waveformWidget()->hide();
-    
     setFrameStyle(QFrame::StyledPanel);    
 
     dir_model_ = new FileSystemModel(this);   
@@ -157,6 +156,12 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     ui_->page->playlist()->setPlaylistId(kFileSystemPlaylistId,
         kAppSettingPlaylistColumnName);
     ui_->page->playlist()->setHeaderViewHidden(false);
+    (void)QObject::connect(ui_->page->playlist(),
+        &PlaylistTableView::playMusic,
+        this,
+        [this](int32_t, const PlayListEntity& item, bool) {
+            spectrogramWidget()->loadFile(item);
+        });
 
     auto last_open_path = qAppSettings.valueAsString(
         kAppSettingFileSystemLastOpenPath);
@@ -356,8 +361,8 @@ PlaylistPage* FileSystemViewPage::playlistPage() {
     return ui_->page;
 }
 
-WaveformWidget* FileSystemViewPage::waveformWidget() {
-    return ui_->frame_2;
+SpectrogramWidget* FileSystemViewPage::spectrogramWidget() {
+    return ui_->spectrogramWidget;
 }
 
 FileSystemViewPage::~FileSystemViewPage() {

@@ -1,17 +1,33 @@
-﻿#include <QPainter>
+#include <QPainter>
 #include <QLinearGradient>
 #include <QTimer>
 #include <QMouseEvent>
+#include <QPointer>
+#include <QFutureWatcher>
+#include <QtConcurrent>
+#include <QVector>
 
+#include <base/math.h>
+#include <stream/bassfilestream.h>
+#include <stream/fft.h>
+#include <stream/filestream.h>
+#include <stream/stft.h>
 #include <widget/util/str_util.h>
 #include <widget/util/ui_util.h>
 #include <widget/util/image_util.h>
-#include <widget/chatgpt/waveformwidget.h>
+#include <widget/util/read_util.h>
+#include <widget/chatgpt/spectrogramwidget.h>
 #include <widget/actionmap.h>
 #include <widget/appsettings.h>
 #include <widget/appsettingnames.h>
 
+#include <thread>
+
 namespace {
+    constexpr size_t kFFTSize = 2048 * 2;
+    constexpr size_t kHopSize = kFFTSize * 0.5;
+    constexpr float kPower2FFSize = kFFTSize * kFFTSize;
+
     auto makeImage(double duration_sec, uint32_t sample_rate, size_t hop_size, const QImage& chunk) -> QImage {
         size_t max_time_bins = static_cast<size_t>(std::ceil(
             duration_sec
@@ -22,29 +38,217 @@ namespace {
         spec_img.fill(Qt::black);
         return spec_img;
     }
+
+    float toDbFromNorm(float p) {
+        if (p <= 0.0f) {
+            return ColorTable::kMinDb;
+        }
+        return 10.0f * log10f_fast(p / kPower2FFSize);
+    }
+
+    float getDb(const std::complex<float>& c) {
+        return toDbFromNorm(std::norm(c));
+    }
+
+    float getRealDb(float r) {
+        return toDbFromNorm(r * r);
+    }
+
+    void fillSpectrogramColumn(const ColorTable& color_table,
+        QImage& chunk_img,
+        int col,
+        const ComplexValarray& freq_bins) {
+        const int h = chunk_img.height();
+        const int stride = chunk_img.bytesPerLine();
+        const int n = static_cast<int>(freq_bins.size());
+
+        const int num = h - 1;
+        const int den = n - 1;
+
+        uchar* base = chunk_img.bits() + col * 3;
+        auto toRow = [&](int f) {
+            return ((h - 1) - (f * num + den / 2) / den) * stride;
+            };
+
+        std::vector<int> row_of_f(n);
+        for (int f = 0; f < n; ++f) {
+            row_of_f[f] = toRow(f);
+        }
+
+        for (int f = 0; f < n; ++f) {
+            float db;
+            if ((f == 0) || (f == n - 1)) {
+                db = getRealDb(freq_bins[f].real());
+            }
+            else {
+                db = getDb(freq_bins[f]);
+            }
+
+            const QRgb c = color_table[db];
+
+            uchar* pix = base + row_of_f[f];
+            pix[0] = qRed(c);
+            pix[1] = qGreen(c);
+            pix[2] = qBlue(c);
+        }
+    }
+
+    bool getSamples(ScopedPtr<FileStream>& file_stream, Buffer<float>& buffer) {
+        auto retry_count = 0;
+        auto is_readable = true;
+        auto* bass_file_stream = dynamic_cast<BassFileStream*>(file_stream.get());
+        if (!bass_file_stream) {
+            return false;
+        }
+        constexpr auto kMaxRetryCount = 4;
+        while (is_readable) {
+            buffer.Fill(0.0f);
+            auto read_samples = file_stream->GetSamples(buffer.data(),
+                buffer.size());
+            if (read_samples > 0) {
+                break;
+            }
+            if (retry_count < kMaxRetryCount) {
+                if (!bass_file_stream->EndOfStream()) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                    retry_count++;
+                    continue;
+                }
+            }
+            is_readable = false;
+        }
+        return is_readable;
+    }
+
+    struct SpectrogramChunk {
+        QImage image;
+        int time_index{ 0 };
+    };
+
+    struct SpectrogramReadResult {
+        double duration_sec{ 0.0 };
+        uint32_t sample_rate{ 44100 };
+        size_t hop_size{ kHopSize };
+        QVector<SpectrogramChunk> chunks;
+        QString error_message;
+    };
+
+    SpectrogramReadResult readSpectrogram(SpectrogramColor color, const PlayListEntity& entity) {
+        SpectrogramReadResult result;
+
+        try {
+            ArchiveFileStream afs;
+
+            if (entity.is_zip_file && entity.archive_entry_name.has_value()) {
+                auto archive_result = StreamFactory::MakeArchiveFileStream(
+                    entity.file_path.toStdWString(),
+                    entity.archive_entry_name.value().toStdWString());
+                if (!archive_result.has_value()) {
+                    throw Exception(archive_result.error());
+                }
+                afs = std::move(archive_result.value());
+            }
+            else {
+                afs.file_stream = makePcmFileStream(entity.file_path.toStdWString());
+            }
+
+            if (!afs.file_stream || afs.file_stream->GetDuration() <= 0.0) {
+                return result;
+            }
+
+            STFT fft(kFFTSize, kHopSize);
+            fft.SetWindowType(WindowType::HANN);
+
+            Buffer<float> buffer(kFFTSize);
+            int time_index = 0;
+            result.duration_sec = afs.file_stream->GetDuration();
+
+            ComplexValarray freq_bins;
+            freq_bins.resize(fft.GetShiftSize() + 1);
+
+            const auto format = afs.file_stream->GetFormat();
+            result.sample_rate = format.GetSampleRate();
+
+            const auto total_samples = static_cast<uint32_t>(result.duration_sec * result.sample_rate);
+            auto columns_per_chunk = (std::min)(100u, static_cast<uint32_t>(total_samples / fft.GetShiftSize()));
+            if (columns_per_chunk == 0) {
+                columns_per_chunk = 1;
+            }
+
+            ColorTable color_table;
+            color_table.setSpectrogramColor(color);
+
+            while (afs.file_stream->IsActive()) {
+                QImage chunk_img(columns_per_chunk,
+                    freq_bins.size(),
+                    QImage::Format_RGB888);
+                chunk_img.fill(Qt::black);
+
+                if (!getSamples(afs.file_stream, buffer)) {
+                    freq_bins = fft.Flush();
+                    fillSpectrogramColumn(color_table, chunk_img, 0, freq_bins);
+                    result.chunks.push_back(SpectrogramChunk{
+                        std::move(chunk_img),
+                        time_index
+                        });
+                    break;
+                }
+
+                freq_bins = fft.Process(buffer.data(), buffer.size());
+                fillSpectrogramColumn(color_table, chunk_img, 0, freq_bins);
+
+                int actual_columns = columns_per_chunk;
+                for (int col = 1; col < static_cast<int>(columns_per_chunk); col++) {
+                    if (!getSamples(afs.file_stream, buffer)) {
+                        actual_columns = col;
+                        freq_bins = fft.Flush();
+                        fillSpectrogramColumn(color_table, chunk_img, col, freq_bins);
+                        break;
+                    }
+
+                    freq_bins = fft.Process(buffer.data(), buffer.size());
+                    fillSpectrogramColumn(color_table, chunk_img, col, freq_bins);
+                }
+
+                result.chunks.push_back(SpectrogramChunk{
+                    std::move(chunk_img),
+                    time_index
+                    });
+                time_index += actual_columns;
+            }
+        }
+        catch (const Exception& e) {
+            result.error_message = QString::fromUtf8(e.GetErrorMessage());
+        }
+        catch (const std::exception& e) {
+            result.error_message = QString::fromUtf8(e.what());
+        }
+
+        return result;
+    }
 }
 
-WaveformWidget::WaveformWidget(QWidget *parent)
+SpectrogramWidget::SpectrogramWidget(QWidget *parent)
     : QFrame(parent) {
     setStyleSheet("background-color: transparent; border: none;"_str);
     setContextMenuPolicy(Qt::CustomContextMenu);
 
     color_ = qAppSettings.valueAsEnum<SpectrogramColor>(kAppSettingWaveformColor);
  
-    (void)QObject::connect(this, &WaveformWidget::customContextMenuRequested, [this](auto pt) {
-        ActionMap<WaveformWidget> action_map(this);
+    (void)QObject::connect(this, &SpectrogramWidget::customContextMenuRequested, [this](auto pt) {
+        ActionMap<SpectrogramWidget> action_map(this);
 
         auto *submenu = action_map.addSubMenu(tr("Change Spectrogram color"));
         submenu->addAction(tr("Default color"), [this]() {
             color_ = SPECTROGRAM_COLOR_DEFAULT;
             qAppSettings.setValue(kAppSettingWaveformColor, static_cast<int32_t>(color_));
-            emit readAudioSpectrogram(color_, file_path_);
+            startReadSpectrogram(color_, file_path_);
             });
 
         submenu->addAction(tr("SoX color"), [this]() {
             color_ = SPECTROGRAM_COLOR_SOX;
             qAppSettings.setValue(kAppSettingWaveformColor, static_cast<int32_t>(color_));
-            emit readAudioSpectrogram(color_, file_path_);
+            startReadSpectrogram(color_, file_path_);
             });
 
         const auto last_dir = qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
@@ -68,7 +272,11 @@ WaveformWidget::WaveformWidget(QWidget *parent)
         });
 }
 
-void WaveformWidget::setCurrentPosition(float sec) {
+SpectrogramWidget::~SpectrogramWidget() {
+    cancelReadSpectrogram();
+}
+
+void SpectrogramWidget::setCurrentPosition(float sec) {
 	if (total_ms_ <= 0.f) {
 		return;
 	}
@@ -76,25 +284,26 @@ void WaveformWidget::setCurrentPosition(float sec) {
     update(drawRect());
 }
 
-void WaveformWidget::setTotalDuration(float duration) {
+void SpectrogramWidget::setTotalDuration(float duration) {
 	total_ms_ = duration * 1000.f;
 	update();
 }
 
-void WaveformWidget::setSampleRate(uint32_t sample_rate) {
+void SpectrogramWidget::setSampleRate(uint32_t sample_rate) {
 	sample_rate_ = sample_rate;
 	update();
 }
 
-void WaveformWidget::setDrawMode(uint32_t mode) {
+void SpectrogramWidget::setDrawMode(uint32_t mode) {
     if (spectrogram_.isNull()) {
-        emit readAudioSpectrogram(color_, file_path_);
+        startReadSpectrogram(color_, file_path_);
     }
 	update();
 }
 
-void WaveformWidget::setSpectrogramData(double duration_sec, size_t hop_size, const QImage& chunk, int time_index) {
+void SpectrogramWidget::setSpectrogramData(double duration_sec, size_t hop_size, const QImage& chunk, int time_index) {
     if (time_index == 0) {
+        setTotalDuration(static_cast<float>(duration_sec));
         spectrogram_ = makeImage(duration_sec, sample_rate_, hop_size, chunk);
         spectrogram_.fill(Qt::black);
     }
@@ -104,7 +313,7 @@ void WaveformWidget::setSpectrogramData(double duration_sec, size_t hop_size, co
     p.end();   
 }
 
-void WaveformWidget::resizeSpectrogramSize() {
+void SpectrogramWidget::resizeSpectrogramSize() {
     if (spectrogram_.isNull())
         return;
     auto widget_size = drawRect().size();
@@ -116,7 +325,7 @@ void WaveformWidget::resizeSpectrogramSize() {
 }
 
 
-QRect WaveformWidget::gainColorBarRect() const {
+QRect SpectrogramWidget::gainColorBarRect() const {
     // 先拿到頻譜主畫面範圍
     QRect waveRect = drawRect();
 
@@ -135,7 +344,7 @@ QRect WaveformWidget::gainColorBarRect() const {
     return QRect(left, top, barWidth, barHeight);
 }
 
-QRect WaveformWidget::drawRect() const {
+QRect SpectrogramWidget::drawRect() const {
     constexpr int leftMargin = 60;
     constexpr int rightMargin = 80;
     constexpr int topMargin = 20;
@@ -149,7 +358,7 @@ QRect WaveformWidget::drawRect() const {
     return waveform_rect;
 }
 
-void WaveformWidget::drawTimeAxis(QPainter& painter, const QRect& rect) {
+void SpectrogramWidget::drawTimeAxis(QPainter& painter, const QRect& rect) {
     // 1) 取得音訊總秒數 (int)
     int total_sec = static_cast<int>(total_ms_ / 1000.f);
     if (total_sec <= 0) return;
@@ -243,7 +452,7 @@ void WaveformWidget::drawTimeAxis(QPainter& painter, const QRect& rect) {
     drawTickAndLabel(max_units);
 }
 
-void WaveformWidget::drawDuration(QPainter& painter, const QRect& rect) {
+void SpectrogramWidget::drawDuration(QPainter& painter, const QRect& rect) {
     if (cursor_ms_ < 0.f) {
         return;
     }
@@ -294,7 +503,7 @@ void WaveformWidget::drawDuration(QPainter& painter, const QRect& rect) {
     painter.drawText(QPointF(text_start_x, text_baseline_y), time_text);
 }
 
-void WaveformWidget::drawFrequencyAxis(QPainter& painter, const QRect& rect) {
+void SpectrogramWidget::drawFrequencyAxis(QPainter& painter, const QRect& rect) {
     // 1) 計算音檔的 Nyquist 頻率 = 取樣率的一半
     double nyquist = double(sample_rate_) * 0.5;
     if (nyquist <= 0.0) return;
@@ -396,7 +605,7 @@ void WaveformWidget::drawFrequencyAxis(QPainter& painter, const QRect& rect) {
     drawTickAndLabel(nyquist);
 }
 
-void WaveformWidget::paintEvent(QPaintEvent* event) {
+void SpectrogramWidget::paintEvent(QPaintEvent* event) {
     QPainter painter(this);
     painter.setRenderHints(QPainter::Antialiasing
         | QPainter::SmoothPixmapTransform
@@ -411,7 +620,7 @@ void WaveformWidget::paintEvent(QPaintEvent* event) {
     drawDuration(painter, waveform_rect);
 }
 
-void WaveformWidget::updateStaticCache() {
+void SpectrogramWidget::updateStaticCache() {
     if (width() <= 0 || height() <= 0) {
         return;
     }
@@ -460,7 +669,7 @@ void WaveformWidget::updateStaticCache() {
     cache_dirty_ = false; // 已更新
 }
 
-void WaveformWidget::drawGainColorBar(QPainter& painter, const QRect& barRect) {
+void SpectrogramWidget::drawGainColorBar(QPainter& painter, const QRect& barRect) {
     // barRect: 你要畫漸層條的範圍
     QLinearGradient gradient(barRect.topLeft(), barRect.bottomLeft());
     // top -> 0 dB
@@ -490,7 +699,7 @@ void WaveformWidget::drawGainColorBar(QPainter& painter, const QRect& barRect) {
     drawGainColorBarTicks(painter, barRect);
 }
 
-void WaveformWidget::drawGainColorBarTicks(QPainter& painter, const QRect& barRect) {
+void SpectrogramWidget::drawGainColorBarTicks(QPainter& painter, const QRect& barRect) {
     painter.save();
     painter.setPen(Qt::white);
 
@@ -531,7 +740,7 @@ void WaveformWidget::drawGainColorBarTicks(QPainter& painter, const QRect& barRe
     painter.restore();
 }
 
-float WaveformWidget::xToTime(float x, const QRect& rect) const {
+float SpectrogramWidget::xToTime(float x, const QRect& rect) const {
     if (rect.width() <= 0) return 0.f;
     float total_sec = total_ms_ / 1000.f;
     if (total_sec <= 0.f) return 0.f;
@@ -545,7 +754,7 @@ float WaveformWidget::xToTime(float x, const QRect& rect) const {
     return sec;
 }
 
-float WaveformWidget::timeToX(float sec, const QRect& rect) const {
+float SpectrogramWidget::timeToX(float sec, const QRect& rect) const {
     if (total_ms_ <= 0.f) return static_cast<float>(rect.left());
     float total_sec = total_ms_ / 1000.f;
     if (total_sec <= 0.f) return static_cast<float>(rect.left());
@@ -557,7 +766,7 @@ float WaveformWidget::timeToX(float sec, const QRect& rect) const {
     return rect.left() + ratio * rect.width();
 }
 
-float WaveformWidget::mapFreqToY(float freq, const QRect& rect) const {
+float SpectrogramWidget::mapFreqToY(float freq, const QRect& rect) const {
     float nyquist = static_cast<float>(sample_rate_) * 0.5f;
     if (nyquist <= 0.f) {
         return static_cast<float>(rect.bottom());
@@ -570,11 +779,11 @@ float WaveformWidget::mapFreqToY(float freq, const QRect& rect) const {
     return y;
 }
 
-void WaveformWidget::markCacheDirty() {
+void SpectrogramWidget::markCacheDirty() {
 	cache_dirty_ = true;
 }
 
-void WaveformWidget::mousePressEvent(QMouseEvent* event) {
+void SpectrogramWidget::mousePressEvent(QMouseEvent* event) {
     if (event->button() == Qt::LeftButton) {
         QRect waveformRect = drawRect();
         float x = static_cast<float>(event->pos().x());
@@ -583,25 +792,23 @@ void WaveformWidget::mousePressEvent(QMouseEvent* event) {
     }
 }
 
-void WaveformWidget::mouseMoveEvent(QMouseEvent* event) {
+void SpectrogramWidget::mouseMoveEvent(QMouseEvent* event) {
 }
 
-void WaveformWidget::mouseReleaseEvent(QMouseEvent* event) {
+void SpectrogramWidget::mouseReleaseEvent(QMouseEvent* event) {
 }
 
-void WaveformWidget::resizeEvent(QResizeEvent* event) {
+void SpectrogramWidget::resizeEvent(QResizeEvent* event) {
 	QFrame::resizeEvent(event);
     if (file_path_.file_path.isEmpty() || is_processing_) {
         markCacheDirty();
         return;
     }
-    doneRead();
-    is_processing_ = true;
-    emit readAudioSpectrogram(color_, file_path_);
+    startReadSpectrogram(color_, file_path_);
 	update();
 }
 
-void WaveformWidget::doneRead() {
+void SpectrogramWidget::doneRead() {
     XAMP_LOG_DEBUG("Done read!");
     resizeSpectrogramSize();
     spectrogram_ = QImage();
@@ -610,7 +817,8 @@ void WaveformWidget::doneRead() {
     update();
 }
 
-void WaveformWidget::clear() {
+void SpectrogramWidget::clear() {
+    cancelReadSpectrogram();
     total_ms_ = 0.0f;
     cursor_ms_ = -1.f;
     spectrogram_ = QImage();
@@ -619,9 +827,65 @@ void WaveformWidget::clear() {
     update();
 }
 
-void WaveformWidget::loadFile(const PlayListEntity& entity) {
+void SpectrogramWidget::loadFile(const PlayListEntity& entity) {
 	file_path_ = entity;
-    emit readAudioSpectrogram(color_, entity);
+    startReadSpectrogram(color_, entity);
 	update();
+}
+
+void SpectrogramWidget::startReadSpectrogram(SpectrogramColor color, const PlayListEntity& entity) {
+    cancelReadSpectrogram();
+    if (entity.file_path.isEmpty()) {
+        return;
+    }
+
+    const auto load_id = spectrogram_load_id_;
+    is_processing_ = true;
+    spectrogram_ = QImage();
+    spectrogram_cache_ = QImage();
+    markCacheDirty();
+    update();
+
+    auto* watcher = new QFutureWatcher<SpectrogramReadResult>(this);
+    current_load_watcher_ = watcher;
+
+    (void)QObject::connect(watcher, &QFutureWatcher<SpectrogramReadResult>::finished, this, [this, watcher, load_id]() {
+        watcher->deleteLater();
+        if (load_id != spectrogram_load_id_) {
+            return;
+        }
+        current_load_watcher_ = nullptr;
+
+        const auto result = watcher->result();
+        if (!result.error_message.isEmpty()) {
+            XAMP_LOG_ERROR("{}", result.error_message.toStdString());
+            doneRead();
+            return;
+        }
+
+        setSampleRate(result.sample_rate);
+        setTotalDuration(static_cast<float>(result.duration_sec));
+        for (const auto& chunk : result.chunks) {
+            setSpectrogramData(result.duration_sec,
+                result.hop_size,
+                chunk.image,
+                chunk.time_index);
+        }
+        doneRead();
+    });
+
+    watcher->setFuture(QtConcurrent::run([color, entity]() {
+        return readSpectrogram(color, entity);
+    }));
+}
+
+void SpectrogramWidget::cancelReadSpectrogram() {
+    ++spectrogram_load_id_;
+    if (current_load_watcher_) {
+        current_load_watcher_->disconnect(this);
+        current_load_watcher_->deleteLater();
+        current_load_watcher_ = nullptr;
+    }
+    is_processing_ = false;
 }
 

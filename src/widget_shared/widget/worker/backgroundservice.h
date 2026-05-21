@@ -20,7 +20,6 @@
 #include <widget/encodejobwidget.h>
 #include <widget/krcparser.h>
 #include <widget/neteaseparser.h>
-#include <widget/util/colortable.h>
 
 Q_DECLARE_METATYPE(ReplayGain);
 
@@ -57,19 +56,13 @@ signals:
 
 	void fetchLyricsCompleted(const QList<SearchLyricsResult>& results);
 
-	void translationCompleted(const QString& keyword, const QString& result);
-
 	void fetchMbDiscInfoCompleted(const MbDiscIdInfo &info);
 
 	void updateJobProgress(const QString& job_id, int new_progress);
 
 	void jobError(const QString& job_id, const QString &message);
 
-	void readAudioSpectrogram(double duration_sec, size_t hop_size, const QImage& chunk, int timeIndex);
-
 	void readAudioData(const std::vector<float>& interleaved);
-
-	void readAudioDataCompleted();
 
 	void transcribeFileCompleted(const QSharedPointer<ILrcParser>& parser);
 public Q_SLOT:
@@ -88,10 +81,6 @@ public Q_SLOT:
 #endif
 
 	void onSearchLyrics(const PlayListEntity& keyword);
-
-	void onTranslation(const QString& keyword, const QString& from, const QString& to);
-
-	void onReadSpectrogram(SpectrogramColor color, const PlayListEntity& entity);
 
 	QCoro::Task<SearchLyricsResult> downloadSingleKlrc(InfoItem info);
 
@@ -125,7 +114,6 @@ private:
 	std::stop_source stop_source_;
 	QNetworkAccessManager nam_;
 	http::HttpClient http_client_;
-	ColorTable color_table_;
 	LruCache<QString, SearchLyricsResult> lyrics_cache_;
 	std::shared_ptr<IThreadPoolExecutor> thread_pool_;
 };

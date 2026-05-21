@@ -11,7 +11,7 @@
 
 class PlaylistPage;
 class FileSystemModel;
-class WaveformWidget;
+class SpectrogramWidget;
 class ScanFileProgressPage;
 
 namespace Ui {
@@ -27,7 +27,7 @@ public:
 
 	PlaylistPage* playlistPage();
 
-	WaveformWidget* waveformWidget();
+	SpectrogramWidget* spectrogramWidget();
 signals:
 	void addPathToPlaylist(const QString& path, bool append_to_playlist);
 

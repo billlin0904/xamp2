@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -136,7 +136,7 @@
     <QtMoc Include="widgetframe\windowbutton.h" />
     <ClInclude Include="widgetframe\windowbutton_p.h" />
     <QtMoc Include="widget\albumviewstyleddelegate.h" />
-    <QtMoc Include="widget\chatgpt\waveformwidget.h" />
+    <QtMoc Include="widget\chatgpt\spectrogramwidget.h" />
     <ClInclude Include="widget\dao\albumdao.h" />
     <ClInclude Include="widget\dao\artistdao.h" />
     <ClInclude Include="widget\dao\dbfacade.h" />
@@ -256,7 +256,7 @@
     </ClCompile>
     <ClCompile Include="widget\artistview.cpp" />
     <ClCompile Include="widget\cdpage.cpp" />
-    <ClCompile Include="widget\chatgpt\waveformwidget.cpp" />
+    <ClCompile Include="widget\chatgpt\spectrogramwidget.cpp" />
     <ClCompile Include="widget\clickablelabel.cpp" />
     <ClCompile Include="widget\dao\albumdao.cpp" />
     <ClCompile Include="widget\dao\artistdao.cpp" />
