@@ -24,6 +24,8 @@
 
 #include <mp4file.h>
 
+#include <riff/wav/wavfile.h>
+
 #include <ape/apetag.h>
 #include <ape/apefile.h>
 

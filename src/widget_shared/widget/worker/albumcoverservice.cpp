@@ -2,9 +2,9 @@
 #include <widget/util/json_util.h>
 #include <base/object_pool.h>
 #include <widget/util/image_util.h>
+#include <widget/util/tag_util.h>
 #include <widget/databasefacade.h>
 #include <widget/worker/albumcoverservice.h>
-#include <widget/tagio.h>
 #include <widget/dao/albumdao.h>
 #include <widget/dao/musicdao.h>
 #include <widget/imagecache.h>
@@ -102,10 +102,10 @@ void AlbumCoverService::mergeUnknownAlbumCover() {
         if (covers.size() == kMaxCoverCount) {
             return;
         }
-        TagIO tag_io;
-		tag_io.open(entity.file_path.toStdWString(), TAG_IO_READ_MODE);
         try {
-            auto image = tag_io.embeddedCover();
+            auto reader = MakeMetadataReader();
+            reader->Open(entity.file_path.toStdWString());
+            auto image = tag_util::readEmbeddedCover(*reader);
             if (!image.isNull()) {
                 covers.push_back(image);
                 music_ids.append(entity.music_id);
@@ -169,9 +169,9 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
             return;
         }
 
-        TagIO reader;
-		reader.open(music_file_path, TAG_IO_READ_MODE);
-        auto cover = reader.embeddedCover();
+        auto reader = MakeMetadataReader();
+		reader->Open(music_file_path);
+        auto cover = tag_util::readEmbeddedCover(*reader);
         if (!cover.isNull()) {
             emit setAlbumCover(id.second.value(), qImageCache.addImage(cover));
             return;

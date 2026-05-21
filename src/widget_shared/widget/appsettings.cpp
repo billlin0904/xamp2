@@ -20,6 +20,7 @@
 #include <widget/playerorder.h>
 #include <widget/playlistentity.h>
 #include <widget/databasecoverid.h>
+#include <widget/worker/backgroundservice.h>
 
 namespace {
 	void saveSoxrSetting(const QString& setting_name, int32_t sample_rate) {
@@ -499,6 +500,9 @@ void AppSettings::registerMetaType() {
 	qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
 	qRegisterMetaType<DatabaseCoverId>("DatabaseCoverId");
 	qRegisterMetaType<AppEQSettings>("AppEQSettings");
+	qRegisterMetaType<LyricsParser>("LyricsParser");
+	qRegisterMetaType<SearchLyricsResult>("SearchLyricsResult");
+	qRegisterMetaType<QList<SearchLyricsResult>>("QList<SearchLyricsResult>");
 }
 
 void AppSettings::loadAppSettings() {

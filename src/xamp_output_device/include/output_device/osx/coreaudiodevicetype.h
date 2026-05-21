@@ -11,7 +11,7 @@
 
 #include <base/uuidof.h>
 #include <output_device/idevicetype.h>
-#include <base/pimplptr.h>
+#include <base/memory.h>
 #include <base/memory.h>
 
 namespace xamp::output_device::osx {

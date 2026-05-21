@@ -29,6 +29,10 @@ public:
 		io_stream_.open(path, mode);
 	}
 
+	void close() {
+		io_stream_.close();
+	}
+
 	TagLib::FileName name() const override {
 		return io_stream_.path().wstring().c_str();
 	}

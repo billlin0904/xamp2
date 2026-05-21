@@ -3,7 +3,6 @@
 #include <QApplication>
 #include <QDirIterator>
 #include <QFileDialog>
-#include <QRandomGenerator>
 #include <QScreen>
 #include <QTime>
 #include <QAbstractItemView>

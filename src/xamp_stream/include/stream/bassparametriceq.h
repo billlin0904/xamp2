@@ -8,7 +8,7 @@
 #include <base/enum.h>
 #include <base/uuidof.h>
 #include <base/memory.h>
-#include <base/pimplptr.h>
+#include <base/memory.h>
 
 #include <stream/stream.h>
 #include <stream/eqsettings.h>

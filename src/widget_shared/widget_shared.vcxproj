@@ -86,7 +86,7 @@
       <AdditionalIncludeDirectories>$(Qt_INCLUDEPATH_);./;../xamp_base/include/;../xamp_metadata/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/;../thirdparty/zlib/;../thirdparty/rapidxml/;./xamp/;../thirdparty/qcoro/msvc/qcoro/core/;../thirdparty/qcoro/msvc/qcoro/network/;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/msvc/qcoro/network/QCoro;../thirdparty/qcoro/msvc/qcoro/QCoro;../thirdparty/qcoro/qcoro/network/;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;../thirdparty/qwindowkit/msvc/include/;../thirdparty/libdeflate/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointModel>Precise</FloatingPointModel>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
     </ClCompile>
   </ItemDefinitionGroup>
@@ -111,11 +111,18 @@
       <DebugInformationFormat>None</DebugInformationFormat>
       <Optimization>MaxSpeed</Optimization>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <PreprocessorDefinitions>WIDGET_SHARED_LIB;QT_NO_CAST_FROM_ASCII;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>false</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -156,7 +163,6 @@
     <QtMoc Include="widget\scanfileprogresspage.h" />
     <QtMoc Include="widget\richplaylistpage.h" />
     <ClInclude Include="widget\tabpage.h" />
-    <ClInclude Include="widget\tagio.h" />
     <ClInclude Include="widget\util\colortable.h" />
     <ClInclude Include="widget\util\hash_util.h" />
     <ClInclude Include="widget\util\image_util.h" />
@@ -165,6 +171,7 @@
     <ClInclude Include="widget\util\mbdiscid_util.h" />
     <ClInclude Include="widget\util\read_util.h" />
     <ClInclude Include="widget\util\str_util.h" />
+    <ClInclude Include="widget\util\tag_util.h" />
     <ClInclude Include="widget\util\ui_util.h" />
     <ClInclude Include="widget\util\zib_util.h" />
     <ClInclude Include="widget\webvttparser.h" />
@@ -305,7 +312,6 @@
     <ClCompile Include="widget\slidingstackedwidget.cpp" />
     <ClCompile Include="widget\navbarlistview.cpp" />
     <ClCompile Include="widget\tageditpage.cpp" />
-    <ClCompile Include="widget\tagio.cpp" />
     <ClCompile Include="widget\taglistview.cpp" />
     <ClCompile Include="widget\uiplayerstateadapter.cpp" />
     <ClCompile Include="widget\util\colortable.cpp" />
@@ -314,6 +320,7 @@
     <ClCompile Include="widget\util\mbdiscid_util.cpp" />
     <ClCompile Include="widget\util\read_util.cpp" />
     <ClCompile Include="widget\util\str_util.cpp" />
+    <ClCompile Include="widget\util\tag_util.cpp" />
     <ClCompile Include="widget\util\ui_util.cpp" />
     <ClCompile Include="widget\util\zib_util.cpp" />
     <ClCompile Include="widget\volumebutton.cpp" />

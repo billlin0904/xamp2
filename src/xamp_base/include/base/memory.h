@@ -5,8 +5,11 @@
 
 #pragma once
 
+#include <algorithm>
 #include <memory>
 #include <string>
+#include <type_traits>
+#include <utility>
 #include <base/base.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
@@ -96,25 +99,25 @@ using ScopedArray = std::unique_ptr<Type[], AlignedDeleter<Type>>;
 * Make aligned pointer.
 *
 * @param[in] args
-* @return ScopedPtr<Type>
-* @note Type must be default constructor.
+* @return ScopedPtr<BaseType>
 */
-template <typename BaseType, typename ImplType, typename... Args, size_t AlignSize = kMallocAlignSize>
-ScopedPtr<BaseType> MakeAlign(Args&& ... args) {
-    auto ptr = ScopedPtr<void>(AlignedMallocObject<ImplType>(AlignSize));
-    if (!ptr) {
+template <typename BaseType, typename ImplType, size_t AlignSize = kMallocAlignSize, typename... Args>
+XAMP_CHECK_LIFETIME ScopedPtr<BaseType> MakeAlign(Args&& ... args) {
+    static_assert(std::is_base_of_v<BaseType, ImplType>, "ImplType must derive from BaseType.");
+    static_assert(std::is_same_v<BaseType, ImplType> || std::has_virtual_destructor_v<BaseType>,
+        "BaseType must have a virtual destructor when MakeAlign returns ScopedPtr<BaseType> for a derived ImplType.");
+    static_assert((AlignSize & (AlignSize - 1)) == 0, "AlignSize must be a power of two.");
+
+    constexpr auto kActualAlignSize = (std::max)(AlignSize, alignof(ImplType));
+    auto* storage = AlignedMallocObject<ImplType>(kActualAlignSize);
+    if (!storage) {
         throw std::bad_alloc();
     }
 
-    BaseType* obj = nullptr;
-    try {
-        obj = ::new(ptr.get()) ImplType(std::forward<Args>(args)...);
-    }
-    catch (...) {
-        throw;
-    }
-	ptr.release();
-    return ScopedPtr<BaseType>(obj);
+    std::unique_ptr<void, AlignedDeleter<void>> guard{ storage };
+    auto* obj = std::construct_at(storage, std::forward<Args>(args)...);
+    guard.release();
+    return ScopedPtr<BaseType>(static_cast<BaseType*>(obj));
 }
 
 /*
@@ -122,23 +125,20 @@ ScopedPtr<BaseType> MakeAlign(Args&& ... args) {
 *
 * @param[in] args
 * @return ScopedPtr<Type>
-* @note Type must be default constructor.
 */
-template <typename Type, typename... Args, size_t AlignSize = kMallocAlignSize>
-ScopedPtr<Type> MakeAlign(Args&& ... args) {
-    auto ptr = ScopedPtr<void>(AlignedMallocObject<Type>(AlignSize));
-    if (!ptr) {
+template <typename Type, size_t AlignSize = kMallocAlignSize, typename... Args>
+XAMP_CHECK_LIFETIME ScopedPtr<Type> MakeAlign(Args&& ... args) {
+    static_assert((AlignSize & (AlignSize - 1)) == 0, "AlignSize must be a power of two.");
+
+    constexpr auto kActualAlignSize = (std::max)(AlignSize, alignof(Type));
+    auto* storage = AlignedMallocObject<Type>(kActualAlignSize);
+    if (!storage) {
         throw std::bad_alloc();
     }
 
-    Type* obj = nullptr;
-    try {
-        obj = ::new(ptr.get()) Type(std::forward<Args>(args)...);
-    }
-    catch (...) {        
-        throw;
-    }
-    ptr.release();
+    std::unique_ptr<void, AlignedDeleter<void>> guard{ storage };
+    auto* obj = std::construct_at(storage, std::forward<Args>(args)...);
+    guard.release();
     return ScopedPtr<Type>(obj);
 }
 
@@ -171,7 +171,10 @@ std::shared_ptr<BaseType> MakeShared(Args&&... args) {
 */
 template <typename Type>
 ScopedArray<Type> MakeAlignedArray(size_t n) {
-    auto ptr = AlignedMallocArray<Type>(n, kMallocAlignSize);
+    static_assert(std::is_trivially_copyable_v<Type>, "MakeAlignedArray only supports trivially copyable types.");
+
+    constexpr auto kActualAlignSize = (std::max)(kMallocAlignSize, alignof(Type));
+    auto ptr = AlignedMallocArray<Type>(n, kActualAlignSize);
     if (!ptr) {
         throw std::bad_alloc();
     }

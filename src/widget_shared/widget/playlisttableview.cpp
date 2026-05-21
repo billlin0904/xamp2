@@ -33,7 +33,6 @@
 #include <widget/util/ui_util.h>
 #include <widget/fonticon.h>
 #include <widget/util/zib_util.h>
-#include <widget/tagio.h>
 #include <widget/encodejobwidget.h>
 #include <widget/scanfileprogresspage.h>
 
@@ -891,7 +890,9 @@ void PlaylistTableView::onReloadEntity(const PlayListEntity& item) {
     dao::MusicDao music_dao(qGuiDb.getDatabase());
 
     XAMP_TRY_LOG(
-        auto track_info = TagIO::extractTrackInfo(item.file_path.toStdWString());
+        auto reader = MakeMetadataReader();
+        reader->Open(item.file_path.toStdWString());
+        auto track_info = reader->Extract();
         if (track_info) {
             music_dao.addOrUpdateMusic(track_info.value());
             reload();

@@ -10,7 +10,7 @@
 #include <base/uuidof.h>
 #include <base/memory.h>
 #include <base/audiobuffer.h>
-#include <base/pimplptr.h>
+#include <base/memory.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
 

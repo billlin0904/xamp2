@@ -2,6 +2,8 @@
 
 #include <QAbstractTableModel>
 #include <QApplication>
+#include <QClipboard>
+#include <QDesktopServices>
 #include <QFocusEvent>
 #include <QHBoxLayout>
 #include <QHeaderView>
@@ -307,7 +309,7 @@ protected:
         QFontMetrics info_metrics(info_font);
         const auto info = qFormat("%1 | %2 | %3 | Time: %4")
             .arg(artist_)
-            .arg(genre_)
+            .arg(genre_.isEmpty() ? "Unknown"_str : genre_)
             .arg(file_extension_)
             .arg(formatDuration(duration_));
         painter.drawText(QRect(fallback_rect.left(),
@@ -1113,12 +1115,42 @@ void RichPlaylistPage::initial() {
             showImportMenu(cover_panel_->mapToGlobal(pos));
         });
 
-    rich_playlist_view_->viewport()->setContextMenuPolicy(Qt::CustomContextMenu);
-    (void)QObject::connect(rich_playlist_view_->viewport(),
+    rich_playlist_view_->setContextMenuPolicy(Qt::CustomContextMenu);
+    (void)QObject::connect(rich_playlist_view_,
         &QWidget::customContextMenuRequested,
         this,
         [this](const QPoint& pos) {
-            showImportMenu(rich_playlist_view_->viewport()->mapToGlobal(pos));
+            const auto index = rich_playlist_view_->indexAt(pos);
+            if (index.isValid() && rich_playlist_view_->isTrackRow(index)) {
+                const auto entity = rich_playlist_view_->item(index);
+                QMenu menu(this);
+                auto* copy_artist_act = menu.addAction(qTheme.fontIcon(Glyphs::ICON_COPY), tr("Copy artist"));
+                auto* copy_album_act = menu.addAction(tr("Copy album"));
+                auto* copy_title_act = menu.addAction(tr("Copy title"));
+                menu.addSeparator();
+                auto* open_parent_path_act = menu.addAction(tr("Open file location"));
+
+                const auto* selected_action = menu.exec(rich_playlist_view_->mapToGlobal(pos));
+                if (selected_action == copy_artist_act) {
+                    QApplication::clipboard()->setText(entity.artist);
+                }
+                else if (selected_action == copy_album_act) {
+                    QApplication::clipboard()->setText(entity.album);
+                }
+                else if (selected_action == copy_title_act) {
+                    QApplication::clipboard()->setText(entity.title);
+                }
+                else if (selected_action == open_parent_path_act) {
+                    const auto parent_path = entity.parent_path.isEmpty()
+                        ? QFileInfo(entity.file_path).absolutePath()
+                        : entity.parent_path;
+                    if (!parent_path.isEmpty()) {
+                        QDesktopServices::openUrl(QUrl::fromLocalFile(parent_path));
+                    }
+                }
+                return;
+            }
+            showImportMenu(rich_playlist_view_->mapToGlobal(pos));
         });
 
     (void)QObject::connect(rich_playlist_view_,

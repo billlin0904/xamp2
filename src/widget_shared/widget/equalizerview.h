@@ -5,10 +5,10 @@
 
 #pragma once
 
-#include <memory>
 #include <vector>
 
 #include <base/buffer.h>
+#include <base/memory.h>
 #include <QFrame>
 #include <QString>
 
@@ -110,10 +110,10 @@ private:
     QPushButton* test_wave_button_{ nullptr };
     QTimer* test_wave_timer_{ nullptr };
     std::vector<double> test_noise_state_;
-    std::unique_ptr<xamp::stream::BassParametricEq> test_eq_;
+    xamp::base::ScopedPtr<xamp::stream::BassParametricEq> test_eq_;
     Buffer<float> test_eq_buffer_;
     int32_t test_eq_sample_rate_{ 0 };
-    std::unique_ptr<xamp::stream::STFT> analyzer_stft_;
+    xamp::base::ScopedPtr<xamp::stream::STFT> analyzer_stft_;
     int32_t analyzer_sample_rate_{ 0 };
     size_t analyzer_frame_size_{ 0 };
     size_t analyzer_shift_size_{ 0 };

@@ -6,9 +6,15 @@
 #include <base/logger.h>
 #include <base/platfrom_handle.h>
 #include <base/fastiostream.h>
+#include <base/platform.h>
 #include <base/str_utilts.h>
 
 #include <limits>
+#include <optional>
+
+#ifdef XAMP_OS_WIN
+#include <Windows.h>
+#endif
 
 XAMP_DECLARE_LOG_NAME(TagLib);
 
@@ -41,6 +47,102 @@ namespace TagLib {
 XAMP_METADATA_NAMESPACE_BEGIN
 
 namespace {	
+	class FileReplaceTransaction final {
+	public:
+		explicit FileReplaceTransaction(const Path& original_path)
+			: original_path_(original_path)
+			, temp_path_(MakeTempPath(original_path)) {
+			std::error_code ec;
+			if (!Fs::copy_file(original_path_, temp_path_, Fs::copy_options::overwrite_existing, ec) || ec) {
+				throw PlatformException("Copy metadata source file failure.");
+			}
+		}
+
+		XAMP_DISABLE_COPY(FileReplaceTransaction)
+
+		FileReplaceTransaction(FileReplaceTransaction&& other) noexcept
+			: original_path_(std::move(other.original_path_))
+			, temp_path_(std::move(other.temp_path_))
+			, committed_(other.committed_) {
+			other.committed_ = true;
+		}
+
+		FileReplaceTransaction& operator=(FileReplaceTransaction&& other) noexcept {
+			if (this != &other) {
+				Cleanup();
+				original_path_ = std::move(other.original_path_);
+				temp_path_ = std::move(other.temp_path_);
+				committed_ = other.committed_;
+				other.committed_ = true;
+			}
+			return *this;
+		}
+
+		~FileReplaceTransaction() {
+			Cleanup();
+		}
+
+		[[nodiscard]] const Path& TempPath() const {
+			return temp_path_;
+		}
+
+		void Commit() {
+			if (committed_) {
+				return;
+			}
+
+#ifdef XAMP_OS_WIN
+			if (!::MoveFileExW(temp_path_.c_str(),
+				original_path_.c_str(),
+				MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) {
+				throw PlatformException("Replace metadata file failure.", static_cast<int32_t>(::GetLastError()));
+			}
+#else
+			std::error_code ec;
+			Fs::rename(temp_path_, original_path_, ec);
+			if (ec) {
+				throw PlatformException("Replace metadata file failure.");
+			}
+#endif
+			committed_ = true;
+		}
+
+	private:
+		static Path MakeTempPath(const Path& original_path) {
+			constexpr auto kMaxRetryCreateTempFile = 128;
+			const auto dir = original_path.parent_path();
+			const auto stem = original_path.stem().wstring();
+			const auto ext = original_path.extension().wstring();
+
+			for (auto i = 0; i < kMaxRetryCreateTempFile; ++i) {
+				const auto file_name = stem
+					+ L".xamp-"
+					+ String::ToStdWString(GetSequentialUUID())
+					+ ext;
+				auto temp_path = dir.empty()
+					? Path(file_name)
+					: dir / file_name;
+				std::error_code ec;
+				if (!Fs::exists(temp_path, ec) && !ec) {
+					return temp_path;
+				}
+			}
+			throw PlatformException("Create metadata temp file path failure.");
+		}
+
+		void Cleanup() noexcept {
+			if (committed_ || temp_path_.empty()) {
+				return;
+			}
+			std::error_code ec;
+			Fs::remove(temp_path_, ec);
+			committed_ = true;
+		}
+
+		Path original_path_;
+		Path temp_path_;
+		bool committed_{ false };
+	};
 
 	bool ClearTxxTag(ID3v2::Tag* tag,
 		TagLib::String const& tag_name,
@@ -287,19 +389,29 @@ public:
 	TaglibMetadataWriterImpl() = default;
 
 	~TaglibMetadataWriterImpl() {
-		Save();
+		try {
+			Save();
+		}
+		catch (const std::exception& e) {
+			XAMP_LOG_DEBUG("Write tag failure: {}", e.what());
+		}
 	}
 
 	void Open(const Path& path) {
-		io_stream_.open(path);
+		Save();
+		Clear();
+
+		transaction_.emplace(path);
+		io_stream_.open(transaction_->TempPath());
 		FileRef fileref(&io_stream_);
-		//FileRef fileref(path.native().c_str());
 		if (fileref.isNull()) {
 			XAMP_LOG_DEBUG("file was NULL!");
+			Clear();
 			return;
 		}
 		if (!fileref.tag()) {
 			XAMP_LOG_DEBUG("tag is NULL!");
+			Clear();
 			return;
 		}
 		fileref_opt_ = fileref;
@@ -316,48 +428,56 @@ public:
 		tag->setArtist(track_info.artist);
 		tag->setTitle(track_info.title);
 		tag->setComment(track_info.comment);
+		MarkDirty();
     }
 
     void WriteTitle(const std::wstring &title) {
 		CheckFileRef()
 		auto* tag = fileref_opt_->tag();
 		tag->setTitle(title.empty() ? TagLib::String() : title);
+		MarkDirty();
     }
 
     void WriteArtist(const std::wstring &artist) {
 		CheckFileRef()
 		auto* tag = fileref_opt_->tag();
 		tag->setArtist(artist.empty() ? TagLib::String() : artist);
+		MarkDirty();
     }
 
     void WriteAlbum(const std::wstring &album) {
 		CheckFileRef()
 		auto* tag = fileref_opt_->tag();
 		tag->setAlbum(album.empty() ? TagLib::String() : album);
+		MarkDirty();
     }
 
     void WriteTrack(uint32_t track) {
 		CheckFileRef()
 		auto* tag = fileref_opt_->tag();
 		tag->setTrack(track);
+		MarkDirty();
     }
 
 	void WriteComment(const std::wstring& comment) {
 		CheckFileRef()
 		auto* tag = fileref_opt_->tag();
 		tag->setComment(comment.empty() ? TagLib::String() : comment);
+		MarkDirty();
 	}
 
 	void WriteGenre(const std::wstring& genre) {
 		CheckFileRef()
 		auto* tag = fileref_opt_->tag();
 		tag->setGenre(genre.empty() ? TagLib::String() : genre);
+		MarkDirty();
 	}
 
 	void WriteYear(uint32_t year) {
 		CheckFileRef()
 		auto* tag = fileref_opt_->tag();
 		tag->setYear(year);
+		MarkDirty();
 	}
 
 	void WriteReplayGain(const ReplayGain & replay_gain) {
@@ -366,6 +486,7 @@ public:
 		auto* file_ = fileref_opt_->file();
 		if (tag_writer_ != nullptr) {
 			tag_writer_->WriteReplayGain(replay_gain, file_);
+			MarkDirty();
 		}
 	}
 
@@ -379,6 +500,7 @@ public:
 		auto* file_ = fileref_opt_->file();
 		if (tag_writer_ != nullptr) {
 			tag_writer_->WriteEmbeddedCover(file_, image_data);
+			MarkDirty();
 		}
 	}
 
@@ -392,6 +514,7 @@ public:
 		auto* file_ = fileref_opt_->file();
 		if (tag_writer_ != nullptr) {
 			tag_writer_->RemoveEmbeddedCover(file_);
+			MarkDirty();
 		}
 	}
 
@@ -404,16 +527,48 @@ private:
 		if (!fileref_opt_) {
 			return;
 		}
+
+		if (!dirty_) {
+			Clear();
+			return;
+		}
 			
 		if (!fileref_opt_->save()) {
 			XAMP_LOG_DEBUG("Write tag failure!");
+			Clear();
+			return;
 		}
+
+		CloseWorkingFile();
+		if (transaction_) {
+			transaction_->Commit();
+		}
+		Clear();
     }
+
+	void CloseWorkingFile() {
+		fileref_opt_.reset();
+		io_stream_.close();
+	}
+
+	void Clear() {
+		fileref_opt_.reset();
+		io_stream_.close();
+		transaction_.reset();
+		tag_writer_.reset();
+		dirty_ = false;
+	}
+
+	void MarkDirty() const {
+		dirty_ = true;
+	}
 
 	Path path_;
 	std::optional<FileRef> fileref_opt_;
+	std::optional<FileReplaceTransaction> transaction_;
 	ScopedPtr<IFileTagWriter> tag_writer_;
 	TaglibIOStream io_stream_;
+	mutable bool dirty_{ false };
 };
 
 XAMP_PIMPL_IMPL(TaglibMetadataWriter)

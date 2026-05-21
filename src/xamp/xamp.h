@@ -54,6 +54,8 @@ public:
 signals:
     void fetchCdInfo(const DriveInfo& drive);
 
+    void searchLyrics(const PlayListEntity& keyword);
+
 public slots:
     void onPlayerStateChanged(xamp::player::PlayerState play_state);
 
@@ -75,7 +77,9 @@ private:
 
 	void setAlbumCover(const QPixmap& cover);
 
-    void playLocalFile(const QString& file_name, bool queue = true);
+    void playLocalFile(const QString& file_name, bool queue = true, const PlayListEntity* entity = nullptr);
+
+    void playLocalFile(const PlayListEntity& entity, bool queue = true);
 
     void setSeekPosValue(double stream_time);
 

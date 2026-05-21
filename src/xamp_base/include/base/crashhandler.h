@@ -7,7 +7,7 @@
 
 #include <base/logger.h>
 #include <base/base.h>
-#include <base/pimplptr.h>
+#include <base/memory.h>
 #include <base/memory.h>
 #include <base/shared_singleton.h>
 

@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <base/pimplptr.h>
+#include <base/memory.h>
 #include <base/memory.h>
 
 #include <metadata/imetadatawriter.h>

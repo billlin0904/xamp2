@@ -11,11 +11,11 @@
 #include <widget/widget_shared.h>
 #include <widget/imagecache.h>
 #include <widget/albumview.h>
-#include <widget/tagio.h>
 #include <widget/krcparser.h>
 #include <widget/lrcparser.h>
 #include <widget/neteaseparser.h>
 #include <widget/util/json_util.h>
+#include <widget/util/tag_util.h>
 
 #include <widget/util/read_util.h>
 #include <widget/util/colortable.h>
@@ -262,21 +262,21 @@ void BackgroundService::executeEncodeJob(const QString& dir_name, const EncodeJo
 			return;
         }
 
-        TagIO output_io;
-        output_io.open(output_path, TAG_IO_WRITE_MODE);
-        output_io.writeArtist(job.file_.artist);
-        output_io.writeTitle(job.file_.title);
-        output_io.writeAlbum(job.file_.album);
-        output_io.writeComment(job.file_.comment);
-        output_io.writeGenre(job.file_.genre);
-        output_io.writeTrack(job.file_.track);
-        output_io.writeYear(job.file_.year);
+        auto writer = MakeMetadataWriter();
+        writer->Open(output_path);
+        writer->WriteArtist(job.file_.artist.toStdWString());
+        writer->WriteTitle(job.file_.title.toStdWString());
+        writer->WriteAlbum(job.file_.album.toStdWString());
+        writer->WriteComment(job.file_.comment.toStdWString());
+        writer->WriteGenre(job.file_.genre.toStdWString());
+        writer->WriteTrack(job.file_.track);
+        writer->WriteYear(job.file_.year);
 
-        TagIO input_io;
-        input_io.open(input_path, TAG_IO_READ_MODE);
-        auto cover = input_io.embeddedCover();
+        auto reader = MakeMetadataReader();
+        reader->Open(input_path);
+        auto cover = tag_util::readEmbeddedCover(*reader);
         if (!cover.isNull()) {
-            output_io.writeEmbeddedCover(cover);
+            tag_util::writeEmbeddedCover(*writer, cover);
         }
 
         emit updateJobProgress(job.job_id, 100);
@@ -361,6 +361,10 @@ void BackgroundService::cancelRequested() {
 }
 
 QCoro::Task<SearchLyricsResult> BackgroundService::downloadSingleNeteaseLrc(NeteaseSong info) {
+    if (info.artists.isEmpty()) {
+        co_return {};
+    }
+
     http::HttpClient http(&nam_, "http://music.163.com/api/song/lyric"_str, this);    
     http.param("id"_str, info.id);
     http.param("lv"_str, -1);
@@ -507,45 +511,65 @@ QCoro::Task<QList<SearchLyricsResult>> BackgroundService::downloadKLrc(QList<Inf
 
 QCoro::Task<> BackgroundService::searchKugou(const PlayListEntity& keyword) {
     constexpr auto kMaxDownloadSize = 10;
+    const auto search_text = (keyword.title + " "_str + keyword.artist).trimmed();
 
-    http_client_.setUrl("http://mobilecdn.kugou.com/api/v3/search/song"_str);
-    http_client_.param("format"_str, "json"_str);
-    http_client_.param("keyword"_str, keyword.title);
-
-    auto content = co_await http_client_.get();
+    http::HttpClient http(&nam_, "http://mobilecdn.kugou.com/api/v3/search/song"_str, this);
+    http.param("format"_str, "json"_str);
+    http.param("keyword"_str, search_text.isEmpty() ? keyword.title : search_text);
+    auto title = keyword.title;
+    auto artist = keyword.artist;
+    auto content = co_await http.get();
     auto infos = parseInfoData(content);
-    infos.resize(kMaxDownloadSize);
+    if (infos.size() > kMaxDownloadSize) {
+        infos.resize(kMaxDownloadSize);
+    }
 
     auto results = co_await downloadKLrc(infos);
+    for (auto& result : results) {
+        result.request_title = title;
+        result.request_artist = artist;
+    }
     emit fetchLyricsCompleted(results);
     co_return;
 }
 
 QCoro::Task<> BackgroundService::searchNetease(const PlayListEntity& keyword) {
-    http_client_.setUrl("http://music.163.com/api/search/get"_str);
-    http_client_.param("s"_str, keyword.title);
-    http_client_.param("limit"_str, 20);
-    http_client_.param("offset"_str, 0);
-    http_client_.param("type"_str, 1);
-
-    auto content = co_await http_client_.get();
+    const auto search_text = (keyword.title + " "_str + keyword.artist).trimmed();
+    http::HttpClient http(&nam_, "http://music.163.com/api/search/get"_str, this);
+    http.param("s"_str, search_text.isEmpty() ? keyword.title : search_text);
+    http.param("limit"_str, 20);
+    http.param("offset"_str, 0);
+    http.param("type"_str, 1);
+    auto title = keyword.title;
+    auto artist = keyword.artist;
+    auto content = co_await http.get();
     std::optional<QList<NeteaseSong>> songs = parseNeteaseSong(content);
     if (!songs.has_value()) {
         co_return;
     }
     auto results = co_await downloadNeteaseLrc(*songs);
+    for (auto &result : results) {
+        result.request_title = title;
+        result.request_artist = artist;
+    }
     emit fetchLyricsCompleted(results);
 	co_return;
 }
 
+QCoro::Task<> BackgroundService::searchLyrics(const PlayListEntity& keyword) {
+    auto temp = keyword.cleanup();
+    searchNetease(temp).then([this, temp]() {
+        XAMP_LOG_DEBUG("Search Netease lyrics completed!");
+        searchKugou(temp).then([]() {
+            XAMP_LOG_DEBUG("Search Kugou lyrics completed!");
+            });
+        });
+    co_return;
+}
+
 void BackgroundService::onSearchLyrics(const PlayListEntity& keyword) {
     auto temp = keyword.cleanup();
-    searchKugou(temp).then([]() {
-        XAMP_LOG_DEBUG("Search Kugou lyrics completed!");
-        });
-    searchNetease(temp).then([]() {
-        XAMP_LOG_DEBUG("Search Netease lyrics completed!");
-        });
+    searchLyrics(temp).then([]() {});
 }
 
 #if defined(Q_OS_WIN)
@@ -576,7 +600,9 @@ void BackgroundService::onFetchCdInfo(const DriveInfo& drive) {
         auto track_id = 0;
         for (const auto& track : tracks) {
             TrackInfo track_info;
-            auto track_info_opt = TagIO::extractTrackInfo(track);
+            auto reader = MakeMetadataReader();
+            reader->Open(track);
+            auto track_info_opt = reader->Extract();
             if (track_info_opt.has_value()) {
 				track_info = track_info_opt.value();
             }

@@ -147,6 +147,8 @@ private:
 
 	void updateBackgroundCache();
 
+	void applyLyrics(const LyricsParser& parser);
+
 	void paintEvent(QPaintEvent*) override;
 
 	void resizeEvent(QResizeEvent* event) override;

@@ -1,6 +1,6 @@
 #include <widget/databasefacade.h>
 #include <widget/worker/filesystemservice.h>
-#include <widget/tagio.h>
+#include <widget/util/tag_util.h>
 
 #include <base/base.h>
 #include <base/threadpoolexecutor.h>
@@ -68,17 +68,17 @@ const FetchCoverCallback DatabaseFacade::GetDefaultFetchCover() {
     return [](int32_t music_id, int32_t album_id, const QString& file_path, std::optional<ArchiveEntry> archive_entry) {
         if (album_id == kUnknownAlbumId) {
             return;
-		}
+        }
 
         try {
-            TagIO reader;
+            auto reader = MakeMetadataReader();
             if (archive_entry.has_value()) {
-                reader.open(std::move(archive_entry.value()));
+                reader->Open(std::move(archive_entry.value()));
             } else {
-                reader.open(file_path.toStdWString(), TAG_IO_READ_MODE);
+                reader->Open(file_path.toStdWString());
 			}            
-            auto cover = reader.embeddedCover();
-            if (!cover) {
+            auto cover = tag_util::readEmbeddedCover(*reader);
+            if (cover.isNull()) {
                 return;
             }
             auto cover_id = qImageCache.addImage(cover);

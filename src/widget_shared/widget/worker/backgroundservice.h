@@ -33,6 +33,8 @@ struct LyricsParser {
 struct SearchLyricsResult {
 	InfoItem info;	
 	QList<LyricsParser> parsers;
+	QString request_title;
+	QString request_artist;
 };
 
 Q_DECLARE_METATYPE(LyricsParser)
@@ -112,6 +114,8 @@ private:
 	QCoro::Task<> searchKugou(const PlayListEntity& keyword);
 
 	QCoro::Task<> searchNetease(const PlayListEntity& keyword);
+
+	QCoro::Task<> searchLyrics(const PlayListEntity& keyword);
 
 	QCoro::Task<std::optional<QByteArray>> tryFetch(const QString& tag, const QString& release_id, size_t size);
 

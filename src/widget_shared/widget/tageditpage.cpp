@@ -9,9 +9,9 @@
 #include <widget/dao/artistdao.h>
 #include <widget/util/image_util.h>
 #include <widget/util/ui_util.h>
+#include <widget/util/tag_util.h>
 #include <widget/tageditpage.h>
 #include <widget/xmessagebox.h>
-#include <widget/tagio.h>
 #include <widget/imagecache.h>
 #include <widget/dao/dbfacade.h>
 
@@ -66,8 +66,6 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 	for (auto& l : labels) {
 		l->setStyleSheet("background-color: transparent;"_str);
 	}
-
-	const TagIO tag_io;
 
 	const QStringList genre_list{
 		""_str,
@@ -128,15 +126,15 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 
 		if (!entity.is_cue_file) {
 			try {
-				TagIO tag_io;
-				tag_io.open(path);
-				tag_io.writeArtist(ui_->artistLineEdit->text());
-				tag_io.writeTitle(ui_->titleComboBox->currentText());
-				tag_io.writeAlbum(ui_->albumLineEdit->text());
-				tag_io.writeComment(ui_->commentLineEdit->text());
-				tag_io.writeGenre(ui_->genreComboBox->currentText());
-				tag_io.writeTrack(ui_->trackComboBox->currentText().toUInt());
-				tag_io.writeYear(ui_->yearLineEdit->text().toUInt());
+				auto writer = MakeMetadataWriter();
+				writer->Open(path);
+				writer->WriteArtist(ui_->artistLineEdit->text().toStdWString());
+				writer->WriteTitle(ui_->titleComboBox->currentText().toStdWString());
+				writer->WriteAlbum(ui_->albumLineEdit->text().toStdWString());
+				writer->WriteComment(ui_->commentLineEdit->text().toStdWString());
+				writer->WriteGenre(ui_->genreComboBox->currentText().toStdWString());
+				writer->WriteTrack(ui_->trackComboBox->currentText().toUInt());
+				writer->WriteYear(ui_->yearLineEdit->text().toUInt());
 
 				entity.artist = ui_->artistLineEdit->text();
 				entity.title = ui_->titleComboBox->currentText();
@@ -186,9 +184,9 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 
 	(void)QObject::connect(ui_->removeCoverButton, &QPushButton::clicked, [this] {
 		const auto index = ui_->titleComboBox->currentIndex();
-		TagIO tag_io;
-		tag_io.open(entities_[index].file_path.toStdWString());
-		tag_io.removeEmbeddedCover();
+		auto writer = MakeMetadataWriter();
+		writer->Open(entities_[index].file_path.toStdWString());
+		writer->RemoveEmbeddedCover();
 		});
 
 	(void)QObject::connect(ui_->saveToFileButton, &QPushButton::clicked, [this] {
@@ -206,13 +204,13 @@ TagEditPage::TagEditPage(QWidget* parent, const QList<PlayListEntity>& entities)
 
 		const auto index = ui_->titleComboBox->currentIndex();
 
-		TagIO tag_io;
-		tag_io.open(entities_[index].file_path.toStdWString());
-		if (!tag_io.canWriteEmbeddedCover()) {
+		auto writer = MakeMetadataWriter();
+		writer->Open(entities_[index].file_path.toStdWString());
+		if (!writer->CanWriteEmbeddedCover()) {
 			return;
 		}
 
-		tag_io.writeEmbeddedCover(temp_image_);
+		tag_util::writeEmbeddedCover(*writer, temp_image_);
 		});
 
 	(void)QObject::connect(ui_->addImageFileButton, &QPushButton::clicked, [=] {
@@ -316,12 +314,12 @@ void TagEditPage::closeEvent(QCloseEvent* event) {
 }
 
 void TagEditPage::readEmbeddedCover(const PlayListEntity& entity) {
-	TagIO tag_io;
 	QSize image_size(0, 0);
 	size_t image_file_size = 0;
 	QPixmap image;
-	tag_io.open(entity.file_path.toStdWString(), TAG_IO_READ_MODE);
-	if (tag_io.embeddedCover(image, image_file_size)) {
+	auto reader = MakeMetadataReader();
+	reader->Open(entity.file_path.toStdWString());
+	if (tag_util::readEmbeddedCover(*reader, image, image_file_size)) {
 		image_size = image.size();
 		image = image_util::resizeImage(image, ui_->coverLabel->size());
 		ui_->notFoundImageLabel->hide();

@@ -18,7 +18,6 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QPushButton>
-#include <QRandomGenerator>
 #include <QScrollArea>
 #include <QSignalBlocker>
 #include <QSlider>
@@ -35,6 +34,7 @@
 
 #include <stream/bassparametriceq.h>
 #include <stream/stft.h>
+#include <base/rng.h>
 
 namespace {
     constexpr double kMinFrequency = 20.0;
@@ -873,7 +873,7 @@ void EqualizerView::configureAnalyzer(size_t num_samples) {
 
     analyzer_frame_size_ = frame_size;
     analyzer_shift_size_ = shift_size;
-    analyzer_stft_ = std::make_unique<STFT>(analyzer_frame_size_, analyzer_shift_size_);
+    analyzer_stft_ = xamp::base::MakeAlign<xamp::stream::STFT>(analyzer_frame_size_, analyzer_shift_size_);
     analyzer_stft_->SetWindowType(WindowType::HAMMING);
 }
 
@@ -908,10 +908,10 @@ void EqualizerView::generateTestWaveform() {
     }
 
     constexpr auto kTestSampleFrames = size_t{ 4096 };
-    auto* random = QRandomGenerator::global();
+    auto& prng = PRNG::GetThreadLocal();
     std::vector<float> samples(kTestSampleFrames * AudioFormat::kMaxChannel);
     for (auto frame = size_t{ 0 }; frame < kTestSampleFrames; ++frame) {
-        const auto white = random->generateDouble() * 2.0 - 1.0;
+        const auto white = static_cast<double>(prng.NextSingle(-1.0f, 1.0f));
         test_noise_state_[0] = 0.99886 * test_noise_state_[0] + white * 0.0555179;
         test_noise_state_[1] = 0.99332 * test_noise_state_[1] + white * 0.0750759;
         test_noise_state_[2] = 0.96900 * test_noise_state_[2] + white * 0.1538520;
@@ -951,7 +951,7 @@ void EqualizerView::configureTestEq(const EqSettings& settings) {
         config.Create(DspConfig::kOutputFormat, output_format);
         config.Create(DspConfig::kEQSettings, settings);
 
-        test_eq_ = std::make_unique<BassParametricEq>();
+        test_eq_ = xamp::base::MakeAlign<xamp::stream::BassParametricEq>();
         test_eq_->Initialize(config);
         test_eq_sample_rate_ = analyzer_sample_rate_;
         return;

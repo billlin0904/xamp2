@@ -8,7 +8,7 @@
 #include <stream/stream.h>
 #include <stream/icddevice.h>
 
-#include <base/pimplptr.h>
+#include <base/memory.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
 

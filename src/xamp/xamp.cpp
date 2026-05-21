@@ -16,6 +16,7 @@
 #include <QScreen>
 #include <QStandardPaths>
 #include <QTimer>
+#include <QFileInfo>
 
 #include <base/ithreadpoolexecutor.h>
 #include <base/crashhandler.h>
@@ -268,7 +269,11 @@ void Xamp::setAlbumCover(const QPixmap& cover) {
     ui_.coverLabel->setPixmap(ui_cover);
 }
 
-void Xamp::playLocalFile(const QString& file_name, bool queue) {
+void Xamp::playLocalFile(const PlayListEntity& entity, bool queue) {
+    playLocalFile(entity.file_path, queue, &entity);
+}
+
+void Xamp::playLocalFile(const QString& file_name, bool queue, const PlayListEntity* entity) {
     auto file_sample_rate = 44100;
     auto file_duration = 0.0;
     QPixmap embedded_cover = qTheme.unknownCover();
@@ -356,7 +361,46 @@ void Xamp::playLocalFile(const QString& file_name, bool queue) {
     qTheme.setPlayOrPauseButton(ui_.playButton, true);
 
     auto playback_format = getPlaybackFormat(player_.get());
-    lrc_page_->lyrics()->loadFile(file_name);
+    PlayListEntity playing_entity = entity ? *entity : PlayListEntity{};
+    const QFileInfo file_info(file_name);
+    if (playing_entity.file_path.isEmpty()) {
+        playing_entity.file_path = file_name;
+    }
+    if (playing_entity.parent_path.isEmpty()) {
+        playing_entity.parent_path = file_info.absolutePath();
+    }
+    if (playing_entity.file_name.isEmpty()) {
+        playing_entity.file_name = file_info.completeBaseName();
+    }
+    if (playing_entity.title.isEmpty()) {
+        playing_entity.title = toQString(track_info.title);
+    }
+    if (playing_entity.artist.isEmpty()) {
+        playing_entity.artist = toQString(track_info.artist);
+    }
+    if (playing_entity.album.isEmpty()) {
+        playing_entity.album = toQString(track_info.album);
+    }
+    if (playing_entity.duration <= 0) {
+        playing_entity.duration = file_duration;
+    }
+    if (playing_entity.sample_rate == 0) {
+        playing_entity.sample_rate = file_sample_rate;
+    }
+    if (playing_entity.bit_rate == 0) {
+        playing_entity.bit_rate = track_info.bit_rate;
+    }
+    if (playing_entity.track == 0) {
+        playing_entity.track = track_info.track;
+    }
+    if (playing_entity.file_extension.isEmpty()) {
+        playing_entity.file_extension = file_info.suffix();
+    }
+    lrc_page_->setPlayListEntity(playing_entity);
+    lrc_page_->disableLoadLrcButton();
+    if (!lrc_page_->lyrics()->loadFile(file_name)) {
+        emit searchLyrics(playing_entity);
+    }
     lrc_page_->setCover(embedded_cover);
     lrc_page_->format()->setText(format2String(playback_format,
         ".FLAC"_str,
@@ -374,8 +418,8 @@ void Xamp::playLocalFile(const QString& file_name, bool queue) {
     ui_.seekSlider->setValue(0);
     ui_.seekSlider->loadFile(file_name);
 
-    ui_.titleLabel->setText(QString::fromStdWString(track_info.title));
-    ui_.artistLabel->setText(QString::fromStdWString(track_info.artist));
+    ui_.titleLabel->setText(toQString(track_info.title));
+    ui_.artistLabel->setText(toQString(track_info.artist));
 
     ui_.coverLabel->setPixmap(
         image_util::resizeImage(embedded_cover,
@@ -493,14 +537,14 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         &PlaylistTableView::playMusic,
         this,
         [this](int32_t playlist_id, const PlayListEntity& item, bool is_play) {
-            playLocalFile(item.file_path, is_play);
+            playLocalFile(item, is_play);
         });
 
     (void)QObject::connect(rich_playlist_page_.get(),
         &RichPlaylistPage::playMusic,
         this,
         [this](int32_t playlist_id, const PlayListEntity& item, bool is_play) {
-            playLocalFile(item.file_path, is_play);
+            playLocalFile(item, is_play);
         });
 
     (void)QObject::connect(ui_.playButton, &QToolButton::clicked, [this]() {
@@ -662,6 +706,18 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         &Xamp::fetchCdInfo,
         background_service_.get(),
         &BackgroundService::onFetchCdInfo);
+
+    (void)QObject::connect(this,
+        &Xamp::searchLyrics,
+        background_service_.get(),
+        &BackgroundService::onSearchLyrics,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(background_service_.get(),
+        &BackgroundService::fetchLyricsCompleted,
+        lrc_page_.get(),
+        &LrcPage::onFetchLyricsCompleted,
+        Qt::QueuedConnection);
 
     (void)QObject::connect(background_service_.get(),
         &BackgroundService::readCdTrackInfo,

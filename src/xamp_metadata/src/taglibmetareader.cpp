@@ -48,6 +48,45 @@ namespace {
         return MakeOptional<std::vector<std::byte>>(std::move(buffer));
     }
 
+    std::expected<ReplayGain, ParseMetadataError> ReadID3v2ReplayGain(const ID3v2::Tag* tag) {
+        ReplayGain replay_gain;
+        bool found = false;
+        if (tag) {
+            const auto& frame_list = tag->frameList("TXXX");
+            for (auto* it : frame_list) {
+                const auto* fr = dynamic_cast<TagLib::ID3v2::UserTextIdentificationFrame*>(it);
+                if (fr) {
+                    const auto desc = fr->description().upper();
+                    const auto value = ParseStringList(fr->fieldList().toString().to8Bit());
+                    if (desc == kReplaygainAlbumGain) {
+                        replay_gain.album_gain = value;
+                        found = true;
+                    }
+                    else if (desc == kReplaygainTrackGain) {
+                        replay_gain.track_gain = value;
+                        found = true;
+                    }
+                    else if (desc == kReplaygainAlbumPeak) {
+                        replay_gain.album_peak = value;
+                        found = true;
+                    }
+                    else if (desc == kReplaygainTrackPeak) {
+                        replay_gain.track_peak = value;
+                        found = true;
+                    }
+                    else if (desc == kReplaygainReferenceLoudness) {
+                        replay_gain.ref_loudness = value;
+                        found = true;
+                    }
+                }
+            }
+        }
+        if (!found) {
+            return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
+        }
+        return replay_gain;
+    }
+
     std::optional<std::vector<std::byte>> GetApeTagCover(const APE::Tag* tag) {
         auto const& list_map = tag->itemListMap();
 
@@ -75,44 +114,10 @@ namespace {
 
     struct Mp3TagReader : public IFileTagReader {
         std::expected<ReplayGain, ParseMetadataError> ReadReplayGain(File* file_) override {
-            ReplayGain replay_gain;
-            bool found = false;
             if (auto* mp3_file = dynamic_cast<TagLib::MPEG::File*>(file_)) {
-                if (const auto* tag = mp3_file->ID3v2Tag(false)) {
-                    const auto& frame_list = tag->frameList("TXXX");
-                    for (auto* it : frame_list) {
-                        auto* fr = dynamic_cast<TagLib::ID3v2::UserTextIdentificationFrame*>(it);
-                        if (fr) {
-                            const auto desc = fr->description().upper();
-                            const auto value = ParseStringList(fr->fieldList().toString().to8Bit());
-                            if (desc == kReplaygainAlbumGain) {
-                                replay_gain.album_gain = value;
-                                found = true;
-                            }
-                            else if (desc == kReplaygainTrackGain) {
-                                replay_gain.track_gain = value;
-                                found = true;
-                            }
-                            else if (desc == kReplaygainAlbumPeak) {
-                                replay_gain.album_peak = value;
-                                found = true;
-                            }
-                            else if (desc == kReplaygainTrackPeak) {
-                                replay_gain.track_peak = value;
-                                found = true;
-                            }
-                            else if (desc == kReplaygainReferenceLoudness) {
-                                replay_gain.ref_loudness = value;
-                                found = true;
-                            }
-                        }
-                    }
-                }
+                return ReadID3v2ReplayGain(mp3_file->ID3v2Tag(false));
             }
-            if (!found) {
-                return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
-            }
-            return replay_gain;
+            return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
         }
 
         std::expected<std::vector<std::byte>, ParseMetadataError> ReadEmbeddedCover(File* file_) override {
@@ -126,6 +131,24 @@ namespace {
                 }
                 if (buffer) {
                     return buffer.value();
+                }
+            }
+            return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
+        }
+    };
+
+    struct WavTagReader : public IFileTagReader {
+        std::expected<ReplayGain, ParseMetadataError> ReadReplayGain(File* file_) override {
+            if (const auto* wav_file = dynamic_cast<TagLib::RIFF::WAV::File*>(file_)) {
+                return ReadID3v2ReplayGain(wav_file->ID3v2Tag());
+            }
+            return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
+        }
+
+        std::expected<std::vector<std::byte>, ParseMetadataError> ReadEmbeddedCover(File* file_) override {
+            if (const auto* wav_file = dynamic_cast<TagLib::RIFF::WAV::File*>(file_)) {
+                if (auto cover = GetID3V2TagCover(wav_file->ID3v2Tag())) {
+                    return cover.value();
                 }
             }
             return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
@@ -386,6 +409,8 @@ namespace {
         kFileTagReaderLut{
         { ".flac", [] { return MakeAlign<IFileTagReader, FlacTagReader>(); } },
         { ".mp3",  [] { return MakeAlign<IFileTagReader, Mp3TagReader>(); } },
+        { ".wav",  [] { return MakeAlign<IFileTagReader, WavTagReader>(); } },
+        { ".wave", [] { return MakeAlign<IFileTagReader, WavTagReader>(); } },
         { ".m4a",  [] { return MakeAlign<IFileTagReader, Mp4TagReader>(); } },
         { ".mp4",  [] { return MakeAlign<IFileTagReader, Mp4TagReader>(); } },
 	    { ".opus", [] { return MakeAlign<IFileTagReader, OpusTagReader>(); } },

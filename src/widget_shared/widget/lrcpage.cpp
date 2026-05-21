@@ -8,6 +8,7 @@
 #include <QStandardItemModel>
 #include <QColorDialog>
 #include <QDir>
+#include <QFileInfo>
 #include <QSortFilterProxyModel>
 #include <QLineEdit>
 
@@ -21,6 +22,26 @@
 #include <widget/seekslider.h>
 #include <widget/util/ui_util.h>
 #include <xampplayer.h>
+
+namespace {
+	QString normalizedLyricsKey(QString text) {
+		return text.trimmed().remove(" "_str).toCaseFolded();
+	}
+
+	bool isCurrentLyricsRequest(const PlayListEntity& entity, const SearchLyricsResult& result) {
+		if (result.request_title.isEmpty()) {
+			return true;
+		}
+		return normalizedLyricsKey(entity.cleanup().title) == normalizedLyricsKey(result.request_title);
+	}
+
+	QString lyricsFileExtension(const LyricsParser& parser) {
+		if (parser.parser && parser.parser->isKaraoke()) {
+			return ".krc"_str;
+		}
+		return ".lrc"_str;
+	}
+}
 
 LyricsFrame::LyricsFrame(QWidget* parent)
 	: QFrame(parent) {
@@ -88,8 +109,8 @@ void LyricsFrame::setLyrics(const QList<SearchLyricsResult>& results) {
 	parser_map_.clear();
 
 	// 遍歷你的 results
-	for (auto& [info, result] : results) {
-		for (auto& lrc_parser : result) {
+	for (auto& search_result : results) {
+		for (auto& lrc_parser : search_result.parsers) {
 			QString typeStr = tr("Original");
 			if (lrc_parser.parser->hasTranslation()) {
 				typeStr = tr("Translation");
@@ -200,6 +221,32 @@ void LrcPage::setPlayListEntity(const PlayListEntity& entity) {
 	lyrics_results_.clear();
 }
 
+void LrcPage::applyLyrics(const LyricsParser& parser) {
+	if (!parser.parser) {
+		return;
+	}
+	if (!parser.content.isEmpty()) {
+		const auto parent_path = entity_.parent_path.isEmpty()
+			? QFileInfo(entity_.file_path).absolutePath()
+			: entity_.parent_path;
+		auto file_name = entity_.file_name.trimmed();
+		if (file_name.isEmpty()) {
+			file_name = QFileInfo(entity_.file_path).completeBaseName();
+		}
+		if (!parent_path.isEmpty() && !file_name.isEmpty()) {
+			const auto lyrics_file_name = QDir(parent_path).filePath(file_name + lyricsFileExtension(parser));
+			QSaveFile file(lyrics_file_name);
+			if (file.open(QIODevice::WriteOnly)) {
+				file.write(parser.content);
+				if (!file.commit()) {
+					XAMP_LOG_DEBUG("Save lrc file failure!");
+				}
+			}
+		}
+	}
+	lyrics_widget_->loadFromParser(parser.parser);
+}
+
 QSize LrcPage::coverSize() const {
 	return coverSizeHint();
 }
@@ -232,14 +279,27 @@ void LrcPage::onFetchLyricsCompleted(const QList<SearchLyricsResult>& results) {
 		return;
 	}
 
-	change_lrc_button_->setEnabled(true);
+	auto applied = !lyrics_results_.isEmpty();
 
-	for (auto& result : results) {
+	for (const auto& result : results) {
+		if (!isCurrentLyricsRequest(entity_, result)) {
+			continue;
+		}
 		if (result.parsers.isEmpty()) {
 			continue;
 		}
+		if (!applied) {
+			applyLyrics(result.parsers.front());
+			applied = true;
+		}
 		lyrics_results_.append(result);
 	}	
+
+	if (lyrics_results_.isEmpty()) {
+		return;
+	}
+
+	change_lrc_button_->setEnabled(true);
 
 	const auto hasTranslation = [](const SearchLyricsResult& res) ->bool {
 		for (auto& lyricsParser : res.parsers) {
@@ -628,22 +688,7 @@ void LrcPage::initial() {
 		(void)QObject::connect(lyrics_frame.get(),
 			&LyricsFrame::changeLyric,
 			[this](const LyricsParser& parser) {
-			if (parser.content.isEmpty()) {
-				XAMP_LOG_DEBUG("Lrc content is empty!");
-				return;
-			}
-			const auto save_parent_path = entity_.parent_path;
-			auto krc_file_name = save_parent_path
-				+ "\\"_str
-				+ entity_.file_name.trimmed()
-				+ ".krc"_str;
-			QSaveFile file_(krc_file_name);
-			file_.open(QIODevice::WriteOnly);
-			file_.write(parser.content);
-			if (!file_.commit()) {
-				XAMP_LOG_DEBUG("Save lrc file failure!");
-			}
-			lyrics_widget_->loadFromParser(parser.parser);
+			applyLyrics(parser);
 			});
 		dialog->exec();
 		});

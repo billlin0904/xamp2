@@ -9,7 +9,7 @@
 #include <base/stl.h>
 #include <base/uuid.h>
 #include <base/memory.h>
-#include <base/pimplptr.h>
+#include <base/memory.h>
 
 #include <output_device/iaudiodevicemanager.h>
 #include <output_device/idevicetype.h>

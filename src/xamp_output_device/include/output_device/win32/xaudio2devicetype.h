@@ -6,7 +6,7 @@
 #pragma once
 
 #include <base/memory.h>
-#include <base/pimplptr.h>
+#include <base/memory.h>
 #include <base/stl.h>
 #include <base/uuidof.h>
 #include <base/logger.h>

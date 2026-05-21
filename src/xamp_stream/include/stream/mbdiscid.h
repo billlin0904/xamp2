@@ -9,7 +9,6 @@
 
 #include <base/base.h>
 #include <base/memory.h>
-#include <base/pimplptr.h>
 
 #ifdef XAMP_OS_WIN
 

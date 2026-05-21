@@ -5,7 +5,6 @@
 #include <widget/databasefacade.h>
 #include <widget/dao/albumdao.h>
 #include <widget/dao/musicdao.h>
-#include <widget/tagio.h>
 #include <thememanager.h>
 
 #include <QApplication>

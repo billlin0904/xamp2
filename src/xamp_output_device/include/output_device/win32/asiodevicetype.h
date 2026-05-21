@@ -10,7 +10,7 @@
 #if ENABLE_ASIO && XAMP_OS_WIN
 
 #include <base/memory.h>
-#include <base/pimplptr.h>
+#include <base/memory.h>
 #include <base/stl.h>
 #include <base/uuidof.h>
 
