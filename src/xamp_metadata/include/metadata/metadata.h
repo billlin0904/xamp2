@@ -28,5 +28,6 @@ XAMP_METADATA_NAMESPACE_BEGIN
 
     class CueLoader;
     class Chromaprint;
+    class MetadataLibraryScanner;
 
 XAMP_METADATA_NAMESPACE_END

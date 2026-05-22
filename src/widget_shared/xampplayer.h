@@ -58,6 +58,8 @@ public:
     virtual void clearSystemMenuActions() = 0;
 
     virtual void addSystemMenuAction(QAction* action) = 0;
+
+    virtual std::shared_ptr<IThreadPoolExecutor> getScannerThreadPool() const = 0;
 protected:
     IXMainWindow();
 

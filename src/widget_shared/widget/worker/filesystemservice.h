@@ -8,6 +8,7 @@
 #include <QObject>
 #include <QTimer>
 
+#include <atomic>
 #include <stop_token>
 
 #include <widget/playlistentity.h>
@@ -24,6 +25,8 @@ public:
     FileSystemService();
 
     virtual ~FileSystemService() override;
+
+    void setScannerThreadPool(std::shared_ptr<IThreadPoolExecutor> scanner_thread_pool);
 
 signals:
     void insertDatabase(const std::forward_list<TrackInfo>& result, int32_t playlist_id);
@@ -50,18 +53,16 @@ public slots:
     void cancelRequested();
 
 private:
-    void scanPathFiles(int32_t playlist_id, const QString& dir);
-
     void updateProgress();
 
-    bool is_stop_{ false };
+    std::atomic_bool is_stop_{ false };
     int32_t playlist_id_{ 0 };
-    size_t total_work_{ 0 };
+    std::atomic<size_t> total_work_{ 0 };
     size_t last_completed_work_{ 0 };
     std::atomic<size_t> completed_work_{ 0 };
     Stopwatch total_time_elapsed_;
     Stopwatch update_ui_elapsed_;
-    FastMutex batch_mutex_;
+    FastMutex progress_mutex_;
     QTimer timer_;
     std::shared_ptr<IThreadPoolExecutor> thread_pool_;
     std::stop_source stop_source_;

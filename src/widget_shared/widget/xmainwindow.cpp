@@ -39,6 +39,11 @@ XMainWindow::XMainWindow()
     setAttribute(Qt::WA_DontCreateNativeAncestors);
     setObjectName("XMainWindow"_str);
     setAcceptDrops(true);
+    scanner_thread_pool_ = ThreadPoolBuilder::MakeThreadPool(
+        "ScannerThreadPool",
+        4,
+        1,
+        ThreadPriority::PRIORITY_BACKGROUND);
 }
 
 // QScopedPointer require default destructor.
@@ -117,6 +122,10 @@ void XMainWindow::addSystemMenuAction(QAction* action) {
 #else
     (void)action;
 #endif
+}
+
+std::shared_ptr<IThreadPoolExecutor> XMainWindow::getScannerThreadPool() const {
+    return scanner_thread_pool_;
 }
 
 void XMainWindow::onThemeChangedFinished(ThemeColor theme_color) {

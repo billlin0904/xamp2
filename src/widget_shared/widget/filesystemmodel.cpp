@@ -49,6 +49,9 @@ namespace {
 
 FileSystemModel::FileSystemModel(QObject* parent)
 	: QFileSystemModel(parent) {
+	setOption(QFileSystemModel::DontWatchForChanges, true);
+	setOption(QFileSystemModel::DontResolveSymlinks, true);
+	setOption(QFileSystemModel::DontUseCustomDirectoryIcons, true);
 	setIconProvider(new FileFileIconProvider());
 }
 

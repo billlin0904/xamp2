@@ -1,5 +1,6 @@
 #include <QImageReader>
 #include <widget/util/json_util.h>
+#include <base/scopeguard.h>
 #include <base/object_pool.h>
 #include <widget/util/image_util.h>
 #include <widget/util/tag_util.h>
@@ -78,6 +79,7 @@ void AlbumCoverService::onFetchThumbnailUrl(const DatabaseCoverId& id, const QSt
 
 void AlbumCoverService::cancelRequested() {
     is_stop_ = true;
+    pending_album_cover_ids_.clear();
 }
 
 void AlbumCoverService::mergeUnknownAlbumCover() {
@@ -134,16 +136,25 @@ void AlbumCoverService::mergeUnknownAlbumCover() {
 void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
     is_stop_ = false;
 
-    if (!enable_) {
+    if (!enable_ || !id.second.has_value()) {
         return;
     }
+
+    const auto album_id = id.second.value();
+    if (pending_album_cover_ids_.contains(album_id)) {
+        return;
+    }
+    pending_album_cover_ids_.insert(album_id);
+    XAMP_ON_SCOPE_EXIT(
+        pending_album_cover_ids_.erase(album_id);
+    );
 
     auto db = database_ptr_->Acquire();
     dao::AlbumDao album_dao(db->getDatabase());
     dao::MusicDao music_dao(db->getDatabase());
 
     try {
-	    const auto cover_id = album_dao.getAlbumCoverId(id.second.value());
+	    const auto cover_id = album_dao.getAlbumCoverId(album_id);
         if (!isNullOfEmpty(cover_id)
             && cover_id != qImageCache.unknownCoverId()
             && qImageCache.isFileExists(kAlbumCacheTag, cover_id)) {
@@ -155,7 +166,7 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
         
         if (music_file_path.empty()) {
             // 2. Read embedded cover in album first music file.
-            if (auto file_path = album_dao.getAlbumFirstMusicFilePath(id.second.value())) {
+            if (auto file_path = album_dao.getAlbumFirstMusicFilePath(album_id)) {
                 music_file_path = file_path->toStdWString();
             }            
         }
@@ -173,7 +184,7 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
 		reader->Open(music_file_path);
         auto cover = tag_util::readEmbeddedCover(*reader);
         if (!cover.isNull()) {
-            emit setAlbumCover(id.second.value(), qImageCache.addImage(cover));
+            emit setAlbumCover(album_id, qImageCache.addImage(cover));
             return;
         }
 
@@ -183,7 +194,7 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
         cover = qImageCache.scanCoverFromDir(QString::fromStdWString(music_file_path));
         if (!cover.isNull()) {
             //cover = image_util::mergeImage({ cover });
-            emit setAlbumCover(id.second.value(), qImageCache.addImage(cover, true));
+            emit setAlbumCover(album_id, qImageCache.addImage(cover, true));
             return;
         }
 

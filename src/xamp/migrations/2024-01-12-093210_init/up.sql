@@ -117,6 +117,12 @@ CREATE TABLE IF NOT EXISTS playlistMusics (
     -- FOREIGN KEYs REMOVED
 );
 
+CREATE UNIQUE INDEX IF NOT EXISTS playlist_music_unique_index ON playlistMusics (playlistId, musicId);
+CREATE UNIQUE INDEX IF NOT EXISTS album_artist_unique_index ON albumArtist (albumId, artistId);
+CREATE UNIQUE INDEX IF NOT EXISTS album_category_unique_index ON albumCategories (albumId, category);
+CREATE INDEX IF NOT EXISTS album_music_id_index ON albumMusic (musicId);
+CREATE INDEX IF NOT EXISTS album_store_index ON albums (album, storeType);
+
 CREATE TABLE IF NOT EXISTS albumTags (
     tagId integer PRIMARY KEY AUTOINCREMENT,
     tag TEXT NOT NULL DEFAULT ''

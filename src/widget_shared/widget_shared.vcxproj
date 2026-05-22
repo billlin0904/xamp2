@@ -73,14 +73,14 @@
       </WarningVersion>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Debug/;../thirdparty/zlib/contrib/vstudio/vc14/x64/ZlibStatDebug/;../thirdparty/qcoro/msvc/qcoro/core/Debug/;../thirdparty/qcoro/msvc/qcoro/network/Debug/;../thirdparty/qwindowkit/msvc/out-amd64-Debug/lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../xamp_metadata/x64/Debug/;../xamp/x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Debug/;../thirdparty/zlib/contrib/vstudio/vc14/x64/ZlibStatDebug/;../thirdparty/qcoro/msvc/qcoro/core/Debug/;../thirdparty/qcoro/msvc/qcoro/network/Debug/;../thirdparty/qwindowkit/msvc/out-amd64-Debug/lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;zlibstat.lib;QWKCored.lib;QWKWidgetsd.lib;QCoro6Networkd.lib;QCoro6Cored.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
       <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;zlibstat.lib;QWKCore.lib;QWKWidgets.lib;QCoro6Network.lib;QCoro6Core.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>../xamp/x64/Release/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/qtautoupdater/msvc2019_64/lib/;../thirdparty/framelesshelper/msvc/lib/Release/;../thirdparty/zlib/contrib/vstudio/vc14/x64/ZlibStatRelease/;../thirdparty/qcoro/msvc/qcoro/core/Release/;../thirdparty/qcoro/msvc/qcoro/network/Release/;../thirdparty/qwindowkit/msvc/out-amd64-Release/lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../xamp_metadata/x64/Release/;../xamp/x64/Release/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/qtautoupdater/msvc2019_64/lib/;../thirdparty/framelesshelper/msvc/lib/Release/;../thirdparty/zlib/contrib/vstudio/vc14/x64/ZlibStatRelease/;../thirdparty/qcoro/msvc/qcoro/core/Release/;../thirdparty/qcoro/msvc/qcoro/network/Release/;../thirdparty/qwindowkit/msvc/out-amd64-Release/lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
       <AdditionalIncludeDirectories>$(Qt_INCLUDEPATH_);./;../xamp_base/include/;../xamp_metadata/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/;../thirdparty/zlib/;../thirdparty/rapidxml/;./xamp/;../thirdparty/qcoro/msvc/qcoro/core/;../thirdparty/qcoro/msvc/qcoro/network/;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/msvc/qcoro/network/QCoro;../thirdparty/qcoro/msvc/qcoro/QCoro;../thirdparty/qcoro/qcoro/network/;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;../thirdparty/qwindowkit/msvc/include/;../thirdparty/libdeflate/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -144,6 +144,7 @@
     <ClInclude Include="widget\dao\playlistdao.h" />
     <ClInclude Include="widget\databasecoverid.h" />
     <QtMoc Include="widget\encodejobwidget.h" />
+    <QtMoc Include="widget\filesystemviewpage.h" />
     <ClInclude Include="widget\genre_view.h" />
     <QtMoc Include="widget\taglistview.h" />
     <ClInclude Include="widget\httpx.h" />
@@ -177,9 +178,9 @@
     <ClInclude Include="widget\webvttparser.h" />
     <ClInclude Include="widget\widget_shared_global.h" />
     <QtMoc Include="widget\worker\backgroundservice.h" />
-    <QtMoc Include="widget\worker\filesystemservice.h" />
     <QtMoc Include="widget\worker\albumcoverservice.h" />
     <ClInclude Include="widget\win32\wintaskbar.h" />
+    <QtMoc Include="widget\worker\filesystemservice.h" />
     <ClInclude Include="widget\xmessagebox.h" />
     <QtMoc Include="widget\xtooltip.h" />
     <ClInclude Include="xampplayer.h" />
@@ -198,7 +199,6 @@
     <ClInclude Include="widget\driveinfo.h" />
     <QtMoc Include="widget\equalizerview.h" />
     <ClInclude Include="widget\filesystemmodel.h" />
-    <QtMoc Include="widget\filesystemviewpage.h" />
     <ClInclude Include="widget\fonticon.h" />
     <ClInclude Include="widget\globalshortcut.h" />
     <QtMoc Include="widget\iconsizestyle.h" />

@@ -7,7 +7,12 @@
 
 #include <widget/widget_shared_global.h>
 #include <widget/widget_shared.h>
+#include <metadata/metadatalibraryscanner.h>
 #include <QFrame>
+
+#include <atomic>
+#include <memory>
+#include <stop_token>
 
 class PlaylistPage;
 class FileSystemModel;
@@ -25,6 +30,8 @@ public:
 
 	virtual ~FileSystemViewPage() override;
 
+    void setScannerThreadPool(std::shared_ptr<IThreadPoolExecutor> scanner_thread_pool);
+
 	PlaylistPage* playlistPage();
 
 	SpectrogramWidget* spectrogramWidget();
@@ -40,4 +47,7 @@ private:
 	FileSystemModel* dir_model_;
 	ScanFileProgressPage* progress_page_;
 	DirFirstSortFilterProxyModel* dir_first_sort_filter_;
+	std::shared_ptr<MetadataLibraryScanner> metadata_scanner_;
+	std::shared_ptr<std::stop_source> scanner_stop_source_;
+	std::atomic_uint64_t scanner_generation_{ 0 };
 };

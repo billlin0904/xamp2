@@ -270,15 +270,17 @@ QString getFileDialogFileExtensions() {
 }
 
 QString getExistingDirectory(QWidget* parent, const QString &title, const std::function<void(const QString&)>& action) {
-    auto last_open_folder = qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
+	auto last_open_folder = qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
     if (last_open_folder.isEmpty()) {
         last_open_folder = qAppSettings.myMusicFolderPath();
     }
     
+    constexpr auto kDialogOptions = QFileDialog::ShowDirsOnly
+        | QFileDialog::DontUseNativeDialog;
     const auto dir_name = QFileDialog::getExistingDirectory(parent,
         title,
         last_open_folder,
-        QFileDialog::ShowDirsOnly);
+        kDialogOptions);
     if (dir_name.isNull()) {
         return dir_name;
     }
@@ -302,11 +304,13 @@ void getSaveFileName(QWidget* parent,
     const QString& caption,
     const QString& dir,
     const QString& filter) {
+    constexpr auto kDialogOptions = QFileDialog::DontUseNativeDialog;
     const auto file_name = QFileDialog::getSaveFileName(parent,
         caption,
         dir,
         filter,
-        nullptr);
+        nullptr,
+        kDialogOptions);
     if (file_name.isNull()) {
         return;
     }
@@ -319,11 +323,13 @@ void getOpenFileName(QWidget* parent,
     const QString& caption,
     const QString& dir, 
     const QString& filter) {
+    constexpr auto kDialogOptions = QFileDialog::DontUseNativeDialog;
     const auto file_name = QFileDialog::getOpenFileName(parent,
         caption,
         dir,
         filter,
-        nullptr);
+        nullptr,
+        kDialogOptions);
     if (file_name.isNull()) {
         return;
     }

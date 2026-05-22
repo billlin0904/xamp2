@@ -6,6 +6,7 @@
 #include <QSimpleUpdater.h>
 
 #include <algorithm>
+#include <iterator>
 
 #include <QAction>
 #include <QApplication>
@@ -14,12 +15,14 @@
 #include <QMap>
 #include <QProcess>
 #include <QScreen>
+#include <QSet>
 #include <QStandardPaths>
 #include <QTimer>
 #include <QFileInfo>
 
 #include <base/ithreadpoolexecutor.h>
 #include <base/crashhandler.h>
+#include <base/stopwatch.h>
 
 #include <player/audio_player.h>
 #include <stream/api.h>
@@ -49,12 +52,46 @@
 #include <widget/aboutpage.h>
 #include <widget/scanfileprogresspage.h>
 #include <widget/xmessagebox.h>
+#include <widget/worker/albumcoverservice.h>
 #include <widget/worker/filesystemservice.h>
 
 #include <style_util.h>
 
 namespace {
     const auto kUpdateDefinitionsUrl = "https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json"_str;
+
+    size_t CountTracks(const std::forward_list<TrackInfo>& tracks) {
+        return static_cast<size_t>(std::distance(tracks.begin(), tracks.end()));
+    }
+
+    size_t CountTrackBatches(const std::vector<std::forward_list<TrackInfo>>& batches) {
+        size_t track_count = 0;
+        for (const auto& tracks : batches) {
+            track_count += CountTracks(tracks);
+        }
+        return track_count;
+    }
+
+    void CollectAlbumIds(const std::forward_list<TrackInfo>& tracks, QSet<int32_t>& album_ids) {
+        for (const auto& track : tracks) {
+            const auto music_id = qDaoFacade.music_dao.getMusicId(toQString(track.file_path));
+            if (!music_id.has_value()) {
+                continue;
+            }
+            const auto album_id = qDaoFacade.album_dao.getAlbumIdFromAlbumMusic(music_id.value());
+            if (album_id > 0 && album_id != qDatabaseFacade.unknownAlbumId()) {
+                album_ids.insert(album_id);
+            }
+        }
+    }
+
+    QSet<int32_t> CollectAlbumIds(const std::vector<std::forward_list<TrackInfo>>& batches) {
+        QSet<int32_t> album_ids;
+        for (const auto& tracks : batches) {
+            CollectAlbumIds(tracks, album_ids);
+        }
+        return album_ids;
+    }
 
     QSize dialogContentSize(QWidget* dialog, const QWidget* content) {
         auto* screen = dialog != nullptr ? dialog->screen() : QGuiApplication::primaryScreen();
@@ -197,6 +234,11 @@ void Xamp::destory() {
         file_system_service_->cancelRequested();
     }
     quit_and_wait_thread(file_system_service_thread_);
+
+    if (album_cover_service_ != nullptr) {
+        album_cover_service_->cancelRequested();
+    }
+    quit_and_wait_thread(album_cover_service_thread_);
 
     if (background_service_ != nullptr) {
         background_service_->cancelRequested();
@@ -502,7 +544,9 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
 
     lrc_page_.reset(new LrcPage(this));
     rich_playlist_page_.reset(new RichPlaylistPage(this));
+    const auto scanner_thread_pool = main_window_->getScannerThreadPool();
     file_explorer_page_.reset(new FileSystemViewPage(this));
+    file_explorer_page_->setScannerThreadPool(scanner_thread_pool);
 
     state_adapter_.reset(new UIPlayerStateAdapter(this));
     player_->SetStateAdapter(state_adapter_);
@@ -645,8 +689,45 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     cd_page_->playlistPage()->playlist()->setOtherPlaylist(kDefaultPlaylistId);
 
     file_system_service_.reset(new FileSystemService());
+    file_system_service_->setScannerThreadPool(scanner_thread_pool);
     file_system_service_->moveToThread(&file_system_service_thread_);
     file_system_service_thread_.start(QThread::LowestPriority);
+
+    album_cover_service_.reset(new AlbumCoverService());
+    album_cover_service_->moveToThread(&album_cover_service_thread_);
+    album_cover_service_thread_.start(QThread::LowestPriority);
+
+    auto connect_playlist_cover_service = [this](PlaylistTableView* playlist) {
+        (void)QObject::connect(playlist->styledDelegate(),
+            &PlaylistStyledItemDelegate::findAlbumCover,
+            album_cover_service_.get(),
+            &AlbumCoverService::onFindAlbumCover,
+            Qt::QueuedConnection);
+        };
+
+    connect_playlist_cover_service(file_explorer_page_->playlistPage()->playlist());
+    connect_playlist_cover_service(cd_page_->playlistPage()->playlist());
+
+    (void)QObject::connect(album_cover_service_.get(),
+        &AlbumCoverService::setAlbumCover,
+        this,
+        [this](int32_t album_id, const QString& cover_id) {
+            qDaoFacade.album_dao.setAlbumCover(album_id, cover_id);
+            file_explorer_page_->playlistPage()->playlist()->setAlbumCoverId(album_id, cover_id);
+            cd_page_->playlistPage()->playlist()->setAlbumCoverId(album_id, cover_id);
+            rich_playlist_page_->reload();
+        },
+        Qt::QueuedConnection);
+
+    auto request_album_covers = [this](const QSet<int32_t>& album_ids) {
+        for (const auto album_id : album_ids) {
+            QMetaObject::invokeMethod(album_cover_service_.get(),
+                [service = album_cover_service_.get(), album_id]() {
+                    service->onFindAlbumCover(DatabaseCoverId(kInvalidDatabaseId, album_id));
+                },
+                Qt::QueuedConnection);
+        }
+        };
 
     auto* rich_playlist_progress = rich_playlist_page_->progressPage();
 
@@ -665,18 +746,55 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     (void)QObject::connect(file_system_service_.get(),
         &FileSystemService::batchInsertDatabase,
         this,
-        [this](const std::vector<std::forward_list<TrackInfo>>& results, int32_t playlist_id) {
-            qDatabaseFacade.insertMultipleTrackInfo(results, playlist_id, StoreType::LOCAL_STORE);
+        [this, request_album_covers](const std::vector<std::forward_list<TrackInfo>>& results, int32_t playlist_id) {
+            Stopwatch total_elapsed;
+            Stopwatch stage_elapsed;
+            const auto track_count = CountTrackBatches(results);
+            qDatabaseFacade.insertMultipleTrackInfo(results,
+                playlist_id,
+                StoreType::LOCAL_STORE,
+                QString(),
+                DatabaseFacade::kSkipFetchCover);
+            const auto insert_seconds = stage_elapsed.ElapsedSeconds();
+            stage_elapsed.Reset();
+            request_album_covers(CollectAlbumIds(results));
             rich_playlist_page_->reload();
+            const auto reload_seconds = stage_elapsed.ElapsedSeconds();
+            XAMP_LOG_DEBUG("Metadata DB batch write playlist:{} batches:{} tracks:{} insert:{:.3f}s reload:{:.3f}s total:{:.3f}s",
+                playlist_id,
+                results.size(),
+                track_count,
+                insert_seconds,
+                reload_seconds,
+                total_elapsed.ElapsedSeconds());
         },
         Qt::QueuedConnection);
 
     (void)QObject::connect(file_system_service_.get(),
         &FileSystemService::insertDatabase,
         this,
-        [this](const std::forward_list<TrackInfo>& result, int32_t playlist_id) {
-            qDatabaseFacade.insertTrackInfo(result, playlist_id, StoreType::LOCAL_STORE);
+        [this, request_album_covers](const std::forward_list<TrackInfo>& result, int32_t playlist_id) {
+            Stopwatch total_elapsed;
+            Stopwatch stage_elapsed;
+            const auto track_count = CountTracks(result);
+            qDatabaseFacade.insertTrackInfo(result,
+                playlist_id,
+                StoreType::LOCAL_STORE,
+                QString(),
+                DatabaseFacade::kSkipFetchCover);
+            const auto insert_seconds = stage_elapsed.ElapsedSeconds();
+            stage_elapsed.Reset();
+            QSet<int32_t> album_ids;
+            CollectAlbumIds(result, album_ids);
+            request_album_covers(album_ids);
             rich_playlist_page_->reload();
+            const auto reload_seconds = stage_elapsed.ElapsedSeconds();
+            XAMP_LOG_DEBUG("Metadata DB write playlist:{} tracks:{} insert:{:.3f}s reload:{:.3f}s total:{:.3f}s",
+                playlist_id,
+                track_count,
+                insert_seconds,
+                reload_seconds,
+                total_elapsed.ElapsedSeconds());
         },
         Qt::QueuedConnection);
 

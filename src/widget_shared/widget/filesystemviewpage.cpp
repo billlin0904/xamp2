@@ -14,14 +14,11 @@
 #include <widget/scanfileprogresspage.h>
 #include <widget/chatgpt/spectrogramwidget.h>
 
-#include <stream/filestream.h>
-#include <base/workstealingtaskqueue.h>
-
-#include <QDirIterator>
 #include <QLabel>
 #include <QHelpEvent>
 #include <QDateTime>
-#include <QFileDialog>
+#include <QPointer>
+#include <QThread>
 #include <QSortFilterProxyModel>
 #include <QStyledItemDelegate>
 #include <QScrollBar>
@@ -215,80 +212,145 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
         ui_->page->playlist()->removeAll();
 		file_path_ = parent_dir_path;
 
-        const auto filter = getTrackInfoFileNameFilter();
-        QDirIterator count_itr(parent_dir_path,
-            filter,
-            QDir::NoDotAndDotDot | QDir::Files);
-
-		size_t total_files = 0;
-        while (count_itr.hasNext()) {
-            count_itr.next();
-           ++total_files;
-        }
-
         auto dir_name = file_info.fileName();
         if (!file_info.isDir()) {
             dir_name = QFileInfo(parent_dir_path).fileName();
         }
 
 		QFontMetrics fm(ui_->page->pageTitle()->font());
-        auto title = fm.elidedText(qFormat("Files in \"%1\" (%2 songs)")
-			.arg(dir_name).arg(QString::number(total_files)),
+        auto title = fm.elidedText(qFormat("Scanning \"%1\"...")
+			.arg(dir_name),
             Qt::ElideRight,
             800);
         ui_->page->pageTitle()->setText(title);
 
-        if (total_files > 4) {
-            progress_page_->show();
-            progress_page_->setOnlyShowProgress();
-            const auto list_view_rect = this->rect();
-            progress_page_->setFixedSize(QSize(list_view_rect.size().width() - 2, 80));
-            progress_page_->move(0, height() - 80);
-            delay(100);
+        if (scanner_stop_source_) {
+            scanner_stop_source_->request_stop();
         }
+        scanner_stop_source_ = std::make_shared<std::stop_source>();
+        const auto scan_generation = ++scanner_generation_;
 
-        QDirIterator itr(parent_dir_path,
-            filter,
-            QDir::NoDotAndDotDot | QDir::Files);
-
-        size_t process_file = 0;
-		progress_page_->setFileCount(static_cast<int32_t>(total_files));
+        progress_page_->show();
+        progress_page_->setOnlyShowProgress();
+        const auto list_view_rect = this->rect();
+        progress_page_->setFixedSize(QSize(list_view_rect.size().width() - 2, 80));
+        progress_page_->move(0, height() - 80);
+		progress_page_->setFileCount(0);
         progress_page_->setFileProgress(0);
 
-        std::forward_list<TrackInfo> track_infos;
-        auto reader = MakeMetadataReader();
+        const auto native_path = toNativeSeparators(parent_dir_path);
+        const auto display_dir_name = dir_name;
+        QPointer<FileSystemViewPage> receiver(this);
+        auto stop_source = scanner_stop_source_;
+        auto scanner = metadata_scanner_;
 
-        while (itr.hasNext()) {
-            const auto path_str = toNativeSeparators(itr.next());
-            auto file_path = path_str.toStdWString();
-            
-            try {
-                reader->Open(file_path);
-                auto track_info = reader->Extract();
-                if (track_info) {
-                    if (track_info.value().sample_rate == 0) {
-                        auto file_stream = StreamFactory::MakeFileStream(file_path);
-                        file_stream->OpenFile(file_path);
-                        auto sampler_rate = file_stream->GetFormat().GetSampleRate();
-                        track_info.value().sample_rate = sampler_rate;
+        auto* scanner_thread = QThread::create([receiver,
+            scanner,
+            stop_source,
+            native_path,
+            display_dir_name,
+            scan_generation]() {
+            MetadataScanOptions options;
+            options.recursive = false;
+            MetadataScanCallbacks callbacks;
+            callbacks.on_found_file_count = [receiver, display_dir_name, scan_generation](size_t total_file_count) {
+                if (receiver.isNull()) {
+                    return;
+                }
+                QMetaObject::invokeMethod(receiver.data(), [receiver, display_dir_name, scan_generation, total_file_count]() {
+                    if (receiver.isNull()
+                        || scan_generation != receiver->scanner_generation_) {
+                        return;
                     }
-                    track_infos.push_front(track_info.value());
-                }                
-            }
-            catch (...) {
-                logAndShowMessage(std::current_exception());
-            }
-            progress_page_->setFileProgress(process_file++ * 100 / total_files);
-        }
-        progress_page_->setFileProgress(100);
-        progress_page_->hide();
+                    receiver->progress_page_->setFileCount(static_cast<int32_t>(total_file_count));
+                    QFontMetrics fm(receiver->ui_->page->pageTitle()->font());
+                    const auto title = fm.elidedText(qFormat("Files in \"%1\" (%2 songs)")
+                        .arg(display_dir_name)
+                        .arg(QString::number(total_file_count)),
+                        Qt::ElideRight,
+                        800);
+                    receiver->ui_->page->pageTitle()->setText(title);
+                    }, Qt::QueuedConnection);
+                };
+            callbacks.on_progress = [receiver, scan_generation](MetadataScanProgress progress) {
+                if (receiver.isNull()) {
+                    return;
+                }
+                QMetaObject::invokeMethod(receiver.data(), [receiver, scan_generation, progress]() {
+                    if (receiver.isNull()
+                        || scan_generation != receiver->scanner_generation_
+                        || progress.total_work == 0) {
+                        return;
+                    }
+                    receiver->progress_page_->setFileProgress(
+                        static_cast<int32_t>((progress.completed_work * 100) / progress.total_work));
+                    }, Qt::QueuedConnection);
+                };
+            callbacks.on_batch_tracks = [receiver, scan_generation](auto tracks) {
+                if (receiver.isNull()) {
+                    return;
+                }
+                QMetaObject::invokeMethod(receiver.data(), [receiver, scan_generation, tracks = std::move(tracks)]() mutable {
+                    if (receiver.isNull()
+                        || scan_generation != receiver->scanner_generation_) {
+                        return;
+                    }
+                    qDatabaseFacade.insertMultipleTrackInfo(tracks,
+                        kFileSystemPlaylistId,
+                        StoreType::LOCAL_STORE,
+                        QString(),
+                        DatabaseFacade::kSkipFetchCover);
+                    receiver->ui_->page->playlist()->reload();
+                    }, Qt::QueuedConnection);
+                };
+            callbacks.on_tracks = [receiver, scan_generation](auto tracks) {
+                if (receiver.isNull()) {
+                    return;
+                }
+                QMetaObject::invokeMethod(receiver.data(), [receiver, scan_generation, tracks = std::move(tracks)]() mutable {
+                    if (receiver.isNull()
+                        || scan_generation != receiver->scanner_generation_) {
+                        return;
+                    }
+                    qDatabaseFacade.insertTrackInfo(tracks,
+                        kFileSystemPlaylistId,
+                        StoreType::LOCAL_STORE,
+                        QString(),
+                        DatabaseFacade::kSkipFetchCover);
+                    receiver->ui_->page->playlist()->reload();
+                    }, Qt::QueuedConnection);
+                };
 
-        track_infos.sort([](const auto& first, const auto& last) {
-            return first.track < last.track;
-        });
+            try {
+                scanner->Scan(Path(native_path.toStdWString()),
+                    stop_source->get_token(),
+                    callbacks,
+                    options);
+            }
+            catch (const std::exception& e) {
+                XAMP_LOG_ERROR("Metadata scan failed path:{} error:{}",
+                    native_path.toStdString(),
+                    e.what());
+            }
 
-        qDatabaseFacade.insertTrackInfo(track_infos, kFileSystemPlaylistId, StoreType::LOCAL_STORE);
-        ui_->page->playlist()->reload();
+            if (receiver.isNull()) {
+                return;
+            }
+            QMetaObject::invokeMethod(receiver.data(), [receiver, scan_generation]() {
+                if (receiver.isNull()
+                    || scan_generation != receiver->scanner_generation_) {
+                    return;
+                }
+                receiver->progress_page_->setFileProgress(100);
+                receiver->progress_page_->hide();
+                receiver->ui_->page->playlist()->reload();
+                }, Qt::QueuedConnection);
+            });
+        (void)QObject::connect(scanner_thread,
+            &QThread::finished,
+            scanner_thread,
+            &QObject::deleteLater);
+        scanner_thread->start(QThread::LowestPriority);
         
         });
 
@@ -357,6 +419,11 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
 
 }
 
+void FileSystemViewPage::setScannerThreadPool(std::shared_ptr<IThreadPoolExecutor> scanner_thread_pool) {
+    XAMP_ASSERT(scanner_thread_pool);
+    metadata_scanner_ = std::make_shared<MetadataLibraryScanner>(std::move(scanner_thread_pool));
+}
+
 PlaylistPage* FileSystemViewPage::playlistPage() {
     return ui_->page;
 }
@@ -366,5 +433,9 @@ SpectrogramWidget* FileSystemViewPage::spectrogramWidget() {
 }
 
 FileSystemViewPage::~FileSystemViewPage() {
+    ++scanner_generation_;
+    if (scanner_stop_source_) {
+        scanner_stop_source_->request_stop();
+    }
     delete ui_;
 }

@@ -44,7 +44,7 @@ INSERT
 	)
 VALUES
 	(
-		( SELECT musicId FROM musics WHERE path = :path AND durationStr = :durationStr AND isZipFile = :isZipFile AND archiveEntryName = :archiveEntryName ), 
+		( SELECT musicId FROM musics WHERE path = :path AND offset = :offset AND durationStr = :durationStr ), 
 	:title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitRate, :sampleRate, :offset, :dateTime, :albumReplayGain, :trackReplayGain, 
     :albumPeak, :trackPeak, :genre, :comment, :fileSize, :heart, :isCueFile, :isZipFile, :archiveEntryName 
 	)

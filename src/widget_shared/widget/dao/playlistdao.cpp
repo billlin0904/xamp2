@@ -119,12 +119,13 @@ namespace dao {
     void PlaylistDao::addMusicToPlaylist(int32_t music_id, int32_t playlist_id, int32_t album_id) const {
         SqlQuery query(db_);
 
-        const auto querystr = qFormat("INSERT INTO playlistMusics (playlistMusicsId, playlistId, musicId, albumId) VALUES (NULL, %1, %2, %3)")
-            .arg(playlist_id)
-            .arg(music_id)
-            .arg(album_id);
-
-        query.prepare(querystr);
+        query.prepare(R"(
+            INSERT OR IGNORE INTO playlistMusics (playlistMusicsId, playlistId, musicId, albumId)
+            VALUES (NULL, :playlistId, :musicId, :albumId)
+        )"_str);
+        query.bindValue(":playlistId"_str, playlist_id);
+        query.bindValue(":musicId"_str, music_id);
+        query.bindValue(":albumId"_str, album_id);
         DbIfFailedThrow1(query);
     }
 
@@ -141,7 +142,7 @@ namespace dao {
             strings << "("_str + "NULL, "_str + QString::number(playlist_id) + ", "_str + QString::number(id) + ")"_str;
         }
 
-        const auto querystr = "INSERT INTO playlistMusics (playlistMusicsId, playlistId, musicId) VALUES "_str
+        const auto querystr = "INSERT OR IGNORE INTO playlistMusics (playlistMusicsId, playlistId, musicId) VALUES "_str
             + strings.join(","_str);
         query.prepare(querystr);
         DbIfFailedThrow1(query);

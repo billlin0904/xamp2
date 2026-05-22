@@ -59,6 +59,8 @@ public:
     void clearSystemMenuActions() override;
 
     void addSystemMenuAction(QAction* action) override;
+
+    std::shared_ptr<IThreadPoolExecutor> getScannerThreadPool() const override;
 protected:
     void dragEnterEvent(QDragEnterEvent *event) override;
 
@@ -95,5 +97,6 @@ private:
     quint32 next_system_menu_id_{ 0xA000 };
     bool system_menu_separator_added_{ false };
     QMap<QPair<quint32, quint32>, QKeySequence>  shortcuts_;
+    std::shared_ptr<IThreadPoolExecutor> scanner_thread_pool_;
     IXFrame *content_widget_;
 };

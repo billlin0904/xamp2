@@ -272,6 +272,7 @@ copy /Y "$(ProjectDir)..\thirdparty\uchardet\msvc\src\Release\uchardet.dll" "$(O
     <None Include="config.json" />
     <None Include="fonticon.json" />
     <None Include="migrations\2024-01-12-093210_init\up.sql" />
+    <None Include="migrations\2026-05-22-110000_scan_insert_indexes\up.sql" />
     <None Include="xamp.ini" />
   </ItemGroup>
   <ItemGroup>

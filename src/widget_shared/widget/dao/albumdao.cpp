@@ -345,7 +345,7 @@ namespace dao {
         SqlQuery query(db_);
 
         query.prepare(R"(
-    INSERT INTO albumCategories (albumCategoryId, albumId, category)
+    INSERT OR IGNORE INTO albumCategories (albumCategoryId, albumId, category)
     VALUES (NULL, :albumId, :category)
     )"_str);
 
@@ -373,7 +373,7 @@ namespace dao {
         SqlQuery query(db_);
 
         query.prepare(R"(
-    INSERT INTO albumArtist (albumArtistId, albumId, artistId)
+    INSERT OR IGNORE INTO albumArtist (albumArtistId, albumId, artistId)
     VALUES (NULL, :albumId, :artistId)
     )"_str);
 
@@ -476,7 +476,7 @@ LIMIT
       
       query.prepare(R"(
       INSERT OR REPLACE INTO albumMusic (albumMusicId, albumId, artistId, musicId)
-      VALUES ((SELECT albumMusicId from albumMusic where albumId = :albumId AND artistId = :artistId AND musicId = :musicId), :albumId, :artistId, :musicId)
+      VALUES ((SELECT albumMusicId from albumMusic where musicId = :musicId), :albumId, :artistId, :musicId)
       )"_str);
       
       query.bindValue(":albumId"_str, album_id);
@@ -490,7 +490,7 @@ LIMIT
       SqlQuery query(db_);
 
       query.prepare(R"(
-      INSERT INTO albumArtist (albumArtistId, albumId, artistId)
+      INSERT OR IGNORE INTO albumArtist (albumArtistId, albumId, artistId)
       VALUES (NULL, :albumId, :artistId)
       )"_str);
       

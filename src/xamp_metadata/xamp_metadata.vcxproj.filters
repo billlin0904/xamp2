@@ -6,6 +6,7 @@
     <ClCompile Include="src\taglibmetareader.cpp" />
     <ClCompile Include="src\cuefilereader.cpp" />
     <ClCompile Include="src\chromaprint.cpp" />
+    <ClCompile Include="src\metadatalibraryscanner.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\metadata\metadata.h" />
@@ -20,6 +21,7 @@
     <ClInclude Include="include\metadata\chromaprint.h" />
     <ClInclude Include="include\metadata\chromaprintlib.h" />
     <ClInclude Include="include\metadata\taglibiostream.h" />
+    <ClInclude Include="include\metadata\metadatalibraryscanner.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="win32">

@@ -91,6 +91,17 @@
     <Bscmake>
       <PreserveSbr>false</PreserveSbr>
     </Bscmake>
+    <PostBuildEvent>
+      <Command>set "XAMP_METADATA_DEST=$(ProjectDir)..\xamp\$(Platform)\$(Configuration)\"
+if not exist "%XAMP_METADATA_DEST%" mkdir "%XAMP_METADATA_DEST%"
+for %%I in ("$(TargetDir).") do set "XAMP_METADATA_SRC_DIR=%%~fI"
+for %%I in ("%XAMP_METADATA_DEST%.") do set "XAMP_METADATA_DST_DIR=%%~fI"
+if /I not "%XAMP_METADATA_SRC_DIR%"=="%XAMP_METADATA_DST_DIR%" (
+copy /Y "$(TargetPath)" "%XAMP_METADATA_DEST%"
+copy /Y "$(TargetDir)$(TargetName).lib" "%XAMP_METADATA_DEST%"
+if exist "$(TargetDir)$(TargetName).pdb" copy /Y "$(TargetDir)$(TargetName).pdb" "%XAMP_METADATA_DEST%"
+)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -156,6 +167,17 @@
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
+    <PostBuildEvent>
+      <Command>set "XAMP_METADATA_DEST=$(ProjectDir)..\xamp\$(Platform)\$(Configuration)\"
+if not exist "%XAMP_METADATA_DEST%" mkdir "%XAMP_METADATA_DEST%"
+for %%I in ("$(TargetDir).") do set "XAMP_METADATA_SRC_DIR=%%~fI"
+for %%I in ("%XAMP_METADATA_DEST%.") do set "XAMP_METADATA_DST_DIR=%%~fI"
+if /I not "%XAMP_METADATA_SRC_DIR%"=="%XAMP_METADATA_DST_DIR%" (
+copy /Y "$(TargetPath)" "%XAMP_METADATA_DEST%"
+copy /Y "$(TargetDir)$(TargetName).lib" "%XAMP_METADATA_DEST%"
+if exist "$(TargetDir)$(TargetName).pdb" copy /Y "$(TargetDir)$(TargetName).pdb" "%XAMP_METADATA_DEST%"
+)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\metadata\chromaprint.h" />
@@ -163,6 +185,7 @@
     <ClInclude Include="include\metadata\cuefilereader.h" />
     <ClInclude Include="include\metadata\libcuelib.h" />
     <ClInclude Include="include\metadata\metadata.h" />
+    <ClInclude Include="include\metadata\metadatalibraryscanner.h" />
     <ClInclude Include="include\metadata\imetadatareader.h" />
     <ClInclude Include="include\metadata\imetadatawriter.h" />
     <ClInclude Include="include\metadata\api.h" />
@@ -175,6 +198,7 @@
     <ClCompile Include="src\api.cpp" />
     <ClCompile Include="src\chromaprint.cpp" />
     <ClCompile Include="src\cuefilereader.cpp" />
+    <ClCompile Include="src\metadatalibraryscanner.cpp" />
     <ClCompile Include="src\taglibmetadatawriter.cpp" />
     <ClCompile Include="src\taglibmetareader.cpp" />
   </ItemGroup>

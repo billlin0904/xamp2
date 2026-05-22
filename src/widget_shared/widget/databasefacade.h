@@ -17,6 +17,7 @@ using FetchCoverCallback = std::function<void(int32_t, int32_t, const QString&, 
 class XAMP_WIDGET_SHARED_EXPORT DatabaseFacade final : public QObject {
 public:    
     static const FetchCoverCallback kDefaultFetchCover;
+    static const FetchCoverCallback kSkipFetchCover;
     static constexpr size_t kReserveSize = 1024;
 
     static int32_t kUnknownArtistId;

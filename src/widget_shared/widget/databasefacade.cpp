@@ -63,6 +63,7 @@ namespace {
 }
 
 const FetchCoverCallback DatabaseFacade::kDefaultFetchCover = GetDefaultFetchCover();
+const FetchCoverCallback DatabaseFacade::kSkipFetchCover = {};
 
 const FetchCoverCallback DatabaseFacade::GetDefaultFetchCover() {
     return [](int32_t music_id, int32_t album_id, const QString& file_path, std::optional<ArchiveEntry> archive_entry) {
@@ -290,7 +291,16 @@ void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result,
                     }
                 }                
             }            
+            Stopwatch fetch_cover_elapsed;
+            const auto has_archive_entry = archive_entry_opt.has_value();
             fetch_cover(music_id, album_id, file_path, std::move(archive_entry_opt));
+            XAMP_LOG_DEBUG("Fetch cover completed music:{} album:{} file:{} archive_entry:{} has_archive_entry:{} elapsed:{:.3f}s",
+                music_id,
+                album_id,
+                String::ToString(file_path.toStdWString()),
+                String::ToString(archive_file_name.toStdWString()),
+                has_archive_entry,
+                fetch_cover_elapsed.ElapsedSeconds());
         }
 	}
 }

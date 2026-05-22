@@ -59,6 +59,7 @@ private:
 	http::HttpClient http_client_;
 	HashSet<QString> pending_request_urls_;
 	HashSet<QString> request_load_cover_ids_;
+	HashSet<int32_t> pending_album_cover_ids_;
 	LoggerPtr logger_;
 };
 

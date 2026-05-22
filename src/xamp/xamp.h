@@ -17,6 +17,7 @@
 class BackgroundService;
 class FileSystemService;
 class FileSystemViewPage;
+class AlbumCoverService;
 class RichPlaylistPage;
 class LrcPage;
 class CdPage;
@@ -110,6 +111,7 @@ private:
 	QScopedPointer<CdPage> cd_page_;
     QScopedPointer<DeviceSelectorMenu> device_menu_;
     QScopedPointer<FileSystemService> file_system_service_;
+    QScopedPointer<AlbumCoverService> album_cover_service_;
     QScopedPointer<BackgroundService> background_service_;
     QList<QWidget*> widgets_;
     std::shared_ptr<IThreadPoolExecutor> thread_pool_;
@@ -117,6 +119,7 @@ private:
     std::shared_ptr<IAudioPlayer> player_;
     std::optional<DeviceInfo> device_info_;
     QThread file_system_service_thread_;
+    QThread album_cover_service_thread_;
     QThread background_service_thread_;
 	Ui::XampWindow ui_;
 };
