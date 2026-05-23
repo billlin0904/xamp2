@@ -66,8 +66,6 @@ XAMP_STREAM_API IDsdStream* AsDsdStream(ScopedPtr<FileStream> const & stream) ;
 
 XAMP_STREAM_API FileStream* AsFileStream(ScopedPtr<IAudioStream> const& stream) ;
 
-XAMP_STREAM_API void LoadFFTLib();
-
 #ifdef XAMP_OS_WIN
 XAMP_STREAM_API void LoadR8brainLib();
 XAMP_STREAM_API void LoadMBDiscIdLib();

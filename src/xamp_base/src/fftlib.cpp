@@ -1,11 +1,13 @@
-#include <stream/fftwlib.h>
+#include <base/fftlib.h>
+
+#include "fftlib_private.h"
 
 #include <base/logger.h>
 #include <base/exception.h>
 
 #ifdef XAMP_OS_WIN
 
-XAMP_STREAM_NAMESPACE_BEGIN
+XAMP_BASE_NAMESPACE_BEGIN
 
 MKLLib::MKLLib() try
 	: mkl_core_(OpenSharedLibrary("mkl_core.2"))
@@ -36,6 +38,10 @@ catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 }
 
-XAMP_STREAM_NAMESPACE_END
+void LoadFFTLib() {
+	SharedSingleton<MKLLib>::GetInstance();
+}
+
+XAMP_BASE_NAMESPACE_END
 
 #endif

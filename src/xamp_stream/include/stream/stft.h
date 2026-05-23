@@ -6,9 +6,9 @@
 #pragma once
 
 #include <stream/stream.h>
-#include <stream/fft.h>
 
 #include <base/buffer.h>
+#include <base/fft.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
 

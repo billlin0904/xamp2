@@ -93,6 +93,17 @@
     <Bscmake>
       <PreserveSbr>false</PreserveSbr>
     </Bscmake>
+    <PostBuildEvent>
+      <Command>set "XAMP_STREAM_DEST=$(ProjectDir)..\xamp\$(Platform)\$(Configuration)\"
+if not exist "%XAMP_STREAM_DEST%" mkdir "%XAMP_STREAM_DEST%"
+for %%I in ("$(TargetDir).") do set "XAMP_STREAM_SRC_DIR=%%~fI"
+for %%I in ("%XAMP_STREAM_DEST%.") do set "XAMP_STREAM_DST_DIR=%%~fI"
+if /I not "%XAMP_STREAM_SRC_DIR%"=="%XAMP_STREAM_DST_DIR%" (
+copy /Y "$(TargetPath)" "%XAMP_STREAM_DEST%"
+copy /Y "$(TargetDir)$(TargetName).lib" "%XAMP_STREAM_DEST%"
+if exist "$(TargetDir)$(TargetName).pdb" copy /Y "$(TargetDir)$(TargetName).pdb" "%XAMP_STREAM_DEST%"
+)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -156,6 +167,17 @@
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
+    <PostBuildEvent>
+      <Command>set "XAMP_STREAM_DEST=$(ProjectDir)..\xamp\$(Platform)\$(Configuration)\"
+if not exist "%XAMP_STREAM_DEST%" mkdir "%XAMP_STREAM_DEST%"
+for %%I in ("$(TargetDir).") do set "XAMP_STREAM_SRC_DIR=%%~fI"
+for %%I in ("%XAMP_STREAM_DEST%.") do set "XAMP_STREAM_DST_DIR=%%~fI"
+if /I not "%XAMP_STREAM_SRC_DIR%"=="%XAMP_STREAM_DST_DIR%" (
+copy /Y "$(TargetPath)" "%XAMP_STREAM_DEST%"
+copy /Y "$(TargetDir)$(TargetName).lib" "%XAMP_STREAM_DEST%"
+if exist "$(TargetDir)$(TargetName).pdb" copy /Y "$(TargetDir)$(TargetName).pdb" "%XAMP_STREAM_DEST%"
+)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\stream\libavencoder.h" />
@@ -169,8 +191,6 @@
     <ClInclude Include="include\stream\dsd_times.h" />
     <ClInclude Include="include\stream\dspmanager.h" />
     <ClInclude Include="include\stream\eqsettings.h" />
-    <ClInclude Include="include\stream\fft.h" />
-    <ClInclude Include="include\stream\fftwlib.h" />
     <ClInclude Include="include\stream\iaudiostream.h" />
     <ClInclude Include="include\stream\basscddevice.h" />
     <ClInclude Include="include\stream\bassfilestream.h" />
@@ -205,8 +225,6 @@
     <ClCompile Include="src\basslib.cpp" />
     <ClCompile Include="src\bass_util.cpp" />
     <ClCompile Include="src\dspmanager.cpp" />
-    <ClCompile Include="src\fft.cpp" />
-    <ClCompile Include="src\fftwlib.cpp" />
     <ClCompile Include="src\mbdiscid.cpp" />
     <ClCompile Include="src\api.cpp" />
     <ClCompile Include="src\dsdmodesamplewriter.cpp" />

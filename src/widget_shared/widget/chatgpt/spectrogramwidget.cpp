@@ -6,9 +6,9 @@
 #include <QThread>
 #include <QVector>
 
+#include <base/fft.h>
 #include <base/math.h>
 #include <stream/bassfilestream.h>
-#include <stream/fft.h>
 #include <stream/filestream.h>
 #include <widget/util/str_util.h>
 #include <widget/util/ui_util.h>
@@ -206,7 +206,7 @@ namespace {
                     static_cast<uint64_t>(std::llround(duration_sec * sample_rate)));
 
                 Window window;
-                window.Init(kFFTSize, WindowType::HANN);
+                window.Initialize(kFFTSize, WindowType::HANN);
 
                 FFT fft;
                 fft.Initialize(kFFTSize);

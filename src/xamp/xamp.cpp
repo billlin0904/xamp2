@@ -115,6 +115,46 @@ namespace {
         return size;
     }
 
+    QSize dialogSizeFromHost(QWidget* dialog,
+        const QWidget* content,
+        const QWidget* host,
+        double ratio) {
+        auto* screen = dialog != nullptr ? dialog->screen() : QGuiApplication::primaryScreen();
+        const auto fallback_size = dialogContentSize(dialog, content);
+        if (screen == nullptr || host == nullptr) {
+            return fallback_size;
+        }
+
+        const auto available = screen->availableGeometry().size();
+        const auto host_size = host->size();
+        if (host_size.isEmpty()) {
+            return fallback_size;
+        }
+
+        const QSize target_size(static_cast<int>(host_size.width() * ratio),
+            static_cast<int>(host_size.height() * ratio));
+        const QSize max_size(static_cast<int>(available.width() * 0.95),
+            static_cast<int>(available.height() * 0.95));
+        return target_size
+            .expandedTo(fallback_size)
+            .boundedTo(max_size);
+    }
+
+    bool HasMultipleKnownAlbums(const QList<PlayListEntity>& entities) {
+        QSet<QString> albums;
+        for (const auto& entity : entities) {
+            const auto album = entity.album.trimmed();
+            if (album.isEmpty()) {
+                continue;
+            }
+            albums.insert(album.toCaseFolded());
+            if (albums.size() > 1) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     std::optional<EqSettings> storedParametricEqSettings() {
         if (!qAppSettings.contains(kAppSettingEQName)) {
             return std::nullopt;
@@ -881,6 +921,17 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
 }
 
 void Xamp::OnReadMusicBrainzAlbums(const QList<PlayListEntity>& entities) {
+    if (HasMultipleKnownAlbums(entities)) {
+        XMessageBox::showWarning(
+            tr("MusicBrainz tag editing supports one album at a time. Please select tracks from a single album. Tracks with empty album names are allowed."),
+            kApplicationTitle,
+            true,
+            QDialogButtonBox::Ok,
+            QDialogButtonBox::Ok,
+            this);
+        return;
+    }
+
     QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
     QScopedPointer<XDialog> dialog(new XDialog(this));
     QScopedPointer<MusicbrainzEditPage> eq(new MusicbrainzEditPage(entities, dialog.get()));
@@ -888,7 +939,7 @@ void Xamp::OnReadMusicBrainzAlbums(const QList<PlayListEntity>& entities) {
     dialog->setTitle(tr("Musicbrainz Edit Page"));
     dialog->setContentWidget(eq.get(), false, false);
     dialog->setMinimumSize(eq->minimumSizeHint());
-    dialog->resize(dialogContentSize(dialog.get(), eq.get()));
+    dialog->resize(dialogSizeFromHost(dialog.get(), eq.get(), main_window_, 0.8));
     dialog->exec();
 }
 

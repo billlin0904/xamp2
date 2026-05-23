@@ -426,21 +426,30 @@ namespace {
         }
     }
 
+    bool TryExtractTitleAndTrack(const std::wstring& file_name, TrackInfo& track_info) {
+        const std::wregex pattern(LR"(^(?:Track\s*)?(\d{1,3})\s*[\.\-_)\]、．]\s*(.+)$)",
+            std::regex::icase);
+        std::wsmatch matches;
+        if (!std::regex_match(file_name, matches, pattern)) {
+            return false;
+        }
+
+        const auto track = std::stoi(matches[1].str());
+        const auto title = matches[2].str();
+        if (track <= 0 || track > kMaxTrackNumber || title.empty()) {
+            return false;
+        }
+
+        track_info.track = track;
+        track_info.title = title;
+        return true;
+    }
+
     void ExtractTitleFromFileName(TrackInfo& track_info) {
         std::optional<std::wstring> file_name_no_ext(track_info.file_name_no_ext());
 
         if (file_name_no_ext) {
-            std::wregex pattern(L"Track(\\d{2})\\.(.*)");
-            std::wsmatch matches;
-
-            if (std::regex_search(file_name_no_ext.value(), matches, pattern)) {
-                track_info.track = std::stoi(matches[1].str());
-				if (track_info.track > kMaxTrackNumber) {
-					track_info.track = 0;
-				}
-                track_info.title = matches[2].str();
-            }
-            else {
+            if (!TryExtractTitleAndTrack(file_name_no_ext.value(), track_info)) {
                 track_info.title = file_name_no_ext.value();
             }
         }

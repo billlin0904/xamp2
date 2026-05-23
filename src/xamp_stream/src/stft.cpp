@@ -11,7 +11,7 @@ STFT::STFT(size_t frame_size, size_t shift_size)
     XAMP_EXPECTS(frame_size > 0);
     XAMP_EXPECTS(shift_size > 0);
     XAMP_EXPECTS(shift_size_ < frame_size_);
-    window_.Init(frame_size);
+    window_.Initialize(frame_size);
     fft_.Initialize(frame_size);
     output_size_ = frame_size - shift_size;
     buf_ = MakeBuffer<float>(frame_size);
@@ -20,7 +20,7 @@ STFT::STFT(size_t frame_size, size_t shift_size)
 }
 
 void STFT::SetWindowType(WindowType type) {
-    window_.Init(frame_size_, type);
+    window_.Initialize(frame_size_, type);
 }
 
 void STFT::Clear() {

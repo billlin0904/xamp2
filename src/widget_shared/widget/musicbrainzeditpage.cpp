@@ -371,7 +371,21 @@ void MusicbrainzEditPage::load(const QList<PlayListEntity>& entities) {
         return;
     }
 
-    entities_ = entities;
+    auto sorted_entities = entities;
+    std::stable_sort(sorted_entities.begin(), sorted_entities.end(), [](const auto& left, const auto& right) {
+        if (left.track == right.track) {
+            return false;
+        }
+        if (left.track == 0) {
+            return false;
+        }
+        if (right.track == 0) {
+            return true;
+        }
+        return left.track < right.track;
+    });
+
+    entities_ = sorted_entities;
     metas_.clear();
     recording_list_.clear();
     track_model_->clear();
@@ -411,7 +425,7 @@ void MusicbrainzEditPage::load(const QList<PlayListEntity>& entities) {
     ui_->trackView->setRootIsDecorated(true);
     ui_->trackView->setAllColumnsShowFocus(true);
 
-    auto* album_item = new QStandardItem(entities.front().album);
+    auto* album_item = new QStandardItem(sorted_entities.front().album);
 
     QList<QStandardItem*> top_row;
     top_row << album_item
@@ -419,7 +433,7 @@ void MusicbrainzEditPage::load(const QList<PlayListEntity>& entities) {
         << new QStandardItem(QString());
     track_model_->appendRow(top_row);
 
-    for (const auto& entity : entities) {
+    for (const auto& entity : sorted_entities) {
         auto* child1 = new QStandardItem(QString::number(entity.track));
         auto* child2 = new QStandardItem(entity.title);
         auto* child3 = new QStandardItem(formatDuration(entity.duration));
@@ -427,7 +441,7 @@ void MusicbrainzEditPage::load(const QList<PlayListEntity>& entities) {
         QList<QStandardItem*> row_items;
         row_items << child1 << child2 << child3;
         album_item->appendRow(row_items);
-        metas_.append(makeFileMeta(entity, entities.count()));
+        metas_.append(makeFileMeta(entity, sorted_entities.count()));
     }
 
     ui_->trackView->expand(album_item->index());
@@ -472,8 +486,8 @@ void MusicbrainzEditPage::load(const QList<PlayListEntity>& entities) {
     header->setSectionResizeMode(1, QHeaderView::Stretch);
     header->setSectionResizeMode(2, QHeaderView::Stretch);
     setTabViewStyle(ui_->tagTableView);
-    setTagPreview(entities.front(), std::nullopt, QString());
-    updateOriginalCoverArt(entities.front());
+    setTagPreview(sorted_entities.front(), std::nullopt, QString());
+    updateOriginalCoverArt(sorted_entities.front());
     updateNewCoverArt(QString());
 
     (void)QObject::connect(ui_->albumRecordingView, &QTreeView::clicked,

@@ -79,7 +79,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/unordered_dense/include/;../thirdparty/uchardet/src/;../thirdparty/libiconv/include/;../thirdparty/mecab/include/;../thirdparty/cld3/include/;../thirdparty/OpenCC/src/;../thirdparty/libarchive/include/;../thirdparty/llfio/include/llfio/ntkernel-error-category/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/unordered_dense/include/;../thirdparty/uchardet/src/;../thirdparty/libiconv/include/;../thirdparty/mecab/include/;../thirdparty/cld3/include/;../thirdparty/OpenCC/src/;../thirdparty/libarchive/include/;../thirdparty/llfio/include/llfio/ntkernel-error-category/include/;C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\include\</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>BASE_API_EXPORTS;LLFIO_HEADERS_ONLY=0;NTKERNEL_ERROR_CATEGORY_INLINE=0;LLFIO_STATIC_LINK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996;4819</DisableSpecificWarnings>
       <BrowseInformation>false</BrowseInformation>
@@ -94,6 +94,17 @@
     <Bscmake>
       <PreserveSbr>false</PreserveSbr>
     </Bscmake>
+    <PostBuildEvent>
+      <Command>set "XAMP_BASE_DEST=$(ProjectDir)..\xamp\$(Platform)\$(Configuration)\"
+if not exist "%XAMP_BASE_DEST%" mkdir "%XAMP_BASE_DEST%"
+for %%I in ("$(TargetDir).") do set "XAMP_BASE_SRC_DIR=%%~fI"
+for %%I in ("%XAMP_BASE_DEST%.") do set "XAMP_BASE_DST_DIR=%%~fI"
+if /I not "%XAMP_BASE_SRC_DIR%"=="%XAMP_BASE_DST_DIR%" (
+copy /Y "$(TargetPath)" "%XAMP_BASE_DEST%"
+copy /Y "$(TargetDir)$(TargetName).lib" "%XAMP_BASE_DEST%"
+if exist "$(TargetDir)$(TargetName).pdb" copy /Y "$(TargetDir)$(TargetName).pdb" "%XAMP_BASE_DEST%"
+)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -129,7 +140,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/unordered_dense/include/;../thirdparty/uchardet/src/;../thirdparty/libiconv/include/;../thirdparty/mecab/include/;../thirdparty/cld3/include/;../thirdparty/OpenCC/src/;../thirdparty/libarchive/;../thirdparty/llfio/include/llfio/ntkernel-error-category/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/unordered_dense/include/;../thirdparty/uchardet/src/;../thirdparty/libiconv/include/;../thirdparty/mecab/include/;../thirdparty/cld3/include/;../thirdparty/OpenCC/src/;../thirdparty/libarchive/;../thirdparty/llfio/include/llfio/ntkernel-error-category/include/;C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\include\</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <PreprocessorDefinitions>BASE_API_EXPORTS;LLFIO_HEADERS_ONLY=0;NTKERNEL_ERROR_CATEGORY_INLINE=0;LLFIO_STATIC_LINK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <OmitFramePointers>true</OmitFramePointers>
@@ -159,6 +170,17 @@
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
+    <PostBuildEvent>
+      <Command>set "XAMP_BASE_DEST=$(ProjectDir)..\xamp\$(Platform)\$(Configuration)\"
+if not exist "%XAMP_BASE_DEST%" mkdir "%XAMP_BASE_DEST%"
+for %%I in ("$(TargetDir).") do set "XAMP_BASE_SRC_DIR=%%~fI"
+for %%I in ("%XAMP_BASE_DEST%.") do set "XAMP_BASE_DST_DIR=%%~fI"
+if /I not "%XAMP_BASE_SRC_DIR%"=="%XAMP_BASE_DST_DIR%" (
+copy /Y "$(TargetPath)" "%XAMP_BASE_DEST%"
+copy /Y "$(TargetDir)$(TargetName).lib" "%XAMP_BASE_DEST%"
+if exist "$(TargetDir)$(TargetName).pdb" copy /Y "$(TargetDir)$(TargetName).pdb" "%XAMP_BASE_DEST%"
+)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\base\algorithm.h" />
@@ -178,6 +200,8 @@
     <ClInclude Include="include\base\enum.h" />
     <ClInclude Include="include\base\fastconditionvariable.h" />
     <ClInclude Include="include\base\fastmutex.h" />
+    <ClInclude Include="include\base\fft.h" />
+    <ClInclude Include="include\base\fftlib.h" />
     <ClInclude Include="include\base\fs.h" />
     <ClInclude Include="include\base\int24.h" />
     <ClInclude Include="include\base\object_pool.h" />
@@ -220,6 +244,7 @@
     <ClInclude Include="include\base\waitabletimer.h" />
     <ClInclude Include="include\base\windows_handle.h" />
     <ClInclude Include="include\base\workstealingtaskqueue.h" />
+    <ClInclude Include="src\fftlib_private.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\archivefile.cpp" />
@@ -234,6 +259,8 @@
     <ClCompile Include="src\fastconditionvariable.cpp" />
     <ClCompile Include="src\fastiostream.cpp" />
     <ClCompile Include="src\fastmutex.cpp" />
+    <ClCompile Include="src\fft.cpp" />
+    <ClCompile Include="src\fftlib.cpp" />
     <ClCompile Include="src\fs.cpp" />
     <ClCompile Include="src\furigana.cpp" />
     <ClCompile Include="src\ithreadpool.cpp" />

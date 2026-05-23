@@ -13,7 +13,6 @@
 #include <stream/bassparametriceq.h>
 #include <stream/basscddevice.h>
 #include <stream/dspmanager.h>
-#include <stream/fftwlib.h>
 #include <stream/r8brainlib.h>
 #include <stream/soxrlib.h>
 #include <stream/srclib.h>
@@ -242,12 +241,6 @@ void LoadBassLib() {
 
 OrderedMap<std::string, std::string> GetBassDLLVersion() {
     return BassLibDLL.GetVersions();
-}
-
-void LoadFFTLib() {
-#ifdef XAMP_OS_WIN
-    SharedSingleton<MKLLib>::GetInstance();
-#endif
 }
 
 #ifdef XAMP_OS_WIN

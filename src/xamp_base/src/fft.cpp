@@ -7,17 +7,18 @@
 #include <base/logger.h>
 #include <base/stl.h>
 #include <base/exception.h>
-#include <stream/fft.h>
+#include <base/fft.h>
 
 #ifdef XAMP_OS_WIN
-#include <base/dll.h>
-#include <stream/fftwlib.h>
+#include <immintrin.h>
+
+#include "fftlib_private.h"
 #else
 #include <base/unique_handle.h>
 #include <Accelerate/Accelerate.h>
 #endif
 
-XAMP_STREAM_NAMESPACE_BEGIN
+XAMP_BASE_NAMESPACE_BEGIN
 
 namespace {
 	size_t ComplexSize(size_t size) {
@@ -29,7 +30,7 @@ class Window::WindowImpl {
 public:
 	WindowImpl() = default;
 
-	void Init(size_t frame_size, WindowType type) {
+	void Initialize(size_t frame_size, WindowType type) {
 		frame_size_ = frame_size;
 		data_ = MakeBuffer<float>(frame_size);
 		cos_lut_ = MakeBuffer<float>(frame_size);
@@ -63,7 +64,16 @@ public:
 	void operator()(float* buffer, size_t size) const {
 		XAMP_ASSERT(frame_size_ == size);
 
-		for (size_t i = 0; i < frame_size_; i++) {
+		size_t i = 0;
+#ifdef XAMP_OS_WIN
+		const auto* window_data = data_.data();
+		for (; i + 8 <= frame_size_; i += 8) {
+			const auto samples = _mm256_loadu_ps(buffer + i);
+			const auto window = _mm256_load_ps(window_data + i);
+			_mm256_storeu_ps(buffer + i, _mm256_mul_ps(samples, window));
+		}
+#endif
+		for (; i < frame_size_; i++) {
 			buffer[i] *= data_[i];
 		}
 	}
@@ -251,8 +261,8 @@ Window::Window()
 
 XAMP_PIMPL_IMPL(Window)
 
-void Window::Init(size_t frame_size, WindowType type) {
-	impl_->Init(frame_size, type);
+void Window::Initialize(size_t frame_size, WindowType type) {
+	impl_->Initialize(frame_size, type);
 }
 
 void Window::operator()(float* buffer, size_t size) const {
@@ -273,4 +283,4 @@ const ComplexValarray& FFT::Forward(float const* data, size_t size) {
 	return impl_->Forward(data, size);
 }
 
-XAMP_STREAM_NAMESPACE_END
+XAMP_BASE_NAMESPACE_END

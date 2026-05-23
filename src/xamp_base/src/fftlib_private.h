@@ -9,16 +9,15 @@
 
 #if defined(XAMP_OS_WIN)
 
-#include <stream/stream.h>
-#include <base/shared_singleton.h>
 #include <base/dll.h>
+#include <base/shared_singleton.h>
 
 #define MKL_DIRECT_CALL
 #include <mkl_service.h>
 #include <mkl_dfti.h>
 #include <mkl.h>
 
-XAMP_STREAM_NAMESPACE_BEGIN
+XAMP_BASE_NAMESPACE_BEGIN
 
 class MKLLib final {
 public:
@@ -57,6 +56,6 @@ public:
 
 #define MklDLL SharedSingleton<MKLLib>::GetInstance()
 
-XAMP_STREAM_NAMESPACE_END
+XAMP_BASE_NAMESPACE_END
 
 #endif

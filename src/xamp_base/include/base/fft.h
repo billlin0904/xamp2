@@ -5,12 +5,17 @@
 
 #pragma once
 
-#include <stream/stream.h>
-
+#include <base/base.h>
 #include <base/memory.h>
 #include <base/enum.h>
 
-XAMP_STREAM_NAMESPACE_BEGIN
+#include <complex>
+#include <vector>
+
+XAMP_BASE_NAMESPACE_BEGIN
+
+using Complex = std::complex<float>;
+using ComplexValarray = std::vector<Complex>;
 
 XAMP_MAKE_ENUM(WindowType,
     NO_WINDOW,
@@ -18,13 +23,13 @@ XAMP_MAKE_ENUM(WindowType,
     HANN,
     BLACKMAN_HARRIS)
 
-class XAMP_STREAM_API Window final {
+class XAMP_BASE_API Window final {
 public:
     Window();
 
 	XAMP_PIMPL(Window)
 
-    void Init(size_t frame_size, WindowType type = WindowType::HANN);
+    void Initialize(size_t frame_size, WindowType type = WindowType::HANN);
 
     void operator()(float* buffer, size_t size) const ;
 
@@ -33,7 +38,7 @@ private:
     ScopedPtr<WindowImpl> impl_;
 };
 
-class XAMP_STREAM_API FFT final {
+class XAMP_BASE_API FFT final {
 public:
     FFT();
 
@@ -48,4 +53,4 @@ private:
     ScopedPtr<FFTImpl> impl_;
 };
 
-XAMP_STREAM_NAMESPACE_END
+XAMP_BASE_NAMESPACE_END

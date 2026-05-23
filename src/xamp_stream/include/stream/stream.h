@@ -6,10 +6,9 @@
 #pragma once
 
 #include <base/base.h>
+#include <base/fft.h>
 
-#include <complex>
 #include <valarray>
-#include <vector>
 
 #ifdef XAMP_OS_WIN
 #ifdef STREAM_API_EXPORTS
@@ -47,6 +46,4 @@ XAMP_STREAM_NAMESPACE_BEGIN
 
     class IDSPManager;
 
-    using Complex = std::complex<float>;
-    using ComplexValarray = std::vector<Complex>;
 XAMP_STREAM_NAMESPACE_END

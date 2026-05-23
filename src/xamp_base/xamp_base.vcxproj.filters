@@ -9,6 +9,8 @@
     <ClCompile Include="src\exception.cpp" />
     <ClCompile Include="src\fastconditionvariable.cpp" />
     <ClCompile Include="src\fastmutex.cpp" />
+    <ClCompile Include="src\fft.cpp" />
+    <ClCompile Include="src\fftlib.cpp" />
     <ClCompile Include="src\fs.cpp" />
     <ClCompile Include="src\ithreadpool.cpp" />
     <ClCompile Include="src\memory_mapped_file.cpp" />
@@ -46,6 +48,9 @@
     <ClInclude Include="include\base\enum.h" />
     <ClInclude Include="include\base\fastconditionvariable.h" />
     <ClInclude Include="include\base\fastmutex.h" />
+    <ClInclude Include="include\base\fft.h" />
+    <ClInclude Include="include\base\fftlib.h" />
+    <ClInclude Include="src\fftlib_private.h" />
     <ClInclude Include="include\base\fs.h" />
     <ClInclude Include="include\base\int24.h" />
     <ClInclude Include="include\base\object_pool.h" />
