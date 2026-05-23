@@ -36,6 +36,8 @@ public:
 
 	bool playNextItem(int32_t forward);
 
+	void loadPath(const QString& file_path, bool append_to_playlist);
+
 signals:
 	void playMusic(int32_t playlist_id, const PlayListEntity& item, bool is_play);
 

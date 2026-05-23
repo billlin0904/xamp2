@@ -104,7 +104,7 @@ private:
 	size_t frame_size_{0};
 	Buffer<float> data_;
 	Buffer<float> cos_lut_;
-	std::function<float(size_t, size_t)> dispatch_;
+	std::move_only_function<float(size_t, size_t)> dispatch_;
 };
 
 #ifdef XAMP_OS_WIN

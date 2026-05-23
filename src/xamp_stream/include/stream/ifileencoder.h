@@ -33,11 +33,9 @@ class XAMP_STREAM_API XAMP_NO_VTABLE IFileEncoder {
 public:
 	XAMP_BASE_CLASS(IFileEncoder)
 
-	virtual void Start(const Property& config,
-		const std::shared_ptr<FastIOStream> & file_) = 0;
+	virtual void Start(const Property& config, const std::shared_ptr<FastIOStream> & file) = 0;
 
-	virtual void Encode(std::function<bool(uint32_t)> const& progress = nullptr,
-		const std::stop_token& stop_token = std::stop_token()) = 0;
+	virtual void Encode(std::function<bool(uint32_t)> const& progress = nullptr, const std::stop_token& stop_token = std::stop_token()) = 0;
 
 protected:
 	IFileEncoder() = default;

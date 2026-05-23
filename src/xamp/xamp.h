@@ -98,11 +98,14 @@ private:
 
     void showLogViewer();
 
+    void showEncodeJobs(int32_t encode_type, const QList<PlayListEntity>& entities);
+
     void onCheckForUpdate();
 
     void showAbout();
 
     bool is_seeking_{ false };
+    bool spectrogram_tracks_playback_{ false };
     IXMainWindow* main_window_{ nullptr };
     QAction* preference_action_{ nullptr };
     QScopedPointer<LrcPage> lrc_page_;

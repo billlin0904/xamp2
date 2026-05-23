@@ -197,6 +197,8 @@ signals:
 
 	void navigateToArtistPage(int32_t artist_id);
 
+	void playlistChanged(int32_t playlist_id);
+
 public slots:
 	void onPlayIndex(const QModelIndex& index, bool is_play = false);
 

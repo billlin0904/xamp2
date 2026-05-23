@@ -761,8 +761,7 @@ void LrcPage::initial() {
 	//lyrics_widget_->hide();
 	//cover_label_->hide();
 	main_layout->addLayout(horizontal_layout_10);
-	//setStyleSheet("QFrame#lrcPage{ background-color: transparent; border: none; }"_str);
+	setStyleSheet("QFrame#lrcPage{ background-color: transparent; border: none; }"_str);
 	//setStyleSheet(qFormat("background-color: %1; border: none;").arg(
 	//	colorToString(qTheme.backgroundColor())));
-	setStyleSheet("QFrame#lrcPage{ background-color: #121212; border: none; }"_str);
 }

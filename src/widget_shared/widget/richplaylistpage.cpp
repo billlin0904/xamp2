@@ -993,8 +993,19 @@ void RichPlaylistPage::loadFileDirectory() {
     if (dir_name.isEmpty()) {
         return;
     }
+    loadPath(dir_name, true);
+}
+
+void RichPlaylistPage::loadPath(const QString& file_path, bool append_to_playlist) {
+    if (file_path.isEmpty()) {
+        return;
+    }
+    if (!append_to_playlist) {
+        qDaoFacade.playlist_dao.removePlaylistAllMusic(kDefaultPlaylistId);
+        reload();
+    }
     showProgressPage();
-    emit extractFile(dir_name, kDefaultPlaylistId);
+    emit extractFile(file_path, kDefaultPlaylistId);
 }
 
 void RichPlaylistPage::clearAll() {

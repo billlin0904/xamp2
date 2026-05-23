@@ -115,6 +115,7 @@ public:
     XAMP_DECLARE_DLL_NAME(avcodec_find_encoder);
     XAMP_DECLARE_DLL_NAME(avcodec_configuration);
     XAMP_DECLARE_DLL_NAME(avcodec_parameters_from_context);
+    XAMP_DECLARE_DLL_NAME(avcodec_parameters_alloc);
     XAMP_DECLARE_DLL_NAME(av_codec_iterate);
     XAMP_DECLARE_DLL_NAME(av_packet_rescale_ts);
     XAMP_DECLARE_DLL_NAME(av_packet_free);

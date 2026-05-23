@@ -147,7 +147,7 @@ class LibAbFileEncoder::LibAbFileEncoderImpl {
 public:
     static constexpr auto kDefaultChannelLayout = AV_CH_LAYOUT_STEREO;
     static constexpr auto kFrameSize = 8192;
-        
+
     ~LibAbFileEncoderImpl() {
         // 確保在解構時釋放重要資源
         codec_context_.reset();
@@ -173,10 +173,10 @@ public:
         CreateAudioStream();
     }
 
-    void InitialConverter(uint32_t& sample_size, 
+    void InitialConverter(uint32_t& sample_size,
         AVCodecID& codec_id,
         AVSampleFormat& sample_format,
-        std::string& guess_file_name) {        
+        std::string& guess_file_name) {
 
         auto itr = kConverterLut.find(codec_type_);
         if (itr != kConverterLut.end()) {
@@ -219,7 +219,7 @@ public:
                 avio_buffer,                // buffer
                 kFrameSize,                 // buffer size
                 1,                          // write_flag
-                io_stream_.get(),              // opaque (指向 IFileEncodeWriter)
+                io_stream_.get(),              // opaque (指向 FastIOStream)
                 &CustomReadPacket,          // read_packet
                 &CustomWritePacket,         // write_packet
                 &CustomSeekPacket           // seek
@@ -299,7 +299,7 @@ public:
         }
 
         // stream_ 的 codecpar 初始化
-        impl_->id = format_context_->nb_streams - 1;
+        impl_->id = format_context_->nb_streams - 1;        
         impl_->codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
         impl_->codecpar->codec_id = codec_id;
         impl_->codecpar->channel_layout = kDefaultChannelLayout;
@@ -473,7 +473,7 @@ public:
         //--------------------------------------------------------------------------
 
         auto bass_file_stream = dynamic_cast<BassFileStream*>(input_file_.get());
-		constexpr auto kWaitCDReadTime = std::chrono::milliseconds(100);
+        constexpr auto kWaitCDReadTime = std::chrono::milliseconds(100);
 
         while (!stop_token.stop_requested() && input_file_->IsActive()) {
             // 確保 frame 可寫
@@ -485,8 +485,8 @@ public:
 
             // 讀取樣本，若一時讀不到就重試 (最多4次)，中間sleep 100ms
             if (bass_file_stream != nullptr) {
-	            constexpr uint64_t kReadRetryCount = 4;
-	            while (read_samples == 0 && retry_count < kReadRetryCount) {
+                constexpr uint64_t kReadRetryCount = 4;
+                while (read_samples == 0 && retry_count < kReadRetryCount) {
                     read_samples = input_file_->GetSamples(buffer_.data(), buffer_.GetSize());
                     if (read_samples == 0 && !bass_file_stream->EndOfStream()) {
                         std::this_thread::sleep_for(kWaitCDReadTime);
@@ -499,7 +499,7 @@ public:
             }
             else {
                 read_samples = input_file_->GetSamples(buffer_.data(), buffer_.GetSize());
-            }            
+            }
 
             if (!read_samples) {
                 break; // 沒資料可讀，跳出
@@ -597,8 +597,8 @@ LibAbFileEncoder::LibAbFileEncoder()
 
 XAMP_PIMPL_IMPL(LibAbFileEncoder)
 
-void LibAbFileEncoder::Start(const Property& config, const std::shared_ptr<FastIOStream>& file_) {
-    impl_->Start(config, file_);
+void LibAbFileEncoder::Start(const Property& config, const std::shared_ptr<FastIOStream>& file) {
+    impl_->Start(config, file);
 }
 
 void LibAbFileEncoder::Encode(std::function<bool(uint32_t)> const& progress,

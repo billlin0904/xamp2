@@ -44,6 +44,7 @@
 #include <widget/databasefacade.h>
 #include <widget/playlisttableview.h>
 #include <widget/playlistpage.h>
+#include <widget/encodejobwidget.h>
 #include <widget/logview.h>
 #include <widget/preferencepage.h>
 #include <widget/cdpage.h>
@@ -53,6 +54,7 @@
 #include <widget/scanfileprogresspage.h>
 #include <widget/xmessagebox.h>
 #include <widget/worker/albumcoverservice.h>
+#include <widget/worker/backgroundservice.h>
 #include <widget/worker/filesystemservice.h>
 
 #include <style_util.h>
@@ -560,13 +562,13 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
 
     setRepeatButtonIcon(ui_, qAppSettings.valueAsEnum<PlayerOrder>(kAppSettingOrder));
 
-    ui_.naviBar->addTab(translateText("Now Playing"),
+    ui_.naviBar->addTab(translateText("Playback"),
         TAB_LYRICS,
         qTheme.fontIcon(Glyphs::ICON_PLAYING));
-    ui_.naviBar->addTab(translateText("Rich Playlist"),
+    ui_.naviBar->addTab(translateText("Playlist"),
         TAB_RICH_PLAYLIST,
         qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
-    ui_.naviBar->addTab(translateText("File Browser"),
+    ui_.naviBar->addTab(translateText("Library"),
         TAB_FILE_EXPLORER,
         qTheme.fontIcon(Glyphs::ICON_DESKTOP));
     ui_.naviBar->addTab(translateText("CD"),
@@ -616,6 +618,9 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         &UIPlayerStateAdapter::sampleTimeChanged,
         file_explorer_page_.get(),
         [this](double stream_time) {
+            if (!spectrogram_tracks_playback_) {
+                return;
+            }
             file_explorer_page_->spectrogramWidget()->setCurrentPosition(static_cast<float>(stream_time));
         },
         Qt::QueuedConnection);
@@ -624,6 +629,9 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         &SpectrogramWidget::playAt,
         this,
         [this](float sec) {
+            if (!spectrogram_tracks_playback_) {
+                return;
+            }
             try {
                 is_seeking_ = true;
                 player_->Seek(sec);
@@ -647,6 +655,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         &PlaylistTableView::playMusic,
         this,
         [this](int32_t playlist_id, const PlayListEntity& item, bool is_play) {
+            spectrogram_tracks_playback_ = true;
             playLocalFile(item, is_play);
         });
 
@@ -654,6 +663,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         &RichPlaylistPage::playMusic,
         this,
         [this](int32_t playlist_id, const PlayListEntity& item, bool is_play) {
+            spectrogram_tracks_playback_ = false;
             playLocalFile(item, is_play);
         });
 
@@ -727,6 +737,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     cd_page_->playlistPage()->playlist()->setPlaylistId(kCdPlaylistId, kAppSettingCdPlaylistColumnName);
     cd_page_->playlistPage()->playlist()->setHeaderViewHidden(false);
     cd_page_->playlistPage()->playlist()->setOtherPlaylist(kDefaultPlaylistId);
+    file_explorer_page_->playlistPage()->playlist()->setOtherPlaylist(kDefaultPlaylistId);
 
     file_system_service_.reset(new FileSystemService());
     file_system_service_->setScannerThreadPool(scanner_thread_pool);
@@ -747,6 +758,20 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
 
     connect_playlist_cover_service(file_explorer_page_->playlistPage()->playlist());
     connect_playlist_cover_service(cd_page_->playlistPage()->playlist());
+
+    auto connect_playlist_changed = [this](PlaylistTableView* playlist) {
+        (void)QObject::connect(playlist,
+            &PlaylistTableView::playlistChanged,
+            this,
+            [this](int32_t) {
+                rich_playlist_page_->reload();
+                ui_.naviBar->setCurrentIndex(TAB_RICH_PLAYLIST);
+                setCurrentTab(TAB_RICH_PLAYLIST);
+            });
+        };
+
+    connect_playlist_changed(file_explorer_page_->playlistPage()->playlist());
+    connect_playlist_changed(cd_page_->playlistPage()->playlist());
 
     (void)QObject::connect(album_cover_service_.get(),
         &AlbumCoverService::setAlbumCover,
@@ -776,6 +801,15 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         file_system_service_.get(),
         &FileSystemService::onExtractFile,
         Qt::QueuedConnection);
+
+    (void)QObject::connect(file_explorer_page_.get(),
+        &FileSystemViewPage::addPathToPlaylist,
+        this,
+        [this](const QString& path, bool append_to_playlist) {
+            rich_playlist_page_->loadPath(path, append_to_playlist);
+            ui_.naviBar->setCurrentIndex(TAB_RICH_PLAYLIST);
+            setCurrentTab(TAB_RICH_PLAYLIST);
+        });
 
     (void)QObject::connect(rich_playlist_progress,
         &ScanFileProgressPage::cancelRequested,
@@ -909,6 +943,16 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         &Xamp::onUpdateCdTrackInfo,
         Qt::QueuedConnection);
 
+    auto connect_encode_jobs = [this](PlaylistTableView* playlist) {
+        (void)QObject::connect(playlist,
+            &PlaylistTableView::encodeAlacFiles,
+            this,
+            &Xamp::showEncodeJobs);
+        };
+
+    connect_encode_jobs(file_explorer_page_->playlistPage()->playlist());
+    connect_encode_jobs(cd_page_->playlistPage()->playlist());
+
     (void)QObject::connect(file_explorer_page_->playlistPage()->playlist(),
         &PlaylistTableView::findMusicbrainRecording,
         this,
@@ -989,6 +1033,50 @@ void Xamp::showLogViewer() {
     dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_REPORT_BUG));
     dialog->setContentWidget(log_view.get(), false);
     dialog->setFixedSize(dialog->size());
+    dialog->exec();
+}
+
+void Xamp::showEncodeJobs(int32_t encode_type, const QList<PlayListEntity>& entities) {
+    if (background_service_ == nullptr || entities.isEmpty()) {
+        return;
+    }
+
+    const auto dir_name = getExistingDirectory(this, tr("Select output directory"));
+    if (dir_name.isEmpty()) {
+        return;
+    }
+
+    QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
+    QScopedPointer<XDialog> dialog(new XDialog(this));
+    QScopedPointer<EncodeJobWidget> encode_job_widget(new EncodeJobWidget(dialog.get()));
+    encode_job_widget->setMinimumSize(QSize(1100, 520));
+
+    const auto jobs = encode_job_widget->addJobs(encode_type, entities);
+    if (jobs.isEmpty()) {
+        return;
+    }
+
+    (void)QObject::connect(background_service_.get(),
+        &BackgroundService::updateJobProgress,
+        encode_job_widget.get(),
+        &EncodeJobWidget::onUpdateProgress,
+        Qt::QueuedConnection);
+    (void)QObject::connect(background_service_.get(),
+        &BackgroundService::jobError,
+        encode_job_widget.get(),
+        &EncodeJobWidget::onJobError,
+        Qt::QueuedConnection);
+
+    QMetaObject::invokeMethod(background_service_.get(),
+        [service = background_service_.get(), dir_name, jobs]() {
+            service->onAddJobs(dir_name, jobs);
+        },
+        Qt::QueuedConnection);
+
+    dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_EXPORT_FILE));
+    dialog->setTitle(tr("Encode Jobs"));
+    dialog->setContentWidget(encode_job_widget.get(), false);
+    dialog->resize(dialogSizeFromHost(dialog.get(), encode_job_widget.get(), main_window_, 0.75));
     dialog->exec();
 }
 
@@ -1164,6 +1252,7 @@ void Xamp::showNaviBarButton() {
 }
 
 void Xamp::addDropFileItem(const QUrl& url) {
+    spectrogram_tracks_playback_ = false;
     playLocalFile(url.toLocalFile());
 }
 

@@ -28,11 +28,16 @@ public:
 
 	void setAnimationEnabled(bool enabled);
     bool isAnimationEnabled() const;
+protected:
+    bool event(QEvent* event) override;
+    void resizeEvent(QResizeEvent* event) override;
 public slots:
     void slideInPrev();
     void slideInNext();
 
 private:
+    void updateCornerOverlay();
+
     void slideInIndex(int index);
     void animationDone();
 
@@ -46,5 +51,6 @@ private:
     int next_index_;
     QPoint previous_pos_;
     QPropertyAnimation* opacity_animation_;
+    QWidget* top_left_corner_overlay_;
 };
 

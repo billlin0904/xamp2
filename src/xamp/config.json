@@ -22,7 +22,7 @@
                 "FileSystemService": "info",
                 "FileSystemServiceThreadPool": "info",
                 "GUIThreadPool": "info",
-                "Http": "info",
+                "Http": "debug",
                 "ImageCache": "info",
                 "LibAv": "info",
                 "MqaFileStreamImpl": "info",

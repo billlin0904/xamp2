@@ -661,19 +661,6 @@ void PlaylistTableView::initial() {
                     });
             }
             
-            auto* remove_all_act = action_map.addAction(tr("Remove all"));
-            remove_all_act->setIcon(qTheme.fontIcon(Glyphs::ICON_REMOVE_ALL));
-
-            action_map.setCallback(remove_all_act, [this]() {
-                if (!model_->rowCount()) {
-                    return;
-                }
-
-                qDaoFacade.playlist_dao.removePlaylistAllMusic(playlistId());
-            	reload();
-                removePlaying();
-                });
-
             if (navigation_view_mode_ != NavigationViewMode::NAVIGATION_VIEW_NONE) {
                 action_map.addSeparator();
 
@@ -697,40 +684,6 @@ void PlaylistTableView::initial() {
             return;
         }
 
-        if (enable_load_file_) {
-            auto* load_file_act = action_map.addAction(tr("Load local file"), [this]() {
-                getOpenMusicFileName(this, tr("Open file"), tr("Music Files "), [this](const auto& file_name) {
-                    append(file_name);
-                    });
-                });
-            load_file_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FILE_OPEN));
-
-            auto* load_dir_act = action_map.addAction(tr("Load file directory"), [this]() {
-                const auto dir_name = getExistingDirectory(this, tr("Select a directory"));
-                if (dir_name.isEmpty()) {
-                    return;
-                }
-                showProgressPage();
-                append(dir_name);
-                });
-            load_dir_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FOLDER_OPEN));
-        }
-
-        if (enable_delete_ && model()->rowCount() > 0) {            
-            auto* remove_all_act = action_map.addAction(tr("Remove all"));
-            remove_all_act->setIcon(qTheme.fontIcon(Glyphs::ICON_REMOVE_ALL));
-
-            action_map.setCallback(remove_all_act, [this]() {
-                if (!model_->rowCount()) {
-                    return;
-                }
-                
-                qDaoFacade.playlist_dao.removePlaylistAllMusic(playlistId());
-                reload();
-                removePlaying();
-            });
-        }       
-
         action_map.addSeparator();
 
         auto* add_music_to_new_playlist_menu = action_map.addSubMenu(tr("Add music to new playlist"));
@@ -739,7 +692,17 @@ void PlaylistTableView::initial() {
 				return;
 			}
             add_music_to_new_playlist_menu->addAction(name, [playlist_id, this]() {
-                emit addPlaylist(playlist_id, selectItems());
+                const auto entities = selectItems();
+                QList<int32_t> music_ids;
+                music_ids.reserve(entities.size());
+                for (const auto& entity : entities) {
+                    music_ids.push_back(entity.music_id);
+                }
+                if (music_ids.isEmpty()) {
+                    return;
+                }
+                qDaoFacade.playlist_dao.addMusicToPlaylist(music_ids, playlist_id);
+                emit playlistChanged(playlist_id);
                 });
             });
 
@@ -783,25 +746,19 @@ void PlaylistTableView::initial() {
 
         action_map.addSeparator();
 
-        auto* move_up_select_item_act = action_map.addAction(tr("Move up select items"));
-        action_map.setCallback(move_up_select_item_act, [this]() {
-			moveUp();
-            });
-
-        auto* move_down_select_item_act = action_map.addAction(tr("Move down select items"));
-        action_map.setCallback(move_down_select_item_act, [this]() {
-            moveDown();
-            });
-
         auto* add_to_playlist_act = action_map.addAction(tr("Add file to playlist"));
         add_to_playlist_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FILE_CIRCLE_PLUS));
         action_map.setCallback(add_to_playlist_act, [this]() {
             if (const auto other_playlist_id = other_playlist_id_) {
                 const auto rows = selectItemIndex();
+                if (rows.empty()) {
+                    return;
+                }
                 for (const auto& row : rows) {
 	                const auto entity = this->item(row.second);
                     qDaoFacade.playlist_dao.addMusicToPlaylist(entity.music_id, other_playlist_id.value(), entity.album_id);
                 }
+                emit playlistChanged(other_playlist_id.value());
             }
             });
 

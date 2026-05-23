@@ -238,8 +238,8 @@ void BackgroundService::onAddJobs(const QString& dir_name, const QList<EncodeJob
 			sequenceEncode(dir_name, { job });
 		}
     }
+    
     parallelEncode(dir_name, parallel_jobs);
-
     //sequenceEncode(dir_name, jobs);
 }
 
@@ -445,12 +445,28 @@ QCoro::Task<> BackgroundService::searchNetease(const PlayListEntity& keyword) {
 
 QCoro::Task<> BackgroundService::searchLyrics(const PlayListEntity& keyword) {
     auto temp = keyword.cleanup();
-    searchNetease(temp).then([this, temp]() {
+
+    try {
+        co_await searchNetease(temp);
         XAMP_LOG_DEBUG("Search Netease lyrics completed!");
-        searchKugou(temp).then([]() {
-            XAMP_LOG_DEBUG("Search Kugou lyrics completed!");
-            });
-        });
+    }
+    catch (const Exception& e) {
+        XAMP_LOG_ERROR(e.GetErrorMessage());
+    }
+    catch (const std::exception& e) {
+        XAMP_LOG_ERROR(e.what());
+	}
+
+    try {
+        co_await searchKugou(temp);
+        XAMP_LOG_DEBUG("Search Kugou lyrics completed!");
+    }
+    catch (const Exception& e) {
+        XAMP_LOG_ERROR(e.GetErrorMessage());
+    }
+    catch (const std::exception& e) {
+        XAMP_LOG_ERROR(e.what());
+    }
     co_return;
 }
 

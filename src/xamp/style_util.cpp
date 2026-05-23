@@ -189,6 +189,7 @@ void setWidgetStyle(Ui::XampWindow& ui) {
                                          }
                                          )"_str);
 
+        ui.currentView->setProperty("topLeftCornerOutsideColor", QStringLiteral("#19232D"));
         ui.currentView->setStyleSheet(qFormat(R"(
          QStackedWidget#currentView {
          	padding: 0px;
@@ -226,6 +227,7 @@ void setWidgetStyle(Ui::XampWindow& ui) {
                                          }
                                          )"_str);
 
+        ui.currentView->setProperty("topLeftCornerOutsideColor", QStringLiteral("#FAFAFA"));
         ui.currentView->setStyleSheet(qFormat(R"(
          QStackedWidget#currentView {
          	padding: 0px;
