@@ -49,7 +49,7 @@ private:
     std::optional<PlayListEntity> entityForTrack(int track_no) const;
     void selectTrackViewTrack(int track_no);
     void selectTrackViewEntity(int32_t music_id);
-    void updateFetchProgressText(const QString& state);
+    void updateFetchProgressText(const QString& state, bool use_release_progress = false);
     void updateWriteProgressText(const QString& state);
     void setTagPreview(const std::optional<PlayListEntity>& entity,
         const std::optional<musicbrain::TrackInfo>& track,

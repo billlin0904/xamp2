@@ -504,7 +504,7 @@ MusicbrainzEditPage::MusicbrainzEditPage(const QList<PlayListEntity>& entities, 
     fetch_progress_bar_->setTextVisible(true);
     fetch_progress_bar_->setRange(0, 1);
     fetch_progress_bar_->setValue(0);
-    fetch_progress_bar_->setFormat(tr("Fetching (0/0) album"));
+    fetch_progress_bar_->setFormat(tr("Fetching MusicBrainz releases (0/0)"));
     fetch_progress_bar_->setMinimumWidth(260);
 
     auto* button_layout = new QHBoxLayout();
@@ -948,12 +948,20 @@ void MusicbrainzEditPage::selectTrackViewEntity(int32_t music_id) {
     }
 }
 
-void MusicbrainzEditPage::updateFetchProgressText(const QString& state) {
+void MusicbrainzEditPage::updateFetchProgressText(const QString& state, bool use_release_progress) {
     if (fetch_progress_bar_ == nullptr) {
         return;
     }
 
-    fetch_progress_bar_->setFormat(tr("%1 (%2/%3) album")
+    if (use_release_progress) {
+        fetch_progress_bar_->setFormat(tr("%1 MusicBrainz releases (%2/%3)")
+            .arg(state)
+            .arg(completed_releases_)
+            .arg(total_releases_));
+        return;
+    }
+
+    fetch_progress_bar_->setFormat(tr("%1 albums (%2/%3)")
         .arg(state)
         .arg(completed_albums_)
         .arg(total_albums_));
@@ -1023,9 +1031,9 @@ QCoro::Task<> MusicbrainzEditPage::startFetchMusicBrainzRecording() {
         completed_albums_ = 0;
         completed_releases_ = 0;
         if (fetch_progress_bar_ != nullptr) {
-            fetch_progress_bar_->setRange(0, total_albums_ > 0 ? total_albums_ : 1);
+            fetch_progress_bar_->setRange(0, total_releases_ > 0 ? total_releases_ : 1);
             fetch_progress_bar_->setValue(0);
-            updateFetchProgressText(tr("Fetching"));
+            updateFetchProgressText(tr("Fetching"), true);
         }
 
         QSet<QString> completed_album_keys;
@@ -1034,7 +1042,7 @@ QCoro::Task<> MusicbrainzEditPage::startFetchMusicBrainzRecording() {
         QHash<QString, QPixmap> release_cover_cache;
         QHash<QString, size_t> release_cover_size_cache;
         for (const auto& lookup : pending_lookups) {
-            updateFetchProgressText(tr("Fetching"));
+            updateFetchProgressText(tr("Fetching"), true);
             co_await fetchMusicBrainzRelease(lookup.entities,
                 lookup.candidateReleases,
                 fetched_release_ids,
@@ -1044,10 +1052,7 @@ QCoro::Task<> MusicbrainzEditPage::startFetchMusicBrainzRecording() {
 
             completed_album_keys.insert(lookup.entities.isEmpty() ? QString() : lookup.entities.front().album);
             completed_albums_ = std::min(static_cast<int>(completed_album_keys.size()), total_albums_);
-            if (fetch_progress_bar_ != nullptr) {
-                fetch_progress_bar_->setValue(completed_albums_);
-            }
-            updateFetchProgressText(tr("Fetching"));
+            updateFetchProgressText(tr("Fetching"), true);
         }
     }
     catch (...) {
@@ -1058,9 +1063,16 @@ QCoro::Task<> MusicbrainzEditPage::startFetchMusicBrainzRecording() {
         completed_albums_ = total_albums_;
         completed_recordings_ = total_recordings_;
         completed_releases_ = total_releases_;
-        fetch_progress_bar_->setRange(0, total_albums_ > 0 ? total_albums_ : 1);
-        fetch_progress_bar_->setValue(total_albums_ > 0 ? total_albums_ : 1);
-        updateFetchProgressText(tr("Completed"));
+        if (total_releases_ > 0) {
+            fetch_progress_bar_->setRange(0, total_releases_);
+            fetch_progress_bar_->setValue(total_releases_);
+            updateFetchProgressText(tr("Completed"), true);
+        }
+        else {
+            fetch_progress_bar_->setRange(0, total_albums_ > 0 ? total_albums_ : 1);
+            fetch_progress_bar_->setValue(total_albums_ > 0 ? total_albums_ : 1);
+            updateFetchProgressText(tr("Completed"));
+        }
     }
     co_return;
 }
@@ -1143,6 +1155,13 @@ QCoro::Task<bool> MusicbrainzEditPage::fetchMusicBrainzRelease(const QList<PlayL
         co_return found;
     }
     const auto album_meta = makeFileMeta(entities.front(), entities.count());
+    auto update_release_progress = [this] {
+        if (fetch_progress_bar_ == nullptr) {
+            return;
+        }
+        fetch_progress_bar_->setValue(completed_releases_);
+        updateFetchProgressText(tr("Fetching"), true);
+        };
 
     for (const auto& r : candidate_releases) {
         if (r.id.isEmpty()) {
@@ -1174,6 +1193,7 @@ QCoro::Task<bool> MusicbrainzEditPage::fetchMusicBrainzRelease(const QList<PlayL
             fetched_release_ids.insert(r.id);
             if (!parsed_tracks.has_value()) {
                 completed_releases_ = std::min(completed_releases_ + 1, total_releases_);
+                update_release_progress();
                 continue;
             }
 
@@ -1191,6 +1211,7 @@ QCoro::Task<bool> MusicbrainzEditPage::fetchMusicBrainzRelease(const QList<PlayL
             total_recordings_ += uniqueRecordingCount(tracks);
 
             completed_releases_ = std::min(completed_releases_ + 1, total_releases_);
+            update_release_progress();
         }
 
         const auto release_score = musicbrain::compareToRelease(album_meta, r);
