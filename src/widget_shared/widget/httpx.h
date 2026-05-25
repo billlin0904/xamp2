@@ -10,9 +10,7 @@
 #include <QNetworkAccessManager>
 #include <QUrlQuery>
 #include <QNetworkCookie>
-#include <memory>
 
-#include <base/object_pool.h>
 #include <widget/util/str_util.h>
 #include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
@@ -62,8 +60,16 @@ namespace http {
             return *this;
         }
     private:
-        void setHeaders(QNetworkRequest& request);
+        enum class BodyKind {
+            NoBody,
+            FormUrlEncoded,
+            Json,
+            Multipart
+        };
+
+        void setHeaders(QNetworkRequest& request, BodyKind body_kind);
         QString processReply(QNetworkReply* reply);
+        QByteArray processBinaryReply(QNetworkReply* reply);
         QString processEncoding(QNetworkReply* reply, const QByteArray &content);
 
         bool use_json_{ false };
@@ -76,7 +82,6 @@ namespace http {
         QHash<QString, QString> headers_;
         LoggerPtr logger_;
         QStringConverter::Encoding charset_ = QStringConverter::Encoding::Utf8;
-        std::shared_ptr<ObjectPool<QByteArray>> buffer_pool_;
         QList<QNetworkCookie> cookies_;
     };
 }

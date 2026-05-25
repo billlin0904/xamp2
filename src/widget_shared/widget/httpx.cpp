@@ -4,9 +4,10 @@
 #include <QFileInfo>
 #include <QNetworkRequest>
 #include <QNetworkReply>
+#include <QNetworkCookieJar>
 #include <QUrl>
-#include <QMetaEnum>
 #include <QHttpPart>
+#include <QScopeGuard>
 
 #include <widget/networkdiskcache.h>
 #include <widget/util/str_util.h>
@@ -17,27 +18,27 @@
 namespace http {
     namespace {
         XAMP_DECLARE_LOG_NAME(Http);
-        constexpr qsizetype kHttpBufferSize = 4096;
-
-#define qCompare(s1, s2) (QString::compare(s1, s2, Qt::CaseInsensitive) == 0)
 
         bool isCompressEncoding(const QNetworkReply * reply) {
-            Q_FOREACH(const auto & header_pair, reply->rawHeaderPairs()) {
-                if (qCompare(QString::fromUtf8(header_pair.first), "content-encoding"_str)) {
-                    return qCompare(QString::fromUtf8(header_pair.second), "gzip"_str) 
-                        || qCompare(QString::fromUtf8(header_pair.second), "deflate"_str);
-                }
-            }
-            return false;
+            const auto encoding = reply->rawHeader("Content-Encoding").toLower();
+            return encoding.contains("gzip") || encoding.contains("deflate");
         }
 
-        ConstexprQString networkErrorToString(QNetworkReply::NetworkError code) {
-            const auto* mo = &QNetworkReply::staticMetaObject;
-            const int index = mo->indexOfEnumerator("NetworkError");
-            if (index == -1)
-                return kEmptyString;
-            const auto qme = mo->enumerator(index);
-            return { qme.valueToKey(code) };
+        QByteArray decompressReplyContent(const LoggerPtr& logger,
+            const QNetworkReply* reply,
+            const QByteArray& content) {
+            if (!isCompressEncoding(reply)) {
+                return content;
+            }
+
+            const auto data = gzipDecompress(content);
+            if (data) {
+                XAMP_LOG_D(logger, "Decompressing content.");
+                return data.value();
+            }
+
+            XAMP_LOG_D(logger, "Failed to decompress content ({}).", data.error());
+            return content;
         }
 
         void logHttpRequest(const LoggerPtr& logger,
@@ -133,8 +134,11 @@ namespace http {
         const QString& url, QObject* parent)
         : manager_(nam)
 		, url_(url) {
+        Q_UNUSED(parent)
     	logger_ = XAMP_LOG_CREATE_LOGGER(Http);
-        manager_->setCache(new NetworkDiskCache(parent));
+        if (manager_ && !manager_->cache()) {
+            manager_->setCache(new NetworkDiskCache(manager_));
+        }
     }
 
     HttpClient::HttpClient(const QString& url, QObject* parent)
@@ -174,7 +178,7 @@ namespace http {
             params_.clear();
         }
         QNetworkRequest request(full_url);
-        setHeaders(request);
+        setHeaders(request, BodyKind::NoBody);
         auto logger = logger_;
         auto* reply = co_await manager_->get(request);
         logHttpRequest(logger, requestVerb(QNetworkAccessManager::GetOperation,
@@ -185,11 +189,12 @@ namespace http {
     QCoro::Task<QString> HttpClient::post() {
 	    QUrl full_url(url_);
         QNetworkRequest request(full_url);
-        setHeaders(request);
+        setHeaders(request, use_json_ ? BodyKind::Json : BodyKind::FormUrlEncoded);
         auto logger = logger_;
         QByteArray data;
         if (!use_json_) {
             data = params_.toString(QUrl::FullyEncoded).toUtf8();
+            params_.clear();
         }
         else {
             data = json_.toUtf8();
@@ -198,7 +203,7 @@ namespace http {
                 if (result) {
                     data = result.value();
                     request.setRawHeader("Content-Encoding", "gzip");
-                    request.setHeader(QNetworkRequest::ContentLengthHeader, QByteArray::number(data.size()));
+                    request.setHeader(QNetworkRequest::ContentLengthHeader, data.size());
                 }
             }            
         }
@@ -217,7 +222,7 @@ namespace http {
             params_.clear();
         }
         QNetworkRequest request(full_url);
-        setHeaders(request);
+        setHeaders(request, BodyKind::NoBody);
         auto logger = logger_;
         auto* reply = co_await manager_->put(request, data);
         logHttpRequest(logger,
@@ -234,7 +239,7 @@ namespace http {
             params_.clear();
         }
         QNetworkRequest request(full_url);
-        setHeaders(request);
+        setHeaders(request, BodyKind::NoBody);
         auto logger = logger_;
         auto* reply = co_await manager_->deleteResource(request);
         logHttpRequest(logger,
@@ -251,14 +256,14 @@ namespace http {
             params_.clear();
         }
         QNetworkRequest request(full_url);
-        setHeaders(request);
+        setHeaders(request, BodyKind::NoBody);
         auto logger = logger_;
         auto* reply = co_await manager_->get(request);
         logHttpRequest(logger,
             requestVerb(QNetworkAccessManager::GetOperation, request),
             request,
             reply);
-		co_return reply->readAll();
+		co_return processBinaryReply(reply);
     }
 
     void HttpClient::setParams(const QUrlQuery& params) {
@@ -280,14 +285,20 @@ namespace http {
         headers_[name] = value;
     }
 
-    void HttpClient::setHeaders(QNetworkRequest& request) {
-        if (use_json_) {
+    void HttpClient::setHeaders(QNetworkRequest& request, BodyKind body_kind) {
+        switch (body_kind) {
+        case BodyKind::Json:
             request.setHeader(QNetworkRequest::ContentTypeHeader, 
                 "application/json; charset=utf-8"_str);
-        }
-        else {
+            break;
+        case BodyKind::FormUrlEncoded:
             request.setHeader(QNetworkRequest::ContentTypeHeader, 
                 "application/x-www-form-urlencoded"_str);
+            break;
+        case BodyKind::Multipart:
+        case BodyKind::NoBody:
+        default:
+            break;
         }
 
         for (auto i = headers_.cbegin(); 
@@ -304,17 +315,15 @@ namespace http {
         request.setRawHeader("Accept-Encoding", "gzip, deflate");
         request.setRawHeader("Connection", "keep-alive");
 
+        if (timeout_ > 0) {
+            request.setTransferTimeout(timeout_);
+        }
+
         if (!cookies_.isEmpty()) {
-            QString cookie_header;
-            for (const auto& cookie : cookies_) {
-                if (!cookie_header.isEmpty()) {
-                    cookie_header += "; "_str;
-                }
-                cookie_header += QString::fromUtf8(cookie.name())
-            	+ "="_str
-            	+ QString::fromUtf8(cookie.value());
+            if (!manager_->cookieJar()) {
+                manager_->setCookieJar(new QNetworkCookieJar(manager_));
             }
-            request.setRawHeader("Cookie", cookie_header.toUtf8());
+            manager_->cookieJar()->setCookiesFromUrl(cookies_, request.url());
         }
 
 		request.setAttribute(QNetworkRequest::CacheLoadControlAttribute,
@@ -322,55 +331,41 @@ namespace http {
     }
 
     QString HttpClient::processReply(QNetworkReply* reply) {
+        const auto cleanup = qScopeGuard([reply]() {
+            reply->deleteLater();
+        });
+
         QString data;
         if (reply->error() == QNetworkReply::NoError) {
             data = processEncoding(reply, reply->readAll());
-            reply->deleteLater();
         }
         else {
-            auto error_response = processEncoding(reply, reply->readAll());
             const auto error_string = reply->errorString();
             XAMP_LOG_D(logger_, error_string.toStdString());
-            reply->deleteLater();
         }
         return data;
     }
 
+    QByteArray HttpClient::processBinaryReply(QNetworkReply* reply) {
+        const auto cleanup = qScopeGuard([reply]() {
+            reply->deleteLater();
+        });
+
+        const auto data = reply->readAll();
+        if (reply->error() == QNetworkReply::NoError) {
+            return decompressReplyContent(logger_, reply, data);
+        }
+
+        const auto error_string = reply->errorString();
+        XAMP_LOG_D(logger_, error_string.toStdString());
+        return {};
+    }
+
     QString HttpClient::processEncoding(QNetworkReply* reply,
         const QByteArray& content) {
-        QScopedPointer<QTextStream> in;
-        in.reset(new QTextStream(content));
-        QString result;
-
-        if (isCompressEncoding(reply)) {            
-            const auto data = gzipDecompress(content);
-            if (data) {
-                in.reset(new QTextStream(data.value()));
-                result.reserve(data.value().size());
-                XAMP_LOG_D(logger_, "Decompressing content.");
-            }
-            else {
-                XAMP_LOG_D(logger_, "Failed to decompress content ({}).", 
-                    data.error());
-            }
-        }
-        else {
-            const auto content_length_var =
-                reply->header(QNetworkRequest::ContentLengthHeader);
-            auto content_length = kHttpBufferSize;
-            if (content_length_var.isValid()) {
-                content_length = content_length_var.toLongLong();
-            }
-            result.reserve(content_length);
-        }
-
-        in->setEncoding(charset_);
-
-        while (!in->atEnd()) {
-            result.append(in->readLine());
-        }
-
-        return result;
+        const auto data = decompressReplyContent(logger_, reply, content);
+        QStringDecoder decoder(charset_);
+        return decoder(data);
     }
 
     QCoro::Task<QByteArray> HttpClient::postMultipart(const QString& file_path,
@@ -386,7 +381,7 @@ namespace http {
         QNetworkRequest request(full_url);
         // 設定你要的 headers, e.g. Accept, Cookie, etc. 
         // 注意：不要自己硬填 Content-Type = "multipart/form-data"，讓 QHttpMultiPart 自己帶。
-        setHeaders(request);
+        setHeaders(request, BodyKind::Multipart);
         request.setRawHeader("Accept", "application/json");
        
         // 構建 multiPart
@@ -414,10 +409,6 @@ namespace http {
 
         multiPart->append(filePart);
 
-		request.setHeader(QNetworkRequest::ContentTypeHeader,
-			QVariant(qFormat("multipart/form-data; boundary=%1"_str)
-				.arg(QString::fromUtf8(multiPart->boundary()))));
-
         // 送出
         auto* reply = co_await manager_->post(request, multiPart);
         // 記得把 multiPart 的 parent 設成 reply，等 reply 結束後自動清理
@@ -426,32 +417,7 @@ namespace http {
         // 你原本的 log
         logHttpRequest(logger_, "POST"_str, request, reply);
 
-        // 處理錯誤或讀取資料
-        QByteArray response_data;
-        if (reply->error() == QNetworkReply::NoError) {
-            // 讀取回應原始資料
-            response_data = reply->readAll();
-
-            // 假如伺服器回傳 gzip 壓縮，可如原本那樣處理
-            if (isCompressEncoding(reply)) {
-                XAMP_LOG_D(logger_, "Decompressing gzip content.");
-                auto result = gzipDecompress(response_data);
-                if (result) {
-                    response_data = result.value();
-                }
-            }
-        }
-        else {
-            // 讀取錯誤訊息
-            const auto error_string = reply->errorString();
-            XAMP_LOG_E(logger_, "Http Post Multipart failed: {}", error_string.toStdString());
-            // 這邊可考慮:
-            // throw std::runtime_error(error_string.toStdString());
-            // 或只是回傳空 QByteArray()
-        }
-
-        reply->deleteLater();
-        co_return response_data;
+        co_return processBinaryReply(reply);
     }
 
 }

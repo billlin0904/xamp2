@@ -102,7 +102,6 @@ struct XAMP_WIDGET_SHARED_EXPORT FontIconOption final {
     static const QString kRotateAngleAttr;
     static const QString kFlipTopBottomAttr;
     static const QString kOpacityAttr;
-    static const QString kAnimation;
 
 	static QColor color;
     static QColor onColor;
@@ -134,4 +133,3 @@ protected:
 };
 
 #define qFontIcon SharedSingleton<FontIcon>::GetInstance()
-#define Q_FONT_ICON(code) qFontIcon.icon(code)

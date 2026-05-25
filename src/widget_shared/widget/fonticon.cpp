@@ -3,6 +3,7 @@
 #include <QFontDatabase>
 #include <QPainter>
 #include <QApplication>
+#include <QDebug>
 #include <QIconEngine>
 #include <QtCore>
 #include <QPalette>
@@ -44,11 +45,10 @@ const QString FontIconOption::kFlipLeftRightAttr("flipLeftRight"_str);
 const QString FontIconOption::kRotateAngleAttr("rotateAngle"_str);
 const QString FontIconOption::kFlipTopBottomAttr("flipTopBottom"_str);
 const QString FontIconOption::kOpacityAttr("opacity"_str);
-const QString FontIconOption::kAnimation("animation"_str);
 
-QColor FontIconOption::color = QApplication::palette().color(QPalette::Normal, QPalette::ButtonText);
-QColor FontIconOption::disabledColor = QApplication::palette().color(QPalette::Disabled, QPalette::ButtonText);
-QColor FontIconOption::selectedColor = QApplication::palette().color(QPalette::Active, QPalette::ButtonText);
+QColor FontIconOption::color(QColor::Invalid);
+QColor FontIconOption::disabledColor(QColor::Invalid);
+QColor FontIconOption::selectedColor(QColor::Invalid);
 QColor FontIconOption::onColor(QColor::Invalid);
 QColor FontIconOption::activeColor(QColor::Invalid);
 QColor FontIconOption::activeOnColor(QColor::Invalid);
@@ -64,6 +64,27 @@ namespace {
         else {
             return var.value<T>();
         }
+    }
+
+    QColor GetPaletteButtonText(QIcon::Mode mode) {
+        if (!QApplication::instance()) {
+            return Qt::black;
+        }
+
+        auto group = QPalette::Normal;
+        switch (mode) {
+        case QIcon::Disabled:
+            group = QPalette::Disabled;
+            break;
+        case QIcon::Active:
+        case QIcon::Selected:
+            group = QPalette::Active;
+            break;
+        case QIcon::Normal:
+        default:
+            break;
+        }
+        return QApplication::palette().color(group, QPalette::ButtonText);
     }
 }
 
@@ -134,6 +155,9 @@ void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mod
     if (!pen_color.isValid()) {
         pen_color = GetOrDefault<QColor>(options_, FontIconOption::kColorAttr, FontIconOption::color);
     }
+    if (!pen_color.isValid()) {
+        pen_color = GetPaletteButtonText(mode);
+    }
 
     painter->save();
 
@@ -153,12 +177,12 @@ void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mod
     }
 
     var = options_.value(FontIconOption::kFlipLeftRightAttr);
-    if (var.isValid()) {
+    if (var.toBool()) {
         painter->scale(-1.0, 1.0);
     }
 
     var = options_.value(FontIconOption::kFlipTopBottomAttr);
-    if (var.isValid()) {
+    if (var.toBool()) {
         painter->scale(1.0, -1.0);
     }
     painter->translate(-rect.center() - QPoint(1, 1));
@@ -188,6 +212,7 @@ void FontIconEngine::setLetter(const int32_t letter) {
 QIconEngine* FontIconEngine::clone() const {
     auto* engine = new FontIconEngine(options_);
     engine->setFontFamily(font_family_);
+    engine->setLetter(letter_);
     return engine;
 }
 
@@ -208,7 +233,13 @@ bool FontIcon::addFont(const QString& filename) {
         return false;
     }
 
-    const auto family = QFontDatabase::applicationFontFamilies(id).first();
+    const auto families = QFontDatabase::applicationFontFamilies(id);
+    if (families.isEmpty()) {
+        qWarning() << "FontIcon: no font family found in" << filename;
+        return false;
+    }
+
+    const auto family = families.first();
     addFamily(family);
     return true;
 }
@@ -239,6 +270,9 @@ const QStringList& FontIcon::getFamilies() const {
 }
 
 void FontIcon::addFamily(const QString& family) {
+    if (family.isEmpty() || families_.contains(family)) {
+        return;
+    }
     families_.append(family);
 }
 
