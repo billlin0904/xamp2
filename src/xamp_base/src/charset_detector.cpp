@@ -3,6 +3,8 @@
 #include <uchardet.h>
 #include <base/dll.h>
 #include <base/logger.h>
+#include <base/scopeguard.h>
+#include <base/unique_handle.h>
 
 #include <opencc.h>
 #include <cld3/nnet_language_identifier.h>
@@ -56,17 +58,68 @@ namespace {
 
 	using UcharDetPtr = std::unique_ptr<uchardet, UcharDetDeleter<uchardet>>;
 
-	template <typename T>
-	struct OpenCCDetDeleter;
+	class OpenCCLib final {
+	public:
+		XAMP_DECLARE_SINGLETON_NAME()
 
-	template <>
-	struct OpenCCDetDeleter<opencc_t> {
-		void operator()(opencc_t p) const {
-			::opencc_close(p);
+		OpenCCLib()
+			: module_(OpenSharedLibrary("opencc"))
+			, XAMP_LOAD_DLL_API(opencc_open)
+			, XAMP_LOAD_DLL_API(opencc_close)
+			, XAMP_LOAD_DLL_API(opencc_convert_utf8)
+			, XAMP_LOAD_DLL_API(opencc_convert_utf8_free)
+			, XAMP_LOAD_DLL_API(opencc_error) {
+		}
+
+		XAMP_DISABLE_COPY(OpenCCLib)
+	private:
+		SharedLibraryHandle module_;
+
+	public:
+		XAMP_DECLARE_DLL_NAME(opencc_open);
+		XAMP_DECLARE_DLL_NAME(opencc_close);
+		XAMP_DECLARE_DLL_NAME(opencc_convert_utf8);
+		XAMP_DECLARE_DLL_NAME(opencc_convert_utf8_free);
+		XAMP_DECLARE_DLL_NAME(opencc_error);
+	};
+
+#define OPENCC_LIB SharedSingleton<OpenCCLib>::GetInstance()
+
+	struct OpenCCHandleTraits final {
+		static opencc_t invalid() {
+			return reinterpret_cast<opencc_t>(-1);
+		}
+
+		static void Close(opencc_t value) {
+			if (value != nullptr && value != invalid()) {
+				OPENCC_LIB.opencc_close(value);
+			}
 		}
 	};
 
-	using OpenCCPtr = std::unique_ptr<opencc_t, OpenCCDetDeleter<opencc_t>>;
+	using OpenCCHandle = UniqueHandle<opencc_t, OpenCCHandleTraits>;
+
+	std::string GetOpenCCError() {
+		const auto* error = OPENCC_LIB.opencc_error();
+		if (error == nullptr) {
+			return "Unknown OpenCC error";
+		}
+		return error;
+	}
+
+	std::string MakeOpenCCConfigPath(const std::string& file_name, const std::string& file_path) {
+		if (file_path.empty()) {
+			return file_name;
+		}
+
+		auto config_path = file_path;
+		const auto last = config_path.back();
+		if (last != '/' && last != '\\') {
+			config_path.push_back('/');
+		}
+		config_path.append(file_name);
+		return config_path;
+	}
 
 	const std::string kJapaneseLanguage = "ja";
 	const std::string kSimpleChineseLanguage = "zh";
@@ -129,8 +182,12 @@ public:
 	OpenCCConvertImpl() = default;
 
 	void Load(const std::string &file_name, const std::string &file_path) {
-		converter_ = MakeAlign<opencc::SimpleConverter>(file_name,
-			std::vector<std::string>{ { file_path } });
+		const auto config_path = MakeOpenCCConfigPath(file_name, file_path);
+		const auto handle = OPENCC_LIB.opencc_open(config_path.c_str());
+		if (handle == nullptr || handle == OpenCCHandleTraits::invalid()) {
+			throw std::runtime_error(GetOpenCCError());
+		}
+		converter_.reset(handle);
 	}
 
 	std::wstring Convert(const std::wstring& text) const {
@@ -139,14 +196,21 @@ public:
 		}
 
 		auto utf8_str = String::ToUtf8String(text);
-		auto result = String::ToStdWString(converter_->Convert(
+		auto* converted = OPENCC_LIB.opencc_convert_utf8(
+			converter_.get(),
 			utf8_str.c_str(),
-			utf8_str.length()));
+			utf8_str.length());
+		if (converted == nullptr) {
+			throw std::runtime_error(GetOpenCCError());
+		}
+		XAMP_ON_SCOPE_EXIT(OPENCC_LIB.opencc_convert_utf8_free(converted););
+
+		const auto result = String::ToStdWString(converted);
 		return result;
 	}
 
 private:
-	ScopedPtr<opencc::SimpleConverter> converter_;
+	OpenCCHandle converter_;
 };
 
 OpenCCConvert::OpenCCConvert()
@@ -189,6 +253,7 @@ bool LanguageDetector::IsChinese(const std::wstring& text) {
 
 void LoadUcharDectLib() {
 	UCHARDECT_LIB;
+	OPENCC_LIB;
 }
 
 XAMP_BASE_NAMESPACE_END

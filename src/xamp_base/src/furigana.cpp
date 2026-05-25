@@ -1,4 +1,6 @@
 ﻿#include <base/furigana.h>
+#include <base/dll.h>
+#include <base/shared_singleton.h>
 #include <base/str_utilts.h>
 #include <base/unique_handle.h>
 #include <sstream>
@@ -9,6 +11,56 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 namespace {
+    class MeCabLib final {
+    public:
+        XAMP_DECLARE_SINGLETON_NAME()
+
+        MeCabLib()
+            : module_(OpenSharedLibrary("mecab"))
+            , XAMP_LOAD_DLL_API(mecab_new2)
+            , XAMP_LOAD_DLL_API(mecab_strerror)
+            , XAMP_LOAD_DLL_API(mecab_destroy)
+            , XAMP_LOAD_DLL_API(mecab_sparse_tostr)
+            , XAMP_LOAD_DLL_API(mecab_sparse_tonode) {
+        }
+
+        XAMP_DISABLE_COPY(MeCabLib)
+
+    private:
+        SharedLibraryHandle module_;
+
+    public:
+        XAMP_DECLARE_DLL_NAME(mecab_new2);
+        XAMP_DECLARE_DLL_NAME(mecab_strerror);
+        XAMP_DECLARE_DLL_NAME(mecab_destroy);
+        XAMP_DECLARE_DLL_NAME(mecab_sparse_tostr);
+        XAMP_DECLARE_DLL_NAME(mecab_sparse_tonode);
+    };
+
+#define MECAB_LIB SharedSingleton<MeCabLib>::GetInstance()
+
+    struct MeCabTaggerDeleter final {
+        static mecab_t* invalid() {
+            return nullptr;
+        }
+
+        static void Close(mecab_t* value) {
+            if (value != nullptr) {
+                MECAB_LIB.mecab_destroy(value);
+            }
+        }
+    };
+
+    using MeCabTaggerHandle = UniqueHandle<mecab_t*, MeCabTaggerDeleter>;
+
+    std::string GetMeCabError(mecab_t* tagger) {
+        const auto* error = MECAB_LIB.mecab_strerror(tagger);
+        if (error == nullptr) {
+            return "Unknown MeCab error";
+        }
+        return error;
+    }
+
     struct UTransliteratorDeleter final {
         static UTransliterator* invalid() {
             return nullptr;
@@ -138,8 +190,13 @@ namespace {
 class Furigana::FuriganaImpl {
 public:
 	FuriganaImpl() {
-		tagger_.reset(MeCab::createTagger("-Ochasen"));
-        tagger_->parse(""); // Initializes MeCab parser
+		tagger_.reset(MECAB_LIB.mecab_new2("-Ochasen"));
+        if (!tagger_) {
+            throw std::runtime_error(GetMeCabError(nullptr));
+        }
+        if (MECAB_LIB.mecab_sparse_tostr(tagger_.get(), "") == nullptr) {
+            throw std::runtime_error(GetMeCabError(tagger_.get()));
+        }
 	}
 
     std::vector<FuriganaEntity> Convert(const std::wstring& text, bool trim_overlapping = false) {
@@ -154,7 +211,7 @@ public:
         result.reserve(text.size());
 
         const auto utf8 = String::ToUtf8String(text);
-        const auto* node = tagger_->parseToNode(utf8.c_str());
+        const auto* node = MECAB_LIB.mecab_sparse_tonode(tagger_.get(), utf8.c_str());
 
         for (; node != nullptr; node = node->next) {
             if (node->stat == MECAB_BOS_NODE || node->stat == MECAB_EOS_NODE) {
@@ -211,7 +268,7 @@ public:
     }
 
     Kata2HiraConverter converter_;
-	std::unique_ptr<MeCab::Tagger> tagger_;
+	MeCabTaggerHandle tagger_;
 };
 
 Furigana::Furigana()
@@ -224,4 +281,9 @@ std::vector<FuriganaEntity> Furigana::Convert(const std::wstring& text) {
 	return impl_->Convert(text, true);
 }
 
+void LoadFuriganaDll() {
+    MECAB_LIB;
+}
+
 XAMP_BASE_NAMESPACE_END
+

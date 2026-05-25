@@ -90,6 +90,7 @@
       <IntelJCCErratum>false</IntelJCCErratum>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DisableSpecificWarnings>4819;4828;4996;</DisableSpecificWarnings>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -129,6 +130,7 @@ copy /Y "$(ProjectDir)..\thirdparty\qwindowkit\msvc\out-amd64-Debug\bin\QWKWidge
 copy /Y "$(ProjectDir)..\thirdparty\qcoro\msvc\qcoro\core\Debug\QCoro6Cored.dll" "$(OutDir)"
 copy /Y "$(ProjectDir)..\thirdparty\qcoro\msvc\qcoro\network\Debug\QCoro6Networkd.dll" "$(OutDir)"
 if not exist "$(OutDir)\components" mkdir "$(OutDir)\components"
+copy /Y "$(ProjectDir)..\thirdparty\libflac\debug\bin\FLAC.dll" "$(OutDir)\components\"
 copy /Y "C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\bin\mkl_rt.2.dll" "$(OutDir)\components\"
 copy /Y "C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\bin\mkl_core.2.dll" "$(OutDir)\components\"
 copy /Y "C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\bin\mkl_intel_thread.2.dll" "$(OutDir)\components\"
@@ -142,7 +144,6 @@ copy /Y "$(ProjectDir)..\thirdparty\bass\bin\win32\bass*.dll" "$(OutDir)\compone
 copy /Y "$(ProjectDir)..\thirdparty\libarchive\debug\bin\archive.dll" "$(OutDir)\components\"
 copy /Y "$(ProjectDir)..\thirdparty\chromaprint\msvc\src\Debug\chromaprint.dll" "$(OutDir)\components\"
 copy /Y "$(ProjectDir)..\thirdparty\libcue\bin\libcue.dll" "$(OutDir)\components\"
-copy /Y "$(ProjectDir)..\thirdparty\libiconv\output\x64\Debug\libiconv.dll" "$(OutDir)\components\"
 copy /Y "$(ProjectDir)..\thirdparty\libsamplerate\bin\samplerate.dll" "$(OutDir)\components\"
 copy /Y "$(ProjectDir)..\thirdparty\r8brain-free-src\DLL\Win64\r8bsrc.dll" "$(OutDir)\components\"
 copy /Y "$(ProjectDir)..\thirdparty\uchardet\msvc\src\Debug\uchardet.dll" "$(OutDir)\components\"</Command>
@@ -170,7 +171,7 @@ copy /Y "$(ProjectDir)..\thirdparty\uchardet\msvc\src\Debug\uchardet.dll" "$(Out
       <FloatingPointModel>Precise</FloatingPointModel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DisableSpecificWarnings>4819;</DisableSpecificWarnings>
-      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/utf-8 /Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
     </ClCompile>
     <Link>
@@ -212,6 +213,7 @@ copy /Y "$(ProjectDir)..\thirdparty\qwindowkit\msvc\out-amd64-Release\bin\QWKWid
 copy /Y "$(ProjectDir)..\thirdparty\qcoro\msvc\qcoro\core\Release\QCoro6Core.dll" "$(OutDir)"
 copy /Y "$(ProjectDir)..\thirdparty\qcoro\msvc\qcoro\network\Release\QCoro6Network.dll" "$(OutDir)"
 if not exist "$(OutDir)\components" mkdir "$(OutDir)\components"
+copy /Y "$(ProjectDir)..\thirdparty\libflac\bin\FLAC.dll" "$(OutDir)\components\"
 copy /Y "C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\bin\mkl_rt.2.dll" "$(OutDir)\components\"
 copy /Y "C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\bin\mkl_core.2.dll" "$(OutDir)\components\"
 copy /Y "C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\bin\mkl_intel_thread.2.dll" "$(OutDir)\components\"
@@ -225,7 +227,6 @@ copy /Y "$(ProjectDir)..\thirdparty\bass\bin\win32\bass*.dll" "$(OutDir)\compone
 copy /Y "$(ProjectDir)..\thirdparty\libarchive\bin\archive.dll" "$(OutDir)\components\"
 copy /Y "$(ProjectDir)..\thirdparty\chromaprint\msvc\src\Release\chromaprint.dll" "$(OutDir)\components\"
 copy /Y "$(ProjectDir)..\thirdparty\libcue\bin\libcue.dll" "$(OutDir)\components\"
-copy /Y "$(ProjectDir)..\thirdparty\libiconv\output\x64\Release\libiconv.dll" "$(OutDir)\components\"
 copy /Y "$(ProjectDir)..\thirdparty\libsamplerate\bin\samplerate.dll" "$(OutDir)\components\"
 copy /Y "$(ProjectDir)..\thirdparty\r8brain-free-src\DLL\Win64\r8bsrc.dll" "$(OutDir)\components\"
 copy /Y "$(ProjectDir)..\thirdparty\uchardet\msvc\src\Release\uchardet.dll" "$(OutDir)\components\"</Command>

@@ -84,11 +84,12 @@
       <PreprocessorDefinitions>STREAM_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996;4819;4200;</DisableSpecificWarnings>
       <BrowseInformation>false</BrowseInformation>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <AdditionalLibraryDirectories>../xamp/x64/Debug/;C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\lib;../thirdparty/libflac/include/lib/</AdditionalLibraryDirectories>
-      <AdditionalDependencies>xamp_base.lib;Mfplat.lib;Mf.lib;FLAC.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>xamp_base.lib;Mfplat.lib;Mf.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Bscmake>
       <PreserveSbr>false</PreserveSbr>
@@ -111,6 +112,7 @@ if exist "$(TargetDir)$(TargetName).pdb" copy /Y "$(TargetDir)$(TargetName).pdb"
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -124,6 +126,7 @@ if exist "$(TargetDir)$(TargetName).pdb" copy /Y "$(TargetDir)$(TargetName).pdb"
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -151,6 +154,7 @@ if exist "$(TargetDir)$(TargetName).pdb" copy /Y "$(TargetDir)$(TargetName).pdb"
       <IntelJCCErratum>false</IntelJCCErratum>
       <FloatingPointModel>Precise</FloatingPointModel>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

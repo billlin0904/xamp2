@@ -3,8 +3,8 @@
 #include <base/ithreadpoolexecutor.h>
 #include <base/fftlib.h>
 #include <base/logger.h>
-#include <base/text_encoding.h>
 #include <base/charset_detector.h>
+#include <base/furigana.h>
 
 #include <stream/api.h>
 #include <stream/icddevice.h>
@@ -19,6 +19,9 @@ XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 void LoadComponentSharedLibrary() {
     LoadBassLib();
     XAMP_LOG_DEBUG("Load BASS lib success.");
+
+    LoadMqaLib();
+    XAMP_LOG_DEBUG("Load MQA lib success.");
 
     LoadSrcLib();
     XAMP_LOG_DEBUG("Load Src lib success.");
@@ -40,8 +43,8 @@ void LoadComponentSharedLibrary() {
     LoadUcharDectLib();
     XAMP_LOG_DEBUG("Load uchardect lib success.");
 
-    LoadLibIconvLib();
-    XAMP_LOG_DEBUG("Load iconv lib success.");
+    LoadFuriganaDll();
+    XAMP_LOG_DEBUG("Load furigana lib success.");
 
 #ifdef XAMP_OS_WIN
     LoadR8brainLib();

@@ -6,6 +6,7 @@ SET DEPLOY_DIR=deploy
 
 REM 建立部署目錄（若不存在）
 if not exist "%DEPLOY_DIR%" mkdir "%DEPLOY_DIR%"
+if not exist "%DEPLOY_DIR%\components" mkdir "%DEPLOY_DIR%\components"
 
 REM 複製 DLL 檔案 (可考慮使用通配符，但需確認無多餘不必要的檔案)
 copy %BUILD_DIR%\xamp.exe %DEPLOY_DIR%\
@@ -22,7 +23,8 @@ copy %BUILD_DIR%\QSimpleUpdater.dll %DEPLOY_DIR%\
 copy %BUILD_DIR%\r8bsrc.dll %DEPLOY_DIR%\
 copy %BUILD_DIR%\QWKCore.dll %DEPLOY_DIR%\
 copy %BUILD_DIR%\QWKWidgets.dll %DEPLOY_DIR%\
-copy %BUILD_DIR%\mecab.dll %DEPLOY_DIR%\
+copy %BUILD_DIR%\FLAC.dll %DEPLOY_DIR%\components\
+copy %BUILD_DIR%\mecab.dll %DEPLOY_DIR%\components\
 copy %BUILD_DIR%\opencc.dll %DEPLOY_DIR%\
 copy %BUILD_DIR%\libprotobuf-lite.dll %DEPLOY_DIR%\
 

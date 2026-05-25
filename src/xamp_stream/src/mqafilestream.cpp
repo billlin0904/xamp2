@@ -1,5 +1,6 @@
 #include <FLAC/stream_decoder.h>
 
+#include <array>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -10,18 +11,73 @@
 #include <vector>
 #include <algorithm>
 
+#include <base/dll.h>
 #include <base/fastiostream.h>
 #include <base/logger.h>
+#include <base/shared_singleton.h>
+#include <base/unique_handle.h>
+#include <stream/api.h>
 #include <stream/mqafilestream.h>
-#include <FLAC++/decoder.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
 
+namespace {
+    class FlacLib final {
+    public:
+        XAMP_DECLARE_SINGLETON_NAME()
+
+        FlacLib()
+            : module_(OpenSharedLibrary("FLAC"))
+            , XAMP_LOAD_DLL_API(FLAC__stream_decoder_new)
+            , XAMP_LOAD_DLL_API(FLAC__stream_decoder_delete)
+            , XAMP_LOAD_DLL_API(FLAC__stream_decoder_finish)
+            , XAMP_LOAD_DLL_API(FLAC__stream_decoder_init_file)
+            , XAMP_LOAD_DLL_API(FLAC__stream_decoder_process_until_end_of_metadata)
+            , XAMP_LOAD_DLL_API(FLAC__stream_decoder_process_single)
+            , XAMP_LOAD_DLL_API(FLAC__stream_decoder_get_state)
+            , XAMP_LOAD_DLL_API(FLAC__stream_decoder_seek_absolute)
+            , XAMP_LOAD_DLL_API(FLAC__stream_decoder_set_md5_checking)
+            , XAMP_LOAD_DLL_API(FLAC__stream_decoder_set_metadata_respond) {
+        }
+
+        XAMP_DISABLE_COPY(FlacLib)
+
+    private:
+        SharedLibraryHandle module_;
+
+    public:
+        XAMP_DECLARE_DLL_NAME(FLAC__stream_decoder_new);
+        XAMP_DECLARE_DLL_NAME(FLAC__stream_decoder_delete);
+        XAMP_DECLARE_DLL_NAME(FLAC__stream_decoder_finish);
+        XAMP_DECLARE_DLL_NAME(FLAC__stream_decoder_init_file);
+        XAMP_DECLARE_DLL_NAME(FLAC__stream_decoder_process_until_end_of_metadata);
+        XAMP_DECLARE_DLL_NAME(FLAC__stream_decoder_process_single);
+        XAMP_DECLARE_DLL_NAME(FLAC__stream_decoder_get_state);
+        XAMP_DECLARE_DLL_NAME(FLAC__stream_decoder_seek_absolute);
+        XAMP_DECLARE_DLL_NAME(FLAC__stream_decoder_set_md5_checking);
+        XAMP_DECLARE_DLL_NAME(FLAC__stream_decoder_set_metadata_respond);
+    };
+
+#define FLAC_LIB SharedSingleton<FlacLib>::GetInstance()
+
+    struct FlacDecoderHandleTraits final {
+        static FLAC__StreamDecoder* invalid() {
+            return nullptr;
+        }
+
+        static void Close(FLAC__StreamDecoder* value) {
+            FLAC_LIB.FLAC__stream_decoder_finish(value);
+            FLAC_LIB.FLAC__stream_decoder_delete(value);
+        }
+    };
+
+    using FlacDecoderHandle = UniqueHandle<FLAC__StreamDecoder*, FlacDecoderHandleTraits>;
+}
 
 // See: https://github.com/purpl3F0x/MQA_identifier/tree/master
 class MqaIdentifier::MqaIdentifierImpl {
 public:
-    class MqaFile : public FLAC::Decoder::File {
+    class MqaFile {
     public:
         friend class MqaIdentifierImpl;
 
@@ -30,10 +86,19 @@ public:
         }
 
         void decode();
-        virtual ::FLAC__StreamDecoderWriteStatus write_callback(const ::FLAC__Frame* frame,
-            const FLAC__int32* const buffer[]) override;
-        void metadata_callback(const ::FLAC__StreamMetadata* metadata) override;
-        void error_callback(::FLAC__StreamDecoderErrorStatus status) override;
+
+        static FLAC__StreamDecoderWriteStatus WriteCallback(const FLAC__StreamDecoder*,
+            const FLAC__Frame* frame,
+            const FLAC__int32* const buffer[],
+            void* client_data);
+
+        static void MetadataCallback(const FLAC__StreamDecoder*,
+            const FLAC__StreamMetadata* metadata,
+            void* client_data);
+
+        static void ErrorCallback(const FLAC__StreamDecoder*,
+            FLAC__StreamDecoderErrorStatus,
+            void* client_data);
 
     private:
         uint32_t sample_rate_ = 0;
@@ -180,58 +245,92 @@ bool MqaIdentifier::MqaIdentifierImpl::Detect() {
     return false;
 }
 
-::FLAC__StreamDecoderWriteStatus MqaIdentifier::MqaIdentifierImpl::MqaFile::write_callback(
-    const ::FLAC__Frame* frame,
-    const FLAC__int32* const buffer[]) {
-    if (channels_ != 2 || (bps_ != 16 && bps_ != 24)) {
+FLAC__StreamDecoderWriteStatus MqaIdentifier::MqaIdentifierImpl::MqaFile::WriteCallback(
+    const FLAC__StreamDecoder*,
+    const FLAC__Frame* frame,
+    const FLAC__int32* const buffer[],
+    void* client_data) {
+    auto* self = static_cast<MqaFile*>(client_data);
+    if (self->channels_ != 2 || (self->bps_ != 16 && self->bps_ != 24)) {
         return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
     }
 
-    decoded_samples_ += frame->header.blocksize;
+    self->decoded_samples_ += frame->header.blocksize;
 
     for (size_t i = 0; i < frame->header.blocksize; i++)
-        samples_.push_back(std::array<const FLAC__int32, 2 >{buffer[0][i], buffer[1][i]});
+        self->samples_.push_back(std::array<const FLAC__int32, 2 >{buffer[0][i], buffer[1][i]});
 
     return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
 
-void MqaIdentifier::MqaIdentifierImpl::MqaFile::error_callback(::FLAC__StreamDecoderErrorStatus status) {
+void MqaIdentifier::MqaIdentifierImpl::MqaFile::ErrorCallback(const FLAC__StreamDecoder*,
+    FLAC__StreamDecoderErrorStatus,
+    void*) {
 }
 
-void MqaIdentifier::MqaIdentifierImpl::MqaFile::metadata_callback(const ::FLAC__StreamMetadata* metadata) {
+void MqaIdentifier::MqaIdentifierImpl::MqaFile::MetadataCallback(const FLAC__StreamDecoder*,
+    const FLAC__StreamMetadata* metadata,
+    void* client_data) {
+    auto* self = static_cast<MqaFile*>(client_data);
     if (metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
-        sample_rate_ = metadata->data.stream_info.sample_rate;
-        channels_ = metadata->data.stream_info.channels;
-        bps_ = metadata->data.stream_info.bits_per_sample;
+        self->sample_rate_ = metadata->data.stream_info.sample_rate;
+        self->channels_ = metadata->data.stream_info.channels;
+        self->bps_ = metadata->data.stream_info.bits_per_sample;
     }
     else if (metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
         for (FLAC__uint32 i = 0; i < metadata->data.vorbis_comment.num_comments; i++) {
             const auto comment = reinterpret_cast<char*>(metadata->data.vorbis_comment.comments[i].entry);
 
             if (std::strncmp("MQAENCODER", comment, 10) == 0)
-                mqa_encoder_ = std::string(comment + 10, comment + metadata->data.vorbis_comment.comments[i].length);
+                self->mqa_encoder_ = std::string(comment + 10, comment + metadata->data.vorbis_comment.comments[i].length);
         }
     }
 }
 
 void MqaIdentifier::MqaIdentifierImpl::MqaFile::decode() {
-    set_md5_checking(true);
-    set_metadata_respond(FLAC__METADATA_TYPE_VORBIS_COMMENT);
-
-    auto file_path = String::ToUtf8String(path_.wstring());
-
-    FLAC__StreamDecoderInitStatus init_status = FLAC::Decoder::File::init(file_path.c_str());
-    if (init_status != FLAC__STREAM_DECODER_INIT_STATUS_OK) {
+    FlacDecoderHandle decoder(FLAC_LIB.FLAC__stream_decoder_new());
+    if (!decoder) {
         throw std::runtime_error("FLAC__stream_decoder_new failed.");
     }
 
-    process_until_end_of_metadata();
+    sample_rate_ = 0;
+    channels_ = 0;
+    bps_ = 0;
+    original_sample_rate_ = 0;
+    decoded_samples_ = 0;
+    samples_.clear();
+    mqa_encoder_.clear();
+
+    FLAC_LIB.FLAC__stream_decoder_set_md5_checking(decoder.get(), true);
+    FLAC_LIB.FLAC__stream_decoder_set_metadata_respond(decoder.get(), FLAC__METADATA_TYPE_VORBIS_COMMENT);
+
+    auto file_path = String::ToUtf8String(path_.wstring());
+
+    const auto init_status = FLAC_LIB.FLAC__stream_decoder_init_file(
+        decoder.get(),
+        file_path.c_str(),
+        &WriteCallback,
+        &MetadataCallback,
+        &ErrorCallback,
+        this);
+    if (init_status != FLAC__STREAM_DECODER_INIT_STATUS_OK) {
+        throw std::runtime_error("FLAC init_file failed.");
+    }
+
+    if (!FLAC_LIB.FLAC__stream_decoder_process_until_end_of_metadata(decoder.get())) {
+        throw std::runtime_error("FLAC metadata parse failed.");
+    }
     
     samples_.reserve(sample_rate_ * 3);
 
     while (decoded_samples_ < sample_rate_ * 3) {
-        if (!process_single()) {
+        if (!FLAC_LIB.FLAC__stream_decoder_process_single(decoder.get())) {
 			throw std::runtime_error("FLAC__stream_decoder_process_single failed.");
+        }
+
+        const auto state = FLAC_LIB.FLAC__stream_decoder_get_state(decoder.get());
+        if (state == FLAC__STREAM_DECODER_END_OF_STREAM || state == FLAC__STREAM_DECODER_ABORTED) {
+            break;
         }
     }
 }
@@ -265,13 +364,13 @@ public:
     }
 
     void Open(const Path& path) {
-        decoder_ = FLAC__stream_decoder_new();
+        decoder_.reset(FLAC_LIB.FLAC__stream_decoder_new());
         if (!decoder_) throw std::runtime_error("FLAC__stream_decoder_new failed.");
 
         auto file_path = String::ToUtf8String(path.wstring());
 
-        const auto st = FLAC__stream_decoder_init_file(
-            decoder_,
+        const auto st = FLAC_LIB.FLAC__stream_decoder_init_file(
+            decoder_.get(),
             file_path.c_str(),
             &WriteCallback,
             &MetadataCallback,
@@ -283,7 +382,7 @@ public:
             throw std::runtime_error("FLAC init_file failed.");
         }
 
-        if (!FLAC__stream_decoder_process_until_end_of_metadata(decoder_)) {
+        if (!FLAC_LIB.FLAC__stream_decoder_process_until_end_of_metadata(decoder_.get())) {
             throw std::runtime_error("FLAC metadata parse failed.");
         }
 
@@ -291,11 +390,7 @@ public:
     }
 
     void Close() {
-        if (decoder_) {
-            FLAC__stream_decoder_finish(decoder_);
-            FLAC__stream_decoder_delete(decoder_);
-            decoder_ = nullptr;
-        }
+        decoder_.reset();
 
         active_ = false;
         pcm_queue_.clear();
@@ -356,7 +451,7 @@ public:
         pcm_queue_.clear();
         queue_read_bytes_ = 0;
 
-        FLAC__stream_decoder_seek_absolute(decoder_, target);
+        FLAC_LIB.FLAC__stream_decoder_seek_absolute(decoder_.get(), target);
     }
 
     uint32_t GetSampleSize() const {
@@ -377,13 +472,13 @@ public:
 
 private:
     bool DecodeOneBlock() const {
-        const auto state = FLAC__stream_decoder_get_state(decoder_);
+        const auto state = FLAC_LIB.FLAC__stream_decoder_get_state(decoder_.get());
         if (state == FLAC__STREAM_DECODER_END_OF_STREAM) return false;
         if (state == FLAC__STREAM_DECODER_ABORTED) return false;
 
-        if (!FLAC__stream_decoder_process_single(decoder_)) return false;
+        if (!FLAC_LIB.FLAC__stream_decoder_process_single(decoder_.get())) return false;
 
-        const auto state2 = FLAC__stream_decoder_get_state(decoder_);
+        const auto state2 = FLAC_LIB.FLAC__stream_decoder_get_state(decoder_.get());
         if (state2 == FLAC__STREAM_DECODER_END_OF_STREAM) return false;
         if (state2 == FLAC__STREAM_DECODER_ABORTED) return false;
 
@@ -459,7 +554,7 @@ private:
     uint32_t channels_ = 0;
     uint32_t bits_per_sample_ = 0;
     uint64_t total_samples_ = 0;
-    FLAC__StreamDecoder* decoder_ = nullptr;
+    mutable FlacDecoderHandle decoder_;
     mutable std::vector<int32_t> pcm_queue_;
     mutable uint64_t queue_read_bytes_ = 0;
 	LoggerPtr logger_;
@@ -512,6 +607,10 @@ uint32_t MqaFileStream::GetBitRate() const {
 
 bool MqaFileStream::IsActive() const {
     return impl_->IsActive();
+}
+
+void LoadMqaLib() {
+    SharedSingleton<FlacLib>::GetInstance();
 }
 
 XAMP_STREAM_NAMESPACE_END
