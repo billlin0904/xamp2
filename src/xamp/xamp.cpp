@@ -487,8 +487,11 @@ void Xamp::playLocalFile(const QString& file_name, bool queue, const PlayListEnt
         emit searchLyrics(playing_entity);
     }
     lrc_page_->setCover(embedded_cover);
+    const auto playback_file_ext = track_info.file_ext()
+        ? toQString(track_info.file_ext().value())
+        : file_info.suffix();
     lrc_page_->format()->setText(format2String(playback_format,
-        ".FLAC"_str,
+        playback_file_ext,
         fromStdStringView(device_info_.value().desc)));
     lrc_page_->setBackground(image_util::blurImage(thread_pool_,
         embedded_cover,
