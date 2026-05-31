@@ -19,6 +19,8 @@
 #include <widget/util/ui_util.h>
 #include <widget/xmessagebox.h>
 
+#include <base/stopwatch.h>
+
 #include <algorithm>
 #include <cmath>
 
@@ -856,8 +858,32 @@ void MusicbrainzEditPage::appendMusicBrainzAlbum(const MusicBrainzAlbum& album) 
     if (album.recordings.isEmpty()) {
         return;
     }
+    Stopwatch total_elapsed;
+    Stopwatch stage_elapsed;
+    int track_count = 0;
+    for (const auto& recording : album.recordings) {
+        track_count += recording.tracks.size();
+    }
+    const auto before_album_count = recording_list_.size();
+    const auto before_row_count = album_track_model_ != nullptr ? album_track_model_->rowCount() : 0;
+
     recording_list_.append(album);
+    const auto append_seconds = stage_elapsed.ElapsedSeconds();
+    stage_elapsed.Reset();
+
     rebuildCandidateView();
+    const auto rebuild_seconds = stage_elapsed.ElapsedSeconds();
+
+    XAMP_LOG_DEBUG("MusicBrainz append album recordings:{} tracks:{} album_count:{}->{} rows:{}->{} append:{:.3f}s rebuild:{:.3f}s total:{:.3f}s",
+        album.recordings.size(),
+        track_count,
+        before_album_count,
+        recording_list_.size(),
+        before_row_count,
+        album_track_model_ != nullptr ? album_track_model_->rowCount() : 0,
+        append_seconds,
+        rebuild_seconds,
+        total_elapsed.ElapsedSeconds());
 }
 
 std::optional<PlayListEntity> MusicbrainzEditPage::entityForTrack(int track_no) const {
@@ -980,6 +1006,9 @@ void MusicbrainzEditPage::updateWriteProgressText(const QString& state) {
 }
 
 QCoro::Task<> MusicbrainzEditPage::startFetchMusicBrainzRecording() {
+    Stopwatch total_elapsed;
+    Stopwatch stage_elapsed;
+
     is_fetching_ = true;
     QMap<QString, QList<PlayListEntity>> album_unique_map;
     for (const auto& entity : entities_) {
@@ -997,11 +1026,18 @@ QCoro::Task<> MusicbrainzEditPage::startFetchMusicBrainzRecording() {
         fetch_progress_bar_->setValue(0);
         updateFetchProgressText(tr("Fetching"));
     }
+    XAMP_LOG_DEBUG("MusicBrainz recording fetch prepared albums:{} tracks:{} elapsed:{:.3f}s",
+        total_albums_,
+        entities_.size(),
+        stage_elapsed.ElapsedSeconds());
 
     try {
+        stage_elapsed.Reset();
         QList<PendingReleaseLookup> pending_lookups;
         QSet<QString> pending_release_ids;
         for (const auto& list_entities : album_unique_map) {
+            const auto album_name = list_entities.isEmpty() ? QString() : list_entities.front().album;
+            Stopwatch album_elapsed;
             auto candidate_releases = co_await fetchCandidateReleases(list_entities);
             if (!candidate_releases.isEmpty()) {
                 pending_release_ids += releaseIds(candidate_releases);
@@ -1013,11 +1049,27 @@ QCoro::Task<> MusicbrainzEditPage::startFetchMusicBrainzRecording() {
                 fetch_progress_bar_->setValue(completed_albums_);
             }
             updateFetchProgressText(tr("Fetching"));
+            XAMP_LOG_DEBUG("MusicBrainz candidate releases album:{} tracks:{} candidates:{} unique_releases:{} elapsed:{:.3f}s total_elapsed:{:.3f}s",
+                album_name.toStdString(),
+                list_entities.size(),
+                candidate_releases.size(),
+                pending_release_ids.size(),
+                album_elapsed.ElapsedSeconds(),
+                total_elapsed.ElapsedSeconds());
         }
         total_releases_ = pending_release_ids.size();
-        XAMP_LOG_DEBUG("Total {} releases", total_releases_);
+        XAMP_LOG_DEBUG("MusicBrainz candidate phase completed albums:{} pending_lookups:{} unique_releases:{} elapsed:{:.3f}s total_elapsed:{:.3f}s",
+            total_albums_,
+            pending_lookups.size(),
+            total_releases_,
+            stage_elapsed.ElapsedSeconds(),
+            total_elapsed.ElapsedSeconds());
 
         if (pending_lookups.isEmpty()) {
+            XAMP_LOG_DEBUG("MusicBrainz recording fetch completed with no releases albums:{} tracks:{} total_elapsed:{:.3f}s",
+                total_albums_,
+                entities_.size(),
+                total_elapsed.ElapsedSeconds());
             is_fetching_ = false;
             completed_albums_ = 0;
             if (fetch_progress_bar_ != nullptr) {
@@ -1041,9 +1093,12 @@ QCoro::Task<> MusicbrainzEditPage::startFetchMusicBrainzRecording() {
         QHash<QString, QList<musicbrain::TrackInfo>> release_track_cache;
         QHash<QString, QPixmap> release_cover_cache;
         QHash<QString, size_t> release_cover_size_cache;
+        stage_elapsed.Reset();
         for (const auto& lookup : pending_lookups) {
+            const auto album_name = lookup.entities.isEmpty() ? QString() : lookup.entities.front().album;
+            Stopwatch release_elapsed;
             updateFetchProgressText(tr("Fetching"), true);
-            co_await fetchMusicBrainzRelease(lookup.entities,
+            const auto found = co_await fetchMusicBrainzRelease(lookup.entities,
                 lookup.candidateReleases,
                 fetched_release_ids,
                 release_track_cache,
@@ -1053,9 +1108,30 @@ QCoro::Task<> MusicbrainzEditPage::startFetchMusicBrainzRecording() {
             completed_album_keys.insert(lookup.entities.isEmpty() ? QString() : lookup.entities.front().album);
             completed_albums_ = std::min(static_cast<int>(completed_album_keys.size()), total_albums_);
             updateFetchProgressText(tr("Fetching"), true);
+            XAMP_LOG_DEBUG("MusicBrainz release phase album:{} candidates:{} found:{} completed_releases:{}/{} elapsed:{:.3f}s total_elapsed:{:.3f}s",
+                album_name.toStdString(),
+                lookup.candidateReleases.size(),
+                found,
+                completed_releases_,
+                total_releases_,
+                release_elapsed.ElapsedSeconds(),
+                total_elapsed.ElapsedSeconds());
         }
+        XAMP_LOG_DEBUG("MusicBrainz release phase completed albums:{} releases:{} recordings:{} elapsed:{:.3f}s total_elapsed:{:.3f}s",
+            completed_albums_,
+            total_releases_,
+            total_recordings_,
+            stage_elapsed.ElapsedSeconds(),
+            total_elapsed.ElapsedSeconds());
+    }
+    catch (const std::exception& e) {
+        XAMP_LOG_DEBUG("MusicBrainz recording fetch failed: {} total_elapsed:{:.3f}s",
+            e.what(),
+            total_elapsed.ElapsedSeconds());
     }
     catch (...) {
+        XAMP_LOG_DEBUG("MusicBrainz recording fetch failed with unknown error total_elapsed:{:.3f}s",
+            total_elapsed.ElapsedSeconds());
     }
 
     is_fetching_ = false;
@@ -1074,12 +1150,18 @@ QCoro::Task<> MusicbrainzEditPage::startFetchMusicBrainzRecording() {
             updateFetchProgressText(tr("Completed"));
         }
     }
+    XAMP_LOG_DEBUG("MusicBrainz recording fetch completed albums:{} releases:{} recordings:{} total_elapsed:{:.3f}s",
+        total_albums_,
+        total_releases_,
+        total_recordings_,
+        total_elapsed.ElapsedSeconds());
     co_return;
 }
 
 QCoro::Task<std::optional<QByteArray>> MusicbrainzEditPage::tryFetchCoverArt(const QString& tag,
     const QString& release_id,
     size_t size) {
+    Stopwatch elapsed;
     const auto url = (size > 0)
         ? qFormat("https://coverartarchive.org/%1/%2/front-%3").arg(tag).arg(release_id).arg(size)
         : qFormat("https://coverartarchive.org/%1/%2/front").arg(tag).arg(release_id);
@@ -1087,6 +1169,11 @@ QCoro::Task<std::optional<QByteArray>> MusicbrainzEditPage::tryFetchCoverArt(con
     http_client_.setHeader("Accept"_str, "image/*"_str);
 
     auto img = co_await http_client_.download();
+    XAMP_LOG_DEBUG("MusicBrainz cover art request release:{} size:{} bytes:{} elapsed:{:.3f}s",
+        release_id.toStdString(),
+        size,
+        img.size(),
+        elapsed.ElapsedSeconds());
     if (!img.isEmpty()) {
         co_return img;
     }
@@ -1096,6 +1183,7 @@ QCoro::Task<std::optional<QByteArray>> MusicbrainzEditPage::tryFetchCoverArt(con
 QCoro::Task<std::optional<QByteArray>> MusicbrainzEditPage::fetchCoverArtByUrl(const QString& tag,
     const QString& release_id,
     size_t prefer_size) {
+    Stopwatch elapsed;
     std::optional<QByteArray> b;
     if (prefer_size > 0) {
         auto result = co_await tryFetchCoverArt(tag, release_id, prefer_size);
@@ -1116,15 +1204,28 @@ QCoro::Task<std::optional<QByteArray>> MusicbrainzEditPage::fetchCoverArtByUrl(c
         }
     }
     if (!b.has_value()) {
+        XAMP_LOG_DEBUG("MusicBrainz cover art completed release:{} found:false elapsed:{:.3f}s",
+            release_id.toStdString(),
+            elapsed.ElapsedSeconds());
         co_return std::nullopt;
     }
+    XAMP_LOG_DEBUG("MusicBrainz cover art completed release:{} found:true bytes:{} elapsed:{:.3f}s",
+        release_id.toStdString(),
+        b->size(),
+        elapsed.ElapsedSeconds());
     co_return b;
 }
 
 QCoro::Task<QList<musicbrain::Release>> MusicbrainzEditPage::fetchCandidateReleases(const QList<PlayListEntity>& entities) {
+    Stopwatch total_elapsed;
+    Stopwatch stage_elapsed;
     QList<musicbrain::Release> candidate_releases;
     const auto query = buildMusicBrainzReleaseQuery(entities);
+    const auto query_build_seconds = stage_elapsed.ElapsedSeconds();
     if (query.isEmpty()) {
+        XAMP_LOG_DEBUG("MusicBrainz candidate request skipped empty query tracks:{} query_build:{:.3f}s",
+            entities.size(),
+            query_build_seconds);
         co_return candidate_releases;
     }
 
@@ -1132,13 +1233,31 @@ QCoro::Task<QList<musicbrain::Release>> MusicbrainzEditPage::fetchCandidateRelea
     http_client_.param("query"_str, query);
     http_client_.param("fmt"_str, "json"_str);
     http_client_.param("limit"_str, 10);
+    stage_elapsed.Reset();
     auto content = co_await http_client_.get();
+    const auto request_seconds = stage_elapsed.ElapsedSeconds();
 
+    stage_elapsed.Reset();
     auto releases = musicbrain::parseReleaseList(content);
     if (!releases.has_value() || releases->isEmpty()) {
+        XAMP_LOG_DEBUG("MusicBrainz candidate request tracks:{} bytes:{} results:0 query_build:{:.3f}s request:{:.3f}s parse:{:.3f}s total:{:.3f}s",
+            entities.size(),
+            content.size(),
+            query_build_seconds,
+            request_seconds,
+            stage_elapsed.ElapsedSeconds(),
+            total_elapsed.ElapsedSeconds());
         co_return candidate_releases;
     }
     candidate_releases = releases.value();
+    XAMP_LOG_DEBUG("MusicBrainz candidate request tracks:{} bytes:{} results:{} query_build:{:.3f}s request:{:.3f}s parse:{:.3f}s total:{:.3f}s",
+        entities.size(),
+        content.size(),
+        candidate_releases.size(),
+        query_build_seconds,
+        request_seconds,
+        stage_elapsed.ElapsedSeconds(),
+        total_elapsed.ElapsedSeconds());
     co_return candidate_releases;
 }
 
@@ -1163,7 +1282,11 @@ QCoro::Task<bool> MusicbrainzEditPage::fetchMusicBrainzRelease(const QList<PlayL
         updateFetchProgressText(tr("Fetching"), true);
         };
 
+    int release_index = 0;
     for (const auto& r : candidate_releases) {
+        ++release_index;
+        Stopwatch release_elapsed;
+        Stopwatch stage_elapsed;
         if (r.id.isEmpty()) {
             continue;
         }
@@ -1179,6 +1302,14 @@ QCoro::Task<bool> MusicbrainzEditPage::fetchMusicBrainzRelease(const QList<PlayL
             cover_art = release_cover_cache.value(r.id);
             cover_art_size = release_cover_size_cache.value(r.id, 0);
             cover_art_size_map_.insert(r.id, cover_art_size);
+            XAMP_LOG_DEBUG("MusicBrainz release cache hit {}/{} release:{} title:{} tracks:{} cover_bytes:{} elapsed:{:.3f}s",
+                release_index,
+                candidate_releases.size(),
+                r.id.toStdString(),
+                r.title.toStdString(),
+                tracks.size(),
+                cover_art_size,
+                release_elapsed.ElapsedSeconds());
         }
         else {
             http_client_.setUrl("https://musicbrainz.org/ws/2/release/"_str + r.id);
@@ -1186,21 +1317,42 @@ QCoro::Task<bool> MusicbrainzEditPage::fetchMusicBrainzRelease(const QList<PlayL
             http_client_.param("fmt"_str, "json"_str);
             http_client_.param("client"_str, "J0OsCydP14"_str);
 
+            stage_elapsed.Reset();
             const auto content = co_await http_client_.get();
+            const auto request_seconds = stage_elapsed.ElapsedSeconds();
+
+            stage_elapsed.Reset();
             QList<musicbrain::Release> current_release;
             current_release.append(r);
             auto parsed_tracks = musicbrain::parseReleaseTracklist(content.toUtf8(), current_release);
+            const auto parse_seconds = stage_elapsed.ElapsedSeconds();
             fetched_release_ids.insert(r.id);
             if (!parsed_tracks.has_value()) {
                 completed_releases_ = std::min(completed_releases_ + 1, total_releases_);
                 update_release_progress();
+                XAMP_LOG_DEBUG("MusicBrainz release fetch {}/{} release:{} title:{} parsed:false bytes:{} request:{:.3f}s parse:{:.3f}s elapsed:{:.3f}s",
+                    release_index,
+                    candidate_releases.size(),
+                    r.id.toStdString(),
+                    r.title.toStdString(),
+                    content.size(),
+                    request_seconds,
+                    parse_seconds,
+                    release_elapsed.ElapsedSeconds());
                 continue;
             }
 
+            stage_elapsed.Reset();
             const auto cover_art_bytes = co_await fetchCoverArtByUrl("release"_str, r.id, kDefaultSize);
+            const auto cover_seconds = stage_elapsed.ElapsedSeconds();
             if (cover_art_bytes.has_value() && !cover_art_bytes->isEmpty()) {
+                stage_elapsed.Reset();
                 cover_art.loadFromData(cover_art_bytes.value());
                 cover_art_size = static_cast<size_t>(cover_art_bytes->size());
+                XAMP_LOG_DEBUG("MusicBrainz release cover decode release:{} bytes:{} elapsed:{:.3f}s",
+                    r.id.toStdString(),
+                    cover_art_size,
+                    stage_elapsed.ElapsedSeconds());
             }
 
             tracks = parsed_tracks.value();
@@ -1212,10 +1364,26 @@ QCoro::Task<bool> MusicbrainzEditPage::fetchMusicBrainzRelease(const QList<PlayL
 
             completed_releases_ = std::min(completed_releases_ + 1, total_releases_);
             update_release_progress();
+            XAMP_LOG_DEBUG("MusicBrainz release fetch {}/{} release:{} title:{} tracks:{} recordings:{} cover_bytes:{} bytes:{} request:{:.3f}s parse:{:.3f}s cover:{:.3f}s elapsed:{:.3f}s",
+                release_index,
+                candidate_releases.size(),
+                r.id.toStdString(),
+                r.title.toStdString(),
+                tracks.size(),
+                uniqueRecordingCount(tracks),
+                cover_art_size,
+                content.size(),
+                request_seconds,
+                parse_seconds,
+                cover_seconds,
+                release_elapsed.ElapsedSeconds());
         }
 
+        stage_elapsed.Reset();
         const auto release_score = musicbrain::compareToRelease(album_meta, r);
         QSet<QString> appended_recordings;
+        MusicBrainzAlbum release_album;
+        int appended_count = 0;
         for (const auto& track : tracks) {
             const auto recording_key = track.recordingId.isEmpty()
                 ? qFormat("%1|%2|%3|%4").arg(track.title).arg(track.disc).arg(track.trackNo).arg(track.lengthMs)
@@ -1237,12 +1405,22 @@ QCoro::Task<bool> MusicbrainzEditPage::fetchMusicBrainzRelease(const QList<PlayL
             music_brainz_recording.cover_art = cover_art;
             music_brainz_recording.tracks = QList<musicbrain::TrackInfo>{ track };
 
-            MusicBrainzAlbum partial_album;
-            partial_album.recordings.append(music_brainz_recording);
-            appendMusicBrainzAlbum(partial_album);
+            release_album.recordings.append(music_brainz_recording);
             found = true;
+            ++appended_count;
             completed_recordings_ = std::min(completed_recordings_ + 1, total_recordings_);
         }
+        if (!release_album.recordings.isEmpty()) {
+            appendMusicBrainzAlbum(release_album);
+        }
+        XAMP_LOG_DEBUG("MusicBrainz release append {}/{} release:{} tracks:{} appended:{} elapsed:{:.3f}s release_elapsed:{:.3f}s",
+            release_index,
+            candidate_releases.size(),
+            r.id.toStdString(),
+            tracks.size(),
+            appended_count,
+            stage_elapsed.ElapsedSeconds(),
+            release_elapsed.ElapsedSeconds());
     }
     co_return found;
 }

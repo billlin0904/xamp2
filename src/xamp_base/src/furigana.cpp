@@ -1,13 +1,23 @@
 ﻿#include <base/furigana.h>
 #include <base/dll.h>
+#include <base/fs.h>
 #include <base/shared_singleton.h>
 #include <base/str_utilts.h>
 #include <base/unique_handle.h>
 #include <sstream>
 #include <limits>
 
+#ifdef XAMP_OS_LINUX
+#include <unicode/utrans.h>
+#include <unicode/ustring.h>
+#else
 #include <icu.h>
+#endif
+#ifdef XAMP_OS_LINUX
+#include <mecab.h>
+#else
 #include <mecab/mecab.h>
+#endif
 
 XAMP_BASE_NAMESPACE_BEGIN
 namespace {
@@ -17,6 +27,7 @@ namespace {
 
         MeCabLib()
             : module_(OpenSharedLibrary("mecab"))
+            , XAMP_LOAD_DLL_API(mecab_new)
             , XAMP_LOAD_DLL_API(mecab_new2)
             , XAMP_LOAD_DLL_API(mecab_strerror)
             , XAMP_LOAD_DLL_API(mecab_destroy)
@@ -30,6 +41,7 @@ namespace {
         SharedLibraryHandle module_;
 
     public:
+        XAMP_DECLARE_DLL_NAME(mecab_new);
         XAMP_DECLARE_DLL_NAME(mecab_new2);
         XAMP_DECLARE_DLL_NAME(mecab_strerror);
         XAMP_DECLARE_DLL_NAME(mecab_destroy);
@@ -59,6 +71,38 @@ namespace {
             return "Unknown MeCab error";
         }
         return error;
+    }
+
+    std::vector<std::string> GetMeCabArguments() {
+        std::vector<std::string> args{
+            "xamp",
+            "-Ochasen"
+        };
+
+        const auto mecab_dir = GetApplicationFilePath() / "mecab";
+        const auto mecabrc_path = mecab_dir / "mecabrc";
+        if (Fs::exists(mecabrc_path)) {
+            args.emplace_back("-r");
+            args.emplace_back(mecabrc_path.string());
+        }
+
+        const auto dic_dir = mecab_dir / "dic";
+        if (Fs::exists(dic_dir)) {
+            args.emplace_back("-d");
+            args.emplace_back(dic_dir.string());
+        }
+        return args;
+    }
+
+    std::string JoinMeCabArguments(const std::vector<std::string>& args) {
+        std::string result;
+        for (const auto& arg : args) {
+            if (!result.empty()) {
+                result += ' ';
+            }
+            result += arg;
+        }
+        return result;
     }
 
     struct UTransliteratorDeleter final {
@@ -190,9 +234,20 @@ namespace {
 class Furigana::FuriganaImpl {
 public:
 	FuriganaImpl() {
-		tagger_.reset(MECAB_LIB.mecab_new2("-Ochasen"));
+        auto args = GetMeCabArguments();
+        std::vector<char*> argv;
+        argv.reserve(args.size());
+        for (auto& arg : args) {
+            argv.push_back(arg.data());
+        }
+
+		tagger_.reset(MECAB_LIB.mecab_new(static_cast<int>(argv.size()), argv.data()));
         if (!tagger_) {
-            throw std::runtime_error(GetMeCabError(nullptr));
+            auto error = GetMeCabError(nullptr);
+            if (error.empty()) {
+                error = "MeCab initialization failed: " + JoinMeCabArguments(args);
+            }
+            throw std::runtime_error(error);
         }
         if (MECAB_LIB.mecab_sparse_tostr(tagger_.get(), "") == nullptr) {
             throw std::runtime_error(GetMeCabError(tagger_.get()));

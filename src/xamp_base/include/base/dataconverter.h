@@ -15,7 +15,7 @@
 #ifdef XAMP_OS_WIN
 #define XAMP_VECTOR_CALL __vectorcall
 #else
-#define XAMP_VECTOR_CALL __attribute__((vectorcall))
+#define XAMP_VECTOR_CALL
 #endif
 
 // XAMP_IS_LITTLE_ENDIAN
@@ -52,8 +52,6 @@ private:
 
 XAMP_BASE_API AudioConvertContext MakeConvert(size_t convert_size);
 
-#ifdef XAMP_OS_WIN
-
 XAMP_BASE_API void ConvertInt8ToInt8SSE(const int8_t* input, int8_t* left_ptr, int8_t* right_ptr, size_t frames);
 
 XAMP_BASE_API void ConvertFloatToFloatSSE(const float* input, float* left_ptr, float* right_ptr, size_t frames);
@@ -88,8 +86,5 @@ struct DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED> {
 
 	static XAMP_BASE_API void ConvertToInt2432(int32_t* output, const float* input, const AudioConvertContext& context);
 };
-
-#endif
-
 
 XAMP_BASE_NAMESPACE_END

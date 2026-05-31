@@ -2,17 +2,21 @@
 #include <base/platform.h>
 
 #include <base/logger.h>
-#include <base/executor.h>
 
 #include <deque>
 #include <variant>
+#include <fstream>
 
+#ifdef XAMP_OS_WIN
 #include <llfio/llfio.hpp>
 #include <ntkernel-error-category/ntkernel_category.hpp>
+#endif
 
 XAMP_BASE_NAMESPACE_BEGIN
 
+#ifdef XAMP_OS_WIN
 namespace llfio = LLFIO_V2_NAMESPACE;
+#endif
 
 
 CTemporaryFile::CTemporaryFile()
@@ -60,7 +64,11 @@ std::tuple<CFilePtr, Path> CTemporaryFile::GetTempFile() {
 
 	for (auto i = 0; i < kMaxRetryCreateTempFile; ++i) {
 		auto path = temp_path / Fs::path(GetSequentialUUID() + ".tmp");
+#ifdef XAMP_OS_WIN
 		CFilePtr file_(::_wfopen(path.wstring().c_str(), L"wb+"), fclose);
+#else
+		CFilePtr file_(::fopen(path.string().c_str(), "wb+"), fclose);
+#endif
 		if (file_) {
 			return std::make_tuple(std::move(file_), path);
 		}
@@ -73,6 +81,7 @@ constexpr auto kMaxRetryCreateTempFile = 128;
 class TemporaryFile::TemporaryFileImpl {
 public:
 	TemporaryFileImpl() {
+#ifdef XAMP_OS_WIN
 		for (auto i = 0; i < kMaxRetryCreateTempFile; ++i) {
 			auto file_name = Fs::path(GetSequentialUUID() + ".tmp");
 			auto r = llfio::file_handle::temp_file(file_name,
@@ -90,9 +99,15 @@ public:
 		if (!handle_.is_valid()) {
 			throw PlatformException("Can't create temp file.");
 		}
+#else
+		auto [file, path] = xamp::base::GetTempFile();
+		file_ = std::move(file);
+		path_ = std::move(path);
+#endif
 	}
 
 	size_t Write(const void* buffer, size_t size, size_t count) {
+#ifdef XAMP_OS_WIN
 		if (!handle_.is_valid() || size == 0 || count == 0)
 			return 0;
 
@@ -110,9 +125,17 @@ public:
 		auto bytes = io_res.bytes_transferred();
 		pos_ += bytes;
 		return bytes / size;
+#else
+		if (!file_.is_open() || size == 0 || count == 0) {
+			return 0;
+		}
+		file_.write(static_cast<const char*>(buffer), static_cast<std::streamsize>(size * count));
+		return file_ ? count : 0;
+#endif
 	}
 
 	size_t Read(void* buffer, size_t size, size_t count) {
+#ifdef XAMP_OS_WIN
 		if (!handle_.is_valid() || size == 0 || count == 0)
 			return 0;
 
@@ -130,9 +153,17 @@ public:
 		auto bytes = io_res.bytes_transferred();
 		pos_ += bytes;
 		return bytes / size;
+#else
+		if (!file_.is_open() || size == 0 || count == 0) {
+			return 0;
+		}
+		file_.read(static_cast<char*>(buffer), static_cast<std::streamsize>(size * count));
+		return static_cast<size_t>(file_.gcount()) / size;
+#endif
 	}
 
 	bool Seek(uint64_t off, int origin) {
+#ifdef XAMP_OS_WIN
 		switch (origin) {
 		case SEEK_SET: pos_ = off;                 break;
 		case SEEK_CUR: pos_ += off;                 break;
@@ -144,19 +175,44 @@ public:
 		default: return false;
 		}
 		return true;
+#else
+		if (!file_.is_open()) {
+			return false;
+		}
+		const auto dir = origin == SEEK_SET
+			? std::ios::beg
+			: origin == SEEK_CUR ? std::ios::cur : std::ios::end;
+		file_.clear();
+		file_.seekg(static_cast<std::streamoff>(off), dir);
+		file_.seekp(static_cast<std::streamoff>(off), dir);
+		return !file_.fail();
+#endif
 	}
 
 	uint64_t Tell() const {
+#ifdef XAMP_OS_WIN
 		return pos_;
+#else
+		return static_cast<uint64_t>(file_.tellg());
+#endif
 	}
 
 	void Close() {
+#ifdef XAMP_OS_WIN
 		auto res = handle_.close();
 		pos_ = 0;
+#else
+		file_.close();
+		Fs::remove(path_);
+#endif
 	}
 
 	uint64_t pos_{};
+#ifdef XAMP_OS_WIN
 	llfio::file_handle handle_;
+#else
+	mutable std::fstream file_;
+#endif
 	Path path_;
 };
 
@@ -186,6 +242,7 @@ void TemporaryFile::Close() {
 	return impl_->Close();
 }
 
+#ifdef XAMP_OS_WIN
 class FastIOStream::FastIOStreamImpl {
 public:
 	FastIOStreamImpl() = default;
@@ -346,6 +403,117 @@ private:
 	llfio::file_handle fh_;
 	Path               path_;
 };
+#else
+class FastIOStream::FastIOStreamImpl {
+public:
+	FastIOStreamImpl() = default;
+
+	FastIOStreamImpl(const Path& file_path, FastIOStream::Mode m) {
+		open(file_path, m);
+	}
+
+	~FastIOStreamImpl() {
+		close();
+	}
+
+	void open(const Path& file_path, Mode m = Mode::Read) {
+		close();
+
+		path_ = file_path;
+		readonly_ = (m == Mode::Read);
+
+		std::ios::openmode mode = std::ios::binary;
+		if (m == Mode::Read) {
+			mode |= std::ios::in;
+		}
+		else if (m == Mode::ReadWriteOnlyExisting) {
+			mode |= std::ios::in | std::ios::out;
+		}
+		else {
+			mode |= std::ios::in | std::ios::out | std::ios::trunc;
+		}
+
+		stream_.open(path_, mode);
+		if (!stream_.is_open()) {
+			throw PlatformException("Can't open file.");
+		}
+	}
+
+	size_t read(void* dst, size_t len) {
+		if (!stream_.is_open() || len == 0) {
+			return 0;
+		}
+		stream_.read(static_cast<char*>(dst), static_cast<std::streamsize>(len));
+		return static_cast<size_t>(stream_.gcount());
+	}
+
+	size_t write(const void* src, size_t len) {
+		if (readonly_ || !stream_.is_open() || len == 0) {
+			return 0;
+		}
+		stream_.write(static_cast<const char*>(src), static_cast<std::streamsize>(len));
+		if (!stream_) {
+			throw PlatformException("Can't write file.");
+		}
+		return len;
+	}
+
+	void seek(int64_t off, int whence) {
+		if (!stream_.is_open()) {
+			return;
+		}
+		const auto dir = whence == SEEK_SET
+			? std::ios::beg
+			: whence == SEEK_CUR ? std::ios::cur : std::ios::end;
+		stream_.clear();
+		stream_.seekg(static_cast<std::streamoff>(off), dir);
+		stream_.seekp(static_cast<std::streamoff>(off), dir);
+	}
+
+	uint64_t tell() const {
+		return static_cast<uint64_t>(stream_.tellg());
+	}
+
+	uint64_t size() const {
+		if (!stream_.is_open()) {
+			return 0;
+		}
+		const auto current = stream_.tellg();
+		stream_.seekg(0, std::ios::end);
+		const auto file_size = stream_.tellg();
+		stream_.seekg(current, std::ios::beg);
+		return static_cast<uint64_t>(file_size);
+	}
+
+	void truncate(uint64_t new_size) {
+		stream_.flush();
+		Fs::resize_file(path_, new_size);
+	}
+
+	bool is_open() const {
+		return stream_.is_open();
+	}
+
+	bool read_only() const {
+		return readonly_;
+	}
+
+	const Path& path() const {
+		return path_;
+	}
+
+	void close() {
+		if (stream_.is_open()) {
+			stream_.close();
+		}
+	}
+
+private:
+	bool readonly_{ true };
+	mutable std::fstream stream_;
+	Path path_;
+};
+#endif
 
 FastIOStream::FastIOStream()
 	: impl_(MakeAlign<FastIOStreamImpl>()) {

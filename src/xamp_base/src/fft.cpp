@@ -1,4 +1,5 @@
 #include <functional>
+#include <algorithm>
 
 #include <base/memory.h>
 #include <base/buffer.h>
@@ -8,13 +9,13 @@
 #include <base/stl.h>
 #include <base/exception.h>
 #include <base/fft.h>
+#include <base/unique_handle.h>
 
-#ifdef XAMP_OS_WIN
+#if defined(XAMP_OS_WIN) || defined(XAMP_OS_LINUX)
 #include <immintrin.h>
 
 #include "fftlib_private.h"
-#else
-#include <base/unique_handle.h>
+#elif defined(XAMP_OS_MAC)
 #include <Accelerate/Accelerate.h>
 #endif
 
@@ -107,7 +108,7 @@ private:
 	std::move_only_function<float(size_t, size_t)> dispatch_;
 };
 
-#ifdef XAMP_OS_WIN
+#if defined(XAMP_OS_WIN) || defined(XAMP_OS_LINUX)
 
 #define IfFailedThrowMKL(s) \
 	if ((s) != 0 && !MklDLL.DftiErrorClass((s), DFTI_NO_ERROR)) { \
@@ -189,7 +190,7 @@ private:
 	DftiDescriptor descriptor_;
 };
 
-#else
+#elif defined(XAMP_OS_MAC)
 
 class FFT::FFTImpl {
 public:
@@ -250,6 +251,64 @@ private:
 	ScopedArray<float> input_;
 	ScopedArray<float> re_;
 	ScopedArray<float> im_;
+	ComplexValarray output_;
+};
+
+#else
+
+class FFT::FFTImpl {
+public:
+	FFTImpl() = default;
+
+	void Initialize(size_t frame_size) {
+		XAMP_ASSERT(IsPowerOfTwo(frame_size));
+		frame_size_ = frame_size;
+		complex_size_ = ComplexSize(frame_size);
+		work_.assign(frame_size_, Complex{});
+		output_.assign(complex_size_, Complex{});
+	}
+
+	const ComplexValarray& Forward(float const* signals, size_t frame_size) {
+		XAMP_ASSERT(frame_size_ == frame_size);
+
+		for (size_t i = 0; i < frame_size_; ++i) {
+			work_[i] = Complex(signals[i], 0.0f);
+		}
+
+		for (size_t i = 1, j = 0; i < frame_size_; ++i) {
+			size_t bit = frame_size_ >> 1;
+			for (; j & bit; bit >>= 1) {
+				j ^= bit;
+			}
+			j ^= bit;
+			if (i < j) {
+				std::swap(work_[i], work_[j]);
+			}
+		}
+
+		for (size_t len = 2; len <= frame_size_; len <<= 1) {
+			const auto angle = -2.0f * XAMP_PI / static_cast<float>(len);
+			const Complex wlen(std::cos(angle), std::sin(angle));
+			for (size_t i = 0; i < frame_size_; i += len) {
+				Complex w(1.0f, 0.0f);
+				for (size_t j = 0; j < len / 2; ++j) {
+					const auto u = work_[i + j];
+					const auto v = work_[i + j + len / 2] * w;
+					work_[i + j] = u + v;
+					work_[i + j + len / 2] = u - v;
+					w *= wlen;
+				}
+			}
+		}
+
+		std::copy_n(work_.begin(), complex_size_, output_.begin());
+		return output_;
+	}
+
+private:
+	size_t frame_size_{ 0 };
+	size_t complex_size_{ 0 };
+	ComplexValarray work_;
 	ComplexValarray output_;
 };
 

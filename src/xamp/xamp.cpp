@@ -3,7 +3,10 @@
 #include <xamp.h>
 #include <deviceselectormenu.h>
 #include <sharedmodeplayback.h>
+
+#ifdef Q_OS_WIN
 #include <QSimpleUpdater.h>
+#endif
 
 #include <algorithm>
 #include <iterator>
@@ -11,6 +14,8 @@
 #include <QAction>
 #include <QApplication>
 #include <QColor>
+#include <QCoreApplication>
+#include <QEvent>
 #include <QGuiApplication>
 #include <QMap>
 #include <QProcess>
@@ -22,6 +27,7 @@
 
 #include <base/ithreadpoolexecutor.h>
 #include <base/crashhandler.h>
+#include <base/scopeguard.h>
 #include <base/stopwatch.h>
 
 #include <player/audio_player.h>
@@ -72,6 +78,11 @@ namespace {
             track_count += CountTracks(tracks);
         }
         return track_count;
+    }
+
+    bool IsStopped(PlayerState state) {
+        return state == PlayerState::PLAYER_STATE_STOPPED
+            || state == PlayerState::PLAYER_STATE_USER_STOPPED;
     }
 
     void CollectAlbumIds(const std::forward_list<TrackInfo>& tracks, QSet<int32_t>& album_ids) {
@@ -176,6 +187,27 @@ namespace {
         const EqSettings& settings) {
         player->SetParametricEq(enabled, settings);
     }
+
+    template <typename Service>
+    void destroyWorkerService(QScopedPointer<Service>& service, QThread& thread) {
+        auto* object = service.take();
+        if (object == nullptr) {
+            return;
+        }
+
+        const auto destroy_object = [object]() {
+            object->cancelRequested();
+            object->deleteLater();
+            QCoreApplication::sendPostedEvents(object, QEvent::DeferredDelete);
+        };
+
+        if (thread.isRunning() && object->thread() != QThread::currentThread()) {
+            QMetaObject::invokeMethod(object, destroy_object, Qt::BlockingQueuedConnection);
+        }
+        else {
+            destroy_object();
+        }
+    }
 }
 
 Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
@@ -184,6 +216,14 @@ Xamp::Xamp(QWidget* parent, const std::shared_ptr<IAudioPlayer>& player)
     thread_pool_ = ThreadPoolBuilder::MakeBackgroundThreadPool();
     setAttribute(Qt::WA_DontCreateNativeAncestors);
     ui_.setupUi(this);
+    ui_.verticalSpacer->changeSize(10, 0, QSizePolicy::Fixed, QSizePolicy::Minimum);
+    ui_.verticalSpacer_4->changeSize(10, 0, QSizePolicy::Fixed, QSizePolicy::Minimum);
+    ui_.horizontalLayout->setStretch(0, 0);
+    ui_.horizontalLayout->setStretch(1, 0);
+    ui_.horizontalLayout->setStretch(2, 0);
+    ui_.horizontalLayout->setStretch(3, 1);
+    ui_.currentView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    ui_.horizontalLayout->invalidate();
     device_menu_.reset(new DeviceSelectorMenu(ui_.selectDeviceButton, ui_.deviceDescLabel, this));
 }
 
@@ -198,22 +238,28 @@ void Xamp::pushWidget(QWidget* widget) {
 }
 
 void Xamp::setCurrentTab(int32_t table_id) {
+    const auto set_current_widget = [this](QWidget* widget) {
+        if (widget != nullptr && ui_.currentView->indexOf(widget) >= 0) {
+            ui_.currentView->setCurrentWidget(widget);
+        }
+    };
+
     switch (table_id) {
     case TAB_MUSIC_LIBRARY:
         break;
     case TAB_FILE_EXPLORER:
-        ui_.currentView->setCurrentWidget(file_explorer_page_.get());
+        set_current_widget(file_explorer_page_.get());
         return;
         break;
     case TAB_RICH_PLAYLIST:
-        ui_.currentView->setCurrentWidget(rich_playlist_page_.get());
+        set_current_widget(rich_playlist_page_.get());
         return;
         break;
     case TAB_LYRICS:
-        ui_.currentView->setCurrentWidget(lrc_page_.get());
+        set_current_widget(lrc_page_.get());
         break;
     case TAB_CD:
-        ui_.currentView->setCurrentWidget(cd_page_.get());
+        set_current_widget(cd_page_.get());
         return;
         break;
     }
@@ -272,19 +318,13 @@ void Xamp::destory() {
         }
         };
 
-    if (file_system_service_ != nullptr) {
-        file_system_service_->cancelRequested();
-    }
+    destroyWorkerService(file_system_service_, file_system_service_thread_);
     quit_and_wait_thread(file_system_service_thread_);
 
-    if (album_cover_service_ != nullptr) {
-        album_cover_service_->cancelRequested();
-    }
+    destroyWorkerService(album_cover_service_, album_cover_service_thread_);
     quit_and_wait_thread(album_cover_service_thread_);
 
-    if (background_service_ != nullptr) {
-        background_service_->cancelRequested();
-    }
+    destroyWorkerService(background_service_, background_service_thread_);
     quit_and_wait_thread(background_service_thread_);
     qGuiDb.Close();
     XampCrashHandler.Cleanup();
@@ -408,7 +448,7 @@ void Xamp::playLocalFile(const QString& file_name, bool queue, const PlayListEnt
         is_asio_device);
 
     if (playback_plan.needs_resample) {
-        player_->GetDspManager()->AddPreDSP(makeSoxrSampleRateConverter(playback_plan.target_sample_rate));
+        player_->GetDspManager()->AddPreDSP(makeSrcSampleRateConverter());
     }
 
     if (qAppSettings.valueAsBool(kAppSettingEnableEQ)) {
@@ -425,14 +465,17 @@ void Xamp::playLocalFile(const QString& file_name, bool queue, const PlayListEnt
         auto file_stream = StreamFactory::MakeFileStream(file_name.toStdWString(),
             playback_plan.output_mode,
             playback_plan.use_mqa_decode);
+
+        auto use_mqa_decode = dynamic_cast<MqaFileStream*>(file_stream.get()) != nullptr;
         const auto byte_format = resolvePreparedPlaybackByteFormat(
             playback_plan,
-            dynamic_cast<MqaFileStream*>(file_stream.get()) != nullptr);
+            use_mqa_decode);
 
         player_->Open(std::move(file_stream),
             device_info_.value(),
             playback_plan.target_sample_rate,
             playback_plan.output_mode);
+
         player_->GetDspManager()->SetSampleWriter();
         player_->PrepareToPlay(byte_format);
         player_->BufferStream(0, 0, std::nullopt);
@@ -527,26 +570,22 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     if (!qDaoFacade.playlist_dao.isPlaylistExist(kDefaultPlaylistId)) {
         qDaoFacade.playlist_dao.addPlaylist(
             tr("Default Playlist"),
-            kDefaultPlaylistId,
-            StoreType::LOCAL_STORE);
+            kDefaultPlaylistId);
     }
     if (!qDaoFacade.playlist_dao.isPlaylistExist(kFileSystemPlaylistId)) {
         qDaoFacade.playlist_dao.addPlaylist(
             tr("FileSystem Playlist"),
-            kFileSystemPlaylistId,
-            StoreType::LOCAL_STORE);
+            kFileSystemPlaylistId);
     }    
     if (!qDaoFacade.playlist_dao.isPlaylistExist(kCdPlaylistId)) {
         qDaoFacade.playlist_dao.addPlaylist(
             tr("CD Playlist"),
-            kCdPlaylistId,
-            StoreType::LOCAL_STORE);
+            kCdPlaylistId);
     }
     if (!qDaoFacade.playlist_dao.isPlaylistExist(kAlbumPlaylistId)) {
         qDaoFacade.playlist_dao.addPlaylist(
             tr("Album Playlist"),
-            kAlbumPlaylistId,
-            StoreType::LOCAL_STORE);
+            kAlbumPlaylistId);
     }
 
     (void)QObject::connect(ui_.naviBarButton, &QToolButton::clicked, [this]() {
@@ -635,8 +674,12 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
             if (!spectrogram_tracks_playback_) {
                 return;
             }
+            if (IsStopped(player_->GetState())) {
+                return;
+            }
             try {
                 is_seeking_ = true;
+                XAMP_ON_SCOPE_EXIT(is_seeking_ = false);
                 player_->Seek(sec);
                 qTheme.setPlayOrPauseButton(ui_.playButton, true);
                 main_window_->setTaskbarPlayingResume();
@@ -645,7 +688,6 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
                 player_->Stop(false);
                 logAndShowMessage(std::current_exception());
             }
-            is_seeking_ = false;
         });
 
     (void)QObject::connect(state_adapter_.get(),
@@ -685,8 +727,17 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         });
 
     (void)QObject::connect(ui_.seekSlider, &WaveformSlider::leftButtonValueChanged, [this](auto value) {
+        if (IsStopped(player_->GetState())) {
+            ui_.seekSlider->setSeekEnabled(false);
+            qTheme.setPlayOrPauseButton(ui_.playButton, false);
+            ui_.seekSlider->setValue(0);
+            ui_.startPosLabel->setText(formatDuration(0));
+            main_window_->resetTaskbarProgress();
+            return;
+        }
         try {
             is_seeking_ = true;
+            XAMP_ON_SCOPE_EXIT(is_seeking_ = false);
             player_->Seek(value / 1000.0);
             qTheme.setPlayOrPauseButton(ui_.playButton, true);
             main_window_->setTaskbarPlayingResume();
@@ -695,7 +746,6 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
             player_->Stop(false);
             logAndShowMessage(std::current_exception());
         }
-        is_seeking_ = false;
         });
 
     (void)QObject::connect(ui_.eqButton, &QToolButton::clicked, [this]() {
@@ -731,8 +781,6 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         dialog->setFixedSize(dialog->size());
         dialog->exec();
         });
-
-	setCurrentTab(TAB_LYRICS);
 
     setupSystemMenu();
 
@@ -829,7 +877,6 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
             const auto track_count = CountTrackBatches(results);
             qDatabaseFacade.insertMultipleTrackInfo(results,
                 playlist_id,
-                StoreType::LOCAL_STORE,
                 QString(),
                 DatabaseFacade::kSkipFetchCover);
             const auto insert_seconds = stage_elapsed.ElapsedSeconds();
@@ -856,7 +903,6 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
             const auto track_count = CountTracks(result);
             qDatabaseFacade.insertTrackInfo(result,
                 playlist_id,
-                StoreType::LOCAL_STORE,
                 QString(),
                 DatabaseFacade::kSkipFetchCover);
             const auto insert_seconds = stage_elapsed.ElapsedSeconds();
@@ -923,10 +969,12 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     background_service_->moveToThread(&background_service_thread_);
     background_service_thread_.start(QThread::LowestPriority);
 
+#ifdef Q_OS_WIN
     (void)QObject::connect(this,
         &Xamp::fetchCdInfo,
         background_service_.get(),
         &BackgroundService::onFetchCdInfo);
+#endif
 
     (void)QObject::connect(this,
         &Xamp::searchLyrics,
@@ -961,10 +1009,12 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         this,
         &Xamp::OnReadMusicBrainzAlbums);
 
+#ifdef Q_OS_WIN
     configureUpdater(false);
     QTimer::singleShot(std::chrono::seconds(5), this, [this]() {
         QSimpleUpdater::getInstance()->checkForUpdates(kUpdateDefinitionsUrl);
         });
+#endif
 }
 
 void Xamp::OnReadMusicBrainzAlbums(const QList<PlayListEntity>& entities) {
@@ -1001,9 +1051,11 @@ void Xamp::setupSystemMenu() {
     (void)QObject::connect(preference_action_, &QAction::triggered, this, &Xamp::showPreference);
     main_window_->addSystemMenuAction(preference_action_);
 
+#ifdef Q_OS_WIN
     auto* check_for_update_action = new QAction(tr("Check for update"), this);
     (void)QObject::connect(check_for_update_action, &QAction::triggered, this, &Xamp::onCheckForUpdate);
     main_window_->addSystemMenuAction(check_for_update_action);
+#endif
 
     auto* about_action = new QAction(tr("About") + "..."_str, this);
     (void)QObject::connect(about_action, &QAction::triggered, this, &Xamp::showAbout);
@@ -1084,6 +1136,7 @@ void Xamp::showEncodeJobs(int32_t encode_type, const QList<PlayListEntity>& enti
 }
 
 void Xamp::configureUpdater(bool notify_on_finish) {
+#ifdef Q_OS_WIN
     auto* updater = QSimpleUpdater::getInstance();
     updater->setModuleName(kUpdateDefinitionsUrl, kApplicationTitle);
     updater->setModuleVersion(kUpdateDefinitionsUrl, kApplicationVersion);
@@ -1104,9 +1157,13 @@ void Xamp::configureUpdater(bool notify_on_finish) {
         this,
         &Xamp::installDownloadedUpdate,
         Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
+#else
+    (void)notify_on_finish;
+#endif
 }
 
 void Xamp::installDownloadedUpdate(const QString& url, const QString& filepath) {
+#ifdef Q_OS_WIN
     if (url != kUpdateDefinitionsUrl || filepath.isEmpty()) {
         return;
     }
@@ -1124,12 +1181,17 @@ void Xamp::installDownloadedUpdate(const QString& url, const QString& filepath) 
     else {
         XMessageBox::showError(tr("Failed to start the update installer."));
     }
+#else
+    (void)url;
+    (void)filepath;
+#endif
 }
 
 void Xamp::onCheckForUpdate() {
+#ifdef Q_OS_WIN
     configureUpdater(true);
     QSimpleUpdater::getInstance()->checkForUpdates(kUpdateDefinitionsUrl);
-
+#endif
 }
 
 void Xamp::showAbout() {
@@ -1217,7 +1279,6 @@ void Xamp::onDeviceStateChanged(DeviceState state, const QString& device_id) {
 void Xamp::onUpdateCdTrackInfo(const QString& disc_id, const std::forward_list<TrackInfo>& track_infos) {
     qDatabaseFacade.insertTrackInfo(track_infos,
         kCdPlaylistId,
-        StoreType::LOCAL_STORE,
         disc_id,
         nullptr);
 

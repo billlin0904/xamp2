@@ -5,9 +5,13 @@
 #include <base/logger.h>
 #include <base/exception.h>
 
-#ifdef XAMP_OS_WIN
+#include <array>
+
+#if defined(XAMP_OS_WIN) || defined(XAMP_OS_LINUX)
 
 XAMP_BASE_NAMESPACE_BEGIN
+
+#ifdef XAMP_OS_WIN
 
 MKLLib::MKLLib() try
 	: mkl_core_(OpenSharedLibrary("mkl_core.2"))
@@ -38,8 +42,34 @@ catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 }
 
+#else
+
+MKLLib::MKLLib()
+	: MKL_malloc(&::MKL_malloc)
+	, MKL_free(&::MKL_free)
+	, DftiErrorClass(&::DftiErrorClass)
+	, DftiFreeDescriptor(&::DftiFreeDescriptor)
+	, DftiCreateDescriptor_s_1d(&::DftiCreateDescriptor_s_1d)
+	, DftiCreateDescriptor_s_md(&::DftiCreateDescriptor_s_md)
+	, DftiCreateDescriptor_d_1d(&::DftiCreateDescriptor_d_1d)
+	, DftiCreateDescriptor_d_md(&::DftiCreateDescriptor_d_md)
+	, DftiComputeForward(&::DftiComputeForward)
+	, DftiCreateDescriptor_(&::DftiCreateDescriptor)
+	, DftiSetValue(&::DftiSetValue)
+	, DftiCommitDescriptor(&::DftiCommitDescriptor)
+	, DftiComputeBackward(&::DftiComputeBackward)
+	, DftiErrorMessage(&::DftiErrorMessage) {
+}
+
+#endif
+
 void LoadFFTLib() {
 	SharedSingleton<MKLLib>::GetInstance();
+#ifdef XAMP_OS_LINUX
+	std::array<char, 256> version{};
+	mkl_get_version_string(version.data(), static_cast<int>(version.size()));
+	XAMP_LOG_DEBUG("MKL version: {}", version.data());
+#endif
 }
 
 XAMP_BASE_NAMESPACE_END

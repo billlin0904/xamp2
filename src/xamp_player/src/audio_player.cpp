@@ -13,7 +13,9 @@
 #include <base/trackinfo.h>
 
 #include <output_device/api.h>
+#ifdef XAMP_OS_WIN
 #include <output_device/win32/asiodevicetype.h>
+#endif
 #include <output_device/idsddevice.h>
 #include <output_device/iaudiodevicemanager.h>
 
@@ -186,7 +188,7 @@ void AudioPlayer::OpenStream(ArchiveEntry archive_entry, DsdModes dsd_mode) {
     ReadStreamInfo(dsd_mode, file_stream_);
     XAMP_LOG_D(logger_, "Open stream type: {} {} duration:{:.2f} sec.",
         file_stream_->GetDescription(),
-        audio_config_.dsd_mode,
+        EnumToString(audio_config_.dsd_mode),
         playback_state_.stream_duration);
 }
 
@@ -198,7 +200,7 @@ void AudioPlayer::OpenStream(ScopedPtr<FileStream> file_stream, DsdModes dsd_mod
     ReadStreamInfo(dsd_mode, file_stream_);
     XAMP_LOG_D(logger_, "Open stream type: {} {} duration:{:.2f} sec.",
         file_stream_->GetDescription(),
-        audio_config_.dsd_mode,
+        EnumToString(audio_config_.dsd_mode),
         playback_state_.stream_duration);
 }
 
@@ -267,7 +269,10 @@ void AudioPlayer::Stop(bool signal_to_stop,
         device_id_.clear();
         device_.reset();
     }
-    file_stream_.reset();
+    {
+        std::lock_guard<FastMutex> stream_lock{ stream_mutex_ };
+        file_stream_.reset();
+    }
     fifo_.Clear();
 }
 
@@ -647,12 +652,18 @@ void AudioPlayer::Seek(double stream_time) {
     if (!playback_state_.is_seeking.compare_exchange_strong(expected, true)) {
         return;
     }
+    XAMP_ON_SCOPE_EXIT(playback_state_.is_seeking = false);
 
     try {
         read_finish_and_wait_seek_signal_cond_.notify_all();
         Pause();
 
         std::unique_lock<FastMutex> stream_lock{ stream_mutex_ };
+        if (!file_stream_) {
+            XAMP_LOG_D(logger_, "Seek skipped because file stream is closed.");
+            Resume();
+            return;
+        }
         DoSeek(stream_time);
     }
     catch (const std::exception& e) {
@@ -663,8 +674,6 @@ void AudioPlayer::Seek(double stream_time) {
         XAMP_LOG_D(logger_, "Seek failed.");
         Resume();
     }
-
-    playback_state_.is_seeking = false;
 }
 
 void AudioPlayer::SetParametricEq(bool enabled, const EqSettings& settings) {
@@ -728,7 +737,7 @@ void AudioPlayer::DoSeek(double stream_time) {
     XAMP_LOG_D(logger_, "Stream duration:{:.2f} seeking:{:.2f} sec, end time:{:.2f} sec.",
         file_stream_->GetDuration(),
         stream_time,
-        sample_end_time_);
+        sample_end_time_.load());
     auto seek_time = static_cast<uint32_t>(stream_time * 1000.0);
     if (seek_time >playback_state_.stream_time_sec_unit) {
         seek_time = static_cast<uint32_t>(Round(stream_time, 2) * 1000.0);
@@ -775,7 +784,7 @@ void AudioPlayer::SetReadSampleSize(uint32_t num_samples) {
     XAMP_LOG_D(logger_,
         "Output buffer:{} device format: {} num_read_sample: {} fifo buffer: {}.",
         device_->GetBufferSize(),
-        output_format_,
+        output_format_.ToString(),
         String::FormatBytes(num_read_buffer_size_),
         String::FormatBytes(fifo_.GetSize()));
 }
@@ -928,7 +937,10 @@ void AudioPlayer::Play() {
         }
 
         XAMP_LOG_D(p->logger_, "Stream thread done!");
-        p->file_stream_.reset();
+        {
+            std::lock_guard<FastMutex> stream_lock{ p->stream_mutex_ };
+            p->file_stream_.reset();
+        }
     }, ExecuteFlags::EXECUTE_LONG_RUNNING);
 
     if (stream_task_started_future.wait_for(kReadSampleWaitTimeMs) == std::future_status::timeout) {
@@ -1039,7 +1051,7 @@ void AudioPlayer::PrepareToPlay(ByteFormat byte_format,
 
     dsp_manager_->Initialize(config_);
 	sample_end_time_ = file_stream_->GetDuration();
-    XAMP_LOG_D(logger_, "Stream end time: {:.2f} sec.", sample_end_time_);    
+    XAMP_LOG_D(logger_, "Stream end time: {:.2f} sec.", sample_end_time_.load());    
 }
 
 Property& AudioPlayer::GetDspConfig() {

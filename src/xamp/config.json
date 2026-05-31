@@ -22,7 +22,7 @@
                 "FileSystemService": "info",
                 "FileSystemServiceThreadPool": "info",
                 "GUIThreadPool": "info",
-                "Http": "debug",
+                "Http": "info",
                 "ImageCache": "info",
                 "LibAv": "info",
                 "MqaFileStreamImpl": "info",
@@ -56,6 +56,6 @@
         }
     },
     "Src": {
-        "resampleSampleRate": 48000
+        "resampleSampleRate": 176400
     }
 }

@@ -1,31 +1,103 @@
-project(xamp_base)
+cmake_minimum_required(VERSION 3.24)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS ON)
+project(xamp_base
+    LANGUAGES CXX)
 
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "" FORCE)
 
-if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/debug)
-    message(STATUS "Build debug mode")
-    set(BUILD_PATH debug)    
+include("${CMAKE_SOURCE_DIR}/cmake/XampDependencyHelpers.cmake")
+
+file(GLOB_RECURSE XAMP_BASE_SOURCES CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
+
+if(NOT WIN32 AND NOT APPLE)
+    list(FILTER XAMP_BASE_SOURCES EXCLUDE REGEX ".*/src/fastconditionvariable\\.cpp$")
+endif()
+
+add_library(xamp_base SHARED
+    ${XAMP_BASE_SOURCES})
+
+target_compile_features(xamp_base
+    PUBLIC
+        cxx_std_23)
+
+target_compile_definitions(xamp_base
+    PRIVATE
+        BASE_API_EXPORTS)
+
+target_include_directories(xamp_base
+    PUBLIC
+        "${CMAKE_CURRENT_LIST_DIR}/include"
+    PRIVATE
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/spdlog/include"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/utfcpp/source"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/robin_hood"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/uchardet/src"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/llfio/include"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/llfio/include/quickcpplib/include"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/llfio/include/outcome/include")
+
+find_package(Threads REQUIRED)
+find_package(LibArchive REQUIRED)
+
+target_link_libraries(xamp_base
+    PRIVATE
+        Threads::Threads
+        LibArchive::LibArchive)
+
+if(UNIX AND NOT APPLE)
+    if(DEFINED VCPKG_TARGET_TRIPLET)
+        set(XAMP_MKL_VCPKG_ROOT "${CMAKE_BINARY_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}")
+    else()
+        set(XAMP_MKL_VCPKG_ROOT "${CMAKE_BINARY_DIR}/vcpkg_installed/x64-linux")
+    endif()
+    set(MKL_LINK static CACHE STRING "" FORCE)
+    set(MKL_THREADING sequential CACHE STRING "" FORCE)
+    set(MKL_INTERFACE lp64 CACHE STRING "" FORCE)
+    find_package(MKL CONFIG REQUIRED
+        PATHS "${XAMP_MKL_VCPKG_ROOT}"
+        NO_DEFAULT_PATH)
+
+    find_package(ICU REQUIRED COMPONENTS uc i18n)
+    xamp_find_imported_library(XAMP_UCHARDET_TARGET XampUchardet
+        REQUIRED
+        HEADER uchardet.h
+        LIB_NAMES uchardet
+        PKG uchardet)
+    xamp_find_imported_library(XAMP_OPENCC_TARGET XampOpenCC
+        REQUIRED
+        HEADER opencc.h
+        LIB_NAMES opencc
+        INCLUDE_SUFFIXES opencc
+        PKG opencc)
+    xamp_find_imported_library(XAMP_MECAB_TARGET XampMeCab
+        REQUIRED
+        HEADER mecab.h
+        LIB_NAMES mecab
+        INCLUDE_SUFFIXES mecab
+        PKG mecab)
+
+    target_link_libraries(xamp_base
+        PRIVATE
+            MKL::MKL
+            ${XAMP_UCHARDET_TARGET}
+            ${XAMP_OPENCC_TARGET}
+            ${XAMP_MECAB_TARGET}
+            ICU::uc
+            ICU::i18n
+            dl
+            uuid)
+endif()
+
+if(MSVC)
+    target_compile_options(xamp_base
+        PRIVATE
+            /utf-8)
 else()
-    set(CMAKE_VERBOSE_MAKEFILE ON)
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/release)
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG -O3 -ftree-vectorize -march=native -mtune=native -mavx2 -flto=thin -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer")
-    message(STATUS "Build release mode")
-    set(BUILD_PATH release)
-endif(${CMAKE_BUILD_TYPE} STREQUAL Debug)
-
-
-include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
-include_directories("../thirdparty/spdlog/include/")
-include_directories("../thirdparty/utfcpp/source/")
-include_directories("../thirdparty/robin_hood/")
-include_directories("../thirdparty/libiconv/include/")
-include_directories("../thirdparty/uchardet/src/")
-
-file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
-
-add_library(${PROJECT_NAME} SHARED ${SOURCES})
+    target_compile_options(xamp_base
+        PRIVATE
+            -Wall
+            -Wextra
+            -Wpedantic
+            -fpermissive)
+endif()

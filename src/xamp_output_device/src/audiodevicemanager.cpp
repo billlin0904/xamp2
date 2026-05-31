@@ -1,5 +1,6 @@
 #include <output_device/audiodevicemanager.h>
 #include <output_device/api.h>
+#include <output_device/nulloutputdevicetype.h>
 
 #ifdef XAMP_OS_WIN
 #include <mfapi.h>
@@ -10,17 +11,20 @@
 #include <output_device/win32/xaudio2devicetype.h>
 #include <output_device/win32/sharedwasapidevicetype.h>
 #include <output_device/win32/win32devicestatenotification.h>
-#include <output_device/win32/nulloutputdevicetype.h>
 #include <output_device/win32/mmcss.h>
 #include <output_device/win32/asiodevice.h>
 #include <output_device/win32/asiodevicetype.h>
-#else
+#elif defined(XAMP_OS_MAC)
 #include <IOKit/pwr_mgt/IOPMLib.h>
 #include <output_device/osx/osx_utitl.h>
 #include <output_device/osx/coreaudiodevicetype.h>
-#include <output_device/win32/nulloutputdevicetype.h>
 #include <output_device/osx/hogcoreaudiodevicetype.h>
 #include <output_device/osx/coreaudiodevicestatenotification.h>
+#elif defined(XAMP_OS_LINUX)
+#include <output_device/posix/alsaoutputdevicetype.h>
+#include <output_device/posix/pipewiredevicestatenotification.h>
+#include <output_device/posix/pipewireoutputdevicetype.h>
+#include <output_device/posix/pulseoutputdevicetype.h>
 #endif
 
 #include <base/base.h>
@@ -36,8 +40,11 @@ public:
 #ifdef XAMP_OS_WIN
     using DeviceStateNotification = win32::Win32DeviceStateNotification;
     using DeviceStateNotificationPtr = CComPtr<DeviceStateNotification>;
-#else
+#elif defined(XAMP_OS_MAC)
     using DeviceStateNotification = osx::CoreAudioDeviceStateNotification;
+    using DeviceStateNotificationPtr = ScopedPtr<DeviceStateNotification>;
+#elif defined(XAMP_OS_LINUX)
+    using DeviceStateNotification = posix::PipeWireDeviceStateNotification;
     using DeviceStateNotificationPtr = ScopedPtr<DeviceStateNotification>;
 #endif
 
@@ -46,17 +53,25 @@ public:
     void SetCallback(const std::weak_ptr<IDeviceStateListener> & callback) {
 #ifdef XAMP_OS_WIN
         notification_ = new DeviceStateNotification(callback);
-#else
+#elif defined(XAMP_OS_MAC)
         notification_.reset(new DeviceStateNotification(callback));
+#elif defined(XAMP_OS_LINUX)
+        notification_.reset(new DeviceStateNotification(callback));
+#else
+        (void)callback;
 #endif
     }
 
     void Run() const {
+#if defined(XAMP_OS_WIN) || defined(XAMP_OS_MAC) || defined(XAMP_OS_LINUX)
         notification_->Run();
+#endif
     }
 
 private:
+#if defined(XAMP_OS_WIN) || defined(XAMP_OS_MAC) || defined(XAMP_OS_LINUX)
     DeviceStateNotificationPtr notification_;
+#endif
 };
 
 #define XAMP_REGISTER_DEVICE_TYPE(DeviceTypeClass) \
@@ -103,11 +118,19 @@ void AudioDeviceManager::Initial() {
         break;
     default:;
     }
-#else
+#elif defined(XAMP_OS_MAC)
     using namespace osx;
     XAMP_REGISTER_DEVICE_TYPE(CoreAudioDeviceType);
     XAMP_REGISTER_DEVICE_TYPE(HogCoreAudioDeviceType);
-    XAMP_REGISTER_DEVICE_TYPE(win32::NullOutputDeviceType);
+    XAMP_REGISTER_DEVICE_TYPE(NullOutputDeviceType);
+#elif defined(XAMP_OS_LINUX)
+    using namespace posix;
+    XAMP_REGISTER_DEVICE_TYPE(PipeWireOutputDeviceType);
+    XAMP_REGISTER_DEVICE_TYPE(PulseOutputDeviceType);
+    XAMP_REGISTER_DEVICE_TYPE(AlsaOutputDeviceType);
+    XAMP_REGISTER_DEVICE_TYPE(NullOutputDeviceType);
+#else
+    XAMP_REGISTER_DEVICE_TYPE(NullOutputDeviceType);
 #endif
     is_initialized_ = true;
 }
@@ -123,8 +146,12 @@ void AudioDeviceManager::Clear() {
 ScopedPtr<IDeviceType> AudioDeviceManager::CreateDefaultDeviceType() const {
 #ifdef XAMP_OS_WIN
     return Create(XAMP_UUID_OF(win32::SharedWasapiDeviceType));
-#else
+#elif defined(XAMP_OS_MAC)
     return Create(XAMP_UUID_OF(osx::CoreAudioDeviceType));
+#elif defined(XAMP_OS_LINUX)
+    return Create(XAMP_UUID_OF(posix::AlsaOutputDeviceType));
+#else
+    return Create(XAMP_UUID_OF(NullOutputDeviceType));
 #endif
 }
 
@@ -168,9 +195,16 @@ bool AudioDeviceManager::IsDeviceTypeExist(Uuid const& id) const {
 bool AudioDeviceManager::IsSharedDevice(const Uuid& type) const {
 #ifdef XAMP_OS_WIN
     return type == XAMP_UUID_OF(win32::SharedWasapiDeviceType);
-#else
-    return type == XAMP_UUID_OF(win32::NullOutputDeviceType)
+#elif defined(XAMP_OS_MAC)
+    return type == XAMP_UUID_OF(NullOutputDeviceType)
            || type == XAMP_UUID_OF(osx::CoreAudioDeviceType);
+#elif defined(XAMP_OS_LINUX)
+    return type == XAMP_UUID_OF(posix::PipeWireOutputDeviceType)
+        || type == XAMP_UUID_OF(posix::PulseOutputDeviceType)
+        || type == XAMP_UUID_OF(posix::AlsaOutputDeviceType)
+        || type == XAMP_UUID_OF(NullOutputDeviceType);
+#else
+    return type == XAMP_UUID_OF(NullOutputDeviceType);
 #endif
 }
 

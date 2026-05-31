@@ -24,7 +24,6 @@ public:
         int32_t artist_id, 
         int64_t album_time,
         uint32_t year,
-        StoreType store_type,
         const QString& disc_id = kEmptyString,
         bool is_hires = false);
     void updateAlbum(int32_t album_id, const QString& album);

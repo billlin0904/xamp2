@@ -1,51 +1,80 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.24)
 
-option(LIBRARY_TESTS "Build unit tests" OFF)
+project(xamp_output_device LANGUAGES CXX)
 
-project(xamp_output_device)
+if(NOT TARGET xamp_base)
+    add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../xamp_base" "${CMAKE_BINARY_DIR}/xamp_base")
+endif()
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS ON)
-
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")
-
-if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/debug)
-    message(STATUS "Build debug mode")
-    set(BUILD_PATH debug)
-else()
-    set(CMAKE_VERBOSE_MAKEFILE ON)
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/release)
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG -O3 -ftree-vectorize -march=native -mtune=native -mavx2 -flto=thin -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer")
-    message(STATUS "Build release mode")
-    set(BUILD_PATH release)
-endif(${CMAKE_BUILD_TYPE} STREQUAL Debug)
-
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/${BUILD_PATH})
-
-include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
-include_directories("../xamp_base/include")
-include_directories("../thirdparty/bass/include/")
-include_directories("../thirdparty/spdlog/include/")
-include_directories("../thirdparty/robin_hood/")
-
-file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
-
-find_library (
-    LIB_XAMP_BASE
-    NAMES xamp_base libxamp_base
-    HINTS "${CMAKE_CURRENT_LIST_DIR}/../xamp_base/${BUILD_PATH}/"
-    NO_DEFAULT_PATH
+set(XAMP_OUTPUT_DEVICE_SOURCES
+    "${CMAKE_CURRENT_LIST_DIR}/src/api.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/src/audiodevicemanager.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/src/nulloutputdevice.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/src/nulloutputdevicetype.cpp"
 )
 
-message(STATUS "LIB_XAMP_BASE: [${LIB_XAMP_BASE}]")
+if(WIN32)
+    file(GLOB_RECURSE XAMP_OUTPUT_DEVICE_PLATFORM_SOURCES CONFIGURE_DEPENDS
+        "${CMAKE_CURRENT_LIST_DIR}/src/win32/*.cpp"
+    )
+elseif(APPLE)
+    file(GLOB_RECURSE XAMP_OUTPUT_DEVICE_PLATFORM_SOURCES CONFIGURE_DEPENDS
+        "${CMAKE_CURRENT_LIST_DIR}/src/osx/*.cpp"
+    )
+elseif(UNIX)
+    file(GLOB_RECURSE XAMP_OUTPUT_DEVICE_PLATFORM_SOURCES CONFIGURE_DEPENDS
+        "${CMAKE_CURRENT_LIST_DIR}/src/posix/*.cpp"
+    )
+else()
+    set(XAMP_OUTPUT_DEVICE_PLATFORM_SOURCES)
+endif()
 
-find_library(LIB_COREAUDIO CoreAudio)
-find_library(LIB_COREFOUNDATION CoreFoundation)
-find_library(IOKIT_LIB IOKit)
-find_library(SECURITY_LIB Security)
+add_library(xamp_output_device SHARED
+    ${XAMP_OUTPUT_DEVICE_SOURCES}
+    ${XAMP_OUTPUT_DEVICE_PLATFORM_SOURCES}
+)
 
-add_library(${PROJECT_NAME} SHARED ${SOURCES})
+target_compile_features(xamp_output_device PUBLIC cxx_std_23)
 
-target_link_libraries(xamp_output_device ${LIB_XAMP_BASE} ${LIB_COREAUDIO} ${LIB_COREFOUNDATION} ${IOKIT_LIB} ${SECURITY_LIB})
+target_compile_definitions(xamp_output_device
+    PRIVATE
+        XAMP_OUTPUT_DEVICE_API_EXPORTS
+)
+
+target_include_directories(xamp_output_device
+    PUBLIC
+        "${CMAKE_CURRENT_LIST_DIR}/include"
+    PRIVATE
+        "${CMAKE_CURRENT_LIST_DIR}/../xamp_base/include"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/spdlog/include"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/robin_hood"
+)
+
+target_link_libraries(xamp_output_device
+    PUBLIC
+        xamp_base
+)
+
+if(APPLE)
+    find_library(LIB_COREAUDIO CoreAudio REQUIRED)
+    find_library(LIB_COREFOUNDATION CoreFoundation REQUIRED)
+    find_library(IOKIT_LIB IOKit REQUIRED)
+    find_library(SECURITY_LIB Security REQUIRED)
+    target_link_libraries(xamp_output_device
+        PRIVATE
+            ${LIB_COREAUDIO}
+            ${LIB_COREFOUNDATION}
+            ${IOKIT_LIB}
+            ${SECURITY_LIB})
+elseif(UNIX)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(PULSE REQUIRED IMPORTED_TARGET libpulse)
+    pkg_check_modules(ALSA REQUIRED IMPORTED_TARGET alsa)
+    pkg_check_modules(PIPEWIRE REQUIRED IMPORTED_TARGET libpipewire-0.3)
+    target_link_libraries(xamp_output_device
+        PRIVATE
+            pthread
+            PkgConfig::PULSE
+            PkgConfig::ALSA
+            PkgConfig::PIPEWIRE)
+endif()

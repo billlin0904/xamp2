@@ -13,7 +13,7 @@
 #else
     #define XAMP_METADATA_API __declspec(dllimport)
 #endif
-#elif defined(XAMP_OS_MAC)
+#else
 #define XAMP_METADATA_API __attribute__((visibility("default")))
 #endif
 

@@ -1,0 +1,187 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 24,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "wsl-linux-debug",
+      "displayName": "WSL Linux Debug",
+      "description": "Build Linux smoke targets in WSL with Ninja.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_TOOLCHAIN_FILE": "/mnt/f/VCPKG/VCPKG/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-linux",
+        "XAMP_BUILD_OUTPUT_DEVICE": "ON",
+        "XAMP_BUILD_STREAM": "ON",
+        "XAMP_BUILD_PLAYER": "ON",
+        "XAMP_BUILD_METADATA": "ON",
+        "XAMP_BUILD_WIDGET_SHARED": "ON",
+        "XAMP_BUILD_APP": "ON"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "hostOS": [
+            "Linux"
+          ]
+        },
+        "microsoft.com/VisualStudioRemoteSettings/CMake/1.0": {
+          "sourceDir": "$env{HOME}/.vs/$ms{projectDirName}",
+          "copySourcesOptions": {
+            "exclusionList": [
+              ".vs",
+              ".git",
+              "out",
+              "build",
+              "logs",
+              "x64",
+              "x86",
+              "Win32",
+              "GeneratedFiles",
+              "CMakeFiles",
+              "_build",
+              ".cache",
+              "CMakeCache.txt",
+              "*.obj",
+              "*.pdb",
+              "*.ilk",
+              "*.idb",
+              "*.ipdb",
+              "*.iobj",
+              "*.lib",
+              "*.exp",
+              "*.tlog",
+              "*.lastbuildstate",
+              "*.vcxproj.user"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "wsl-linux-release",
+      "displayName": "WSL Linux Release",
+      "description": "Build Linux release targets in WSL with Ninja.",
+      "inherits": "wsl-linux-debug",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "wsl-linux-vcpkg-debug",
+      "displayName": "WSL Linux Debug (vcpkg)",
+      "description": "Build Linux targets in WSL with vcpkg manifest dependencies.",
+      "inherits": "wsl-linux-debug",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "/mnt/f/VCPKG/VCPKG/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-linux"
+      }
+    },
+    {
+      "name": "wsl-linux-vcpkg-release",
+      "displayName": "WSL Linux Release (vcpkg)",
+      "description": "Build Linux release targets in WSL with vcpkg manifest dependencies.",
+      "inherits": "wsl-linux-vcpkg-debug",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "wsl-linux-vcpkg-dynamic-debug",
+      "displayName": "WSL Linux Debug (vcpkg dynamic)",
+      "description": "Build Linux targets in WSL with vcpkg dynamic libraries, useful for runtime-loaded components.",
+      "inherits": "wsl-linux-debug",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "/mnt/f/VCPKG/VCPKG/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-linux-dynamic"
+      }
+    },
+    {
+      "name": "wsl-linux-vcpkg-dynamic-release",
+      "displayName": "WSL Linux Release (vcpkg dynamic)",
+      "description": "Build Linux release targets in WSL with vcpkg dynamic libraries, useful for runtime-loaded components.",
+      "inherits": "wsl-linux-vcpkg-dynamic-debug",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "windows-placeholder-debug",
+      "displayName": "Windows Placeholder Debug",
+      "description": "Allows Visual Studio to configure the root folder on Windows while Linux targets are disabled.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "XAMP_BUILD_OUTPUT_DEVICE": "OFF",
+        "XAMP_BUILD_STREAM": "OFF",
+        "XAMP_BUILD_PLAYER": "OFF",
+        "XAMP_BUILD_METADATA": "OFF",
+        "XAMP_BUILD_WIDGET_SHARED": "OFF",
+        "XAMP_BUILD_APP": "OFF"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "hostOS": [
+            "Windows"
+          ]
+        }
+      }
+    },
+    {
+      "name": "windows-vcpkg-placeholder-debug",
+      "displayName": "Windows Placeholder Debug (vcpkg)",
+      "description": "Configures the Windows placeholder preset through vcpkg.",
+      "inherits": "windows-placeholder-debug",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "F:/VCPKG/VCPKG/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-windows"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "wsl-linux-debug",
+      "configurePreset": "wsl-linux-debug"
+    },
+    {
+      "name": "wsl-linux-release",
+      "configurePreset": "wsl-linux-release"
+    },
+    {
+      "name": "wsl-linux-vcpkg-debug",
+      "configurePreset": "wsl-linux-vcpkg-debug"
+    },
+    {
+      "name": "wsl-linux-vcpkg-release",
+      "configurePreset": "wsl-linux-vcpkg-release"
+    },
+    {
+      "name": "wsl-linux-vcpkg-dynamic-debug",
+      "configurePreset": "wsl-linux-vcpkg-dynamic-debug"
+    },
+    {
+      "name": "wsl-linux-vcpkg-dynamic-release",
+      "configurePreset": "wsl-linux-vcpkg-dynamic-release"
+    },
+    {
+      "name": "windows-placeholder-debug",
+      "configurePreset": "windows-placeholder-debug"
+    },
+    {
+      "name": "windows-vcpkg-placeholder-debug",
+      "configurePreset": "windows-vcpkg-placeholder-debug"
+    }
+  ]
+}

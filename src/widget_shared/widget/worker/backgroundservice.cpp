@@ -397,7 +397,6 @@ QCoro::Task<QList<SearchLyricsResult>> BackgroundService::downloadKLrc(QList<Inf
 }
 
 QCoro::Task<> BackgroundService::searchKugou(const PlayListEntity& keyword) {
-    constexpr auto kMaxDownloadSize = 10;
     const auto search_text = (keyword.title + " "_str + keyword.artist).trimmed();
 
     http::HttpClient http(&nam_, "http://mobilecdn.kugou.com/api/v3/search/song"_str, this);
@@ -407,9 +406,9 @@ QCoro::Task<> BackgroundService::searchKugou(const PlayListEntity& keyword) {
     auto artist = keyword.artist;
     auto content = co_await http.get();
     auto infos = parseInfoData(content);
-    if (infos.size() > kMaxDownloadSize) {
-        infos.resize(kMaxDownloadSize);
-    }
+
+    constexpr auto kMaxKugouDownload = 10;
+    infos.resize(kMaxKugouDownload);
 
     auto results = co_await downloadKLrc(infos);
     for (auto& result : results) {
@@ -434,6 +433,10 @@ QCoro::Task<> BackgroundService::searchNetease(const PlayListEntity& keyword) {
     if (!songs.has_value()) {
         co_return;
     }
+	
+    constexpr auto kMaxNeteaseDownload = 10;
+    songs.value().resize(kMaxNeteaseDownload);
+
     auto results = co_await downloadNeteaseLrc(*songs);
     for (auto &result : results) {
         result.request_title = title;

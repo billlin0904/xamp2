@@ -20,7 +20,6 @@ XAMP_MAKE_ENUM(TextEncodeingError,
 	TEXT_ENCODING_INPUT_STRING_EMPTY,
 	TEXT_ENCODING_API_ERROR,
 	TEXT_ENCODING_TO_WIDE_ERROR,
-	TEXT_ENCODING_INPUT_STRING_UTF8,
 	TEXT_ENCODING_DETECT_ERROR)
 
 class XAMP_BASE_API TextEncoding {
@@ -45,8 +44,6 @@ private:
 	class TextEncodingImpl;
 	ScopedPtr<TextEncodingImpl> impl_;
 };
-
-XAMP_BASE_API void LoadLibIconvLib();
 
 XAMP_BASE_NAMESPACE_END
 

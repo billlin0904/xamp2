@@ -10,7 +10,6 @@
 #include <base/logger.h>
 #include <base/singleton.h>
 #include <base/memory.h>
-#include <base/timer.h>
 #include <base/platform.h>
 
 #include <output_device/osx/osx_utitl.h>

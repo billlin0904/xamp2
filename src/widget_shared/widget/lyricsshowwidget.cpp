@@ -701,7 +701,7 @@ void LyricsShowWidget::setFullLrc(const QString& lrc, double duration) {
 
 	// 2) 以換行分割整段文字，可視需求是否跳過空行
 	//    這裡如果要顯示空行，也可以改成 Qt::KeepEmptyParts
-	const auto lines = lrc.split(L'\n', Qt::KeepEmptyParts);
+	const auto lines = lrc.split(QChar(u'\n'), Qt::KeepEmptyParts);
 
 	// 若沒有任何行，則顯示預設「無歌詞」
 	if (lines.isEmpty()) {

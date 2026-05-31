@@ -16,11 +16,21 @@
 #include <rpc.h>
 #include <wincrypt.h>
 #else
+#include <pthread.h>
 #include <uuid/uuid.h>
+#include <sys/mman.h>
+#endif
+
+#ifdef XAMP_OS_MAC
 #include <mach/mach.h>
 #include <mach/mach_time.h>
 #include <mach/thread_policy.h>
-#include <sys/mman.h>
+#endif
+
+#ifdef XAMP_OS_LINUX
+#include <cerrno>
+#include <sched.h>
+#include <cstring>
 #endif
 
 #include <bitset>
@@ -213,6 +223,20 @@ namespace {
         // 在 macOS 上，超時為 0 表示無限等待，時間單位為微秒
         uint32_t timeout_us = (milliseconds == kInfinity) ? 0 : milliseconds * 1000;
         return ::__ulock_wait(UL_COMPARE_AND_WAIT, &to_wait_on, expected, timeout_us) == 0;
+#elif defined(XAMP_OS_LINUX)
+        if (milliseconds == kInfinity) {
+            to_wait_on.wait(expected, std::memory_order_acquire);
+            return true;
+        }
+
+        const auto timeout = std::chrono::steady_clock::now() + std::chrono::milliseconds(milliseconds);
+        while (to_wait_on.load(std::memory_order_acquire) == expected) {
+            if (std::chrono::steady_clock::now() >= timeout) {
+                return false;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        return true;
 #endif
     }
 
@@ -227,6 +251,8 @@ namespace {
         ::WakeByAddressSingle(&to_wake);
 #elif defined (XAMP_OS_MAC)
         MacOSFutexWake(to_wake, true);
+#elif defined(XAMP_OS_LINUX)
+        to_wake.notify_one();
 #endif
     }
 
@@ -241,6 +267,8 @@ namespace {
         ::WakeByAddressAll(&to_wake);
 #elif defined (XAMP_OS_MAC)
         MacOSFutexWake(to_wake, false);
+#elif defined(XAMP_OS_LINUX)
+        to_wake.notify_all();
 #endif
     }
 }
@@ -289,7 +317,7 @@ int32_t AtomicWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const t
     return 0;
 }
 
-#ifndef XAMP_OS_WIN
+#if defined(XAMP_OS_MAC)
 static void SetThreadAffinity(pthread_t thread, int32_t cpu_set) {
     auto mach_thread = ::pthread_mach_thread_np(thread);
     thread_affinity_policy_data_t policy = { cpu_set };
@@ -301,6 +329,15 @@ static void SetThreadAffinity(pthread_t thread, int32_t cpu_set) {
         XAMP_LOG_DEBUG("thread_policy_set return failure ({}).", result);
     }
 }
+#elif defined(XAMP_OS_LINUX)
+static void SetThreadAffinity(pthread_t thread, int32_t cpu_set) {
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(cpu_set, &cpuset);
+    if (::pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset) != 0) {
+        XAMP_LOG_DEBUG("pthread_setaffinity_np return failure.");
+    }
+}
 #endif
 
 void SetThreadName(std::wstring const& name) {
@@ -308,11 +345,17 @@ void SetThreadName(std::wstring const& name) {
 	const WinHandle thread(::GetCurrentThread());
     ::SetThreadDescription(thread.get(), name.c_str());
 #else
-    // Mac OS X does not expose the length limit of the name, so
-    // hardcode it.
+#ifdef XAMP_OS_MAC
     static constexpr int kMaxNameLength = 63;
+#else
+    static constexpr int kMaxNameLength = 15;
+#endif
     const auto shortened_name = String::ToUtf8String(name).substr(0, kMaxNameLength);
+#ifdef XAMP_OS_MAC
     ::pthread_setname_np(shortened_name.c_str());
+#else
+    ::pthread_setname_np(::pthread_self(), shortened_name.c_str());
+#endif
 #endif
 }
 
@@ -357,38 +400,49 @@ void SetThreadPriority(std::thread::native_handle_type handle, ThreadPriority pr
     auto current_priority = ::GetThreadPriority(handle);
     XAMP_LOG_TRACE("Current thread priority is {}.", current_priority);
 #else
-#if !defined(PTHREAD_MIN_PRIORITY)
-#define PTHREAD_MIN_PRIORITY  0
-#endif
-#if !defined(PTHREAD_MAX_PRIORITY)
-#define PTHREAD_MAX_PRIORITY 31
-#endif
-
-    auto thread_priority = PTHREAD_MIN_PRIORITY;
-    switch (priority) {
-    case ThreadPriority::PRIORITY_BACKGROUND:
-        thread_priority = PTHREAD_MIN_PRIORITY;
-        break;
-    case ThreadPriority::PRIORITY_NORMAL:
-    default:
-        thread_priority = PTHREAD_MAX_PRIORITY / 2;
-        break;
-    case ThreadPriority::PRIORITY_HIGHEST:
-        thread_priority = PTHREAD_MAX_PRIORITY;
-        break;
+#ifdef XAMP_OS_LINUX
+    sched_param thread_param{};
+    if (priority != ThreadPriority::PRIORITY_HIGHEST) {
+        const auto error = ::pthread_setschedparam(handle, SCHED_OTHER, &thread_param);
+        if (error != 0 && error != EPERM) {
+            XAMP_LOG_DEBUG("Failed to set SCHED_OTHER thread priority: {}.", std::strerror(error));
+        }
+        return;
     }
-    struct sched_param thread_param;
-    thread_param.sched_priority = thread_priority;
-    ::pthread_setschedparam(handle, SCHED_RR, &thread_param);
+
+    const auto min_priority = ::sched_get_priority_min(SCHED_RR);
+    const auto max_priority = ::sched_get_priority_max(SCHED_RR);
+    if (min_priority < 0 || max_priority < 0) {
+        XAMP_LOG_DEBUG("Failed to query SCHED_RR priority range: {}.", std::strerror(errno));
+        return;
+    }
+
+    thread_param.sched_priority = (std::min)(min_priority + 4, max_priority);
+    const auto error = ::pthread_setschedparam(handle, SCHED_RR, &thread_param);
+    if (error == EPERM) {
+        XAMP_LOG_DEBUG("SCHED_RR thread priority unavailable. Grant CAP_SYS_NICE or rtprio to enable it.");
+        return;
+    }
+    if (error != 0) {
+        XAMP_LOG_DEBUG("Failed to set SCHED_RR thread priority: {}.", std::strerror(error));
+        return;
+    }
+    XAMP_LOG_TRACE("Current thread SCHED_RR priority is {}.", thread_param.sched_priority);
+#else
+    (void)handle;
+    (void)priority;
+#endif
 #endif
 }
 
-#ifdef XAMP_OS_WIN
 void SetCurrentThreadPriority(ThreadPriority priority) {
+#ifdef XAMP_OS_WIN
     std::thread::native_handle_type current_thread = ::GetCurrentThread();
+#else
+    std::thread::native_handle_type current_thread = ::pthread_self();
+#endif
     SetThreadPriority(current_thread, priority);
 }
-#endif
 
 void SetThreadPriority(std::jthread& thread, ThreadPriority priority) {
 	SetThreadPriority(thread.native_handle(), priority);

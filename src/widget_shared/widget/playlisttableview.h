@@ -78,23 +78,6 @@ public:
 		navigation_view_mode_ = mode;
 	}
 
-	void enableCloudMode(bool mode);
-
-	[[nodiscard]] bool isEnableCloudMode() const {
-		return cloud_mode_;
-	}
-
-	void setCloudPlaylistId(const QString &playlist_id) {
-		cloud_playlist_id_ = playlist_id;
-		if (cloud_playlist_id_) {
-			cloud_mode_ = true;
-		}
-	}
-
-	const std::optional<QString>& cloudPlaylistId() const {
-		return cloud_playlist_id_;
-	}
-
 	void setPlaylistId(const int32_t playlist_id, const QString& column_setting_name);
 
 	[[nodiscard]] int32_t playlistId() const;
@@ -232,7 +215,6 @@ private:
 	void updateRichAlbumHeaderRowHeights();
 
 protected:
-	bool cloud_mode_{ false };
 	bool enable_delete_{ true };
 	bool enable_load_file_{ true };
 	bool enable_scroll_{ false };
@@ -243,7 +225,6 @@ protected:
 	PlayListGroup group_{ PlayListGroup::PLAYLIST_GROUP_NONE };
 	NavigationViewMode navigation_view_mode_{ NavigationViewMode::NAVIGATION_VIEW_NONE };
 	std::optional<int32_t> other_playlist_id_;
-	std::optional<QString> cloud_playlist_id_;
 	QModelIndex play_index_;
     PlayListSqlQueryTableModel* model_;
 	PlayListTableFilterProxyModel* proxy_model_;

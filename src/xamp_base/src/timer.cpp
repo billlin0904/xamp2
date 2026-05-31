@@ -9,6 +9,7 @@
 #endif
 
 #include <limits>
+#include <thread>
 
 XAMP_BASE_NAMESPACE_BEGIN
 
@@ -112,7 +113,7 @@ private:
 	TimerQueueTimer timer_;
 	std::move_only_function<void()> callback_;
 };
-#else
+#elif defined(XAMP_OS_MAC)
 class Timer::TimerImpl {
 public:
 	TimerImpl() = default;
@@ -121,13 +122,13 @@ public:
 		Stop();
 	}
 
-	void Start(std::chrono::milliseconds interval, std::function<void()> callback) {
+	void Start(std::chrono::milliseconds interval, std::move_only_function<void()> callback) {
         if (!is_stop_) {
             return;
         }
 
         is_stop_ = false;
-        callback_ = callback;
+        callback_ = std::move(callback);
 
         timer_queue_ = ::dispatch_queue_create("org.xamp2.timerqueue", nullptr);
         timer_ = ::dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, timer_queue_);
@@ -167,7 +168,54 @@ private:
     std::atomic<bool> is_stop_{true};
     dispatch_queue_t timer_queue_{nullptr};
     dispatch_source_t timer_{nullptr};
-    std::function<void()> callback_;
+    std::move_only_function<void()> callback_;
+};
+#else
+class Timer::TimerImpl {
+public:
+	TimerImpl() = default;
+
+	~TimerImpl() {
+		Stop();
+	}
+
+	void Start(std::chrono::milliseconds interval, std::move_only_function<void()> callback) {
+		if (!is_stop_) {
+			return;
+		}
+		is_stop_ = false;
+		callback_ = std::move(callback);
+		thread_ = std::jthread([this, interval](const std::stop_token& token) {
+			while (!token.stop_requested()) {
+				std::this_thread::sleep_for(interval);
+				if (!token.stop_requested() && callback_) {
+					try {
+						callback_();
+					}
+					catch (...) {
+					}
+				}
+			}
+		});
+	}
+
+	bool IsStarted() const {
+		return !is_stop_;
+	}
+
+	void Stop() {
+		if (is_stop_) {
+			return;
+		}
+		is_stop_ = true;
+		thread_.request_stop();
+		callback_ = nullptr;
+	}
+
+private:
+	std::atomic<bool> is_stop_{ true };
+	std::jthread thread_;
+	std::move_only_function<void()> callback_;
 };
 #endif
 

@@ -1,8 +1,10 @@
 ﻿#include <output_device/api.h>
 
+#ifdef XAMP_OS_WIN
 #include <output_device/win32/exclusivewasapidevicetype.h>
 #include <output_device/win32/asiodevice.h>
 #include <output_device/win32/asiodevicetype.h>
+#endif
 #include <output_device/audiodevicemanager.h>
 
 #include <base/uuid.h>
@@ -97,13 +99,15 @@ void PreventSleep(bool allow) {
     else {
         ::SetThreadExecutionState(ES_CONTINUOUS);
     }
-#else
+#elif defined(XAMP_OS_MAC)
     if (allow) {
         iopmAssertion.PreventSleep();
     }
     else {
         iopmAssertion.Reset();
     }
+#else
+    (void)allow;
 #endif
 }
 

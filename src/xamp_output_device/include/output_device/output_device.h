@@ -16,7 +16,7 @@
 #else
 #define XAMP_OUTPUT_DEVICE_API __declspec(dllimport)
 #endif
-#elif defined(XAMP_OS_MAC)
+#else
 #define XAMP_OUTPUT_DEVICE_API __attribute__((visibility("default")))
 #endif
 
@@ -28,6 +28,9 @@
 
 #define XAMP_OUTPUT_DEVICE_WIN32_HELPER_NAMESPACE_BEGIN namespace xamp { namespace output_device { namespace win32 { namespace helper {
 #define XAMP_OUTPUT_DEVICE_WIN32_HELPER_NAMESPACE_END } } } }
+
+#define XAMP_OUTPUT_DEVICE_POSIX_NAMESPACE_BEGIN namespace xamp { namespace output_device { namespace posix {
+#define XAMP_OUTPUT_DEVICE_POSIX_NAMESPACE_END } } }
 
 XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN
 

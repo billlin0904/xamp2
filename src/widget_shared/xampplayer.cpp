@@ -17,6 +17,10 @@ IXMainWindow::IXMainWindow()
 }
 
 void IXMainWindow::installWindowAgent() {
+    if (window_agent_ != nullptr) {
+        return;
+    }
+
     window_agent_ = new QWK::WidgetWindowAgent(this);
     window_agent_->setup(this);
 

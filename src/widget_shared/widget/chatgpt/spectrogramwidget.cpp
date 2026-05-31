@@ -1,4 +1,6 @@
 #include <QPainter>
+#include <QGuiApplication>
+#include <QScreen>
 #include <QLinearGradient>
 #include <QTimer>
 #include <QMouseEvent>

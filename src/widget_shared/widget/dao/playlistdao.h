@@ -25,14 +25,14 @@ public:
 
     explicit PlaylistDao(QSqlDatabase& db);
 
-    int32_t addPlaylist(const QString& name, int32_t play_index, StoreType store_type, const QString& cloud_playlist_id = kEmptyString);
+    int32_t addPlaylist(const QString& name, int32_t play_index);
     void setPlaylistName(int32_t playlist_id, const QString& name);
     void removePlaylist(int32_t playlist_id);
     void removePlaylistAllMusic(int32_t playlist_id);
     void updatePlaylistMusicChecked(int32_t playlist_music_id, bool is_checked);
     int32_t removePlaylistMusic(const QList<int>& select_music_ids, int32_t playlist_id);
     bool isPlaylistExist(int32_t playlist_id) const;
-    void setPlaylistIndex(int32_t playlist_id, int32_t play_index, StoreType store_type);
+    void setPlaylistIndex(int32_t playlist_id, int32_t play_index);
     void addMusicToPlaylist(int32_t music_id, int32_t playlist_id, int32_t album_id) const;
     void addMusicToPlaylist(const QList<int32_t>& music_id, int32_t playlist_id) const;
     void setNowPlaying(int32_t playlist_id, int32_t playlist_music_id);
@@ -40,8 +40,8 @@ public:
     void clearNowPlaying(int32_t playlist_id, int32_t playlist_music_id);
     void clearNowPlayingSkipMusicId(int32_t playlist_id, int32_t skip_playlist_music_id);
     void setNowPlayingState(int32_t playlist_id, int32_t playlist_music_id, PlayingState playing);
-    std::map<int32_t, int32_t> getPlaylistIndex(StoreType type);
-    void forEachPlaylist(std::function<void(int32_t, int32_t, StoreType, QString, QString)>&& fun);
+    std::map<int32_t, int32_t> getPlaylistIndex();
+    void forEachPlaylist(std::function<void(int32_t, int32_t, QString)>&& fun);
 	QList<QString> getAlbumCoverIds(int32_t playlist_id);
     PlaylistAlbumStats getAlbumStats(int32_t playlist_id);
 	std::pair<QVariant, QVariant> getPlaylistMusic(int32_t playlist_id, int32_t playlist_music_id);

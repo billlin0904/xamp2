@@ -5,18 +5,56 @@
 
 #pragma once
 
-#include <string>
-#include <string>
 #include <algorithm>
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
+#include <ostream>
+#include <string>
 #include <vector>
+#include <type_traits>
 
 #include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ostr.h>
 #include <base/base.h>
+#include <base/enum.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
+
+namespace detail {
+
+template <typename T>
+struct IsAtomic : std::false_type {
+};
+
+template <typename T>
+struct IsAtomic<std::atomic<T>> : std::true_type {
+};
+
+template <typename T>
+XAMP_ALWAYS_INLINE decltype(auto) FormatArgument(T&& value) {
+	using ValueType = std::remove_cvref_t<T>;
+	if constexpr (IsAtomic<ValueType>::value) {
+		return value.load();
+	}
+	else if constexpr (requires { std::forward<T>(value).ToString(); }) {
+		return std::forward<T>(value).ToString();
+	}
+	else if constexpr (std::is_enum_v<ValueType> && requires(ValueType enum_value) { EnumToString(enum_value); }) {
+		return EnumToString(value);
+	}
+	else if constexpr (std::is_lvalue_reference_v<T&&>
+		&& !std::is_arithmetic_v<ValueType>
+		&& requires(std::ostream& os) { os << value; }) {
+		return fmt::streamed(value);
+	}
+	else {
+		return std::forward<T>(value);
+	}
+}
+
+} // namespace detail
 
 namespace String {
 
@@ -36,7 +74,7 @@ XAMP_ALWAYS_INLINE std::string AsStdString(const std::string_view& s) {
     return { s.data(), s.size() };
 }
 
-XAMP_BASE_API std::string LocaleStringToUTF8(const std::string& str);
+XAMP_BASE_API std::string LocaleStringToUTF8(const std::string& str) noexcept;
 
 template <typename CharType>
 std::basic_string<CharType> ToUpper(std::basic_string<CharType> s) {
@@ -168,7 +206,7 @@ XAMP_ALWAYS_INLINE std::vector<std::basic_string_view<T>> Split(const T* s,
 
 template <typename... Args>
 XAMP_ALWAYS_INLINE std::string Format(std::string_view s, Args &&...args) {
-    return fmt::format(s, args...);
+    return fmt::format(fmt::runtime(s), detail::FormatArgument(std::forward<Args>(args))...);
 }
 
 }

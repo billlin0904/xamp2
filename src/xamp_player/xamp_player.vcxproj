@@ -83,6 +83,7 @@
       <PreprocessorDefinitions>XAMP_PALYER_API_EXPORTS;ENABLE_ASIO;USE_KISS_FFT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BrowseInformation>false</BrowseInformation>
       <DisableSpecificWarnings>4996;4819</DisableSpecificWarnings>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -100,6 +101,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -113,6 +115,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -139,7 +142,7 @@
       <IntelJCCErratum>false</IntelJCCErratum>
       <FloatingPointModel>Precise</FloatingPointModel>
       <DisableSpecificWarnings>4996;4819</DisableSpecificWarnings>
-      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/utf-8 /Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
     </ClCompile>
     <Link>

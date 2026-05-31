@@ -13,6 +13,7 @@
 
 #include <base/audioformat.h>
 
+#include <player/iplaybackstateadapter.h>
 #include <player/playstate.h>
 
 class XAMP_WIDGET_SHARED_EXPORT UIPlayerStateAdapter final

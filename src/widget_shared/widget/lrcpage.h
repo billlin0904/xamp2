@@ -13,6 +13,7 @@
 #include <QLabel>
 #include <QSortFilterProxyModel>
 #include <QVBoxLayout>
+#include <QToolButton>
 
 #include <widget/themecolor.h>
 #include <widget/widget_shared_global.h>
@@ -174,6 +175,7 @@ private:
 	QPixmap prev_background_cache_;
 	QSize background_cache_size_;
 	bool background_cache_dirty_{ true };
+	bool applied_lyrics_is_karaoke_{ false };
 	PlayListEntity entity_;
 	QList<SearchLyricsResult> lyrics_results_;
 };

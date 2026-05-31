@@ -3,7 +3,6 @@
 #include <base/executor.h>
 #include <base/ithreadpoolexecutor.h>
 #include <base/logger.h>
-#include <base/timer.h>
 #include <base/scopeguard.h>
 #include <base/ithreadpoolexecutor.h>
 

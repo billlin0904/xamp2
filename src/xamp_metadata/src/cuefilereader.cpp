@@ -203,18 +203,14 @@ public:
 	}
 
 private:
-	template <typename T>
-	struct CdPtrDeleter;
-
-	template <>
-	struct CdPtrDeleter<Cd> {
+	struct CdPtrDeleter {
 		void operator()(Cd* p) const {
 			XAMP_EXPECTS(p != nullptr);
 			LIBCUE_LIB.cd_delete(p);
 		}
 	};
 
-	using CdPtr = std::unique_ptr<Cd, CdPtrDeleter<Cd>>;
+	using CdPtr = std::unique_ptr<Cd, CdPtrDeleter>;
 
 	LoggerPtr logger_;
 };

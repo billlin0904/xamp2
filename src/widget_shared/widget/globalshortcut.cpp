@@ -3,7 +3,7 @@
 #if defined(Q_OS_WIN)
 #include <base/platfrom_handle.h>
 #include <Dbt.h>
-#else
+#elif defined(Q_OS_MAC)
 #include <Carbon/Carbon.h>
 #include <QMap>
 #include <QHash>
@@ -173,7 +173,7 @@ public:
     }
 };
 
-#else
+#elif defined(Q_OS_MAC)
 
 using Identifier = QPair<uint, uint>;
 
@@ -508,6 +508,27 @@ private:
 int32_t GlobalShortcut::GlobalShortcutImpl::hotKeySerial = 0;
 QMap<quint32, EventHotKeyRef> GlobalShortcut::GlobalShortcutImpl::keyRefs;
 QHash<Identifier, quint32> GlobalShortcut::GlobalShortcutImpl::keyIDs;
+#else
+class GlobalShortcut::GlobalShortcutImpl {
+public:
+    GlobalShortcutImpl() = default;
+
+    bool unregisterShortcut(const WId, quint32, quint32) {
+        return false;
+    }
+
+    bool registerShortcut(const WId, quint32, quint32) {
+        return false;
+    }
+
+    quint32 nativeModifiers(Qt::KeyboardModifiers modifiers) {
+        return static_cast<quint32>(modifiers.toInt());
+    }
+
+    quint32 nativeKeycode(Qt::Key key) {
+        return static_cast<quint32>(key);
+    }
+};
 #endif
 
 GlobalShortcut::GlobalShortcut()

@@ -10,6 +10,7 @@
 #include <base/stl.h>
 #include <base/fastiostream.h>
 #include <base/memory.h>
+#include <base/str_utilts.h>
 
 #include <limits>
 
@@ -17,16 +18,22 @@ XAMP_METADATA_NAMESPACE_BEGIN
 
 class TaglibIOStream final : public TagLib::IOStream {
 public:
+	static constexpr size_t BUFFER_SIZE = 512 * 1024;
+
 	TaglibIOStream() = default;
 
 	virtual ~TaglibIOStream() override = default;
 
 	explicit TaglibIOStream(const Path& path, FastIOStream::Mode mode = FastIOStream::Mode::ReadWriteOnlyExisting)
 		: io_stream_(path, mode) {
+		write_buffer_.resize(BUFFER_SIZE);
+		read_buffer_.resize(BUFFER_SIZE);
 	}
 
 	void open(const Path& path, FastIOStream::Mode mode = FastIOStream::Mode::ReadWriteOnlyExisting) {
 		io_stream_.open(path, mode);
+		write_buffer_.resize(BUFFER_SIZE);
+		read_buffer_.resize(BUFFER_SIZE);
 	}
 
 	void close() {
@@ -34,7 +41,12 @@ public:
 	}
 
 	TagLib::FileName name() const override {
+#ifdef _WIN32
 		return io_stream_.path().wstring().c_str();
+#else
+		name_ = String::ToUtf8String(io_stream_.path().wstring());
+		return name_.c_str();
+#endif
 	}
 
 	TagLib::ByteVector readBlock(size_t len) override {
@@ -81,9 +93,6 @@ public:
 		const uint64_t write_data_end = start_pos + insert_len;
 		const uint64_t new_total = total - remove_len + insert_len;
 
-		static constexpr size_t BUF = 64 * 1024;
-		std::vector<char> buf(BUF);
-
 		auto seek_absolute = [this](uint64_t pos) {
 			if (pos > static_cast<uint64_t>((std::numeric_limits<int64_t>::max)()))
 				throw PlatformException();
@@ -104,29 +113,29 @@ public:
 			uint64_t read_pos = total;
 			uint64_t write_pos = new_total;
 			while (read_pos > tail_pos) {
-				const size_t chunk = static_cast<size_t>(std::min<uint64_t>(BUF, read_pos - tail_pos));
+				const size_t chunk = static_cast<size_t>(std::min<uint64_t>(write_buffer_.size(), read_pos - tail_pos));
 				read_pos -= chunk;
 				write_pos -= chunk;
 
 				seek_absolute(read_pos);
-				const size_t n = io_stream_.read(buf.data(), chunk);
+				const size_t n = io_stream_.read(write_buffer_.data(), chunk);
 				if (n == 0)
 					throw PlatformException();
 				seek_absolute(write_pos);
-				write_all(buf.data(), n);
+				write_all(write_buffer_.data(), n);
 			}
 		}
 		else if (insert_len < remove_len) {
 			uint64_t read_pos = tail_pos;
 			uint64_t write_pos = write_data_end;
 			while (read_pos < total) {
-				const size_t chunk = static_cast<size_t>(std::min<uint64_t>(BUF, total - read_pos));
+				const size_t chunk = static_cast<size_t>(std::min<uint64_t>(write_buffer_.size(), total - read_pos));
 				seek_absolute(read_pos);
-				const size_t n = io_stream_.read(buf.data(), chunk);
+				const size_t n = io_stream_.read(write_buffer_.data(), chunk);
 				if (n == 0)
 					throw PlatformException();
 				seek_absolute(write_pos);
-				write_all(buf.data(), n);
+				write_all(write_buffer_.data(), n);
 				read_pos += n;
 				write_pos += n;
 			}
@@ -153,10 +162,7 @@ public:
 		if (start_pos + remove_len >= total) {
 			truncate(start);
 			return;
-		}
-
-		static constexpr size_t BUF = 64 * 1024;
-		std::vector<char> buf(BUF);
+		}		
 
 		auto seek_absolute = [this](uint64_t pos) {
 			if (pos > static_cast<uint64_t>((std::numeric_limits<int64_t>::max)()))
@@ -178,13 +184,13 @@ public:
 		uint64_t write_pos = start_pos;
 
 		while (read_pos < total) {
-			const size_t chunk = static_cast<size_t>(std::min<uint64_t>(BUF, total - read_pos));
+			const size_t chunk = static_cast<size_t>(std::min<uint64_t>(read_buffer_.size(), total - read_pos));
 			seek_absolute(read_pos);
-			const size_t n = io_stream_.read(buf.data(), chunk);
+			const size_t n = io_stream_.read(read_buffer_.data(), chunk);
 			if (n == 0)
 				throw PlatformException();
 			seek_absolute(write_pos);
-			write_all(buf.data(), n);
+			write_all(read_buffer_.data(), n);
 			read_pos += n;
 			write_pos += n;
 		}
@@ -199,28 +205,32 @@ public:
 		return io_stream_.is_open();
 	}
 
-	long long length() override {
-		return static_cast<long long>(io_stream_.size());
+	TagLib::offset_t length() override {
+		return static_cast<TagLib::offset_t>(io_stream_.size());
 	}
 
-	void seek(long long offset, Position p = Beginning) override {
+	void seek(TagLib::offset_t offset, Position p = Beginning) override {
 		int whence = (p == Beginning)
 			? SEEK_SET
 			: (p == Current) ? SEEK_CUR
 			: SEEK_END;
-		io_stream_.seek(offset, whence);
+		io_stream_.seek(static_cast<int64_t>(offset), whence);
 	}
 
-	long long tell() const override {
-		return static_cast<long long>(io_stream_.tell());
+	TagLib::offset_t tell() const override {
+		return static_cast<TagLib::offset_t>(io_stream_.tell());
 	}
 
-	void truncate(long long l) override {
+	void truncate(TagLib::offset_t l) override {
 		if (!io_stream_.read_only())
 			io_stream_.truncate(static_cast<uint64_t>(l));
 	}
 
+private:
+	std::vector<char> write_buffer_;
+	std::vector<char> read_buffer_;
 	FastIOStream io_stream_;
+	mutable std::string name_;
 };
 
 XAMP_METADATA_NAMESPACE_END

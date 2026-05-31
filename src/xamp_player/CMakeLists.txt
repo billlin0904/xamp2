@@ -1,81 +1,63 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.24)
 
-option(LIBRARY_TESTS "Build unit tests" OFF)
+project(xamp_player LANGUAGES CXX)
 
-project(xamp_player)
+if(NOT TARGET xamp_base)
+    add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../xamp_base" "${CMAKE_BINARY_DIR}/xamp_base")
+endif()
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS ON)
+if(NOT TARGET xamp_output_device)
+    add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../xamp_output_device" "${CMAKE_BINARY_DIR}/xamp_output_device")
+endif()
 
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")
+if(NOT TARGET xamp_stream)
+    add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../xamp_stream" "${CMAKE_BINARY_DIR}/xamp_stream")
+endif()
 
-if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/debug)
-    message(STATUS "Build debug mode")
-    set(BUILD_PATH debug)
-else()
-    set(CMAKE_VERBOSE_MAKEFILE ON)
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/release)
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG -O3 -ftree-vectorize -march=native -mtune=native -mavx2 -flto=thin -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer")
-    message(STATUS "Build release mode")
-    set(BUILD_PATH release)
-endif(${CMAKE_BUILD_TYPE} STREQUAL Debug)
-
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/${BUILD_PATH})
-
-include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
-include_directories("../xamp_base/include")
-include_directories("../xamp_output_device/include")
-include_directories("../xamp_stream/include")
-include_directories("../xamp_metadata/include")
-include_directories("../thirdparty/bass/include/")
-include_directories("../thirdparty/spdlog/include/")
-include_directories("../thirdparty/soxr/src/")
-include_directories("../thirdparty/robin_hood/")
-include_directories("../thirdparty/chromaprint/src")
-include_directories("../thirdparty/intel_mkl/include/")
-
-file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
-
-find_library (
-    LIB_XAMP_BASE
-    NAMES xamp_base libxamp_base
-    HINTS "${CMAKE_CURRENT_LIST_DIR}/../xamp_base/${BUILD_PATH}/"
-    NO_DEFAULT_PATH
+file(GLOB_RECURSE XAMP_PLAYER_SOURCES CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp"
 )
 
-message(STATUS "LIB_XAMP_BASE: [${LIB_XAMP_BASE}]")
+if(NOT WIN32)
+    list(FILTER XAMP_PLAYER_SOURCES EXCLUDE REGEX "/src/mbdiscid\\.cpp$")
+endif()
 
-find_library (
-    LIB_XAMP_OUTPUT_DEVICE
-    NAMES xamp_output_device libxamp_output_device
-    HINTS "${CMAKE_CURRENT_LIST_DIR}/../xamp_output_device/${BUILD_PATH}/"
-    NO_DEFAULT_PATH
+add_library(xamp_player SHARED
+    ${XAMP_PLAYER_SOURCES}
 )
 
-message(STATUS "LIB_XAMP_OUTPUT_DEVICE: [${LIB_XAMP_OUTPUT_DEVICE}]")
+target_compile_features(xamp_player PUBLIC cxx_std_23)
 
-find_library (
-    LIB_XAMP_STREAM
-    NAMES xamp_stream libxamp_stream
-    HINTS "${CMAKE_CURRENT_LIST_DIR}/../xamp_stream/${BUILD_PATH}/"
-    NO_DEFAULT_PATH
+target_compile_definitions(xamp_player
+    PRIVATE
+        XAMP_PALYER_API_EXPORTS
 )
 
-message(STATUS "LIB_XAMP_STREAM: [${LIB_XAMP_STREAM}]")
+if(UNIX AND NOT APPLE)
+    target_compile_options(xamp_player PRIVATE -fpermissive)
+endif()
 
-find_library (
-    LIB_XAMP_METADATA
-    NAMES xamp_metadata libxamp_metadata
-    HINTS "${CMAKE_CURRENT_LIST_DIR}/../xamp_metadata/${BUILD_PATH}/"
-    NO_DEFAULT_PATH
+target_include_directories(xamp_player
+    PUBLIC
+        "${CMAKE_CURRENT_LIST_DIR}/include"
+    PRIVATE
+        "${CMAKE_CURRENT_LIST_DIR}/../xamp_base/include"
+        "${CMAKE_CURRENT_LIST_DIR}/../xamp_output_device/include"
+        "${CMAKE_CURRENT_LIST_DIR}/../xamp_stream/include"
+        "${CMAKE_CURRENT_LIST_DIR}/../xamp_metadata/include"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/bass/include"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/spdlog/include"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/robin_hood"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/chromaprint/src"
 )
 
-message(STATUS "LIB_XAMP_METADATA: [${LIB_XAMP_METADATA}]")
+target_link_libraries(xamp_player
+    PUBLIC
+        xamp_base
+        xamp_output_device
+        xamp_stream
+)
 
-find_library(ACCELERATE_LIB Accelerate)
-
-add_library(${PROJECT_NAME} SHARED ${SOURCES})
-
-target_link_libraries(xamp_player ${LIB_XAMP_BASE} ${LIB_XAMP_OUTPUT_DEVICE} ${LIB_XAMP_STREAM} ${LIB_XAMP_METADATA} ${ACCELERATE_LIB})
+if(UNIX AND NOT APPLE)
+    target_link_libraries(xamp_player PRIVATE dl pthread)
+endif()

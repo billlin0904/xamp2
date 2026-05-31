@@ -9,6 +9,7 @@
 
 #include <widget/widget_shared.h>
 #include <widget/xdialog.h>
+#include <player/iaudioplayer.h>
 
 namespace Ui {
 	class VolumeControlDialog;

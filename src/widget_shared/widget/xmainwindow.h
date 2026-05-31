@@ -9,7 +9,10 @@
 #include <thememanager.h>
 #include <widget/driveinfo.h>
 
+#include <QScopedPointer>
+
 class QAction;
+class QMenu;
 class WinTaskbar;
 
 class XAMP_WIDGET_SHARED_EXPORT XMainWindow final : public IXMainWindow {
@@ -86,16 +89,21 @@ private:
 
     void resetNativeSystemMenu();
 
-    uint32_t screen_number_;
+    void ensureSystemMenu();
+
+    void showSystemMenu(const QPoint& global_pos);
+
+    uint32_t screen_number_{ 1 };
     QPoint last_pos_;
-    QScopedPointer<WinTaskbar> task_bar_;
 #if defined(Q_OS_WIN)
+    QScopedPointer<WinTaskbar> task_bar_;
     QMap<QString, DriveInfo> exist_drives_;
     QFrame* title_frame_{ nullptr };
 #endif
     QMap<quint32, QAction*> system_menu_actions_;
     quint32 next_system_menu_id_{ 0xA000 };
     bool system_menu_separator_added_{ false };
+    QScopedPointer<QMenu> system_menu_;
     QMap<QPair<quint32, quint32>, QKeySequence>  shortcuts_;
     std::shared_ptr<IThreadPoolExecutor> scanner_thread_pool_;
     IXFrame *content_widget_;

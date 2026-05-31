@@ -7,21 +7,21 @@
 
 #include <base/base.h>
 #include <base/buffer.h>
-#include <base/task.h>
 #include <base/fastconditionvariable.h>
+#include <base/ithreadpoolexecutor.h>
+#include <base/logger.h>
+#include <base/task.h>
 
 #include <output_device/idsddevice.h>
 #include <output_device/ioutputdevice.h>
-#include <base/threadpoolexecutor.h>
-#include <base/logger.h>
 
-XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
+XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(NullOutputDevice);
 
 /*
 * NullOutputDevice is the null output device.
-* 
+*
 */
 class NullOutputDevice final : public IOutputDevice, public IDsdDevice {
 public:
@@ -41,11 +41,11 @@ public:
 	* @param output_format: output format
 	* @return void
 	*/
-	void OpenStream(AudioFormat const & output_format) override;
+	void OpenStream(AudioFormat const& output_format) override;
 
 	/*
 	* Set audio callback
-	* 
+	*
 	* @param callback: audio callback
 	*/
 	void SetAudioCallback(IAudioCallback* callback) override;
@@ -174,13 +174,13 @@ private:
 	mutable uint32_t volume_;
 	uint32_t buffer_frames_;
 	std::atomic<int64_t> stream_time_;
-	IAudioCallback* callback_;	
+	IAudioCallback* callback_;
 	Future<void> render_task_;
-	std::chrono::milliseconds wait_time_;	
+	std::chrono::milliseconds wait_time_;
 	LoggerPtr logger_;
 	AudioFormat output_format_;
 	Buffer<float> buffer_;
 	std::shared_ptr<IThreadPoolExecutor> thread_pool_;
 };
 
-XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
+XAMP_OUTPUT_DEVICE_NAMESPACE_END

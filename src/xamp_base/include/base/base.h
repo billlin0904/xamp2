@@ -20,9 +20,15 @@
 	#pragma warning(disable: 4251)
 	#pragma warning(disable: 4275)
 	#define XAMP_OS_WIN 1	
-#else
+#elif defined(__APPLE__)
     #define XAMP_BASE_API __attribute__((visibility("default")))
 	#define XAMP_OS_MAC 1
+#elif defined(__linux__)
+	#define XAMP_BASE_API __attribute__((visibility("default")))
+	#define XAMP_OS_LINUX 1
+#else
+	#define XAMP_BASE_API __attribute__((visibility("default")))
+	#define XAMP_OS_UNIX 1
 #endif
 
 #define XAMP_DISABLE_COPY(Class) \
@@ -95,7 +101,7 @@
 #define XAMP_NEVER_INLINE __attribute__((__noinline__))
 #endif
 
-#if _MSVC_LANG >= XAMP_CPP20_LANG_VER
+#if defined(_MSVC_LANG) && _MSVC_LANG >= XAMP_CPP20_LANG_VER
 #define XAMP_CACHE_ALIGNED(CacheLineSize) alignas(CacheLineSize)
 #else
 #ifdef XAMP_OS_WIN

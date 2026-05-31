@@ -6,21 +6,19 @@
 #pragma once
 
 #include <base/base.h>
+#include <base/logger.h>
+#include <base/memory.h>
+#include <base/uuidof.h>
 
 #include <output_device/idevicetype.h>
 
-#include <base/uuidof.h>
-#include <base/memory.h>
-#include <base/memory.h>
-#include <base/logger.h>
-
-XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
+XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(NullOutputDeviceType);
 
 /*
 * NullOutputDeviceType is null output device type.
-* 
+*
 */
 class NullOutputDeviceType final : public IDeviceType {
 	XAMP_DECLARE_MAKE_CLASS_UUID(NullOutputDeviceType, "6F1223E0-231A-495C-B16A-2AAC851F8D5F")
@@ -31,7 +29,7 @@ public:
 	/*
 	* Constructor.
 	*/
-	NullOutputDeviceType() ;
+	NullOutputDeviceType();
 
 	/*
 	* Destructor.
@@ -79,11 +77,10 @@ public:
 	* @return ScopedPtr<IOutputDevice>
 	*/
 	ScopedPtr<IOutputDevice> MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::string& device_id) override;
-	
+
 private:
 	class NullOutputDeviceTypeImpl;
 	ScopedPtr<NullOutputDeviceTypeImpl> impl_;
 };
 
-XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
-
+XAMP_OUTPUT_DEVICE_NAMESPACE_END

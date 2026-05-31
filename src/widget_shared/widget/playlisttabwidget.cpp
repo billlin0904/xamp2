@@ -184,11 +184,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
 			}
             return;
         }
-        QString playlist;
-        if (playlist_page->playlist()->cloudPlaylistId()) {
-            playlist = playlist_page->playlist()->cloudPlaylistId().value();
-        }
-        emit deletePlaylist(playlist);
+        emit deletePlaylist(QString::number(playlist_page->playlist()->playlistId()));
         closeTab(tab_index);
         if (!count()) {
             emit removeAllPlaylist();
@@ -442,14 +438,14 @@ void PlaylistTabWidget::saveTabOrder() const {
         auto* p = playlistPage(i);
         if (p != nullptr) {
             const auto* playlist = p->playlist();
-            qDaoFacade.playlist_dao.setPlaylistIndex(playlist->playlistId(), i, store_type_);
+            qDaoFacade.playlist_dao.setPlaylistIndex(playlist->playlistId(), i);
             XAMP_LOG_DEBUG("saveTabOrder: {} at {}", tabText(i).toStdString(), i);
         }        
     }
 }
 
 void PlaylistTabWidget::restoreTabOrder() {
-    const auto playlist_index = qDaoFacade.playlist_dao.getPlaylistIndex(store_type_);
+    const auto playlist_index = qDaoFacade.playlist_dao.getPlaylistIndex();
 
     QList<QString> texts;
     QList<int> new_order;
@@ -579,14 +575,9 @@ void PlaylistTabWidget::closeAllTab() {
 
     qDaoFacade.playlist_dao.forEachPlaylist([this](auto playlist_id,
         auto,
-        auto store_type,
-        auto,
         auto) {
             if (playlist_id == kAlbumPlaylistId
                 || playlist_id == kCdPlaylistId) {
-                return;
-            }
-            if (store_type != store_type_) {
                 return;
             }
             removePlaylist(playlist_id);
@@ -595,12 +586,6 @@ void PlaylistTabWidget::closeAllTab() {
     clear();
     emit removeAllPlaylist();
     resizeTabWidth();
-}
-
-void PlaylistTabWidget::setStoreType(StoreType type) {
-    store_type_ = type;
-    setTabsClosable(true);
-    setMovable(true);
 }
 
 void PlaylistTabWidget::reloadAll() {

@@ -36,8 +36,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS path_index ON musics (path, offset, durationSt
 CREATE TABLE IF NOT EXISTS playlist (
     playlistId integer PRIMARY KEY,
     playlistIndex integer,
-    storeType integer,
-    cloudPlaylistId TEXT,
     name TEXT NOT NULL
 );
 
@@ -52,12 +50,11 @@ CREATE TABLE IF NOT EXISTS albums (
     dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     year integer,
     heart integer,
-    storeType integer,
     isHiRes integer,
     isSelected integer DEFAULT 0,
     plays integer DEFAULT 0,
     -- FOREIGN KEY (artistId) REMOVED
-    UNIQUE (albumId, artistId, storeType)
+    UNIQUE (albumId, artistId)
 );
 
 CREATE INDEX IF NOT EXISTS album_name_index ON albums (album);
@@ -121,7 +118,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS playlist_music_unique_index ON playlistMusics 
 CREATE UNIQUE INDEX IF NOT EXISTS album_artist_unique_index ON albumArtist (albumId, artistId);
 CREATE UNIQUE INDEX IF NOT EXISTS album_category_unique_index ON albumCategories (albumId, category);
 CREATE INDEX IF NOT EXISTS album_music_id_index ON albumMusic (musicId);
-CREATE INDEX IF NOT EXISTS album_store_index ON albums (album, storeType);
 
 CREATE TABLE IF NOT EXISTS albumTags (
     tagId integer PRIMARY KEY AUTOINCREMENT,

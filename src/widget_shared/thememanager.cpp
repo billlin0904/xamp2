@@ -125,8 +125,15 @@ void ThemeManager::installFileFont(const QString& file_name, QList<QString> &ui_
 
     const auto loaded_font_id = QFontDatabase::addApplicationFont(font_path);
     const auto font_families = QFontDatabase::applicationFontFamilies(loaded_font_id);
-    if (!ui_fallback_fonts.contains(font_families[0])) {
-        ui_fallback_fonts.push_back(font_families[0]);
+    if (font_families.isEmpty()) {
+        XAMP_LOG_ERROR("Load font failed: {}", file_name.toStdString());
+        return;
+    }
+
+    for (const auto& family : font_families) {
+        if (!ui_fallback_fonts.contains(family)) {
+            ui_fallback_fonts.push_back(family);
+        }
     }
 }
 
@@ -134,7 +141,14 @@ void ThemeManager::setGoogleMaterialFontIcons() {
     HashMap<int32_t, uint32_t> glyphs_lut;
 
     QJsonDocument doc;
-    if (json_util::deserializeFile("fonticon.json"_str, doc)) {
+    const auto font_icon_json_path = qFormat("%1/fonticon.json")
+        .arg(QCoreApplication::applicationDirPath());
+    const QFileInfo font_icon_json_info(font_icon_json_path);
+    XAMP_LOG_DEBUG("Load font icon glyph config: {} exists:{}",
+        font_icon_json_path.toStdString(),
+        font_icon_json_info.exists());
+
+    if (font_icon_json_info.exists() && json_util::deserializeFile(font_icon_json_path, doc)) {
         auto jsonObject = doc.object();
         for (auto it = jsonObject.begin(); it != jsonObject.end(); ++it) {
             auto key = it.key().toStdString();
@@ -144,9 +158,21 @@ void ThemeManager::setGoogleMaterialFontIcons() {
 				glyphs_lut.insert(std::make_pair(static_cast<int32_t>(glyph), value.toUInt(nullptr, 16)));
             }
         }
+    } else {
+        XAMP_LOG_ERROR("Load font icon glyph config failed: {}", font_icon_json_path.toStdString());
     }
 
-    qFontIcon.addFont(fontNamePath("MaterialIcons-Regular.ttf"_str));
+    const auto material_icon_font_path = fontNamePath("MaterialIcons-Regular.ttf"_str);
+    const QFileInfo material_icon_font_info(material_icon_font_path);
+    XAMP_LOG_DEBUG("Load Material Icons font: {} exists:{}",
+        material_icon_font_path.toStdString(),
+        material_icon_font_info.exists());
+
+    const auto material_icon_loaded = qFontIcon.addFont(material_icon_font_path);
+    XAMP_LOG_DEBUG("Material Icons font loaded:{} families:{} glyphs:{}",
+        material_icon_loaded,
+        qFontIcon.getFamilies().join(","_str).toStdString(),
+        glyphs_lut.size());
     qFontIcon.setGlyphs(glyphs_lut);
 }
 
@@ -155,21 +181,31 @@ QFont ThemeManager::loadFonts() {
     QList<QString> mono_fonts;
     QList<QString> display_fonts;
     QList<QString> ui_fonts;
+	QList<QString> source_han_fonts;
     QList<QString> en_fonts;
     QList<QString> debug_fonts;
 
     installFileFonts("FiraCode-Regular"_str, debug_fonts);
-    
     installFileFonts("Aldrich-Regular"_str, format_font);
-    //installFileFonts("Lato"_str, mono_fonts);
-    //installFileFonts("Lato-Regular"_str, ui_fonts);
-    //ui_fonts.push_back("TX-02"_str);
-    //ui_fonts.push_back("Arial"_str);
     installFileFonts("NotoSans"_str, mono_fonts);
-    //installFileFonts("Microsoft JhengHei"_str, ui_fonts);    
-    ui_fonts.push_back("Microsoft JhengHei UI"_str);
 
-    sortFontWeight(ui_fonts.begin(), ui_fonts.end());
+    // UI first font.
+    QList<QString> default_fonts;
+#ifdef Q_OS_WIN
+    default_fonts.push_back("Microsoft JhengHei UI"_str);
+#else
+    installFileFonts("Inter"_str, default_fonts);
+    sortFontWeight(default_fonts.begin(), default_fonts.end());
+#endif
+
+    installFileFonts("SourceHanSans"_str, source_han_fonts);
+    source_han_fonts.push_back("Source Han Sans TC"_str);
+    source_han_fonts.push_back("Source Han Sans JP"_str);
+    source_han_fonts.push_back("Source Han Sans SC"_str);
+    sortFontWeight(source_han_fonts.begin(), source_han_fonts.end());
+
+    ui_fonts.append(default_fonts);
+    ui_fonts.append(source_han_fonts);
 
     if (format_font.isEmpty()) {
         format_font = mono_fonts;
@@ -400,7 +436,11 @@ QIcon ThemeManager::fontIcon(const Glyphs code, std::optional<ThemeColor> theme_
 }
 
 QIcon ThemeManager::applicationIcon() const {
+#ifdef Q_OS_WIN
     return QIcon(":/xamp/xamp.ico"_str);
+#else
+    return QIcon(":/xamp/xamp2.png"_str);
+#endif
 }
 
 QIcon ThemeManager::playCircleIcon() const {

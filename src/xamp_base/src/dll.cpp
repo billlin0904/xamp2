@@ -110,6 +110,9 @@ SharedLibraryHandle LoadSharedLibrary(const std::string_view& name) {
     auto path_string = path.native();
     auto module = ::dlopen(path_string.c_str(), RTLD_NOW);
     if (!module) {
+        module = ::dlopen(name.data(), RTLD_NOW);
+    }
+    if (!module) {
         throw LoadDllFailureException(name);
     }
     return SharedLibraryHandle(module);

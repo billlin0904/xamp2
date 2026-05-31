@@ -65,7 +65,7 @@ public:
 	std::expected<std::vector<std::wstring>, std::string> Open(const Path& archive_path) {
 		try {
 			auto archive_ptr = MakeArchivePtr();			
-			PrefetchFile(archive_path);
+			PrefetchFile(archive_path.wstring());
 
 			if (LIBARCHIVE_LIB.archive_read_open_filename_w(archive_ptr.get(),
 				archive_path.wstring().c_str(), kArchiveBlockSize) != ARCHIVE_OK) {

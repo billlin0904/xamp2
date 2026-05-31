@@ -62,7 +62,7 @@ TaskScheduler::TaskScheduler(const std::string_view& name,
 
 	XAMP_LOG_D(logger_,
 		"TaskScheduler initial max thread:{} priority:{}",
-		max_thread, priority);
+		max_thread, EnumToString(priority));
 }
 
 TaskScheduler::~TaskScheduler() {
@@ -259,15 +259,15 @@ void TaskScheduler::AddThread(size_t i, ThreadPriority priority) {
 		XampCrashHandler.SetThreadExceptionHandlers();
 		SetWorkerThreadName(i);
 
-		XAMP_LOG_D(logger_, "Worker Thread {} priority:{}.", i, priority);
+		XAMP_LOG_D(logger_, "Worker Thread {} priority:{}.", i, EnumToString(priority));
 
 		const auto thread_id = GetCurrentThreadId();
 
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) suspend.", thread_id, i);
 		work_done_.count_down();
 
-#ifdef XAMP_OS_WIN
 		SetCurrentThreadPriority(priority);
+#ifdef XAMP_OS_WIN
 		SetCurrentThreadMitigation();
 #endif
 

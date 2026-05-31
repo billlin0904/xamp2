@@ -80,8 +80,7 @@ namespace dao {
         SUM(musics.duration) AS durations,
         MAX(year) AS year,
         (SELECT COUNT( * ) AS tracks FROM albumMusic WHERE albumMusic.albumId = :albumId) AS tracks,
-        SUM(musics.fileSize) AS fileSize,
-		albums.storeType
+        SUM(musics.fileSize) AS fileSize
     FROM
         albumMusic
     JOIN albums ON albums.albumId = albumMusic.albumId
@@ -99,7 +98,6 @@ namespace dao {
             stats.year = query.value("year"_str).toInt();
             stats.durations = query.value("durations"_str).toDouble();
             stats.file_size = query.value("fileSize"_str).toULongLong();
-            stats.store_type = static_cast<StoreType>(query.value("storeType"_str).toInt());
             return MakeOptional<AlbumStats>(std::move(stats));
         }
 
@@ -110,7 +108,6 @@ namespace dao {
         int32_t artist_id,
         int64_t album_time,
         uint32_t year,
-        StoreType store_type,
         const QString& disc_id,
         bool is_hires) {
         XAMP_ENSURES(!album.isEmpty());
@@ -124,7 +121,6 @@ namespace dao {
       album,
       artistId,
       coverId, 
-      storeType,
       dateTime,
       discId,
       year,
@@ -138,12 +134,11 @@ namespace dao {
           FROM 
             albums 
           WHERE 
-            album = :album AND storeType = :storeType
+            album = :album
         ), 
         :album, 
         :artistId, 
         :coverId, 
-        :storeType, 
         :dateTime, 
         :discId, 
         :year, 
@@ -154,8 +149,7 @@ namespace dao {
         query.bindValue(":album"_str, album);
         query.bindValue(":artistId"_str, artist_id);
         query.bindValue(":coverId"_str, getAlbumCoverId(album));
-        query.bindValue(":storeType"_str, static_cast<int32_t>(store_type));
-        query.bindValue(":dateTime"_str, album_time);
+        query.bindValue(":dateTime"_str, static_cast<qlonglong>(album_time));
         query.bindValue(":discId"_str, disc_id);
         query.bindValue(":year"_str, year);
         query.bindValue(":isHiRes"_str, is_hires);
@@ -317,7 +311,7 @@ namespace dao {
         if (!entities.empty()) {
             Q_FOREACH(const auto & entity, entities) {
                 QList<int32_t> playlist_ids;
-                playlist_dao.forEachPlaylist([&playlist_ids, this](auto playlistId, auto, auto, auto, auto) {
+                playlist_dao.forEachPlaylist([&playlist_ids, this](auto playlistId, auto, auto) {
                     playlist_ids.push_back(playlistId);
                     });
 
@@ -617,11 +611,11 @@ LIMIT
         SqlQuery query(db_);
         
         if (album_id != kInvalidDatabaseId) {
-            query.prepare("UPDATE albums SET isSelected = :isSelected WHERE (albumId = :albumId) AND storeType == 1"_str);
+            query.prepare("UPDATE albums SET isSelected = :isSelected WHERE (albumId = :albumId)"_str);
             query.bindValue(":albumId"_str, album_id);
         }
         else {
-            query.prepare("UPDATE albums SET isSelected = :isSelected WHERE storeType == 1"_str);
+            query.prepare("UPDATE albums SET isSelected = :isSelected"_str);
         }
         
         query.bindValue(":isSelected"_str, state ? 1: 0);

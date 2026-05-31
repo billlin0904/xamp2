@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/xamp">
         <file>xamp.ico</file>
+        <file>xamp2.png</file>
         <file>Resource/White/GitHub-Mark.png</file>
         <file>Resource/Black/GitHub-Mark.png</file>
         <file>Resource/Black/play_circle.png</file>

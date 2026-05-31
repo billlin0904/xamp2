@@ -13,6 +13,7 @@
 #include <functional>
 #include <memory>
 #include <map>
+#include <optional>
 
 #include <base/base.h>
 #include <base/memory.h>
@@ -51,7 +52,7 @@ decltype(auto) bind_front(F&& f, FrontArgs&&...front_args) {
 }
 #endif
 
-#ifdef XAMP_OS_WIN
+#if defined(XAMP_OS_WIN) || defined(XAMP_OS_LINUX)
 using std::bind_front;
 #endif
 

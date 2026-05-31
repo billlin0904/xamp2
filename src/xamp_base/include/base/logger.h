@@ -8,6 +8,7 @@
 #include <base/base.h>
 #include <base/fastmutex.h>
 #include <base/shared_singleton.h>
+#include <base/str_utilts.h>
 
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/fmt/ostr.h>
@@ -30,7 +31,6 @@ namespace spdlog {
     using sink_ptr = std::shared_ptr<sinks::sink>;
 }
 
-#ifdef XAMP_OS_WIN
 template <typename T, size_t S>
 XAMP_ALWAYS_INLINE constexpr size_t compiler_time_get_file_name_offset(const T(&str)[S], size_t i = S - 1) {
     return (str[i] == '/' || str[i] == '\\')
@@ -43,11 +43,13 @@ XAMP_ALWAYS_INLINE constexpr size_t compiler_time_get_file_name_offset(T(&)[1]) 
     return 0;
 }
 
+#if defined(__FILE_NAME__)
+#define __FILENAME__ __FILE_NAME__
+#else
 #define __FILENAME__ &__FILE__[compiler_time_get_file_name_offset(__FILE__)]
 #endif
 
-#ifndef XAMP_OS_WIN
-#define __FILENAME__ __FILE_NAME__
+#if !defined(XAMP_OS_WIN) && !defined(__FUNCTION__)
 #define __FUNCTION__ __func__
 #endif
 
@@ -233,20 +235,20 @@ public:
     }
 
     template <typename... Args>
-    void Log(LogLevel level, const SourceLocation& source_location, fmt::format_string<Args...> s, Args&&... args) {
+    void Log(LogLevel level, const SourceLocation& source_location, std::string_view s, Args&&... args) {
         if (!ShouldLog(level)) {
             return;
         }
-        auto message = fmt::format(s, std::forward<Args>(args)...);
+        auto message = fmt::format(fmt::runtime(s), detail::FormatArgument(std::forward<Args>(args))...);
         LogMsg(level, source_location.file_name(), source_location.line(), source_location.function_name(), message);
     }
 
     template <typename... Args>
-    void Log(LogLevel level, const char* filename, int32_t line, const char* func, fmt::format_string<Args...> s, Args&&... args) {
+    void Log(LogLevel level, const char* filename, int32_t line, const char* func, std::string_view s, Args&&... args) {
         if (!ShouldLog(level)) {
             return;
         }
-        auto message = fmt::format(s, std::forward<Args>(args)...);
+        auto message = fmt::format(fmt::runtime(s), detail::FormatArgument(std::forward<Args>(args))...);
         LogMsg(level, filename, line, func, message);
     }
 

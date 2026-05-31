@@ -9,9 +9,11 @@
 
 #include <QCoreApplication>
 #include <QFontMetrics>
+#include <QGuiApplication>
 #include <QHBoxLayout>
 #include <QMap>
 #include <QMenu>
+#include <QScreen>
 #include <QWidgetAction>
 
 #include <output_device/api.h>
@@ -22,6 +24,11 @@
 #include <algorithm>
 
 namespace {
+    constexpr int kMaxDeviceMenuTextWidth{ 640 };
+    constexpr int kMinDeviceMenuTextWidth{ 360 };
+    constexpr int kDeviceMenuScreenMargin{ 160 };
+    constexpr int kMaxDeviceLabelWidth{ 320 };
+
     template <typename Map>
     QString translateLookup(const char* context,
         const Map& lut,
@@ -32,6 +39,23 @@ namespace {
             return fallback;
         }
         return QCoreApplication::translate(context, source_text);
+    }
+
+    int deviceMenuTextWidth(const QToolButton* button) {
+        const auto* screen = button != nullptr && button->screen() != nullptr
+            ? button->screen()
+            : QGuiApplication::primaryScreen();
+        if (screen == nullptr) {
+            return kMaxDeviceMenuTextWidth;
+        }
+
+        return std::clamp(screen->availableGeometry().width() - kDeviceMenuScreenMargin,
+            kMinDeviceMenuTextWidth,
+            kMaxDeviceMenuTextWidth);
+    }
+
+    QString elideDeviceName(const QFontMetrics& metrics, const QString& name, int width) {
+        return metrics.elidedText(name, Qt::ElideMiddle, width);
     }
 }
 
@@ -68,8 +92,11 @@ std::optional<DeviceInfo> DeviceSelectorMenu::rebuild(
     std::optional<DeviceInfo> default_device_info;
 
     const QFontMetrics metrics(device_desc_label_->font());
+    const auto menu_text_width = deviceMenuTextWidth(select_device_button_);
     auto max_width = current_device_info.has_value()
-        ? metrics.horizontalAdvance(QString::fromStdWString(current_device_info->name))
+        ? metrics.horizontalAdvance(elideDeviceName(metrics,
+            QString::fromStdWString(current_device_info->name),
+            kMaxDeviceLabelWidth))
         : 0;
 
     for (auto itr = device_manager->Begin(); itr != device_manager->End(); ++itr) {
@@ -86,16 +113,21 @@ std::optional<DeviceInfo> DeviceSelectorMenu::rebuild(
 
         for (const auto& device_info : device_info_list) {
             const auto device_name = QString::fromStdWString(device_info.name);
-            max_width = (std::max)(metrics.horizontalAdvance(device_name), max_width);
+            const auto device_display_name = elideDeviceName(metrics, device_name, menu_text_width);
+            max_width = (std::max)(metrics.horizontalAdvance(device_display_name), max_width);
 
-            auto* device_action = new QAction(qTheme.connectTypeIcon(device_info.connect_type), device_name, menu);
+            auto* device_action = new QAction(qTheme.connectTypeIcon(device_info.connect_type),
+                device_display_name,
+                menu);
             action_group_->addAction(device_action);
             device_action->setCheckable(true);
             device_action->setChecked(false);
             device_action->setProperty("deviceName", device_name);
+            device_action->setProperty("deviceDisplayName", device_display_name);
+            device_action->setToolTip(device_name);
 
             const auto update_device_action = [device_action]() {
-                const auto name = device_action->property("deviceName").toString();
+                const auto name = device_action->property("deviceDisplayName").toString();
                 device_action->setText(device_action->isChecked()
                     ? QStringLiteral("%1 %2").arg(QChar(0x2713), name)
                     : name);
@@ -188,8 +220,13 @@ QWidgetAction* DeviceSelectorMenu::createHeaderAction(const QString& desc) {
 
 void DeviceSelectorMenu::applySelectedDevice(const DeviceInfo& device_info, int label_width) {
     qTheme.setDeviceConnectTypeIcon(select_device_button_, device_info.connect_type);
-    device_desc_label_->setMinimumWidth(label_width + 60);
-    device_desc_label_->setText(QString::fromStdWString(device_info.name));
+    const QFontMetrics metrics(device_desc_label_->font());
+    const auto device_name = QString::fromStdWString(device_info.name);
+    const auto capped_width = std::min(label_width + 60, kMaxDeviceLabelWidth);
+    device_desc_label_->setMinimumWidth(capped_width);
+    device_desc_label_->setMaximumWidth(kMaxDeviceLabelWidth);
+    device_desc_label_->setText(elideDeviceName(metrics, device_name, capped_width));
+    device_desc_label_->setToolTip(device_name);
 }
 
 QMenu* DeviceSelectorMenu::ensureMenu() const {

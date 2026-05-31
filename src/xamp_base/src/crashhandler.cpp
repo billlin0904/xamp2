@@ -273,7 +273,7 @@ public:
 
         bool result = (old_action.sa_flags & SA_SIGINFO) != 0;
         if (::sigaction(signum, &old_action, nullptr) == -1) {
-            XAMP_LOG_D(logger_, "Restore failed in test for SA_SIGINFO: {}", strerror(errno));
+            XAMP_LOG_DEBUG("Restore failed in test for SA_SIGINFO: {}", strerror(errno));
         }
 
         return result;
@@ -308,10 +308,13 @@ public:
             break;
         }
 
-        XAMP_LOG_E(logger_, "Fatal signal {} ({}){}{}",
-            signum, signal_name, info->si_code, info->si_addr);
+        XAMP_LOG_ERROR("Fatal signal {} ({}) code:{} address:{}",
+            signum,
+            signal_name,
+            info ? info->si_code : 0,
+            info ? info->si_addr : nullptr);
         StackTrace trace;
-        XAMP_LOG_E(logger_, "{}", trace.CaptureStack());
+        XAMP_LOG_ERROR("{}", trace.CaptureStack());
     }
 
     static void CrashSignalHandler(int signal_number, siginfo_t* info, void*) {

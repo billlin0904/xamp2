@@ -159,7 +159,7 @@ void ParallelForSimple(const std::shared_ptr<IThreadPoolExecutor>& executor,
     constexpr bool can_call_with_stop =
         std::is_invocable_v<Func, ValueType&, const std::stop_token&>;
 
-    std::vector<Future> futures;
+    std::vector<Future<void>> futures;
     futures.reserve(size);
 
     for (auto& item : items) {

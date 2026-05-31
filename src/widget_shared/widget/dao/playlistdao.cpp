@@ -12,7 +12,7 @@ namespace dao {
 		: db_(db) {
 	}
 
-	int32_t PlaylistDao::addPlaylist(const QString& name, int32_t play_index, StoreType store_type, const QString& cloud_playlist_id) {
+	int32_t PlaylistDao::addPlaylist(const QString& name, int32_t play_index) {
         QSqlTableModel model(nullptr, db_);
 
         model.setEditStrategy(QSqlTableModel::OnManualSubmit);
@@ -25,9 +25,7 @@ namespace dao {
 
         model.setData(model.index(0, 0), /*QVariant()*/play_index);
         model.setData(model.index(0, 1), play_index);
-        model.setData(model.index(0, 2), static_cast<int32_t>(store_type));
-        model.setData(model.index(0, 3), cloud_playlist_id);
-        model.setData(model.index(0, 4), name);
+        model.setData(model.index(0, 2), name);
 
         if (!model.submitAll()) {
             return kInvalidDatabaseId;
@@ -105,14 +103,13 @@ namespace dao {
         return query.next();
     }
 
-    void PlaylistDao::setPlaylistIndex(int32_t playlist_id, int32_t play_index, StoreType store_type) {
+    void PlaylistDao::setPlaylistIndex(int32_t playlist_id, int32_t play_index) {
         SqlQuery query(db_);
 
         query.prepare("UPDATE playlist SET playlistIndex = :playlistIndex WHERE (playlistId = :playlistId)"_str);
 
         query.bindValue(":playlistId"_str, playlist_id);
         query.bindValue(":playlistIndex"_str, play_index);
-        query.bindValue(":storeType"_str, static_cast<int32_t>(store_type));
         DbIfFailedThrow1(query);
     }
 
@@ -229,18 +226,16 @@ namespace dao {
         updatePlaylistMusic(music_entity_2.playlist_music_id, music_entity_1.music_id, music_entity_1.album_id, playing1, is_checked1);
     }
 
-    std::map<int32_t, int32_t> PlaylistDao::getPlaylistIndex(StoreType type) {
+    std::map<int32_t, int32_t> PlaylistDao::getPlaylistIndex() {
         std::map<int32_t, int32_t> playlist_index;
 
-        forEachPlaylist([&playlist_index, type](auto id, auto index, auto store_type, auto name, auto) {
-            if (type == store_type) {
-                playlist_index.insert(std::make_pair(index, id));
-            }
+        forEachPlaylist([&playlist_index](auto id, auto index, auto) {
+            playlist_index.insert(std::make_pair(index, id));
             });
         return playlist_index;
     }
 
-    void PlaylistDao::forEachPlaylist(std::function<void(int32_t, int32_t, StoreType, QString, QString)>&& fun) {
+    void PlaylistDao::forEachPlaylist(std::function<void(int32_t, int32_t, QString)>&& fun) {
         QSqlTableModel model(nullptr, db_);
 
         model.setTable("playlist"_str);
@@ -251,8 +246,6 @@ namespace dao {
             auto record = model.record(i);
             fun(record.value("playlistId"_str).toInt(),
                 record.value("playlistIndex"_str).toInt(),
-                static_cast<StoreType>(record.value("storeType"_str).toInt()),
-                record.value("cloudPlaylistId"_str).toString(),
                 record.value("name"_str).toString());
         }
     }

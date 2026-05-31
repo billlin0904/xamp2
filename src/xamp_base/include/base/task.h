@@ -5,7 +5,10 @@
 
 #pragma once
 
+#include <functional>
 #include <future>
+#include <stop_token>
+
 #include <base/base.h>
 
 XAMP_BASE_NAMESPACE_BEGIN

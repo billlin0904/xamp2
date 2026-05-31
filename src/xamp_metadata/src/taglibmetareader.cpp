@@ -524,8 +524,13 @@ namespace {
             ensureCached();
         }
 
-        FileName name() const {
+        FileName name() const override {
+#ifdef _WIN32
             return entry.Name().c_str();
+#else
+            name_ = String::ToUtf8String(entry.Name());
+            return name_.c_str();
+#endif
         }
 
         void ensureCached() {
@@ -568,8 +573,8 @@ namespace {
             return !buffer_.empty();
         }
 
-        long long length() override {
-            return static_cast<long long>(buffer_.size());
+        offset_t length() override {
+            return static_cast<offset_t>(buffer_.size());
         }
 
         ByteVector readBlock(size_t length) {
@@ -587,33 +592,34 @@ namespace {
             return out;
         }
 
-        void seek(long long offset, Position p) override {
+        void seek(offset_t offset, Position p = Beginning) override {
             ensureCached();
 
-            long long base = 0;
+            offset_t base = 0;
             switch (p) {
             case Beginning: base = 0;              break;
             case Current:   base = pos_;           break;
-            case End:       base = buffer_.size(); break;
+            case End:       base = static_cast<offset_t>(buffer_.size()); break;
             default:        return;
             }
 
-            long long newPos = base + offset;
-            if (newPos < 0 || newPos > static_cast<long long>(buffer_.size()))
+            offset_t newPos = base + offset;
+            if (newPos < 0 || newPos > static_cast<offset_t>(buffer_.size()))
                 return;
             pos_ = newPos;
         }
 
-        long long tell() const override {
+        offset_t tell() const override {
             return pos_;
         }
 
-        void truncate(long long) override {
+        void truncate(offset_t) override {
         }
     private:
-        int64_t pos_{};
+        offset_t pos_{};
         ArchiveEntry entry;
         std::vector<char> buffer_;
+        mutable std::string name_;
     };
 
     ScopedPtr<TagLib::IOStream> MakeIOStream(ArchiveEntry entry) {
@@ -631,7 +637,7 @@ public:
         fileref_opt_ = std::nullopt;
         auto entry_name = entry.Name();
         auto archive_path = entry.ArchivePath();
-        PrefetchFile(archive_path);
+        PrefetchFile(archive_path.wstring());
         io_stream_ = MakeIOStream(std::move(entry));
         FileRef fileref(io_stream_.get(), true, TagLib::AudioProperties::Fast);
         if (!fileref.isNull()) {
@@ -668,7 +674,7 @@ public:
 
         if (is_archive_file_) {
             track_info.file_size = io_stream_->length();
-            track_info.archive_entry_name = io_stream_->name().toString().toCWString();
+            track_info.archive_entry_name = entry_name_;
             track_info.file_path = path_;
             track_info.is_zip_file = true;
             if (tag != nullptr) {

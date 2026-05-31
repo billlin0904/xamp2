@@ -16,44 +16,37 @@
 
 XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 
+namespace {
+
+void LoadRequiredComponent(const char* name, void (*loader)()) {
+    try {
+        loader();
+        XAMP_LOG_DEBUG("Load {} lib success.", name);
+    }
+    catch (...) {
+        XAMP_LOG_ERROR("Load {} lib failed.", name);
+        throw;
+    }
+}
+
+} // namespace
+
 void LoadComponentSharedLibrary() {
-    LoadBassLib();
-    XAMP_LOG_DEBUG("Load BASS lib success.");
-
-    LoadMqaLib();
-    XAMP_LOG_DEBUG("Load MQA lib success.");
-
-    LoadSrcLib();
-    XAMP_LOG_DEBUG("Load Src lib success.");
-
-#ifdef XAMP_OS_WIN
-    LoadFFTLib();
-    XAMP_LOG_DEBUG("Load FFT lib success.");
+    LoadRequiredComponent("BASS", LoadBassLib);
+    LoadRequiredComponent("MQA", LoadMqaLib);
+    LoadRequiredComponent("Src", LoadSrcLib);
+#if defined(XAMP_OS_WIN) || defined(XAMP_OS_LINUX)
+    LoadRequiredComponent("FFT", LoadFFTLib);
 #endif
-
-    LoadAvLib();
-    XAMP_LOG_DEBUG("Load avlib success.");
-
-    LoadSoxrLib();
-    XAMP_LOG_DEBUG("Load Soxr lib success.");
-
-    LoadCueLib();
-    XAMP_LOG_DEBUG("Load libcue lib success.");
-
-    LoadUcharDectLib();
-    XAMP_LOG_DEBUG("Load uchardect lib success.");
-
-    LoadFuriganaDll();
-    XAMP_LOG_DEBUG("Load furigana lib success.");
-
+    LoadRequiredComponent("avlib", LoadAvLib);
+    LoadRequiredComponent("Soxr", LoadSoxrLib);
+    LoadRequiredComponent("libcue", LoadCueLib);
+    LoadRequiredComponent("uchardect", LoadUcharDectLib);
+    LoadRequiredComponent("furigana", LoadFuriganaDll);
 #ifdef XAMP_OS_WIN
-    LoadR8brainLib();
-    XAMP_LOG_DEBUG("Load r8brain lib success.");
-
-    LoadMBDiscIdLib();
-    XAMP_LOG_DEBUG("Load mbdiscid lib success.");
+    LoadRequiredComponent("r8brain", LoadR8brainLib);
+    LoadRequiredComponent("mbdiscid", LoadMBDiscIdLib);
 #endif
-
 }
 
 #ifdef XAMP_OS_WIN

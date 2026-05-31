@@ -16,7 +16,7 @@
 #else
     #define XAMP_STREAM_API __declspec(dllimport)
 #endif
-#elif defined(XAMP_OS_MAC)
+#else
 #define XAMP_STREAM_API __attribute__((visibility("default")))
 #endif
 

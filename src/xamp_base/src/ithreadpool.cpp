@@ -34,7 +34,7 @@ std::shared_ptr<IThreadPoolExecutor> ThreadPoolBuilder::MakePlaybackThreadPool()
 	return MakeThreadPool(XAMP_LOG_NAME(PlaybackThreadPool),
 		kMaxPlaybackThreadPoolSize,
 		1,
-		ThreadPriority::PRIORITY_NORMAL);
+		ThreadPriority::PRIORITY_HIGHEST);
 }
 
 std::shared_ptr<IThreadPoolExecutor> ThreadPoolBuilder::MakePlayerThreadPool() {

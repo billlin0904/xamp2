@@ -5,6 +5,8 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
+#ifdef XAMP_OS_WIN
+
 void ConvertInt8ToInt8SSE(const int8_t* input, int8_t* left_ptr, int8_t* right_ptr, size_t frames) {
 	XAMP_ASSUME(input != nullptr);
 	XAMP_ASSUME(left_ptr != nullptr);
@@ -478,6 +480,129 @@ XAMP_BASE_API void DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERL
 XAMP_BASE_API void DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::ConvertToInt2432(int32_t* output, const float* input, const AudioConvertContext& context) {
 	AVX2Convert<int24_t, int32_t>(output, input, kFloat24Scale, context);
 }
+
+#else
+
+void ConvertInt8ToInt8SSE(const int8_t* input, int8_t* left_ptr, int8_t* right_ptr, size_t frames) {
+	XAMP_ASSUME(input != nullptr);
+	XAMP_ASSUME(left_ptr != nullptr);
+	XAMP_ASSUME(right_ptr != nullptr);
+
+	for (size_t i = 0; i < frames; ++i) {
+		*left_ptr++ = *input++;
+		*right_ptr++ = *input++;
+	}
+}
+
+void ConvertFloatToFloatSSE(const float* input, float* left_ptr, float* right_ptr, size_t frames) {
+	XAMP_ASSUME(input != nullptr);
+	XAMP_ASSUME(left_ptr != nullptr);
+	XAMP_ASSUME(right_ptr != nullptr);
+
+	for (size_t i = 0; i < frames; ++i) {
+		*left_ptr++ = *input++;
+		*right_ptr++ = *input++;
+	}
+}
+
+void ConvertFloatToInt16SSE(const float* input, int16_t* left_ptr, int16_t* right_ptr, size_t frames) {
+	XAMP_ASSUME(input != nullptr);
+	XAMP_ASSUME(left_ptr != nullptr);
+	XAMP_ASSUME(right_ptr != nullptr);
+
+	for (size_t i = 0; i < frames; ++i) {
+		*left_ptr++ = static_cast<int16_t>(*input++ * kFloat16Scale);
+		*right_ptr++ = static_cast<int16_t>(*input++ * kFloat16Scale);
+	}
+}
+
+void ConvertFloatToInt32SSE(const float* input, int32_t* left_ptr, int32_t* right_ptr, size_t frames, float volume) {
+	XAMP_ASSUME(input != nullptr);
+	XAMP_ASSUME(left_ptr != nullptr);
+	XAMP_ASSUME(right_ptr != nullptr);
+
+	for (size_t i = 0; i < frames; ++i) {
+		*left_ptr++ = static_cast<int32_t>(*input++ * kFloat32Scale * volume);
+		*right_ptr++ = static_cast<int32_t>(*input++ * kFloat32Scale * volume);
+	}
+}
+
+void ConvertFloatToInt24SSE(const float* input, int32_t* left_ptr, int32_t* right_ptr, size_t frames) {
+	XAMP_ASSUME(input != nullptr);
+	XAMP_ASSUME(left_ptr != nullptr);
+	XAMP_ASSUME(right_ptr != nullptr);
+
+	for (size_t i = 0; i < frames; ++i) {
+		*left_ptr++ = static_cast<int32_t>(*input++ * kFloat24Scale) << 8;
+		*right_ptr++ = static_cast<int32_t>(*input++ * kFloat24Scale) << 8;
+	}
+}
+
+XAMP_BASE_API void DataConverter<PackedFormat::INTERLEAVED, PackedFormat::PLANAR>::Convert(int8_t* output, const int8_t* input, const AudioConvertContext& context) {
+	XAMP_ASSUME(input != nullptr);
+	XAMP_ASSUME(output != nullptr);
+
+	auto* left_channel = output;
+	auto* right_channel = output + context.convert_size;
+	for (size_t i = 0; i < context.convert_size; ++i) {
+		*left_channel++ = *input++;
+		*right_channel++ = *input++;
+	}
+}
+
+XAMP_BASE_API void DataConverter<PackedFormat::INTERLEAVED, PackedFormat::PLANAR>::Convert(int32_t* output, const float* input, const AudioConvertContext& context) {
+	XAMP_ASSUME(input != nullptr);
+	XAMP_ASSUME(output != nullptr);
+
+	auto* left_channel = output;
+	auto* right_channel = output + context.convert_size;
+	for (size_t i = 0; i < context.convert_size; ++i) {
+		*left_channel++ = static_cast<int32_t>(*input++ * kFloat32Scale * context.volume_factor);
+		*right_channel++ = static_cast<int32_t>(*input++ * kFloat32Scale * context.volume_factor);
+	}
+}
+
+XAMP_BASE_API void DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::Convert(int16_t* output, const float* input, const AudioConvertContext& context) {
+	XAMP_ASSUME(input != nullptr);
+	XAMP_ASSUME(output != nullptr);
+
+	const auto sample_count = context.convert_size * AudioFormat::kMaxChannel;
+	for (size_t i = 0; i < sample_count; ++i) {
+		output[i] = static_cast<int16_t>(input[i] * kFloat16Scale * context.volume_factor);
+	}
+}
+
+XAMP_BASE_API void DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::ConvertToInt24(int24_t* output, const int32_t* input, const AudioConvertContext& context) {
+	XAMP_ASSUME(input != nullptr);
+	XAMP_ASSUME(output != nullptr);
+
+	const auto sample_count = context.convert_size * AudioFormat::kMaxChannel;
+	for (size_t i = 0; i < sample_count; ++i) {
+		output[i] = input[i] >> 8;
+	}
+}
+
+XAMP_BASE_API void DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::ConvertToInt32(int32_t* output, const float* input, const AudioConvertContext& context) {
+	XAMP_ASSUME(input != nullptr);
+	XAMP_ASSUME(output != nullptr);
+
+	const auto sample_count = context.convert_size * AudioFormat::kMaxChannel;
+	for (size_t i = 0; i < sample_count; ++i) {
+		output[i] = static_cast<int32_t>(input[i] * kFloat32Scale * context.volume_factor);
+	}
+}
+
+XAMP_BASE_API void DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::ConvertToInt2432(int32_t* output, const float* input, const AudioConvertContext& context) {
+	XAMP_ASSUME(input != nullptr);
+	XAMP_ASSUME(output != nullptr);
+
+	const auto sample_count = context.convert_size * AudioFormat::kMaxChannel;
+	for (size_t i = 0; i < sample_count; ++i) {
+		output[i] = static_cast<int32_t>(input[i] * kFloat24Scale * context.volume_factor) << 8;
+	}
+}
+
+#endif
 
 
 AudioConvertContext::AudioConvertContext() = default;

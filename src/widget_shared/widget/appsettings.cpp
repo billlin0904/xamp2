@@ -253,7 +253,7 @@ QString AppSettings::getOrCreateCachePath() {
 		cache_path = qAppSettings.valueAsString(kAppSettingCachePath);
 	}
 #else
-    cache_path = applicationPath() + "/Cache/");
+    cache_path = applicationPath() + QString("/Cache/"_str);
     const QDir dir(cache_path);
     if (!dir.exists()) {
         if (!dir.mkdir(cache_path)) {
@@ -425,12 +425,12 @@ void AppSettings::loadOrSaveLogConfig() {
 
 	for (const auto& logger : XampLoggerFactory.GetAllLogger()) {
 		if (logger->GetName() != std::string(kXampLoggerName)) {
-			well_known_log_name[toQString(logger->GetName())] = "info"_str;
+			well_known_log_name[toQString(logger->GetName())] = "debug"_str;
 		}
 	}
 
 	if (qJsonSettings.valueAsMap(kLog).isEmpty()) {
-		min_level[kLogDefault] = "info"_str;
+		min_level[kLogDefault] = "debug"_str;
 
 		XampLoggerFactory.SetLevel(log_util::parseLogLevel(min_level[kLogDefault].toString()));
 
@@ -466,8 +466,10 @@ void AppSettings::loadOrSaveLogConfig() {
 		     ; itr != override_map.end(); ++itr) {
 			const auto& log_name = itr.key();
 			auto log_level = itr.value().toString();
+			/*XampLoggerFactory.GetLogger(log_name.toStdString())
+			                 ->SetLevel(log_util::parseLogLevel(log_level));*/
 			XampLoggerFactory.GetLogger(log_name.toStdString())
-			                 ->SetLevel(log_util::parseLogLevel(log_level));
+				->SetLevel(LogLevel::LOG_LEVEL_DEBUG);
 		}
 	}
 

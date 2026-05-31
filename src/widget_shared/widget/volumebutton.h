@@ -11,6 +11,7 @@
 #include <widget/themecolor.h>
 #include <widget/widget_shared_global.h>
 #include <widget/widget_shared.h>
+#include <player/iaudioplayer.h>
 
 class QEnterEvent;
 class VolumeControlDialog;

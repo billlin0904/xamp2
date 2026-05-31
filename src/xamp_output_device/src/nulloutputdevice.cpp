@@ -1,9 +1,8 @@
-#include <output_device/win32/nulloutputdevice.h>
+#include <output_device/nulloutputdevice.h>
 
 #include <base/executor.h>
 #include <base/ithreadpoolexecutor.h>
 #include <base/logger.h>
-#include <base/timer.h>
 #include <output_device/iaudiocallback.h>
 
 #ifdef XAMP_OS_WIN
@@ -11,7 +10,7 @@
 #include <output_device/win32/mmcss.h>
 #endif
 
-XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
+XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN
 
 NullOutputDevice::NullOutputDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool)
 	: is_running_(false)
@@ -43,7 +42,7 @@ void NullOutputDevice::StopStream(bool wait_for_stop_stream) {
 	if (!is_running_) {
 		return;
 	}
-	
+
 	is_stopped_ = true;
 
 	if (render_task_.valid()) {
@@ -59,7 +58,7 @@ void NullOutputDevice::CloseStream() {
 	render_task_ = Future<void>();
 }
 
-void NullOutputDevice::OpenStream(AudioFormat const & output_format) {
+void NullOutputDevice::OpenStream(AudioFormat const& output_format) {
 	XAMP_LOG_D(logger_, "NullOutputDevice open stream.");
 
 	static constexpr auto kDefaultBufferFrame = 432; // 10ms
@@ -71,7 +70,7 @@ void NullOutputDevice::OpenStream(AudioFormat const & output_format) {
 	}
 	output_format_ = output_format;
 
-    constexpr auto kMicrosecondsPerSecond =  1000000;
+	constexpr auto kMicrosecondsPerSecond = 1000000;
 	wait_time_ = std::chrono::milliseconds((buffer_frames_ *
 		kMicrosecondsPerSecond /
 		output_format.GetSampleRate()) / 1000);
@@ -103,7 +102,7 @@ void NullOutputDevice::SetVolume(uint32_t volume) const {
 }
 
 void NullOutputDevice::SetStreamTime(double stream_time) {
-	stream_time_ = static_cast<int64_t>(stream_time 
+	stream_time_ = static_cast<int64_t>(stream_time
 		* static_cast<double>(output_format_.GetSampleRate()));
 }
 
@@ -117,11 +116,12 @@ void NullOutputDevice::StartStream() {
 	is_stopped_ = false;
 
 	render_task_ = Executor::Spawn(thread_pool_, [this](const auto& stop_token) {
-		size_t num_filled_frames = 0;		
+		size_t num_filled_frames = 0;
 		double sample_time = 0;
 
 #ifdef XAMP_OS_WIN
-        Mmcss mmcss;
+		using namespace win32;
+		Mmcss mmcss;
 		mmcss.BoostPriority(kMmcssProfileProAudio);
 		XAMP_ON_SCOPE_EXIT(mmcss.RevertPriority());
 #endif
@@ -135,7 +135,7 @@ void NullOutputDevice::StartStream() {
 			const auto stream_time_float = static_cast<double>(stream_time) / output_format_.GetSampleRate();
 
 			is_running_ = true;
-            if (callback_->OnGetSamples(buffer_.Get(), buffer_frames_, num_filled_frames, stream_time_float, sample_time) != DataCallbackResult::CONTINUE) {
+			if (callback_->OnGetSamples(buffer_.Get(), buffer_frames_, num_filled_frames, stream_time_float, sample_time) != DataCallbackResult::CONTINUE) {
 				break;
 			}
 
@@ -172,5 +172,4 @@ bool NullOutputDevice::IsHardwareControlVolume() const {
 	return false;
 }
 
-XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END
-
+XAMP_OUTPUT_DEVICE_NAMESPACE_END

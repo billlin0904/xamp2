@@ -82,6 +82,9 @@ bool SlidingStackedWidget::event(QEvent* event) {
 
 void SlidingStackedWidget::resizeEvent(QResizeEvent* event) {
     QStackedWidget::resizeEvent(event);
+    if (!active_ && currentIndex() >= 0) {
+        widget(currentIndex())->setGeometry(frameRect());
+    }
     updateCornerOverlay();
 }
 
@@ -122,6 +125,10 @@ void SlidingStackedWidget::slideInNext() {
 }
 
 void SlidingStackedWidget::slideInIndex(int index) {
+    if (count() == 0) {
+        return;
+    }
+
     if (index >= count()) {
         index = index % count();
     }
@@ -137,6 +144,9 @@ void SlidingStackedWidget::slideInWidget(QWidget* new_widget) {
 
     auto current = currentIndex();
     auto next = indexOf(new_widget);
+    if (new_widget == nullptr || next < 0 || current < 0) {
+        return;
+    }
 
     if (current == next) {
         return;

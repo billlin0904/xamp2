@@ -91,23 +91,12 @@ enum PlayingState {
 	PLAY_PAUSE,
 };
 
-enum class StoreType {
-	LOCAL_STORE,
-	PLAYLIST_LOCAL_STORE,
-	CLOUD_STORE,
-};
-
 struct XAMP_WIDGET_SHARED_EXPORT AlbumStats {
 	int32_t songs{ 0 };
 	double durations{ 0 };
 	int32_t year{ 0 };
 	size_t file_size{ 0 };
-	StoreType store_type{ StoreType::PLAYLIST_LOCAL_STORE };
 };
-
-XAMP_WIDGET_SHARED_EXPORT inline bool isCloudStore(StoreType store_type) {
-	return store_type == StoreType::CLOUD_STORE;
-}
 
 XAMP_WIDGET_SHARED_EXPORT inline bool notAddablePlaylist(const int32_t playlist_id) {
 	return playlist_id == kAlbumPlaylistId

@@ -116,6 +116,7 @@ std::expected<std::string, GzipDecompressError> gzipDecompress(const uint8_t* in
 #include <libdeflate.h>
 
 namespace {
+#ifdef XAMP_OS_WIN
     class LibdeflateLib final {
     public:
         XAMP_DECLARE_SINGLETON_NAME()
@@ -164,6 +165,113 @@ namespace {
         }
 
 #define LIBDEFLATE_LIB SharedSingleton<LibdeflateLib>::GetInstance()
+#endif
+
+        libdeflate_compressor* allocCompressor(int level) {
+#ifdef XAMP_OS_WIN
+            return LIBDEFLATE_LIB.libdeflate_alloc_compressor(level);
+#else
+            return ::libdeflate_alloc_compressor(level);
+#endif
+        }
+
+        libdeflate_decompressor* allocDecompressor() {
+#ifdef XAMP_OS_WIN
+            return LIBDEFLATE_LIB.libdeflate_alloc_decompressor();
+#else
+            return ::libdeflate_alloc_decompressor();
+#endif
+        }
+
+        void freeCompressor(libdeflate_compressor* compressor) {
+#ifdef XAMP_OS_WIN
+            LIBDEFLATE_LIB.libdeflate_free_compressor(compressor);
+#else
+            ::libdeflate_free_compressor(compressor);
+#endif
+        }
+
+        void freeDecompressor(libdeflate_decompressor* decompressor) {
+#ifdef XAMP_OS_WIN
+            LIBDEFLATE_LIB.libdeflate_free_decompressor(decompressor);
+#else
+            ::libdeflate_free_decompressor(decompressor);
+#endif
+        }
+
+        size_t gzipCompressBound(libdeflate_compressor* compressor, size_t input_size) {
+#ifdef XAMP_OS_WIN
+            return LIBDEFLATE_LIB.libdeflate_gzip_compress_bound(compressor, input_size);
+#else
+            return ::libdeflate_gzip_compress_bound(compressor, input_size);
+#endif
+        }
+
+        size_t gzipCompress(
+            libdeflate_compressor* compressor,
+            const void* in,
+            size_t in_size,
+            void* out,
+            size_t out_size) {
+#ifdef XAMP_OS_WIN
+            return LIBDEFLATE_LIB.libdeflate_gzip_compress(compressor, in, in_size, out, out_size);
+#else
+            return ::libdeflate_gzip_compress(compressor, in, in_size, out, out_size);
+#endif
+        }
+
+        size_t deflateCompressBound(libdeflate_compressor* compressor, size_t input_size) {
+#ifdef XAMP_OS_WIN
+            return LIBDEFLATE_LIB.libdeflate_deflate_compress_bound(compressor, input_size);
+#else
+            return ::libdeflate_deflate_compress_bound(compressor, input_size);
+#endif
+        }
+
+        size_t deflateCompress(
+            libdeflate_compressor* compressor,
+            const void* in,
+            size_t in_size,
+            void* out,
+            size_t out_size) {
+#ifdef XAMP_OS_WIN
+            return LIBDEFLATE_LIB.libdeflate_deflate_compress(compressor, in, in_size, out, out_size);
+#else
+            return ::libdeflate_deflate_compress(compressor, in, in_size, out, out_size);
+#endif
+        }
+
+        libdeflate_result gzipDecompress(
+            libdeflate_decompressor* decompressor,
+            const void* in,
+            size_t in_size,
+            void* out,
+            size_t out_size,
+            size_t* actual_out_size) {
+#ifdef XAMP_OS_WIN
+            return LIBDEFLATE_LIB.libdeflate_gzip_decompress(
+                decompressor, in, in_size, out, out_size, actual_out_size);
+#else
+            return ::libdeflate_gzip_decompress(
+                decompressor, in, in_size, out, out_size, actual_out_size);
+#endif
+        }
+
+        libdeflate_result zlibDecompress(
+            libdeflate_decompressor* decompressor,
+            const void* in,
+            size_t in_size,
+            void* out,
+            size_t out_size,
+            size_t* actual_out_size) {
+#ifdef XAMP_OS_WIN
+            return LIBDEFLATE_LIB.libdeflate_zlib_decompress(
+                decompressor, in, in_size, out, out_size, actual_out_size);
+#else
+            return ::libdeflate_zlib_decompress(
+                decompressor, in, in_size, out, out_size, actual_out_size);
+#endif
+        }
 
         std::optional<quint32> gzipTrailerSize(const QByteArray& data) {
             if (data.size() < 4)
@@ -179,7 +287,7 @@ namespace {
             }
 
             static void Close(libdeflate_decompressor* value) {
-                LIBDEFLATE_LIB.libdeflate_free_decompressor(value);
+                freeDecompressor(value);
             }
         };
 
@@ -189,7 +297,7 @@ namespace {
             }
 
             static void Close(libdeflate_compressor* value) {
-                LIBDEFLATE_LIB.libdeflate_free_compressor(value);
+                freeCompressor(value);
             }
         };
 
@@ -205,7 +313,7 @@ std::expected<QByteArray, GzipDecompressError> gzipCompress(const QByteArray& da
     // 預設壓縮等級： 0~12 (libdeflate v1.20)；6 為 zlib 預設的平衡值
     constexpr int kDefaultLevel = 6;
 
-    LibdeflateCompressorHandle handle(LIBDEFLATE_LIB.libdeflate_alloc_compressor(kDefaultLevel)); // 6: Default
+    LibdeflateCompressorHandle handle(allocCompressor(kDefaultLevel)); // 6: Default
     if (!handle) {
         return std::unexpected(GzipDecompressError::GZIP_COMPRESS_ERROR_UNKNOWN);
     }
@@ -215,18 +323,18 @@ std::expected<QByteArray, GzipDecompressError> gzipCompress(const QByteArray& da
     size_t actual;
 
     if (compress_type != CompressType::COMPRESS_DEFLATE) {
-        bound = LIBDEFLATE_LIB.libdeflate_gzip_compress_bound(handle.get(), data.size());
+        bound = gzipCompressBound(handle.get(), data.size());
         out.resize(static_cast<int>(bound));
-        actual = LIBDEFLATE_LIB.libdeflate_gzip_compress(
+        actual = gzipCompress(
             handle.get(),
             data.constData(), data.size(),
             out.data(),
             bound);
     }
     else {
-        bound = LIBDEFLATE_LIB.libdeflate_deflate_compress_bound(handle.get(), data.size());
+        bound = deflateCompressBound(handle.get(), data.size());
         out.resize(static_cast<int>(bound));
-        actual = LIBDEFLATE_LIB.libdeflate_deflate_compress(
+        actual = deflateCompress(
             handle.get(),
             data.constData(), data.size(),
             out.data(),
@@ -245,7 +353,7 @@ std::expected<QByteArray, GzipDecompressError> gzipDecompress(const QByteArray& 
         return std::unexpected(GzipDecompressError::GZIP_COMPRESS_ERROR_EMPTY_INPUT);
     }
 
-    LibdeflateDecompressorHandle handle(LIBDEFLATE_LIB.libdeflate_alloc_decompressor());
+    LibdeflateDecompressorHandle handle(allocDecompressor());
     if (!handle) {
         return std::unexpected(GzipDecompressError::GZIP_COMPRESS_ERROR_UNKNOWN);
     }
@@ -267,14 +375,14 @@ std::expected<QByteArray, GzipDecompressError> gzipDecompress(const QByteArray& 
             && ((uint8_t)data[1] == 0x8B);
 
         if (isGzip) {
-            res = LIBDEFLATE_LIB.libdeflate_gzip_decompress(
+            res = gzipDecompress(
                 handle.get(),
                 data.constData(), data.size(),
                 out.data(), guestDecompressSize,
                 &actual);
         }
         else {
-            res = LIBDEFLATE_LIB.libdeflate_zlib_decompress(
+            res = zlibDecompress(
                 handle.get(),
                 data.constData(), data.size(),
                 out.data(), guestDecompressSize,

@@ -128,7 +128,7 @@ private:
 };
 
 #else
-using FastConditionVariable = std::condition_variable;
+using FastConditionVariable = std::condition_variable_any;
 #endif
 
 XAMP_BASE_NAMESPACE_END

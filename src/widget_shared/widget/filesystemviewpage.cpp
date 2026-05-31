@@ -297,7 +297,6 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
                     }
                     qDatabaseFacade.insertMultipleTrackInfo(tracks,
                         kFileSystemPlaylistId,
-                        StoreType::LOCAL_STORE,
                         QString(),
                         DatabaseFacade::kSkipFetchCover);
                     receiver->ui_->page->playlist()->reload();
@@ -314,7 +313,6 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
                     }
                     qDatabaseFacade.insertTrackInfo(tracks,
                         kFileSystemPlaylistId,
-                        StoreType::LOCAL_STORE,
                         QString(),
                         DatabaseFacade::kSkipFetchCover);
                     receiver->ui_->page->playlist()->reload();

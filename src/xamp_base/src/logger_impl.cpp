@@ -82,7 +82,9 @@ namespace {
 LoggerManager::LoggerManager() = default;
 
 LoggerManager::~LoggerManager() {
+#ifdef XAMP_OS_WIN
 	Shutdown();
+#endif
 }
 
 void LoggerManager::SetLevel(LogLevel level) {

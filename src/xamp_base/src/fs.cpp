@@ -16,14 +16,31 @@
 #include <codecvt>
 #include <libgen.h>
 #include <limits.h>
-#include <mach-o/dyld.h>
 #include <unistd.h>
+#endif
+
+#ifdef XAMP_OS_MAC
+#include <mach-o/dyld.h>
 #endif
 
 #include <regex>
 #include <fstream>
+#include <cwctype>
+#include <cctype>
 
 XAMP_BASE_NAMESPACE_BEGIN
+
+namespace {
+
+std::string PathToLogString(const Path& path) {
+#ifdef XAMP_OS_WIN
+	return String::ToUtf8String(path.wstring());
+#else
+	return path.string();
+#endif
+}
+
+} // namespace
 
 bool IsFilePath(const Path& file_path) {
 	return file_path.has_extension();
@@ -44,7 +61,7 @@ std::tuple<std::fstream, Path> GetTempFile() {
 		if (file_.is_open()) {
 			return std::make_tuple(std::move(file_), path);
 		}
-		XAMP_LOG_DEBUG("{} {}", path, GetLastErrorMessage());
+		XAMP_LOG_DEBUG("{} {}", PathToLogString(path), GetLastErrorMessage());
 	}
 	throw PlatformException("Can't create temp file.");
 }
@@ -61,7 +78,7 @@ Path GetTempFileNamePath() {
 			file_.close();
 			return path;
 		}
-		XAMP_LOG_DEBUG("{} {}", path, GetLastErrorMessage());
+		XAMP_LOG_DEBUG("{} {}", PathToLogString(path), GetLastErrorMessage());
 	}
 	throw PlatformException("Can't create temp file.");
 }
@@ -72,7 +89,7 @@ Path GetApplicationFilePath() {
 	wchar_t buffer[MAX_PATH]{};
 	::GetModuleFileNameW(nullptr, buffer, MAX_PATH);
 	return Path(buffer).parent_path();
-#else
+#elif defined(XAMP_OS_MAC)
 	char raw_path_name[PATH_MAX]{};
 	char real_path_name[PATH_MAX]{};
 	uint32_t raw_path_size = (uint32_t)sizeof(raw_path_name);
@@ -80,6 +97,16 @@ Path GetApplicationFilePath() {
 		::realpath(raw_path_name, real_path_name);
 	}
 	return Path(real_path_name).parent_path();
+#elif defined(XAMP_OS_LINUX)
+	char raw_path_name[PATH_MAX]{};
+	const auto length = ::readlink("/proc/self/exe", raw_path_name, sizeof(raw_path_name) - 1);
+	if (length <= 0) {
+		return Fs::current_path();
+	}
+	raw_path_name[length] = '\0';
+	return Path(raw_path_name).parent_path();
+#else
+	return Fs::current_path();
 #endif
 }
 
@@ -87,8 +114,23 @@ std::string GetSharedLibraryName(const std::string_view& name) {
 	std::string library_name(name);
 #ifdef XAMP_OS_WIN
 	return library_name + ".dll";
+#elif defined(XAMP_OS_MAC)
+	const std::string prefix = library_name.starts_with("lib") ? "" : "lib";
+	return prefix + library_name + ".dylib";
 #else
-	return "lib" + library_name + ".dylib";
+	const std::string prefix = library_name.starts_with("lib") ? "" : "lib";
+	const auto dash_pos = library_name.find_last_of('-');
+	if (dash_pos != std::string::npos && dash_pos + 1 < library_name.size()) {
+		const auto version = library_name.substr(dash_pos + 1);
+		const auto is_version = std::all_of(version.begin(), version.end(), [](unsigned char ch) {
+			return std::isdigit(ch) != 0;
+			});
+		if (is_version) {
+			library_name.replace(dash_pos, 1, ".so.");
+			return prefix + library_name;
+		}
+	}
+	return prefix + library_name + ".so";
 #endif
 }
 
@@ -170,6 +212,7 @@ std::expected<std::string, TextEncodeingError> ReadFileToUtf8String(const Path& 
 }
 
 std::expected<std::wstring, Errors> NormalizePathToWideString(const Path& path) {
+#ifdef XAMP_OS_WIN
 	const auto raw = path.wstring();
 
 	// GetFullPathNameW：先問長度再配置，避免 MAX_PATH 問題
@@ -190,6 +233,15 @@ std::expected<std::wstring, Errors> NormalizePathToWideString(const Path& path) 
 	std::transform(full.begin(), full.end(), full.begin(),
 		[](wchar_t c) { return (wchar_t)::towlower(c); });
 	return full;
+#else
+	auto normalized = path.lexically_normal().wstring();
+	while (!normalized.empty() && (normalized.back() == L'\\' || normalized.back() == L'/')) {
+		normalized.pop_back();
+	}
+	std::transform(normalized.begin(), normalized.end(), normalized.begin(),
+		[](wchar_t c) { return static_cast<wchar_t>(std::towlower(c)); });
+	return normalized;
+#endif
 }
 
 XAMP_BASE_NAMESPACE_END

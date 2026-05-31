@@ -28,7 +28,6 @@
 #include <widget/imagecache.h>
 #include <widget/database.h>
 
-#include <QPermissions>
 #include <QSslSocket>
 #include <QProcess>
 #include <fcntl.h>
@@ -67,17 +66,18 @@ namespace {
     }
 #endif
 
-#ifdef Q_OS_MAC
+#ifndef Q_OS_WIN
     class QDebugSink : public spdlog::sinks::base_sink<LoggerMutex> {
     public:
         void sink_it_(const spdlog::details::log_msg& msg) override {
             spdlog::memory_buf_t formatted;
             formatter_->format(msg, formatted);
 
-            std::cout << fmt::to_string(formatted);
+            std::cerr << fmt::to_string(formatted);
         }
 
         void flush_() override {
+            std::cerr.flush();
         }
     };
 #endif
@@ -167,17 +167,16 @@ namespace {
         QApplication::setOrganizationDomain(kApplicationName);       
 
         XApplication app(argc, argv);
-        /*if (!app.isAttach()) {
-            XAMP_LOG_DEBUG("Application already running!");
-            return -1;
-        }*/        
-        
+        app.initial();
+
+        QGuiApplication::setDesktopFileName("xamp"_str);
+        QApplication::setWindowIcon(qTheme.applicationIcon());
+
         if (!QSslSocket::supportsSsl()) {
             XMessageBox::showError("SSL initialization failed."_str);
             return -1;
         }
-
-		app.initial();
+		
         app.loadLang();
         app.loadSampleRateConverterConfig();        
         
@@ -192,6 +191,9 @@ namespace {
         }
         catch (const Exception& e) {
             XMessageBox::showBug(e);
+            return -1;
+        }
+        catch (...) {
             return -1;
         }
 
@@ -247,7 +249,7 @@ int main() {
     try {
         XampLoggerFactory
             .AddDebugOutput()
-#ifdef Q_OS_MAC
+#if !defined(Q_OS_WIN) && defined(_DEBUG)
             .AddSink(std::make_shared<QDebugSink>())
 #endif
             .AddLogFile("xamp.log")
@@ -258,10 +260,11 @@ int main() {
     }
 
     std::atexit([]() {
+        XAMP_LOG_DEBUG("<<<Shutdown XAMP logger>>>");
         XampLoggerFactory.Shutdown();
         });
 
-    static char app_name[] = "xamp2";
+    static char app_name[] = "xamp";
     static constexpr int argc = 1;
     static char* argv[] = { app_name, nullptr };
 

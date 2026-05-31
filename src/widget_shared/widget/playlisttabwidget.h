@@ -7,6 +7,7 @@
 
 #include <QTabWidget>
 #include <QTabBar>
+#include <QElapsedTimer>
 
 #include <widget/database.h>
 #include <widget/themecolor.h>
@@ -45,8 +46,6 @@ public:
 
 	void closeAllTab();
 
-	void setStoreType(StoreType type);
-
 	void reloadAll();
 
 	template <typename F>
@@ -71,8 +70,6 @@ public:
 	
 signals:
 	void createNewPlaylist();
-
-	void createCloudPlaylist();
 
 	void removeAllPlaylist();
 
@@ -116,7 +113,6 @@ private:
 
 	int32_t hovered_tab_index_{ -1 };
 	QTimer* tooltip_timer_{ nullptr };
-	StoreType store_type_{ StoreType::PLAYLIST_LOCAL_STORE };
 	QPushButton* add_tab_button_{ nullptr };
 	PlaylistTabBar* tab_bar_{ nullptr };
 	XTooltip* tooltip_{ nullptr };

@@ -7,9 +7,11 @@
 
 #include <base/base.h>
 
-#if defined(XAMP_OS_WIN)
+#if defined(XAMP_OS_WIN) || defined(XAMP_OS_LINUX)
 
+#ifdef XAMP_OS_WIN
 #include <base/dll.h>
+#endif
 #include <base/shared_singleton.h>
 
 #define MKL_DIRECT_CALL
@@ -26,6 +28,8 @@ public:
 	MKLLib();
 
 	XAMP_DISABLE_COPY(MKLLib)
+
+#ifdef XAMP_OS_WIN
 private:
 	SharedLibraryHandle mkl_core_;
 	SharedLibraryHandle libiomp_;
@@ -52,6 +56,23 @@ public:
 	XAMP_DECLARE_DLL(DftiCommitDescriptor) DftiCommitDescriptor;
 	XAMP_DECLARE_DLL(DftiComputeBackward) DftiComputeBackward;
 	XAMP_DECLARE_DLL(DftiErrorMessage) DftiErrorMessage;
+#else
+	decltype(::MKL_malloc)* MKL_malloc{ nullptr };
+	decltype(::MKL_free)* MKL_free{ nullptr };
+	decltype(::DftiErrorClass)* DftiErrorClass{ nullptr };
+	decltype(::DftiFreeDescriptor)* DftiFreeDescriptor{ nullptr };
+	decltype(::DftiCreateDescriptor_s_1d)* DftiCreateDescriptor_s_1d{ nullptr };
+	decltype(::DftiCreateDescriptor_s_md)* DftiCreateDescriptor_s_md{ nullptr };
+	decltype(::DftiCreateDescriptor_d_1d)* DftiCreateDescriptor_d_1d{ nullptr };
+	decltype(::DftiCreateDescriptor_d_md)* DftiCreateDescriptor_d_md{ nullptr };
+	decltype(::DftiComputeForward)* DftiComputeForward{ nullptr };
+	decltype(::DftiCreateDescriptor)* DftiCreateDescriptor_{ nullptr };
+	decltype(::DftiSetValue)* DftiSetValue{ nullptr };
+	decltype(::DftiCommitDescriptor)* DftiCommitDescriptor{ nullptr };
+	decltype(::DftiComputeBackward)* DftiComputeBackward{ nullptr };
+	decltype(::DftiErrorMessage)* DftiErrorMessage{ nullptr };
+#endif
+
 };
 
 #define MklDLL SharedSingleton<MKLLib>::GetInstance()

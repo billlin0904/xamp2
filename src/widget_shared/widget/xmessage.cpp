@@ -133,8 +133,8 @@ XMessageItem::XMessageItem(QWidget* parent,
         emit ItemReadyRemoved(this);
         });
 
-    icon_->setStyleSheet(qTEXT("background-color: transparent"));
-    content_->setStyleSheet(qTEXT("background-color: transparent"));
+    icon_->setStyleSheet(QStringLiteral("background-color: transparent"));
+    content_->setStyleSheet(QStringLiteral("background-color: transparent"));
 
     hide();
 }

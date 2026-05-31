@@ -20,14 +20,15 @@ uint32_t resolveSharedModeTargetSampleRate(
         return 0;
     }
 
-    auto target_sample_rate = kFallbackSharedModeSampleRate;
+    auto target_sample_rate = input_sample_rate != 0
+        ? input_sample_rate
+        : kFallbackSharedModeSampleRate;
 
+#if defined(XAMP_OS_WIN)
     if (device_info.default_format.has_value()) {
         target_sample_rate = device_info.default_format->GetSampleRate();
     }
-    else if (input_sample_rate != 0) {
-        target_sample_rate = input_sample_rate;
-    }
+#endif
 
     if (device_info.connect_type == DeviceConnectType::BLUE_TOOTH) {
         target_sample_rate = (std::min)(target_sample_rate, kBluetoothMaxSampleRate);
@@ -76,10 +77,11 @@ PlaybackPlan resolvePlaybackPlan(
     plan.is_shared_device = is_shared_device;
 
     if (is_dsd_file) {
-        if (plan.is_shared_device || device_info.connect_type == DeviceConnectType::BLUE_TOOTH) {
+        if (plan.is_shared_device && device_info.connect_type == DeviceConnectType::BLUE_TOOTH) {
             plan.output_mode = DsdModes::DSD_MODE_DSD2PCM;
         }
         else {
+			// Shared WASAPI 可以撥放DSD格式只要設定DOP即可, 不需要做任何像是獨佔模式下24/32加移位轉換.
             plan.output_mode = is_asio_device
                 ? DsdModes::DSD_MODE_NATIVE
                 : DsdModes::DSD_MODE_DOP;
@@ -96,17 +98,23 @@ PlaybackPlan resolvePlaybackPlan(
         plan.needs_resample = shared_mode_config.needs_resample;
         return plan;
     }
+    else {
+        plan.byte_format = ByteFormat::SINT32;
+    }
 
-    plan.byte_format = ByteFormat::SINT24;
-    plan.use_mqa_decode = true;
+    //plan.byte_format = ByteFormat::SINT24;
+    //plan.use_mqa_decode = true;
     return plan;
 }
 
 ByteFormat resolvePreparedPlaybackByteFormat(
     const PlaybackPlan& plan,
     bool is_mqa_stream) {
-    if (!is_mqa_stream) {
-        return ByteFormat::SINT32;
+    if (!is_mqa_stream && plan.is_shared_device) {
+        return ByteFormat::FLOAT32;
+    }
+    if (plan.use_mqa_decode) {
+        return ByteFormat::SINT24;
     }
     return plan.byte_format;
 }

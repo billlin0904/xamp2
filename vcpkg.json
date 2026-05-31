@@ -1,0 +1,19 @@
+{
+  "name": "xamp",
+  "version-string": "0.1.0",
+  "dependencies": [
+    "chromaprint",
+    "ffmpeg",
+    "icu",
+    "intel-mkl",
+    "libarchive",
+    "libdeflate",
+    "libflac",
+    "libogg",
+    "libsamplerate",
+    "mecab",
+    "opencc",
+    "soxr",
+    "uchardet"
+  ]
+}

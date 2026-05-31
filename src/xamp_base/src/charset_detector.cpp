@@ -7,7 +7,11 @@
 #include <base/unique_handle.h>
 
 #include <opencc.h>
+#ifndef XAMP_OS_LINUX
 #include <cld3/nnet_language_identifier.h>
+#endif
+
+#include <algorithm>
 
 XAMP_BASE_NAMESPACE_BEGIN
 
@@ -157,6 +161,23 @@ public:
 
 class LanguageDetector::LanguageDetectorImpl {
 public:
+#ifdef XAMP_OS_LINUX
+	LanguageDetectorImpl() = default;
+
+	bool IsJapanese(const std::wstring& text) {
+		return ContainsRange(text, 0x3040, 0x30FF);
+	}
+
+	bool IsChinese(const std::wstring& text) {
+		return ContainsRange(text, 0x4E00, 0x9FFF);
+	}
+private:
+	static bool ContainsRange(const std::wstring& text, wchar_t first, wchar_t last) {
+		return std::any_of(text.begin(), text.end(), [=](wchar_t ch) {
+			return ch >= first && ch <= last;
+		});
+	}
+#else
 	LanguageDetectorImpl()
 		: indentifier_(0, 1000) {
 	}
@@ -175,6 +196,7 @@ private:
 		return indentifier_.FindLanguage(String::ToUtf8String(text));
 	}
 	chrome_lang_id::NNetLanguageIdentifier indentifier_;
+#endif
 };
 
 class OpenCCConvert::OpenCCConvertImpl {

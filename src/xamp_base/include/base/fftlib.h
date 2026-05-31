@@ -7,7 +7,7 @@
 
 #include <base/base.h>
 
-#if defined(XAMP_OS_WIN)
+#if defined(XAMP_OS_WIN) || defined(XAMP_OS_LINUX)
 
 XAMP_BASE_NAMESPACE_BEGIN
 

@@ -82,7 +82,6 @@ SOURCES += \
 ./widget/genre_view.cpp \
 ./widget/uiplayerstateadapter.cpp \
 ./widget/filesystemwatcher.cpp \
-./widget/tageditpage.cpp \
 ./widget/xprogressdialog.cpp \
 ./widget/http.cpp \
 ./widget/lrcpage.cpp \
@@ -130,7 +129,6 @@ HEADERS += \
 ./widget/driveinfo.h \
 ./widget/http.h \
 ./widget/xdialog.h \
-./widget/tageditpage.h \
 ./widget/xmainwindow.h \
 ./widget/util/ui_util.h \
 ./widget/util/read_until.h \
@@ -257,6 +255,5 @@ FORMS += \
     equalizerdialog.ui \
     filesystemviewpage.ui \
     preferencedialog.ui \
-    tageditpage.ui \
     chatgptwindow.ui \
     volumecontroldialog.ui

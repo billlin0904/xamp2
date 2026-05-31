@@ -1,6 +1,7 @@
 #include <base/str_utilts.h>
 
 #include <base/platfrom_handle.h>
+#include <base/text_encoding.h>
 #include <base/logger.h>
 
 #include <utf8.h>
@@ -23,19 +24,20 @@ std::wstring ToStdWString(const std::string & utf8) {
 	return utf16;
 }
 
-std::string LocaleStringToUTF8(const std::string& str) {
+std::string LocaleStringToUTF8(const std::string& str) noexcept {
 #ifdef XAMP_OS_WIN
-	std::vector<wchar_t> buf(str.length() + 1);
-	::MultiByteToWideChar(CP_ACP,
-		0,
-		str.c_str(),
-		-1,
-		buf.data(),
-		static_cast<int>(str.length()));
-	return String::ToUtf8String(buf.data());
+	try {
+		auto utf8 = TextEncoding().ToUtf8String("acp", str, str.size(), true);
+		if (utf8) {
+			return utf8.value();
+		}
+	}
+	catch (...) {
+	}
 #else
 	return str;
 #endif
+	return str;
 }
 
 std::string ToUtf8String(std::wstring const & utf16) {

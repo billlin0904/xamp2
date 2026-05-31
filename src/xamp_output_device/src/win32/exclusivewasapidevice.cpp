@@ -153,6 +153,7 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 	if (buffer_period_ == 0) {
 		// If buffer_period_ is not set, use default device period.
 		HrIfFailThrow(client_->GetDevicePeriod(&default_device_period, &minimum_device_period));
+		default_device_period = kGlitchFreePeriod;
 	} else {
 		default_device_period = buffer_period_;
 	}
@@ -228,15 +229,15 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 			nullptr,
 			reinterpret_cast<void**>(&client_)));
 
-	HrIfFailThrow(device_->Activate(kAudioEndpointVolumeID,
-		CLSCTX_ALL,
-		nullptr,
-		reinterpret_cast<void**>(&endpoint_volume_)));
-	if (IsBitstreamVolumeLocked()) {
-		ForceBitstreamEndpointVolume();
-	}
+		HrIfFailThrow(device_->Activate(kAudioEndpointVolumeID,
+			CLSCTX_ALL,
+			nullptr,
+			reinterpret_cast<void**>(&endpoint_volume_)));
+		if (IsBitstreamVolumeLocked()) {
+			ForceBitstreamEndpointVolume();
+		}
 
-	HrIfFailThrow(client_->GetMixFormat(&mix_format_));
+		HrIfFailThrow(client_->GetMixFormat(&mix_format_));
 
 		HRESULT hr = S_OK;
 		if (output_format.GetByteFormat() == ByteFormat::SINT32) {
@@ -299,11 +300,9 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 			case 24:
 				InitialDeviceFormat(output_format, 24);
 				break;
-			}
-			
+			}		
 		}
     }
-
 	// Reset device state.
     HrIfFailThrow(client_->Reset());
 

@@ -46,7 +46,11 @@ public:
 #define LIBCUE_LIB SharedSingleton<LibCueLib>::GetInstance()
 
 inline LibCueLib::LibCueLib() try
+#ifdef XAMP_OS_WIN
 	: module_(OpenSharedLibrary("libcue"))
+#else
+	: module_(OpenSharedLibrary("cue"))
+#endif
 	, XAMP_LOAD_DLL_API(cd_delete)
 	, XAMP_LOAD_DLL_API(cue_parse_string)
 	, XAMP_LOAD_DLL_API(cd_get_ntrack)

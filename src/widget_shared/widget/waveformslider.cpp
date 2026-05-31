@@ -148,6 +148,11 @@ void WaveformSlider::setWaveformPeaks(const QVector<float>& peaks) {
 
 void WaveformSlider::clearWaveform() {
     cancelWaveformLoad();
+    seek_enabled_ = false;
+    dragging_ = false;
+    if (animation_) {
+        animation_->stop();
+    }
     peaks_.clear();
     update();
 }
@@ -157,6 +162,7 @@ void WaveformSlider::loadFile(const QString& file_path, int peak_count) {
     if (file_path.isEmpty()) {
         return;
     }
+    seek_enabled_ = true;
 
     const auto load_id = waveform_load_id_;
     const auto target_peak_count = peak_count > 0 ? peak_count : (std::max)(kMinimumWidth, width());
@@ -195,6 +201,16 @@ void WaveformSlider::setWaveformColors(const QColor& background,
     update();
 }
 
+void WaveformSlider::setSeekEnabled(bool enabled) {
+    seek_enabled_ = enabled;
+    if (!seek_enabled_) {
+        dragging_ = false;
+        if (animation_) {
+            animation_->stop();
+        }
+    }
+}
+
 QSize WaveformSlider::sizeHint() const {
     return QSize(240, kDefaultHeight);
 }
@@ -230,6 +246,10 @@ void WaveformSlider::paintEvent(QPaintEvent* event) {
 }
 
 void WaveformSlider::mousePressEvent(QMouseEvent* event) {
+    if (!seek_enabled_) {
+        event->ignore();
+        return;
+    }
     if (event->button() == Qt::LeftButton) {
         dragging_ = true;
         event->accept();
@@ -243,6 +263,10 @@ void WaveformSlider::mousePressEvent(QMouseEvent* event) {
 }
 
 void WaveformSlider::mouseMoveEvent(QMouseEvent* event) {
+    if (!seek_enabled_) {
+        event->ignore();
+        return;
+    }
     if (dragging_ && (event->buttons() & Qt::LeftButton)) {
         event->accept();
 
@@ -255,6 +279,11 @@ void WaveformSlider::mouseMoveEvent(QMouseEvent* event) {
 }
 
 void WaveformSlider::mouseReleaseEvent(QMouseEvent* event) {
+    if (!seek_enabled_) {
+        dragging_ = false;
+        event->ignore();
+        return;
+    }
     if (event->button() == Qt::LeftButton && dragging_) {
         dragging_ = false;
         event->accept();

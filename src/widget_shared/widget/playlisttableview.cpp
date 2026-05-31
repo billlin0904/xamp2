@@ -392,10 +392,6 @@ PlaylistTableView::PlaylistTableView(QWidget* parent, int32_t playlist_id)
 
 PlaylistTableView::~PlaylistTableView() = default;
 
-void PlaylistTableView::enableCloudMode(bool mode) {
-    cloud_mode_ = mode;
-}
-
 void PlaylistTableView::setPlaylistId(const int32_t playlist_id, const QString &column_setting_name) {
     playlist_id_ = playlist_id;
     column_setting_name_ = column_setting_name;
@@ -607,87 +603,10 @@ void PlaylistTableView::initial() {
             entity = getEntity(index);
         }             
 
-        if (cloud_mode_) {
-            auto* copy_album_act = action_map.addAction(tr("Copy album"));
-            copy_album_act->setIcon(qTheme.fontIcon(Glyphs::ICON_COPY));
-
-            auto* copy_artist_act = action_map.addAction(tr("Copy artist"));
-            auto* copy_title_act = action_map.addAction(tr("Copy title"));
-
-            action_map.setCallback(copy_album_act, [entity]() {
-                QApplication::clipboard()->setText(entity.album);
-                });
-            action_map.setCallback(copy_artist_act, [entity]() {
-                QApplication::clipboard()->setText(entity.artist);
-                });
-            action_map.setCallback(copy_title_act, [entity]() {
-                QApplication::clipboard()->setText(entity.title);
-                });
-
-            action_map.addSeparator();
-
-            const auto rows = selectItemIndex();
-            std::vector<PlayListEntity> play_list_entities;
-            play_list_entities.reserve(rows.size());
-            for (const auto& row : rows) {
-                const auto play_list_entity = this->item(row.second);
-                play_list_entities.push_back(play_list_entity);
-            }
-
-            QString menu_name;
-            QIcon like_icon;
-            PlayListEntity play_list_entity;
-            if (!play_list_entities.empty()) {
-                play_list_entity = play_list_entities.front();
-                if (play_list_entity.heart) {
-                    menu_name = tr("DisLike the music");
-                    like_icon = qTheme.fontIcon(Glyphs::ICON_DISLIKE);
-                }
-                else {
-                    menu_name = tr("Like the music");
-                    like_icon = qTheme.fontIcon(Glyphs::ICON_LIKE);
-                }
-            } else {
-                menu_name = tr("Like the music");
-                like_icon = qTheme.fontIcon(Glyphs::ICON_LIKE);
-            }
-            auto* like_song_act = action_map.addAction(menu_name);
-            like_song_act->setIcon(like_icon);
-            if (!play_list_entities.empty()) {
-                action_map.setCallback(like_song_act, [this, &play_list_entity, play_list_entities]() {
-                    for (const auto &entity : play_list_entities) {
-                        emit likeSong(play_list_entity.heart, entity);
-                    }                    
-                    });
-            }
-            
-            if (navigation_view_mode_ != NavigationViewMode::NAVIGATION_VIEW_NONE) {
-                action_map.addSeparator();
-
-                auto* navigate_to_album_page = action_map.addAction("Navigate To album"_str);
-                action_map.setCallback(navigate_to_album_page, [this, entity]() {
-                    emit navigateToAlbumPage(entity);
-                    });
-                if (navigation_view_mode_ == NavigationViewMode::NAVIGATION_VIEW_ALBUM_AND_ARTIST) {
-                    auto* navigate_to_artist_page = action_map.addAction("Navigate To artist"_str);
-                    action_map.setCallback(navigate_to_artist_page, [this, entity]() {
-                        emit navigateToArtistPage(entity.artist_id);
-                        });
-                }
-            }
-
-            if (model_->rowCount() > 0 && index.isValid()) {
-                XAMP_TRY_LOG(
-                    action_map.exec(pt);
-                    );
-            }
-            return;
-        }
-
         action_map.addSeparator();
 
         auto* add_music_to_new_playlist_menu = action_map.addSubMenu(tr("Add music to new playlist"));
-        qDaoFacade.playlist_dao.forEachPlaylist([add_music_to_new_playlist_menu, this](auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
+        qDaoFacade.playlist_dao.forEachPlaylist([add_music_to_new_playlist_menu, this](auto playlist_id, auto, auto name) {
 			if (notAddablePlaylist(playlist_id)) {
 				return;
 			}
@@ -1118,7 +1037,7 @@ QModelIndex PlaylistTableView::shuffleAlbumIndex() {
 
     const auto& selected_album_songs = album_songs_id_cache_[selected_album_id];
     if (selected_album_songs.isEmpty()) {
-        throw std::exception("Not found song id in cache");
+        throw std::runtime_error("Not found song id in cache");
     }
 
     const auto selected_song_index = rng_.NextInt32(0, selected_album_songs.size() - 1);
@@ -1133,7 +1052,7 @@ void PlaylistTableView::setNowPlaying(const QModelIndex& index) {
     const auto entity = item(play_index_);
     qDaoFacade.playlist_dao.clearNowPlaying(playlist_id_);
     qDaoFacade.playlist_dao.setNowPlayingState(playlist_id_, entity.playlist_music_id, PlayingState::PLAY_PLAYING);
-    play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());
+    reload(true);
 }
 
 void PlaylistTableView::setAlbumCoverId(int32_t album_id, const QString& cover_id) {

@@ -20,6 +20,8 @@
 #include <QPainterPath>
 #include <QDragEnterEvent>
 #include <QMimeData>
+#include <QMenu>
+#include <QPushButton>
 
 #include <QWKWidgets/widgetwindowagent.h>
 
@@ -32,9 +34,6 @@
 
 XMainWindow::XMainWindow()
     : IXMainWindow()
-#ifdef Q_OS_WIN
-	, screen_number_(1)
-#endif
 	, content_widget_(nullptr) {
     setAttribute(Qt::WA_DontCreateNativeAncestors);
     setObjectName("XMainWindow"_str);
@@ -44,6 +43,7 @@ XMainWindow::XMainWindow()
         4,
         1,
         ThreadPriority::PRIORITY_BACKGROUND);
+    installWindowAgent();
 }
 
 // QScopedPointer require default destructor.
@@ -70,10 +70,8 @@ void XMainWindow::setShortcut(const QKeySequence& shortcut) {
 void XMainWindow::setContentWidget(IXFrame *content_widget) {
     content_widget_ = content_widget;
     if (!content_widget) {
-        installWindowAgent();
         return;
     }
-    installWindowAgent();
     setCentralWidget(content_widget);
     readDriveInfo();
 }
@@ -86,10 +84,54 @@ void XMainWindow::resetNativeSystemMenu() {
 #endif
 }
 
+void XMainWindow::ensureSystemMenu() {
+#ifdef Q_OS_WIN
+    return;
+#else
+    if (system_menu_) {
+        return;
+    }
+
+    system_menu_.reset(new QMenu(this));
+    qTheme.setMenuStyle(system_menu_.get());
+
+    if (window_agent_ != nullptr && window_agent_->titleBar() != nullptr) {
+        auto* title_bar = window_agent_->titleBar();
+        title_bar->setContextMenuPolicy(Qt::CustomContextMenu);
+        (void)QObject::connect(title_bar,
+            &QWidget::customContextMenuRequested,
+            this,
+            [this, title_bar](const QPoint& pos) {
+                showSystemMenu(title_bar->mapToGlobal(pos));
+            });
+    }
+
+    if (auto* icon_button = findChild<QPushButton*>("icon-button"_str)) {
+        (void)QObject::connect(icon_button,
+            &QPushButton::clicked,
+            this,
+            [this, icon_button]() {
+                const auto pos = icon_button->mapToGlobal(QPoint(0, icon_button->height()));
+                showSystemMenu(pos);
+            });
+    }
+#endif
+}
+
+void XMainWindow::showSystemMenu(const QPoint& global_pos) {
+    if (!system_menu_ || system_menu_->isEmpty()) {
+        return;
+    }
+    system_menu_->exec(global_pos);
+}
+
 void XMainWindow::clearSystemMenuActions() {
     system_menu_actions_.clear();
     next_system_menu_id_ = 0xA000;
     system_menu_separator_added_ = false;
+    if (system_menu_) {
+        system_menu_->clear();
+    }
     resetNativeSystemMenu();
 }
 
@@ -120,7 +162,12 @@ void XMainWindow::addSystemMenuAction(QAction* action) {
     (void)AppendMenuW(system_menu, flags, command_id, reinterpret_cast<LPCWSTR>(title.utf16()));
     DrawMenuBar(hwnd);
 #else
-    (void)action;
+    ensureSystemMenu();
+    if (!system_menu_) {
+        return;
+    }
+
+    system_menu_->addAction(action);
 #endif
 }
 
@@ -153,7 +200,9 @@ void XMainWindow::closeEvent(QCloseEvent* event) {
         return;
     }
     content_widget_->destory();
+#ifdef Q_OS_WIN
     task_bar_.reset();
+#endif
 }
 
 void XMainWindow::systemThemeChanged(ThemeColor theme_color) {

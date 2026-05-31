@@ -13,6 +13,7 @@
 #include <widget/xmainwindow.h>
 #include <widget/appsettings.h>
 #include <widget/jsonsettings.h>
+#include <widget/util/ui_util.h>
 
 #include <xapplication.h>
 
@@ -62,8 +63,9 @@ bool XApplication::isAttach() const {
 }
 
 void XApplication::initial() {
-	qAppSettings.loadIniFile("xamp.ini"_str);
-	qJsonSettings.loadJsonFile("config.json"_str);
+	const auto app_path = applicationPath();
+	qAppSettings.loadIniFile(app_path + "/xamp.ini"_str);
+	qJsonSettings.loadJsonFile(app_path + "/config.json"_str);
 
 	qAppSettings.loadOrSaveLogConfig();
 	qAppSettings.loadAppSettings();

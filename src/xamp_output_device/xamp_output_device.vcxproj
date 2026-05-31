@@ -83,6 +83,7 @@
       <PreprocessorDefinitions>XAMP_OUTPUT_DEVICE_API_EXPORTS;ENABLE_ASIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996;4819</DisableSpecificWarnings>
       <BrowseInformation>false</BrowseInformation>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -99,6 +100,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -112,6 +114,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -138,7 +141,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <FloatingPointModel>Precise</FloatingPointModel>
       <IntelJCCErratum>false</IntelJCCErratum>
-      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/utf-8 /Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <UseDynamicDebugging>false</UseDynamicDebugging>
     </ClCompile>
@@ -170,6 +173,8 @@
     <ClInclude Include="include\output_device\idevicetype.h" />
     <ClInclude Include="include\output_device\idsddevice.h" />
     <ClInclude Include="include\output_device\iaudiodevicemanager.h" />
+    <ClInclude Include="include\output_device\nulloutputdevice.h" />
+    <ClInclude Include="include\output_device\nulloutputdevicetype.h" />
     <ClInclude Include="include\output_device\output_device.h" />
     <ClInclude Include="include\output_device\win32\asiodevice.h" />
     <ClInclude Include="include\output_device\win32\asioexception.h" />
@@ -179,8 +184,6 @@
     <ClInclude Include="include\output_device\win32\glitchdetector.h" />
     <ClInclude Include="include\output_device\win32\mmcss.h" />
     <ClInclude Include="include\output_device\win32\mmcss_types.h" />
-    <ClInclude Include="include\output_device\win32\nulloutputdevice.h" />
-    <ClInclude Include="include\output_device\win32\nulloutputdevicetype.h" />
     <ClInclude Include="include\output_device\win32\wasapiworkqueue.h" />
     <ClInclude Include="include\output_device\win32\sharedwasapidevicetype.h" />
     <ClInclude Include="include\output_device\win32\sharedwasapidevice.h" />
@@ -197,14 +200,14 @@
     <ClCompile Include="include\output_device\win32\xaudio2devicetype.cpp" />
     <ClCompile Include="src\api.cpp" />
     <ClCompile Include="src\audiodevicemanager.cpp" />
+    <ClCompile Include="src\nulloutputdevice.cpp" />
+    <ClCompile Include="src\nulloutputdevicetype.cpp" />
     <ClCompile Include="src\win32\asiodevice.cpp" />
     <ClCompile Include="src\win32\asiodevicetype.cpp" />
     <ClCompile Include="src\win32\asioexception.cpp" />
     <ClCompile Include="src\win32\exclusivewasapidevice.cpp" />
     <ClCompile Include="src\win32\exclusivewasapidevicetype.cpp" />
     <ClCompile Include="src\win32\mmcss.cpp" />
-    <ClCompile Include="src\win32\nulloutputdevice.cpp" />
-    <ClCompile Include="src\win32\nulloutputdevicetype.cpp" />
     <ClCompile Include="src\win32\sharedwasapidevice.cpp" />
     <ClCompile Include="src\win32\sharedwasapidevicetype.cpp" />
     <ClCompile Include="src\win32\wasapi.cpp" />

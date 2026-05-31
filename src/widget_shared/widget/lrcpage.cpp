@@ -41,6 +41,26 @@ namespace {
 		}
 		return ".lrc"_str;
 	}
+
+	bool isKaraokeLyrics(const LyricsParser& parser) {
+		return parser.parser && parser.parser->isKaraoke();
+	}
+
+	const LyricsParser* preferredLyricsParser(const QList<LyricsParser>& parsers) {
+		const LyricsParser* fallback = nullptr;
+		for (const auto& parser : parsers) {
+			if (!parser.parser) {
+				continue;
+			}
+			if (isKaraokeLyrics(parser)) {
+				return &parser;
+			}
+			if (fallback == nullptr) {
+				fallback = &parser;
+			}
+		}
+		return fallback;
+	}
 }
 
 LyricsFrame::LyricsFrame(QWidget* parent)
@@ -219,6 +239,7 @@ void LrcPage::setCover(const QPixmap& src) {
 void LrcPage::setPlayListEntity(const PlayListEntity& entity) {
 	entity_ = entity;
 	lyrics_results_.clear();
+	applied_lyrics_is_karaoke_ = false;
 }
 
 void LrcPage::applyLyrics(const LyricsParser& parser) {
@@ -288,8 +309,14 @@ void LrcPage::onFetchLyricsCompleted(const QList<SearchLyricsResult>& results) {
 		if (result.parsers.isEmpty()) {
 			continue;
 		}
-		if (!applied) {
-			applyLyrics(result.parsers.front());
+		const auto* parser = preferredLyricsParser(result.parsers);
+		if (parser == nullptr) {
+			continue;
+		}
+		const auto parser_is_karaoke = isKaraokeLyrics(*parser);
+		if (!applied || (!applied_lyrics_is_karaoke_ && parser_is_karaoke)) {
+			applyLyrics(*parser);
+			applied_lyrics_is_karaoke_ = parser_is_karaoke;
 			applied = true;
 		}
 		lyrics_results_.append(result);
@@ -312,6 +339,13 @@ void LrcPage::onFetchLyricsCompleted(const QList<SearchLyricsResult>& results) {
 
 	std::sort(lyrics_results_.begin(), lyrics_results_.end(),
 		[hasTranslation](auto& lhs, auto& rhs) {
+		const auto* lhsParser = preferredLyricsParser(lhs.parsers);
+		const auto* rhsParser = preferredLyricsParser(rhs.parsers);
+		bool lhsKaraoke = lhsParser && isKaraokeLyrics(*lhsParser);
+		bool rhsKaraoke = rhsParser && isKaraokeLyrics(*rhsParser);
+		if (lhsKaraoke != rhsKaraoke) {
+			return lhsKaraoke > rhsKaraoke;
+		}
 		bool lhsHas = hasTranslation(lhs);
 		bool rhsHas = hasTranslation(rhs);
 		return (lhsHas > rhsHas);

@@ -27,7 +27,7 @@ inline constexpr auto kIteratorOptions{
 	std::filesystem::directory_options::skip_permission_denied
 };
 
-XAMP_BASE_API inline [[nodiscard]] bool IsFileReadOnly(const Path& path) {
+[[nodiscard]] XAMP_BASE_API inline bool IsFileReadOnly(const Path& path) {
     std::error_code ec;
     const auto permissions = Fs::status(path, ec).permissions();
     if (ec) {

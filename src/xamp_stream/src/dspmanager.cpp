@@ -2,10 +2,13 @@
 
 #include <stream/api.h>
 #include <stream/soxresampler.h>
-#include <stream/r8brainresampler.h>
 #include <stream/srcresampler.h>
 #include <stream/dsdmodesamplewriter.h>
 #include <stream/bassparametriceq.h>
+
+#ifdef XAMP_OS_WIN
+#include <stream/r8brainresampler.h>
+#endif
 
 #include <base/exception.h>
 #include <base/logger.h>
@@ -82,7 +85,9 @@ IDSPManager& DSPManager::RemoveParametricEq() {
 }
 
 IDSPManager& DSPManager::RemoveSampleRateConverter() {
+#ifdef XAMP_OS_WIN
     RemovePostDSP<R8brainSampleRateConverter>();
+#endif
     RemovePostDSP<SoxrSampleRateConverter>();
     RemovePostDSP<SrcSampleRateConverter>();
     return *this;
@@ -124,7 +129,6 @@ void DSPManager::AddOrReplace(ScopedPtr<IAudioProcessor> processor, std::vector<
 bool DSPManager::IsEnableSampleRateConverter() const {
     const auto equal_id = [](const auto& id) {
         return XAMP_UUID_OF(SoxrSampleRateConverter) == id
-    	|| XAMP_UUID_OF(R8brainSampleRateConverter) == id
     	|| XAMP_UUID_OF(SrcSampleRateConverter) == id;
     };
     return Contains(equal_id);

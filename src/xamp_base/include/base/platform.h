@@ -50,6 +50,8 @@ XAMP_BASE_API std::string GetCurrentThreadId();
 
 XAMP_BASE_API bool IsDebuging();
 
+XAMP_BASE_API void SetCurrentThreadPriority(ThreadPriority priority);
+
 XAMP_BASE_API bool VirtualMemoryLock(void* address, size_t size);
 
 XAMP_BASE_API bool VirtualMemoryUnLock(void* address, size_t size);
@@ -80,8 +82,6 @@ XAMP_BASE_API std::string GetSequentialUUID();
 
 #ifdef XAMP_OS_WIN
 XAMP_BASE_API void SetCurrentProcessPriority(ProcessPriority priority);
-
-XAMP_BASE_API void SetCurrentThreadPriority(ThreadPriority priority);
 
 XAMP_BASE_API void SetProcessPriority(int32_t pid, ProcessPriority priority);
 

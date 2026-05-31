@@ -32,8 +32,22 @@ namespace detail {
 		}
 		return sig.substr(start, end - start);
 	}
+
+	constexpr std::string_view ExtractClassNameFromPrettyFunction(std::string_view sig) {
+		constexpr std::string_view kPrefix = "static constexpr std::string_view ";
+		constexpr std::string_view kFunc = "::GetSingletonName";
+
+		const auto prefix = sig.find(kPrefix);
+		const auto start = prefix == std::string_view::npos ? 0 : prefix + kPrefix.size();
+		const auto end = sig.find(kFunc, start);
+		if (end == std::string_view::npos || start >= end) {
+			return sig;
+		}
+		return sig.substr(start, end - start);
+	}
 }
 
+#ifdef _MSC_VER
 #define XAMP_DECLARE_SINGLETON_NAME() \
 	static constexpr std::string_view GetSingletonName() {          \
         constexpr std::string_view sig  = __FUNCSIG__;                       \
@@ -41,7 +55,15 @@ namespace detail {
             detail::ExtractClassNameFromFunSig(sig);						 \
         return name;                                                         \
     }
-
+#else
+#define XAMP_DECLARE_SINGLETON_NAME() \
+	static constexpr std::string_view GetSingletonName() {          \
+        constexpr std::string_view sig  = __PRETTY_FUNCTION__;               \
+        constexpr std::string_view name =                                    \
+            detail::ExtractClassNameFromPrettyFunction(sig);				 \
+        return name;                                                         \
+    }
+#endif
 
 /*
 * GetSharedInstance is a function that can be called by different modules to get a shared singleton instance.

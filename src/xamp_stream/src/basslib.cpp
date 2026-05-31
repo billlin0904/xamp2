@@ -136,7 +136,7 @@ catch (const Exception& e) {
 std::string BassAACEncLib::GetName() const {
     return GetSharedLibraryName("bass_aac");
 }
-#else
+#elif defined(XAMP_OS_MAC)
 BassCAEncLib::BassCAEncLib() try
     : module_(OpenSharedLibrary("bassenc"))
     , XAMP_LOAD_DLL_API(BASS_Encode_StartCAFile) {
@@ -263,8 +263,8 @@ void BassLib::Load() {
     LoadPlugin("bassopus.dll");
     LoadPlugin("basswebm.dll");
 #else
-    LoadPlugin("libbassflac.dylib");
-    LoadPlugin("libbassdsd.dylib");
+    LoadPlugin(GetSharedLibraryName("bassflac"));
+    LoadPlugin(GetSharedLibraryName("bassdsd"));
 #endif
 
     BassLibDLL.BASS_SetConfig(BASS_CONFIG_DSD_FREQ, 88200);

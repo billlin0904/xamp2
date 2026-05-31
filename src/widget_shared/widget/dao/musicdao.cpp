@@ -62,7 +62,7 @@ VALUES
         query.bindValue(":bitRate"_str, track_info.bit_rate);
         query.bindValue(":sampleRate"_str, track_info.sample_rate);
         query.bindValue(":offset"_str, track_info.offset);
-        query.bindValue(":fileSize"_str, track_info.file_size);
+        query.bindValue(":fileSize"_str, static_cast<qulonglong>(track_info.file_size));
         query.bindValue(":heart"_str, track_info.rating ? 1 : 0);
         query.bindValue(":isCueFile"_str, track_info.is_cue_file ? 1 : 0);
         query.bindValue(":isZipFile"_str, track_info.is_zip_file ? 1 : 0);
@@ -87,7 +87,7 @@ VALUES
             query.bindValue(":archiveEntryName"_str, QVariant());
         }
 
-        query.bindValue(":dateTime"_str, track_info.last_write_time);
+        query.bindValue(":dateTime"_str, static_cast<qlonglong>(track_info.last_write_time));
         query.bindValue(":genre"_str, toQString(track_info.genre));
         query.bindValue(":comment"_str, toQString(track_info.comment));
 
@@ -161,7 +161,7 @@ VALUES
         query.bindValue(":bitRate"_str, track_info.bit_rate);
         query.bindValue(":sampleRate"_str, track_info.sample_rate);
         query.bindValue(":offset"_str, track_info.offset);
-        query.bindValue(":fileSize"_str, track_info.file_size);
+        query.bindValue(":fileSize"_str, static_cast<qulonglong>(track_info.file_size));
         query.bindValue(":heart"_str, track_info.rating ? 1 : 0);
 
         if (track_info.replay_gain) {
@@ -177,7 +177,7 @@ VALUES
             query.bindValue(":trackPeak"_str, QVariant());
         }
 
-        query.bindValue(":dateTime"_str, track_info.last_write_time);
+        query.bindValue(":dateTime"_str, static_cast<qlonglong>(track_info.last_write_time));
         query.bindValue(":genre"_str, toQString(track_info.genre));
         query.bindValue(":comment"_str, toQString(track_info.comment));
 

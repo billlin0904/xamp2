@@ -40,6 +40,8 @@ public:
 
     void loadFile(const QString& file_path, int peak_count = 0);
 
+    void setSeekEnabled(bool enabled);
+
     void setWaveformColors(const QColor& background,
         const QColor& foreground,
         const QColor& played);
@@ -93,5 +95,6 @@ private:
     QColor foreground_color_ = QColor(94, 103, 120);
     QColor played_color_ = QColor(64, 169, 255);
     bool dragging_ = false;
+    bool seek_enabled_ = false;
     int waveform_load_id_ = 0;
 };

@@ -1,5 +1,6 @@
 ﻿#include <array>
 #include <fstream>
+#include <filesystem>
 #include <regex>
 
 #include <base/text_encoding.h>
@@ -349,15 +350,11 @@ bool KrcParser::parse(const uint8_t* buffer, size_t size) {
         wtext = String::ToStdWString(utf8_str.value());
         return parseKrcText(wtext);
     }
-    else if (utf8_str.error() == TextEncodeingError::TEXT_ENCODING_INPUT_STRING_UTF8) {
-        wtext = String::ToStdWString(decompressed);
-        return parseKrcText(wtext);
-    }    
     return false;
 }
 
 bool KrcParser::parseFile(const std::wstring& file_path) {
-    std::ifstream ifs(file_path, std::ios::binary);
+    std::ifstream ifs(std::filesystem::path(file_path), std::ios::binary);
     if (!ifs.is_open()) {
 		return false;
     }
@@ -459,7 +456,7 @@ bool KrcParser::parseKrcText(const std::wstring& wtext) {
             has_trans_lrc_ = true;
             for (auto i = 0; i < result.lyricContent.contents[1].lyricContent.size(); ++i) {
                 lyrics_[i].tlrc = result.lyricContent.contents[1].lyricContent[i].join(
-                    L"").toStdWString();
+                    QString()).toStdWString();
             }
         }
         //XAMP_LOG_DEBUG("Krc has a translation!");

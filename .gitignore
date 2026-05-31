@@ -6,9 +6,17 @@ ui_*.h
 .qmake.stash
 
 /Cache/
+/out/
+/logs/
+/.vs/
+/config.json
+/xamp.db
+/xamp.ini
 
 /src/xamp/build/
 /src/xamp/.vscode/
+/src/xamp/.vs/
+/src/xamp/out/
 
 /src/widget_shared/build/
 
@@ -27,6 +35,7 @@ ui_*.h
 /src/xamp_output_device/build/
 /src/xamp_output_device/debug/
 /src/xamp_output_device/CMakeLists.txt.user
+/src/xamp_output_device/linux_smoke/out/
 
 /src/xamp_player/build/
 /src/xamp_player/debug/

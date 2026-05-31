@@ -129,8 +129,7 @@ void DatabaseFacade::ensureAddUnknownId() {
     kUnknownAlbumId   = album.addOrUpdateAlbum(unknown_album_,
         kUnknownArtistId,
         0,
-        0,
-        StoreType::PLAYLIST_LOCAL_STORE);
+        0);
     album.addAlbumCategory(kUnknownAlbumId, kLocalCategory);
     album.setAlbumCover(kUnknownAlbumId, qImageCache.unknownCoverId());
 }
@@ -145,7 +144,6 @@ int32_t DatabaseFacade::unknownAlbumId() const {
 
 void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result, 
     int32_t playlist_id,
-    StoreType store_type,
     const QString& dick_id,
     const FetchCoverCallback& fetch_cover) {
     if (result.empty()) {
@@ -167,8 +165,7 @@ void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result,
         auto artist    = toQString(track_info.artist).trimmed();
 		auto disc_id   = toQString(track_info.disc_id);
 
-        /*if (store_type != StoreType::CLOUD_STORE
-            && !track_info.is_zip_file
+        /*if (!track_info.is_zip_file
             && dao_facade_->music_dao.getMusicId(file_path)
             && playlist_id == kFileSystemPlaylistId) {
             continue;
@@ -213,7 +210,6 @@ void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result,
                 artist_id,
                 track_info.last_write_time,
                 track_info.year,
-                store_type,
                 disc_id,
                 is_hires);
 
@@ -308,14 +304,12 @@ void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result,
 void DatabaseFacade::insertMultipleTrackInfo(
     const std::vector<std::forward_list<TrackInfo>>& results,
     int32_t playlist_id,
-    StoreType store_type,
     const QString& dick_id,
     const FetchCoverCallback& fetch_cover) {
     TransactionScope scope([&]() {
         for (const auto& result : results) {
             insertTrackInfo(result,
                 playlist_id,
-                store_type,
                 dick_id,
                 fetch_cover);
         }

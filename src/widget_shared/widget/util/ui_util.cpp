@@ -1,6 +1,7 @@
 ﻿#include <widget/util/ui_util.h>
 
 #include <QApplication>
+#include <QCoreApplication>
 #include <QDirIterator>
 #include <QFileDialog>
 #include <QScreen>
@@ -187,7 +188,9 @@ ScopedPtr<IAudioProcessor> makeR8BrainSampleRateConverter() {
 }
 
 ScopedPtr<IAudioProcessor> makeSrcSampleRateConverter() {
-    return MakeAlign<IAudioProcessor, SrcSampleRateConverter>();
+    auto converter = MakeAlign<IAudioProcessor, SrcSampleRateConverter>();
+	dynamic_cast<SrcSampleRateConverter*>(converter.get())->SetQuality(SrcQuality::SINC_HQ);
+    return converter;
 }
 
 ScopedPtr<IAudioProcessor> makeSoxrSampleRateConverter(uint32_t sample_rate) {
@@ -444,7 +447,7 @@ QString getValidFileName(QString fileName) {
 }
 
 QString applicationPath() {
-    return QDir::currentPath();
+    return QCoreApplication::applicationDirPath();
 }
 
 void setTabViewStyle(QTableView* table_view) {

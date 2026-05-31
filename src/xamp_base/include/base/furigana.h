@@ -35,4 +35,6 @@ private:
 	ScopedPtr<FuriganaImpl> impl_;
 };
 
+XAMP_BASE_API void LoadFuriganaDll();
+
 XAMP_BASE_NAMESPACE_END

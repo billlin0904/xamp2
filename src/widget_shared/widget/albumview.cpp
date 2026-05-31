@@ -146,19 +146,11 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, con
     page_->onSetCoverById(cover_id);
 
     if (const auto album_stats = qDaoFacade.album_dao.getAlbumStats(album_id)) {
-        if (album_stats->store_type == StoreType::CLOUD_STORE) {
-            page_->format()->setText(tr("%1 Songs, %2")
-                .arg(QString::number(album_stats.value().songs))
-                .arg(formatDuration(album_stats.value().durations))
-            );
-        } else {
-            page_->format()->setText(tr("%1 Songs, %2, %3, %4")
-                .arg(QString::number(album_stats.value().songs))
-                .arg(formatDuration(album_stats.value().durations))
-                .arg(QString::number(album_stats.value().year))
-                .arg(formatBytes(album_stats.value().file_size))
-            );
-        }        
+        page_->format()->setText(tr("%1 Songs, %2, %3, %4")
+            .arg(QString::number(album_stats.value().songs))
+            .arg(formatDuration(album_stats.value().durations))
+            .arg(QString::number(album_stats.value().year))
+            .arg(formatBytes(album_stats.value().file_size)));
     }
 
     page_->show();
@@ -321,8 +313,6 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         qDaoFacade.playlist_dao.forEachPlaylist([sub_menu, this](
             auto playlist_id,
             auto,
-            auto store_type, 
-            auto cloud_playlist_id,
             auto name) {
             if (notAddablePlaylist(playlist_id)) {
                 return;
@@ -501,7 +491,7 @@ void AlbumView::showMenu(const QPoint &pt) {
     auto* sub_menu = action_map.addSubMenu(tr("Add album to playlist"));
 
     qDaoFacade.playlist_dao.forEachPlaylist([sub_menu, album_id, this](
-        auto playlist_id, auto, auto store_type, auto cloud_playlist_id, auto name) {
+        auto playlist_id, auto, auto name) {
         if (notAddablePlaylist(playlist_id)) {
             return;
         }
@@ -573,7 +563,7 @@ void AlbumView::filterByArtistId(int32_t artist_id) {
     LEFT JOIN
         artists ON artists.artistId = albumArtist.artistId
     WHERE
-        (artists.artistId = %1) AND albums.storeType != -3
+        artists.artistId = %1
 	GROUP BY 
 		albums.albumId
     ORDER BY
@@ -594,8 +584,7 @@ SELECT
     albums.year,
     albums.heart,
 	albums.isHiRes,
-    albums.isSelected,
-	albums.storeType
+    albums.isSelected
 FROM
     albums
 LEFT 
@@ -603,7 +592,7 @@ LEFT
 LEFT 
 	JOIN albumCategories ON albumCategories.albumId = albums.albumId
 WHERE 
-	albumCategories.category = '%1' AND albums.storeType != -3
+	albumCategories.category = '%1'
 ORDER BY
     albums.album DESC
     )").arg(category);
@@ -622,14 +611,13 @@ SELECT
     albums.year,
     albums.heart,
 	albums.isHiRes,
-    albums.isSelected,
-	albums.storeType
+    albums.isSelected
 FROM
     albums
 LEFT JOIN
 	artists ON artists.artistId = albums.artistId
 WHERE
-	albums.year > 0 AND albums.storeType != -3
+	albums.year > 0
 ORDER BY
     albums.year DESC
     )");
@@ -652,14 +640,13 @@ SELECT
     albums.year,
     albums.heart,
 	albums.isHiRes,
-    albums.isSelected,
-	albums.storeType
+    albums.isSelected
 FROM
     albums
 LEFT JOIN
 	artists ON artists.artistId = albums.artistId
 WHERE 
-	albums.year IN (%1) AND albums.storeType != -3
+	albums.year IN (%1)
 ORDER BY
     albums.album DESC
     )").arg(year_list.join(","_str));
@@ -678,14 +665,13 @@ SELECT
     albums.year,
     albums.heart,
 	albums.isHiRes,
-    albums.isSelected,
-	albums.storeType
+    albums.isSelected
 FROM
     albums
 LEFT JOIN
 	artists ON artists.artistId = albums.artistId
 WHERE
-    albums.plays > 0 AND albums.storeType != -3
+    albums.plays > 0
 ORDER BY
     albums.plays DESC
 LIMIT 5
@@ -733,8 +719,7 @@ SELECT
     albums.year,
     albums.heart,
     albums.isHiRes,
-    albums.isSelected,
-	albums.storeType
+    albums.isSelected
 FROM
     albums
 LEFT JOIN
@@ -742,7 +727,7 @@ LEFT JOIN
 LEFT JOIN
     albumCategories ON albumCategories.albumId = albums.albumId
 WHERE 
-    (%1) AND albums.storeType != -3
+    (%1)
 GROUP BY
     albums.album
     )").arg(condition);
@@ -764,14 +749,11 @@ SELECT
     albums.year,
     albums.heart,
 	albums.isHiRes,
-    albums.isSelected,
-	albums.storeType
+    albums.isSelected
 FROM
     albums
 LEFT JOIN
 	artists ON artists.artistId = albums.artistId
-WHERE
-    albums.storeType != -3
     )"_str;
     setShowMode(SHOW_ARTIST);
 }

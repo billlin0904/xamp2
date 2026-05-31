@@ -13,13 +13,16 @@
 #include <stream/bassparametriceq.h>
 #include <stream/basscddevice.h>
 #include <stream/dspmanager.h>
-#include <stream/r8brainlib.h>
 #include <stream/soxrlib.h>
 #include <stream/srclib.h>
 #include <stream/libavencoder.h>
 #include <stream/discIdlib.h>
 #include <stream/avlib.h>
 #include <stream/api.h>
+
+#ifdef XAMP_OS_WIN
+#include <stream/r8brainlib.h>
+#endif
 
 XAMP_STREAM_NAMESPACE_BEGIN
 namespace {
@@ -122,7 +125,7 @@ ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& file_path,
 }
 
 ScopedPtr<IFileEncoder> StreamFactory::MakeFileEncoder() {
-#ifdef XAMP_OS_WIN
+#if defined(XAMP_OS_WIN) || defined(XAMP_OS_LINUX)
     return MakeAlign<IFileEncoder, LibAbFileEncoder>();
 #else
     return MakeAlign<IFileEncoder, BassAACFileEncoder>();
@@ -229,8 +232,8 @@ void LoadBassLib() {
     }  catch (const Exception &e) {
         XAMP_LOG_DEBUG("Load EncLib error: {}", e.what());
     }
-#else
-    BASS_LIB.CAEncLib = MakeAlign<BassCAEncLib>();
+#elif defined(XAMP_OS_MAC)
+    BassLibDLL.CAEncLib = MakeAlign<BassCAEncLib>();
 #endif
     BassLibDLL.FLACEncLib = MakeAlign<BassFLACEncLib>();
     BassLibDLL.LoadVersionInfo();

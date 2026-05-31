@@ -8,6 +8,7 @@
 #include <QUrl>
 #include <QHttpPart>
 #include <QScopeGuard>
+#include <QStringConverter>
 
 #include <widget/networkdiskcache.h>
 #include <widget/util/str_util.h>

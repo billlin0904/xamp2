@@ -161,7 +161,7 @@ public:
     SharedLibraryFunction<HENCODE(DWORD, const WCHAR*, DWORD, const WCHAR*)> BASS_Encode_AAC_StartFile;
     SharedLibraryFunction<DWORD()> BASS_Encode_AAC_GetVersion;
 };
-#else
+#elif defined(XAMP_OS_MAC)
 class BassCAEncLib final {
 public:
     BassCAEncLib();

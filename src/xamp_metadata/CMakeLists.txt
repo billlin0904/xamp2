@@ -1,61 +1,99 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.24)
 
-project(xamp_metadata)
+project(xamp_metadata LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS ON)
+include("${CMAKE_SOURCE_DIR}/cmake/XampDependencyHelpers.cmake")
 
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")
+xamp_find_imported_library(XAMP_LIBCUE_TARGET XampLibCue
+    REQUIRED
+    HEADER libcue.h
+    LIB_NAMES cue libcue
+    PKG libcue)
 
-if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/debug)
-    message(STATUS "Build debug mode")
-    set(BUILD_PATH debug)
+find_package(chromaprint CONFIG QUIET)
+if(TARGET chromaprint::chromaprint)
+    set(XAMP_CHROMAPRINT_TARGET chromaprint::chromaprint)
+elseif(TARGET Chromaprint::chromaprint)
+    set(XAMP_CHROMAPRINT_TARGET Chromaprint::chromaprint)
+elseif(TARGET unofficial::chromaprint::chromaprint)
+    set(XAMP_CHROMAPRINT_TARGET unofficial::chromaprint::chromaprint)
 else()
-    set(CMAKE_VERBOSE_MAKEFILE ON)
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/release)
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG -O3 -ftree-vectorize -march=native -mtune=native -mavx2 -flto=thin -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer")
-    message(STATUS "Build release mode")
-    set(BUILD_PATH release)
-endif(${CMAKE_BUILD_TYPE} STREQUAL Debug)
+    xamp_find_imported_library(XAMP_CHROMAPRINT_TARGET XampChromaprint
+        REQUIRED
+        HEADER chromaprint.h
+        LIB_NAMES chromaprint
+        PKG libchromaprint)
+endif()
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/${BUILD_PATH})
+if(NOT TARGET xamp_base)
+    add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../xamp_base" "${CMAKE_BINARY_DIR}/xamp_base")
+endif()
 
-include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
-include_directories("../thirdparty/spdlog/include/")
-include_directories("../thirdparty/taglib2/taglib/")
-include_directories("../thirdparty/taglib2/taglib/flac/")
-include_directories("../thirdparty/taglib2/taglib/mp4/")
-include_directories("../thirdparty/taglib2/taglib/mpeg/")
-include_directories("../thirdparty/taglib2/taglib/riff/")
-include_directories("../thirdparty/taglib2/taglib/mpeg/id3v2/")
-include_directories("../thirdparty/taglib2/taglib/toolkit/")
-include_directories("../xamp_base/include")
-include_directories("../thirdparty/robin_hood/")
-include_directories("../thirdparty/libcue/include/")
-include_directories("../thirdparty/chromaprint/src/include/")
+if(NOT TARGET tag)
+    set(BUILD_BINDINGS OFF CACHE BOOL "" FORCE)
+    set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+    add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2" "${CMAKE_BINARY_DIR}/taglib2")
+endif()
 
-file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
-
-find_library (
-    LIB_XAMP_BASE
-    NAMES xamp_base libxamp_base
-    HINTS "${CMAKE_CURRENT_LIST_DIR}/../xamp_base/${BUILD_PATH}/"
-    NO_DEFAULT_PATH
+file(GLOB_RECURSE XAMP_METADATA_SOURCES CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp"
 )
 
-message(STATUS "LIB_XAMP_BASE: [${LIB_XAMP_BASE}]")
-
-find_library (
-    LIB_TAGLIB
-    NAMES libtag.a
-    HINTS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/osx_${BUILD_PATH}"
-    NO_DEFAULT_PATH
+file(GLOB_RECURSE XAMP_METADATA_HEADERS CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_LIST_DIR}/include/*.h"
 )
 
-message(STATUS "LIB_TAGLIB: [${LIB_TAGLIB}]")
+add_library(xamp_metadata SHARED
+    ${XAMP_METADATA_SOURCES}
+    ${XAMP_METADATA_HEADERS}
+)
 
-add_library(${PROJECT_NAME} SHARED ${SOURCES})
+target_compile_features(xamp_metadata PUBLIC cxx_std_23)
 
-target_link_libraries(xamp_metadata stdc++ ${LIB_XAMP_BASE} ${LIB_TAGLIB})
+target_compile_definitions(xamp_metadata
+    PRIVATE
+        XAMP_METADATA_LIBRARY
+)
+
+if(UNIX AND NOT APPLE)
+    target_compile_options(xamp_metadata PRIVATE -fpermissive)
+endif()
+
+target_include_directories(xamp_metadata
+    PUBLIC
+        "${CMAKE_CURRENT_LIST_DIR}/include"
+    PRIVATE
+        "${CMAKE_CURRENT_LIST_DIR}/../xamp_base/include"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/spdlog/include"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/unordered_dense/include"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib/ape"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib/dsdiff"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib/dsf"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib/flac"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib/mp4"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib/mpeg"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib/mpeg/id3v2"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib/mpeg/id3v2/frames"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib/ogg"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib/ogg/opus"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib/riff"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib/riff/wav"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib/toolkit"
+        "${CMAKE_BINARY_DIR}/taglib2"
+)
+
+target_link_libraries(xamp_metadata
+    PUBLIC
+        xamp_base
+    PRIVATE
+        tag
+        ${XAMP_LIBCUE_TARGET}
+        ${XAMP_CHROMAPRINT_TARGET}
+)
+
+if(UNIX AND NOT APPLE)
+    target_link_libraries(xamp_metadata PRIVATE dl pthread)
+endif()
