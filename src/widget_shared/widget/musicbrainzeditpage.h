@@ -27,7 +27,7 @@ class QStandardItemModel;
 class QCloseEvent;
 class QLabel;
 
-class XAMP_WIDGET_SHARED_EXPORT MusicbrainzEditPage final : public QFrame {
+class XAMP_WIDGET_SHARED_API MusicbrainzEditPage final : public QFrame {
     Q_OBJECT
 public:
     MusicbrainzEditPage(const QList<PlayListEntity>& entities, QWidget* parent = nullptr);
@@ -63,6 +63,7 @@ private:
     void updateWriteTagButtons();
     void writeSelectedTag();
     void writeSelectedAlbumTags();
+    void exportAlbumCover();
     QCoro::Task<> startFetchMusicBrainzRecording();
     QCoro::Task<QList<musicbrain::Release>> fetchCandidateReleases(const QList<PlayListEntity>& entities);
     QCoro::Task<bool> fetchMusicBrainzRelease(const QList<PlayListEntity>& entities,
@@ -86,6 +87,7 @@ private:
     http::HttpClient http_client_;
     Ui::MusicbrainzEditPage* ui_;
     QProgressBar* fetch_progress_bar_{ nullptr };
+    QPushButton* export_album_cover_button_{ nullptr };
     QPushButton* write_tag_button_{ nullptr };
     QPushButton* write_album_tags_button_{ nullptr };
     std::optional<PlayListEntity> selected_entity_;

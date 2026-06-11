@@ -15,7 +15,7 @@
 #include <QDebug>
 
 #ifdef Q_OS_MAC
-class XAMP_WIDGET_SHARED_EXPORT QDebugSink final : public spdlog::sinks::base_sink<std::mutex> {
+class XAMP_WIDGET_SHARED_API QDebugSink final : public spdlog::sinks::base_sink<std::mutex> {
 public:
     QDebugSink() = default;
 

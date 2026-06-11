@@ -14,7 +14,7 @@ class QProgressBar;
 class QAbstractButton;
 class QVBoxLayout;
 
-class XAMP_WIDGET_SHARED_EXPORT XProgressDialog : public XDialog {
+class XAMP_WIDGET_SHARED_API XProgressDialog : public XDialog {
 	Q_OBJECT
 public:
 	explicit XProgressDialog(const QString& title= kEmptyString,

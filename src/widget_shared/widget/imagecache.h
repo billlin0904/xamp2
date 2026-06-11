@@ -18,7 +18,7 @@
 #include <widget/util/image_util.h>
 #include <widget/widget_shared_global.h>
 
-struct XAMP_WIDGET_SHARED_EXPORT ImageCacheEntity {
+struct XAMP_WIDGET_SHARED_API ImageCacheEntity {
 	ImageCacheEntity(int64_t size = 0, const QPixmap &image = QPixmap())
 		: size(size)
 		, image(image) {
@@ -38,7 +38,7 @@ class QTimerEvent;
 inline constexpr ConstexprQString kAlbumCacheTag("album_thumbnail_"_str);
 inline constexpr ConstexprQString kArtistCacheTag("artist_thumbnail_"_str);
 
-class XAMP_WIDGET_SHARED_EXPORT ImageCache final : public QObject {
+class XAMP_WIDGET_SHARED_API ImageCache final : public QObject {
 public:
 	static constexpr char kImageFileFormat[] = "PNG";
 	static constexpr int kTrimImageSizeSeconds = 10 * 1000;
@@ -106,8 +106,6 @@ private:
 
 	void loadCache() const;	
 
-	QString makeImageCachePath(const QString& tag_id) const;
-
 	QFileInfo getImageFileInfo(const QString& tag_id) const;
 
 	QStringList cover_ext_;
@@ -118,7 +116,6 @@ private:
 	LoggerPtr logger_;
 	mutable LruCache<QString, ImageCacheEntity, ImageCacheSizeOfPolicy> thumbnail_cache_;
 	mutable std::shared_ptr<ObjectPool<QBuffer>> buffer_pool_;
-	//mutable LruCache<QString, QPixmap> cover_cache_;
 };
 
 #define qImageCache SharedSingleton<ImageCache>::GetInstance()

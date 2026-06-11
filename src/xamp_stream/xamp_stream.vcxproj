@@ -187,7 +187,7 @@ if exist "$(TargetDir)$(TargetName).pdb" copy /Y "$(TargetDir)$(TargetName).pdb"
     <ClInclude Include="include\stream\libavencoder.h" />
     <ClInclude Include="include\stream\anymap.h" />
     <ClInclude Include="include\stream\avlib.h" />
-    <ClInclude Include="include\stream\bassaacfileencoder.h" />
+    <ClInclude Include="include\stream\avlibfilestream.h" />
     <ClInclude Include="include\stream\basslib.h" />
     <ClInclude Include="include\stream\bassparametriceq.h" />
     <ClInclude Include="include\stream\bass_util.h" />
@@ -221,7 +221,7 @@ if exist "$(TargetDir)$(TargetName).pdb" copy /Y "$(TargetDir)$(TargetName).pdb"
   <ItemGroup>
     <ClCompile Include="src\libavencoder.cpp" />
     <ClCompile Include="src\avlib.cpp" />
-    <ClCompile Include="src\bassaacfileencoder.cpp" />
+    <ClCompile Include="src\avlibfilestream.cpp" />
     <ClCompile Include="src\basscddevice.cpp" />
     <ClCompile Include="src\bassexception.cpp" />
     <ClCompile Include="src\bassfilestream.cpp" />

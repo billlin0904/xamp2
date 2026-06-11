@@ -9,6 +9,7 @@
 #include <QClipboard>
 #include <QDir>
 #include <QPainterPath>
+#include <QTextLayout>
 #include <QtGlobal>
 
 #include <base/charset_detector.h>
@@ -27,6 +28,10 @@
 
 namespace {
 	constexpr int kRubySpacing = 5;
+	constexpr int kLyricsHorizontalMargin = 30;
+	constexpr int kWrappedRowSpacing = 8;
+	constexpr float kTranslationScale = 0.8f;
+	constexpr int kTranslationSpacing = 5;
 
 	struct RubyLayoutSegment {
 		QString text;
@@ -34,6 +39,12 @@ namespace {
 		int text_width{ 0 };
 		int ruby_width{ 0 };
 		int column_width{ 0 };
+	};
+
+	struct WrappedWordRow {
+		size_t begin{ 0 };
+		size_t end{ 0 };
+		int width{ 0 };
 	};
 
 	QSharedPointer<ILrcParser> makeLrcParser(const QString& file_path, QString& lrc_path, bool& use_default) {
@@ -116,6 +127,101 @@ namespace {
 		return width;
 	}
 
+	std::vector<std::vector<RubyLayoutSegment>> wrapRubyLayout(
+		const std::vector<RubyLayoutSegment>& layout,
+		int max_width) {
+		std::vector<std::vector<RubyLayoutSegment>> rows;
+		if (layout.empty()) {
+			return rows;
+		}
+
+		std::vector<RubyLayoutSegment> row;
+		auto row_width = 0;
+		const auto effective_width = (std::max)(1, max_width);
+		for (const auto& segment : layout) {
+			if (!row.empty() && row_width + segment.column_width > effective_width) {
+				rows.push_back(std::move(row));
+				row.clear();
+				row_width = 0;
+			}
+			row_width += segment.column_width;
+			row.push_back(segment);
+		}
+		if (!row.empty()) {
+			rows.push_back(std::move(row));
+		}
+		return rows;
+	}
+
+	std::vector<WrappedWordRow> makeWrappedWordRows(
+		const std::vector<LyricWord>& words,
+		const QFontMetrics& metrics,
+		int max_width) {
+		std::vector<WrappedWordRow> rows;
+		if (words.empty()) {
+			return rows;
+		}
+
+		const auto effective_width = (std::max)(1, max_width);
+		WrappedWordRow row;
+		row.begin = 0;
+		for (size_t i = 0; i < words.size(); ++i) {
+			const auto word_width = metrics.horizontalAdvance(QString::fromStdWString(words[i].content));
+			if (row.end > row.begin && row.width + word_width > effective_width) {
+				rows.push_back(row);
+				row.begin = i;
+				row.end = i;
+				row.width = 0;
+			}
+			row.end = i + 1;
+			row.width += word_width;
+		}
+		if (row.end > row.begin) {
+			rows.push_back(row);
+		}
+		return rows;
+	}
+
+	int wrappedTextLineCount(const QString& text, const QFont& font, int max_width) {
+		if (text.isEmpty()) {
+			return 1;
+		}
+
+		QTextLayout layout(text, font);
+		QTextOption option;
+		option.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
+		layout.setTextOption(option);
+
+		auto count = 0;
+		layout.beginLayout();
+		while (true) {
+			auto line = layout.createLine();
+			if (!line.isValid()) {
+				break;
+			}
+			line.setLineWidth((std::max)(1, max_width));
+			++count;
+		}
+		layout.endLayout();
+		return (std::max)(1, count);
+	}
+
+	void drawCenteredWrappedText(
+		QPainter* painter,
+		const QRectF& rect,
+		const QString& text,
+		const QFont& font,
+		const QColor& color) {
+		painter->save();
+		painter->setFont(font);
+		painter->setPen(color);
+
+		QTextOption option(Qt::AlignHCenter | Qt::AlignVCenter);
+		option.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
+		painter->drawText(rect, text, option);
+		painter->restore();
+	}
+
 	int lyricVisualWidth(
 		const LyricEntry& entry,
 		int32_t index,
@@ -161,6 +267,14 @@ namespace {
 
 		return static_cast<int>(highlight_width + 0.5);
 	}
+
+	QFont makeLyricsDisplayFont(const QFont& font) {
+		auto result = font;
+		result.setBold(false);
+		result.setStyleName(QString());
+		result.setWeight(QFont::Black);
+		return result;
+	}
 }
 
 LyricsShowWidget::LyricsShowWidget(QWidget* parent) 
@@ -172,43 +286,7 @@ LyricsShowWidget::LyricsShowWidget(QWidget* parent)
 }
 
 void LyricsShowWidget::resizeFontSize() {
-	if (!lyric_) {
-		return;
-	}
-
-	auto font_size = 16;
-	constexpr int kMinFontSize = 8;
-	const auto max_width = (std::max)(0, size().width() - 30);
-
-	auto max_lyric_width = [this]() {
-		QFont ruby_font = lrc_font_;
-		ruby_font.setPointSizeF(lrc_font_.pointSizeF() * 0.5);
-		const QFontMetrics text_metrics(lrc_font_);
-		const QFontMetrics ruby_metrics(ruby_font);
-
-		auto width = 0;
-		auto index = 0;
-		for (const auto& entry : *lyric_) {
-			width = (std::max)(width,
-				lyricVisualWidth(entry,
-					index,
-					furiganas_,
-					text_metrics,
-					ruby_metrics));
-			++index;
-		}
-		return width;
-	};
-
-	lrc_font_.setPointSize(font_size);
-	while (max_width > 0 && max_lyric_width() > max_width) {
-		font_size -= 5;
-		if (font_size < kMinFontSize) {
-			font_size = kMinFontSize;
-			break;
-		}
-		lrc_font_.setPointSize(font_size);
-	}
+	updateGeometry();
 }
 
 void LyricsShowWidget::resizeEvent(QResizeEvent* event) {
@@ -218,7 +296,9 @@ void LyricsShowWidget::resizeEvent(QResizeEvent* event) {
 
 void LyricsShowWidget::initial() {
     lrc_font_ = qTheme.defaultFont();
-	lrc_font_.setBold(true);
+	lrc_font_.setBold(false);
+	lrc_font_.setStyleName(QString());
+	lrc_font_.setWeight(QFont::Black);
 	current_mask_font_ = lrc_font_;
 	lrc_font_.setPointSize(qAppSettings.valueAsInt(kLyricsFontSize));
 	lyric_.reset(new LrcParser());
@@ -316,7 +396,8 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 	}
 
 	// 1) 先準備字型
-	QFont base_font = lrc_font_;
+	QFont base_font = makeLyricsDisplayFont(lrc_font_);
+
 	double base_font_size = base_font.pointSizeF();
 	if (base_font_size <= 0.0) {
 		base_font_size = 16.0;
@@ -336,49 +417,47 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 	const auto& words = entry.words;
 
 	// 4) 準備 Furigana 與一般字體的 Metrics
-	QFont furigana_font = lrc_font_;
-	QFont kanji_font = lrc_font_;
+	QFont furigana_font = base_font;
+	QFont kanji_font = base_font;
 	QFontMetrics furigana_metrics(furigana_font);
 	QFontMetrics metrics(painter->font());
+	const auto max_text_width = (std::max)(1, rect.width() - kLyricsHorizontalMargin * 2);
 
 	qint64 global_time = pos_;
 	qint64 line_start = entry.timestamp.count();
 
 	if ((is_fulled_ || is_lrc_valid_) && words.empty()) {
 		const QString text = QString::fromStdWString(entry.lrc);
-
-		// 置中計算 (以行寬 - 文字寬) / 2
-		const int text_width = metrics.horizontalAdvance(text);
-		const double x = (rect.width() - text_width) / 2.0;
-		// y 基準線：在該行矩形的垂直置中
-		const int baseline = rect.y() + (rect.height() + metrics.ascent()) / 2;
-
-		// 繪製主行歌詞
-		painter->drawText(x, baseline, text);
+		const auto main_lines = wrappedTextLineCount(text, base_font, max_text_width);
+		const auto main_height = main_lines * metrics.lineSpacing();
+		auto content_height = main_height;
 
 		// 如果此行還有翻譯 (tlrc)，就再畫一行
+		auto translation_height = 0;
+		QFont translation_font = base_font;
+		translation_font.setPointSizeF(base_font.pointSizeF() * kTranslationScale);
+		QFontMetrics tm(translation_font);
+		QString tr_text;
 		if (!entry.tlrc.empty()) {
-			// 可依需求縮小翻譯字體
-			QFont translation_font = base_font;
-			const float translation_scale = 0.8f;
-			translation_font.setPointSizeF(base_font.pointSizeF() * translation_scale);
-			painter->setFont(translation_font);
+			tr_text = QString::fromStdWString(entry.tlrc);
+			translation_height = wrappedTextLineCount(tr_text, translation_font, max_text_width) * tm.lineSpacing();
+			content_height += kTranslationSpacing + translation_height;
+		}
 
-			QFontMetrics tm(translation_font);
-			const QString tr_text = QString::fromStdWString(entry.tlrc);
-			const int tr_width = tm.horizontalAdvance(tr_text);
+		auto top = rect.y() + (rect.height() - content_height) / 2.0;
+		drawCenteredWrappedText(painter,
+			QRectF(kLyricsHorizontalMargin, top, max_text_width, main_height),
+			text,
+			base_font,
+			pen_color);
 
-			// 下方再留個行距，比如 5
-			const int translation_baseline = baseline
-				+ tm.height()
-				+ 5;
-
-			const double x_tr = (rect.width() - tr_width) / 2.0;
-			painter->setPen(pen_color);
-			painter->drawText(x_tr, translation_baseline, tr_text);
-
-			// 記得恢復原字體
-			painter->setFont(base_font);
+		if (!tr_text.isEmpty()) {
+			top += main_height + kTranslationSpacing;
+			drawCenteredWrappedText(painter,
+				QRectF(kLyricsHorizontalMargin, top, max_text_width, translation_height),
+				tr_text,
+				translation_font,
+				pen_color);
 		}
 		return;
 	}
@@ -431,136 +510,109 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 		return;
 	}
 
-	if (!furiganas_.empty() && index < furiganas_.size()) {
-		// ------------------------------------------------------------------------
-		// (B) 有逐字資訊，則做卡拉OK逐字高亮 + Furigana
-		// ------------------------------------------------------------------------
-		// 5) 先繪製整行 Furigana (不需要對 words 做 1:1 大小)
+	painter->setFont(base_font);
+	QFontMetrics fm(painter->font());
+	const auto word_rows = makeWrappedWordRows(words, fm, max_text_width);
+	if (word_rows.empty()) {
+		return;
+	}
+
+	std::vector<std::vector<RubyLayoutSegment>> ruby_rows;
+	if (!furiganas_.empty() && index < static_cast<int32_t>(furiganas_.size())) {
 		furigana_font.setPointSizeF(lrc_font_.pointSizeF() * 0.5);
 		furigana_metrics = QFontMetrics(furigana_font);
-		const auto& furigana_result = furiganas_[index];
-		const auto ruby_layout = makeRubyLayout(furigana_result, metrics, furigana_metrics);
-		double x_f = (rect.width() - rubyLayoutWidth(ruby_layout)) / 2.0;
-		const int content_height = furigana_metrics.height() + kRubySpacing + metrics.height();
-		const int content_top = rect.y() + (rect.height() - content_height) / 2;
-		const int furigana_baseline = content_top + furigana_metrics.ascent();
-		const int base_line = content_top + furigana_metrics.height() + kRubySpacing + metrics.ascent();
+		ruby_rows = wrapRubyLayout(
+			makeRubyLayout(furiganas_[index], fm, furigana_metrics),
+			max_text_width);
+	}
 
-		if (global_time >= line_start) {
-			// 當前行 => 用同一個高亮色
-			painter->setPen(lrc_highlight_color_);
-		}
-		else {
-			// 其他行 => 用正常顏色
-			painter->setPen(lrc_color_);
-		}
+	const auto row_count = (std::max)(word_rows.size(), ruby_rows.size());
+	const auto ruby_height = ruby_rows.empty() ? 0 : furigana_metrics.height() + kRubySpacing;
+	const auto row_height = ruby_height + fm.height();
+	auto content_height = static_cast<int>(row_count) * row_height
+		+ static_cast<int>((std::max)(size_t{ 1 }, row_count) - 1) * kWrappedRowSpacing;
 
-		// 先用較小字體繪 Furigana
-		painter->setFont(furigana_font);
-		for (const auto& segment : ruby_layout) {
-			// 逐字畫出 Furigana
-			if (!segment.ruby.isEmpty()) {
-				painter->drawText(
-					x_f + (segment.column_width - segment.ruby_width) / 2.0,
-					furigana_baseline,
-					segment.ruby);
+	QColor translation_color = global_time >= line_start ? lrc_highlight_color_ : lrc_color_;
+	QFont translation_font = base_font;
+	translation_font.setPointSizeF(lrc_font_.pointSizeF() * kTranslationScale);
+	QFontMetrics tm(translation_font);
+	QString translation_text;
+	auto translation_height = 0;
+	if (!entry.tlrc.empty()) {
+		translation_text = QString::fromStdWString(entry.tlrc);
+		translation_height = wrappedTextLineCount(translation_text, translation_font, max_text_width) * tm.lineSpacing();
+		content_height += kTranslationSpacing + translation_height;
+	}
+
+	auto row_top = rect.y() + (rect.height() - content_height) / 2.0;
+	const auto delta = global_time - line_start;
+	for (size_t row_index = 0; row_index < row_count; ++row_index) {
+		if (row_index < ruby_rows.size()) {
+			const auto& ruby_row = ruby_rows[row_index];
+			auto x = (rect.width() - rubyLayoutWidth(ruby_row)) / 2.0;
+			const auto furigana_baseline = row_top + furigana_metrics.ascent();
+			painter->setFont(furigana_font);
+			painter->setPen(global_time >= line_start ? lrc_highlight_color_ : lrc_color_);
+			for (const auto& segment : ruby_row) {
+				if (!segment.ruby.isEmpty()) {
+					painter->drawText(
+						x + (segment.column_width - segment.ruby_width) / 2.0,
+						furigana_baseline,
+						segment.ruby);
+				}
+				x += segment.column_width;
 			}
-			x_f += segment.column_width;
 		}
-	}
 
-	// 6) 再用卡拉OK方式畫主文字
-	qint64 delta = global_time - line_start;
+		if (row_index < word_rows.size()) {
+			const auto& row = word_rows[row_index];
+			auto x = (rect.width() - row.width) / 2.0;
+			const auto baseline = static_cast<int>(row_top) + ruby_height + fm.ascent();
 
-	painter->setFont(lrc_font_);
-	QFontMetrics fm(painter->font());
+			painter->setFont(base_font);
+			for (auto i = row.begin; i < row.end; ++i) {
+				const auto& w = words[i];
+				const auto word_text = QString::fromStdWString(w.content);
+				const auto word_width = fm.horizontalAdvance(word_text);
 
-	// 計算該行所有 words 的總寬度 (置中)
-	int total_width = 0;
-	for (auto& w : words) {
-		QString w_text = QString::fromStdWString(w.content);
-		total_width += fm.horizontalAdvance(w_text);
-	}
-	double x = (rect.width() - total_width) / 2.0;
-	int baseline = rect.y() + (rect.height() + fm.ascent()) / 2;
+				painter->setPen(pen_color);
+				painter->drawText(x, baseline, word_text);
 
-	// 逐字繪製 + 高亮
-	for (int i = 0; i < static_cast<int>(words.size()); ++i) {
-		const auto& w = words[i];
-		QString word_text = QString::fromStdWString(w.content);
-		int word_width = fm.horizontalAdvance(word_text);
+				const auto w_start = w.offset.count();
+				const auto w_end = w_start + w.length.count();
+				auto fraction = 0.0;
+				if (w.length.count() <= 0 && delta > w_start) {
+					fraction = 1.0;
+				}
+				else if (delta > w_start) {
+					fraction = delta >= w_end
+						? 1.0
+						: static_cast<double>(delta - w_start) / static_cast<double>(w_end - w_start);
+				}
+				fraction = std::clamp(fraction, 0.0, 1.0);
 
-		// 先畫「未亮」顏色
-		painter->setPen(pen_color);
-		painter->drawText(x, baseline, word_text);
-
-		// 計算此字的高亮 fraction
-		qint64 w_start = w.offset.count();
-		qint64 w_end = w_start + w.length.count();
-		double fraction = 0.0;
-		if (delta <= w_start) {
-			fraction = 0.0;
+				if (fraction > 0.0) {
+					painter->save();
+					painter->setPen(karaoke_highlight_color_);
+					const auto highlight_width = static_cast<int>(word_width * fraction);
+					painter->setClipRect(x, row_top, highlight_width, row_height);
+					painter->drawText(x, baseline, word_text);
+					painter->restore();
+				}
+				x += word_width;
+			}
 		}
-		else if (delta >= w_end) {
-			fraction = 1.0;
-		}
-		else {
-			fraction = static_cast<double>(delta - w_start) / static_cast<double>(w_end - w_start);
-		}
-		fraction = std::clamp(fraction, 0.0, 1.0);
 
-		// 如果 fraction>0 就用 clipRect 疊加高亮
-		if (fraction > 0.0) {
-			painter->save();
-			painter->setPen(karaoke_highlight_color_); // 你自定義的高亮色
-			int highlight_width = static_cast<int>(word_width * fraction);
-			painter->setClipRect(x, rect.y(), highlight_width, rect.height());
-			painter->drawText(x, baseline, word_text);
-			painter->restore();
-		}
-		x += word_width;
+		row_top += row_height + kWrappedRowSpacing;
 	}
 
 	// 7) 繪製翻譯行 (如果有)
-	if (!entry.tlrc.empty()) {
-		QColor translation_color;
-		if (global_time >= line_start) {
-			// 當前行 => 用同一個高亮色
-			translation_color = lrc_highlight_color_;
-		}
-		else {
-			// 其他行 => 用正常顏色
-			translation_color = lrc_color_;
-		}
-
-		float  translation_scale_ = 0.8f;                 // 翻譯行字體相對主行大小
-		int    translation_line_spacing_ = 5;             // 主行與翻譯行之間的垂直間距(像素)
-
-		// 取得翻譯文字
-		const QString translation_text = QString::fromStdWString(entry.tlrc);
-
-		// 設定翻譯行字體 (可與主行不同大小)
-		QFont translation_font = lrc_font_;
-		translation_font.setPointSizeF(lrc_font_.pointSizeF()* translation_scale_);
-		painter->setFont(translation_font);
-
-		// 重新計算字體高度
-		QFontMetrics tm(translation_font);
-
-		// 決定翻譯行的基準線(在主行 baseline 再往下移一些)
-		int translation_baseline = baseline
-			+ tm.height()
-			+ translation_line_spacing_; // 加點間距
-
-		// 置中計算 (讓翻譯跟主行都置中)
-		int translation_width = tm.horizontalAdvance(translation_text);
-		double x_trans = (rect.width() - translation_width) / 2.0;
-
-		// 設定顏色(與主行顏色不同也可)
-		painter->setPen(translation_color);
-
-		// 繪製翻譯文字
-		painter->drawText(x_trans, translation_baseline, translation_text);
+	if (!translation_text.isEmpty()) {
+		drawCenteredWrappedText(painter,
+			QRectF(kLyricsHorizontalMargin, row_top, max_text_width, translation_height),
+			translation_text,
+			translation_font,
+			translation_color);
 	}
 }
 
@@ -575,18 +627,54 @@ void LyricsShowWidget::paintItemMask(QPainter* painter) {
 }
 
 int32_t LyricsShowWidget::itemHeight() const {
-	const QFontMetrics metrics(lrc_font_);
-	auto height = static_cast<int32_t>(metrics.height() * 1.5);
+	const auto base_font = makeLyricsDisplayFont(lrc_font_);
+	const QFontMetrics metrics(base_font);
+	const auto max_text_width = (std::max)(1, width() - kLyricsHorizontalMargin * 2);
+	auto max_row_count = size_t{ 1 };
 
+	QFont furigana_font = base_font;
+	QFontMetrics furigana_metrics(furigana_font);
 	if (!furiganas_.empty()) {
-		QFont furigana_font = lrc_font_;
 		furigana_font.setPointSizeF(lrc_font_.pointSizeF() * 0.5);
-		const QFontMetrics furigana_metrics(furigana_font);
-		height += furigana_metrics.height() + kRubySpacing;
+		furigana_metrics = QFontMetrics(furigana_font);
 	}
 
+	if (lyric_) {
+		auto index = 0;
+		for (const auto& entry : *lyric_) {
+			auto row_count = size_t{ 1 };
+			if (!entry.words.empty()) {
+				row_count = makeWrappedWordRows(entry.words, metrics, max_text_width).size();
+			}
+			else {
+				row_count = static_cast<size_t>(
+					wrappedTextLineCount(QString::fromStdWString(entry.lrc), base_font, max_text_width));
+			}
+
+			if (index >= 0
+				&& index < static_cast<int32_t>(furiganas_.size())
+				&& !furiganas_[index].empty()) {
+				const auto ruby_rows = wrapRubyLayout(
+					makeRubyLayout(furiganas_[index], metrics, furigana_metrics),
+					max_text_width);
+				row_count = (std::max)(row_count, ruby_rows.size());
+			}
+			max_row_count = (std::max)(max_row_count, row_count);
+			++index;
+		}
+	}
+
+	const auto ruby_height = !furiganas_.empty()
+		? furigana_metrics.height() + kRubySpacing
+		: 0;
+	auto height = static_cast<int32_t>(max_row_count) * (ruby_height + metrics.height())
+		+ static_cast<int32_t>(max_row_count - 1) * kWrappedRowSpacing;
+
 	if (lyric_->hasTranslation()) {
-		height += static_cast<int32_t>(metrics.height() * 0.8) + 5;
+		QFont translation_font = base_font;
+		translation_font.setPointSizeF(lrc_font_.pointSizeF() * kTranslationScale);
+		const QFontMetrics tm(translation_font);
+		height += tm.height() + kTranslationSpacing;
 	}
 
     return height;
@@ -837,7 +925,7 @@ void LyricsShowWidget::setLrcTime(int32_t stream_time) {
 		return;
 	}
 
-	const QFontMetrics metrics(lrc_font_);
+	const QFontMetrics metrics(makeLyricsDisplayFont(lrc_font_));
 	const auto highlight_width = karaokeHighlightWidth(ly, stream_time, metrics);
 	if (line_changed
 		|| last_karaoke_index_ != ly.index
@@ -849,8 +937,8 @@ void LyricsShowWidget::setLrcTime(int32_t stream_time) {
 }
 
 void LyricsShowWidget::setLrcFont(const QFont & font) {
-	lrc_font_ = font;
-	current_mask_font_ = font;
+	lrc_font_ = makeLyricsDisplayFont(font);
+	current_mask_font_ = lrc_font_;
 	update();
 }
 

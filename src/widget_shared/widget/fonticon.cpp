@@ -13,7 +13,7 @@
 #include <utility>
 
 
-class XAMP_WIDGET_SHARED_EXPORT FontIconEngine : public QIconEngine {
+class XAMP_WIDGET_SHARED_API FontIconEngine : public QIconEngine {
 public:
     explicit FontIconEngine(QVariantMap opt);
 

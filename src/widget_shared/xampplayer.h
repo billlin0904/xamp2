@@ -25,7 +25,7 @@ class QAction;
 
 class IXFrame;
 
-class XAMP_WIDGET_SHARED_EXPORT IXMainWindow : public QMainWindow {
+class XAMP_WIDGET_SHARED_API IXMainWindow : public QMainWindow {
 public:
     virtual ~IXMainWindow() override = default;
 
@@ -68,7 +68,7 @@ protected:
     QWK::WidgetWindowAgent* window_agent_{ nullptr };
 };
 
-class XAMP_WIDGET_SHARED_EXPORT IXFrame : public QFrame {
+class XAMP_WIDGET_SHARED_API IXFrame : public QFrame {
 public:
     virtual ~IXFrame() override = default;
 

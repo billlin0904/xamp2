@@ -7,7 +7,7 @@
 
 #include <widget/widget_shared_global.h>
 
-class XAMP_WIDGET_SHARED_EXPORT TabPage {
+class XAMP_WIDGET_SHARED_API TabPage {
 public:
 	virtual ~TabPage() = default;
 	virtual void reload() = 0;

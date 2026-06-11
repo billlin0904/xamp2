@@ -15,7 +15,7 @@ namespace Ui {
     class PreferenceDialog;
 }
 
-class XAMP_WIDGET_SHARED_EXPORT PreferencePage final : public QFrame {
+class XAMP_WIDGET_SHARED_API PreferencePage final : public QFrame {
     Q_OBJECT
 public:
     explicit PreferencePage(QWidget *parent = nullptr);

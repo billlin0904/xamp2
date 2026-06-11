@@ -18,7 +18,7 @@
 
 class QDropEvent;
 
-class XAMP_WIDGET_SHARED_EXPORT LyricsShowWidget : public WheelableWidget {
+class XAMP_WIDGET_SHARED_API LyricsShowWidget : public WheelableWidget {
 	Q_OBJECT
 
 public:

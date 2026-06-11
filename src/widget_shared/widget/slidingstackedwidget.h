@@ -13,7 +13,7 @@
 
 #include <widget/widget_shared_global.h>
 
-class XAMP_WIDGET_SHARED_EXPORT SlidingStackedWidget : public QStackedWidget {
+class XAMP_WIDGET_SHARED_API SlidingStackedWidget : public QStackedWidget {
     Q_OBJECT
 
 public:

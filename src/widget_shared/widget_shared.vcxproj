@@ -237,6 +237,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="thememanager.cpp" />
+    <ClCompile Include="thememanager_fonts.cpp" />
+    <ClCompile Include="thememanager_icons.cpp" />
+    <ClCompile Include="thememanager_theme.cpp" />
+    <ClCompile Include="thememanager_widgets.cpp" />
     <ClCompile Include="version.cpp" />
     <ClCompile Include="widgetframe\windowbar.cpp" />
     <ClCompile Include="widgetframe\windowbutton.cpp" />

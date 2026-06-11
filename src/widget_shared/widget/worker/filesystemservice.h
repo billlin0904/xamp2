@@ -17,7 +17,7 @@
 #include <widget/database.h>
 #include <widget/databasefacade.h>
 
-class XAMP_WIDGET_SHARED_EXPORT FileSystemService final : public QObject {
+class XAMP_WIDGET_SHARED_API FileSystemService final : public QObject {
     Q_OBJECT
 public:
     static constexpr size_t kReserveFilePathSize = 1024;

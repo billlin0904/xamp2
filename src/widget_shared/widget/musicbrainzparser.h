@@ -1,4 +1,4 @@
-﻿//=====================================================================================================================
+//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -94,14 +94,14 @@ namespace musicbrain {
         PARSE_ERROR_JSON_ERROR
     };
 
-    struct XAMP_WIDGET_SHARED_EXPORT TagInfo {
+    struct XAMP_WIDGET_SHARED_API TagInfo {
         QString name;
         int count = 0;
         QString id;
         QString disambiguation;
     };
 
-    struct XAMP_WIDGET_SHARED_EXPORT Artist {
+    struct XAMP_WIDGET_SHARED_API Artist {
         QString id;
         QString name;
         QString sortName;
@@ -113,18 +113,18 @@ namespace musicbrain {
         QList<TagInfo> genres;
     };
 
-    struct XAMP_WIDGET_SHARED_EXPORT ArtistCredit {
+    struct XAMP_WIDGET_SHARED_API ArtistCredit {
         QString joinPhrase;
         QString name;
         Artist artist;
     };
 
-    struct XAMP_WIDGET_SHARED_EXPORT TextRepresentation {
+    struct XAMP_WIDGET_SHARED_API TextRepresentation {
         QString language; // e.g. "jpn"
         QString script;   // e.g. "Jpan"
     };
 
-    struct XAMP_WIDGET_SHARED_EXPORT Area {
+    struct XAMP_WIDGET_SHARED_API Area {
         QString id;            // "2db42837-c832-3c27-b4a3-08198f75693c"
         QString name;          // "Japan" / "[Worldwide]"
         QString sortName;      // "Japan" / "[Worldwide]"
@@ -134,12 +134,12 @@ namespace musicbrain {
         QString disambiguation;
     };
 
-    struct XAMP_WIDGET_SHARED_EXPORT ReleaseEvent {
+    struct XAMP_WIDGET_SHARED_API ReleaseEvent {
         Area area;
         QString date; // "YYYY-MM-DD" 可能只到 YYYY 或 YYYY-MM
     };
 
-    struct XAMP_WIDGET_SHARED_EXPORT ReleaseGroup {
+    struct XAMP_WIDGET_SHARED_API ReleaseGroup {
         QString id;                 // "release-group" -> id
         QString title;              // "release-group" -> title
         QString primaryType;        // "primary-type"
@@ -155,7 +155,7 @@ namespace musicbrain {
         bool loadedInGroup = false; // true if already loaded in your app
     };
 
-    struct XAMP_WIDGET_SHARED_EXPORT Release {
+    struct XAMP_WIDGET_SHARED_API Release {
         QString id;
         QString title;
         QString status;      // "Official"
@@ -178,7 +178,7 @@ namespace musicbrain {
         bool loadedInGroup = false; // true if already loaded in your app
     };
 
-    struct XAMP_WIDGET_SHARED_EXPORT RootRecording {
+    struct XAMP_WIDGET_SHARED_API RootRecording {
         QString id;
         QString title;
         bool video = false;
@@ -192,7 +192,7 @@ namespace musicbrain {
         QList<Release> releases;  // inc=releases 時才會有
     };
 
-    struct XAMP_WIDGET_SHARED_EXPORT TrackInfo {
+    struct XAMP_WIDGET_SHARED_API TrackInfo {
         QString id;
         int disc{};
         int trackNo{};
@@ -204,7 +204,7 @@ namespace musicbrain {
         QList<Release> releases;
     };
 
-    struct XAMP_WIDGET_SHARED_EXPORT FileMeta {
+    struct XAMP_WIDGET_SHARED_API FileMeta {
         QString title;
         QString album;
         QString artist;
@@ -222,7 +222,7 @@ namespace musicbrain {
         bool video = false;
     };
 
-    struct XAMP_WIDGET_SHARED_EXPORT TrackMatchResult {
+    struct XAMP_WIDGET_SHARED_API TrackMatchResult {
         double similarity = 0;
         int fileIndex = -1;
         int trackIndex = -1;
@@ -236,16 +236,16 @@ namespace musicbrain {
 
     std::optional<QList<TrackInfo>> parseReleaseTracklist(const QByteArray& json, const QList<Release> &releases);
 
-    XAMP_WIDGET_SHARED_EXPORT double lengthScore(int a, int b);
+    XAMP_WIDGET_SHARED_API double lengthScore(int a, int b);
 
-    XAMP_WIDGET_SHARED_EXPORT double compareToRelease(const FileMeta& meta, const Release& release);
+    XAMP_WIDGET_SHARED_API double compareToRelease(const FileMeta& meta, const Release& release);
 
-    XAMP_WIDGET_SHARED_EXPORT double compareToRecording(const FileMeta& meta, const RootRecording& recording);
+    XAMP_WIDGET_SHARED_API double compareToRecording(const FileMeta& meta, const RootRecording& recording);
 
-    XAMP_WIDGET_SHARED_EXPORT double compareToTrack(const FileMeta& meta, const TrackInfo& track);
+    XAMP_WIDGET_SHARED_API double compareToTrack(const FileMeta& meta, const TrackInfo& track);
 }
 
-struct XAMP_WIDGET_SHARED_EXPORT MusicBrainzRecording {
+struct XAMP_WIDGET_SHARED_API MusicBrainzRecording {
     QString release_id;
     QString title;
     QPixmap cover_art;
@@ -254,7 +254,7 @@ struct XAMP_WIDGET_SHARED_EXPORT MusicBrainzRecording {
     QList<musicbrain::TrackInfo> tracks;
 };
 
-struct XAMP_WIDGET_SHARED_EXPORT MusicBrainzAlbum {
+struct XAMP_WIDGET_SHARED_API MusicBrainzAlbum {
     QList<MusicBrainzRecording> recordings;
 
     MusicBrainzAlbum() = default;

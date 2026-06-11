@@ -88,7 +88,7 @@ XAMP_MAKE_ENUM(Glyphs,
     ICON_ARCHIVE,
     ICON_END);
 
-struct XAMP_WIDGET_SHARED_EXPORT FontIconOption final {
+struct XAMP_WIDGET_SHARED_API FontIconOption final {
     static const QString kRectAttr;
     static const QString kScaleFactorAttr; 
     static const QString kFontStyleAttr;
@@ -112,7 +112,7 @@ struct XAMP_WIDGET_SHARED_EXPORT FontIconOption final {
     static double opacity;
 };
 
-class XAMP_WIDGET_SHARED_EXPORT FontIcon final : public QObject {
+class XAMP_WIDGET_SHARED_API FontIcon final : public QObject {
 public:
     XAMP_DECLARE_SINGLETON_NAME()
 

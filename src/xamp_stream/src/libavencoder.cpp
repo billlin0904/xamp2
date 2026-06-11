@@ -41,24 +41,6 @@ namespace {
 
     using Converter = std::function<void(const float*, AVFrame*, size_t)>;
 
-    struct OutputIoContextDeleter {
-        bool close_file = false;
-
-        void operator()(AVIOContext* context) const {
-            if (context == nullptr) {
-                return;
-            }
-            if (close_file) {
-                LibAvDLL.Format->avio_closep(&context);
-            }
-            else {
-                LibAvDLL.Format->avio_context_free(&context);
-            }
-        }
-    };
-
-    using OutputIoContextPtr = std::unique_ptr<AVIOContext, OutputIoContextDeleter>;
-
     const HashMap<std::string, std::function<Converter(const ScopedPtr<FileStream>&, uint32_t&, AVCodecID&, AVSampleFormat&, std::string&)>>
         kConverterLut = {
             { "aac", [](const ScopedPtr<FileStream>&, uint32_t& sample_size, AVCodecID& codec_id, AVSampleFormat& sample_format, std::string& guess_file_name) ->Converter {
@@ -151,7 +133,7 @@ public:
     ~LibAbFileEncoderImpl() {
         // 確保在解構時釋放重要資源
         codec_context_.reset();
-        output_io_context_.reset();
+        CloseOutputIoContext();
         format_context_.reset();
     }
 
@@ -229,7 +211,8 @@ public:
                 throw Exception("Failed to create custom AVIOContext.");
             }
 
-            output_io_context_ = OutputIoContextPtr(custom_io_ctx, OutputIoContextDeleter{ false });
+            output_io_context_.reset(custom_io_ctx);
+            close_output_io_context_ = false;
 
             format_context_.reset(LibAvDLL.Format->avformat_alloc_context());
             if (!format_context_) {
@@ -248,7 +231,8 @@ public:
                 file_name,
                 AVIO_FLAG_WRITE
             ));
-            output_io_context_ = OutputIoContextPtr(output_io_context, OutputIoContextDeleter{ true });
+            output_io_context_.reset(output_io_context);
+            close_output_io_context_ = true;
 
             format_context_.reset(LibAvDLL.Format->avformat_alloc_context());
             if (!format_context_) {
@@ -538,6 +522,25 @@ public:
     }
 
 private:
+    void CloseOutputIoContext() {
+        if (!output_io_context_) {
+            return;
+        }
+
+        if (close_output_io_context_) {
+            auto* context = output_io_context_.release();
+            LibAvDLL.Format->avio_closep(&context);
+        }
+        else {
+            output_io_context_.reset();
+        }
+
+        close_output_io_context_ = false;
+        if (format_context_) {
+            format_context_->pb = nullptr;
+        }
+    }
+
     //--------------------------------------------------------------------------
     // Custom I/O callback functions
     //--------------------------------------------------------------------------
@@ -571,13 +574,14 @@ private:
     // 成員變數
     //--------------------------------------------------------------------------
     uint32_t aac_bit_rate_{ 0 };
+    bool close_output_io_context_{ false };
     int64_t pts_{ 0 };
     AVStream* impl_{ nullptr };
     std::string codec_type_;
     std::string file_name_;
 
     AvPtr<AVCodecContext> codec_context_;
-    OutputIoContextPtr output_io_context_;
+    AvPtr<AVIOContext> output_io_context_;
     AvPtr<AVFormatContext> format_context_;
 
     // 用於 float PCM => 對應格式的轉換函式    

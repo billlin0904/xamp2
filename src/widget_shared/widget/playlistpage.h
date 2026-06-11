@@ -29,7 +29,7 @@ enum Match {
 	MATCH_SUGGEST,
 };
 
-class XAMP_WIDGET_SHARED_EXPORT PlaylistPage final : public QFrame, public TabPage {
+class XAMP_WIDGET_SHARED_API PlaylistPage final : public QFrame, public TabPage {
 	Q_OBJECT
 public:
 	static constexpr auto kMaxCompletionCount = 10;

@@ -17,8 +17,10 @@
 #include <QCoreApplication>
 #include <QEvent>
 #include <QGuiApplication>
+#include <QImage>
 #include <QMap>
 #include <QProcess>
+#include <QPointer>
 #include <QScreen>
 #include <QSet>
 #include <QStandardPaths>
@@ -48,6 +50,7 @@
 #include <widget/chatgpt/spectrogramwidget.h>
 #include <widget/richplaylistpage.h>
 #include <widget/databasefacade.h>
+#include <widget/imagecache.h>
 #include <widget/playlisttableview.h>
 #include <widget/playlistpage.h>
 #include <widget/encodejobwidget.h>
@@ -386,23 +389,43 @@ void Xamp::drivesChanges(const QList<DriveInfo>& drive_infos) {
 }
 
 void Xamp::setAlbumCover(const QPixmap& cover) {
-    const QSize cover_size(ui_.coverLabel->size().width() - image_util::kPlaylistImageRadius,
-        ui_.coverLabel->size().height() - image_util::kPlaylistImageRadius);
-    const auto ui_cover = image_util::roundImage(
-        image_util::resizeImage(cover, cover_size, false),
+    const auto ui_cover = image_util::roundCoverImage(cover,
+        ui_.coverLabel->size(),
         image_util::kPlaylistImageRadius);
     ui_.coverLabel->setPixmap(ui_cover);
 }
 
-void Xamp::playLocalFile(const PlayListEntity& entity, bool queue) {
-    playLocalFile(entity.file_path, queue, &entity);
+void Xamp::playLocalFile(const PlayListEntity& entity, bool queue, bool update_playlist_now_playing) {
+    playLocalFile(entity.file_path, queue, &entity, update_playlist_now_playing);
 }
 
-void Xamp::playLocalFile(const QString& file_name, bool queue, const PlayListEntity* entity) {
+void Xamp::playLocalFile(const QString& file_name,
+    bool queue,
+    const PlayListEntity* entity,
+    bool update_playlist_now_playing) {
     auto file_sample_rate = 44100;
     auto file_duration = 0.0;
-    QPixmap embedded_cover = qTheme.unknownCover();
+    QPixmap display_cover = qTheme.unknownCover();
     TrackInfo track_info;
+    auto has_display_cover = false;
+
+    if (entity != nullptr) {
+        const auto cover_id = entity->validCoverId();
+        if (!cover_id.isEmpty() && cover_id != qImageCache.unknownCoverId()) {
+            if (auto cache_cover = qImageCache.tryGet(kAlbumCacheTag, cover_id);
+                cache_cover.has_value() && !cache_cover->isNull()) {
+                display_cover = cache_cover.value();
+                has_display_cover = true;
+            }
+            else {
+                const auto cache_entity = qImageCache.getFromFile(kAlbumCacheTag + cover_id);
+                if (!cache_entity.image.isNull()) {
+                    display_cover = cache_entity.image;
+                    has_display_cover = true;
+                }
+            }
+        }
+    }
 
     try {
         auto metadata_reader = MakeMetadataReader();
@@ -413,9 +436,18 @@ void Xamp::playLocalFile(const QString& file_name, bool queue, const PlayListEnt
             track_info = metadata_opt.value();
             file_sample_rate = track_info.sample_rate;
             file_duration = track_info.duration;
-            auto buffer = metadata_reader->ReadEmbeddedCover();
-            if (buffer.has_value() && buffer.value().size() > 0) {
-                embedded_cover.loadFromData(reinterpret_cast<uchar*>(buffer.value().data()), buffer.value().size());
+            if (!has_display_cover) {
+                auto buffer = metadata_reader->ReadEmbeddedCover();
+                if (buffer.has_value() && buffer.value().size() > 0) {
+                    const auto& cover_buffer = buffer.value();
+                    QPixmap embedded_cover;
+                    if (embedded_cover.loadFromData(
+                        reinterpret_cast<const uchar*>(cover_buffer.data()),
+                        static_cast<uint>(cover_buffer.size()))) {
+                        display_cover = embedded_cover;
+                        has_display_cover = true;
+                    }
+                }
             }
         }
         else {
@@ -529,19 +561,19 @@ void Xamp::playLocalFile(const QString& file_name, bool queue, const PlayListEnt
     if (!lrc_page_->lyrics()->loadFile(file_name)) {
         emit searchLyrics(playing_entity);
     }
-    lrc_page_->setCover(embedded_cover);
+    lrc_page_->setCover(display_cover);
     const auto playback_file_ext = track_info.file_ext()
         ? toQString(track_info.file_ext().value())
         : file_info.suffix();
     lrc_page_->format()->setText(format2String(playback_format,
         playback_file_ext,
         fromStdStringView(device_info_.value().desc)));
-    lrc_page_->setBackground(image_util::blurImage(thread_pool_,
-        embedded_cover,
-        lrc_page_->size()));
-    rich_playlist_page_->setNowPlaying(track_info, embedded_cover);
+    lrc_page_->clearBackground();
+    if (update_playlist_now_playing) {
+        rich_playlist_page_->setNowPlaying(track_info, display_cover);
+    }
 
-    main_window_->setIconicThumbnail(embedded_cover);
+    main_window_->setIconicThumbnail(display_cover);
 
     double duration = 0;
     duration = Round(file_duration) * 1000;
@@ -552,9 +584,7 @@ void Xamp::playLocalFile(const QString& file_name, bool queue, const PlayListEnt
     ui_.titleLabel->setText(toQString(track_info.title));
     ui_.artistLabel->setText(toQString(track_info.artist));
 
-    ui_.coverLabel->setPixmap(
-        image_util::resizeImage(embedded_cover,
-            ui_.coverLabel->size()));
+    setAlbumCover(display_cover);
 }
 
 void Xamp::setMainWindow(IXMainWindow* main_window) {
@@ -700,14 +730,16 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         &PlaylistTableView::playMusic,
         this,
         [this](int32_t playlist_id, const PlayListEntity& item, bool is_play) {
+            (void)playlist_id;
             spectrogram_tracks_playback_ = true;
-            playLocalFile(item, is_play);
+            playLocalFile(item, is_play, false);
         });
 
     (void)QObject::connect(rich_playlist_page_.get(),
         &RichPlaylistPage::playMusic,
         this,
         [this](int32_t playlist_id, const PlayListEntity& item, bool is_play) {
+            (void)playlist_id;
             spectrogram_tracks_playback_ = false;
             playLocalFile(item, is_play);
         });
@@ -782,7 +814,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         dialog->exec();
         });
 
-    setupSystemMenu();
+    //setupSystemMenu();
 
     cd_page_.reset(new CdPage(this));
     cd_page_->playlistPage()->playlist()->setPlaylistId(kCdPlaylistId, kAppSettingCdPlaylistColumnName);
@@ -825,9 +857,14 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     connect_playlist_changed(cd_page_->playlistPage()->playlist());
 
     (void)QObject::connect(album_cover_service_.get(),
-        &AlbumCoverService::setAlbumCover,
+        &AlbumCoverService::albumCoverLoaded,
         this,
-        [this](int32_t album_id, const QString& cover_id) {
+        [this](int32_t album_id, const QImage& image, bool save_only) {
+            const auto cover = QPixmap::fromImage(image);
+            if (cover.isNull()) {
+                return;
+            }
+            const auto cover_id = qImageCache.addImage(cover, save_only);
             qDaoFacade.album_dao.setAlbumCover(album_id, cover_id);
             file_explorer_page_->playlistPage()->playlist()->setAlbumCoverId(album_id, cover_id);
             cd_page_->playlistPage()->playlist()->setAlbumCoverId(album_id, cover_id);
@@ -1079,6 +1116,31 @@ void Xamp::showPreference() {
 }
 
 void Xamp::showLogViewer() {
+#ifdef Q_OS_LINUX
+    static QPointer<XDialog> log_dialog;
+    if (log_dialog != nullptr) {
+        log_dialog->show();
+        log_dialog->raise();
+        log_dialog->activateWindow();
+        return;
+    }
+
+    auto* dialog = new XDialog(nullptr, false);
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    dialog->setWindowFlag(Qt::Window, true);
+    dialog->setTitle(tr("Log Viewer"));
+    dialog->setIcon(qTheme.fontIcon(Glyphs::ICON_REPORT_BUG));
+
+    auto* log_view = new LogView(dialog);
+    log_view->loadLogFile("logs/xamp.log"_str);
+    log_view->setMinimumSize(QSize(900, 480));
+    dialog->setContentWidget(log_view, false, false);
+    dialog->resize(dialogSizeFromHost(dialog, log_view, main_window_, 0.6));
+    log_dialog = dialog;
+    dialog->show();
+    dialog->raise();
+    dialog->activateWindow();
+#else
     QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
     const QScopedPointer<XDialog> dialog(new XDialog(this));
     dialog->setTitle(tr("Log Viewer"));
@@ -1089,6 +1151,7 @@ void Xamp::showLogViewer() {
     dialog->setContentWidget(log_view.get(), false);
     dialog->setFixedSize(dialog->size());
     dialog->exec();
+#endif
 }
 
 void Xamp::showEncodeJobs(int32_t encode_type, const QList<PlayListEntity>& entities) {

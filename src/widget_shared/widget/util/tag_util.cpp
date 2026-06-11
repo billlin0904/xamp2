@@ -31,7 +31,7 @@ void writeEmbeddedCover(xamp::metadata::IMetadataWriter& writer, const QPixmap& 
         return;
     }
 
-    writer.WriteEmbeddedCover(image_util::image2Buffer(image));
+    writer.WriteEmbeddedCover(image_util::image2JpegBuffer(image));
 }
 
 }

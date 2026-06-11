@@ -36,27 +36,27 @@ namespace {
 #ifdef Q_OS_WIN
     void configureMimallocForPerformance() noexcept {
         // Favor allocation throughput over returning memory to the OS quickly.
-        mi_option_set_default(mi_option_eager_commit, 1);
+        ::mi_option_set_default(mi_option_eager_commit, 1);
         // Eagerly commit even the first per-thread segment to avoid first-use stalls.
-        mi_option_set_default(mi_option_eager_commit_delay, 0);
+        ::mi_option_set_default(mi_option_eager_commit_delay, 0);
         // Keep freed pages around a bit longer so bursty UI/audio workloads can reuse them.
-        mi_option_set_default(mi_option_purge_delay, 500);
+        ::mi_option_set_default(mi_option_purge_delay, 500);
         // Apply an even longer purge delay for arena memory, trading RSS for steadier latency.
-        mi_option_set_default(mi_option_arena_purge_mult, 20);
+        ::mi_option_set_default(mi_option_arena_purge_mult, 20);
         // Reset pages instead of decommitting them; this is usually faster on Windows.
-        mi_option_set_enabled_default(mi_option_purge_decommits, false);
+        ::mi_option_set_enabled_default(mi_option_purge_decommits, false);
         // Let active threads reclaim memory from finished threads during later frees.
-        mi_option_set_enabled_default(mi_option_abandoned_reclaim_on_free, true);
+        ::mi_option_set_enabled_default(mi_option_abandoned_reclaim_on_free, true);
     }
 
     void logMimallocOptions() {
         XAMP_LOG_DEBUG(
             "mimalloc performance options: eager_commit={}, eager_commit_delay={}, purge_delay={}ms, purge_decommits={}, arena_purge_mult={}.",
-            mi_option_get(mi_option_eager_commit),
-            mi_option_get(mi_option_eager_commit_delay),
-            mi_option_get(mi_option_purge_delay),
-            mi_option_get(mi_option_purge_decommits),
-            mi_option_get(mi_option_arena_purge_mult));
+            ::mi_option_get(mi_option_eager_commit),
+            ::mi_option_get(mi_option_eager_commit_delay),
+            ::mi_option_get(mi_option_purge_delay),
+            ::mi_option_get(mi_option_purge_decommits),
+            ::mi_option_get(mi_option_arena_purge_mult));
     }
 #else
     void configureMimallocForPerformance() noexcept {
@@ -209,8 +209,6 @@ namespace {
             return -1;
         }
 
-        //qImageCache.loadUnknownCover();
-
         XAMP_LOG_DEBUG("Database init success.");
 
         XAMP_LOG_DEBUG("Start XAMP window...");
@@ -223,6 +221,8 @@ namespace {
         win.adjustSize();
         main_window.restoreAppGeometry();
         main_window.showWindow();
+
+        win.setupSystemMenu();
 
         logMimallocOptions();
 

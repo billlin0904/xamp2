@@ -18,7 +18,7 @@ void EnsurePipeWireInitialized();
 struct PipeWireThreadLoopDeleter {
 	void operator()(pw_thread_loop* loop) const noexcept {
 		if (loop != nullptr) {
-			pw_thread_loop_destroy(loop);
+			::pw_thread_loop_destroy(loop);
 		}
 	}
 };
@@ -26,7 +26,7 @@ struct PipeWireThreadLoopDeleter {
 struct PipeWireContextDeleter {
 	void operator()(pw_context* context) const noexcept {
 		if (context != nullptr) {
-			pw_context_destroy(context);
+			::pw_context_destroy(context);
 		}
 	}
 };
@@ -34,7 +34,7 @@ struct PipeWireContextDeleter {
 struct PipeWireCoreDeleter {
 	void operator()(pw_core* core) const noexcept {
 		if (core != nullptr) {
-			pw_core_disconnect(core);
+			::pw_core_disconnect(core);
 		}
 	}
 };
@@ -42,7 +42,7 @@ struct PipeWireCoreDeleter {
 struct PipeWireRegistryDeleter {
 	void operator()(pw_registry* registry) const noexcept {
 		if (registry != nullptr) {
-			pw_proxy_destroy(reinterpret_cast<pw_proxy*>(registry));
+			::pw_proxy_destroy(reinterpret_cast<pw_proxy*>(registry));
 		}
 	}
 };
@@ -50,7 +50,7 @@ struct PipeWireRegistryDeleter {
 struct PipeWireStreamDeleter {
 	void operator()(pw_stream* stream) const noexcept {
 		if (stream != nullptr) {
-			pw_stream_destroy(stream);
+			::pw_stream_destroy(stream);
 		}
 	}
 };
@@ -66,13 +66,13 @@ public:
 	explicit PipeWireThreadLoopLock(pw_thread_loop* loop) noexcept
 		: loop_(loop) {
 		if (loop_ != nullptr) {
-			pw_thread_loop_lock(loop_);
+			::pw_thread_loop_lock(loop_);
 		}
 	}
 
 	~PipeWireThreadLoopLock() {
 		if (loop_ != nullptr) {
-			pw_thread_loop_unlock(loop_);
+			::pw_thread_loop_unlock(loop_);
 		}
 	}
 

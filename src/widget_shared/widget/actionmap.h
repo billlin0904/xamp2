@@ -14,7 +14,7 @@
 #include <widget/util/str_util.h>
 #include <thememanager.h>
 
-class XAMP_WIDGET_SHARED_EXPORT XMenu : public QMenu {
+class XAMP_WIDGET_SHARED_API XMenu : public QMenu {
 public:
 	explicit XMenu(QWidget* object = nullptr)
 		: QMenu(object) {
@@ -22,7 +22,7 @@ public:
 	}
 };
 
-class XAMP_WIDGET_SHARED_EXPORT XAction : public QAction {
+class XAMP_WIDGET_SHARED_API XAction : public QAction {
 	Q_OBJECT
 public:
 	explicit XAction(Glyphs glyphs, const QString& text, QObject* parent = nullptr)

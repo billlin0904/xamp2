@@ -8,9 +8,9 @@
 #include <widget/util/str_util.h>
 #include <widget/widget_shared_global.h>
 
-XAMP_WIDGET_SHARED_EXPORT extern const QVersionNumber kApplicationVersionValue;
-XAMP_WIDGET_SHARED_EXPORT extern const ConstexprQString kApplicationName;
-XAMP_WIDGET_SHARED_EXPORT extern const ConstexprQString kApplicationTitle;
-XAMP_WIDGET_SHARED_EXPORT extern const ConstexprQString kApplicationVersion;
-XAMP_WIDGET_SHARED_EXPORT extern const ConstexprQString kDefaultCharset;
-XAMP_WIDGET_SHARED_EXPORT extern const ConstexprQString kDefaultUserAgent;
+XAMP_WIDGET_SHARED_API extern const QVersionNumber kApplicationVersionValue;
+XAMP_WIDGET_SHARED_API extern const ConstexprQString kApplicationName;
+XAMP_WIDGET_SHARED_API extern const ConstexprQString kApplicationTitle;
+XAMP_WIDGET_SHARED_API extern const ConstexprQString kApplicationVersion;
+XAMP_WIDGET_SHARED_API extern const ConstexprQString kDefaultCharset;
+XAMP_WIDGET_SHARED_API extern const ConstexprQString kDefaultUserAgent;

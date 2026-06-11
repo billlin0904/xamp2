@@ -12,7 +12,7 @@
 
 namespace dao {
 
-class XAMP_WIDGET_SHARED_EXPORT AlbumDao final {
+class XAMP_WIDGET_SHARED_API AlbumDao final {
 public:
     AlbumDao();
 

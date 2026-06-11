@@ -15,7 +15,7 @@ class QVBoxLayout;
 class GenreView;
 class ClickableLabel;
 
-class XAMP_WIDGET_SHARED_EXPORT GenrePage : public QFrame {
+class XAMP_WIDGET_SHARED_API GenrePage : public QFrame {
 	Q_OBJECT
 public:
 	explicit GenrePage(QWidget* parent = nullptr);
@@ -33,7 +33,7 @@ private:
 	GenreView* genre_view_;
 };
 
-class XAMP_WIDGET_SHARED_EXPORT GenreViewPage : public QStackedWidget {
+class XAMP_WIDGET_SHARED_API GenreViewPage : public QStackedWidget {
 public:
 	explicit GenreViewPage(QWidget* parent = nullptr);
 

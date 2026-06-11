@@ -20,7 +20,7 @@ class QAbstractButton;
 class QGridLayout;
 class QLabel;
 
-class XAMP_WIDGET_SHARED_EXPORT XMessageBox : public XDialog {
+class XAMP_WIDGET_SHARED_API XMessageBox : public XDialog {
 public:
     static constexpr auto kDefaultTimeoutSecond = 8;
 

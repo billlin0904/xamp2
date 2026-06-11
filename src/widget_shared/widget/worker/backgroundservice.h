@@ -39,7 +39,7 @@ struct SearchLyricsResult {
 Q_DECLARE_METATYPE(LyricsParser)
 Q_DECLARE_METATYPE(SearchLyricsResult)
 
-class XAMP_WIDGET_SHARED_EXPORT BackgroundService final : public QObject {
+class XAMP_WIDGET_SHARED_API BackgroundService final : public QObject {
 	Q_OBJECT
 
 public:

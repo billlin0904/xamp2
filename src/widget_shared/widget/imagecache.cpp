@@ -30,6 +30,10 @@ auto kCacheFileExtension = "."_str + qFormat(ImageCache::kImageFileFormat).toLow
 XAMP_DECLARE_LOG_NAME(ImageCache);
 
 namespace {
+	QString makeImageCachePath(const QString& tag_id) {
+		return qAppSettings.getOrCreateImageCachePath() + tag_id + kCacheFileExtension;
+	}
+
 	bool prepareBuffer(QBuffer& buffer) {
 		buffer.close();
 		buffer.setData(QByteArray());
@@ -166,10 +170,6 @@ QPixmap ImageCache::scanCoverFromDir(const QString& file_path) {
 
 void ImageCache::clearCache() const {
 	thumbnail_cache_.Clear();
-}
-
-QString ImageCache::makeImageCachePath(const QString& tag_id) const {
-    return qAppSettings.getOrCreateImageCachePath() + tag_id + kCacheFileExtension;
 }
 
 void ImageCache::clear() const {
@@ -380,22 +380,24 @@ QPixmap ImageCache::getOrDefault(const QString& tag, const QString& cover_id) {
 		tag.toStdString(),
 		String::FormatBytes(thumbnail_cache_.GetSize()), thumbnail_cache_);
 
-	return getOrAdd(tag + cover_id, [tag, cover_id, this]() {
-		auto is_aspect_ratio = true;
-		if (cover_id == unknownCoverId()) {
-			loadUnknownCover();
-			is_aspect_ratio = false;
-		}
-		//return image_util::roundImage(
-		//	image_util::resizeImage(getOrAddDefault(cover_id, false), qTheme.defaultCoverSize(), is_aspect_ratio),
-		//	image_util::kSmallImageRadius);
-		auto entity = getFromFile(tag + cover_id);
-		if (entity.image.isNull()) {
-			return qTheme.defaultSizeUnknownCover();
-		}
-		return entity.image;
-		}
-	);
+	if (cover_id.isEmpty()) {
+		return qTheme.defaultSizeUnknownCover();
+	}
+
+	if (auto cache_cover = tryGet(tag, cover_id)) {
+		return cache_cover.value();
+	}
+
+	auto entity = getFromFile(cover_id);
+	if (entity.image.isNull()) {
+		return qTheme.defaultSizeUnknownCover();
+	}
+
+	addOrUpdateCover(tag, cover_id, entity.image);
+	if (auto cache_cover = tryGet(tag, cover_id)) {
+		return cache_cover.value();
+	}
+	return entity.image;
 }
 
 QPixmap ImageCache::getOrAddDefault(const QString& tag_id, bool not_found_use_default) const {

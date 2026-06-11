@@ -223,7 +223,7 @@ void LrcPage::addCoverShadow(bool found_cover) {
 		auto* effect = new QGraphicsDropShadowEffect(this);
 		effect->setOffset(5, 10);
 		effect->setColor(QColor("#080808"_str));
-		effect->setBlurRadius(40);
+		effect->setBlurRadius(80);
 		cover_label_->setGraphicsEffect(effect);
 	}
 }
@@ -231,9 +231,7 @@ void LrcPage::addCoverShadow(bool found_cover) {
 void LrcPage::setCover(const QPixmap& src) {
     cover_ = src.copy();
 	setFullScreen();
-#ifndef _DEBUG
 	addCoverShadow(true);
-#endif
 }
 
 void LrcPage::setPlayListEntity(const PlayListEntity& entity) {
@@ -368,9 +366,9 @@ void LrcPage::setFullScreen() {
 		format_label_->setFont(f);
 	}
 
-    cover_label_->setPixmap(
-		image_util::roundImage(image_util::resizeImage(cover_, coverSizeHint(), false),
-		image_util::kSmallImageRadius));
+	cover_label_->setPixmap(image_util::roundCoverImage(cover_,
+		coverSizeHint(),
+		image_util::kCoverImageRadius));
 }
 
 void LrcPage::disableLoadLrcButton() {
@@ -378,9 +376,7 @@ void LrcPage::disableLoadLrcButton() {
 }
 
 QSize LrcPage::coverSizeHint() const {
-	const QSize cover_size(cover_label_->size().width() - image_util::kSmallImageRadius,
-		cover_label_->size().height() - image_util::kSmallImageRadius);
-	return cover_size;
+	return cover_label_->size();
 }
 
 void LrcPage::resizeEvent(QResizeEvent* event) {

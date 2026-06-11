@@ -109,60 +109,6 @@ std::string BassCDLib::GetName() const {
 }
 #endif
 
-BassEncLib::BassEncLib()  try
-    : module_(OpenSharedLibrary("bassenc"))
-    , XAMP_LOAD_DLL_API(BASS_Encode_StartACMFile)
-	, XAMP_LOAD_DLL_API(BASS_Encode_GetVersion)
-	, XAMP_LOAD_DLL_API(BASS_Encode_GetACMFormat) {
-}
-catch (const Exception& e) {
-    XAMP_LOG_E(BassLibDLL.logger, "{}", e.GetErrorMessage());
-}
-
-std::string BassEncLib::GetName() const {
-    return GetSharedLibraryName("bassenc");
-}
-
-#ifdef XAMP_OS_WIN
-BassAACEncLib::BassAACEncLib() try
-    : module_(OpenSharedLibrary("bassenc_aac"))
-    , XAMP_LOAD_DLL_API(BASS_Encode_AAC_StartFile)
-    , XAMP_LOAD_DLL_API(BASS_Encode_AAC_GetVersion) {
-}
-catch (const Exception& e) {
-    XAMP_LOG_E(BassLibDLL.logger, "{}", e.GetErrorMessage());
-}
-
-std::string BassAACEncLib::GetName() const {
-    return GetSharedLibraryName("bass_aac");
-}
-#elif defined(XAMP_OS_MAC)
-BassCAEncLib::BassCAEncLib() try
-    : module_(OpenSharedLibrary("bassenc"))
-    , XAMP_LOAD_DLL_API(BASS_Encode_StartCAFile) {
-}
-catch (const Exception& e) {
-    XAMP_LOG_ERROR("{}", e.GetErrorMessage());
-}
-
-std::string BassCAEncLib::GetName() const {
-    return GetSharedLibraryName("bassenc");
-}
-#endif
-
-BassFLACEncLib::BassFLACEncLib() try
-    : module_(OpenSharedLibrary("bassenc_flac"))
-    , XAMP_LOAD_DLL_API(BASS_Encode_FLAC_StartFile)
-	, XAMP_LOAD_DLL_API(BASS_Encode_FLAC_GetVersion) {
-}
-catch (const Exception& e) {
-    XAMP_LOG_E(BassLibDLL.logger, "{}", e.GetErrorMessage());
-}
-
-std::string BassFLACEncLib::GetName() const {
-    return GetSharedLibraryName("bassenc_flac");
-}
-
 BassLib::BassLib() try
     : logger(XampLoggerFactory.GetLogger(kBASSLoggerName))
     , module_(OpenSharedLibrary("bass"))
@@ -203,6 +149,8 @@ catch (const Exception& e) {
 }
 
 BassLib::~BassLib() {
+    XAMP_LOG_E(logger, "Destroy BASS library.");
+
 	if (!module_.is_valid()) {
         return;
 	}
@@ -321,10 +269,6 @@ void BassLib::LoadVersionInfo() {
     dll_versions_[BassLibDLL.GetName()] = GetBassVersion(BassLibDLL.BASS_GetVersion());
     dll_versions_[BassLibDLL.MixLib->GetName()] = GetBassVersion(BassLibDLL.MixLib->BASS_Mixer_GetVersion());
     dll_versions_[BassLibDLL.FxLib->GetName()] = GetBassVersion(BassLibDLL.FxLib->BASS_FX_GetVersion());
-    if (BassLibDLL.EncLib != nullptr) {
-        dll_versions_[BassLibDLL.EncLib->GetName()] = GetBassVersion(BassLibDLL.EncLib->BASS_Encode_GetVersion());
-    }
-    dll_versions_[BassLibDLL.FLACEncLib->GetName()] = GetBassVersion(BassLibDLL.FLACEncLib->BASS_Encode_FLAC_GetVersion());
 }
 
 OrderedMap<std::string, std::string> BassLib::GetVersions() const {

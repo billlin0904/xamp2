@@ -1,9 +1,11 @@
-﻿//=====================================================================================================================
+//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
 #pragma once
+
+#include <optional>
 
 #include <QMenu>
 #include <QFrame>
@@ -24,7 +26,7 @@ class QLineEdit;
 class QToolButton;
 class QComboBox;
 
-class XAMP_WIDGET_SHARED_EXPORT ThemeManager final : public QObject {
+class XAMP_WIDGET_SHARED_API ThemeManager final : public QObject {
     Q_OBJECT
 public:
     static void load();
@@ -46,7 +48,7 @@ public:
 	const QPixmap& defaultSizeUnknownCover() ;
 
     QString countryFlagFilePath(const QString& country_iso_code);
-    
+
     QIcon applicationIcon() const;
 
     void setPlayOrPauseButton(QToolButton* playButton, bool is_playing);
@@ -77,7 +79,7 @@ public:
 
     QIcon playlistPauseIcon(QSize icon_size, double scale_factor = 1.0) const;
 
-    void setThemeColor(ThemeColor theme_color, bool notify = true);    
+    void setThemeColor(ThemeColor theme_color, bool notify = true);
 
     void setThemeQssFile();
 
@@ -131,7 +133,7 @@ public:
 
     void setVolume(QSlider* slider, QAbstractButton* button, uint32_t volume);
 
-    void setSliderTheme(QSlider* slider, bool enter = false);    
+    void setSliderTheme(QSlider* slider, bool enter = false);
 
     void setAlbumNaviBarTheme(QListView* tab) const;
 
@@ -143,7 +145,7 @@ public:
 
     int32_t defaultFontSize() const;
 
-    int32_t fontSize(int32_t base_size) const;    
+    int32_t fontSize(int32_t base_size) const;
 
     static QSize titleButtonIconSize();
 
@@ -182,7 +184,7 @@ private:
     void setPalette();
 
     void setGoogleMaterialFontIcons();
-    
+
     qreal font_ratio_;
     ThemeColor theme_color_;
     QVariantMap font_icon_opts_;

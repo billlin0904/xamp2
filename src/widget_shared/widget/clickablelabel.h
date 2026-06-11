@@ -10,7 +10,7 @@
 
 class QMouseEvent;
 
-class XAMP_WIDGET_SHARED_EXPORT ClickableLabel final : public QLabel {
+class XAMP_WIDGET_SHARED_API ClickableLabel final : public QLabel {
 	Q_OBJECT
 public:
 	explicit ClickableLabel(QWidget* parent = nullptr);

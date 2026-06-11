@@ -21,14 +21,14 @@ class RichPlaylistCoverPanel;
 class RichPlaylistView;
 class ScanFileProgressPage;
 
-class XAMP_WIDGET_SHARED_EXPORT RichPlaylistPage final : public QFrame, public TabPage {
+class XAMP_WIDGET_SHARED_API RichPlaylistPage final : public QFrame, public TabPage {
 	Q_OBJECT
 public:
 	explicit RichPlaylistPage(QWidget* parent = nullptr);
 
 	void reload() override;
 
-	void setNowPlaying(const xamp::base::TrackInfo& track_info, const QPixmap& cover);
+	void setNowPlaying(const TrackInfo& track_info, const QPixmap& cover);
 
 	void clearNowPlaying();
 

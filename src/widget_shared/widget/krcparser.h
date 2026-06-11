@@ -1,4 +1,4 @@
-﻿//=====================================================================================================================
+//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -12,12 +12,12 @@
 #include <widget/util/str_util.h>
 #include <widget/ilrrcparser.h>
 
-struct XAMP_WIDGET_SHARED_EXPORT KrcContent {
+struct XAMP_WIDGET_SHARED_API KrcContent {
     QString base64Content;
     QByteArray decodedContent;
 };
 
-struct XAMP_WIDGET_SHARED_EXPORT Candidate {
+struct XAMP_WIDGET_SHARED_API Candidate {
     QString albumName;
     QString singer;
     QString song;
@@ -25,7 +25,7 @@ struct XAMP_WIDGET_SHARED_EXPORT Candidate {
     QString accesskey;
 };
 
-struct XAMP_WIDGET_SHARED_EXPORT InfoItem {
+struct XAMP_WIDGET_SHARED_API InfoItem {
     int duration = 0;
     // Title
     QString songname;
@@ -37,13 +37,13 @@ struct XAMP_WIDGET_SHARED_EXPORT InfoItem {
     QString sqhash;
 };
 
-XAMP_WIDGET_SHARED_EXPORT QList<InfoItem> parseInfoData(const QString& jsonString);
+XAMP_WIDGET_SHARED_API QList<InfoItem> parseInfoData(const QString& jsonString);
 
-XAMP_WIDGET_SHARED_EXPORT QList<Candidate> parseCandidatesFromJson(const QString& jsonString);
+XAMP_WIDGET_SHARED_API QList<Candidate> parseCandidatesFromJson(const QString& jsonString);
 
-XAMP_WIDGET_SHARED_EXPORT std::optional<KrcContent> parseKrcContent(const QString& jsonString);
+XAMP_WIDGET_SHARED_API std::optional<KrcContent> parseKrcContent(const QString& jsonString);
 
-class XAMP_WIDGET_SHARED_EXPORT KrcParser : public ILrcParser {
+class XAMP_WIDGET_SHARED_API KrcParser : public ILrcParser {
 public:
     KrcParser();
 

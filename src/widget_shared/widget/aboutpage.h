@@ -13,7 +13,7 @@ namespace Ui {
     class AboutDialog;
 }
 
-class XAMP_WIDGET_SHARED_EXPORT AboutPage final : public QFrame {
+class XAMP_WIDGET_SHARED_API AboutPage final : public QFrame {
     Q_OBJECT
 public:
     explicit AboutPage(QWidget* parent = nullptr);

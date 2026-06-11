@@ -14,7 +14,7 @@ enum WidthModes {
 	DYNAMIC_WIDTH_MODE
 };
 
-class XAMP_WIDGET_SHARED_EXPORT PlaylistTabBar final : public QTabBar {
+class XAMP_WIDGET_SHARED_API PlaylistTabBar final : public QTabBar {
 	Q_OBJECT
 public:
 	static constexpr size_t kButtonWidth = 60;

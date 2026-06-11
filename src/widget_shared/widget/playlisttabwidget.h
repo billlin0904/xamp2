@@ -19,7 +19,7 @@ class QPushButton;
 class PlaylistTabBar;
 class XTooltip;
 
-class XAMP_WIDGET_SHARED_EXPORT PlaylistTabWidget final : public QTabWidget {
+class XAMP_WIDGET_SHARED_API PlaylistTabWidget final : public QTabWidget {
 	Q_OBJECT
 public:
 	static constexpr QSize kTabIconSize = QSize(32, 32);
@@ -119,7 +119,7 @@ private:
 	QElapsedTimer last_click_time_;
 };
 
-class XAMP_WIDGET_SHARED_EXPORT PlaylistTabPage : public QFrame {
+class XAMP_WIDGET_SHARED_API PlaylistTabPage : public QFrame {
 	Q_OBJECT
 public:
 	explicit PlaylistTabPage(QWidget* parent);

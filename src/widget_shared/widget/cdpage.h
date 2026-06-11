@@ -14,7 +14,7 @@ namespace Ui {
     class CDPage;
 }
 
-class XAMP_WIDGET_SHARED_EXPORT CdPage final : public QFrame {
+class XAMP_WIDGET_SHARED_API CdPage final : public QFrame {
     Q_OBJECT
 public:
     explicit CdPage(QWidget* parent = nullptr);

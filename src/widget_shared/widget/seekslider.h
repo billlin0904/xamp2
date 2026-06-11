@@ -13,7 +13,7 @@
 
 #include <widget/widget_shared_global.h>
 
-class XAMP_WIDGET_SHARED_EXPORT SeekSlider final : public QSlider {
+class XAMP_WIDGET_SHARED_API SeekSlider final : public QSlider {
 	Q_OBJECT
 public:
     explicit SeekSlider(QWidget* parent = nullptr);

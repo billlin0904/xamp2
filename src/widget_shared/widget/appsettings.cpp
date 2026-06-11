@@ -466,10 +466,10 @@ void AppSettings::loadOrSaveLogConfig() {
 		     ; itr != override_map.end(); ++itr) {
 			const auto& log_name = itr.key();
 			auto log_level = itr.value().toString();
-			/*XampLoggerFactory.GetLogger(log_name.toStdString())
-			                 ->SetLevel(log_util::parseLogLevel(log_level));*/
 			XampLoggerFactory.GetLogger(log_name.toStdString())
-				->SetLevel(LogLevel::LOG_LEVEL_DEBUG);
+			                 ->SetLevel(log_util::parseLogLevel(log_level));
+			/*XampLoggerFactory.GetLogger(log_name.toStdString())
+				->SetLevel(LogLevel::LOG_LEVEL_DEBUG);*/
 		}
 	}
 
@@ -518,7 +518,7 @@ void AppSettings::loadAppSettings() {
 	setDefaultValue(kAppSettingDeviceType, kEmptyString);
 	setDefaultValue(kAppSettingDeviceId, kEmptyString);
 	setDefaultValue(kAppSettingVolume, 50);
-	setDefaultValue(kLyricsFontSize, 12);
+	setDefaultValue(kLyricsFontSize, 16);
 	setDefaultValue(kAppSettingMinimizeToTray, true);
 	setDefaultValue(kAppSettingWindowState, false);
 	setDefaultValue(kAppSettingScreenNumber, 1);

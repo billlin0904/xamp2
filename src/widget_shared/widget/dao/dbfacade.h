@@ -11,7 +11,7 @@
 #include <widget/dao/musicdao.h>
 
 namespace dao {
-	class XAMP_WIDGET_SHARED_EXPORT DatabaseFacade final {
+	class XAMP_WIDGET_SHARED_API DatabaseFacade final {
 	public:
 		XAMP_DECLARE_SINGLETON_NAME()
 

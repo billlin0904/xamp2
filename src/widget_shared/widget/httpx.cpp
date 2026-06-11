@@ -140,6 +140,7 @@ namespace http {
         if (manager_ && !manager_->cache()) {
             manager_->setCache(new NetworkDiskCache(manager_));
         }
+		logger_->SetLevel(LogLevel::LOG_LEVEL_DEBUG);
     }
 
     HttpClient::HttpClient(const QString& url, QObject* parent)

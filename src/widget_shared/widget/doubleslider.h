@@ -10,7 +10,7 @@
 
 #include <widget/widget_shared_global.h>
 
-class XAMP_WIDGET_SHARED_EXPORT DoubleSlider : public QSlider {
+class XAMP_WIDGET_SHARED_API DoubleSlider : public QSlider {
     Q_OBJECT
 
 public:

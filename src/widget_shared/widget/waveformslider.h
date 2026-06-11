@@ -24,7 +24,7 @@ class QMouseEvent;
 class QPainter;
 class QPaintEvent;
 
-class XAMP_WIDGET_SHARED_EXPORT WaveformSlider final : public QSlider {
+class XAMP_WIDGET_SHARED_API WaveformSlider final : public QSlider {
     Q_OBJECT
 
 public:

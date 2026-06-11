@@ -54,7 +54,8 @@ namespace {
 			, temp_path_(MakeTempPath(original_path)) {
 			std::error_code ec;
 			if (!Fs::copy_file(original_path_, temp_path_, Fs::copy_options::overwrite_existing, ec) || ec) {
-				throw PlatformException("Copy metadata source file failure.");
+				XAMP_LOG_DEBUG("Copy metadata source file failure.");
+				Throw<PlatformException>("Copy metadata source file failure. ({})", ec.message());
 			}
 		}
 
@@ -111,12 +112,13 @@ namespace {
 		static Path MakeTempPath(const Path& original_path) {
 			constexpr auto kMaxRetryCreateTempFile = 128;
 			const auto dir = original_path.parent_path();
-			const auto stem = original_path.stem().wstring();
 			const auto ext = original_path.extension().wstring();
 
 			for (auto i = 0; i < kMaxRetryCreateTempFile; ++i) {
-				const auto file_name = stem
-					+ L".xamp-"
+				// Keep the temp file in the same directory for atomic replacement, but
+				// do not reuse the original stem. Long track names can push Windows
+				// paths past MAX_PATH once the transaction suffix is appended.
+				const auto file_name = L"xamp-"
 					+ String::ToStdWString(GetSequentialUUID())
 					+ ext;
 				auto temp_path = dir.empty()

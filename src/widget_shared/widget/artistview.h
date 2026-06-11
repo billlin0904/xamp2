@@ -63,7 +63,7 @@ private:
 	QPixmap cover_;
 };
 
-class XAMP_WIDGET_SHARED_EXPORT ArtistView final : public QListView {
+class XAMP_WIDGET_SHARED_API ArtistView final : public QListView {
 	Q_OBJECT
 public:
 	static constexpr auto kPageAnimationDurationMs = 200;

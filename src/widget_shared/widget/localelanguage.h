@@ -12,7 +12,7 @@
 #include <widget/widget_shared_global.h>
 #include <widget/util/str_util.h>
 
-class XAMP_WIDGET_SHARED_EXPORT LocaleLanguage {
+class XAMP_WIDGET_SHARED_API LocaleLanguage {
 public:
 	LocaleLanguage();
 
@@ -52,7 +52,7 @@ private:
 	QString country_iso_code_;
 };
 
-class XAMP_WIDGET_SHARED_EXPORT LocaleLanguageManager {
+class XAMP_WIDGET_SHARED_API LocaleLanguageManager {
 public:
 	LocaleLanguageManager();
 

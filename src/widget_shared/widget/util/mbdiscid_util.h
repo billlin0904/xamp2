@@ -19,12 +19,12 @@
 
 using namespace xamp::base;
 
-struct XAMP_WIDGET_SHARED_EXPORT MbDiscIdTrack {
+struct XAMP_WIDGET_SHARED_API MbDiscIdTrack {
 	int32_t track{ 0 };
 	std::wstring title;
 };
 
-struct XAMP_WIDGET_SHARED_EXPORT MbDiscIdInfo {
+struct XAMP_WIDGET_SHARED_API MbDiscIdInfo {
 	std::string disc_id;
 	std::wstring album;
 	std::wstring artist;

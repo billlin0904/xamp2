@@ -22,7 +22,7 @@ enum MessageTypes {
     MSG_INFORMATION
 };
 
-class XAMP_WIDGET_SHARED_EXPORT XMessage : public QWidget {
+class XAMP_WIDGET_SHARED_API XMessage : public QWidget {
     Q_OBJECT
 public:
     explicit XMessage(QWidget* parent = nullptr);

@@ -18,7 +18,7 @@
 #include <widget/widget_shared_global.h>
 #include <widget/localelanguage.h>
 
-struct XAMP_WIDGET_SHARED_EXPORT AppEQSettings {
+struct XAMP_WIDGET_SHARED_API AppEQSettings {
 	QString name;
 	EqSettings settings;
 
@@ -71,7 +71,7 @@ enum class ReplayGainScanMode {
 	RG_SCAN_MODE_FULL,
 };
 
-class XAMP_WIDGET_SHARED_EXPORT AppSettings final {
+class XAMP_WIDGET_SHARED_API AppSettings final {
 public:
 	XAMP_DECLARE_SINGLETON_NAME()
 

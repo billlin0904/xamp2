@@ -1,4 +1,4 @@
-﻿//=====================================================================================================================
+//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -87,7 +87,7 @@ private:
 	QMap<QString, LyricsParser> parser_map_;
 };
 
-class XAMP_WIDGET_SHARED_EXPORT LrcPage : public QFrame {
+class XAMP_WIDGET_SHARED_API LrcPage : public QFrame {
 	Q_OBJECT
 	Q_PROPERTY(int disappearBgProg READ getDisappearBgProgress WRITE setDisappearBgProgress)
 	Q_PROPERTY(int appearBgProg READ getAppearBgProgress WRITE setAppearBgProgress)

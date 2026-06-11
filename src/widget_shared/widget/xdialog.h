@@ -17,7 +17,7 @@ namespace QWK {
 
 class QColor;
 
-class XAMP_WIDGET_SHARED_EXPORT XDialog : public QDialog {
+class XAMP_WIDGET_SHARED_API XDialog : public QDialog {
     Q_OBJECT
 public:
     static constexpr auto kMaxTitleHeight = 30;

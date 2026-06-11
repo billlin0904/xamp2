@@ -22,6 +22,7 @@
 #include <QMimeData>
 #include <QMenu>
 #include <QPushButton>
+#include <QCursor>
 
 #include <QWKWidgets/widgetwindowagent.h>
 
@@ -79,15 +80,12 @@ void XMainWindow::setContentWidget(IXFrame *content_widget) {
 void XMainWindow::resetNativeSystemMenu() {
 #ifdef Q_OS_WIN
     const auto hwnd = reinterpret_cast<HWND>(winId());
-    (void)GetSystemMenu(hwnd, TRUE);
-    DrawMenuBar(hwnd);
+    (void)::GetSystemMenu(hwnd, TRUE);
+    ::DrawMenuBar(hwnd);
 #endif
 }
 
 void XMainWindow::ensureSystemMenu() {
-#ifdef Q_OS_WIN
-    return;
-#else
     if (system_menu_) {
         return;
     }
@@ -115,7 +113,6 @@ void XMainWindow::ensureSystemMenu() {
                 showSystemMenu(pos);
             });
     }
-#endif
 }
 
 void XMainWindow::showSystemMenu(const QPoint& global_pos) {
@@ -140,35 +137,16 @@ void XMainWindow::addSystemMenuAction(QAction* action) {
         return;
     }
 
-#ifdef Q_OS_WIN
-    const auto hwnd = reinterpret_cast<HWND>(winId());
-    auto* system_menu = GetSystemMenu(hwnd, FALSE);
-    if (system_menu == nullptr) {
-        return;
-    }
-
-    if (!system_menu_separator_added_) {
-        (void)AppendMenuW(system_menu, MF_SEPARATOR, 0, nullptr);
-        system_menu_separator_added_ = true;
-    }
-
     const auto command_id = next_system_menu_id_;
     next_system_menu_id_ += 0x10;
     system_menu_actions_.insert(command_id, action);
 
-    auto title = action->text();
-    title.remove("&"_str);
-    const auto flags = MF_STRING | (action->isEnabled() ? MF_ENABLED : MF_GRAYED);
-    (void)AppendMenuW(system_menu, flags, command_id, reinterpret_cast<LPCWSTR>(title.utf16()));
-    DrawMenuBar(hwnd);
-#else
     ensureSystemMenu();
     if (!system_menu_) {
         return;
     }
 
     system_menu_->addAction(action);
-#endif
 }
 
 std::shared_ptr<IThreadPoolExecutor> XMainWindow::getScannerThreadPool() const {
@@ -333,6 +311,14 @@ bool XMainWindow::nativeEvent(const QByteArray& event_type, void* message, qintp
     switch (msg->message) {
     case WM_SYSCOMMAND: {
         const auto command_id = static_cast<quint32>(msg->wParam) & 0xFFF0;
+        if (command_id == SC_MOUSEMENU || command_id == SC_KEYMENU) {
+            showSystemMenu(QCursor::pos());
+            if (result != nullptr) {
+                *result = 0;
+            }
+            return true;
+        }
+
         auto action = system_menu_actions_.value(command_id, nullptr);
         if (action != nullptr && action->isEnabled()) {
             action->trigger();

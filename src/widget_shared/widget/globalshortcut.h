@@ -13,7 +13,7 @@
 #include <base/memory.h>
 #include <base/base.h>
 
-class XAMP_WIDGET_SHARED_EXPORT GlobalShortcut final {
+class XAMP_WIDGET_SHARED_API GlobalShortcut final {
 public:
     XAMP_DECLARE_SINGLETON_NAME()
 

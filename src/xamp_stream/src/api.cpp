@@ -7,9 +7,9 @@
 #include <stream/basslib.h>
 #include <stream/idsdstream.h>
 #include <stream/bassfilestream.h>
+#include <stream/avlibfilestream.h>
 #include <stream/mqafilestream.h>
 #include <stream/ifileencoder.h>
-#include <stream/bassaacfileencoder.h>
 #include <stream/bassparametriceq.h>
 #include <stream/basscddevice.h>
 #include <stream/dspmanager.h>
@@ -39,6 +39,56 @@ namespace {
         }
         return false;
     }
+
+    bool RequiresBassDsdStream(DsdModes dsd_mode) {
+        switch (dsd_mode) {
+        case DsdModes::DSD_MODE_DOP:
+        case DsdModes::DSD_MODE_DOP_AA:
+        case DsdModes::DSD_MODE_NATIVE:
+        case DsdModes::DSD_MODE_DSD2PCM:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    void ConfigureDsdStream(const ScopedPtr<FileStream>& file_stream, DsdModes dsd_mode) {
+        if (dsd_mode == DsdModes::DSD_MODE_PCM) {
+            return;
+        }
+
+        auto* dsd_stream = AsDsdStream(file_stream);
+        if (dsd_stream == nullptr) {
+            return;
+        }
+
+        switch (dsd_mode) {
+        case DsdModes::DSD_MODE_DOP:
+            ThrowIf<NotSupportFormatException>(
+                dsd_stream->SupportDOP(),
+                "Stream not support mode: {}", dsd_mode);
+            break;
+        case DsdModes::DSD_MODE_DOP_AA:
+            ThrowIf<NotSupportFormatException>(
+                dsd_stream->SupportDOP_AA(),
+                "Stream not support mode: {}", dsd_mode);
+            break;
+        case DsdModes::DSD_MODE_NATIVE:
+            ThrowIf<NotSupportFormatException>(
+                dsd_stream->SupportNativeSD(),
+                "Stream not support mode: {}", dsd_mode);
+            break;
+        case DsdModes::DSD_MODE_DSD2PCM:
+        case DsdModes::DSD_MODE_AUTO:
+        case DsdModes::DSD_MODE_PCM:
+            break;
+        default:
+            Throw<NotSupportFormatException>(
+                "Not support dsd-mode: {}.", dsd_mode);
+            break;
+        }
+        dsd_stream->SetDSDMode(dsd_mode);
+    }
 }
 
 bool IsDsdFile(const Path & path) {
@@ -65,71 +115,53 @@ ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& file_path,
     bool use_mqa_decode) {
     ScopedPtr<FileStream> file_stream;
 
-    if (use_mqa_decode) {
+    if (RequiresBassDsdStream(dsd_mode)) {
+        file_stream = MakeAlign<FileStream, BassFileStream>();
+    }
+    else if (use_mqa_decode) {
         try {
             MqaIdentifier identifier(file_path);
-            if (identifier.Detect()) {
-                if (identifier.IsMQA()) {
-                    file_stream = MakeAlign<FileStream, MqaFileStream>();
-                }
-                else {
-                    file_stream = MakeAlign<FileStream, BassFileStream>();
-                }
+            if (identifier.Detect() && identifier.IsMQA()) {
+                file_stream = MakeAlign<FileStream, MqaFileStream>();
             }
             else {
-                file_stream = MakeAlign<FileStream, BassFileStream>();
+                file_stream = MakeAlign<FileStream, AvLibFileStream>();
             }
         }
         catch (...) {
-            file_stream = MakeAlign<FileStream, BassFileStream>();
+            file_stream = MakeAlign<FileStream, AvLibFileStream>();
         }
     }
     else {
-		file_stream = MakeAlign<FileStream, BassFileStream>();
+		file_stream = MakeAlign<FileStream, AvLibFileStream>();
     }
 
-    if (dsd_mode != DsdModes::DSD_MODE_PCM) {
-        if (auto* dsd_stream = AsDsdStream(file_stream)) {
-            switch (dsd_mode) {
-            case DsdModes::DSD_MODE_DOP:
-                ThrowIf<NotSupportFormatException>(
-                    dsd_stream->SupportDOP(),
-                    "Stream not support mode: {}", dsd_mode);
-                break;
-            case DsdModes::DSD_MODE_DOP_AA:
-                ThrowIf<NotSupportFormatException>(
-                    dsd_stream->SupportDOP_AA(),
-                    "Stream not support mode: {}", dsd_mode);
-                break;
-            case DsdModes::DSD_MODE_NATIVE:
-                ThrowIf<NotSupportFormatException>(
-                    dsd_stream->SupportNativeSD(),
-                    "Stream not support mode: {}", dsd_mode);
-                break;
-            case DsdModes::DSD_MODE_DSD2PCM:
-                break;
-            case DsdModes::DSD_MODE_AUTO:
-                break;
-            case DsdModes::DSD_MODE_PCM:
-                break;
-            default:
-                Throw<NotSupportFormatException>(
-                    "Not support dsd-mode: {}.", dsd_mode);
-                break;
-            }
-            dsd_stream->SetDSDMode(dsd_mode);
-        }
+    ConfigureDsdStream(file_stream, dsd_mode);
+
+    const auto allow_bass_fallback =
+        !RequiresBassDsdStream(dsd_mode)
+        && dynamic_cast<AvLibFileStream*>(file_stream.get()) != nullptr;
+
+    try {
+        file_stream->OpenFile(file_path);
     }
-    file_stream->OpenFile(file_path);
+    catch (...) {
+        if (!allow_bass_fallback) {
+            throw;
+        }
+
+        XAMP_LOG_DEBUG("AvLibFileStream open failed, fallback to BassFileStream: {}",
+            String::ToUtf8String(file_path.wstring()));
+        auto bass_file_stream = MakeAlign<FileStream, BassFileStream>();
+        ConfigureDsdStream(bass_file_stream, dsd_mode);
+        bass_file_stream->OpenFile(file_path);
+        file_stream = std::move(bass_file_stream);
+    }
     return file_stream;
 }
 
 ScopedPtr<IFileEncoder> StreamFactory::MakeFileEncoder() {
-#if defined(XAMP_OS_WIN) || defined(XAMP_OS_LINUX)
     return MakeAlign<IFileEncoder, LibAbFileEncoder>();
-#else
-    return MakeAlign<IFileEncoder, BassAACFileEncoder>();
-#endif
 }
 
 ScopedPtr<IAudioProcessor> StreamFactory::MakeParametricEq() {
@@ -182,38 +214,7 @@ ScopedPtr<FileStream> StreamFactory::MakeFileStream(ArchiveEntry archive_entry,
     DsdModes dsd_mode) {
     auto file_stream = MakeAlign<FileStream, BassFileStream>();
 
-    if (dsd_mode != DsdModes::DSD_MODE_PCM) {
-        if (auto* dsd_stream = AsDsdStream(file_stream)) {
-            switch (dsd_mode) {
-            case DsdModes::DSD_MODE_DOP:
-                ThrowIf<NotSupportFormatException>(
-                    dsd_stream->SupportDOP(),
-                    "Stream not support mode: {}", dsd_mode);
-                break;
-            case DsdModes::DSD_MODE_DOP_AA:
-                ThrowIf<NotSupportFormatException>(
-                    dsd_stream->SupportDOP_AA(),
-                    "Stream not support mode: {}", dsd_mode);
-                break;
-            case DsdModes::DSD_MODE_NATIVE:
-                ThrowIf<NotSupportFormatException>(
-                    dsd_stream->SupportNativeSD(),
-                    "Stream not support mode: {}", dsd_mode);
-                break;
-            case DsdModes::DSD_MODE_DSD2PCM:
-                break;
-            case DsdModes::DSD_MODE_AUTO:
-                break;
-            case DsdModes::DSD_MODE_PCM:
-                break;
-            default:
-                Throw<NotSupportFormatException>(
-                    "Not support dsd-mode: {}.", dsd_mode);
-                break;
-            }
-            dsd_stream->SetDSDMode(dsd_mode);            
-        }
-    }    
+    ConfigureDsdStream(file_stream, dsd_mode);
     file_stream->Open(std::move(archive_entry));
     return file_stream;
 }
@@ -227,15 +228,7 @@ void LoadBassLib() {
     BassLibDLL.FxLib = MakeAlign<BassFxLib>();
 #ifdef XAMP_OS_WIN
     BassLibDLL.CDLib = MakeAlign<BassCDLib>();
-    try {
-        BassLibDLL.EncLib = MakeAlign<BassEncLib>();
-    }  catch (const Exception &e) {
-        XAMP_LOG_DEBUG("Load EncLib error: {}", e.what());
-    }
-#elif defined(XAMP_OS_MAC)
-    BassLibDLL.CAEncLib = MakeAlign<BassCAEncLib>();
 #endif
-    BassLibDLL.FLACEncLib = MakeAlign<BassFLACEncLib>();
     BassLibDLL.LoadVersionInfo();
     for (const auto& info : BassLibDLL.GetVersions()) {
         XAMP_LOG_DEBUG("DLL {} version: {}", info.first, info.second);

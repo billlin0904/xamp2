@@ -8,7 +8,7 @@
 #include <QMetaType>
 #include <widget/widget_shared_global.h>
 
-struct XAMP_WIDGET_SHARED_EXPORT DriveInfo {
+struct XAMP_WIDGET_SHARED_API DriveInfo {
 	char driver_letter;
 	QString display_name;
 	QString drive_path;

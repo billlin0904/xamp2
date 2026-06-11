@@ -75,7 +75,7 @@ private:
     QPixmap cover_;
 };
 
-class XAMP_WIDGET_SHARED_EXPORT ArtistInfoPage : public QFrame, public TabPage {
+class XAMP_WIDGET_SHARED_API ArtistInfoPage : public QFrame, public TabPage {
     Q_OBJECT
 public:
     explicit ArtistInfoPage(QWidget* parent = nullptr);

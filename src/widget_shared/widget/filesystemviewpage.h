@@ -23,7 +23,7 @@ namespace Ui {
 	class FileSystemViewPage;
 }
 
-class XAMP_WIDGET_SHARED_EXPORT FileSystemViewPage : public QFrame {
+class XAMP_WIDGET_SHARED_API FileSystemViewPage : public QFrame {
 	Q_OBJECT
 public:
 	explicit FileSystemViewPage(QWidget* parent = nullptr);

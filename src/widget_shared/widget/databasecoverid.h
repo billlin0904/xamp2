@@ -15,7 +15,7 @@
  * 
  * First is music id, second is album id.
 */
-struct XAMP_WIDGET_SHARED_EXPORT DatabaseCoverId : public std::pair<int32_t, std::optional<int32_t>> {
+struct XAMP_WIDGET_SHARED_API DatabaseCoverId : public std::pair<int32_t, std::optional<int32_t>> {
 	explicit DatabaseCoverId(int32_t music_id = kInvalidDatabaseId, std::optional<int32_t> album_id = std::nullopt) {
 		first = music_id;
 		second = album_id;

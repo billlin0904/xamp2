@@ -15,6 +15,8 @@
 #include <QLabel>
 #include <QPlainTextEdit>
 #include <QLineEdit>
+#include <QFileSystemWatcher>
+#include <QTimer>
 
 #include <widget/widget_shared_global.h>
 
@@ -22,7 +24,7 @@ namespace Ui {
     class LogView;
 }
 
-class XAMP_WIDGET_SHARED_EXPORT LogView : public QWidget {
+class XAMP_WIDGET_SHARED_API LogView : public QWidget {
     Q_OBJECT
 public:
     explicit LogView(QWidget* parent = nullptr);
@@ -38,8 +40,11 @@ public slots:
 	
     void checkFileUpdate();
 private:
-    void appendNewLogs(qint64 startPos, qint64 endPos);    
+    void appendNewLogs(qint64 startPos, qint64 endPos);
 
+    void watchLogFile();
+
+    QFileSystemWatcher* file_watcher_;
     QTimer* timer_;
     QString  logFilePath_;
     qint64   lastFileSize_;

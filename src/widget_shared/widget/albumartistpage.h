@@ -33,7 +33,7 @@ class TagListView;
 class GenreViewPage;
 class QScrollArea;
 
-class XAMP_WIDGET_SHARED_EXPORT AlbumTabListView : public QListView {
+class XAMP_WIDGET_SHARED_API AlbumTabListView : public QListView {
 	Q_OBJECT
 public:
 	explicit AlbumTabListView(QWidget* parent = nullptr);
@@ -52,7 +52,7 @@ private:
 	QStandardItemModel model_;
 };
 
-class XAMP_WIDGET_SHARED_EXPORT AlbumArtistPage final : public QFrame {
+class XAMP_WIDGET_SHARED_API AlbumArtistPage final : public QFrame {
 	Q_OBJECT
 public:
 	static constexpr auto kMaxCompletionCount = 10;

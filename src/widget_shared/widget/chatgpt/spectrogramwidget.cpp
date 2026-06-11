@@ -64,8 +64,7 @@ namespace {
         uint16_t channels,
         uint32_t frames) {
         auto retry_count = 0;
-        auto* bass_file_stream = dynamic_cast<BassFileStream*>(file_stream.get());
-        if (!bass_file_stream || channels == 0 || frames == 0) {
+        if (channels == 0 || frames == 0) {
             return 0;
         }
 
@@ -78,7 +77,7 @@ namespace {
                 return samples_read / channels;
             }
             if (retry_count < kMaxRetryCount) {
-                if (!bass_file_stream->EndOfStream()) {
+                if (!file_stream->EndOfStream()) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(100));
                     retry_count++;
                     continue;

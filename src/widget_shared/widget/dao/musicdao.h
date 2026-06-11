@@ -11,7 +11,7 @@
 
 namespace dao {
 
-class XAMP_WIDGET_SHARED_EXPORT MusicDao final {
+class XAMP_WIDGET_SHARED_API MusicDao final {
 public:
     MusicDao();
 

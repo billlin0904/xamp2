@@ -64,7 +64,7 @@ private:
 	QPushButton* close_button_;	
 };
 
-class XAMP_WIDGET_SHARED_EXPORT AlbumView : public QListView {
+class XAMP_WIDGET_SHARED_API AlbumView : public QListView {
 	Q_OBJECT
 public:
     static constexpr auto kPageAnimationDurationMs = 200;

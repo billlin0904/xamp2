@@ -13,13 +13,13 @@ struct PlayListEntity;
 
 namespace dao {
 
-struct XAMP_WIDGET_SHARED_EXPORT PlaylistAlbumStats {
+struct XAMP_WIDGET_SHARED_API PlaylistAlbumStats {
     int32_t album_count{ 0 };
     int32_t music_count{ 0 };
     double total_duration{0};
 };
 
-class XAMP_WIDGET_SHARED_EXPORT PlaylistDao final {
+class XAMP_WIDGET_SHARED_API PlaylistDao final {
 public:
     PlaylistDao();
 

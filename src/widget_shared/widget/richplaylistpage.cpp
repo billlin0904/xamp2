@@ -208,7 +208,7 @@ public:
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     }
 
-    void setNowPlaying(const xamp::base::TrackInfo& track_info, const QPixmap& cover) {
+    void setNowPlaying(const TrackInfo& track_info, const QPixmap& cover) {
         cover_ = cover;
         album_ = QString::fromStdWString(track_info.album);
         artist_ = QString::fromStdWString(track_info.artist);
@@ -1226,7 +1226,7 @@ void RichPlaylistPage::initial() {
     rich_playlist_view_->reload(kDefaultPlaylistId);
 }
 
-void RichPlaylistPage::setNowPlaying(const xamp::base::TrackInfo& track_info, const QPixmap& cover) {
+void RichPlaylistPage::setNowPlaying(const TrackInfo& track_info, const QPixmap& cover) {
     cover_panel_->setNowPlaying(track_info, cover);
     rich_playlist_view_->reload(kDefaultPlaylistId);
 }

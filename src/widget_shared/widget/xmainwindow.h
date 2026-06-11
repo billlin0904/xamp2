@@ -15,7 +15,7 @@ class QAction;
 class QMenu;
 class WinTaskbar;
 
-class XAMP_WIDGET_SHARED_EXPORT XMainWindow final : public IXMainWindow {
+class XAMP_WIDGET_SHARED_API XMainWindow final : public IXMainWindow {
 public:
     static constexpr auto kMaxTitleHeight = 30;
     static constexpr auto kMaxTitleIcon = 20;

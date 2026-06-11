@@ -12,13 +12,13 @@
 #include <widget/util/str_util.h>
 #include <widget/ilrrcparser.h>
 
-struct XAMP_WIDGET_SHARED_EXPORT NeteaseArtist {
+struct XAMP_WIDGET_SHARED_API NeteaseArtist {
 	int id{ 0 };
 	QString name;
 	QString picUrl;
 };
 
-struct XAMP_WIDGET_SHARED_EXPORT NeteaseAlbum {
+struct XAMP_WIDGET_SHARED_API NeteaseAlbum {
 	int id{ 0 };	
 	int size{ 0 };
 	qint64 publishTime;	
@@ -26,7 +26,7 @@ struct XAMP_WIDGET_SHARED_EXPORT NeteaseAlbum {
 	QString name;
 };
 
-struct XAMP_WIDGET_SHARED_EXPORT NeteaseSong {
+struct XAMP_WIDGET_SHARED_API NeteaseSong {
 	int id{ 0 };
 	int copyrightId{ 0 };
 	int status{ 0 };
@@ -36,7 +36,7 @@ struct XAMP_WIDGET_SHARED_EXPORT NeteaseSong {
 	NeteaseAlbum album;	
 };
 
-struct XAMP_WIDGET_SHARED_EXPORT NeteaseLyricTransUser {
+struct XAMP_WIDGET_SHARED_API NeteaseLyricTransUser {
 	int id{ 0 };
 	int status{ 0 };
 	int demand{ 0 };
@@ -45,7 +45,7 @@ struct XAMP_WIDGET_SHARED_EXPORT NeteaseLyricTransUser {
 	QString nickname;	
 };
 
-struct XAMP_WIDGET_SHARED_EXPORT NeteaseLyricUser {
+struct XAMP_WIDGET_SHARED_API NeteaseLyricUser {
 	int id{ 0 };
 	int status{ 0 };
 	int demand{ 0 };
@@ -54,12 +54,12 @@ struct XAMP_WIDGET_SHARED_EXPORT NeteaseLyricUser {
 	QString nickname;
 };
 
-struct XAMP_WIDGET_SHARED_EXPORT NeteaseLyricSection {
+struct XAMP_WIDGET_SHARED_API NeteaseLyricSection {
 	int version{ 0 };
 	QString lyric;
 };
 
-struct XAMP_WIDGET_SHARED_EXPORT NeteaseLyricData {
+struct XAMP_WIDGET_SHARED_API NeteaseLyricData {
 	bool sgc{ false };
 	bool sfy{ false };
 	bool qfy{ false };
@@ -71,7 +71,7 @@ struct XAMP_WIDGET_SHARED_EXPORT NeteaseLyricData {
 	NeteaseLyricSection tlyric;	
 };
 
-XAMP_WIDGET_SHARED_EXPORT std::optional<QList<NeteaseSong>> parseNeteaseSong(const QString& jsonString);
+XAMP_WIDGET_SHARED_API std::optional<QList<NeteaseSong>> parseNeteaseSong(const QString& jsonString);
 
-XAMP_WIDGET_SHARED_EXPORT std::optional<NeteaseLyricData> parseNeteaseLyric(const QString& jsonString);
+XAMP_WIDGET_SHARED_API std::optional<NeteaseLyricData> parseNeteaseLyric(const QString& jsonString);
 

@@ -11,16 +11,16 @@
 
 #ifndef BUILD_STATIC
 # if defined(WIDGET_SHARED_LIB)
-#  define XAMP_WIDGET_SHARED_EXPORT Q_DECL_EXPORT
+#  define XAMP_WIDGET_SHARED_API Q_DECL_EXPORT
 # else
-#  define XAMP_WIDGET_SHARED_EXPORT Q_DECL_IMPORT
+#  define XAMP_WIDGET_SHARED_API Q_DECL_IMPORT
 # endif
 #else
-# define XAMP_WIDGET_SHARED_EXPORT
+# define XAMP_WIDGET_SHARED_API
 #endif
 
 
-XAMP_WIDGET_SHARED_EXPORT void logAndShowMessage(const std::exception_ptr& ptr);
+XAMP_WIDGET_SHARED_API void logAndShowMessage(const std::exception_ptr& ptr);
 
 template <typename Func>
 void tryLog(Func&& func) {

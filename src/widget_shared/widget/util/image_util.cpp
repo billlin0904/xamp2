@@ -1,26 +1,21 @@
 #include <widget/util/image_util.h>
 
+#include <QBuffer>
 #include <QPainter>
-#include <QGraphicsPixmapItem>
-#include <QGraphicsBlurEffect>
-#include <QSaveFile>
-#include <QGraphicsScene>
+#include <QPainterPath>
 #include <QImageReader>
 
-#include <widget/widget_shared.h>
 #include <widget/imagecache.h>
 
 #include <base/executor.h>
 
-#include <base/object_pool.h>
-#include <base/stopwatch.h>
-#include <base/fs.h>
-
-#include <thememanager.h>
+#include <thread>
 
 namespace image_util {
 
 namespace {
+	constexpr char kJpegImageFormat[] = "JPG";
+
 	constexpr uint16_t kStackblurMul[255] = {
 			512,512,456,512,328,456,335,512,405,328,271,456,388,335,292,512,
 			454,405,364,328,298,271,496,456,420,388,360,335,312,292,273,512,
@@ -344,14 +339,28 @@ namespace {
 		blur_job(1);
 		blur_job(2);
 	}
-}	
 
-bool optimizePng(const QByteArray& buffer, const QString& dest_file_path) {
-	QSaveFile file_(dest_file_path);	
-	file_.open(QIODevice::WriteOnly);
-	file_.write(buffer);
-	return file_.commit();	
-}
+	QImage flattenAlphaToWhite(const QPixmap& source) {
+		auto image = source.toImage();
+		if (!image.hasAlphaChannel()) {
+			return image;
+		}
+
+		QImage background(image.size(), QImage::Format_RGB888);
+		background.fill(Qt::white);
+		QPainter painter(&background);
+		painter.drawImage(0, 0, image);
+		return background;
+	}
+
+	QByteArray encodeJpeg(const QPixmap& source, int32_t quality) {
+		QByteArray bytes;
+		QBuffer buffer(&bytes);
+		buffer.open(QIODevice::WriteOnly);
+		flattenAlphaToWhite(source).save(&buffer, kJpegImageFormat, quality);
+		return bytes;
+	}
+}	
 
 QPixmap mergeImage(const QList<QPixmap>& images) {
 	// Create a black 185x185 canvas
@@ -384,15 +393,6 @@ QPixmap mergeImage(const QList<QPixmap>& images) {
 	return canvas;
 }
 
-bool moveFile(const QString& src_file_path, const QString& dest_file_path) {
-	try {
-		Fs::rename(src_file_path.toStdWString(), dest_file_path.toStdWString());
-	} catch (...) {
-		return false;
-	}
-    return true;
-}
-
 QPixmap resizeImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio) {
 	if (source.isNull()) {
 		return QPixmap();
@@ -416,40 +416,9 @@ QPixmap resizeImage(const QPixmap& source, const QSize& size, bool is_aspect_rat
 	return result;
 }
 
-QByteArray image2ByteArray(const QPixmap& source) {
-	QByteArray bytes;
-	QBuffer buffer(&bytes);
-	buffer.open(QIODevice::WriteOnly);
-	source.save(&buffer, ImageCache::kImageFileFormat);
-	return bytes;
-}
-
-std::vector<uint8_t> image2Buffer(const QPixmap& source) {
-	QByteArray bytes;
-	QBuffer buffer(&bytes);
-	buffer.open(QIODevice::WriteOnly);
-	source.save(&buffer, ImageCache::kImageFileFormat);
+std::vector<uint8_t> image2JpegBuffer(const QPixmap& source, int32_t quality) {
+	const auto bytes = encodeJpeg(source, quality);
 	return { bytes.constData(), bytes.constData() + bytes.size() };
-}
-
-QPixmap convertToImageFormat(const QPixmap& source, int32_t quality) {
-	QByteArray bytes;
-	QBuffer buffer(&bytes);
-
-	auto image = source.toImage();
-
-	QImage temp(image.size(), QImage::Format_ARGB32);
-	temp.fill(QColor(Qt::white).rgb());
-
-	QPainter painter(&temp);
-	painter.drawImage(0, 0, image);
-
-	temp.save(&buffer, "JPG", quality);
-
-	QPixmap pixmap;
-	pixmap.loadFromData(bytes);
-
-	return pixmap;
 }
 
 QPixmap roundImage(const QPixmap& src, int32_t radius) {
@@ -502,6 +471,55 @@ QPixmap roundImage(const QPixmap& src, QSize size, int32_t radius) {
 	} else {
 		painter.drawPixmap(rect, pixmap);
 	}
+	return result;
+}
+
+QPixmap roundCoverImage(const QPixmap& src, QSize size, int32_t radius) {
+	if (src.isNull() || size.isEmpty()) {
+		return QPixmap();
+	}
+
+	constexpr auto inset = 4;
+	constexpr auto border_width = 1.0;
+	const QSize image_size(size.width() - inset * 2,
+		size.height() - inset * 2);
+	if (image_size.isEmpty()) {
+		return QPixmap();
+	}
+
+	QPixmap result(size);
+	result.fill(Qt::transparent);
+
+	const auto scaled_pixmap = src.scaled(image_size,
+		Qt::KeepAspectRatioByExpanding,
+		Qt::SmoothTransformation);
+	const QRect source_rect((scaled_pixmap.width() - image_size.width()) / 2,
+		(scaled_pixmap.height() - image_size.height()) / 2,
+		image_size.width(),
+		image_size.height());
+	const auto cropped_pixmap = scaled_pixmap.copy(source_rect);
+	const QRectF image_rect(inset,
+		inset,
+		image_size.width(),
+		image_size.height());
+	const auto border_rect = image_rect.adjusted(border_width / 2.0,
+		border_width / 2.0,
+		-border_width / 2.0,
+		-border_width / 2.0);
+
+	QPainter painter(&result);
+	painter.setRenderHints(QPainter::Antialiasing
+		| QPainter::SmoothPixmapTransform
+		| QPainter::TextAntialiasing,
+		true);
+
+	painter.setPen(Qt::NoPen);
+	painter.setBrush(QBrush(cropped_pixmap));
+	painter.setBrushOrigin(image_rect.topLeft());
+	painter.drawRoundedRect(image_rect, radius, radius);
+	painter.setPen(QPen(QColor(255, 255, 255, 42), border_width));
+	painter.setBrush(Qt::NoBrush);
+	painter.drawRoundedRect(border_rect, radius, radius);
 	return result;
 }
 

@@ -1,4 +1,4 @@
-﻿//=====================================================================================================================
+//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -61,7 +61,7 @@ public:
     }\
     } while (false)
 
-struct XAMP_WIDGET_SHARED_EXPORT ArtistStats {
+struct XAMP_WIDGET_SHARED_API ArtistStats {
 	int32_t albums{ 0 };
 	int32_t tracks{ 0 };
 	double durations{ 0 };
@@ -91,20 +91,20 @@ enum PlayingState {
 	PLAY_PAUSE,
 };
 
-struct XAMP_WIDGET_SHARED_EXPORT AlbumStats {
+struct XAMP_WIDGET_SHARED_API AlbumStats {
 	int32_t songs{ 0 };
 	double durations{ 0 };
 	int32_t year{ 0 };
 	size_t file_size{ 0 };
 };
 
-XAMP_WIDGET_SHARED_EXPORT inline bool notAddablePlaylist(const int32_t playlist_id) {
+XAMP_WIDGET_SHARED_API inline bool notAddablePlaylist(const int32_t playlist_id) {
 	return playlist_id == kAlbumPlaylistId
 		|| playlist_id == kCdPlaylistId
 		|| playlist_id == kFileSystemPlaylistId;
 }
 
-class XAMP_WIDGET_SHARED_EXPORT Database final {
+class XAMP_WIDGET_SHARED_API Database final {
 public:
 	XAMP_DECLARE_SINGLETON_NAME()
 
@@ -144,7 +144,7 @@ private:
 	LoggerPtr logger_;
 };
 
-class XAMP_WIDGET_SHARED_EXPORT DatabaseFactory final {
+class XAMP_WIDGET_SHARED_API DatabaseFactory final {
 public:
 	Database* Create() {
 		auto* database = new Database(getDatabaseId());
@@ -159,9 +159,9 @@ private:
 using PooledDatabasePtr = std::shared_ptr<ObjectPool<Database, DatabaseFactory>>;
 using DatabasePtr = ObjectPool<Database, DatabaseFactory>::return_ptr_type;
 
-XAMP_WIDGET_SHARED_EXPORT PooledDatabasePtr getPooledDatabase(int32_t pool_size = kMaxDatabasePoolSize);
+XAMP_WIDGET_SHARED_API PooledDatabasePtr getPooledDatabase(int32_t pool_size = kMaxDatabasePoolSize);
 
-XAMP_WIDGET_SHARED_EXPORT QScopedPointer<Database> makeDatabaseConnection();
+XAMP_WIDGET_SHARED_API QScopedPointer<Database> makeDatabaseConnection();
 
 #define qGuiDb SharedSingleton<Database>::GetInstance()
 

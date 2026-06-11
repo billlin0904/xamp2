@@ -15,9 +15,7 @@
 #include <bass/bass_fx.h>
 #include <bass/bassmix.h>
 #include <bass/basscd.h>
-#include <bass/bassenc.h>
 #include <bass/bassdsd.h>
-#include <bass/bassenc_flac.h>
 #include <base/dll.h>
 #include <base/stl.h>
 #include <base/unique_handle.h>
@@ -125,76 +123,6 @@ public:
 };
 #endif
 
-class BassFLACEncLib final{
-public:
-    BassFLACEncLib();
-
-    std::string GetName() const;
-
-    XAMP_DISABLE_COPY(BassFLACEncLib)
-
-private:
-    SharedLibraryHandle module_;
-
-public:
-#ifdef XAMP_OS_WIN
-    SharedLibraryFunction<HENCODE(DWORD, const WCHAR*, DWORD, const WCHAR*)> BASS_Encode_FLAC_StartFile;
-#else
-    XAMP_DECLARE_DLL(BASS_Encode_FLAC_StartFile) BASS_Encode_FLAC_StartFile;
-#endif
-    XAMP_DECLARE_DLL_NAME(BASS_Encode_FLAC_GetVersion);
-};
-
-#ifdef XAMP_OS_WIN
-class BassAACEncLib final {
-public:
-    BassAACEncLib();
-
-    std::string GetName() const;
-
-    XAMP_DISABLE_COPY(BassAACEncLib)
-
-private:
-    SharedLibraryHandle module_;
-
-public:
-    SharedLibraryFunction<HENCODE(DWORD, const WCHAR*, DWORD, const WCHAR*)> BASS_Encode_AAC_StartFile;
-    SharedLibraryFunction<DWORD()> BASS_Encode_AAC_GetVersion;
-};
-#elif defined(XAMP_OS_MAC)
-class BassCAEncLib final {
-public:
-    BassCAEncLib();
-
-    std::string GetName() const;
-
-    XAMP_DISABLE_COPY(BassCAEncLib)
-
-private:
-    SharedLibraryHandle module_;
-
-public:
-    XAMP_DECLARE_DLL_NAME(BASS_Encode_StartCAFile);
-};
-#endif
-
-class BassEncLib final {
-public:
-    BassEncLib();
-
-    std::string GetName() const;
-
-    XAMP_DISABLE_COPY(BassEncLib)
-
-private:
-    SharedLibraryHandle module_;
-
-public:
-    SharedLibraryFunction<HENCODE(DWORD, void*, DWORD, const wchar_t*)> BASS_Encode_StartACMFile;
-    XAMP_DECLARE_DLL_NAME(BASS_Encode_GetVersion);
-    SharedLibraryFunction<DWORD (DWORD, void*, DWORD, const char*, DWORD)> BASS_Encode_GetACMFormat;
-};
-
 class BassLib final {
 public:
 	XAMP_DECLARE_SINGLETON_NAME()
@@ -222,12 +150,6 @@ public:
     ScopedPtr<BassDSDLib> DSDLib;
     ScopedPtr<BassMixLib> MixLib;
     ScopedPtr<BassFxLib> FxLib;
-    ScopedPtr<BassEncLib> EncLib;
-    ScopedPtr<BassFLACEncLib> FLACEncLib;
-
-#ifdef XAMP_OS_MAC
-    ScopedPtr<BassCAEncLib> CAEncLib;
-#endif
 
 #ifdef XAMP_OS_WIN
     ScopedPtr<BassCDLib> CDLib;

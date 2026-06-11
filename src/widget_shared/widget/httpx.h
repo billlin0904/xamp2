@@ -21,7 +21,7 @@ class QNetworkReply;
 
 namespace http {
 
-    class XAMP_WIDGET_SHARED_EXPORT HttpClient {
+    class XAMP_WIDGET_SHARED_API HttpClient {
     public:
         HttpClient(QNetworkAccessManager* nam, const QString& url, QObject* parent = nullptr);
 

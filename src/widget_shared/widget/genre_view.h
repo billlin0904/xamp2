@@ -13,7 +13,7 @@ class QResizeEvent;
 inline constexpr auto kMaxShowAlbum = 65535;
 inline constexpr auto kAlbumViewCoverSize = 215;
 
-class XAMP_WIDGET_SHARED_EXPORT GenreView final : public AlbumView {
+class XAMP_WIDGET_SHARED_API GenreView final : public AlbumView {
 public:
 	enum ViewType {
 		VIEW_TYPE_CLOUD_PLAYLIST

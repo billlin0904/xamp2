@@ -50,6 +50,8 @@ public:
 
 	void Close() override;
 
+	bool EndOfStream() const override;
+
 	[[nodiscard]] double GetDuration() const override;
 
 	[[nodiscard]] AudioFormat GetFormat() const override;

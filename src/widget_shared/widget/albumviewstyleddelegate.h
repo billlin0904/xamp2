@@ -31,7 +31,7 @@ enum ShowModes {
 	SHOW_NORMAL,
 };
 
-class XAMP_WIDGET_SHARED_EXPORT AlbumViewStyledDelegate final : public QStyledItemDelegate {
+class XAMP_WIDGET_SHARED_API AlbumViewStyledDelegate final : public QStyledItemDelegate {
 	Q_OBJECT
 public:
 	explicit AlbumViewStyledDelegate(QObject* parent = nullptr);

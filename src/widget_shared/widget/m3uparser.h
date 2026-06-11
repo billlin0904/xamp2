@@ -8,7 +8,7 @@
 #include <widget/widget_shared_global.h>
 #include <widget/util/str_util.h>
 
-class XAMP_WIDGET_SHARED_EXPORT M3uParser {
+class XAMP_WIDGET_SHARED_API M3uParser {
 public:
     static bool isPlaylistFilenameSupported(const QString& fileName);
 

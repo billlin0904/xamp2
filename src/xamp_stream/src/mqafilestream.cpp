@@ -470,6 +470,12 @@ public:
         return 0;
     }
 
+	bool EndOfStream() const {
+		if (!active_) return true;
+		const auto state = FLAC_LIB.FLAC__stream_decoder_get_state(decoder_.get());
+		return state == FLAC__STREAM_DECODER_END_OF_STREAM || state == FLAC__STREAM_DECODER_ABORTED;
+	}
+
 private:
     bool DecodeOneBlock() const {
         const auto state = FLAC_LIB.FLAC__stream_decoder_get_state(decoder_.get());
@@ -571,6 +577,10 @@ void MqaFileStream::OpenFile(Path const& file_path) {
 }
 
 void MqaFileStream::Open(ArchiveEntry archive_entry) {
+}
+
+bool MqaFileStream::EndOfStream() const {
+    return impl_->EndOfStream();
 }
 
 void MqaFileStream::Close() {

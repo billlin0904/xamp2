@@ -16,7 +16,7 @@
 class QEnterEvent;
 class VolumeControlDialog;
 
-class XAMP_WIDGET_SHARED_EXPORT VolumeButton : public QToolButton {
+class XAMP_WIDGET_SHARED_API VolumeButton : public QToolButton {
 	Q_OBJECT
 public:
 	explicit VolumeButton(QWidget *parent = nullptr);

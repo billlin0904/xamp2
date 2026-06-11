@@ -13,7 +13,7 @@ namespace log_util {
 
 using xamp::base::LogLevel;
 
-XAMP_WIDGET_SHARED_EXPORT QString getLogLevelString(LogLevel level);
-XAMP_WIDGET_SHARED_EXPORT LogLevel parseLogLevel(const QString& str);
+XAMP_WIDGET_SHARED_API QString getLogLevelString(LogLevel level);
+XAMP_WIDGET_SHARED_API LogLevel parseLogLevel(const QString& str);
 
 }

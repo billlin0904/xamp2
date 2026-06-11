@@ -238,7 +238,7 @@ public:
 
 class QScrollArea;
 
-class XAMP_WIDGET_SHARED_EXPORT NavBarListView final : public QFrame /*QListView*/ {
+class XAMP_WIDGET_SHARED_API NavBarListView final : public QFrame /*QListView*/ {
     Q_OBJECT
 public:
     explicit NavBarListView(QWidget *parent = nullptr);

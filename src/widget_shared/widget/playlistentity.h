@@ -1,4 +1,4 @@
-﻿//=====================================================================================================================
+//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -18,7 +18,7 @@
 #include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
 
-struct XAMP_WIDGET_SHARED_EXPORT PlayListEntity final {
+struct XAMP_WIDGET_SHARED_API PlayListEntity final {
     bool is_cue_file{ false };
     bool is_zip_file{ false };
     bool heart{ false };

@@ -10,7 +10,7 @@
 
 #include <QStyledItemDelegate>
 
-class XAMP_WIDGET_SHARED_EXPORT PlaylistStyledItemDelegate final : public QStyledItemDelegate {
+class XAMP_WIDGET_SHARED_API PlaylistStyledItemDelegate final : public QStyledItemDelegate {
 	Q_OBJECT
 public:
     using QStyledItemDelegate::QStyledItemDelegate;

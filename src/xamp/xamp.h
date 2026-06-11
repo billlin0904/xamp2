@@ -52,6 +52,8 @@ public:
 	QString translateText(const std::string_view& text) override;
 
     void destory() override;
+
+    void setupSystemMenu();
 signals:
     void fetchCdInfo(const DriveInfo& drive);
 
@@ -67,6 +69,7 @@ public slots:
     void onUpdateCdTrackInfo(const QString& disc_id, const std::forward_list<TrackInfo>& track_infos);
 
     void OnReadMusicBrainzAlbums(const QList<PlayListEntity>& entities);
+
 private:
     void pushWidget(QWidget* widget);
 
@@ -78,9 +81,14 @@ private:
 
 	void setAlbumCover(const QPixmap& cover);
 
-    void playLocalFile(const QString& file_name, bool queue = true, const PlayListEntity* entity = nullptr);
+    void playLocalFile(const QString& file_name,
+        bool queue = true,
+        const PlayListEntity* entity = nullptr,
+        bool update_playlist_now_playing = true);
 
-    void playLocalFile(const PlayListEntity& entity, bool queue = true);
+    void playLocalFile(const PlayListEntity& entity,
+        bool queue = true,
+        bool update_playlist_now_playing = true);
 
     void setSeekPosValue(double stream_time);
 
@@ -91,8 +99,6 @@ private:
     void configureUpdater(bool notify_on_finish);
 
     void installDownloadedUpdate(const QString& url, const QString& filepath);
-
-    void setupSystemMenu();
 
     void showPreference();
 

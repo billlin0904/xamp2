@@ -4,11 +4,13 @@
 #include <QTextStream>
 #include <QTimer>
 #include <QFileInfo>
+#include <QSignalBlocker>
 
 #include <ui_logview.h>
 
 LogView::LogView(QWidget * parent)
     : QWidget(parent)
+    , file_watcher_(new QFileSystemWatcher(this))
     , timer_(new QTimer(this))
     , lastFileSize_(0) {
     setAttribute(Qt::WA_DontCreateNativeAncestors);
@@ -19,6 +21,13 @@ LogView::LogView(QWidget * parent)
     
     (void)QObject::connect(ui_->searchButton, &QPushButton::clicked, this, &LogView::findNext);
     (void)QObject::connect(timer_, &QTimer::timeout, this, &LogView::checkFileUpdate);
+    (void)QObject::connect(file_watcher_, &QFileSystemWatcher::fileChanged, this, [this](const QString& path) {
+        if (path != logFilePath_) {
+            return;
+        }
+        checkFileUpdate();
+        watchLogFile();
+        });
 }
 
 LogView::~LogView() {
@@ -27,8 +36,13 @@ LogView::~LogView() {
 
 // 載入 log 檔案並顯示於 logViewer_
 bool LogView::loadLogFile(const QString& filePath) {
+    logFilePath_ = filePath;
+
     QFile file_(filePath);
-    if (!file_.open(QIODevice::ReadOnly | QIODevice::Text)) {        
+    if (!file_.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        lastFileSize_ = 0;
+        watchLogFile();
+        timer_->start(250);
         return false;
     }
 
@@ -42,14 +56,14 @@ bool LogView::loadLogFile(const QString& filePath) {
 
     QFileInfo info(filePath);
     lastFileSize_ = info.size();
-    logFilePath_ = filePath;
+    watchLogFile();
 
     // 將游標移動到最後，確保視窗焦點也在最後一行
     ui_->logViewerEdit->moveCursor(QTextCursor::End);
     // 確保光標可見（也就是自動捲動到底部）
     ui_->logViewerEdit->ensureCursorVisible();
 
-    timer_->start(1000);
+    timer_->start(250);
 
     return true;
 }
@@ -88,6 +102,22 @@ void LogView::appendNewLogs(qint64 startPos, qint64 endPos) {
     ui_->logViewerEdit->ensureCursorVisible();
 }
 
+void LogView::watchLogFile() {
+    if (logFilePath_.isEmpty()) {
+        return;
+    }
+
+    const QSignalBlocker blocker(file_watcher_);
+    const auto watched_files = file_watcher_->files();
+    if (!watched_files.isEmpty()) {
+        file_watcher_->removePaths(watched_files);
+    }
+
+    if (QFileInfo::exists(logFilePath_)) {
+        file_watcher_->addPath(logFilePath_);
+    }
+}
+
 void LogView::findNext() {
     QString searchText = ui_->lineEdit->text().trimmed();
     if (searchText.isEmpty()) {
@@ -116,6 +146,11 @@ void LogView::checkFileUpdate() {
     }
 
     qint64 currentSize = info.size();
+    if (currentSize < lastFileSize_) {
+        loadLogFile(logFilePath_);
+        return;
+    }
+
     if (currentSize > lastFileSize_) {
         appendNewLogs(lastFileSize_, currentSize);
         lastFileSize_ = currentSize;

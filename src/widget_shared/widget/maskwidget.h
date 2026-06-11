@@ -8,7 +8,7 @@
 #include <QWidget>
 #include <widget/widget_shared_global.h>
 
-class XAMP_WIDGET_SHARED_EXPORT MaskWidget : public QWidget {
+class XAMP_WIDGET_SHARED_API MaskWidget : public QWidget {
 public:
     explicit MaskWidget(QWidget* parent = nullptr);
 

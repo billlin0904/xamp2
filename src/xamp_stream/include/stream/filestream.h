@@ -23,6 +23,8 @@ public:
     virtual void OpenFile(const Path & file_path) = 0;
 
     virtual void Open(ArchiveEntry archive_entry) = 0;
+
+    virtual bool EndOfStream() const = 0;
 protected:
     FileStream() = default;
 };

@@ -20,7 +20,7 @@ enum EncodeType {
     ENCODE_PCM,
 };
 
-struct XAMP_WIDGET_SHARED_EXPORT EncodeJob {
+struct XAMP_WIDGET_SHARED_API EncodeJob {
     EncodeType type{ ENCODE_AAC };
     uint32_t bit_rate{0};
     QString job_id;
@@ -33,7 +33,7 @@ Q_DECLARE_METATYPE(EncodeJob);
 class QStandardItem;
 class QStandardItemModel;
 
-class XAMP_WIDGET_SHARED_EXPORT ProgressBarDelegate : public QStyledItemDelegate {
+class XAMP_WIDGET_SHARED_API ProgressBarDelegate : public QStyledItemDelegate {
     Q_OBJECT
 public:
     explicit ProgressBarDelegate(QObject* parent = nullptr);
@@ -43,7 +43,7 @@ public:
         const QModelIndex& index) const override;
 };
 
-class XAMP_WIDGET_SHARED_EXPORT EncodeJobWidget : public QWidget {
+class XAMP_WIDGET_SHARED_API EncodeJobWidget : public QWidget {
     Q_OBJECT
 public:
     explicit EncodeJobWidget(QWidget* parent = nullptr);

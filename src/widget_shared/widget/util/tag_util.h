@@ -15,10 +15,10 @@
 
 namespace tag_util {
 
-XAMP_WIDGET_SHARED_EXPORT QPixmap readEmbeddedCover(xamp::metadata::IMetadataReader& reader);
+XAMP_WIDGET_SHARED_API QPixmap readEmbeddedCover(xamp::metadata::IMetadataReader& reader);
 
-XAMP_WIDGET_SHARED_EXPORT bool readEmbeddedCover(xamp::metadata::IMetadataReader& reader, QPixmap& image, size_t& image_size);
+XAMP_WIDGET_SHARED_API bool readEmbeddedCover(xamp::metadata::IMetadataReader& reader, QPixmap& image, size_t& image_size);
 
-XAMP_WIDGET_SHARED_EXPORT void writeEmbeddedCover(xamp::metadata::IMetadataWriter& writer, const QPixmap& image);
+XAMP_WIDGET_SHARED_API void writeEmbeddedCover(xamp::metadata::IMetadataWriter& writer, const QPixmap& image);
 
 }

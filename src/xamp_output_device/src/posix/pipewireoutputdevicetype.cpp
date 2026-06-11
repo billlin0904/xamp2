@@ -15,15 +15,19 @@
 #include <pipewire/keys.h>
 #include <spa/utils/dict.h>
 
+#include <base/unique_handle.h>
 #include <base/exception.h>
 #include <base/str_utilts.h>
 
 XAMP_OUTPUT_DEVICE_POSIX_NAMESPACE_BEGIN
 
 namespace {
+
 constexpr std::wstring_view kDefaultDeviceName = L"PipeWire Default Sink";
 constexpr std::string_view kDefaultDeviceId = "default";
 constexpr uint32_t kFallbackSampleRate = 48000;
+constexpr std::string_view kAudioSink = "Audio/Sink";
+constexpr std::string_view kDummyOutput = "Dummy Output";
 
 bool IsUsablePipeWireSink(const char* name, const char* description) noexcept {
 	if (name == nullptr || name[0] == '\0') {
@@ -35,7 +39,7 @@ bool IsUsablePipeWireSink(const char* name, const char* description) noexcept {
 		return false;
 	}
 
-	if (description != nullptr && std::string_view(description) == "Dummy Output") {
+	if (description != nullptr && std::string_view(description) == kDummyOutput) {
 		return false;
 	}
 
@@ -86,17 +90,17 @@ public:
 	std::vector<DeviceInfo> Scan() {
 		EnsurePipeWireInitialized();
 
-		loop_.reset(pw_thread_loop_new("xamp-pipewire-scan", nullptr));
+		loop_.reset(::pw_thread_loop_new("xamp-pipewire-scan", nullptr));
 		if (loop_ == nullptr) {
 			Throw<PlatformException>("PipeWire scan thread loop create failed.");
 		}
 
-		context_.reset(pw_context_new(pw_thread_loop_get_loop(loop_.get()), nullptr, 0));
+		context_.reset(::pw_context_new(::pw_thread_loop_get_loop(loop_.get()), nullptr, 0));
 		if (context_ == nullptr) {
 			Throw<PlatformException>("PipeWire scan context create failed.");
 		}
 
-		core_.reset(pw_context_connect(context_.get(), nullptr, 0));
+		core_.reset(::pw_context_connect(context_.get(), nullptr, 0));
 		if (core_ == nullptr) {
 			Throw<PlatformException>("PipeWire scan core connect failed.");
 		}
@@ -107,7 +111,7 @@ public:
 		};
 		pw_core_add_listener(core_.get(), &core_listener_, &core_events, this);
 
-		registry_.reset(pw_core_get_registry(core_.get(), PW_VERSION_REGISTRY, 0));
+		registry_.reset(::pw_core_get_registry(core_.get(), PW_VERSION_REGISTRY, 0));
 		if (registry_ == nullptr) {
 			Throw<PlatformException>("PipeWire registry create failed.");
 		}
@@ -120,14 +124,14 @@ public:
 
 		core_sync_seq_ = pw_core_sync(core_.get(), PW_ID_CORE, 0);
 
-		if (pw_thread_loop_start(loop_.get()) != 0) {
+		if (::pw_thread_loop_start(loop_.get()) != 0) {
 			Throw<PlatformException>("PipeWire scan thread loop start failed.");
 		}
 
 		{
 			const PipeWireThreadLoopLock lock(loop_.get());
 			while (!done_) {
-				pw_thread_loop_wait(loop_.get());
+				::pw_thread_loop_wait(loop_.get());
 			}
 		}
 
@@ -171,13 +175,13 @@ private:
 			return;
 		}
 
-		const auto* media_class = spa_dict_lookup(props, PW_KEY_MEDIA_CLASS);
-		if (media_class == nullptr || std::string_view(media_class) != "Audio/Sink") {
+		const auto* media_class = ::spa_dict_lookup(props, PW_KEY_MEDIA_CLASS);
+		if (media_class == nullptr || std::string_view(media_class) != kAudioSink) {
 			return;
 		}
 
-		const auto* name = spa_dict_lookup(props, PW_KEY_NODE_NAME);
-		const auto* description = spa_dict_lookup(props, PW_KEY_NODE_DESCRIPTION);
+		const auto* name = ::spa_dict_lookup(props, PW_KEY_NODE_NAME);
+		const auto* description = ::spa_dict_lookup(props, PW_KEY_NODE_DESCRIPTION);
 		if (!IsUsablePipeWireSink(name, description)) {
 			return;
 		}
@@ -194,16 +198,16 @@ private:
 			{
 				const PipeWireThreadLoopLock lock(loop_.get());
 				if (registry_ != nullptr) {
-					spa_hook_remove(&registry_listener_);
+					::spa_hook_remove(&registry_listener_);
 					registry_.reset();
 				}
 				if (core_ != nullptr) {
-					spa_hook_remove(&core_listener_);
+					::spa_hook_remove(&core_listener_);
 				}
 				core_.reset();
 				context_.reset();
 			}
-			pw_thread_loop_stop(loop_.get());
+			::pw_thread_loop_stop(loop_.get());
 			loop_.reset();
 		}
 	}

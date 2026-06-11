@@ -88,6 +88,8 @@ AudioPlayer::~AudioPlayer() {
 }
 
 void AudioPlayer::Destroy() {
+    XAMP_LOG_D(logger_, "Destroy audio player.");
+
     timer_.Stop();
     try {
         CloseDevice(true, true);

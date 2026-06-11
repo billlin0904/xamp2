@@ -16,7 +16,7 @@
 #include <widget/util/colortable.h>
 #include <widget/playlistentity.h>
 
-class XAMP_WIDGET_SHARED_EXPORT SpectrogramWidget : public QFrame {
+class XAMP_WIDGET_SHARED_API SpectrogramWidget : public QFrame {
     Q_OBJECT
 
 public:

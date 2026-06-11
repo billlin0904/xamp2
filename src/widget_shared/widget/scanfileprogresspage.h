@@ -12,7 +12,7 @@ class QProgressBar;
 class QLabel;
 class QPushButton;
 
-class XAMP_WIDGET_SHARED_EXPORT ScanFileProgressPage : public QFrame {
+class XAMP_WIDGET_SHARED_API ScanFileProgressPage : public QFrame {
 	Q_OBJECT
 public:
 	explicit ScanFileProgressPage(QWidget* parent = nullptr);

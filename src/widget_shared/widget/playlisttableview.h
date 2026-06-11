@@ -35,7 +35,7 @@ enum NavigationViewMode {
 	NAVIGATION_VIEW_ALBUM_AND_ARTIST,
 };
 
-class XAMP_WIDGET_SHARED_EXPORT PlaylistTableView final : public QTableView {
+class XAMP_WIDGET_SHARED_API PlaylistTableView final : public QTableView {
 	Q_OBJECT
 public:
 	static constexpr auto kMaxPendingPlayListSize = 100;

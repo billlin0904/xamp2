@@ -16,7 +16,7 @@
 #include <player/iplaybackstateadapter.h>
 #include <player/playstate.h>
 
-class XAMP_WIDGET_SHARED_EXPORT UIPlayerStateAdapter final
+class XAMP_WIDGET_SHARED_API UIPlayerStateAdapter final
     : public QObject
     , public IPlaybackStateAdapter {
     Q_OBJECT

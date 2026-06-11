@@ -15,7 +15,7 @@ namespace Ui {
 	class VolumeControlDialog;
 }
 
-class XAMP_WIDGET_SHARED_EXPORT VolumeControlDialog final : public QDialog {
+class XAMP_WIDGET_SHARED_API VolumeControlDialog final : public QDialog {
     Q_OBJECT
 public:
 	explicit VolumeControlDialog(const std::shared_ptr<IAudioPlayer>& player, QWidget* parent = nullptr);

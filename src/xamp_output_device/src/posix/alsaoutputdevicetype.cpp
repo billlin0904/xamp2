@@ -180,15 +180,12 @@ DeviceInfo MakeFallbackDeviceInfo() {
 	return probe;
 }
 
-[[nodiscard]] std::string FormatAlsaDeviceId(const char* card_id, int device) {
-	char name[128]{};
-	std::snprintf(name, sizeof(name), "plughw:%s,%d", card_id, device);
-	return name;
+[[nodiscard]] std::string FormatAlsaDeviceId(const std::string & card_id, int device) {
+	return String::Format("plughw:{},{}", card_id, device);
 }
 
-[[nodiscard]] std::wstring FormatAlsaDeviceName(const char* card_name, const char* pcm_id) {
-	char name[256]{};
-	std::snprintf(name, sizeof(name), "%s (%s)", card_name, pcm_id);
+[[nodiscard]] std::wstring FormatAlsaDeviceName(const std::string& card_name, const char* pcm_id) {
+	auto name = String::Format("{} ({})", card_name, pcm_id);
 	return String::ToStdWString(name);
 }
 
@@ -212,11 +209,10 @@ std::vector<DeviceInfo> EnumerateAlsaPlaybackDevices() {
 	}
 
 	while (card >= 0) {
-		char control_name[32]{};
-		std::snprintf(control_name, sizeof(control_name), "hw:%d", card);
+		auto control_name = String::Format("hw:{}", card);
 
 		snd_ctl_t* control_handle{ nullptr };
-		if (::snd_ctl_open(&control_handle, control_name, 0) < 0) {
+		if (::snd_ctl_open(&control_handle, control_name.c_str(), 0) < 0) {
 			::snd_card_next(&card);
 			continue;
 		}

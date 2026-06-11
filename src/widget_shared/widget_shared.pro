@@ -111,6 +111,10 @@ SOURCES += \
 ./widget/audio_embedding/audio_embedding_service.cpp \
 ./version.cpp \
 ./thememanager.cpp \
+./thememanager_fonts.cpp \
+./thememanager_icons.cpp \
+./thememanager_theme.cpp \
+./thememanager_widgets.cpp \
 xampplayer.cpp
 
 HEADERS += \

@@ -74,9 +74,6 @@ AlsaOutputDevice::AlsaOutputDevice(const std::shared_ptr<IThreadPoolExecutor>& t
 	: device_id_(std::move(device_id))
 	, thread_pool_(thread_pool)
 	, logger_(XampLoggerFactory.GetLogger(XAMP_LOG_NAME(AlsaOutputDevice))) {
-	if (device_id_.empty()) {
-		device_id_ = kAlsaDefaultDeviceId;
-	}
 	logger_->SetLevel(LogLevel::LOG_LEVEL_DEBUG);
 }
 
@@ -89,6 +86,10 @@ AlsaOutputDevice::~AlsaOutputDevice() {
 }
 
 void AlsaOutputDevice::OpenStream(const AudioFormat& output_format) {
+	if (device_id_.empty()) {
+		throw DeviceNotFoundException(device_id_);
+	}
+
 	CloseStream();
 
 	XAMP_LOG_D(logger_, "AlsaOutputDevice open stream: {}.", output_format.ToString());
@@ -96,7 +97,7 @@ void AlsaOutputDevice::OpenStream(const AudioFormat& output_format) {
 	const auto sample_format = ToAlsaSampleFormat(output_format);
 	snd_pcm_t* pcm = nullptr;
 	auto error = ::snd_pcm_open(&pcm,
-		device_id_.empty() ? kAlsaDefaultDeviceId : device_id_.c_str(),
+		device_id_.c_str(),
 		SND_PCM_STREAM_PLAYBACK,
 		SND_PCM_NONBLOCK);
 	if (error < 0) {

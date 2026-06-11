@@ -13,7 +13,7 @@
 #include <widget/widget_shared.h>
 #include <widget/widget_shared_global.h>
 
-class XAMP_WIDGET_SHARED_EXPORT JsonSettings {
+class XAMP_WIDGET_SHARED_API JsonSettings {
 public:
     XAMP_DECLARE_SINGLETON_NAME()
 
