@@ -43,7 +43,7 @@ public:
 	XAMP_DECLARE_DLL_NAME(track_get_rem);
 };
 
-#define LIBCUE_LIB SharedSingleton<LibCueLib>::GetInstance()
+#define LIBCUE_LIB SharedSingleton<LibCueLib>::getInstance()
 
 inline LibCueLib::LibCueLib() try
 #ifdef XAMP_OS_WIN
@@ -66,7 +66,7 @@ inline LibCueLib::LibCueLib() try
 	, XAMP_LOAD_DLL_API(track_get_rem) {
 }
 catch (const Exception& e) {
-    XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+    XAMP_LOG_ERROR("{}", e.getErrorMessage());
 }
 
 XAMP_METADATA_NAMESPACE_END

@@ -118,7 +118,7 @@ public:
 
 	QSqlDatabase& database();
 
-	void Close();
+	void close();
 
 	void open();
 
@@ -146,7 +146,7 @@ private:
 
 class XAMP_WIDGET_SHARED_API DatabaseFactory final {
 public:
-	Database* Create() {
+	Database* create() {
 		auto* database = new Database(getDatabaseId());
 		database->open();
 		return database;
@@ -163,7 +163,7 @@ XAMP_WIDGET_SHARED_API PooledDatabasePtr getPooledDatabase(int32_t pool_size = k
 
 XAMP_WIDGET_SHARED_API QScopedPointer<Database> makeDatabaseConnection();
 
-#define qGuiDb SharedSingleton<Database>::GetInstance()
+#define qGuiDb SharedSingleton<Database>::getInstance()
 
 template <typename Func>
 class TransactionScope final {

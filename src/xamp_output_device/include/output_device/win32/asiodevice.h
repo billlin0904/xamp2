@@ -44,168 +44,168 @@ public:
 	virtual ~AsioDevice() override;
 
 	/*
-	* Open stream
+	* open stream
 	*
 	* @param output_format: output format
 	* @return void
 	*/
-	void OpenStream(const AudioFormat & output_format) override;
+	void openStream(const AudioFormat & output_format) override;
 
 	/*
 	* Set audio callback
 	*
 	* @param callback: audio callback
 	*/
-	void SetAudioCallback(IAudioCallback* callback) override;
+	void setAudioCallback(IAudioCallback* callback) override;
 
 	/*
 	* Is stream open
 	*
 	* return bool
 	*/
-	bool IsStreamOpen() const override;
+	bool isStreamOpen() const override;
 
 	/*
 	* Is stream running
 	*
 	* @return bool
 	*/
-	bool IsStreamRunning() const override;
+	bool isStreamRunning() const override;
 
 	/*
-	* Stop stream
+	* stop stream
 	*
 	* @param wait_for_stop_stream: wait for stop stream
 	*/
-	void StopStream(bool wait_for_stop_stream = true) override;
+	void stopStream(bool wait_for_stop_stream = true) override;
 
 	/*
-	* Close stream
+	* close stream
 	*
 	*/
-	void CloseStream() override;
+	void closeStream() override;
 
 	/*
-	* Start stream
+	* start stream
 	*
 	*/
-	void StartStream() override;
+	void startStream() override;
 
 	/*
 	* Set stream time
 	*
 	* @param stream_time: stream time
 	*/
-	void SetStreamTime(double stream_time) override;
+	void setStreamTime(double stream_time) override;
 
 	/*
 	* Get stream time
 	*
 	*/
-	double GetStreamTime() const override;
+	double getStreamTime() const override;
 
 	/*
 	* Get volume
 	*
 	* @return uint32_t
 	*/
-	uint32_t GetVolume() const override;
+	uint32_t getVolume() const override;
 
 	/*
 	* Set volume
 	* @param volume: volume (1~100)
 	*/
-	void SetVolume(uint32_t volume) const override;
+	void setVolume(uint32_t volume) const override;
 
 	/*
 	* Set mute
 	*
 	* @param mute: mute (true/false)
 	*/
-	void SetMute(bool mute) const override;
+	void setMute(bool mute) const override;
 
 	/*
 	* Get packed format
 	*
 	* @return PackedFormat
 	*/
-	PackedFormat GetPackedFormat() const override;
+	PackedFormat getPackedFormat() const override;
 
 	/*
 	* Set DSD IO format
 	*
 	* @param format: DSD IO format
 	*/
-	void SetIoFormat(DsdIoFormat format) override;
+	void setIoFormat(DsdIoFormat format) override;
 
 	/*
 	* Get DSD IO format
 	*
 	* @return DsdIoFormat
 	*/
-	DsdIoFormat GetIoFormat() const override;
+	DsdIoFormat getIoFormat() const override;
 	
 	/*
 	* Get packed format
 	*
 	* @return PackedFormat
 	*/
-	DsdFormat GetSampleFormat() const ;
+	DsdFormat getSampleFormat() const ;
 
 	/*
 	* Get device buffer size
 	*
 	* @return uint32_t
 	*/
-	uint32_t GetBufferSize() const override;
+	uint32_t getBufferSize() const override;
 
 	/*
 	* Is muted
 	*
 	* @return bool
 	*/
-	bool IsMuted() const override;
+	bool isMuted() const override;
 
 	/*
 	* Is hardware control volume
 	*
 	* @return bool
 	*/
-	bool IsHardwareControlVolume() const override;
+	bool isHardwareControlVolume() const override;
 
 	/*
 	* Abort stream
 	*
 	* @return void
 	*/
-	void AbortStream() override;
+	void abortStream() override;
 
 	/*
 	* Reopen stream
 	*/
-	void ReOpen();
+	void reOpen();
 
 	/*
 	* Is support DSD format
 	*/
-	bool IsSupportDsdFormat() const;
+	bool isSupportDsdFormat() const;
 
 	/*
-	* Reset current ASIO driver	
+	* reset current ASIO driver	
 	*/
-	static void ResetCurrentDriver();
+	static void resetCurrentDriver();
 
 	/*
 	* Set DSD sample format
 	* 
 	* @param[in] format: DSD sample format
 	*/
-	void SetSampleFormat(DsdFormat format);
+	void setSampleFormat(DsdFormat format);
 
 	/*
 	* Remove current ASIO driver
 	*/	
-	void RemoveCurrentDriver();
+	void removeCurrentDriver();
 
 private:
 	/*
@@ -216,7 +216,7 @@ private:
 	* @param[in] processNow: process now
 	* @return ASIOTime*
 	*/
-	static ASIOTime* OnBufferSwitchTimeInfoCallback(ASIOTime* timeInfo, long index, ASIOBool processNow) ;
+	static ASIOTime* onBufferSwitchTimeInfoCallback(ASIOTime* timeInfo, long index, ASIOBool processNow) ;
 
 	/*
 	* On buffer switch callback
@@ -224,14 +224,14 @@ private:
 	* @param[in] index: index
 	* @param[in] processNow: process now
 	*/
-	static void OnBufferSwitchCallback(long index, ASIOBool processNow);
+	static void onBufferSwitchCallback(long index, ASIOBool processNow);
 
 	/*
 	* On sample rate changed callback
 	* 
 	* @param[in] sampleRate: sample rate
 	*/
-	static void OnSampleRateChangedCallback(ASIOSampleRate sampleRate);
+	static void onSampleRateChangedCallback(ASIOSampleRate sampleRate);
 
 	/*
 	* On asio messages callback
@@ -241,22 +241,22 @@ private:
 	* @param[in] message: message
 	* @param[in] opt: opt
 	*/
-	static long OnAsioMessagesCallback(long selector, long value, void* message, double* opt);
+	static long onAsioMessagesCallback(long selector, long value, void* message, double* opt);
 
 	/*
 	* Set output sample rate
 	* 
 	* @param output_format: output format
 	*/
-	void SetOutputSampleRate(AudioFormat const & output_format);
+	void setOutputSampleRate(AudioFormat const & output_format);
 
 	/*
-	* Create buffers
+	* create buffers
 	* 
 	* @param[in] output_format: output format
 	* 
 	*/
-	void CreateBuffers(AudioFormat const & output_format);
+	void createBuffers(AudioFormat const & output_format);
 
 	/*
 	* Get samples
@@ -264,19 +264,19 @@ private:
 	* @param[in] index: index
 	* @param[in] sample_time: sample time
 	*/
-	void GetSamples(long index, double sample_time) ;
+	void getSamples(long index, double sample_time) ;
 
 	/*
 	* Get device buffer size
 	* 
 	* @return std::tuple<int32_t, int32_t>
 	*/
-	std::tuple<int32_t, int32_t> GetDeviceBufferSize() const;
+	std::tuple<int32_t, int32_t> getDeviceBufferSize() const;
 
 	/*
 	* Fill silent data
 	*/
-	void FillSilentData() ;
+	void fillSilentData() ;
 
 	/*
 	* Get PCM samples
@@ -286,12 +286,12 @@ private:
 	* @param[in] num_filled_frame: num filled frame
 	* @return bool
 	*/
-	bool GetPCMSamples(long index, double sample_time, size_t& num_filled_frame) ;
+	bool getPCMSamples(long index, double sample_time, size_t& num_filled_frame) ;
 
 	/*
 	* Get DSD samples
 	*/
-	bool GetDSDSamples(long index, double sample_time, size_t& num_filled_frame) ;
+	bool getDSDSamples(long index, double sample_time, size_t& num_filled_frame) ;
 
 	bool is_hardware_control_volume_;
 	bool is_removed_driver_;

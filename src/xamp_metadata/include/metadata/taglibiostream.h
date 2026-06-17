@@ -44,7 +44,7 @@ public:
 #ifdef _WIN32
 		return io_stream_.path().wstring().c_str();
 #else
-		name_ = String::ToUtf8String(io_stream_.path().wstring());
+		name_ = String::toUtf8String(io_stream_.path().wstring());
 		return name_.c_str();
 #endif
 	}

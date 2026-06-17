@@ -13,16 +13,16 @@ namespace xamp::output_device::osx {
 HogCoreAudioDeviceType::HogCoreAudioDeviceType() {
 }
 
-std::string_view HogCoreAudioDeviceType::GetDescription() const {
+std::string_view HogCoreAudioDeviceType::getDescription() const {
     return Description;
 }
 
-AlignPtr<IOutputDevice> HogCoreAudioDeviceType::MakeDevice(const std::string &device_id) {
+AlignPtr<IOutputDevice> HogCoreAudioDeviceType::makeDevice(const std::string &device_id) {
     auto id = GetAudioDeviceIdByUid(false, device_id);
     return MakeAlign<IOutputDevice, CoreAudioDevice>(id, true);
 }
 
-Uuid HogCoreAudioDeviceType::GetTypeId() const {
+Uuid HogCoreAudioDeviceType::getTypeId() const {
     return XAMP_UUID_OF(HogCoreAudioDeviceType);
 }
 

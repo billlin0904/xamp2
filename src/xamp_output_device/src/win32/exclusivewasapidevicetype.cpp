@@ -20,17 +20,17 @@ public:
 
 	~ExclusiveWasapiDeviceTypeImpl() = default;
 
-	void ScanNewDevice();
+	void scanNewDevice();
 
-	[[nodiscard]] size_t GetDeviceCount() const;
+	[[nodiscard]] size_t getDeviceCount() const;
 
-	[[nodiscard]] DeviceInfo GetDeviceInfo(uint32_t device) const;
+	[[nodiscard]] DeviceInfo getDeviceInfo(uint32_t device) const;
 
-	[[nodiscard]] std::optional<DeviceInfo> GetDefaultDeviceInfo() const;
+	[[nodiscard]] std::optional<DeviceInfo> getDefaultDeviceInfo() const;
 
-	[[nodiscard]] std::vector<DeviceInfo> GetDeviceInfo() const;
+	[[nodiscard]] std::vector<DeviceInfo> getDeviceInfo() const;
 
-	ScopedPtr<IOutputDevice> MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::string& device_id);
+	ScopedPtr<IOutputDevice> makeDevice(const std::shared_ptr<IThreadPool>& thread_pool, const std::string& device_id);
 
 private:
 	[[nodiscard]] CComPtr<IMMDevice> GetDeviceById(const std::wstring& device_id) const;
@@ -46,15 +46,15 @@ private:
 };
 
 ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::ExclusiveWasapiDeviceTypeImpl() {
-	logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(ExclusiveWasapiDeviceType));	
+	logger_ = XampLoggerFactory.getLogger(XAMP_LOG_NAME(ExclusiveWasapiDeviceType));	
 }
 
-void ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::ScanNewDevice() {
+void ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::scanNewDevice() {
 	enumerator_ = helper::CreateDeviceEnumerator();
 	device_list_ = GetDeviceInfoList();	
 }
 
-std::optional<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::GetDefaultDeviceInfo() const {
+std::optional<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::getDefaultDeviceInfo() const {
 	CComPtr<IMMDevice> default_output_device;
 	const auto hr = enumerator_->GetDefaultAudioEndpoint(eRender, eConsole, &default_output_device);
 	constexpr auto kNotFoundHr = HRESULT_FROM_WIN32(ERROR_NOT_FOUND);
@@ -62,32 +62,32 @@ std::optional<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeIm
 	if (hr == kNotFoundHr) {
 		return std::nullopt;
 	}
-	return MakeOptional<DeviceInfo>(helper::GetDeviceInfo(default_output_device,
+	return MakeOptional<DeviceInfo>(helper::getDeviceInfo(default_output_device,
 		XAMP_UUID_OF(ExclusiveWasapiDeviceType), 
 		ExclusiveWasapiDeviceType::Description));
 }
 
-std::vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::GetDeviceInfo() const {
+std::vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::getDeviceInfo() const {
 	return device_list_;
 }
 
 CComPtr<IMMDevice> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::GetDeviceById(const std::wstring & device_id) const {
 	CComPtr<IMMDevice> device;
-	HrIfFailThrow(enumerator_->GetDevice(device_id.c_str(), &device));
+	hrIfFailThrow(enumerator_->GetDevice(device_id.c_str(), &device));
 	return device;
 }
 
-ScopedPtr<IOutputDevice> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& /*thread_pool*/, const std::string & device_id) {
-	return MakeAlign<IOutputDevice, ExclusiveWasapiDevice>(GetDeviceById(String::ToStdWString(device_id)));
+ScopedPtr<IOutputDevice> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::makeDevice(const std::shared_ptr<IThreadPool>& /*thread_pool*/, const std::string & device_id) {
+	return makeAlign<IOutputDevice, ExclusiveWasapiDevice>(GetDeviceById(String::ToStdWString(device_id)));
 }
 
-size_t ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::GetDeviceCount() const {
+size_t ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::getDeviceCount() const {
 	return device_list_.size();
 }
 
-DeviceInfo ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::GetDeviceInfo(uint32_t device) const {
+DeviceInfo ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::getDeviceInfo(uint32_t device) const {
 	auto itr = device_list_.begin();
-	if (device >= GetDeviceCount()) {
+	if (device >= getDeviceCount()) {
 		throw DeviceNotFoundException();
 	}
 	std::advance(itr, device);
@@ -102,14 +102,14 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl
 
 	try {
 		// Get all active devices
-		HrIfFailThrow(enumerator_->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices));
+		hrIfFailThrow(enumerator_->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices));
 
 		// Get device count
-		HrIfFailThrow(devices->GetCount(&count));
+		hrIfFailThrow(devices->GetCount(&count));
 
 		device_list.reserve(count);
 
-		if (const auto default_device_info = GetDefaultDeviceInfo()) {
+		if (const auto default_device_info = getDefaultDeviceInfo()) {
 			default_device_name = default_device_info.value().name;
 		}
 	} catch (const std::exception& e) {
@@ -117,15 +117,15 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl
 		return device_list;
 	}	
 
-	XAMP_LOG_D(logger_, "Load all devices");
+	XAMP_LOG_D(logger_, "load all devices");
 
 	for (UINT i = 0; i < count; ++i) {
 		CComPtr<IMMDevice> device;
 
 		try {
-			HrIfFailThrow(devices->Item(i, &device));
+			hrIfFailThrow(devices->Item(i, &device));
 
-			auto info = helper::GetDeviceInfo(device, XAMP_UUID_OF(ExclusiveWasapiDeviceType), ExclusiveWasapiDeviceType::Description);
+			auto info = helper::getDeviceInfo(device, XAMP_UUID_OF(ExclusiveWasapiDeviceType), ExclusiveWasapiDeviceType::Description);
 
 			AudioFormat default_format;
 			if (!helper::IsDeviceSupportExclusiveMode(device, default_format)) {
@@ -138,11 +138,11 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl
 
 			info.default_format = default_format;
 			if (info.default_format) {
-				XAMP_LOG_D(logger_, "{} default format: {}", String::ToString(info.name), info.default_format.value());
+				XAMP_LOG_D(logger_, "{} default format: {}", String::toString(info.name), info.default_format.value());
 			}
 
 			CComPtr<IAudioEndpointVolume> endpoint_volume;
-			HrIfFailThrow(device->Activate(__uuidof(IAudioEndpointVolume),
+			hrIfFailThrow(device->Activate(__uuidof(IAudioEndpointVolume),
 				CLSCTX_INPROC_SERVER,
 				nullptr,
 				reinterpret_cast<void**>(&endpoint_volume)
@@ -151,7 +151,7 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl
 			float scaled_min_db = 0;
 			float scaled_max_db = 0;
 			float volume_increment = 0;
-			HrIfFailThrow(endpoint_volume->GetVolumeRange(&scaled_min_db,
+			hrIfFailThrow(endpoint_volume->GetVolumeRange(&scaled_min_db,
 				&scaled_max_db,
 				&volume_increment));
 			info.scaled_min_db = scaled_min_db;
@@ -160,7 +160,7 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl
 			info.is_normalized_volume = true;
 
 			DWORD volume_support_mask = 0;
-			HrIfFailThrow(endpoint_volume->QueryHardwareSupport(&volume_support_mask));
+			hrIfFailThrow(endpoint_volume->QueryHardwareSupport(&volume_support_mask));
 
 			// Check device support volume control
 			info.is_hardware_control_volume = (volume_support_mask & ENDPOINT_HARDWARE_SUPPORT_VOLUME)
@@ -171,7 +171,7 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl
 
 			device_list.push_back(info);
 		} catch (const std::exception& e) {
-			XAMP_LOG_D(logger_, "Load device failed: {}", e.what());
+			XAMP_LOG_D(logger_, "load device failed: {}", e.what());
 		}
 	}
 
@@ -186,31 +186,31 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl
 
 XAMP_PIMPL_IMPL(ExclusiveWasapiDeviceType)
 
-ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceType() : impl_(MakeAlign<ExclusiveWasapiDeviceTypeImpl>()) {
+ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceType() : impl_(makeAlign<ExclusiveWasapiDeviceTypeImpl>()) {
 }
 
-void ExclusiveWasapiDeviceType::ScanNewDevice() {
-	impl_->ScanNewDevice();
+void ExclusiveWasapiDeviceType::scanNewDevice() {
+	impl_->scanNewDevice();
 }
 
-size_t ExclusiveWasapiDeviceType::GetDeviceCount() const {
-	return impl_->GetDeviceCount();
+size_t ExclusiveWasapiDeviceType::getDeviceCount() const {
+	return impl_->getDeviceCount();
 }
 
-DeviceInfo ExclusiveWasapiDeviceType::GetDeviceInfo(uint32_t device) const {
-	return impl_->GetDeviceInfo(device);
+DeviceInfo ExclusiveWasapiDeviceType::getDeviceInfo(uint32_t device) const {
+	return impl_->getDeviceInfo(device);
 }
 
-std::optional<DeviceInfo> ExclusiveWasapiDeviceType::GetDefaultDeviceInfo() const {
-	return impl_->GetDefaultDeviceInfo();
+std::optional<DeviceInfo> ExclusiveWasapiDeviceType::getDefaultDeviceInfo() const {
+	return impl_->getDefaultDeviceInfo();
 }
 
-std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfo() const {
-	return impl_->GetDeviceInfo();
+std::vector<DeviceInfo> ExclusiveWasapiDeviceType::getDeviceInfo() const {
+	return impl_->getDeviceInfo();
 }
 
-ScopedPtr<IOutputDevice> ExclusiveWasapiDeviceType::MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, std::string const& device_id) {
-	return impl_->MakeDevice(thread_pool, device_id);
+ScopedPtr<IOutputDevice> ExclusiveWasapiDeviceType::makeDevice(const std::shared_ptr<IThreadPool>& thread_pool, std::string const& device_id) {
+	return impl_->makeDevice(thread_pool, device_id);
 }
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

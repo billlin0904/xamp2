@@ -23,23 +23,23 @@ class XAMP_WIDGET_SHARED_API UIPlayerStateAdapter final
 public:
     explicit UIPlayerStateAdapter(QObject *parent = nullptr);
 
-    void OutputFormatChanged(const AudioFormat output_format, size_t buffer_size) override;
+    void outputFormatChanged(const AudioFormat output_format, size_t buffer_size) override;
 
     int32_t sampleRate() const;
 
     size_t outputBufferSize() const;
 
-    void OnSampleTime(double stream_time) override;
+    void onSampleTime(double stream_time) override;
 
-    void OnStateChanged(PlayerState play_state) override;
+    void onStateChanged(PlayerState play_state) override;
 
-    void OnError(const std::exception&ex) override;
+    void onError(const std::exception&ex) override;
 
-    void OnDeviceChanged(DeviceState state, const std::string& device_id) override;
+    void onDeviceChanged(DeviceState state, const std::string& device_id) override;
 
-    void OnVolumeChanged(int32_t vol) override;
+    void onVolumeChanged(int32_t vol) override;
 
-    void OnSamplesChanged(const float* samples, size_t num_buffer_frames) override;
+    void onSamplesChanged(const float* samples, size_t num_samples) override;
 
 signals:
     void sampleTimeChanged(double stream_time);

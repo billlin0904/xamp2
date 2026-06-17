@@ -27,20 +27,20 @@ public:
     * 
     * @return true if the stream is a file, otherwise false.
     */
-    [[nodiscard]] virtual bool IsFile() const = 0;
+    [[nodiscard]] virtual bool isFile() const = 0;
 
     /*
-    * Close the stream.
+    * close the stream.
     * 
     */
-	virtual void Close() = 0;
+	virtual void close() = 0;
 
     /*
     * Get the duration of the stream.
     * 
     * @return the duration of the stream (unit: seconds).
     */
-    [[nodiscard]] virtual double GetDuration() const = 0;
+    [[nodiscard]] virtual double getDuration() const = 0;
 
     /*
     * Get audio samples.
@@ -50,44 +50,44 @@ public:
     *
     * @return The number of samples read.
     */
-    virtual uint32_t GetSamples(void *buffer, uint32_t length) const = 0;
+    virtual uint32_t getSamples(void *buffer, uint32_t length) const = 0;
 
     /*
     * Get the format of the stream.
     * 
     * @return The format of the stream.
     */
-    [[nodiscard]] virtual AudioFormat GetFormat() const = 0;
+    [[nodiscard]] virtual AudioFormat getFormat() const = 0;
 
     /*
-    * Seek to the specified time.
+    * seek to the specified time.
     * 
     * @param stream_time The time to seek (unit: seconds).
     */
-    virtual void Seek(double stream_time) const = 0;
+    virtual void seek(double stream_time) const = 0;
 	
     /*
     * Get the size of a sample.
     * 
     * @return The size of a sample.
     */
-    [[nodiscard]] virtual uint32_t GetSampleSize() const = 0;
+    [[nodiscard]] virtual uint32_t getSampleSize() const = 0;
 
     /*
     * Check if the stream is active.
     * 
     * @return true if the stream is active, otherwise false.
     */
-    [[nodiscard]] virtual bool IsActive() const = 0;
+    [[nodiscard]] virtual bool isActive() const = 0;
 
     /*
     * Get file bit depth.
     *
     * @return: the file bit depth.
     */
-    [[nodiscard]] virtual uint32_t GetBitDepth() const = 0;
+    [[nodiscard]] virtual uint32_t getBitDepth() const = 0;
 
-    [[nodiscard]] virtual uint32_t GetBitRate() const = 0;
+    [[nodiscard]] virtual uint32_t getBitRate() const = 0;
 
 protected:
     IAudioStream() = default;

@@ -30,10 +30,10 @@
 XAMP_BASE_NAMESPACE_BEGIN
 
 #ifdef XAMP_OS_MAC
-template <typename T, typename ...Args>
-auto tuple_append(T&& t, Args&&...args) {
+template <typename t, typename ...Args>
+auto tuple_append(t&& t, Args&&...args) {
 	return std::tuple_cat(
-		std::forward<T>(t),
+		std::forward<t>(t),
 		std::forward_as_tuple(args...)
 	);
 }
@@ -56,14 +56,14 @@ decltype(auto) bind_front(F&& f, FrontArgs&&...front_args) {
 using std::bind_front;
 #endif
 
-template <typename T, size_t N>
-constexpr size_t CountOf(T const (&)[N]) {
+template <typename t, size_t N>
+constexpr size_t CountOf(t const (&)[N]) {
 	return N;
 }
 
-template <typename T, typename... Args>
-std::optional<T> MakeOptional(Args&&... args) {
-	return std::optional<T>(std::in_place_t{}, std::forward<Args>(args)...);
+template <typename t, typename... Args>
+std::optional<t> MakeOptional(Args&&... args) {
+	return std::optional<t>(std::in_place_t{}, std::forward<Args>(args)...);
 }
 
 #ifdef XAMP_USE_STD_MAP
@@ -76,8 +76,8 @@ using HashMap = std::unordered_map<K, V, H, E>;
 template <typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K>>
 using FloatMap = std::unordered_map<K, V, H, E>;
 
-template <typename T, typename H = std::hash<T>, typename E = std::equal_to<T>>
-using HashSet = std::unordered_set<T, H, E>;
+template <typename t, typename H = std::hash<t>, typename E = std::equal_to<t>>
+using HashSet = std::unordered_set<t, H, E>;
 #else
 
 template <typename K, typename V>

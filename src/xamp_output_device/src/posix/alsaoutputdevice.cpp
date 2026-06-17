@@ -44,15 +44,15 @@ double FramesToMilliseconds(snd_pcm_uframes_t frames, uint32_t sample_rate) {
 }
 
 snd_pcm_format_t ToAlsaSampleFormat(const AudioFormat& format) {
-	if (format.GetFormat() != DataFormat::FORMAT_PCM) {
+	if (format.getFormat() != DataFormat::FORMAT_PCM) {
 		throw DeviceUnSupportedFormatException(format);
 	}
 
-	if (format.GetPackedFormat() != PackedFormat::INTERLEAVED) {
+	if (format.getPackedFormat() != PackedFormat::INTERLEAVED) {
 		throw DeviceUnSupportedFormatException(format);
 	}
 
-	switch (format.GetByteFormat()) {
+	switch (format.getByteFormat()) {
 	case ByteFormat::FLOAT32:
 		return SND_PCM_FORMAT_FLOAT_LE;
 	default:
@@ -65,34 +65,34 @@ void ThrowAlsaError(std::string_view operation, int error) {
 }
 }
 
-void AlsaOutputDevice::SndPcmHandleTraits::Close(snd_pcm_t* value) {
+void AlsaOutputDevice::SndPcmHandleTraits::close(snd_pcm_t* value) {
 	(void)::snd_pcm_close(value);
 }
 
-AlsaOutputDevice::AlsaOutputDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool,
+AlsaOutputDevice::AlsaOutputDevice(const std::shared_ptr<IThreadPool>& thread_pool,
 	std::string device_id)
 	: device_id_(std::move(device_id))
 	, thread_pool_(thread_pool)
-	, logger_(XampLoggerFactory.GetLogger(XAMP_LOG_NAME(AlsaOutputDevice))) {
-	logger_->SetLevel(LogLevel::LOG_LEVEL_DEBUG);
+	, logger_(XampLoggerFactory.getLogger(XAMP_LOG_NAME(AlsaOutputDevice))) {
+	logger_->setLevel(LogLevel::LOG_LEVEL_DEBUG);
 }
 
 AlsaOutputDevice::~AlsaOutputDevice() {
 	try {
-		CloseStream();
+		closeStream();
 	}
 	catch (...) {
 	}
 }
 
-void AlsaOutputDevice::OpenStream(const AudioFormat& output_format) {
+void AlsaOutputDevice::openStream(const AudioFormat& output_format) {
 	if (device_id_.empty()) {
 		throw DeviceNotFoundException(device_id_);
 	}
 
-	CloseStream();
+	closeStream();
 
-	XAMP_LOG_D(logger_, "AlsaOutputDevice open stream: {}.", output_format.ToString());
+	XAMP_LOG_D(logger_, "AlsaOutputDevice open stream: {}.", output_format.toString());
 
 	const auto sample_format = ToAlsaSampleFormat(output_format);
 	snd_pcm_t* pcm = nullptr;
@@ -118,7 +118,7 @@ void AlsaOutputDevice::OpenStream(const AudioFormat& output_format) {
 		if ((error = ::snd_pcm_hw_params_set_format(pcm_.get(), hw_params, sample_format)) < 0) {
 			ThrowAlsaError("set format", error);
 		}
-		if ((error = ::snd_pcm_hw_params_set_channels(pcm_.get(), hw_params, output_format.GetChannels())) < 0) {
+		if ((error = ::snd_pcm_hw_params_set_channels(pcm_.get(), hw_params, output_format.getChannels())) < 0) {
 			ThrowAlsaError("set channels", error);
 		}
 
@@ -127,13 +127,13 @@ void AlsaOutputDevice::OpenStream(const AudioFormat& output_format) {
 			XAMP_LOG_D(logger_, "ALSA disable resampling unavailable: {}.", ::snd_strerror(error));
 		}
 
-		auto sample_rate = output_format.GetSampleRate();
+		auto sample_rate = output_format.getSampleRate();
 		if ((error = ::snd_pcm_hw_params_set_rate_near(pcm_.get(), hw_params, &sample_rate, nullptr)) < 0) {
 			ThrowAlsaError("set rate", error);
 		}
-		if (sample_rate != output_format.GetSampleRate()) {
+		if (sample_rate != output_format.getSampleRate()) {
 			Throw<PlatformException>("ALSA sample rate mismatch: requested:{} actual:{}.",
-				output_format.GetSampleRate(),
+				output_format.getSampleRate(),
 				sample_rate);
 		}
 
@@ -200,7 +200,7 @@ void AlsaOutputDevice::OpenStream(const AudioFormat& output_format) {
 		}
 
 		output_format_ = output_format;
-		render_buffer_ = MakeBuffer<float>(static_cast<size_t>(buffer_frames_) * output_format_.GetChannels());
+		render_buffer_ = MakeBuffer<float>(static_cast<size_t>(buffer_frames_) * output_format_.getChannels());
 		render_buffer_.Fill(0.0f);
 		poll_descriptors_.resize(static_cast<size_t>(poll_count));
 		stop_requested_ = true;
@@ -217,24 +217,24 @@ void AlsaOutputDevice::OpenStream(const AudioFormat& output_format) {
 			static_cast<uint32_t>(start_threshold));
 	}
 	catch (...) {
-		CloseStream();
+		closeStream();
 		throw;
 	}
 }
 
-void AlsaOutputDevice::SetAudioCallback(IAudioCallback* callback) {
+void AlsaOutputDevice::setAudioCallback(IAudioCallback* callback) {
 	callback_ = callback;
 }
 
-bool AlsaOutputDevice::IsStreamOpen() const {
+bool AlsaOutputDevice::isStreamOpen() const {
 	return pcm_.is_valid();
 }
 
-bool AlsaOutputDevice::IsStreamRunning() const {
+bool AlsaOutputDevice::isStreamRunning() const {
 	return is_running_;
 }
 
-void AlsaOutputDevice::StopRenderThread(bool wait_for_stop_stream) {
+void AlsaOutputDevice::stopRenderThread(bool wait_for_stop_stream) {
 	stop_requested_ = true;
 	is_running_ = false;
 
@@ -254,23 +254,23 @@ void AlsaOutputDevice::StopRenderThread(bool wait_for_stop_stream) {
 	}
 }
 
-void AlsaOutputDevice::StopStream(bool wait_for_stop_stream) {
-	if (!IsStreamOpen()) {
+void AlsaOutputDevice::stopStream(bool wait_for_stop_stream) {
+	if (!isStreamOpen()) {
 		return;
 	}
-	StopRenderThread(wait_for_stop_stream);
+	stopRenderThread(wait_for_stop_stream);
 }
 
-void AlsaOutputDevice::CloseStream() {
-	StopRenderThread(true);
+void AlsaOutputDevice::closeStream() {
+	stopRenderThread(true);
 	render_buffer_.reset();
 	poll_descriptors_.clear();
 
 	pcm_.reset();
 }
 
-void AlsaOutputDevice::StartStream() {
-	if (!IsStreamOpen() || is_running_) {
+void AlsaOutputDevice::startStream() {
+	if (!isStreamOpen() || is_running_) {
 		return;
 	}
 
@@ -299,61 +299,61 @@ void AlsaOutputDevice::StartStream() {
 
 	render_future_ = thread_pool_->Spawn([this](const std::stop_token& stop_token) {
 		XAMP_LOG_D(logger_, "Render loop start");
-		RenderLoop(stop_token);
+		renderLoop(stop_token);
 		XAMP_LOG_D(logger_, "Render loop stop");
 	}, ExecuteFlags::EXECUTE_LONG_RUNNING);
 }
 
-void AlsaOutputDevice::SetStreamTime(double stream_time) {
-	const auto frame = static_cast<int64_t>(stream_time * output_format_.GetSampleRate());
+void AlsaOutputDevice::setStreamTime(double stream_time) {
+	const auto frame = static_cast<int64_t>(stream_time * output_format_.getSampleRate());
 	stream_frame_ = frame;
 	stream_time_offset_frame_ = frame;
 }
 
-double AlsaOutputDevice::GetStreamTime() const {
-	if (output_format_.GetSampleRate() == 0) {
+double AlsaOutputDevice::getStreamTime() const {
+	if (output_format_.getSampleRate() == 0) {
 		return 0;
 	}
-	return static_cast<double>(stream_frame_.load()) / output_format_.GetSampleRate();
+	return static_cast<double>(stream_frame_.load()) / output_format_.getSampleRate();
 }
 
-uint32_t AlsaOutputDevice::GetVolume() const {
+uint32_t AlsaOutputDevice::getVolume() const {
 	return volume_;
 }
 
-void AlsaOutputDevice::SetVolume(uint32_t volume) const {
+void AlsaOutputDevice::setVolume(uint32_t volume) const {
 	volume_ = std::clamp(volume, 0U, 100U);
 }
 
-void AlsaOutputDevice::SetMute(bool mute) const {
+void AlsaOutputDevice::setMute(bool mute) const {
 	is_muted_ = mute;
 }
 
-bool AlsaOutputDevice::IsMuted() const {
+bool AlsaOutputDevice::isMuted() const {
 	return is_muted_;
 }
 
-bool AlsaOutputDevice::IsHardwareControlVolume() const {
+bool AlsaOutputDevice::isHardwareControlVolume() const {
 	return false;
 }
 
-PackedFormat AlsaOutputDevice::GetPackedFormat() const {
+PackedFormat AlsaOutputDevice::getPackedFormat() const {
 	return PackedFormat::INTERLEAVED;
 }
 
-uint32_t AlsaOutputDevice::GetBufferSize() const {
+uint32_t AlsaOutputDevice::getBufferSize() const {
 	return buffer_frames_ * AudioFormat::kMaxChannel;
 }
 
-void AlsaOutputDevice::AbortStream() {
-	if (!IsStreamOpen()) {
+void AlsaOutputDevice::abortStream() {
+	if (!isStreamOpen()) {
 		return;
 	}
-	StopRenderThread(true);
+	stopRenderThread(true);
 }
 
-void AlsaOutputDevice::ApplySoftwareVolume(float* samples, size_t sample_count) const {
-	if (output_format_.GetByteFormat() != ByteFormat::FLOAT32) {
+void AlsaOutputDevice::applySoftwareVolume(float* samples, size_t sample_count) const {
+	if (output_format_.getByteFormat() != ByteFormat::FLOAT32) {
 		return;
 	}
 
@@ -373,7 +373,7 @@ void AlsaOutputDevice::ApplySoftwareVolume(float* samples, size_t sample_count) 
 	}
 }
 
-void AlsaOutputDevice::ConfigureRealtimeThreadPriority() {
+void AlsaOutputDevice::configureRealtimeThreadPriority() {
 	bool expected = false;
 	if (!realtime_priority_configured_.compare_exchange_strong(expected, true)) {
 		return;
@@ -382,7 +382,7 @@ void AlsaOutputDevice::ConfigureRealtimeThreadPriority() {
 	SetRealtimeThreadPriority("ALSA render thread");
 }
 
-void AlsaOutputDevice::HandleRecoverableError(int error) {
+void AlsaOutputDevice::handleRecoverableError(int error) {
 	const auto state = ::snd_pcm_state(pcm_.get());
 	if (error == -EPIPE || state == SND_PCM_STATE_XRUN) {
 		XAMP_LOG_D(logger_, "ALSA xrun recovery state:{} error:{}.", ::snd_pcm_state_name(state), error);
@@ -418,12 +418,12 @@ void AlsaOutputDevice::HandleRecoverableError(int error) {
 	}
 }
 
-bool AlsaOutputDevice::IsRecoverableState() const {
+bool AlsaOutputDevice::isRecoverableState() const {
 	const auto state = ::snd_pcm_state(pcm_.get());
 	return state == SND_PCM_STATE_XRUN || state == SND_PCM_STATE_SUSPENDED;
 }
 
-bool AlsaOutputDevice::WaitUntilWritable(const std::stop_token& stop_token) {
+bool AlsaOutputDevice::waitUntilWritable(const std::stop_token& stop_token) {
 	if (!pcm_ || poll_descriptors_.empty()) {
 		return false;
 	}
@@ -459,9 +459,9 @@ bool AlsaOutputDevice::WaitUntilWritable(const std::stop_token& stop_token) {
 		}
 
 		if ((revents & POLLERR) != 0) {
-			if (IsRecoverableState()) {
+			if (isRecoverableState()) {
 				const auto state = ::snd_pcm_state(pcm_.get());
-				HandleRecoverableError(state == SND_PCM_STATE_XRUN ? -EPIPE : -ESTRPIPE);
+				handleRecoverableError(state == SND_PCM_STATE_XRUN ? -EPIPE : -ESTRPIPE);
 				continue;
 			}
 			Throw<PlatformException>("ALSA poll reported POLLERR state:{}.", ::snd_pcm_state_name(::snd_pcm_state(pcm_.get())));
@@ -470,7 +470,7 @@ bool AlsaOutputDevice::WaitUntilWritable(const std::stop_token& stop_token) {
 		if ((revents & (POLLHUP | POLLNVAL)) != 0) {
 			const auto available = ::snd_pcm_avail_update(pcm_.get());
 			if (available < 0) {
-				HandleRecoverableError(static_cast<int>(available));
+				handleRecoverableError(static_cast<int>(available));
 				continue;
 			}
 			if (available > 0) {
@@ -486,38 +486,38 @@ bool AlsaOutputDevice::WaitUntilWritable(const std::stop_token& stop_token) {
 	return false;
 }
 
-double AlsaOutputDevice::GetCallbackStreamTime(int64_t next_frame) const {
-	const auto sample_rate = output_format_.GetSampleRate();
+double AlsaOutputDevice::getCallbackStreamTime(int64_t next_frame) const {
+	const auto sample_rate = output_format_.getSampleRate();
 	if (sample_rate == 0) {
 		return 0;
 	}
 	return static_cast<double>(next_frame) / sample_rate;
 }
 
-void AlsaOutputDevice::RenderLoop(const std::stop_token& stop_token) {
-	ConfigureRealtimeThreadPriority();
+void AlsaOutputDevice::renderLoop(const std::stop_token& stop_token) {
+	configureRealtimeThreadPriority();
 
 	try {
 		bool initial_fill = true;
 		while (!stop_requested_ && !stop_token.stop_requested()) {
-			if (!initial_fill && !WaitUntilWritable(stop_token)) {
+			if (!initial_fill && !waitUntilWritable(stop_token)) {
 				break;
 			}
 
 			const auto frames_to_write = static_cast<snd_pcm_uframes_t>(buffer_frames_);
-			const auto channels = output_format_.GetChannels();
+			const auto channels = output_format_.getChannels();
 			auto* const samples = render_buffer_.data();
 			render_buffer_.Fill(0.0f);
 
 			size_t num_filled_frames = 0;
 			const auto current_frame = stream_frame_.load();
 			const auto next_frame = current_frame + static_cast<int64_t>(frames_to_write);
-			const auto stream_time = GetCallbackStreamTime(next_frame);
-			const auto result = callback_->OnGetSamples(samples,
+			const auto stream_time = getCallbackStreamTime(next_frame);
+			const auto result = callback_->onGetSamples(samples,
 				frames_to_write,
 				num_filled_frames,
 				stream_time,
-				GetStreamTime());
+				getStreamTime());
 
 			//XAMP_LOG_DEBUG("{} : callback result: {}, requested frames: {}, filled frames: {}, stream time: {:.2f}ms.",
 			//	__func__,
@@ -548,7 +548,7 @@ void AlsaOutputDevice::RenderLoop(const std::stop_token& stop_token) {
 				break;
 			}
 
-			ApplySoftwareVolume(samples, frames_ready * channels);
+			applySoftwareVolume(samples, frames_ready * channels);
 
 			auto frames_remaining = static_cast<snd_pcm_sframes_t>(frames_ready);
 			auto* write_ptr = samples;
@@ -556,19 +556,19 @@ void AlsaOutputDevice::RenderLoop(const std::stop_token& stop_token) {
 				const auto written = ::snd_pcm_writei(pcm_.get(), write_ptr, frames_remaining);
 				if (written == -EAGAIN) {
 					XAMP_LOG_D(logger_, "ALSA write would block, waiting for writable...");
-					if (!WaitUntilWritable(stop_token)) {
+					if (!waitUntilWritable(stop_token)) {
 						break;
 					}
 					continue;
 				}
 				//XAMP_LOG_D(logger_, "ALSA write result: {} frames.", written);
 				if (written < 0) {
-					HandleRecoverableError(static_cast<int>(written));
+					handleRecoverableError(static_cast<int>(written));
 					initial_fill = true;
 					break;
 				}
 				if (written == 0) {
-					if (!WaitUntilWritable(stop_token)) {
+					if (!waitUntilWritable(stop_token)) {
 						break;
 					}
 					continue;
@@ -582,7 +582,7 @@ void AlsaOutputDevice::RenderLoop(const std::stop_token& stop_token) {
 				write_ptr += static_cast<size_t>(written) * channels;
 				stream_frame_ += written;
 
-				if (frames_remaining > 0 && !WaitUntilWritable(stop_token)) {
+				if (frames_remaining > 0 && !waitUntilWritable(stop_token)) {
 					break;
 				}
 			}
@@ -602,7 +602,7 @@ void AlsaOutputDevice::RenderLoop(const std::stop_token& stop_token) {
 
 		XAMP_LOG_D(logger_, "ALSA render loop failed: {}.", e.what());
 		if (callback_ != nullptr) {
-			callback_->OnError(e);
+			callback_->onError(e);
 		}
 	}
 

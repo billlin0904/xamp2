@@ -24,31 +24,31 @@ public:
 
 	~PulseDeviceStateNotification() override;
 
-	void Run() override;
+	void run() override;
 
 private:
-	void Stop() noexcept;
+	void stop() noexcept;
 
 	void Notify(DeviceState state, std::string device_id);
 
-	void OnContextStateChanged(pa_context* context);
+	void onContextStateChanged(pa_context* context);
 
-	void OnSubscriptionEvent(pa_context* context, pa_subscription_event_type_t event_type, uint32_t index);
+	void onSubscriptionEvent(pa_context* context, pa_subscription_event_type_t event_type, uint32_t index);
 
-	void OnServerInfo(const pa_server_info* info);
+	void onServerInfo(const pa_server_info* info);
 
-	void OnSinkInfo(const pa_sink_info* info, DeviceState state, uint32_t index);
+	void onSinkInfo(const pa_sink_info* info, DeviceState state, uint32_t index);
 
-	static void ContextStateCallback(pa_context* context, void* userdata);
+	static void contextStateCallback(pa_context* context, void* userdata);
 
 	static void SubscriptionCallback(pa_context* context,
 		pa_subscription_event_type_t event_type,
 		uint32_t index,
 		void* userdata);
 
-	static void ServerInfoCallback(pa_context* context, const pa_server_info* info, void* userdata);
+	static void serverInfoCallback(pa_context* context, const pa_server_info* info, void* userdata);
 
-	static void SinkInfoCallback(pa_context* context, const pa_sink_info* info, int eol, void* userdata);
+	static void sinkInfoCallback(pa_context* context, const pa_sink_info* info, int eol, void* userdata);
 
 	std::weak_ptr<IDeviceStateListener> callback_;
 	LoggerPtr logger_;

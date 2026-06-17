@@ -37,7 +37,7 @@ public:
 
 	[[nodiscard]] char const* what() const noexcept override;
 
-	[[nodiscard]] int32_t GetErrorCode() const ;
+	[[nodiscard]] int32_t getErrorCode() const ;
 
 private:
 	int32_t error_code_;
@@ -196,7 +196,7 @@ public:
 
     XAMP_DISABLE_COPY(AvLib)
 
-    HashSet<std::string> GetSupportFileExtensions() const;
+    HashSet<std::string> getSupportFileExtensions() const;
      
     ScopedPtr<AvFormatLib> Format;
     ScopedPtr<AvCodecLib>  Codec;
@@ -206,9 +206,9 @@ public:
     LoggerPtr logger;
 };
 
-#define LibAvDLL SharedSingleton<AvLib>::GetInstance()
+#define LibAvDLL SharedSingleton<AvLib>::getInstance()
 
-template <typename T>
+template <typename t>
 struct AvResourceDeleter;
 
 template <>
@@ -284,7 +284,7 @@ struct AvResourceDeleter<AVDictionary> {
     }
 };
 
-template <typename T>
-using AvPtr = std::unique_ptr<T, AvResourceDeleter<T>>;
+template <typename t>
+using AvPtr = std::unique_ptr<t, AvResourceDeleter<t>>;
 
 XAMP_STREAM_NAMESPACE_END

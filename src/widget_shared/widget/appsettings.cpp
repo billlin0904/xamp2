@@ -205,7 +205,7 @@ QString AppSettings::getOrCreateLrcCachePath() {
 	const QDir dir(cache_path);
 	if (!dir.exists()) {
 		if (!dir.mkdir(cache_path)) {
-			XAMP_LOG_ERROR("Create cache dir failure!");
+			XAMP_LOG_ERROR("create cache dir failure!");
 		}
 	}
 	return cache_path;
@@ -216,7 +216,7 @@ QString AppSettings::getOrCreateImageCachePath() {
 	const QDir dir(cache_path);
 	if (!dir.exists()) {
 		if (!dir.mkdir(cache_path)) {
-			XAMP_LOG_ERROR("Create cache dir failure!");
+			XAMP_LOG_ERROR("create cache dir failure!");
 		}
 	}
 	return cache_path;
@@ -238,7 +238,7 @@ QString AppSettings::getOrCreateCachePath() {
 			const QDir dir(cache_path);
 			if (!dir.exists()) {
 				if (!dir.mkdir(cache_path)) {
-					XAMP_LOG_ERROR("Create cache dir failure!");
+					XAMP_LOG_ERROR("create cache dir failure!");
 				}
 				else {
 					break;
@@ -257,7 +257,7 @@ QString AppSettings::getOrCreateCachePath() {
     const QDir dir(cache_path);
     if (!dir.exists()) {
         if (!dir.mkdir(cache_path)) {
-            XAMP_LOG_ERROR("Create cache dir failure!");
+            XAMP_LOG_ERROR("create cache dir failure!");
         }
     }
 #endif
@@ -284,7 +284,7 @@ Uuid AppSettings::valueAsId(const QString& key) {
 	if (str.isEmpty()) {
 		return Uuid::kNullUuid;
 	}
-	return Uuid::FromString(str.toStdString());
+	return Uuid::fromString(str.toStdString());
 }
 
 QList<QString> AppSettings::valueAsStringList(const QString& key) {
@@ -391,27 +391,27 @@ void AppSettings::saveLogConfig() {
 	QMap<QString, QVariant> well_known_log_name;
 	QMap<QString, QVariant> override_map;
 
-	for (const auto& logger : XampLoggerFactory.GetAllLogger()) {
-		if (logger->GetName() != std::string(kXampLoggerName)) {
-			well_known_log_name[toQString(logger->GetName())] = log_util::getLogLevelString(logger->GetLevel());
+	for (const auto& logger : XampLoggerFactory.getAllLogger()) {
+		if (logger->getName() != std::string(kXampLoggerName)) {
+			well_known_log_name[toQString(logger->getName())] = log_util::getLogLevelString(logger->getLevel());
 		}
 	}
 
 	min_level[kLogDefault] = "debug"_str;
 
-	XampLoggerFactory.SetLevel(log_util::parseLogLevel(min_level[kLogDefault].toString()));
+	XampLoggerFactory.setLevel(log_util::parseLogLevel(min_level[kLogDefault].toString()));
 
 	for (auto itr = well_known_log_name.begin()
 	     ; itr != well_known_log_name.end(); ++itr) {
 		override_map[itr.key()] = itr.value();
-		XampLoggerFactory.GetLogger(itr.key().toStdString())
-		                 ->SetLevel(log_util::parseLogLevel(itr.value().toString()));
+		XampLoggerFactory.getLogger(itr.key().toStdString())
+		                 ->setLevel(log_util::parseLogLevel(itr.value().toString()));
 	}
 
 	min_level[kLogOverride] = override_map;
 	log[kLogMinimumLevel] = min_level;
-	qJsonSettings.setValue(kLog, QVariant::fromValue(log));
-	qJsonSettings.setDefaultValue(kLog, QVariant::fromValue(log));
+	qJsonSettings.setValue(klog, QVariant::fromValue(log));
+	qJsonSettings.setDefaultValue(klog, QVariant::fromValue(log));
 }
 
 void AppSettings::loadOrSaveLogConfig() {
@@ -423,35 +423,35 @@ void AppSettings::loadOrSaveLogConfig() {
 
 	QMap<QString, QVariant> well_known_log_name;
 
-	for (const auto& logger : XampLoggerFactory.GetAllLogger()) {
-		if (logger->GetName() != std::string(kXampLoggerName)) {
-			well_known_log_name[toQString(logger->GetName())] = "debug"_str;
+	for (const auto& logger : XampLoggerFactory.getAllLogger()) {
+		if (logger->getName() != std::string(kXampLoggerName)) {
+			well_known_log_name[toQString(logger->getName())] = "debug"_str;
 		}
 	}
 
-	if (qJsonSettings.valueAsMap(kLog).isEmpty()) {
+	if (qJsonSettings.valueAsMap(klog).isEmpty()) {
 		min_level[kLogDefault] = "debug"_str;
 
-		XampLoggerFactory.SetLevel(log_util::parseLogLevel(min_level[kLogDefault].toString()));
+		XampLoggerFactory.setLevel(log_util::parseLogLevel(min_level[kLogDefault].toString()));
 
 		for (auto itr = well_known_log_name.begin()
 		     ; itr != well_known_log_name.end(); ++itr) {
 			override_map[itr.key()] = itr.value();
-			XampLoggerFactory.GetLogger(itr.key().toStdString())
-			                 ->SetLevel(log_util::parseLogLevel(itr.value().toString()));
+			XampLoggerFactory.getLogger(itr.key().toStdString())
+			                 ->setLevel(log_util::parseLogLevel(itr.value().toString()));
 		}
 
 		min_level[kLogOverride] = override_map;
 		log[kLogMinimumLevel] = min_level;
-		qJsonSettings.setValue(kLog, QVariant::fromValue(log));
-		qJsonSettings.setDefaultValue(kLog, QVariant::fromValue(log));
+		qJsonSettings.setValue(klog, QVariant::fromValue(log));
+		qJsonSettings.setDefaultValue(klog, QVariant::fromValue(log));
 	}
 	else {
-		log = qJsonSettings.valueAsMap(kLog);
+		log = qJsonSettings.valueAsMap(klog);
 		min_level = log[kLogMinimumLevel].toMap();
 
 		const auto default_level = min_level[kLogDefault].toString();
-		XampLoggerFactory.SetLevel(log_util::parseLogLevel(default_level));
+		XampLoggerFactory.setLevel(log_util::parseLogLevel(default_level));
 
 		override_map = min_level[kLogOverride].toMap();
 
@@ -466,17 +466,17 @@ void AppSettings::loadOrSaveLogConfig() {
 		     ; itr != override_map.end(); ++itr) {
 			const auto& log_name = itr.key();
 			auto log_level = itr.value().toString();
-			XampLoggerFactory.GetLogger(log_name.toStdString())
-			                 ->SetLevel(log_util::parseLogLevel(log_level));
-			/*XampLoggerFactory.GetLogger(log_name.toStdString())
-				->SetLevel(LogLevel::LOG_LEVEL_DEBUG);*/
+			XampLoggerFactory.getLogger(log_name.toStdString())
+			                 ->setLevel(log_util::parseLogLevel(log_level));
+			/*XampLoggerFactory.getLogger(log_name.toStdString())
+				->setLevel(LogLevel::LOG_LEVEL_DEBUG);*/
 		}
 	}
 
 #ifdef _DEBUG
 	// Workaround for crash handler debug log
-	XampLoggerFactory.GetLogger(kCrashHandlerLoggerName)
-	                 ->SetLevel(LOG_LEVEL_DEBUG);
+	XampLoggerFactory.getLogger(kCrashHandlerLoggerName)
+	                 ->setLevel(LOG_LEVEL_DEBUG);
 #endif
 }
 
@@ -526,6 +526,7 @@ void AppSettings::loadAppSettings() {
 	setDefaultValue(kAppSettingEnterFullScreen, false);
 	setDefaultValue(kAppSettingEnableSandboxMode, true);
 	setDefaultValue(kAppSettingEnableDebugStackTrace, true);
+	setDefaultValue(kAppSettingSpectrogramFFTSize, 4096);
 
 	setDefaultValue(kAppSettingAlbumPlaylistColumnName, "3, 6, 26"_str);
 	setDefaultValue(kAppSettingFileSystemPlaylistColumnName, "3, 6, 26"_str);

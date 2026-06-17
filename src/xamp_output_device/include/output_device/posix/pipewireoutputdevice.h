@@ -16,7 +16,7 @@
 #include <output_device/posix/pipewire_private.h>
 
 namespace xamp::base {
-class IThreadPoolExecutor;
+class IThreadPool;
 }
 
 struct pw_buffer;
@@ -27,66 +27,66 @@ XAMP_DECLARE_LOG_NAME(PipeWireOutputDevice);
 
 class PipeWireOutputDevice final : public IOutputDevice {
 public:
-	explicit PipeWireOutputDevice(const std::shared_ptr<xamp::base::IThreadPoolExecutor>& thread_pool,
+	explicit PipeWireOutputDevice(const std::shared_ptr<xamp::base::IThreadPool>& thread_pool,
 		std::string device_id);
 
 	~PipeWireOutputDevice() override;
 
-	void OpenStream(const AudioFormat& output_format) override;
+	void openStream(const AudioFormat& output_format) override;
 
-	void SetAudioCallback(IAudioCallback* callback) override;
+	void setAudioCallback(IAudioCallback* callback) override;
 
-	[[nodiscard]] bool IsStreamOpen() const override;
+	[[nodiscard]] bool isStreamOpen() const override;
 
-	[[nodiscard]] bool IsStreamRunning() const override;
+	[[nodiscard]] bool isStreamRunning() const override;
 
-	void StopStream(bool wait_for_stop_stream = true) override;
+	void stopStream(bool wait_for_stop_stream = true) override;
 
-	void CloseStream() override;
+	void closeStream() override;
 
-	void StartStream() override;
+	void startStream() override;
 
-	void SetStreamTime(double stream_time) override;
+	void setStreamTime(double stream_time) override;
 
-	[[nodiscard]] double GetStreamTime() const override;
+	[[nodiscard]] double getStreamTime() const override;
 
-	[[nodiscard]] uint32_t GetVolume() const override;
+	[[nodiscard]] uint32_t getVolume() const override;
 
-	void SetVolume(uint32_t volume) const override;
+	void setVolume(uint32_t volume) const override;
 
-	void SetMute(bool mute) const override;
+	void setMute(bool mute) const override;
 
-	[[nodiscard]] bool IsMuted() const override;
+	[[nodiscard]] bool isMuted() const override;
 
-	[[nodiscard]] bool IsHardwareControlVolume() const override;
+	[[nodiscard]] bool isHardwareControlVolume() const override;
 
-	[[nodiscard]] PackedFormat GetPackedFormat() const override;
+	[[nodiscard]] PackedFormat getPackedFormat() const override;
 
-	[[nodiscard]] uint32_t GetBufferSize() const override;
+	[[nodiscard]] uint32_t getBufferSize() const override;
 
-	void AbortStream() override;
+	void abortStream() override;
 
 private:
-	static void CoreDoneCallback(void* userdata, uint32_t id, int seq);
+	static void coreDoneCallback(void* userdata, uint32_t id, int seq);
 
-	static void StreamStateCallback(void* userdata,
+	static void streamStateCallback(void* userdata,
 		pw_stream_state old_state,
 		pw_stream_state state,
 		const char* error);
 
-	static void StreamProcessCallback(void* userdata);
+	static void streamProcessCallback(void* userdata);
 
-	void WaitForCoreReady();
+	void waitForCoreReady();
 
-	void WaitForStreamReady();
+	void waitForStreamReady();
 
-	void OnStreamProcess();
+	void onStreamProcess();
 
-	void ApplySoftwareVolume(float* samples, size_t sample_count) const;
+	void applySoftwareVolume(float* samples, size_t sample_count) const;
 
-	void ConfigureRealtimeThreadPriority();
+	void configureRealtimeThreadPriority();
 
-	[[nodiscard]] double GetCallbackStreamTime(int64_t next_frame) const;
+	[[nodiscard]] double getCallbackStreamTime(int64_t next_frame) const;
 
 	std::atomic<bool> is_running_{ false };
 	std::atomic<bool> is_stopped_{ true };

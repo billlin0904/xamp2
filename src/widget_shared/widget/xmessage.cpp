@@ -48,7 +48,7 @@ void XMessage::SetDuration(int duration_ms) {
 }
 
 void XMessage::AdjustItemPosition(XMessageItem* item) {
-    item->Close();
+    item->close();
 }
 
 void XMessage::RemoveItem(XMessageItem* item) {
@@ -148,7 +148,7 @@ void XMessageItem::Show() {
     AppearAnimation();
 }
 
-void XMessageItem::Close() {
+void XMessageItem::close() {
     DisappearAnimation();
 }
 

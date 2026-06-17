@@ -8,7 +8,7 @@ HANDLE HandleTraits::invalid() {
 	return nullptr;
 }
 
-void HandleTraits::Close(HANDLE value) {
+void HandleTraits::close(HANDLE value) {
 	::CloseHandle(value);
 }
 
@@ -16,7 +16,7 @@ HANDLE FileHandleTraits::invalid() {
 	return INVALID_HANDLE_VALUE;
 }
 
-void FileHandleTraits::Close(HANDLE value) {
+void FileHandleTraits::close(HANDLE value) {
 	::CloseHandle(value);
 }
 
@@ -24,7 +24,7 @@ HMODULE ModuleHandleTraits::invalid() {
 	return nullptr;
 }
 
-void ModuleHandleTraits::Close(HMODULE value) {
+void ModuleHandleTraits::close(HMODULE value) {
 	::FreeLibrary(value);
 }
 
@@ -32,7 +32,7 @@ HANDLE MappingFileHandleTraits::invalid() {
 	return nullptr;
 }
 
-void MappingFileHandleTraits::Close(HANDLE value) {
+void MappingFileHandleTraits::close(HANDLE value) {
 	::CloseHandle(value);
 }
 
@@ -40,7 +40,7 @@ void* MappingMemoryAddressTraits::invalid() {
 	return nullptr;
 }
 
-void MappingMemoryAddressTraits::Close(void* value) {
+void MappingMemoryAddressTraits::close(void* value) {
 	::UnmapViewOfFile(value);
 }
 
@@ -48,7 +48,7 @@ HANDLE TimerQueueTraits::invalid() {
 	return nullptr;
 }
 
-void TimerQueueTraits::Close(HANDLE value) {
+void TimerQueueTraits::close(HANDLE value) {
 	(void) ::DeleteTimerQueueEx(value, INVALID_HANDLE_VALUE);
 }
 
@@ -56,7 +56,7 @@ HKEY RegTraits::invalid() {
 	return nullptr;
 }
 
-void RegTraits::Close(HKEY value) {
+void RegTraits::close(HKEY value) {
 	::RegCloseKey(value);
 }
 

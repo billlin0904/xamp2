@@ -48,9 +48,9 @@ inline SrcLib::SrcLib() try
 	, XAMP_LOAD_DLL_API(src_strerror) {
 }
 catch (const Exception& e) {
-    XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+    XAMP_LOG_ERROR("{}", e.getErrorMessage());
 }
 
-#define LibSrcDLL SharedSingleton<SrcLib>::GetInstance()
+#define LibSrcDLL SharedSingleton<SrcLib>::getInstance()
 
 XAMP_STREAM_NAMESPACE_END

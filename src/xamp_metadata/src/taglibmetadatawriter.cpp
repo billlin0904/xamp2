@@ -70,7 +70,7 @@ namespace {
 
 		FileReplaceTransaction& operator=(FileReplaceTransaction&& other) noexcept {
 			if (this != &other) {
-				Cleanup();
+				cleanup();
 				original_path_ = std::move(other.original_path_);
 				temp_path_ = std::move(other.temp_path_);
 				committed_ = other.committed_;
@@ -80,7 +80,7 @@ namespace {
 		}
 
 		~FileReplaceTransaction() {
-			Cleanup();
+			cleanup();
 		}
 
 		[[nodiscard]] const Path& TempPath() const {
@@ -129,10 +129,10 @@ namespace {
 					return temp_path;
 				}
 			}
-			throw PlatformException("Create metadata temp file path failure.");
+			throw PlatformException("create metadata temp file path failure.");
 		}
 
-		void Cleanup() noexcept {
+		void cleanup() noexcept {
 			if (committed_ || temp_path_.empty()) {
 				return;
 			}
@@ -233,13 +233,13 @@ namespace {
 
 	struct XAMP_NO_VTABLE IFileTagWriter {
 		virtual ~IFileTagWriter() = default;
-		virtual void WriteReplayGain(const ReplayGain& replay_gain, File* file_) = 0;
-		virtual void WriteEmbeddedCover(File* file_, const TagLib::ByteVector& image_data) = 0;
-		virtual void RemoveEmbeddedCover(File* file_) = 0;
+		virtual void writeReplayGain(const ReplayGain& replay_gain, File* file_) = 0;
+		virtual void writeEmbeddedCover(File* file_, const TagLib::ByteVector& image_data) = 0;
+		virtual void removeEmbeddedCover(File* file_) = 0;
 	};
 
 	struct FlacTagWriter : public IFileTagWriter {
-		void WriteReplayGain(const ReplayGain& replay_gain, File* file_) override {
+		void writeReplayGain(const ReplayGain& replay_gain, File* file_) override {
 			if (auto* const flac_file = dynamic_cast<TagLib::FLAC::File*>(file_)) {
 				Ogg::XiphComment* comment = nullptr;
 				if (!flac_file->hasXiphComment()) {
@@ -256,29 +256,29 @@ namespace {
 			}
 		}
 
-		void WriteEmbeddedCover(File* file_, const TagLib::ByteVector& image_data) override {
+		void writeEmbeddedCover(File* file_, const TagLib::ByteVector& image_data) override {
 			WriteDefaultEmbeddedCover(file_, image_data);
 		}
 
-		void RemoveEmbeddedCover(File* file_) override {
+		void removeEmbeddedCover(File* file_) override {
 			RemoveDefaultEmbeddedCover(file_);
 		}
 	};
 
 	struct Mp3TagWriter : public IFileTagWriter {
-		void WriteReplayGain(const ReplayGain& replay_gain, File* file_) override {
+		void writeReplayGain(const ReplayGain& replay_gain, File* file_) override {
 			if (auto* mp3_file = dynamic_cast<TagLib::MPEG::File*>(file_)) {
 				WriteID3v2ReplayGain(mp3_file->ID3v2Tag(true), replay_gain);
 			}
 		}
 
-		void WriteEmbeddedCover(File* file_, const TagLib::ByteVector& image_data) override {
+		void writeEmbeddedCover(File* file_, const TagLib::ByteVector& image_data) override {
 			if (auto* mp3_file = dynamic_cast<TagLib::MPEG::File*>(file_)) {
 				WriteDefaultEmbeddedCover(mp3_file->ID3v2Tag(true), image_data);
 			}
 		}
 
-		void RemoveEmbeddedCover(File* file_) override {
+		void removeEmbeddedCover(File* file_) override {
 			if (auto* mp3_file = dynamic_cast<TagLib::MPEG::File*>(file_)) {
 				RemoveDefaultEmbeddedCover(mp3_file->ID3v2Tag(true));
 			}
@@ -286,19 +286,19 @@ namespace {
 	};
 
 	struct WavTagWriter : public IFileTagWriter {
-		void WriteReplayGain(const ReplayGain& replay_gain, File* file_) override {
+		void writeReplayGain(const ReplayGain& replay_gain, File* file_) override {
 			if (auto* wav_file = dynamic_cast<TagLib::RIFF::WAV::File*>(file_)) {
 				WriteID3v2ReplayGain(wav_file->ID3v2Tag(), replay_gain);
 			}
 		}
 
-		void WriteEmbeddedCover(File* file_, const TagLib::ByteVector& image_data) override {
+		void writeEmbeddedCover(File* file_, const TagLib::ByteVector& image_data) override {
 			if (auto* wav_file = dynamic_cast<TagLib::RIFF::WAV::File*>(file_)) {
 				WriteDefaultEmbeddedCover(wav_file->ID3v2Tag(), image_data);
 			}
 		}
 
-		void RemoveEmbeddedCover(File* file_) override {
+		void removeEmbeddedCover(File* file_) override {
 			if (auto* wav_file = dynamic_cast<TagLib::RIFF::WAV::File*>(file_)) {
 				RemoveDefaultEmbeddedCover(wav_file->ID3v2Tag());
 			}
@@ -306,19 +306,19 @@ namespace {
 	};
 
 	struct DsfTagWriter : public IFileTagWriter {
-		void WriteReplayGain(const ReplayGain& replay_gain, File* file_) override {
+		void writeReplayGain(const ReplayGain& replay_gain, File* file_) override {
 			if (auto* dsf_file = dynamic_cast<TagLib::DSF::File*>(file_)) {
 				WriteID3v2ReplayGain(dsf_file->tag(), replay_gain);
 			}
 		}
 
-		void WriteEmbeddedCover(File* file_, const TagLib::ByteVector& image_data) override {
+		void writeEmbeddedCover(File* file_, const TagLib::ByteVector& image_data) override {
 			if (auto* dsf_file = dynamic_cast<TagLib::DSF::File*>(file_)) {
 				WriteDefaultEmbeddedCover(dsf_file->tag(), image_data);
 			}
 		}
 
-		void RemoveEmbeddedCover(File* file_) override {
+		void removeEmbeddedCover(File* file_) override {
 			if (auto* dsf_file = dynamic_cast<TagLib::DSF::File*>(file_)) {
 				RemoveDefaultEmbeddedCover(dsf_file->tag());
 			}
@@ -326,19 +326,19 @@ namespace {
 	};
 
 	struct DiffTagWriter : public IFileTagWriter {
-		void WriteReplayGain(const ReplayGain& replay_gain, File* file_) override {
+		void writeReplayGain(const ReplayGain& replay_gain, File* file_) override {
 			if (auto* diff_file = dynamic_cast<TagLib::DSDIFF::File*>(file_)) {
 				WriteID3v2ReplayGain(diff_file->ID3v2Tag(true), replay_gain);
 			}
 		}
 
-		void WriteEmbeddedCover(File* file_, const TagLib::ByteVector& image_data) override {
+		void writeEmbeddedCover(File* file_, const TagLib::ByteVector& image_data) override {
 			if (auto* diff_file = dynamic_cast<TagLib::DSDIFF::File*>(file_)) {
 				WriteDefaultEmbeddedCover(diff_file->ID3v2Tag(true), image_data);
 			}
 		}
 
-		void RemoveEmbeddedCover(File* file_) override {
+		void removeEmbeddedCover(File* file_) override {
 			if (auto* diff_file = dynamic_cast<TagLib::DSDIFF::File*>(file_)) {
 				RemoveDefaultEmbeddedCover(diff_file->ID3v2Tag(false));
 			}
@@ -346,7 +346,7 @@ namespace {
 	};
 
 	struct Mp4TagWriter : public IFileTagWriter {
-		void WriteReplayGain(const ReplayGain& replay_gain, File* file_) override {
+		void writeReplayGain(const ReplayGain& replay_gain, File* file_) override {
 			if (auto* mp4_tag = dynamic_cast<TagLib::MP4::Tag*>(file_->tag())) {
 				mp4_tag->setItem(kITunesReplaygainTrackGain,
 					TagLib::StringList(std::to_string(replay_gain.track_gain)));
@@ -361,11 +361,11 @@ namespace {
 			}
 		}
 
-		void WriteEmbeddedCover(File* file_, const TagLib::ByteVector& image_data) override {
+		void writeEmbeddedCover(File* file_, const TagLib::ByteVector& image_data) override {
 			WriteDefaultEmbeddedCover(file_, image_data);
 		}
 
-		void RemoveEmbeddedCover(File* file_) override {
+		void removeEmbeddedCover(File* file_) override {
 			if (auto* mp4_file = dynamic_cast<TagLib::MP4::File*>(file_)) {
 				mp4_file->tag()->removeItem("covr");
 			}
@@ -373,7 +373,7 @@ namespace {
 	};
 
 	struct OpusTagWriter : public IFileTagWriter {
-		void WriteReplayGain(const ReplayGain& replay_gain, File* file_) override {
+		void writeReplayGain(const ReplayGain& replay_gain, File* file_) override {
 			auto* opus = dynamic_cast<Ogg::Opus::File*>(file_);
 			if (!opus || !opus->isValid())
 				return;
@@ -397,7 +397,7 @@ namespace {
 		   tag->addField("REPLAYGAIN_TRACK_PEAK", ...); */
 		}
 
-		void WriteEmbeddedCover(File* file_, const TagLib::ByteVector& image_data) override {
+		void writeEmbeddedCover(File* file_, const TagLib::ByteVector& image_data) override {
 			auto* opus_file = dynamic_cast<TagLib::Ogg::Opus::File*>(file_);
 			if (!opus_file || !opus_file->isValid()) {
 				return;
@@ -410,7 +410,7 @@ namespace {
 			WriteDefaultEmbeddedCover(tag, image_data);
 		}
 
-		void RemoveEmbeddedCover(File* file_) override {
+		void removeEmbeddedCover(File* file_) override {
 			if (auto* const opus_file = dynamic_cast<TagLib::Ogg::Opus::File*>(file_)) {
 				auto* tag = opus_file->tag();
 				RemoveDefaultEmbeddedCover(tag);
@@ -419,7 +419,7 @@ namespace {
 	};
 
 	struct ApeTagWriter : public IFileTagWriter {
-		void WriteReplayGain(const ReplayGain& replay_gain, File* file_) override {
+		void writeReplayGain(const ReplayGain& replay_gain, File* file_) override {
 			if (auto* ape_file = dynamic_cast<APE::File*>(file_)) {
 				if (auto* tag = ape_file->APETag(true)) {
 					tag->addValue(kReplaygainAlbumGain, std::to_string(replay_gain.album_gain));
@@ -431,7 +431,7 @@ namespace {
 			}
 		}
 
-		void WriteEmbeddedCover(File* file_, const TagLib::ByteVector& image_data) override {
+		void writeEmbeddedCover(File* file_, const TagLib::ByteVector& image_data) override {
 			if (auto* ape_file = dynamic_cast<APE::File*>(file_)) {
 				if (auto* tag = ape_file->APETag(true)) {
 					WriteDefaultEmbeddedCover(tag, image_data);
@@ -439,7 +439,7 @@ namespace {
 			}
 		}
 
-		void RemoveEmbeddedCover(File* file_) override {
+		void removeEmbeddedCover(File* file_) override {
 			if (auto* ape_file = dynamic_cast<APE::File*>(file_)) {
 				if (auto* tag = ape_file->APETag(false)) {
 					RemoveDefaultEmbeddedCover(tag);
@@ -450,16 +450,16 @@ namespace {
 
 	HashMap<std::string_view, std::function<ScopedPtr<IFileTagWriter>()>>
 		kFileTagWriterLut{
-		{ ".flac", [] { return MakeAlign<IFileTagWriter, FlacTagWriter>(); } },
-		{ ".mp3",  [] { return MakeAlign<IFileTagWriter, Mp3TagWriter>(); } },
-		{ ".wav",  [] { return MakeAlign<IFileTagWriter, WavTagWriter>(); } },
-		{ ".wave", [] { return MakeAlign<IFileTagWriter, WavTagWriter>(); } },
-		{ ".m4a",  [] { return MakeAlign<IFileTagWriter, Mp4TagWriter>(); } },
-		{ ".mp4",  [] { return MakeAlign<IFileTagWriter, Mp4TagWriter>(); } },
-		{ ".opus",  [] { return MakeAlign<IFileTagWriter, OpusTagWriter>(); } },
-		{ ".ape",  [] { return MakeAlign<IFileTagWriter, ApeTagWriter>(); } },
-		{ ".dff",  [] { return MakeAlign<IFileTagWriter, DiffTagWriter>(); } },
-		{ ".dsf",  [] { return MakeAlign<IFileTagWriter, DsfTagWriter>(); } }
+		{ ".flac", [] { return makeAlign<IFileTagWriter, FlacTagWriter>(); } },
+		{ ".mp3",  [] { return makeAlign<IFileTagWriter, Mp3TagWriter>(); } },
+		{ ".wav",  [] { return makeAlign<IFileTagWriter, WavTagWriter>(); } },
+		{ ".wave", [] { return makeAlign<IFileTagWriter, WavTagWriter>(); } },
+		{ ".m4a",  [] { return makeAlign<IFileTagWriter, Mp4TagWriter>(); } },
+		{ ".mp4",  [] { return makeAlign<IFileTagWriter, Mp4TagWriter>(); } },
+		{ ".opus",  [] { return makeAlign<IFileTagWriter, OpusTagWriter>(); } },
+		{ ".ape",  [] { return makeAlign<IFileTagWriter, ApeTagWriter>(); } },
+		{ ".dff",  [] { return makeAlign<IFileTagWriter, DiffTagWriter>(); } },
+		{ ".dsf",  [] { return makeAlign<IFileTagWriter, DsfTagWriter>(); } }
 	};
 
 	ScopedPtr<IFileTagWriter> MakeFileTagWriter(const std::string &ext) {
@@ -487,11 +487,11 @@ public:
 			Save();
 		}
 		catch (const std::exception& e) {
-			XAMP_LOG_DEBUG("Write tag failure: {}", e.what());
+			XAMP_LOG_DEBUG("write tag failure: {}", e.what());
 		}
 	}
 
-	void Open(const Path& path) {
+	void open(const Path& path) {
 		Save();
 		Clear();
 
@@ -514,7 +514,7 @@ public:
 		tag_writer_ = MakeFileTagWriter(ext);
 	}
 
-    void Write(const TrackInfo &track_info) const {
+    void write(const TrackInfo &track_info) const {
 		CheckFileRef()
 		auto* tag = fileref_opt_->tag();
 		tag->setTrack(track_info.track);
@@ -525,66 +525,66 @@ public:
 		MarkDirty();
     }
 
-    void WriteTitle(const std::wstring &title) {
+    void writeTitle(const std::wstring &title) {
 		CheckFileRef()
 		auto* tag = fileref_opt_->tag();
 		tag->setTitle(title.empty() ? TagLib::String() : title);
 		MarkDirty();
     }
 
-    void WriteArtist(const std::wstring &artist) {
+    void writeArtist(const std::wstring &artist) {
 		CheckFileRef()
 		auto* tag = fileref_opt_->tag();
 		tag->setArtist(artist.empty() ? TagLib::String() : artist);
 		MarkDirty();
     }
 
-    void WriteAlbum(const std::wstring &album) {
+    void writeAlbum(const std::wstring &album) {
 		CheckFileRef()
 		auto* tag = fileref_opt_->tag();
 		tag->setAlbum(album.empty() ? TagLib::String() : album);
 		MarkDirty();
     }
 
-    void WriteTrack(uint32_t track) {
+    void writeTrack(uint32_t track) {
 		CheckFileRef()
 		auto* tag = fileref_opt_->tag();
 		tag->setTrack(track);
 		MarkDirty();
     }
 
-	void WriteComment(const std::wstring& comment) {
+	void writeComment(const std::wstring& comment) {
 		CheckFileRef()
 		auto* tag = fileref_opt_->tag();
 		tag->setComment(comment.empty() ? TagLib::String() : comment);
 		MarkDirty();
 	}
 
-	void WriteGenre(const std::wstring& genre) {
+	void writeGenre(const std::wstring& genre) {
 		CheckFileRef()
 		auto* tag = fileref_opt_->tag();
 		tag->setGenre(genre.empty() ? TagLib::String() : genre);
 		MarkDirty();
 	}
 
-	void WriteYear(uint32_t year) {
+	void writeYear(uint32_t year) {
 		CheckFileRef()
 		auto* tag = fileref_opt_->tag();
 		tag->setYear(year);
 		MarkDirty();
 	}
 
-	void WriteReplayGain(const ReplayGain & replay_gain) {
+	void writeReplayGain(const ReplayGain & replay_gain) {
 		CheckFileRef()
 
 		auto* file_ = fileref_opt_->file();
 		if (tag_writer_ != nullptr) {
-			tag_writer_->WriteReplayGain(replay_gain, file_);
+			tag_writer_->writeReplayGain(replay_gain, file_);
 			MarkDirty();
 		}
 	}
 
-	void WriteEmbeddedCover(const uint8_t *image, size_t image_size) const {
+	void writeEmbeddedCover(const uint8_t *image, size_t image_size) const {
 		CheckFileRef()
 		if (image_size > static_cast<size_t>((std::numeric_limits<unsigned int>::max)())) {
 			throw PlatformException();
@@ -593,26 +593,26 @@ public:
 		const TagLib::ByteVector image_data(reinterpret_cast<const char*>(image), static_cast<unsigned int>(image_size));
 		auto* file_ = fileref_opt_->file();
 		if (tag_writer_ != nullptr) {
-			tag_writer_->WriteEmbeddedCover(file_, image_data);
+			tag_writer_->writeEmbeddedCover(file_, image_data);
 			MarkDirty();
 		}
 	}
 
-	void WriteEmbeddedCover(const std::vector<uint8_t> & image) const {
+	void writeEmbeddedCover(const std::vector<uint8_t> & image) const {
 		CheckFileRef()
-		WriteEmbeddedCover(image.data(), image.size());
+		writeEmbeddedCover(image.data(), image.size());
     }
 
-	void RemoveEmbeddedCover() {
+	void removeEmbeddedCover() {
 		CheckFileRef()
 		auto* file_ = fileref_opt_->file();
 		if (tag_writer_ != nullptr) {
-			tag_writer_->RemoveEmbeddedCover(file_);
+			tag_writer_->removeEmbeddedCover(file_);
 			MarkDirty();
 		}
 	}
 
-	[[nodiscard]] bool CanWriteEmbeddedCover() const {
+	[[nodiscard]] bool canWriteEmbeddedCover() const {
 		const auto ext = String::ToLower(path_.extension().string());
         return kFileTagWriterLut.find(ext) != kFileTagWriterLut.end();
 	}
@@ -628,7 +628,7 @@ private:
 		}
 			
 		if (!fileref_opt_->save()) {
-			XAMP_LOG_DEBUG("Write tag failure!");
+			XAMP_LOG_DEBUG("write tag failure!");
 			Clear();
 			return;
 		}
@@ -668,59 +668,59 @@ private:
 XAMP_PIMPL_IMPL(TaglibMetadataWriter)
 
 TaglibMetadataWriter::TaglibMetadataWriter()
-    : writer_(MakeAlign<TaglibMetadataWriterImpl>()) {
+    : writer_(makeAlign<TaglibMetadataWriterImpl>()) {
 }
 
-void TaglibMetadataWriter::Open(const Path& path) {
-	return writer_->Open(path);
+void TaglibMetadataWriter::open(const Path& path) {
+	return writer_->open(path);
 }
 
-void TaglibMetadataWriter::WriteReplayGain(const ReplayGain& replay_gain) {
-	return writer_->WriteReplayGain(replay_gain);
+void TaglibMetadataWriter::writeReplayGain(const ReplayGain& replay_gain) {
+	return writer_->writeReplayGain(replay_gain);
 }
 
-void TaglibMetadataWriter::Write(const TrackInfo& track_info) {
-	writer_->Write(track_info);
+void TaglibMetadataWriter::write(const TrackInfo& track_info) {
+	writer_->write(track_info);
 }
 
-void TaglibMetadataWriter::WriteTitle(const std::wstring & title) {
-    writer_->WriteTitle(title);
+void TaglibMetadataWriter::writeTitle(const std::wstring & title) {
+    writer_->writeTitle(title);
 }
 
-void TaglibMetadataWriter::WriteArtist(const std::wstring& artist) {
-	writer_->WriteArtist(artist);
+void TaglibMetadataWriter::writeArtist(const std::wstring& artist) {
+	writer_->writeArtist(artist);
 }
 
-void TaglibMetadataWriter::WriteTrack(uint32_t track) {
-	writer_->WriteTrack(track);
+void TaglibMetadataWriter::writeTrack(uint32_t track) {
+	writer_->writeTrack(track);
 }
 
-void TaglibMetadataWriter::WriteComment(const std::wstring& comment) {
-	writer_->WriteComment(comment);
+void TaglibMetadataWriter::writeComment(const std::wstring& comment) {
+	writer_->writeComment(comment);
 }
 
-void TaglibMetadataWriter::WriteGenre(const std::wstring& genre) {
-	writer_->WriteGenre(genre);
+void TaglibMetadataWriter::writeGenre(const std::wstring& genre) {
+	writer_->writeGenre(genre);
 }
 
-void TaglibMetadataWriter::WriteYear(uint32_t year) {
-	writer_->WriteYear(year);
+void TaglibMetadataWriter::writeYear(uint32_t year) {
+	writer_->writeYear(year);
 }
 
-void TaglibMetadataWriter::WriteAlbum(const std::wstring & album) {
-    writer_->WriteAlbum(album);
+void TaglibMetadataWriter::writeAlbum(const std::wstring & album) {
+    writer_->writeAlbum(album);
 }
 
-void TaglibMetadataWriter::WriteEmbeddedCover(const std::vector<uint8_t> & image) const {
-	writer_->WriteEmbeddedCover(image);
+void TaglibMetadataWriter::writeEmbeddedCover(const std::vector<uint8_t> & image) const {
+	writer_->writeEmbeddedCover(image);
 }
 
-void TaglibMetadataWriter::RemoveEmbeddedCover() {
-	writer_->RemoveEmbeddedCover();
+void TaglibMetadataWriter::removeEmbeddedCover() {
+	writer_->removeEmbeddedCover();
 }
 
-bool TaglibMetadataWriter::CanWriteEmbeddedCover() const {
-	return writer_->CanWriteEmbeddedCover();
+bool TaglibMetadataWriter::canWriteEmbeddedCover() const {
+	return writer_->canWriteEmbeddedCover();
 }
 
 XAMP_METADATA_NAMESPACE_END

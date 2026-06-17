@@ -19,17 +19,17 @@ public:
 
     ~CoreAudioDeviceTypeImpl() = default;
 
-    void ScanNewDevice();
+    void scanNewDevice();
 
-    AlignPtr<IOutputDevice> MakeDevice(const std::string &device_id);
+    AlignPtr<IOutputDevice> makeDevice(const std::string &device_id);
 
-    size_t GetDeviceCount() const;
+    size_t getDeviceCount() const;
 
-    DeviceInfo GetDeviceInfo(uint32_t device) const;
+    DeviceInfo getDeviceInfo(uint32_t device) const;
 
-    Vector<DeviceInfo> GetDeviceInfo() const;
+    Vector<DeviceInfo> getDeviceInfo() const;
 
-    std::optional<DeviceInfo> GetDefaultDeviceInfo() const;
+    std::optional<DeviceInfo> getDefaultDeviceInfo() const;
 
 private:
     Vector<DeviceInfo> device_list_;
@@ -38,16 +38,16 @@ private:
 CoreAudioDeviceType::CoreAudioDeviceTypeImpl::CoreAudioDeviceTypeImpl() {
 }
 
-void CoreAudioDeviceType::CoreAudioDeviceTypeImpl::ScanNewDevice() {
-    device_list_ = GetDeviceInfo();
+void CoreAudioDeviceType::CoreAudioDeviceTypeImpl::scanNewDevice() {
+    device_list_ = getDeviceInfo();
 }
 
-AlignPtr<IOutputDevice> CoreAudioDeviceType::CoreAudioDeviceTypeImpl::MakeDevice(const std::string &device_id) {
+AlignPtr<IOutputDevice> CoreAudioDeviceType::CoreAudioDeviceTypeImpl::makeDevice(const std::string &device_id) {
     auto id = GetAudioDeviceIdByUid(false, device_id);
     return MakeAlign<IOutputDevice, CoreAudioDevice>(id, false);
 }
 
-size_t CoreAudioDeviceType::CoreAudioDeviceTypeImpl::GetDeviceCount() const {
+size_t CoreAudioDeviceType::CoreAudioDeviceTypeImpl::getDeviceCount() const {
     UInt32 data_size = 0;
 
     AudioObjectPropertyAddress constexpr property = {
@@ -69,16 +69,16 @@ size_t CoreAudioDeviceType::CoreAudioDeviceTypeImpl::GetDeviceCount() const {
     return data_size / sizeof(AudioDeviceID);
 }
 
-DeviceInfo CoreAudioDeviceType::CoreAudioDeviceTypeImpl::GetDeviceInfo(uint32_t device) const {
+DeviceInfo CoreAudioDeviceType::CoreAudioDeviceTypeImpl::getDeviceInfo(uint32_t device) const {
     auto itr = device_list_.begin();
-    if (device >= GetDeviceCount()) {
+    if (device >= getDeviceCount()) {
         throw DeviceNotFoundException();
     }
     std::advance(itr, device);
     return (*itr);
 }
 
-Vector<DeviceInfo> CoreAudioDeviceType::CoreAudioDeviceTypeImpl::GetDeviceInfo() const {
+Vector<DeviceInfo> CoreAudioDeviceType::CoreAudioDeviceTypeImpl::getDeviceInfo() const {
     Vector<DeviceInfo> device_infos;
 
     AudioObjectPropertyAddress constexpr property = {
@@ -88,7 +88,7 @@ Vector<DeviceInfo> CoreAudioDeviceType::CoreAudioDeviceTypeImpl::GetDeviceInfo()
     };
 
     UInt32 data_size = sizeof(AudioDeviceID);
-    auto device_count = GetDeviceCount();
+    auto device_count = getDeviceCount();
     data_size *= device_count;
 
     std::vector<AudioDeviceID> device_list(device_count);
@@ -104,7 +104,7 @@ Vector<DeviceInfo> CoreAudioDeviceType::CoreAudioDeviceTypeImpl::GetDeviceInfo()
     }
 
     device_infos.reserve(device_count);
-    auto default_device_info = GetDefaultDeviceInfo();
+    auto default_device_info = getDefaultDeviceInfo();
 
     for (auto device_id : device_list) {
         if (!IsOutputDevice(device_id)) {
@@ -118,7 +118,7 @@ Vector<DeviceInfo> CoreAudioDeviceType::CoreAudioDeviceTypeImpl::GetDeviceInfo()
         info.device_type_id = XAMP_UUID_OF(CoreAudioDeviceType);
         info.connect_type = GetDeviceConnectType(device_id);
         info.is_hardware_control_volume = SystemVolume(kAudioHardwareServiceDeviceProperty_VirtualMainVolume,
-                                                       device_id).CanSetVolume();
+                                                       device_id).canSetVolume();
 
         info.is_hardware_control_volume = false;
         // 用SampleRate判斷是否支援DOP有缺陷,
@@ -135,7 +135,7 @@ Vector<DeviceInfo> CoreAudioDeviceType::CoreAudioDeviceTypeImpl::GetDeviceInfo()
     return device_infos;
 }
 
-std::optional<DeviceInfo> CoreAudioDeviceType::CoreAudioDeviceTypeImpl::GetDefaultDeviceInfo() const {
+std::optional<DeviceInfo> CoreAudioDeviceType::CoreAudioDeviceTypeImpl::getDefaultDeviceInfo() const {
     DeviceInfo device_info;
 
     AudioDeviceID id;
@@ -170,36 +170,36 @@ CoreAudioDeviceType::CoreAudioDeviceType()
 
 XAMP_PIMPL_IMPL(CoreAudioDeviceType)
 
-std::string_view CoreAudioDeviceType::GetDescription() const {
+std::string_view CoreAudioDeviceType::getDescription() const {
     return Description;
 }
 
-Uuid CoreAudioDeviceType::GetTypeId() const {
+Uuid CoreAudioDeviceType::getTypeId() const {
     return XAMP_UUID_OF(CoreAudioDeviceType);
 }
 
-void CoreAudioDeviceType::ScanNewDevice() {
-    impl_->ScanNewDevice();
+void CoreAudioDeviceType::scanNewDevice() {
+    impl_->scanNewDevice();
 }
 
-AlignPtr<IOutputDevice> CoreAudioDeviceType::MakeDevice(const std::string &device_id) {
-    return impl_->MakeDevice(device_id);
+AlignPtr<IOutputDevice> CoreAudioDeviceType::makeDevice(const std::string &device_id) {
+    return impl_->makeDevice(device_id);
 }
 
-size_t CoreAudioDeviceType::GetDeviceCount() const {
-    return impl_->GetDeviceCount();
+size_t CoreAudioDeviceType::getDeviceCount() const {
+    return impl_->getDeviceCount();
 }
 
-DeviceInfo CoreAudioDeviceType::GetDeviceInfo(uint32_t device) const {
-    return impl_->GetDeviceInfo(device);
+DeviceInfo CoreAudioDeviceType::getDeviceInfo(uint32_t device) const {
+    return impl_->getDeviceInfo(device);
 }
 
-Vector<DeviceInfo> CoreAudioDeviceType::GetDeviceInfo() const {
-    return impl_->GetDeviceInfo();
+Vector<DeviceInfo> CoreAudioDeviceType::getDeviceInfo() const {
+    return impl_->getDeviceInfo();
 }
 
-std::optional<DeviceInfo> CoreAudioDeviceType::GetDefaultDeviceInfo() const {
-    return impl_->GetDefaultDeviceInfo();
+std::optional<DeviceInfo> CoreAudioDeviceType::getDefaultDeviceInfo() const {
+    return impl_->getDefaultDeviceInfo();
 }
 
 }

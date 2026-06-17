@@ -26,83 +26,83 @@ public:
 	XAMP_BASE_CLASS(IAudioDeviceManager)
 
 	/*
-	* Initial audio device manager.
+	* initial audio device manager.
 	*/
-	virtual void Initial() = 0;
+	virtual void initial() = 0;
 
 	/*
 	* Register device listener.
 	* 
 	* @param callback: device state listener.
 	*/
-	virtual void RegisterDeviceListener(const std::weak_ptr<IDeviceStateListener> & callback) = 0;
+	virtual void registerDeviceListener(const std::weak_ptr<IDeviceStateListener> & callback) = 0;
 
 	/*
 	* Register device type.
 	* 
 	* @param id: device type id.
 	*/
-	virtual void RegisterDevice(const Uuid& id, std::function<ScopedPtr<IDeviceType>()> func) = 0;
+	virtual void registerDevice(const Uuid& id, std::function<ScopedPtr<IDeviceType>()> func) = 0;
 
 	/*
-	* Create default device type.
+	* create default device type.
 	* 
 	* @return default device type.
 	*/
-	[[nodiscard]] virtual ScopedPtr<IDeviceType> CreateDefaultDeviceType() const = 0;
+	[[nodiscard]] virtual ScopedPtr<IDeviceType> createDefaultDeviceType() const = 0;
 
 	/*
-	* Create device type.
+	* create device type.
 	* 
 	* @param id: device type id.
 	*/
-	[[nodiscard]] virtual ScopedPtr<IDeviceType> Create(const Uuid& id) const = 0;
+	[[nodiscard]] virtual ScopedPtr<IDeviceType> create(const Uuid& id) const = 0;
 
 	/*
 	* Get available device type.
 	* 
 	* @return available device type.
 	*/
-	[[nodiscard]] virtual std::vector<Uuid> GetAvailableDeviceType() const = 0;
+	[[nodiscard]] virtual std::vector<Uuid> getAvailableDeviceType() const = 0;
 
 	/*
 	* Clear all device type.
 	* 
 	*/
-	virtual void Clear() = 0;
+	virtual void clear() = 0;
 
 	/*
 	* Begin iterator.
 	* 
 	* @return begin iterator.
 	*/	
-	virtual DeviceTypeFactoryMap::iterator Begin() = 0;
+	virtual DeviceTypeFactoryMap::iterator begin() = 0;
 
 	/*
 	* End iterator
 	* 
 	* @return end iterator
 	*/	
-	virtual DeviceTypeFactoryMap::iterator End() = 0;
+	virtual DeviceTypeFactoryMap::iterator end() = 0;
 
 	/*
-	* Shutdown global device resource.
+	* shutdown global device resource.
 	*/
-	virtual void Shutdown() = 0;
+	virtual void shutdown() = 0;
 
 	/*
 	* Is shared device
 	*
 	* @param type: device type
 	*/
-	[[nodiscard]] virtual bool IsSharedDevice(const Uuid& type) const = 0;
+	[[nodiscard]] virtual bool isSharedDevice(const Uuid& type) const = 0;
 
 	/*
 	* Is ASIO device
 	*
 	* @param type: device type
 	*/
-	[[nodiscard]] virtual bool IsASIODevice(const Uuid& type) const = 0;
+	[[nodiscard]] virtual bool isASIODevice(const Uuid& type) const = 0;
 protected:
 	/*
 	* Constructor.

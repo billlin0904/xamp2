@@ -45,15 +45,15 @@ namespace {
 	*
 	* @return The mutex of the singleton.
 	*/
-	FastMutex& GetSingletonMutex() {
+	FastMutex& getSingletonMutex() {
 		static FastMutex mutex;
 		return mutex;
 	}
 
-	using SlotPtr = std::shared_ptr<ObjectInstance>;
-	HashMap<std::string, SlotPtr, StringHash, StringEqual> object_type_lut;
+	using ObjectInstancePtr = std::shared_ptr<ObjectInstance>;
+	HashMap<std::string, ObjectInstancePtr, StringHash, StringEqual> object_type_lut;
 
-	SlotPtr GetSingletonByType(std::string_view name) {
+	ObjectInstancePtr getSingletonByType(std::string_view name) {
 		auto itr = object_type_lut.find(name);
 		if (itr != object_type_lut.end()) {
 			return itr->second;
@@ -64,20 +64,20 @@ namespace {
 	}
 }
 
-void GetSharedInstance(std::string_view type_name,
+void getSharedInstance(std::string_view type_name,
 	void* (*get_static_instance)(),
 	void*& instance) {
-	SlotPtr ptr;
+	ObjectInstancePtr ptr;
 
 	{
-		std::lock_guard<FastMutex> guard{ GetSingletonMutex() };
+		std::lock_guard<FastMutex> guard{ getSingletonMutex() };
 		if (instance != nullptr) {
 			return;
 		}
-		ptr = GetSingletonByType(type_name);
+		ptr = getSingletonByType(type_name);
 	}
 
-	const bool is_logger = (type_name == LoggerManager::GetSingletonName());
+	const bool is_logger = (type_name == LoggerManager::getSingletonName());
 
 	{
 		std::lock_guard<FastMutex> guard(*ptr->mutex);
@@ -90,7 +90,7 @@ void GetSharedInstance(std::string_view type_name,
 	}
 
 	{
-		std::lock_guard<FastMutex> guard{ GetSingletonMutex() };
+		std::lock_guard<FastMutex> guard{ getSingletonMutex() };
 		instance = ptr->object;
 	}
 }

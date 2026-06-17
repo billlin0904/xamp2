@@ -29,7 +29,7 @@ public:
 
 	XAMP_PIMPL(Furigana)
 
-	std::vector<FuriganaEntity> Convert(const std::wstring& text);
+	std::vector<FuriganaEntity> convert(const std::wstring& text);
 private:
 	class FuriganaImpl;
 	ScopedPtr<FuriganaImpl> impl_;

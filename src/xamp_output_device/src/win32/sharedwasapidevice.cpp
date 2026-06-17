@@ -114,7 +114,7 @@ public:
 	* @param[in] NotificationData PAUDIO_VOLUME_NOTIFICATION_DATA
 	*/
 	STDMETHODIMP OnNotify(PAUDIO_VOLUME_NOTIFICATION_DATA notification_data) override {
-		callback_->OnVolumeChange(static_cast<int32_t>(notification_data->fMasterVolume * 100.0f));
+		callback_->onVolumeChange(static_cast<int32_t>(notification_data->fMasterVolume * 100.0f));
 		return S_OK;
 	}
 
@@ -134,46 +134,46 @@ SharedWasapiDevice::SharedWasapiDevice(bool is_low_latency, CComPtr<IMMDevice> c
 	, device_(device)
 	, callback_(nullptr)
 	, mmcss_name_(kMmcssProfileProAudio)
-	, logger_(XampLoggerFactory.GetLogger(XAMP_LOG_NAME(SharedWasapiDevice))) {
+	, logger_(XampLoggerFactory.getLogger(XAMP_LOG_NAME(SharedWasapiDevice))) {
 }
 
 SharedWasapiDevice::~SharedWasapiDevice() {
     try {
-        CloseStream();
+        closeStream();
         sample_ready_.reset();
     } catch (...) {
     }
-	UnRegisterDeviceVolumeChange();
+	unRegisterDeviceVolumeChange();
 }
 
-void SharedWasapiDevice::UnRegisterDeviceVolumeChange() {
+void SharedWasapiDevice::unRegisterDeviceVolumeChange() {
 	if (endpoint_volume_ != nullptr) {
 		endpoint_volume_->UnregisterControlChangeNotify(device_volume_notification_);
 	}
 }
 
-void SharedWasapiDevice::RegisterDeviceVolumeChange() {
-	HrIfFailThrow(device_->Activate(kAudioEndpointVolumeID,
+void SharedWasapiDevice::registerDeviceVolumeChange() {
+	hrIfFailThrow(device_->Activate(kAudioEndpointVolumeID,
 		CLSCTX_INPROC_SERVER,
 		nullptr,
 		reinterpret_cast<void**>(&endpoint_volume_)
 	));
 	device_volume_notification_ = new DeviceEventNotification(callback_);
-	HrIfFailThrow(endpoint_volume_->RegisterControlChangeNotify(device_volume_notification_));
+	hrIfFailThrow(endpoint_volume_->RegisterControlChangeNotify(device_volume_notification_));
 }
 
-bool SharedWasapiDevice::IsStreamOpen() const {
+bool SharedWasapiDevice::isStreamOpen() const {
 	return render_client_ != nullptr;
 }
 
-void SharedWasapiDevice::SetAudioCallback(IAudioCallback* callback) {
+void SharedWasapiDevice::setAudioCallback(IAudioCallback* callback) {
 	callback_ = callback;
 }
 
-void SharedWasapiDevice::CloseStream() {
-	XAMP_LOG_D(logger_, "CloseStream is_running_: {}", is_running_);
+void SharedWasapiDevice::closeStream() {
+	XAMP_LOG_D(logger_, "closeStream is_running_: {}", is_running_);
 
-	UnRegisterDeviceVolumeChange();
+	unRegisterDeviceVolumeChange();
 	endpoint_volume_.Release();
 	simple_audio_volume_.Release();
 	device_volume_notification_.Release();
@@ -188,7 +188,7 @@ void SharedWasapiDevice::CloseStream() {
 	mix_format_.Free();
 }
 
-void SharedWasapiDevice::InitialDeviceFormat(const AudioFormat& output_format) {
+void SharedWasapiDevice::initialDeviceFormat(const AudioFormat& output_format) {
 	uint32_t fundamental_period_in_frame = 0;
 	uint32_t current_period_in_frame = 0;
 	uint32_t default_period_in_frame = 0;
@@ -198,10 +198,10 @@ void SharedWasapiDevice::InitialDeviceFormat(const AudioFormat& output_format) {
 	mix_format_.Free();
 
 	// Get the mix format and the current shared mode engine period.
-	HrIfFailThrow(client_->GetCurrentSharedModeEnginePeriod(&mix_format_, &current_period_in_frame));
+	hrIfFailThrow(client_->GetCurrentSharedModeEnginePeriod(&mix_format_, &current_period_in_frame));
 
 	// Set the mix format to the device format.
-	SetWaveformatEx(mix_format_, output_format.GetSampleRate());
+	SetWaveformatEx(mix_format_, output_format.getSampleRate());
 
 	// The pFormat parameter below is optional (Its needed only for MATCH_FORMAT clients).
 	const auto hr = client_->GetSharedModeEnginePeriod(mix_format_,
@@ -214,17 +214,17 @@ void SharedWasapiDevice::InitialDeviceFormat(const AudioFormat& output_format) {
 		throw DeviceUnSupportedFormatException(output_format);
 	}
 
-	const auto ms_per_samples = 1000.0 / static_cast<double>(output_format.GetSampleRate());
+	const auto ms_per_samples = 1000.0 / static_cast<double>(output_format.getSampleRate());
 
 	XAMP_LOG_D(logger_,
-		"Initial device format fundamental:{:.2f} msec, current:{:.2f} msec, min:{:.2f} msec max:{:.2f} msec.",
+		"initial device format fundamental:{:.2f} msec, current:{:.2f} msec, min:{:.2f} msec max:{:.2f} msec.",
 		fundamental_period_in_frame * ms_per_samples,
 		default_period_in_frame * ms_per_samples,
 		min_period_in_frame * ms_per_samples,
 		max_period_in_frame * ms_per_samples);
 
 	const auto requested_period_in_frame = static_cast<uint32_t>(
-		(static_cast<uint64_t>(output_format.GetSampleRate()) * kSharedWasapiLatencyMs + 999) / 1000);
+		(static_cast<uint64_t>(output_format.getSampleRate()) * kSharedWasapiLatencyMs + 999) / 1000);
 	auto period_in_frame = AlignPeriodToFundamental(requested_period_in_frame, fundamental_period_in_frame);
 	period_in_frame = (std::max)(period_in_frame, min_period_in_frame);
 	if (max_period_in_frame != 0) {
@@ -241,9 +241,9 @@ void SharedWasapiDevice::InitialDeviceFormat(const AudioFormat& output_format) {
 		buffer_period_in_frames_);
 }
 
-void SharedWasapiDevice::InitialDevice(const AudioFormat& output_format) {
+void SharedWasapiDevice::initialDevice(const AudioFormat& output_format) {
 	if (!is_low_latency_) {
-		InitialDeviceFormat(output_format);
+		initialDeviceFormat(output_format);
 		auto hr = client_->Initialize(AUDCLNT_SHAREMODE_SHARED,
 			AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
 			buffer_duration_hns_,
@@ -257,9 +257,9 @@ void SharedWasapiDevice::InitialDevice(const AudioFormat& output_format) {
 			// 會出現這個錯誤, 代表音效設備不支援同時多個 sample rate, 所以需要進行重採樣轉換.			
 			throw DeviceNeedSetMatchFormatException();
 		}
-		HrIfFailThrow(hr);
+		hrIfFailThrow(hr);
 	} else {
-		InitialDeviceFormat(output_format);
+		initialDeviceFormat(output_format);
 		auto hr = client_->InitializeSharedAudioStream(AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
 			buffer_period_in_frames_,
 			mix_format_,
@@ -267,17 +267,17 @@ void SharedWasapiDevice::InitialDevice(const AudioFormat& output_format) {
 		if (hr == HRESULT_FROM_WIN32(ERROR_BUSY)) {
 			throw DeviceInUseException();
 		}
-		HrIfFailThrow(hr);		
+		hrIfFailThrow(hr);		
 	}
 }
 
-void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
+void SharedWasapiDevice::openStream(AudioFormat const & output_format) {
 	stream_time_ = 0;
 
 	if (!client_) {
 		XAMP_LOG_D(logger_, "Active device format: {}.", output_format);
 		
-		HrIfFailThrow(device_->Activate(kAudioClient3ID,
+		hrIfFailThrow(device_->Activate(kAudioClient3ID,
 			CLSCTX_ALL,
 			nullptr,
 			reinterpret_cast<void**>(&client_)));
@@ -289,153 +289,153 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 		device_props.eCategory = AudioCategory_Media;
 		device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT | AUDCLNT_STREAMOPTIONS_RAW;
 		try {
-			HrIfFailThrow(client_->SetClientProperties(&device_props));
+			hrIfFailThrow(client_->SetClientProperties(&device_props));
 		}
 		catch (const Exception& e) {
-			XAMP_LOG_D(logger_, "SetClientProperties return failure! {}", e.GetErrorMessage());
+			XAMP_LOG_D(logger_, "SetClientProperties return failure! {}", e.getErrorMessage());
 			device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
-			HrIfFailThrow(client_->SetClientProperties(&device_props));
+			hrIfFailThrow(client_->SetClientProperties(&device_props));
 		}
 
-		InitialDevice(output_format);
+		initialDevice(output_format);
 	}
 
-	RegisterDeviceVolumeChange();
+	registerDeviceVolumeChange();
 
-	// Reset device state.
-	HrIfFailThrow(client_->Reset());
+	// reset device state.
+	hrIfFailThrow(client_->Reset());
 
 	// Get the buffer size.
-	HrIfFailThrow(client_->GetBufferSize(&buffer_frames_));
+	hrIfFailThrow(client_->GetBufferSize(&buffer_frames_));
 
 	// Get the render client.
-	HrIfFailThrow(client_->GetService(kAudioRenderClientID, 
+	hrIfFailThrow(client_->GetService(kAudioRenderClientID, 
 		reinterpret_cast<void**>(&render_client_)));
 
 	// Get the audio clock.
-	HrIfFailThrow(client_->GetService(kAudioClockID,
+	hrIfFailThrow(client_->GetService(kAudioClockID,
 		reinterpret_cast<void**>(&clock_)));
 
 	XAMP_LOG_D(logger_, "WASAPI buffer frame size:{}.", buffer_frames_);
 
-	// Create sample ready event.
+	// create sample ready event.
 	if (!sample_ready_) {
 		sample_ready_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
 		XAMP_ASSERT(sample_ready_);		
 	}
-	HrIfFailThrow(client_->SetEventHandle(sample_ready_.get()));
+	hrIfFailThrow(client_->SetEventHandle(sample_ready_.get()));
 
-	// Create the work queue.
-	rt_work_queue_ = MakeWasapiWorkQueue(mmcss_name_, this, &SharedWasapiDevice::OnInvoke);
+	// create the work queue.
+	rt_work_queue_ = MakeWasapiWorkQueue(mmcss_name_, this, &SharedWasapiDevice::onInvoke);
 
 	// Get the device volume interface.
-	HrIfFailThrow(client_->GetService(kSimpleAudioVolumeID, reinterpret_cast<void**>(&simple_audio_volume_)));
-	if (IsBitstreamVolumeLocked()) {
-		ForceBitstreamSessionVolume();
+	hrIfFailThrow(client_->GetService(kSimpleAudioVolumeID, reinterpret_cast<void**>(&simple_audio_volume_)));
+	if (isBitstreamVolumeLocked()) {
+		forceBitstreamSessionVolume();
 	}
 }
 
-bool SharedWasapiDevice::IsMuted() const {
-	if (IsBitstreamVolumeLocked()) {
+bool SharedWasapiDevice::isMuted() const {
+	if (isBitstreamVolumeLocked()) {
 		return false;
 	}
 	BOOL is_muted = FALSE;
-	HrIfFailThrow(simple_audio_volume_->GetMute(&is_muted));
+	hrIfFailThrow(simple_audio_volume_->GetMute(&is_muted));
 	return is_muted;
 }
 
-uint32_t SharedWasapiDevice::GetVolume() const {	
-	if (IsBitstreamVolumeLocked()) {
+uint32_t SharedWasapiDevice::getVolume() const {	
+	if (isBitstreamVolumeLocked()) {
 		return 100;
 	}
 	float channel_volume = 0.0;
-	HrIfFailThrow(simple_audio_volume_->GetMasterVolume(&channel_volume));
+	hrIfFailThrow(simple_audio_volume_->GetMasterVolume(&channel_volume));
 	return static_cast<uint32_t>(channel_volume * 100);
 }
 
-void SharedWasapiDevice::SetMute(bool mute) const {
-	if (IsBitstreamVolumeLocked()) {
+void SharedWasapiDevice::setMute(bool mute) const {
+	if (isBitstreamVolumeLocked()) {
 		if (mute) {
 			XAMP_LOG_D(logger_, "Ignore mute in shared WASAPI DoP mode to keep bitstream intact.");
 			if (callback_ != nullptr) {
-				callback_->OnVolumeChange(100);
+				callback_->onVolumeChange(100);
 			}
 			return;
 		}
-		ForceBitstreamSessionVolume();
+		forceBitstreamSessionVolume();
 		return;
 	}
-	HrIfFailThrow(simple_audio_volume_->SetMute(mute, nullptr));
+	hrIfFailThrow(simple_audio_volume_->SetMute(mute, nullptr));
 }
 
-PackedFormat SharedWasapiDevice::GetPackedFormat() const {
+PackedFormat SharedWasapiDevice::getPackedFormat() const {
 	return PackedFormat::INTERLEAVED;
 }
 
-uint32_t SharedWasapiDevice::GetBufferSize() const {
+uint32_t SharedWasapiDevice::getBufferSize() const {
 	return buffer_frames_ * mix_format_->nChannels;
 }
 
-void SharedWasapiDevice::SetSchedulerService(std::wstring const & mmcss_name, MmcssThreadPriority thread_priority) {
+void SharedWasapiDevice::setSchedulerService(std::wstring const & mmcss_name, MmcssThreadPriority thread_priority) {
 	XAMP_EXPECTS(!mmcss_name.empty());
 	thread_priority_ = thread_priority;
 	mmcss_name_ = mmcss_name;
 }
 
-void SharedWasapiDevice::SetVolume(uint32_t volume) const {
+void SharedWasapiDevice::setVolume(uint32_t volume) const {
 	volume = std::clamp(volume, static_cast<uint32_t>(0), static_cast<uint32_t>(100));
 
-	if (IsBitstreamVolumeLocked()) {
+	if (isBitstreamVolumeLocked()) {
 		if (volume != 100) {
 			XAMP_LOG_D(logger_, "Ignore shared WASAPI volume {} in DoP mode to keep bitstream intact.", volume);
 			if (callback_ != nullptr) {
-				callback_->OnVolumeChange(100);
+				callback_->onVolumeChange(100);
 			}
 		}
-		ForceBitstreamSessionVolume();
+		forceBitstreamSessionVolume();
 		return;
 	}
 
 	BOOL is_mute = FALSE;
-	HrIfFailThrow(simple_audio_volume_->GetMute(&is_mute));
+	hrIfFailThrow(simple_audio_volume_->GetMute(&is_mute));
 
 	if (is_mute) {
-		HrIfFailThrow(simple_audio_volume_->SetMute(false, nullptr));
+		hrIfFailThrow(simple_audio_volume_->SetMute(false, nullptr));
 	}
 
 	const auto channel_volume = static_cast<float>(static_cast<double>(volume) / 100.0);
-	HrIfFailThrow(simple_audio_volume_->SetMasterVolume(channel_volume, nullptr));
+	hrIfFailThrow(simple_audio_volume_->SetMasterVolume(channel_volume, nullptr));
 
-	XAMP_LOG_D(logger_, "Current volume: {}", GetVolume());
+	XAMP_LOG_D(logger_, "Current volume: {}", getVolume());
 }
 
-void SharedWasapiDevice::SetIoFormat(DsdIoFormat format) {
+void SharedWasapiDevice::setIoFormat(DsdIoFormat format) {
 	raw_mode_ = format == DsdIoFormat::IO_FORMAT_DOP;
 }
 
-DsdIoFormat SharedWasapiDevice::GetIoFormat() const {
+DsdIoFormat SharedWasapiDevice::getIoFormat() const {
 	return raw_mode_ ? DsdIoFormat::IO_FORMAT_DOP : DsdIoFormat::IO_FORMAT_PCM;
 }
 
-void SharedWasapiDevice::SetStreamTime(double stream_time) {
+void SharedWasapiDevice::setStreamTime(double stream_time) {
 	stream_time_.store(static_cast<int64_t>(
 		stream_time * static_cast<double>(mix_format_->nSamplesPerSec)),
 		std::memory_order_relaxed);
 }
 
-double SharedWasapiDevice::GetStreamTime() const {
+double SharedWasapiDevice::getStreamTime() const {
 	return static_cast<double>(stream_time_.load(std::memory_order_relaxed))
 		/ static_cast<double>(mix_format_->nSamplesPerSec);
 }
 
-void SharedWasapiDevice::ReportError(HRESULT hr) {
+void SharedWasapiDevice::reportError(HRESULT hr) {
 	if (FAILED(hr)) {
-		callback_->OnError(com_to_system_error(hr));
+		callback_->onError(com_to_system_error(hr));
 		is_running_ = false;
 	}
 }
 
-HRESULT SharedWasapiDevice::GetSample(uint32_t frame_available, bool is_silence) {
+HRESULT SharedWasapiDevice::getSample(uint32_t frame_available, bool is_silence) {
 	XAMP_EXPECTS(render_client_ != nullptr);
 	XAMP_EXPECTS(callback_ != nullptr);
 
@@ -460,7 +460,7 @@ HRESULT SharedWasapiDevice::GetSample(uint32_t frame_available, bool is_silence)
 	size_t num_filled_frames = 0;
 
 	// Get sample from callback.
-	const auto callback_result = callback_->OnGetSamples(data, frame_available, num_filled_frames, stream_time_float, sample_time);
+	const auto callback_result = callback_->onGetSamples(data, frame_available, num_filled_frames, stream_time_float, sample_time);
 	if (callback_result == DataCallbackResult::CONTINUE) {
 		if (num_filled_frames != frame_available) {
 			flags = AUDCLNT_BUFFERFLAGS_SILENT;
@@ -473,7 +473,7 @@ HRESULT SharedWasapiDevice::GetSample(uint32_t frame_available, bool is_silence)
 	return hr;
 }
 
-HRESULT SharedWasapiDevice::OnInvoke(IMFAsyncResult *) {
+HRESULT SharedWasapiDevice::onInvoke(IMFAsyncResult *) {
 	if (is_running_ && rt_work_queue_ != nullptr) {
 		if (!is_playing_) {
 			is_playing_ = true;
@@ -481,12 +481,12 @@ HRESULT SharedWasapiDevice::OnInvoke(IMFAsyncResult *) {
 		}
 
 		try {
-			GetSample(false);
+			getSample(false);
 			rt_work_queue_->WaitAsync(sample_ready_.get());
 		} catch (const std::exception &e) {
 			XAMP_LOG_D(logger_, e.what());
 			if (callback_ != nullptr) {
-				callback_->OnError(e);
+				callback_->onError(e);
 			}
 			is_running_ = false;
 			if (client_) {
@@ -497,27 +497,27 @@ HRESULT SharedWasapiDevice::OnInvoke(IMFAsyncResult *) {
 	return S_OK;
 }
 
-void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
+void SharedWasapiDevice::stopStream(bool wait_for_stop_stream) {
 	std::unique_lock<FastMutex> guard{ mutex_ };
 
-	XAMP_LOG_D(logger_, "StopStream is_running_: {}", is_running_);
+	XAMP_LOG_D(logger_, "stopStream is_running_: {}", is_running_);
 	if (!is_running_) {
 		return;
 	}
 
 	is_running_ = false;
 	if (rt_work_queue_) {
-		rt_work_queue_->Destroy();
+		rt_work_queue_->destroy();
 	}
 	if (client_) {
-		HrIfFailThrow(client_->Stop());
+		hrIfFailThrow(client_->Stop());
 	}
 }
 
-void SharedWasapiDevice::StartStream() {
+void SharedWasapiDevice::startStream() {
 	std::unique_lock<FastMutex> guard{ mutex_ };
 
-	XAMP_LOG_D(logger_, "StartStream!");
+	XAMP_LOG_D(logger_, "startStream!");
 
 	if (!client_) {
 		throw_translated_com_error(AUDCLNT_E_NOT_INITIALIZED);
@@ -525,11 +525,11 @@ void SharedWasapiDevice::StartStream() {
 
 	is_playing_ = false;
 	// Note: 必要! 某些音效卡會爆音!
-	GetSample(true);
+	getSample(true);
 	rt_work_queue_->LoadStream();
 	rt_work_queue_->WaitAsync(sample_ready_.get());
 	is_running_ = true;
-	HrIfFailThrow(client_->Start());
+	hrIfFailThrow(client_->Start());
 
 	while (!is_playing_) {
 		if (wait_for_start_stream_cond_.wait_for(guard, kWaitStreamStartTimeout) == std::cv_status::timeout) {
@@ -539,11 +539,11 @@ void SharedWasapiDevice::StartStream() {
 	}
 }
 
-bool SharedWasapiDevice::IsStreamRunning() const {
+bool SharedWasapiDevice::isStreamRunning() const {
 	return is_running_;
 }
 
-HRESULT SharedWasapiDevice::GetSample(bool is_silence) {
+HRESULT SharedWasapiDevice::getSample(bool is_silence) {
 	uint32_t padding_frames = 0;
 
 	const auto hr = client_->GetCurrentPadding(&padding_frames);
@@ -557,34 +557,34 @@ HRESULT SharedWasapiDevice::GetSample(bool is_silence) {
 	if (frames_available > 0) {
 		//XAMP_LOG_DEBUG("Get {} samples ({}).", frames_available, padding_frames);
 		if (is_silence) {
-			return GetSample(frames_available, true);
+			return getSample(frames_available, true);
 		}
 		else {
-			return GetSample(frames_available, false);
+			return getSample(frames_available, false);
 		}
 	}
 	//XAMP_LOG_DEBUG("frames_available = 0");
 	return S_OK;
 }
 
-void SharedWasapiDevice::AbortStream() {
+void SharedWasapiDevice::abortStream() {
 	is_running_ = false;
 }
 
-bool SharedWasapiDevice::IsHardwareControlVolume() const {
+bool SharedWasapiDevice::isHardwareControlVolume() const {
 	return false;
 }
 
-bool SharedWasapiDevice::IsBitstreamVolumeLocked() const {
-	return GetIoFormat() == DsdIoFormat::IO_FORMAT_DOP;
+bool SharedWasapiDevice::isBitstreamVolumeLocked() const {
+	return getIoFormat() == DsdIoFormat::IO_FORMAT_DOP;
 }
 
-void SharedWasapiDevice::ForceBitstreamSessionVolume() const {
+void SharedWasapiDevice::forceBitstreamSessionVolume() const {
 	if (simple_audio_volume_ == nullptr) {
 		return;
 	}
-	HrIfFailThrow(simple_audio_volume_->SetMute(false, nullptr));
-	HrIfFailThrow(simple_audio_volume_->SetMasterVolume(1.0f, nullptr));
+	hrIfFailThrow(simple_audio_volume_->SetMute(false, nullptr));
+	hrIfFailThrow(simple_audio_volume_->SetMasterVolume(1.0f, nullptr));
 }
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

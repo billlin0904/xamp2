@@ -15,7 +15,7 @@
 
 #include <base/base.h>
 #include <base/buffer.h>
-#include <base/ithreadpoolexecutor.h>
+#include <base/threadpool.h>
 #include <base/unique_handle.h>
 #include <base/logger.h>
 
@@ -30,70 +30,70 @@ XAMP_DECLARE_LOG_NAME(AlsaOutputDevice);
 
 class AlsaOutputDevice final : public IOutputDevice {
 public:
-	explicit AlsaOutputDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool,
+	explicit AlsaOutputDevice(const std::shared_ptr<IThreadPool>& thread_pool,
 		std::string device_id);
 
 	~AlsaOutputDevice() override;
 
-	void OpenStream(const AudioFormat& output_format) override;
+	void openStream(const AudioFormat& output_format) override;
 
-	void SetAudioCallback(IAudioCallback* callback) override;
+	void setAudioCallback(IAudioCallback* callback) override;
 
-	[[nodiscard]] bool IsStreamOpen() const override;
+	[[nodiscard]] bool isStreamOpen() const override;
 
-	[[nodiscard]] bool IsStreamRunning() const override;
+	[[nodiscard]] bool isStreamRunning() const override;
 
-	void StopStream(bool wait_for_stop_stream = true) override;
+	void stopStream(bool wait_for_stop_stream = true) override;
 
-	void CloseStream() override;
+	void closeStream() override;
 
-	void StartStream() override;
+	void startStream() override;
 
-	void SetStreamTime(double stream_time) override;
+	void setStreamTime(double stream_time) override;
 
-	[[nodiscard]] double GetStreamTime() const override;
+	[[nodiscard]] double getStreamTime() const override;
 
-	[[nodiscard]] uint32_t GetVolume() const override;
+	[[nodiscard]] uint32_t getVolume() const override;
 
-	void SetVolume(uint32_t volume) const override;
+	void setVolume(uint32_t volume) const override;
 
-	void SetMute(bool mute) const override;
+	void setMute(bool mute) const override;
 
-	[[nodiscard]] bool IsMuted() const override;
+	[[nodiscard]] bool isMuted() const override;
 
-	[[nodiscard]] bool IsHardwareControlVolume() const override;
+	[[nodiscard]] bool isHardwareControlVolume() const override;
 
-	[[nodiscard]] PackedFormat GetPackedFormat() const override;
+	[[nodiscard]] PackedFormat getPackedFormat() const override;
 
-	[[nodiscard]] uint32_t GetBufferSize() const override;
+	[[nodiscard]] uint32_t getBufferSize() const override;
 
-	void AbortStream() override;
+	void abortStream() override;
 
 private:
 	struct SndPcmHandleTraits final {
 		static snd_pcm_t* invalid() {
 			return nullptr;
 		}
-		static void Close(snd_pcm_t* value);
+		static void close(snd_pcm_t* value);
 	};
 
 	using SndPcmHandle = UniqueHandle<snd_pcm_t*, SndPcmHandleTraits>;
 
-	void RenderLoop(const std::stop_token& stop_token);
+	void renderLoop(const std::stop_token& stop_token);
 
-	void StopRenderThread(bool wait_for_stop_stream);
+	void stopRenderThread(bool wait_for_stop_stream);
 
-	void ApplySoftwareVolume(float* samples, size_t sample_count) const;
+	void applySoftwareVolume(float* samples, size_t sample_count) const;
 
-	void ConfigureRealtimeThreadPriority();
+	void configureRealtimeThreadPriority();
 
-	void HandleRecoverableError(int error);
+	void handleRecoverableError(int error);
 
-	[[nodiscard]] bool IsRecoverableState() const;
+	[[nodiscard]] bool isRecoverableState() const;
 
-	[[nodiscard]] bool WaitUntilWritable(const std::stop_token& stop_token);
+	[[nodiscard]] bool waitUntilWritable(const std::stop_token& stop_token);
 
-	[[nodiscard]] double GetCallbackStreamTime(int64_t next_frame) const;
+	[[nodiscard]] double getCallbackStreamTime(int64_t next_frame) const;
 	
 	std::atomic<bool> is_running_{ false };
 	std::atomic<bool> stop_requested_{ true };
@@ -111,7 +111,7 @@ private:
 	std::string device_id_;
 	std::future<void> render_future_;
 	Buffer<float> render_buffer_;
-	std::shared_ptr<IThreadPoolExecutor> thread_pool_;
+	std::shared_ptr<IThreadPool> thread_pool_;
 	LoggerPtr logger_;
 };
 

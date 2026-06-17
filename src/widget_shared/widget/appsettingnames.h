@@ -48,6 +48,7 @@ DECLARE_APP_SETTING_NAME(AppSettingPlaybackSpeed);
 
 // Waveform
 DECLARE_APP_SETTING_NAME(AppSettingWaveformColor);
+DECLARE_APP_SETTING_NAME(AppSettingSpectrogramFFTSize);
 
 // Resampler
 DECLARE_APP_SETTING_NAME(AppSettingResamplerEnable);
@@ -72,8 +73,8 @@ DECLARE_APP_SETTING_NAME(AppSettingEnableEQ);
 DECLARE_APP_SETTING_NAME(AppSettingEQName);
 DECLARE_APP_SETTING_NAME(LyricsFontSize);
 
-// Log
-DECLARE_APP_SETTING_NAME(Log);
+// log
+DECLARE_APP_SETTING_NAME(log);
 DECLARE_APP_SETTING_NAME(LogMinimumLevel);
 DECLARE_APP_SETTING_NAME(LogDefault);
 DECLARE_APP_SETTING_NAME(LogOverride);

@@ -19,29 +19,29 @@ public:
 
 	XAMP_PIMPL(AvLibFileStream)
 
-	bool EndOfStream() const override;
+	bool endOfStream() const override;
 
-	void OpenFile(const Path& file_path) override;
+	void openFile(const Path& file_path) override;
 
-	void Open(ArchiveEntry archive_entry) override;
+	void open(ArchiveEntry archive_entry) override;
 
-	void Close() override;
+	void close() override;
 
-	[[nodiscard]] double GetDuration() const override;
+	[[nodiscard]] double getDuration() const override;
 
-	[[nodiscard]] AudioFormat GetFormat() const override;
+	[[nodiscard]] AudioFormat getFormat() const override;
 
-	void Seek(double stream_time) const override;
+	void seek(double stream_time) const override;
 
-	[[nodiscard]] uint32_t GetSamples(void* buffer, uint32_t length) const override;
+	[[nodiscard]] uint32_t getSamples(void* buffer, uint32_t length) const override;
 
-	[[nodiscard]] uint32_t GetSampleSize() const override;
+	[[nodiscard]] uint32_t getSampleSize() const override;
 
-	[[nodiscard]] bool IsActive() const override;
+	[[nodiscard]] bool isActive() const override;
 
-	[[nodiscard]] uint32_t GetBitDepth() const override;
+	[[nodiscard]] uint32_t getBitDepth() const override;
 
-	[[nodiscard]] uint32_t GetBitRate() const override;
+	[[nodiscard]] uint32_t getBitRate() const override;
 
 private:
 	class AvLibFileStreamImpl;

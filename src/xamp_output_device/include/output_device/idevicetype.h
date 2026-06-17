@@ -20,7 +20,7 @@
 #include <optional>
 
 XAMP_BASE_NAMESPACE_BEGIN
-class IThreadPoolExecutor;
+class IThreadPool;
 XAMP_BASE_NAMESPACE_END
 
 XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN
@@ -37,7 +37,7 @@ public:
 	* Scan new device.
 	* 
 	*/
-	virtual void ScanNewDevice() = 0;
+	virtual void scanNewDevice() = 0;
 
 	/*
 	* Make device.
@@ -46,14 +46,14 @@ public:
 	* 
 	* @return ScopedPtr<IOutputDevice>
 	*/
-    virtual ScopedPtr<IOutputDevice> MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::string & device_id) = 0;
+    virtual ScopedPtr<IOutputDevice> makeDevice(const std::shared_ptr<IThreadPool>& thread_pool, const std::string & device_id) = 0;
 
 	/*
 	* Get device count.
 	* 
 	* @return size_t
 	*/
-	[[nodiscard]] virtual size_t GetDeviceCount() const = 0;
+	[[nodiscard]] virtual size_t getDeviceCount() const = 0;
 
 	/*
 	* Get device info.
@@ -62,21 +62,21 @@ public:
 	* 
 	* @return DeviceInfo
 	*/
-	[[nodiscard]] virtual DeviceInfo GetDeviceInfo(uint32_t device) const = 0;
+	[[nodiscard]] virtual DeviceInfo getDeviceInfo(uint32_t device) const = 0;
 
 	/*
 	* Get device info.
 	* 
 	* @return std::vector<DeviceInfo>.
 	*/
-	[[nodiscard]] virtual std::vector<DeviceInfo> GetDeviceInfo() const = 0;
+	[[nodiscard]] virtual std::vector<DeviceInfo> getDeviceInfo() const = 0;
 
 	/*
 	* Get default device info.
 	* 
 	* @return std::optional<DeviceInfo>
 	*/
-	[[nodiscard]] virtual std::optional<DeviceInfo> GetDefaultDeviceInfo() const = 0;	
+	[[nodiscard]] virtual std::optional<DeviceInfo> getDefaultDeviceInfo() const = 0;	
 
 protected:
 	/*

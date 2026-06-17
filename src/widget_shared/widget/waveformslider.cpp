@@ -47,14 +47,14 @@ namespace {
             }
 
             const auto file_stream = makePcmFileStream(file_path.toStdWString());
-            const auto duration = file_stream->GetDuration();
+            const auto duration = file_stream->getDuration();
             if (duration <= 0.0) {
                 return result;
             }
 
-            const auto format = AudioFormat::ToFloatFormat(file_stream->GetFormat());
-            const auto channels = (std::max<uint16_t>)(1, format.GetChannels());
-            const auto sample_rate = (std::max<uint32_t>)(1, format.GetSampleRate());
+            const auto format = AudioFormat::toFloatFormat(file_stream->getFormat());
+            const auto channels = (std::max<uint16_t>)(1, format.getChannels());
+            const auto sample_rate = (std::max<uint32_t>)(1, format.getSampleRate());
             const auto total_frames = (std::max<uint64_t>)(1,
                 static_cast<uint64_t>(std::llround(duration * sample_rate)));
             const auto target_peak_count = (std::max)(1, peak_count);
@@ -66,8 +66,8 @@ namespace {
             uint64_t frame_index = 0;
 
             // 逐批讀取 PCM sample，避免一次把整首歌載進記憶體。
-            while (file_stream->IsActive()) {
-                const auto samples_read = file_stream->GetSamples(buffer.data(), kReadFrames);
+            while (file_stream->isActive()) {
+                const auto samples_read = file_stream->getSamples(buffer.data(), kReadFrames);
                 const auto frames_read = samples_read / channels;
                 if (frames_read == 0) {
                     break;
@@ -102,7 +102,7 @@ namespace {
             }
         }
         catch (const Exception& e) {
-            result.error_message = QString::fromUtf8(e.GetErrorMessage());
+            result.error_message = QString::fromUtf8(e.getErrorMessage());
         }
         catch (const std::exception& e) {
             result.error_message = QString::fromUtf8(e.what());

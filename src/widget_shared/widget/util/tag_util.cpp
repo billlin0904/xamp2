@@ -5,7 +5,7 @@
 namespace tag_util {
 
 bool readEmbeddedCover(xamp::metadata::IMetadataReader& reader, QPixmap& image, size_t& image_size) {
-    const auto buffer = reader.ReadEmbeddedCover();
+    const auto buffer = reader.readEmbeddedCover();
     image_size = 0;
     if (!buffer) {
         return false;
@@ -31,7 +31,7 @@ void writeEmbeddedCover(xamp::metadata::IMetadataWriter& writer, const QPixmap& 
         return;
     }
 
-    writer.WriteEmbeddedCover(image_util::image2JpegBuffer(image));
+    writer.writeEmbeddedCover(image_util::image2JpegBuffer(image));
 }
 
 }

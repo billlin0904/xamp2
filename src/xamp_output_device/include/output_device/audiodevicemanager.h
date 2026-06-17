@@ -34,71 +34,71 @@ public:
     virtual ~AudioDeviceManager() override;    
 
     /*
-    * Initial audio device manager.
+    * initial audio device manager.
     */
-    void Initial() override;
+    void initial() override;
 
     /*
 	* Register device listener
 	* 
 	* @param callback: device state listener
 	*/
-    void RegisterDeviceListener(const std::weak_ptr<IDeviceStateListener> & callback) override;
+    void registerDeviceListener(const std::weak_ptr<IDeviceStateListener> & callback) override;
 
     /*
     * Register device type
     *
     * @param id: device type id
     */
-    void RegisterDevice(Uuid const& id, std::function<ScopedPtr<IDeviceType>()> func) override;
+    void registerDevice(Uuid const& id, std::function<ScopedPtr<IDeviceType>()> func) override;
 
     /*
     * Clear all device type
     *
     */
-    void Clear() override;
+    void clear() override;
 
     /*
-    * Create default device type
+    * create default device type
     *
     * @return default device type
     */
-    [[nodiscard]] ScopedPtr<IDeviceType> CreateDefaultDeviceType() const override;
+    [[nodiscard]] ScopedPtr<IDeviceType> createDefaultDeviceType() const override;
 
     /*
-    * Create device type
+    * create device type
     *
     * @param id: device type id
     */
-    [[nodiscard]] ScopedPtr<IDeviceType> Create(Uuid const& id) const override;
+    [[nodiscard]] ScopedPtr<IDeviceType> create(Uuid const& id) const override;
 
     /*
     * Begin iterator
     *
     * @return begin iterator
     */
-    DeviceTypeFactoryMap::iterator Begin() override;
+    DeviceTypeFactoryMap::iterator begin() override;
 
     /*
     * End iterator
     *
     * @return end iterator
     */
-    DeviceTypeFactoryMap::iterator End() override;
+    DeviceTypeFactoryMap::iterator end() override;
 
     /*
     * Get available device type
     *
     * @return available device type
     */
-    [[nodiscard]] std::vector<Uuid> GetAvailableDeviceType() const override;
+    [[nodiscard]] std::vector<Uuid> getAvailableDeviceType() const override;
 
     /*
     * Is support asio
     * 
     * @return true if support asio
     */
-    [[nodiscard]] bool IsSupportAsio() const ;
+    [[nodiscard]] bool isSupportAsio() const ;
 
     /*
     * Is device type exist
@@ -106,26 +106,26 @@ public:
     * @param id: device type id
     * @return true if device type exist
     */
-    [[nodiscard]] bool IsDeviceTypeExist(const Uuid& id) const ;
+    [[nodiscard]] bool isDeviceTypeExist(const Uuid& id) const ;
 
     /*
     * Is shared device
     * 
     * @param type: device type
     */
-    [[nodiscard]] bool IsSharedDevice(const Uuid& type) const override;
+    [[nodiscard]] bool isSharedDevice(const Uuid& type) const override;
 
     /*
     * Is ASIO device
     *
     * @param type: device type
     */
-    [[nodiscard]] bool IsASIODevice(const Uuid& type) const override;
+    [[nodiscard]] bool isASIODevice(const Uuid& type) const override;
 
     /*
-    * Shutdown global device resource.
+    * shutdown global device resource.
     */
-    void Shutdown() override;
+    void shutdown() override;
 private:    
     bool is_initialized_{ false };
     class DeviceStateNotificationImpl;
@@ -134,4 +134,3 @@ private:
 };
 
 XAMP_OUTPUT_DEVICE_NAMESPACE_END
-

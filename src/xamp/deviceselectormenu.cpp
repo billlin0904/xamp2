@@ -99,11 +99,11 @@ std::optional<DeviceInfo> DeviceSelectorMenu::rebuild(
             kMaxDeviceLabelWidth))
         : 0;
 
-    for (auto itr = device_manager->Begin(); itr != device_manager->End(); ++itr) {
+    for (auto itr = device_manager->begin(); itr != device_manager->end(); ++itr) {
         const auto device_type = itr->second();
-        device_type->ScanNewDevice();
+        device_type->scanNewDevice();
 
-        const auto device_info_list = device_type->GetDeviceInfo();
+        const auto device_info_list = device_type->getDeviceInfo();
         if (device_info_list.empty()) {
             continue;
         }
@@ -187,8 +187,8 @@ QString DeviceSelectorMenu::translateDeviceDescription(const IDeviceType* device
     };
     return translateLookup("Xamp",
         lut,
-        device_type->GetDescription(),
-        fromStdStringView(device_type->GetDescription()));
+        device_type->getDescription(),
+        fromStdStringView(device_type->getDescription()));
 }
 
 QWidgetAction* DeviceSelectorMenu::createHeaderAction(const QString& desc) {

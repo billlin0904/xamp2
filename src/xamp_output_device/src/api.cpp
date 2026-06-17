@@ -28,12 +28,12 @@ static struct IopmAssertion {
     }
 
     ~IopmAssertion() {
-        Reset();
+        reset();
     }
 
     void PreventSleep() {
         if (assertion_id != 0) {
-            Reset();
+            reset();
         }
         CFTimeInterval timeout = 5;
         ::IOPMAssertionCreateWithDescription(kIOPMAssertionTypePreventUserIdleSystemSleep,
@@ -46,7 +46,7 @@ static struct IopmAssertion {
                                              &assertion_id);
     }
 
-    void Reset() {
+    void reset() {
         if (assertion_id == 0) {
             return;
         }
@@ -59,8 +59,8 @@ static struct IopmAssertion {
 #endif
 
 ScopedPtr<IAudioDeviceManager> MakeAudioDeviceManager() {
-	auto manager = MakeAlign<IAudioDeviceManager, AudioDeviceManager>();
-	manager->Initial();
+	auto manager = makeAlign<IAudioDeviceManager, AudioDeviceManager>();
+	manager->initial();
 	return manager;
 }
 
@@ -87,7 +87,7 @@ bool IsAsioDevice(const Uuid& id) {
 
 void ResetAsioDriver() {
 #if defined(XAMP_OS_WIN)
-    win32::AsioDevice::ResetCurrentDriver();
+    win32::AsioDevice::resetCurrentDriver();
 #endif
 }
 
@@ -104,7 +104,7 @@ void PreventSleep(bool allow) {
         iopmAssertion.PreventSleep();
     }
     else {
-        iopmAssertion.Reset();
+        iopmAssertion.reset();
     }
 #else
     (void)allow;

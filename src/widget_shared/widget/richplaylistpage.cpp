@@ -12,15 +12,20 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPaintEvent>
+#include <QPainterPath>
 #include <QPixmap>
 #include <QSizePolicy>
+#include <QScrollBar>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QSqlQueryModel>
 #include <QStyledItemDelegate>
 #include <QTableView>
+#include <QTimer>
 #include <QVariantAnimation>
 #include <QVBoxLayout>
+
+#include <functional>
 
 #include <thememanager.h>
 
@@ -46,6 +51,10 @@ namespace {
     constexpr auto kRichSearchCollapsedWidth = 42;
     constexpr auto kRichSearchExpandedWidth = 320;
     constexpr auto kRichSearchHeight = 32;
+    constexpr auto kRichCoverPanelWidth = 672;
+    constexpr auto kRichCoverMaxEdge = 640;
+    constexpr auto kRichCoverPanelMargin = 16;
+    constexpr auto kRichCoverRadius = 8;
     constexpr QSize kRichPlaylistPlayingIconSize(20, 20);
 
     QString richPlaylistQuery(int32_t playlist_id) {
@@ -204,12 +213,13 @@ public:
     explicit RichPlaylistCoverPanel(QWidget* parent = nullptr)
         : QFrame(parent) {
         setObjectName("richPlaylistCoverPanel"_str);
-        setMinimumWidth(360);
-        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        setFixedWidth(kRichCoverPanelWidth);
+        setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     }
 
     void setNowPlaying(const TrackInfo& track_info, const QPixmap& cover) {
         cover_ = cover;
+        clearBackgroundCache();
         album_ = QString::fromStdWString(track_info.album);
         artist_ = QString::fromStdWString(track_info.artist);
         genre_ = QString::fromStdWString(track_info.genre);
@@ -223,6 +233,7 @@ public:
 
     void clearNowPlaying() {
         cover_ = {};
+        clearBackgroundCache();
         album_.clear();
         artist_.clear();
         genre_.clear();
@@ -242,22 +253,24 @@ protected:
             | QPainter::TextAntialiasing,
             true);
 
-        const auto content_rect = rect();
+        const auto content_rect = coverContentRect();
         if (!content_rect.isValid()) {
             return;
         }
 
-        painter.fillRect(content_rect, QColor(12, 13, 13));
-
         if (!has_now_playing_) {
+            paintPanelBackground(&painter, startup_cover_);
             paintCoverImage(&painter, startup_cover_, content_rect, Qt::KeepAspectRatio);
             return;
         }
 
         if (!cover_.isNull()) {
+            paintPanelBackground(&painter, cover_);
             paintCoverImage(&painter, cover_, content_rect, Qt::KeepAspectRatioByExpanding);
             return;
         }
+
+        painter.fillRect(rect(), QColor(12, 13, 13));
 
         constexpr auto margin = 34;
         constexpr auto text_height = 118;
@@ -321,6 +334,12 @@ protected:
     }
 
 private:
+    void clearBackgroundCache() const {
+        background_cover_key_ = 0;
+        background_size_ = {};
+        background_ = {};
+    }
+
     QRect scaledRect(const QRect& rect, double scale) const {
         const auto width = qRound(rect.width() * scale);
         const auto height = qRound(rect.height() * scale);
@@ -328,6 +347,77 @@ private:
             rect.center().y() - height / 2,
             width,
             height);
+    }
+
+    QRect coverContentRect() const {
+        const auto available_rect = rect().adjusted(kRichCoverPanelMargin,
+            kRichCoverPanelMargin,
+            -kRichCoverPanelMargin,
+            -kRichCoverPanelMargin);
+        if (!available_rect.isValid()) {
+            return {};
+        }
+
+        const auto cover_edge = qMin(kRichCoverMaxEdge,
+            qMin(available_rect.width(), available_rect.height()));
+        if (cover_edge <= 0) {
+            return {};
+        }
+
+        return QRect(available_rect.center().x() - cover_edge / 2,
+            available_rect.center().y() - cover_edge / 2,
+            cover_edge,
+            cover_edge);
+    }
+
+    QPixmap makePanelBackground(const QPixmap& cover, const QSize& size) const {
+        if (cover.isNull() || size.isEmpty()) {
+            return {};
+        }
+
+        const auto blur_size = QSize(qMax(1, size.width() / 18), qMax(1, size.height() / 18));
+        const auto small_cover = cover.scaled(blur_size,
+            Qt::KeepAspectRatioByExpanding,
+            Qt::SmoothTransformation);
+        const auto blurred_cover = small_cover.scaled(size,
+            Qt::KeepAspectRatioByExpanding,
+            Qt::SmoothTransformation);
+
+        QPixmap result(size);
+        result.fill(QColor(12, 13, 13));
+
+        QPainter background_painter(&result);
+        background_painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+        const QRect background_rect(result.rect().center().x() - blurred_cover.width() / 2,
+            result.rect().center().y() - blurred_cover.height() / 2,
+            blurred_cover.width(),
+            blurred_cover.height());
+        background_painter.drawPixmap(background_rect, blurred_cover);
+        background_painter.fillRect(result.rect(), QColor(4, 6, 7, 205));
+        return result;
+    }
+
+    void paintPanelBackground(QPainter* painter, const QPixmap& cover) const {
+        const auto panel_rect = rect();
+        if (cover.isNull() || panel_rect.isEmpty()) {
+            painter->fillRect(panel_rect, QColor(12, 13, 13));
+            return;
+        }
+
+        const auto cover_key = cover.cacheKey();
+        if (background_.isNull()
+            || background_cover_key_ != cover_key
+            || background_size_ != panel_rect.size()) {
+            background_ = makePanelBackground(cover, panel_rect.size());
+            background_cover_key_ = cover_key;
+            background_size_ = panel_rect.size();
+        }
+
+        if (background_.isNull()) {
+            painter->fillRect(panel_rect, QColor(12, 13, 13));
+            return;
+        }
+        painter->drawPixmap(panel_rect, background_);
     }
 
     void paintCoverImage(QPainter* painter,
@@ -345,7 +435,13 @@ private:
             content_rect.center().y() - scaled_cover.height() / 2,
             scaled_cover.width(),
             scaled_cover.height());
+
+        painter->save();
+        QPainterPath clip_path;
+        clip_path.addRoundedRect(content_rect, kRichCoverRadius, kRichCoverRadius);
+        painter->setClipPath(clip_path);
         painter->drawPixmap(cover_rect, scaled_cover);
+        painter->restore();
     }
 
     bool has_now_playing_{ false };
@@ -355,6 +451,9 @@ private:
     QString artist_;
     QString genre_;
     QString file_extension_;
+    mutable QPixmap background_;
+    mutable QSize background_size_;
+    mutable qint64 background_cover_key_{ 0 };
     double duration_{ 0 };
 };
 
@@ -367,6 +466,7 @@ public:
 
     void reload(int32_t playlist_id, const QString& keyword) {
         beginResetModel();
+        collapsed_album_ids_ = qDaoFacade.playlist_dao.getCollapsedAlbumIds(playlist_id);
         const QSqlQuery query(richPlaylistQuery(playlist_id), qGuiDb.database());
         source_model_->setQuery(query);
         while (source_model_->canFetchMore()) {
@@ -377,6 +477,50 @@ public:
         }
         rebuildRows(keyword.trimmed());
         endResetModel();
+    }
+
+    QSet<int32_t> missingAlbumCoverIds() const {
+        return missing_album_cover_ids_;
+    }
+
+    int32_t playingAlbumId() const {
+        for (auto source_row = 0; source_row < source_model_->rowCount(); ++source_row) {
+            const auto playing = source_model_->data(source_model_->index(source_row, PLAYLIST_IS_PLAYING)).toInt();
+            if (playing != PlayingState::PLAY_CLEAR) {
+                return sourceAlbumId(source_row);
+            }
+        }
+        return kInvalidDatabaseId;
+    }
+
+    QSet<int32_t> albumIds() const {
+        QSet<int32_t> album_ids;
+        for (auto source_row = 0; source_row < source_model_->rowCount(); ++source_row) {
+            const auto album_id = sourceAlbumId(source_row);
+            if (album_id > 0) {
+                album_ids.insert(album_id);
+            }
+        }
+        return album_ids;
+    }
+
+    int32_t missingAlbumCoverId(int32_t row) const {
+        if (!isHeaderRow(row)) {
+            return kInvalidDatabaseId;
+        }
+
+        const auto album_id = data(index(row, PLAYLIST_ALBUM_ID)).toInt();
+        if (album_id <= 0) {
+            return kInvalidDatabaseId;
+        }
+
+        const auto cover_id = data(index(row, PLAYLIST_ALBUM_COVER_ID)).toString();
+        if (!isNullOfEmpty(cover_id) && cover_id != qImageCache.unknownCoverId()) {
+            if (qImageCache.contains(cover_id) || qImageCache.isFileExists(QString{}, cover_id)) {
+                return kInvalidDatabaseId;
+            }
+        }
+        return album_id;
     }
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const override {
@@ -403,6 +547,9 @@ public:
         }
         if (role == PLAYLIST_ALBUM_DURATION_ROLE) {
             return row.duration;
+        }
+        if (role == PLAYLIST_ALBUM_COLLAPSED_ROLE) {
+            return row.collapsed;
         }
 
         const auto source_index = source_model_->index(row.source_row, index.column());
@@ -458,9 +605,10 @@ public:
 private:
     struct Row {
         int source_row{ -1 };
-        bool is_header{ false };
         int track_count{ 0 };
         double duration{ 0 };
+        bool is_header{ false };
+        bool collapsed{ false };
     };
 
     int sourceAlbumId(int source_row) const {
@@ -489,6 +637,7 @@ private:
 
     void rebuildRows(const QString& keyword) {
         rows_.clear();
+        missing_album_cover_ids_.clear();
 
         const auto source_row_count = source_model_->rowCount();
         rows_.reserve(source_row_count + 16);
@@ -515,9 +664,22 @@ private:
                 continue;
             }
 
-            rows_.push_back({ track_rows.front(), true, track_count, duration });
-            for (const auto track_row : track_rows) {
-                rows_.push_back({ track_row, false, track_count, duration });
+            const auto cover_id = source_model_->data(source_model_->index(track_rows.front(), PLAYLIST_ALBUM_COVER_ID)).toString();
+            if (album_id > 0) {
+                const auto has_cover_id = !isNullOfEmpty(cover_id) && cover_id != qImageCache.unknownCoverId();
+                const auto has_cached_cover = has_cover_id
+                    && (qImageCache.contains(cover_id) || qImageCache.isFileExists(QString{}, cover_id));
+                if (!has_cached_cover) {
+                    missing_album_cover_ids_.insert(album_id);
+                }
+            }
+
+            const auto is_collapsed = collapsed_album_ids_.contains(album_id);
+            rows_.push_back({ track_rows.front(), track_count, duration, true, is_collapsed });
+            if (!is_collapsed) {
+                for (const auto track_row : track_rows) {
+                    rows_.push_back({ track_row, track_count, duration, false, false });
+                }
             }
 
             source_row = next_row;
@@ -526,6 +688,8 @@ private:
 
     QSqlQueryModel* source_model_{ nullptr };
     QVector<Row> rows_;
+    QSet<int32_t> missing_album_cover_ids_;
+    QSet<int32_t> collapsed_album_ids_;
 };
 
 class RichPlaylistStyledItemDelegate final : public QStyledItemDelegate {
@@ -561,7 +725,7 @@ private:
         painter->fillRect(row_rect, QColor(43, 43, 43));
 
         const auto cover_edge = qMin(48, row_rect.height() - 12);
-        const QRect cover_rect(row_rect.left() + 14,
+        const QRect cover_rect(row_rect.left() + 28,
             row_rect.top() + (row_rect.height() - cover_edge) / 2,
             cover_edge,
             cover_edge);
@@ -596,10 +760,35 @@ private:
         const auto duration = index.data(PLAYLIST_ALBUM_DURATION_ROLE).toDouble();
 
         const auto text_left = cover_rect.right() + 14;
+        const auto arrow_size = 8;
+        const auto right_padding = 28;
+        const QRect arrow_rect(row_rect.right() - right_padding - arrow_size,
+            row_rect.top() + (row_rect.height() - arrow_size) / 2,
+            arrow_size,
+            arrow_size);
         const auto year_width = 86;
-        const auto text_right = row_rect.right() - year_width - 18;
+        const auto year_right = arrow_rect.left() - 12;
+        const auto text_right = year_right - year_width - 12;
         const auto text_width = qMax(0, text_right - text_left);
         const auto top = row_rect.top() + 5;
+
+        const auto is_collapsed = index.data(PLAYLIST_ALBUM_COLLAPSED_ROLE).toBool();
+        const auto arrow_center = arrow_rect.center();
+        QPainterPath arrow_path;
+        if (is_collapsed) {
+            arrow_path.moveTo(arrow_center.x() - 2, arrow_center.y() - 4);
+            arrow_path.lineTo(arrow_center.x() + 3, arrow_center.y());
+            arrow_path.lineTo(arrow_center.x() - 2, arrow_center.y() + 4);
+        }
+        else {
+            arrow_path.moveTo(arrow_center.x() - 4, arrow_center.y() - 2);
+            arrow_path.lineTo(arrow_center.x() + 4, arrow_center.y() - 2);
+            arrow_path.lineTo(arrow_center.x(), arrow_center.y() + 3);
+        }
+        arrow_path.closeSubpath();
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(QColor(240, 245, 250, 210));
+        painter->drawPath(arrow_path);
 
         auto artist_font = option.font;
         artist_font.setFamily("UIFont"_str);
@@ -645,14 +834,13 @@ private:
             auto year_font = option.font;
             year_font.setFamily("MonoFont"_str);
             year_font.setPointSize(14);
-            year_font.setItalic(true);
             painter->setFont(year_font);
             painter->setPen(QColor(255, 255, 255, 235));
-            painter->drawText(QRect(text_right + 16,
+            painter->drawText(QRect(year_right - year_width,
                 top + 2,
                 year_width,
                 24),
-                Qt::AlignLeft | Qt::AlignVCenter,
+                Qt::AlignRight | Qt::AlignVCenter,
                 QString::number(year));
         }
 
@@ -745,13 +933,59 @@ public:
         verticalHeader()->hide();
         verticalHeader()->setDefaultSectionSize(PlaylistTableView::kColumnHeight);
         configureColumns();
+
+        (void)QObject::connect(verticalScrollBar(),
+            &QScrollBar::valueChanged,
+            this,
+            [this] {
+                scheduleVisibleAlbumCoverRequest();
+            });
     }
 
-    void reload(int32_t playlist_id) {
+    void reload(int32_t playlist_id, bool keep_scroll = false) {
+        const auto scroll_value = keep_scroll ? verticalScrollBar()->value() : 0;
         playlist_id_ = playlist_id;
         model_->reload(playlist_id_, search_text_);
         album_songs_id_cache_.clear();
         updateRowLayout();
+        if (keep_scroll) {
+            verticalScrollBar()->setValue(scroll_value);
+        }
+        scheduleVisibleAlbumCoverRequest();
+    }
+
+    QSet<int32_t> missingAlbumCoverIds() const {
+        return model_->missingAlbumCoverIds();
+    }
+
+    QSet<int32_t> visibleMissingAlbumCoverIds() const {
+        QSet<int32_t> album_ids;
+        const auto viewport_rect = viewport()->rect();
+        if (viewport_rect.isEmpty()) {
+            return album_ids;
+        }
+
+        for (auto row = 0; row < model_->rowCount(); ++row) {
+            if (!model_->isHeaderRow(row)) {
+                continue;
+            }
+
+            const auto index = model_->index(row, PLAYLIST_TRACK);
+            const auto row_rect = visualRect(index);
+            if (!row_rect.isValid() || !viewport_rect.intersects(row_rect)) {
+                continue;
+            }
+
+            const auto album_id = model_->missingAlbumCoverId(row);
+            if (album_id > 0) {
+                album_ids.insert(album_id);
+            }
+        }
+        return album_ids;
+    }
+
+    void setVisibleAlbumCoverRequestCallback(std::function<void()>&& callback) {
+        visible_album_cover_request_callback_ = std::move(callback);
     }
 
     void search(const QString& keyword) {
@@ -759,10 +993,49 @@ public:
         model_->reload(playlist_id_, search_text_);
         album_songs_id_cache_.clear();
         updateRowLayout();
+        scheduleVisibleAlbumCoverRequest();
     }
 
     bool isTrackRow(const QModelIndex& index) const {
         return model_->isTrackRow(index);
+    }
+
+    bool isHeaderRow(const QModelIndex& index) const {
+        return index.isValid() && model_->isHeaderRow(index.row());
+    }
+
+    bool toggleAlbum(const QModelIndex& index) {
+        if (!isHeaderRow(index)) {
+            return false;
+        }
+
+        const auto album_id = model_->index(index.row(), PLAYLIST_ALBUM_ID).data().toInt();
+        if (album_id <= 0) {
+            return false;
+        }
+
+        const auto is_collapsed = index.data(PLAYLIST_ALBUM_COLLAPSED_ROLE).toBool();
+        qDaoFacade.playlist_dao.setAlbumCollapsed(playlist_id_, album_id, !is_collapsed);
+        model_->reload(playlist_id_, search_text_);
+        album_songs_id_cache_.clear();
+        updateRowLayout();
+        scheduleVisibleAlbumCoverRequest();
+        return true;
+    }
+
+    void setAllAlbumsCollapsed(bool collapsed) {
+        const auto album_ids = model_->albumIds();
+        if (album_ids.isEmpty()) {
+            return;
+        }
+
+        for (const auto album_id : album_ids) {
+            qDaoFacade.playlist_dao.setAlbumCollapsed(playlist_id_, album_id, collapsed);
+        }
+        model_->reload(playlist_id_, search_text_);
+        album_songs_id_cache_.clear();
+        updateRowLayout();
+        scheduleVisibleAlbumCoverRequest();
     }
 
     PlayListEntity item(const QModelIndex& index) const {
@@ -833,13 +1106,55 @@ public:
         return {};
     }
 
+    bool scrollToPlayingTrack() {
+        auto index = playingIndex();
+        if (!index.isValid()) {
+            const auto album_id = model_->playingAlbumId();
+            if (album_id > 0) {
+                qDaoFacade.playlist_dao.setAlbumCollapsed(playlist_id_, album_id, false);
+                model_->reload(playlist_id_, search_text_);
+                album_songs_id_cache_.clear();
+                updateRowLayout();
+                index = playingIndex();
+            }
+        }
+
+        if (!index.isValid()) {
+            return false;
+        }
+
+        setCurrentIndex(index);
+        scrollTo(index, QAbstractItemView::PositionAtCenter);
+        return true;
+    }
+
 protected:
+    void paintEvent(QPaintEvent* event) override {
+        QTableView::paintEvent(event);
+        scheduleVisibleAlbumCoverRequest();
+    }
+
     void resizeEvent(QResizeEvent* event) override {
         QTableView::resizeEvent(event);
         configureColumns();
+        scheduleVisibleAlbumCoverRequest();
     }
 
 private:
+    void scheduleVisibleAlbumCoverRequest() {
+        if (visible_album_cover_request_pending_) {
+            return;
+        }
+
+        visible_album_cover_request_pending_ = true;
+        QTimer::singleShot(0, this, [this] {
+            visible_album_cover_request_pending_ = false;
+            if (visible_album_cover_request_callback_) {
+                visible_album_cover_request_callback_();
+            }
+        });
+    }
+
     void configureColumns() {
         for (auto column = 0; column < PLAYLIST_MAX_COLUMN; ++column) {
             setColumnHidden(column, true);
@@ -908,7 +1223,7 @@ private:
             return {};
         }
 
-        rng_.SetSeed(current_album_id);
+        rng_.setSeed(current_album_id);
 
         if (album_songs_id_cache_.isEmpty()) {
             for (auto row = 0; row < count; ++row) {
@@ -932,7 +1247,7 @@ private:
         }
 
         if (current_playlist_music_id != 0) {
-            rng_.SetSeed(current_playlist_music_id);
+            rng_.setSeed(current_playlist_music_id);
         }
 
         const auto& selected_album_songs = album_songs_id_cache_[selected_album_id];
@@ -949,6 +1264,8 @@ private:
     QString search_text_;
     PRNG rng_;
     QHash<int32_t, QList<int32_t>> album_songs_id_cache_;
+    std::function<void()> visible_album_cover_request_callback_;
+    bool visible_album_cover_request_pending_{ false };
 };
 
 RichPlaylistPage::RichPlaylistPage(QWidget* parent)
@@ -959,13 +1276,15 @@ RichPlaylistPage::RichPlaylistPage(QWidget* parent)
 
 void RichPlaylistPage::reload() {
     rich_playlist_view_->reload(kDefaultPlaylistId);
+    rich_playlist_view_->scrollToPlayingTrack();
+    requestMissingAlbumCovers();
 }
 
 void RichPlaylistPage::showImportMenu(const QPoint& pos) {
     QMenu menu(this);
 
-    auto* load_file_act = menu.addAction(tr("Load local file"));
-    auto* load_dir_act = menu.addAction(tr("Load file directory"));
+    auto* load_file_act = menu.addAction(tr("load local file"));
+    auto* load_dir_act = menu.addAction(tr("load file directory"));
     menu.addSeparator();
     auto* clear_all_act = menu.addAction(tr("Clear all"));
 
@@ -981,8 +1300,76 @@ void RichPlaylistPage::showImportMenu(const QPoint& pos) {
     }
 }
 
+void RichPlaylistPage::showPlaylistContextMenu(const QPoint& pos) {
+    const auto index = rich_playlist_view_->indexAt(pos);
+    const auto is_track_row = index.isValid() && rich_playlist_view_->isTrackRow(index);
+
+    PlayListEntity entity;
+    QMenu menu(this);
+    QAction* copy_artist_act = nullptr;
+    QAction* copy_album_act = nullptr;
+    QAction* copy_title_act = nullptr;
+    QAction* open_parent_path_act = nullptr;
+
+    if (is_track_row) {
+        entity = rich_playlist_view_->item(index);
+        copy_artist_act = menu.addAction(qTheme.fontIcon(Glyphs::ICON_COPY), tr("Copy artist"));
+        copy_album_act = menu.addAction(tr("Copy album"));
+        copy_title_act = menu.addAction(tr("Copy title"));
+        menu.addSeparator();
+        open_parent_path_act = menu.addAction(tr("open file location"));
+        menu.addSeparator();
+    }
+
+    auto* collapse_all_act = menu.addAction(tr("Collapse all albums"));
+    auto* expand_all_act = menu.addAction(tr("Expand all albums"));
+    menu.addSeparator();
+    auto* load_file_act = menu.addAction(tr("load local file"));
+    auto* load_dir_act = menu.addAction(tr("load file directory"));
+    menu.addSeparator();
+    auto* clear_all_act = menu.addAction(tr("Clear all"));
+
+    const auto* selected_action = menu.exec(rich_playlist_view_->mapToGlobal(pos));
+    if (selected_action == nullptr) {
+        return;
+    }
+
+    if (selected_action == copy_artist_act) {
+        QApplication::clipboard()->setText(entity.artist);
+    }
+    else if (selected_action == copy_album_act) {
+        QApplication::clipboard()->setText(entity.album);
+    }
+    else if (selected_action == copy_title_act) {
+        QApplication::clipboard()->setText(entity.title);
+    }
+    else if (selected_action == open_parent_path_act) {
+        const auto parent_path = entity.parent_path.isEmpty()
+            ? QFileInfo(entity.file_path).absolutePath()
+            : entity.parent_path;
+        if (!parent_path.isEmpty()) {
+            QDesktopServices::openUrl(QUrl::fromLocalFile(parent_path));
+        }
+    }
+    else if (selected_action == collapse_all_act) {
+        rich_playlist_view_->setAllAlbumsCollapsed(true);
+    }
+    else if (selected_action == expand_all_act) {
+        rich_playlist_view_->setAllAlbumsCollapsed(false);
+    }
+    else if (selected_action == load_file_act) {
+        loadLocalFile();
+    }
+    else if (selected_action == load_dir_act) {
+        loadFileDirectory();
+    }
+    else if (selected_action == clear_all_act) {
+        clearAll();
+    }
+}
+
 void RichPlaylistPage::loadLocalFile() {
-    getOpenMusicFileName(this, tr("Open file"), tr("Music Files "), [this](const auto& file_name) {
+    getOpenMusicFileName(this, tr("open file"), tr("Music Files "), [this](const auto& file_name) {
         showProgressPage();
         emit extractFile(file_name, kDefaultPlaylistId);
     });
@@ -1002,6 +1389,7 @@ void RichPlaylistPage::loadPath(const QString& file_path, bool append_to_playlis
     }
     if (!append_to_playlist) {
         qDaoFacade.playlist_dao.removePlaylistAllMusic(kDefaultPlaylistId);
+        requested_album_cover_ids_.clear();
         reload();
     }
     showProgressPage();
@@ -1010,6 +1398,7 @@ void RichPlaylistPage::loadPath(const QString& file_path, bool append_to_playlis
 
 void RichPlaylistPage::clearAll() {
     qDaoFacade.playlist_dao.removePlaylistAllMusic(kDefaultPlaylistId);
+    requested_album_cover_ids_.clear();
     reload();
 }
 
@@ -1044,6 +1433,7 @@ void RichPlaylistPage::playIndex(const QModelIndex& index, bool is_play) {
         PlayingState::PLAY_PLAYING);
 
     rich_playlist_view_->reload(kDefaultPlaylistId);
+    requestMissingAlbumCovers();
     const auto current_index = rich_playlist_view_->indexForPlaylistMusicId(entity.playlist_music_id);
     if (current_index.isValid()) {
         rich_playlist_view_->setCurrentIndex(current_index);
@@ -1131,37 +1521,7 @@ void RichPlaylistPage::initial() {
         &QWidget::customContextMenuRequested,
         this,
         [this](const QPoint& pos) {
-            const auto index = rich_playlist_view_->indexAt(pos);
-            if (index.isValid() && rich_playlist_view_->isTrackRow(index)) {
-                const auto entity = rich_playlist_view_->item(index);
-                QMenu menu(this);
-                auto* copy_artist_act = menu.addAction(qTheme.fontIcon(Glyphs::ICON_COPY), tr("Copy artist"));
-                auto* copy_album_act = menu.addAction(tr("Copy album"));
-                auto* copy_title_act = menu.addAction(tr("Copy title"));
-                menu.addSeparator();
-                auto* open_parent_path_act = menu.addAction(tr("Open file location"));
-
-                const auto* selected_action = menu.exec(rich_playlist_view_->mapToGlobal(pos));
-                if (selected_action == copy_artist_act) {
-                    QApplication::clipboard()->setText(entity.artist);
-                }
-                else if (selected_action == copy_album_act) {
-                    QApplication::clipboard()->setText(entity.album);
-                }
-                else if (selected_action == copy_title_act) {
-                    QApplication::clipboard()->setText(entity.title);
-                }
-                else if (selected_action == open_parent_path_act) {
-                    const auto parent_path = entity.parent_path.isEmpty()
-                        ? QFileInfo(entity.file_path).absolutePath()
-                        : entity.parent_path;
-                    if (!parent_path.isEmpty()) {
-                        QDesktopServices::openUrl(QUrl::fromLocalFile(parent_path));
-                    }
-                }
-                return;
-            }
-            showImportMenu(rich_playlist_view_->mapToGlobal(pos));
+            showPlaylistContextMenu(pos);
         });
 
     (void)QObject::connect(rich_playlist_view_,
@@ -1171,8 +1531,21 @@ void RichPlaylistPage::initial() {
             playIndex(index, true);
         });
 
-    main_layout->addWidget(cover_panel_, 5);
-    main_layout->addWidget(list_panel, 5);
+    (void)QObject::connect(rich_playlist_view_,
+        &QTableView::clicked,
+        this,
+        [this](const QModelIndex& index) {
+            if (rich_playlist_view_->toggleAlbum(index)) {
+                requestMissingAlbumCovers();
+            }
+        });
+
+    rich_playlist_view_->setVisibleAlbumCoverRequestCallback([this] {
+        requestMissingAlbumCovers();
+    });
+
+    main_layout->addWidget(cover_panel_);
+    main_layout->addWidget(list_panel, 1);
     root_layout->addWidget(content_panel, 1);
     root_layout->addWidget(progress_page_);
 
@@ -1224,13 +1597,42 @@ void RichPlaylistPage::initial() {
 
     clearNowPlaying();
     rich_playlist_view_->reload(kDefaultPlaylistId);
+    rich_playlist_view_->scrollToPlayingTrack();
+    requestMissingAlbumCovers();
 }
 
 void RichPlaylistPage::setNowPlaying(const TrackInfo& track_info, const QPixmap& cover) {
     cover_panel_->setNowPlaying(track_info, cover);
     rich_playlist_view_->reload(kDefaultPlaylistId);
+    rich_playlist_view_->scrollToPlayingTrack();
+    requestMissingAlbumCovers();
 }
 
 void RichPlaylistPage::clearNowPlaying() {
     cover_panel_->clearNowPlaying();
+}
+
+void RichPlaylistPage::onAlbumCoverLoaded(int32_t album_id) {
+    if (album_id <= 0) {
+        return;
+    }
+
+    rich_playlist_view_->reload(kDefaultPlaylistId, true);
+    requestMissingAlbumCovers();
+}
+
+void RichPlaylistPage::requestMissingAlbumCovers() {
+    const auto album_ids = rich_playlist_view_->visibleMissingAlbumCoverIds();
+    if (album_ids.isEmpty()) {
+        return;
+    }
+
+    for (const auto album_id : album_ids) {
+        if (requested_album_cover_ids_.contains(album_id)) {
+            continue;
+        }
+
+        requested_album_cover_ids_.insert(album_id);
+        emit findAlbumCover(DatabaseCoverId(kInvalidDatabaseId, album_id));
+    }
 }

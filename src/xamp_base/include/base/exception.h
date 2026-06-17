@@ -30,8 +30,8 @@ XAMP_BASE_NAMESPACE_BEGIN
 * XAMP_ERROR_FILE_NOT_FOUND: File not found
 * XAMP_ERROR_NOT_SUPPORT_SAMPLE_RATE: Not support sample rate
 * XAMP_ERROR_NOT_SUPPORT_FORMAT: Not support format
-* XAMP_ERROR_LOAD_DLL_FAILURE: Load dll failure
-* XAMP_ERROR_STOP_STREAM_TIMEOUT: Stop stream timeout
+* XAMP_ERROR_LOAD_DLL_FAILURE: load dll failure
+* XAMP_ERROR_STOP_STREAM_TIMEOUT: stop stream timeout
 * XAMP_ERROR_SAMPLE_RATE_CHANGED: Sample rate changed
 * XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLE_RATE: Not support resample sample rate
 * XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC: Not found dll export function
@@ -99,27 +99,27 @@ class XAMP_BASE_API Exception : public std::exception {
      /*
      * Get error code.
      */
-     [[nodiscard]] virtual Errors GetError() const ;
+     [[nodiscard]] virtual Errors getError() const ;
 
      /*
      * Get error message.
      */
-     [[nodiscard]] char const* GetErrorMessage() const ;
+     [[nodiscard]] char const* getErrorMessage() const ;
 
      /*
      * Get expression.
      */
-     [[nodiscard]] virtual const char* GetExpression() const ;
+     [[nodiscard]] virtual const char* getExpression() const ;
 
      /*
      * Get stack trace.
      */
-     [[nodiscard]] char const* GetStackTrace() const ;
+     [[nodiscard]] char const* getStackTrace() const ;
 
      /*
      * Get error code string.
      */
-     static std::string_view ErrorToString(Errors error);
+     static std::string_view errorToString(Errors error);
  private:
      Errors error_;
 
@@ -227,15 +227,15 @@ void Throw(std::string_view s, Args &&...args) {
     throw E(String::Format(s, std::forward<Args>(args)...).c_str());
 }
 
-template <typename E, typename T = bool>
-void ThrowIf(T&& value, std::string_view s) {
+template <typename E, typename t = bool>
+void ThrowIf(t&& value, std::string_view s) {
     if (!value) {
         Throw<E>(s);
     }
 }
 
-template <typename E, typename T = bool, typename... Args>
-void ThrowIf(T &&value, std::string_view s, Args &&...args) {
+template <typename E, typename t = bool, typename... Args>
+void ThrowIf(t &&value, std::string_view s, Args &&...args) {
     if (!value) {
         Throw<E>(s, std::forward<Args>(args)...);
     }

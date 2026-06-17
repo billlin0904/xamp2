@@ -1,4 +1,4 @@
-﻿//=====================================================================================================================
+//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -60,135 +60,140 @@ class AudioPlayer final :
 public:
 	static constexpr auto kStopStreamTime = std::numeric_limits<uint32_t>::max();
     
-    AudioPlayer(const std::shared_ptr<IThreadPoolExecutor>& playback_thread_pool,
-        const std::shared_ptr<IThreadPoolExecutor>& player_thread_pool);
+    AudioPlayer(const std::shared_ptr<IThreadPool>& playback_thread_pool,
+        const std::shared_ptr<IThreadPool>& player_thread_pool);
 
     virtual ~AudioPlayer() override;
 
     XAMP_DISABLE_COPY(AudioPlayer)
 
-    void OpenArchiveEntry(ArchiveEntry archive_entry,
+    void openArchiveEntry(ArchiveEntry archive_entry,
         const DeviceInfo& device_info,
         uint32_t target_sample_rate = 0,
         DsdModes output_mode = DsdModes::DSD_MODE_AUTO) override;
 
-    void Open(ScopedPtr<FileStream> file_stream,
+    void open(ScopedPtr<FileStream> file_stream,
         const DeviceInfo& device_info,
         uint32_t target_sample_rate = 0,
         DsdModes output_mode = DsdModes::DSD_MODE_AUTO) override;
 
-    void Destroy() override;
+    void destroy() override;
 
-    void SetStateAdapter(const std::weak_ptr<IPlaybackStateAdapter>& adapter) override;
+    void setStateAdapter(const std::weak_ptr<IPlaybackStateAdapter>& adapter) override;
 
-    void PrepareToPlay(ByteFormat byte_format = ByteFormat::INVALID_FORMAT, uint32_t device_sample_rate = 0) override;
+    void prepareToPlay(ByteFormat byte_format = ByteFormat::INVALID_FORMAT, uint32_t device_sample_rate = 0) override;
 
-    void Play() override;
+    void play() override;
 
-    void Pause() override;
+    void pause() override;
 
-    void Resume() override;
+    void resume() override;
 
-    void Stop(bool signal_to_stop = true, bool shutdown_device = false, bool wait_for_stop_stream = true) override;    
+    void stop(bool signal_to_stop = true, bool shutdown_device = false, bool wait_for_stop_stream = true) override;    
     	
-    void Seek(double stream_time) override;
+    void seek(double stream_time) override;
 
-    void SetParametricEq(bool enabled, const EqSettings& settings) override;
+    void setParametricEq(bool enabled, const EqSettings& settings) override;
 
-    void SetVolume(uint32_t volume) override;
+    void setVolume(uint32_t volume) override;
 
-    uint32_t GetVolume() const override;
+    uint32_t getVolume() const override;
 
-    bool IsHardwareControlVolume() const override;
+    bool isHardwareControlVolume() const override;
 
-    bool IsMute() const override;
+    bool isMute() const override;
 
-    void SetMute(bool mute) override;
+    void setMute(bool mute) override;
     
-    bool IsPlaying() const override;
+    bool isPlaying() const override;
 
-    DsdModes GetDsdModes() const override;
+    DsdModes getDsdModes() const override;
 
-    bool IsDsdFile() const override;
+    bool isDsdFile() const override;
 
-    std::optional<uint32_t> GetDsdSpeed() const override;
+    std::optional<uint32_t> getDsdSpeed() const override;
 
-    double GetDuration() const override;
+    double getDuration() const override;
 
-    PlayerState GetState() const override;
+    PlayerState getState() const override;
 
-    AudioFormat GetInputFormat() const override;
+    AudioFormat getInputFormat() const override;
 
-    AudioFormat GetOutputFormat() const override;
+    AudioFormat getOutputFormat() const override;
 
-    const ScopedPtr<IAudioDeviceManager>& GetAudioDeviceManager() override;
+    const ScopedPtr<IAudioDeviceManager>& getAudioDeviceManager() override;
 
-    ScopedPtr<IDSPManager>& GetDspManager() override;    
+    ScopedPtr<IDSPManager>& getDspManager() override;    
 
-    void BufferStream(double stream_time = 0.0, const std::optional<double> & offset = std::nullopt, const std::optional<double>& duration = std::nullopt) override;
+    void bufferStream(double stream_time = 0.0, const std::optional<double> & offset = std::nullopt, const std::optional<double>& duration = std::nullopt) override;
 
-    Property& GetDspConfig() override;
+    Property& getDspConfig() override;
 
-	uint32_t GetBitRate() const override;
+	uint32_t getBitRate() const override;
 private:
-    DataCallbackResult OnGetSamples(void* samples,
+    DataCallbackResult onGetSamples(void* samples,
         size_t num_buffer_frames, 
         size_t& num_filled_frames,
         double stream_time, 
         double sample_time) override;
 
-    void OnVolumeChange(int32_t vol) override;
+    void onVolumeChange(int32_t vol) override;
 
-    void OnError(const std::exception& e) override;
+    void onError(const std::exception& e) override;
 
-    void OnDeviceStateChange(DeviceState state, std::string const& device_id) override;
+    void onDeviceStateChange(DeviceState state, std::string const& device_id) override;
 
-    void OnGlitch(std::chrono::milliseconds duration, uint32_t count) override;
+    void onGlitch(std::chrono::milliseconds duration, uint32_t count) override;
 
-    void DoSeek(double stream_time);
+    void doSeek(double stream_time);
     	
-    void OpenStream(ArchiveEntry archive_entry, DsdModes dsd_mode);
+    void openStream(ArchiveEntry archive_entry, DsdModes dsd_mode);
 
-    void OpenStream(ScopedPtr<FileStream> file_stream, DsdModes dsd_mode);
+    void openStream(ScopedPtr<FileStream> file_stream, DsdModes dsd_mode);
 
-    void CreateDevice(Uuid const& device_type_id, const  std::string & device_id, bool open_always);
+    void createDevice(Uuid const& device_type_id, const  std::string & device_id, bool open_always);
 
-    void CloseDevice(bool wait_for_stop_stream, bool quit = false);
+    void closeDevice(bool wait_for_stop_stream, bool quit = false);
 
-    void CreateBuffer();
+    void createBuffer();
 
-    void SetDeviceFormat();
+    void setDeviceFormat();
 
-    void OpenDevice(double stream_time = 0.0);
+    void openDevice(double stream_time = 0.0);
 
-    void SetState(PlayerState play_state);
+    void setState(PlayerState play_state);
 
-    void ReadSampleLoop(std::byte* buffer, uint32_t buffer_size, std::unique_lock<FastMutex>& stopped_lock);
+    void readSampleLoop(std::byte* buffer, uint32_t buffer_size, std::unique_lock<FastMutex>& stopped_lock);
 
-    void CopySamples(void * samples, size_t num_buffer_frames) const;
+    void copySamples(void* samples, size_t num_samples) const;
 
-    void BufferSamples(const ScopedPtr<FileStream>& stream, int32_t buffer_count = 1);
+    void bufferSamples(const ScopedPtr<FileStream>& stream, int32_t buffer_count = 1);
 
-    void UpdatePlayerStreamTime(uint32_t stream_time_sec_unit = 0) ;
+    void updatePlayerStreamTime(uint32_t stream_time_sec_unit = 0) ;
 
-    void ResizeReadBuffer(uint32_t allocate_size);
+    void resizeReadBuffer(uint32_t allocate_size);
 
-    void ResizeFIFO(uint32_t fifo_size);
+    void resizeFIFO(uint32_t fifo_size);
 
-    void ReadStreamInfo(DsdModes dsd_mode, const ScopedPtr<FileStream>& stream);
+    void readStreamInfo(DsdModes dsd_mode, const ScopedPtr<FileStream>& stream);
 
-    void WaitForReadFinishAndSeekSignal(std::unique_lock<FastMutex>& stopped_lock);
+    void waitForReadFinishAndSeekSignal(std::unique_lock<FastMutex>& stopped_lock);
 
-    bool ShouldKeepReading() const ;
+    bool shouldKeepReading() const ;
 
-    void SetReadSampleSize(uint32_t num_samples);
+    void setReadSampleSize(uint32_t num_samples);
 
-    bool IsAvailableWrite() const ;
+    uint32_t estimateDspOutputBytes(uint32_t input_samples) const;
+
+    bool hasEnoughFifoWriteSpace(uint32_t input_samples) const;
+
+    bool isAvailableWrite() const ;
 
     bool is_muted_;
     bool is_dsd_file_;
     uint32_t num_read_buffer_size_;
     uint32_t num_write_buffer_size_;
+    uint32_t min_fifo_write_size_;
     std::optional<uint32_t> dsd_speed_;
     std::atomic<double> sample_end_time_;
     AudioConfig audio_config_;
@@ -215,8 +220,8 @@ private:
     FastConditionVariable pause_cond_;
     FastConditionVariable read_finish_and_wait_seek_signal_cond_;
     AudioBuffer<std::byte> fifo_;
-    std::shared_ptr<IThreadPoolExecutor> playback_thread_pool_;
-	std::shared_ptr<IThreadPoolExecutor> player_thread_pool_;
+    std::shared_ptr<IThreadPool> playback_thread_pool_;
+	std::shared_ptr<IThreadPool> player_thread_pool_;
 };
 
 XAMP_AUDIO_PLAYER_NAMESPACE_END

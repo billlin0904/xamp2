@@ -1,4 +1,6 @@
+#include <QAbstractItemView>
 #include <QStandardItemModel>
+#include <QCheckBox>
 #include <QCloseEvent>
 #include <QCoreApplication>
 #include <QDialogButtonBox>
@@ -33,9 +35,11 @@ namespace {
     constexpr int kAlbumTitleRole = Qt::UserRole + 3;
     constexpr int kMatchedEntityRole = Qt::UserRole + 4;
     constexpr int kDiscNumberRole = Qt::UserRole + 5;
+    constexpr int kEntityRole = Qt::UserRole + 6;
 
     struct CandidateAlbum {
         MusicBrainzRecording recording;
+        QList<musicbrain::TrackInfo> tracks;
         QList<musicbrain::TrackMatchResult> matches;
         double trackScore = 0;
         double albumScore = 0;
@@ -45,6 +49,63 @@ namespace {
         QList<PlayListEntity> entities;
         QList<musicbrain::Release> candidateReleases;
     };
+
+    struct MusicBrainzReleaseDetailCacheEntry {
+        QList<musicbrain::TrackInfo> tracks;
+        QByteArray cover_art_bytes;
+        size_t cover_art_size = 0;
+        int unique_recording_count = 0;
+    };
+
+    constexpr qsizetype kMaxCandidateReleaseCacheSize = 128;
+    constexpr qsizetype kMaxReleaseDetailCacheSize = 512;
+
+    QHash<QString, QList<musicbrain::Release>> g_candidate_release_cache;
+    QHash<QString, MusicBrainzReleaseDetailCacheEntry> g_release_detail_cache;
+
+    class TrackOrderModel final : public QStandardItemModel {
+    public:
+        explicit TrackOrderModel(QObject* parent)
+            : QStandardItemModel(parent) {
+        }
+
+        Qt::DropActions supportedDropActions() const override {
+            return Qt::MoveAction;
+        }
+
+        Qt::DropActions supportedDragActions() const override {
+            return Qt::MoveAction;
+        }
+
+        Qt::ItemFlags flags(const QModelIndex& index) const override {
+            auto item_flags = QStandardItemModel::flags(index);
+            if (!index.isValid()) {
+                return item_flags | Qt::ItemIsDropEnabled;
+            }
+
+            auto* item = itemFromIndex(index);
+            if (item == nullptr) {
+                return item_flags;
+            }
+
+            if (item->parent() == nullptr) {
+                item_flags &= ~Qt::ItemIsDragEnabled;
+                item_flags |= Qt::ItemIsDropEnabled;
+            }
+            else {
+                item_flags |= Qt::ItemIsDragEnabled;
+                item_flags &= ~Qt::ItemIsDropEnabled;
+            }
+            return item_flags;
+        }
+    };
+
+    template <typename Cache>
+    void trimCache(Cache& cache, qsizetype max_size) {
+        while (cache.size() > max_size) {
+            cache.erase(cache.begin());
+        }
+    }
 
     musicbrain::FileMeta makeFileMeta(const PlayListEntity& entity, int total_album_tracks) {
         musicbrain::FileMeta meta;
@@ -108,19 +169,66 @@ namespace {
             .arg(field, escapeLuceneQuery(value));
     }
 
-    QString buildMusicBrainzReleaseQuery(const QList<PlayListEntity>& entities) {
+    bool isUnknownArtistText(const QString& value) {
+        const auto artist = value.trimmed();
+        return artist.isEmpty()
+            || artist.compare("Unknown"_str, Qt::CaseInsensitive) == 0
+            || artist.compare("Unknown artist"_str, Qt::CaseInsensitive) == 0;
+    }
+
+    QString preferredMusicBrainzArtist(const QList<PlayListEntity>& entities) {
+        QHash<QString, int> artist_count;
+        QString preferred_artist;
+        int preferred_count = 0;
+        for (const auto& entity : entities) {
+            const auto artist = entity.artist.trimmed();
+            if (isUnknownArtistText(artist)) {
+                continue;
+            }
+            const auto count = artist_count.value(artist) + 1;
+            artist_count.insert(artist, count);
+            if (count > preferred_count) {
+                preferred_artist = artist;
+                preferred_count = count;
+            }
+        }
+        return preferred_artist;
+    }
+
+    QString buildMusicBrainzReleaseQuery(const QList<PlayListEntity>& entities, bool include_artist) {
         QStringList parts;
         if (entities.isEmpty()) {
             return QString();
         }
         const auto& entity = entities.front();
-        if (!entity.album.isEmpty()) {
-            parts.append(luceneField("release"_str, entity.album));
+        const auto album = entity.album.trimmed();
+        if (!album.isEmpty()) {
+            parts.append(luceneField("release"_str, album));
+        }
+        if (include_artist) {
+            const auto artist = preferredMusicBrainzArtist(entities);
+            if (!artist.isEmpty()) {
+                parts.append(luceneField("artist"_str, artist));
+            }
         }
         if (entity.year > 0) {
             parts.append(luceneField("date"_str, QString::number(entity.year)));
         }
         return parts.join(" "_str);
+    }
+
+    QStringList buildMusicBrainzReleaseQueries(const QList<PlayListEntity>& entities) {
+        QStringList queries;
+        const auto query_with_artist = buildMusicBrainzReleaseQuery(entities, true);
+        if (!query_with_artist.isEmpty()) {
+            queries.append(query_with_artist);
+        }
+
+        const auto query_without_artist = buildMusicBrainzReleaseQuery(entities, false);
+        if (!query_without_artist.isEmpty() && !queries.contains(query_without_artist)) {
+            queries.append(query_without_artist);
+        }
+        return queries;
     }
 
     QString artistText(const musicbrain::TrackInfo& track) {
@@ -334,6 +442,48 @@ namespace {
         return total_discs;
     }
 
+    QList<musicbrain::TrackInfo> mergeDiscTrackNumbers(const QList<musicbrain::TrackInfo>& source_tracks) {
+        auto tracks = source_tracks;
+        std::stable_sort(tracks.begin(), tracks.end(), [](const auto& left, const auto& right) {
+            const auto left_disc = left.disc > 0 ? left.disc : 1;
+            const auto right_disc = right.disc > 0 ? right.disc : 1;
+            if (left_disc != right_disc) {
+                return left_disc < right_disc;
+            }
+            if (left.trackNo != right.trackNo) {
+                return left.trackNo < right.trackNo;
+            }
+            return false;
+            });
+
+        auto current_disc = 0;
+        auto track_offset = 0;
+        auto max_track_in_disc = 0;
+        for (auto& track : tracks) {
+            const auto disc_no = track.disc > 0 ? track.disc : 1;
+            if (current_disc != disc_no) {
+                if (current_disc != 0) {
+                    track_offset += max_track_in_disc;
+                }
+                current_disc = disc_no;
+                max_track_in_disc = 0;
+            }
+
+            const auto local_track_no = track.trackNo > 0 ? track.trackNo : max_track_in_disc + 1;
+            track.disc = 1;
+            track.trackNo = track_offset + local_track_no;
+            max_track_in_disc = (std::max)(max_track_in_disc, local_track_no);
+        }
+        return tracks;
+    }
+
+    QList<musicbrain::TrackInfo> candidateTracksForRecording(const MusicBrainzRecording& recording, bool merge_discs) {
+        if (!merge_discs || totalDiscCount(recording) <= 1) {
+            return recording.tracks;
+        }
+        return mergeDiscTrackNumbers(recording.tracks);
+    }
+
     QString discDisplayTitle(const MusicBrainzRecording& recording, int disc_no) {
         auto format = QStringLiteral("CD");
         if (const auto release = releaseForRecording(recording); release.has_value()) {
@@ -422,6 +572,29 @@ namespace {
         return QObject::tr("album");
     }
 
+    qsizetype trackItemOrderInAlbum(const QStandardItem* duration_item) {
+        if (duration_item == nullptr) {
+            return -1;
+        }
+
+        auto* album_item = duration_item->parent();
+        while (album_item != nullptr && album_item->parent() != nullptr) {
+            album_item = album_item->parent();
+        }
+        if (album_item == nullptr) {
+            return -1;
+        }
+
+        QList<QStandardItem*> album_track_items;
+        collectTrackDurationItems(album_item, album_track_items);
+        for (qsizetype i = 0; i < album_track_items.size(); ++i) {
+            if (album_track_items[i] == duration_item) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     QString candidateKey(const MusicBrainzRecording& recording) {
         const auto track = recording.tracks.isEmpty()
             ? musicbrain::TrackInfo{}
@@ -476,7 +649,7 @@ MusicbrainzEditPage::MusicbrainzEditPage(const QList<PlayListEntity>& entities, 
     , nam_(this)
     , http_client_(&nam_, QString(), this) {
     ui_ = new Ui::MusicbrainzEditPage();
-    track_model_ = new QStandardItemModel(this);
+    track_model_ = new TrackOrderModel(this);
     album_track_model_ = new QStandardItemModel(this);
 	tag_model_ = new QStandardItemModel(this);
     ui_->setupUi(this);
@@ -485,13 +658,13 @@ MusicbrainzEditPage::MusicbrainzEditPage(const QList<PlayListEntity>& entities, 
     export_album_cover_button_->setEnabled(false);
     export_album_cover_button_->setToolTip(tr("Export the selected MusicBrainz release cover to an image file."));
 
-    write_tag_button_ = new QPushButton(tr("Write Selected Track"), this);
+    write_tag_button_ = new QPushButton(tr("write Selected Track"), this);
     write_tag_button_->setEnabled(false);
-    write_tag_button_->setToolTip(tr("Write tags only to the selected track."));
+    write_tag_button_->setToolTip(tr("write tags only to the selected track."));
 
-    write_album_tags_button_ = new QPushButton(tr("Write Entire Album"), this);
+    write_album_tags_button_ = new QPushButton(tr("write Entire Album"), this);
     write_album_tags_button_->setEnabled(false);
-    write_album_tags_button_->setToolTip(tr("Write tags to every matched track in the selected album."));
+    write_album_tags_button_->setToolTip(tr("write tags to every matched track in the selected album."));
 
     fetch_progress_bar_ = new QProgressBar(this);
     fetch_progress_bar_->setTextVisible(true);
@@ -500,9 +673,14 @@ MusicbrainzEditPage::MusicbrainzEditPage(const QList<PlayListEntity>& entities, 
     fetch_progress_bar_->setFormat(tr("Fetching MusicBrainz releases (0/0)"));
     fetch_progress_bar_->setMinimumWidth(260);
 
+    merge_discs_checkbox_ = new QCheckBox(tr("Merge CDs"), this);
+    merge_discs_checkbox_->setToolTip(tr("Merge multi-disc releases into one continuous CD track list."));
+    merge_discs_checkbox_->setChecked(false);
+
     auto* button_layout = new QHBoxLayout();
     button_layout->addWidget(fetch_progress_bar_, 1);
     button_layout->addStretch();
+    button_layout->addWidget(merge_discs_checkbox_);
     button_layout->addWidget(export_album_cover_button_);
     button_layout->addWidget(write_tag_button_);
     button_layout->addWidget(write_album_tags_button_);
@@ -511,6 +689,52 @@ MusicbrainzEditPage::MusicbrainzEditPage(const QList<PlayListEntity>& entities, 
     (void)QObject::connect(export_album_cover_button_, &QPushButton::clicked, this, &MusicbrainzEditPage::exportAlbumCover);
     (void)QObject::connect(write_tag_button_, &QPushButton::clicked, this, &MusicbrainzEditPage::writeSelectedTag);
     (void)QObject::connect(write_album_tags_button_, &QPushButton::clicked, this, &MusicbrainzEditPage::writeSelectedAlbumTags);
+    (void)QObject::connect(merge_discs_checkbox_, &QCheckBox::toggled, this, [this] {
+        selected_track_.reset();
+        selected_entity_.reset();
+        selected_album_.clear();
+        selected_release_id_.clear();
+        tag_model_->removeRows(0, tag_model_->rowCount());
+        ui_->albumRecordingView->clearSelection();
+        ui_->albumRecordingView->setCurrentIndex(QModelIndex());
+        rebuildCandidateView();
+        updateNewCoverArt(QString());
+        updateWriteTagButtons();
+        });
+    (void)QObject::connect(track_model_,
+        &QStandardItemModel::rowsMoved,
+        this,
+        [this](const QModelIndex&, int, int, const QModelIndex&, int) {
+            entities_ = orderedEntitiesForWrite();
+            metas_.clear();
+            for (const auto& entity : entities_) {
+                metas_.append(makeFileMeta(entity, entities_.count()));
+            }
+
+            auto index = ui_->albumRecordingView->currentIndex();
+            if (index.isValid()) {
+                auto idx = index.siblingAtColumn(3);
+                const auto track_data = idx.data(kTrackInfoRole);
+                const auto album_data = idx.data(kAlbumTitleRole);
+                if (track_data.isValid() && album_data.isValid()) {
+                    const auto track = track_data.value<musicbrain::TrackInfo>();
+                    const auto album = album_data.value<QString>();
+                    auto entity = entityForTrackItemOrder(album_track_model_->itemFromIndex(idx));
+                    if (!entity.has_value()) {
+                        entity = matchedEntityForItem(album_track_model_->itemFromIndex(idx));
+                    }
+                    if (!entity.has_value()) {
+                        entity = entityForExactTrack(track.trackNo);
+                    }
+                    selected_entity_ = entity;
+                    selected_track_ = track;
+                    selected_album_ = album;
+                    setTagPreview(selected_entity_, selected_track_, selected_album_);
+                    updateOriginalCoverArt(selected_entity_);
+                }
+            }
+            updateWriteTagButtons();
+        });
 
 	load(entities);
     startFetchMusicBrainzRecording().then([] {
@@ -565,6 +789,9 @@ void MusicbrainzEditPage::load(const QList<PlayListEntity>& entities) {
     if (fetch_progress_bar_ != nullptr) {
         fetch_progress_bar_->setFont(f);
     }
+    if (merge_discs_checkbox_ != nullptr) {
+        merge_discs_checkbox_->setFont(f);
+    }
     if (export_album_cover_button_ != nullptr) {
         export_album_cover_button_->setFont(f);
     }
@@ -582,22 +809,41 @@ void MusicbrainzEditPage::load(const QList<PlayListEntity>& entities) {
     ui_->trackView->setModel(track_model_);
     ui_->trackView->setRootIsDecorated(true);
     ui_->trackView->setAllColumnsShowFocus(true);
+    ui_->trackView->setDragEnabled(true);
+    ui_->trackView->setAcceptDrops(true);
+    ui_->trackView->setDropIndicatorShown(true);
+    ui_->trackView->setDefaultDropAction(Qt::MoveAction);
+    ui_->trackView->setDragDropMode(QAbstractItemView::InternalMove);
+    ui_->trackView->setSelectionBehavior(QAbstractItemView::SelectRows);
 
     auto* album_item = new QStandardItem(sorted_entities.front().album);
+    album_item->setEditable(false);
+    album_item->setDragEnabled(false);
+    album_item->setDropEnabled(true);
 
     QList<QStandardItem*> top_row;
     top_row << album_item
         << new QStandardItem(QString())
         << new QStandardItem(QString());
+    for (auto* item : top_row) {
+        item->setEditable(false);
+        item->setDragEnabled(false);
+        item->setDropEnabled(true);
+    }
     track_model_->appendRow(top_row);
 
     for (const auto& entity : sorted_entities) {
         auto* child1 = new QStandardItem(entity.title);
         auto* child2 = new QStandardItem(QString::number(entity.track));
         auto* child3 = new QStandardItem(formatDuration(entity.duration));
-        child3->setData(QVariant::fromValue(entity), Qt::UserRole + 1);
+        child3->setData(entity.music_id, kEntityRole);
         QList<QStandardItem*> row_items;
         row_items << child1 << child2 << child3;
+        for (auto* item : row_items) {
+            item->setEditable(false);
+            item->setDragEnabled(true);
+            item->setDropEnabled(false);
+        }
         album_item->appendRow(row_items);
         metas_.append(makeFileMeta(entity, sorted_entities.count()));
     }
@@ -688,7 +934,11 @@ void MusicbrainzEditPage::load(const QList<PlayListEntity>& entities) {
         if (!data.isValid())
             return;
         auto album = data.template value<QString>();
-        auto entity = matchedEntityForItem(album_track_model_->itemFromIndex(idx));
+        const auto* duration_item = album_track_model_->itemFromIndex(idx);
+        auto entity = entityForTrackItemOrder(duration_item);
+        if (!entity.has_value()) {
+            entity = matchedEntityForItem(duration_item);
+        }
         if (!entity.has_value()) {
             entity = entityForExactTrack(tracks.trackNo);
         }
@@ -710,10 +960,9 @@ void MusicbrainzEditPage::load(const QList<PlayListEntity>& entities) {
         auto idx = index.siblingAtColumn(2);
         if (!index.isValid())
             return;
-        auto data = idx.data(Qt::UserRole + 1);
-        if (!data.isValid())
+        auto entity = entityForTrackModelItem(track_model_->itemFromIndex(idx));
+        if (!entity.has_value())
             return;        
-        auto entity = data.template value<PlayListEntity>();
         selected_entity_ = entity;
         selected_track_.reset();
         selected_album_.clear();
@@ -735,11 +984,12 @@ void MusicbrainzEditPage::rebuildCandidateView() {
     auto recording_count = 0;
     auto source_track_count = 0;
     const auto before_rows = album_track_model_->rowCount();
+    const auto merge_discs = merge_discs_checkbox_ != nullptr && merge_discs_checkbox_->isChecked();
 
     cover_art_map_.clear();
     album_track_model_->removeRows(0, album_track_model_->rowCount());
     const auto clear_seconds = stage_elapsed.ElapsedSeconds();
-    stage_elapsed.Reset();
+    stage_elapsed.reset();
 
     QList<CandidateAlbum> candidate_pool;
     QHash<QString, double> release_best_scores;
@@ -749,13 +999,14 @@ void MusicbrainzEditPage::rebuildCandidateView() {
     for (const auto& albums : recording_list_) {
         recording_count += albums.recordings.size();
         for (const auto& recording : albums.recordings) {
-            source_track_count += recording.tracks.size();
-            if (recording.tracks.isEmpty()) {
+            auto tracks = candidateTracksForRecording(recording, merge_discs);
+            source_track_count += tracks.size();
+            if (tracks.isEmpty()) {
                 ++empty_track_recordings;
                 continue;
             }
 
-            const auto matches = matchRecordingTracks(metas_, recording.tracks);
+            const auto matches = matchRecordingTracks(metas_, tracks);
             const auto trackScore = averageSimilarity(matches);
             const auto albumScore = trackScore > 0
                 ? recording.similarity * 0.4 + trackScore * 0.6
@@ -766,7 +1017,7 @@ void MusicbrainzEditPage::rebuildCandidateView() {
                 release_best_scores.insert(releaseKey, albumScore);
             }
 
-            candidate_pool.append({ recording, matches, trackScore, albumScore });
+            candidate_pool.append({ recording, std::move(tracks), matches, trackScore, albumScore });
         }
     }
 
@@ -788,13 +1039,13 @@ void MusicbrainzEditPage::rebuildCandidateView() {
         candidates.append(candidate);
     }
     const auto candidate_seconds = stage_elapsed.ElapsedSeconds();
-    stage_elapsed.Reset();
+    stage_elapsed.reset();
 
     std::sort(candidates.begin(), candidates.end(), [](const auto& left, const auto& right) {
         return left.albumScore > right.albumScore;
     });
     const auto sort_seconds = stage_elapsed.ElapsedSeconds();
-    stage_elapsed.Reset();
+    stage_elapsed.reset();
 
     QHash<QString, QStandardItem*> albumItems;
     bool expandedBestAlbum = false;
@@ -845,10 +1096,10 @@ void MusicbrainzEditPage::rebuildCandidateView() {
 
         cover_art_map_.insert(recording.release_id, recording.cover_art);
 
-        const auto showDiscNodes = totalDiscCount(recording) > 1;
+        const auto showDiscNodes = !merge_discs && totalDiscCount(recording) > 1;
         QHash<int, QStandardItem*> discItems;
-        for (int i = 0; i < recording.tracks.size(); ++i) {
-            const auto& track = recording.tracks[i];
+        for (int i = 0; i < candidate.tracks.size(); ++i) {
+            const auto& track = candidate.tracks[i];
             auto* parentItem = albumItem;
             if (showDiscNodes) {
                 const auto discNo = track.disc > 0 ? track.disc : 1;
@@ -886,16 +1137,17 @@ void MusicbrainzEditPage::rebuildCandidateView() {
         }
     }
     const auto model_seconds = stage_elapsed.ElapsedSeconds();
-    stage_elapsed.Reset();
+    stage_elapsed.reset();
 
     ui_->albumRecordingView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     const auto resize_seconds = stage_elapsed.ElapsedSeconds();
 
-    XAMP_LOG_DEBUG("MusicBrainz rebuild candidates albums:{} recordings:{} source_tracks:{} candidates:{} rows:{}->{} album_rows:{} disc_rows:{} track_rows:{} skipped_empty:{} low_score:{} skipped_duplicate:{} clear:{:.3f}s candidate:{:.3f}s sort:{:.3f}s model:{:.3f}s resize:{:.3f}s total:{:.3f}s",
+    XAMP_LOG_DEBUG("MusicBrainz rebuild candidates albums:{} recordings:{} source_tracks:{} candidates:{} merge_discs:{} rows:{}->{} album_rows:{} disc_rows:{} track_rows:{} skipped_empty:{} low_score:{} skipped_duplicate:{} clear:{:.3f}s candidate:{:.3f}s sort:{:.3f}s model:{:.3f}s resize:{:.3f}s total:{:.3f}s",
         album_count,
         recording_count,
         source_track_count,
         candidates.size(),
+        merge_discs,
         before_rows,
         album_track_model_->rowCount(),
         albumItems.size(),
@@ -927,7 +1179,7 @@ void MusicbrainzEditPage::appendMusicBrainzAlbum(const MusicBrainzAlbum& album) 
 
     recording_list_.append(album);
     const auto append_seconds = stage_elapsed.ElapsedSeconds();
-    stage_elapsed.Reset();
+    stage_elapsed.reset();
 
     rebuildCandidateView();
     const auto rebuild_seconds = stage_elapsed.ElapsedSeconds();
@@ -942,6 +1194,68 @@ void MusicbrainzEditPage::appendMusicBrainzAlbum(const MusicBrainzAlbum& album) 
         append_seconds,
         rebuild_seconds,
         total_elapsed.ElapsedSeconds());
+}
+
+QList<PlayListEntity> MusicbrainzEditPage::orderedEntitiesForWrite() const {
+    QList<PlayListEntity> ordered_entities;
+    if (track_model_ == nullptr) {
+        return ordered_entities;
+    }
+
+    for (int album_row = 0; album_row < track_model_->rowCount(); ++album_row) {
+        auto* album_item = track_model_->item(album_row, 0);
+        if (album_item == nullptr) {
+            continue;
+        }
+
+        for (int track_row = 0; track_row < album_item->rowCount(); ++track_row) {
+            auto* duration_item = album_item->child(track_row, 2);
+            if (duration_item == nullptr) {
+                continue;
+            }
+
+            if (auto entity = entityForTrackModelItem(duration_item)) {
+                ordered_entities.append(*entity);
+            }
+        }
+    }
+
+    return ordered_entities;
+}
+
+std::optional<PlayListEntity> MusicbrainzEditPage::entityForTrackModelItem(const QStandardItem* duration_item) const {
+    if (duration_item == nullptr) {
+        return std::nullopt;
+    }
+
+    const auto data = duration_item->data(kEntityRole);
+    if (!data.isValid()) {
+        return std::nullopt;
+    }
+
+    const auto music_id = data.toInt();
+    if (music_id <= 0) {
+        return std::nullopt;
+    }
+
+    for (const auto& entity : entities_) {
+        if (entity.music_id == music_id) {
+            return entity;
+        }
+    }
+    return std::nullopt;
+}
+
+std::optional<PlayListEntity> MusicbrainzEditPage::entityForTrackItemOrder(const QStandardItem* duration_item) const {
+    const auto order = trackItemOrderInAlbum(duration_item);
+    if (order < 0) {
+        return std::nullopt;
+    }
+
+    const auto ordered_entities = orderedEntitiesForWrite();
+    return order < ordered_entities.size()
+        ? std::optional<PlayListEntity>{ ordered_entities[order] }
+        : std::nullopt;
 }
 
 std::optional<PlayListEntity> MusicbrainzEditPage::entityForTrack(int track_no) const {
@@ -979,13 +1293,8 @@ void MusicbrainzEditPage::selectTrackViewTrack(int track_no) {
                 continue;
             }
 
-            const auto data = durationItem->data(Qt::UserRole + 1);
-            if (!data.isValid()) {
-                continue;
-            }
-
-            const auto entity = data.value<PlayListEntity>();
-            if (static_cast<int>(entity.track) != track_no) {
+            const auto entity = entityForTrackModelItem(durationItem);
+            if (!entity.has_value() || static_cast<int>(entity->track) != track_no) {
                 continue;
             }
 
@@ -1014,13 +1323,8 @@ void MusicbrainzEditPage::selectTrackViewEntity(int32_t music_id) {
                 continue;
             }
 
-            const auto data = durationItem->data(Qt::UserRole + 1);
-            if (!data.isValid()) {
-                continue;
-            }
-
-            const auto entity = data.value<PlayListEntity>();
-            if (entity.music_id != music_id) {
+            const auto entity = entityForTrackModelItem(durationItem);
+            if (!entity.has_value() || entity->music_id != music_id) {
                 continue;
             }
 
@@ -1090,7 +1394,7 @@ QCoro::Task<> MusicbrainzEditPage::startFetchMusicBrainzRecording() {
         stage_elapsed.ElapsedSeconds());
 
     try {
-        stage_elapsed.Reset();
+        stage_elapsed.reset();
         QList<PendingReleaseLookup> pending_lookups;
         QSet<QString> pending_release_ids;
         for (const auto& list_entities : album_unique_map) {
@@ -1151,7 +1455,7 @@ QCoro::Task<> MusicbrainzEditPage::startFetchMusicBrainzRecording() {
         QHash<QString, QList<musicbrain::TrackInfo>> release_track_cache;
         QHash<QString, QPixmap> release_cover_cache;
         QHash<QString, size_t> release_cover_size_cache;
-        stage_elapsed.Reset();
+        stage_elapsed.reset();
         for (const auto& lookup : pending_lookups) {
             const auto album_name = lookup.entities.isEmpty() ? QString() : lookup.entities.front().album;
             Stopwatch release_elapsed;
@@ -1278,43 +1582,76 @@ QCoro::Task<QList<musicbrain::Release>> MusicbrainzEditPage::fetchCandidateRelea
     Stopwatch total_elapsed;
     Stopwatch stage_elapsed;
     QList<musicbrain::Release> candidate_releases;
-    const auto query = buildMusicBrainzReleaseQuery(entities);
+    const auto queries = buildMusicBrainzReleaseQueries(entities);
     const auto query_build_seconds = stage_elapsed.ElapsedSeconds();
-    if (query.isEmpty()) {
+    if (queries.isEmpty()) {
         XAMP_LOG_DEBUG("MusicBrainz candidate request skipped empty query tracks:{} query_build:{:.3f}s",
             entities.size(),
             query_build_seconds);
         co_return candidate_releases;
     }
 
-    http_client_.setUrl("https://musicbrainz.org/ws/2/release"_str);
-    http_client_.param("query"_str, query);
-    http_client_.param("fmt"_str, "json"_str);
-    http_client_.param("limit"_str, 10);
-    stage_elapsed.Reset();
-    auto content = co_await http_client_.get();
-    const auto request_seconds = stage_elapsed.ElapsedSeconds();
+    QSet<QString> merged_release_ids;
+    int query_index = 0;
+    for (const auto& query : queries) {
+        ++query_index;
+        QList<musicbrain::Release> query_releases;
+        if (const auto itr = g_candidate_release_cache.constFind(query);
+            itr != g_candidate_release_cache.cend()) {
+            query_releases = itr.value();
+            XAMP_LOG_DEBUG("MusicBrainz candidate cache hit query:{}/{} tracks:{} results:{} merged:{} query_build:{:.3f}s total:{:.3f}s",
+                query_index,
+                queries.size(),
+                entities.size(),
+                query_releases.size(),
+                candidate_releases.size(),
+                query_build_seconds,
+                total_elapsed.ElapsedSeconds());
+        }
+        else {
+            http_client_.setUrl("https://musicbrainz.org/ws/2/release"_str);
+            http_client_.param("query"_str, query);
+            http_client_.param("fmt"_str, "json"_str);
+            http_client_.param("limit"_str, 10);
+            stage_elapsed.reset();
+            auto content = co_await http_client_.get();
+            const auto request_seconds = stage_elapsed.ElapsedSeconds();
 
-    stage_elapsed.Reset();
-    auto releases = musicbrain::parseReleaseList(content);
-    if (!releases.has_value() || releases->isEmpty()) {
-        XAMP_LOG_DEBUG("MusicBrainz candidate request tracks:{} bytes:{} results:0 query_build:{:.3f}s request:{:.3f}s parse:{:.3f}s total:{:.3f}s",
-            entities.size(),
-            content.size(),
-            query_build_seconds,
-            request_seconds,
-            stage_elapsed.ElapsedSeconds(),
-            total_elapsed.ElapsedSeconds());
-        co_return candidate_releases;
+            stage_elapsed.reset();
+            auto releases = musicbrain::parseReleaseList(content);
+            if (releases.has_value() && !releases->isEmpty()) {
+                query_releases = releases.value();
+            }
+
+            g_candidate_release_cache.insert(query, query_releases);
+            trimCache(g_candidate_release_cache, kMaxCandidateReleaseCacheSize);
+            XAMP_LOG_DEBUG("MusicBrainz candidate request query:{}/{} tracks:{} bytes:{} results:{} query_build:{:.3f}s request:{:.3f}s parse:{:.3f}s total:{:.3f}s",
+                query_index,
+                queries.size(),
+                entities.size(),
+                content.size(),
+                query_releases.size(),
+                query_build_seconds,
+                request_seconds,
+                stage_elapsed.ElapsedSeconds(),
+                total_elapsed.ElapsedSeconds());
+        }
+
+        for (const auto& release : query_releases) {
+            const auto release_key = release.id.isEmpty() ? release.title : release.id;
+            if (release_key.isEmpty() || merged_release_ids.contains(release_key)) {
+                continue;
+            }
+            merged_release_ids.insert(release_key);
+            candidate_releases.append(release);
+        }
     }
-    candidate_releases = releases.value();
-    XAMP_LOG_DEBUG("MusicBrainz candidate request tracks:{} bytes:{} results:{} query_build:{:.3f}s request:{:.3f}s parse:{:.3f}s total:{:.3f}s",
+
+    XAMP_LOG_DEBUG("MusicBrainz candidate merged tracks:{} queries:{} results:{} query_build:{:.3f}s total:{:.3f}s",
         entities.size(),
-        content.size(),
+        queries.size(),
         candidate_releases.size(),
         query_build_seconds,
-        request_seconds,
-        stage_elapsed.ElapsedSeconds(),
         total_elapsed.ElapsedSeconds());
     co_return candidate_releases;
 }
@@ -1369,17 +1706,44 @@ QCoro::Task<bool> MusicbrainzEditPage::fetchMusicBrainzRelease(const QList<PlayL
                 cover_art_size,
                 release_elapsed.ElapsedSeconds());
         }
+        else if (const auto itr = g_release_detail_cache.constFind(r.id);
+            itr != g_release_detail_cache.cend()) {
+            const auto& cached_release = itr.value();
+            tracks = cached_release.tracks;
+            if (!cached_release.cover_art_bytes.isEmpty()) {
+                cover_art.loadFromData(cached_release.cover_art_bytes);
+            }
+            cover_art_size = cached_release.cover_art_size;
+            fetched_release_ids.insert(r.id);
+            release_track_cache.insert(r.id, tracks);
+            release_cover_cache.insert(r.id, cover_art);
+            release_cover_size_cache.insert(r.id, cover_art_size);
+            cover_art_size_map_.insert(r.id, cover_art_size);
+            total_recordings_ += cached_release.unique_recording_count;
+
+            completed_releases_ = std::min(completed_releases_ + 1, total_releases_);
+            update_release_progress();
+            XAMP_LOG_DEBUG("MusicBrainz release detail cache hit {}/{} release:{} title:{} tracks:{} recordings:{} cover_bytes:{} elapsed:{:.3f}s",
+                release_index,
+                candidate_releases.size(),
+                r.id.toStdString(),
+                r.title.toStdString(),
+                tracks.size(),
+                cached_release.unique_recording_count,
+                cover_art_size,
+                release_elapsed.ElapsedSeconds());
+        }
         else {
             http_client_.setUrl("https://musicbrainz.org/ws/2/release/"_str + r.id);
             http_client_.param("inc"_str, "release-groups+recordings+media+artist-credits"_str);
             http_client_.param("fmt"_str, "json"_str);
             http_client_.param("client"_str, "J0OsCydP14"_str);
 
-            stage_elapsed.Reset();
+            stage_elapsed.reset();
             const auto content = co_await http_client_.get();
             const auto request_seconds = stage_elapsed.ElapsedSeconds();
 
-            stage_elapsed.Reset();
+            stage_elapsed.reset();
             QList<musicbrain::Release> current_release;
             current_release.append(r);
             auto parsed_tracks = musicbrain::parseReleaseTracklist(content.toUtf8(), current_release);
@@ -1400,11 +1764,11 @@ QCoro::Task<bool> MusicbrainzEditPage::fetchMusicBrainzRelease(const QList<PlayL
                 continue;
             }
 
-            stage_elapsed.Reset();
+            stage_elapsed.reset();
             const auto cover_art_bytes = co_await fetchCoverArtByUrl("release"_str, r.id, kDefaultSize);
             const auto cover_seconds = stage_elapsed.ElapsedSeconds();
             if (cover_art_bytes.has_value() && !cover_art_bytes->isEmpty()) {
-                stage_elapsed.Reset();
+                stage_elapsed.reset();
                 cover_art.loadFromData(cover_art_bytes.value());
                 cover_art_size = static_cast<size_t>(cover_art_bytes->size());
                 XAMP_LOG_DEBUG("MusicBrainz release cover decode release:{} bytes:{} elapsed:{:.3f}s",
@@ -1418,7 +1782,16 @@ QCoro::Task<bool> MusicbrainzEditPage::fetchMusicBrainzRelease(const QList<PlayL
             release_cover_cache.insert(r.id, cover_art);
             release_cover_size_cache.insert(r.id, cover_art_size);
             cover_art_size_map_.insert(r.id, cover_art_size);
-            total_recordings_ += uniqueRecordingCount(tracks);
+            const auto unique_recording_count = uniqueRecordingCount(tracks);
+            total_recordings_ += unique_recording_count;
+
+            g_release_detail_cache.insert(r.id, {
+                tracks,
+                cover_art_bytes.value_or(QByteArray()),
+                cover_art_size,
+                unique_recording_count
+                });
+            trimCache(g_release_detail_cache, kMaxReleaseDetailCacheSize);
 
             completed_releases_ = std::min(completed_releases_ + 1, total_releases_);
             update_release_progress();
@@ -1428,7 +1801,7 @@ QCoro::Task<bool> MusicbrainzEditPage::fetchMusicBrainzRelease(const QList<PlayL
                 r.id.toStdString(),
                 r.title.toStdString(),
                 tracks.size(),
-                uniqueRecordingCount(tracks),
+                unique_recording_count,
                 cover_art_size,
                 content.size(),
                 request_seconds,
@@ -1437,7 +1810,7 @@ QCoro::Task<bool> MusicbrainzEditPage::fetchMusicBrainzRelease(const QList<PlayL
                 release_elapsed.ElapsedSeconds());
         }
 
-        stage_elapsed.Reset();
+        stage_elapsed.reset();
         const auto release_score = musicbrain::compareToRelease(album_meta, r);
         MusicBrainzAlbum release_album;
         MusicBrainzRecording music_brainz_recording;
@@ -1583,7 +1956,10 @@ void MusicbrainzEditPage::updateWriteTagButtons() {
 
     auto has_writable_track = false;
     for (auto* duration_item : track_items) {
-        auto entity = matchedEntityForItem(duration_item);
+        auto entity = entityForTrackItemOrder(duration_item);
+        if (!entity.has_value()) {
+            entity = matchedEntityForItem(duration_item);
+        }
         if (!entity.has_value()) {
             const auto data = duration_item->data(kTrackInfoRole);
             if (data.isValid()) {
@@ -1634,8 +2010,8 @@ void MusicbrainzEditPage::updateOriginalCoverArt(const std::optional<PlayListEnt
     try {
         QPixmap image;
         size_t image_file_size = 0;
-        auto reader = MakeMetadataReader();
-        reader->Open(entity->file_path.toStdWString());
+        auto reader = makeMetadataReader();
+        reader->open(entity->file_path.toStdWString());
         if (tag_util::readEmbeddedCover(*reader, image, image_file_size)) {
             setCoverPreview(ui_->originalCoverArt, ui_->originalCoverArtSize, image, image_file_size);
             return;
@@ -1747,13 +2123,13 @@ void MusicbrainzEditPage::writeSelectedTag() {
     updateWriteTagButtons();
 
     try {
-        auto writer = MakeMetadataWriter();
-        writer->Open(entity.file_path.toStdWString());
-        writer->WriteTrack(static_cast<uint32_t>(track.trackNo));
-        writer->WriteTitle(track.title.toStdWString());
-        writer->WriteAlbum(selected_album_.toStdWString());
-        writer->WriteArtist(artist.toStdWString());
-        if (writer->CanWriteEmbeddedCover()) {
+        auto writer = makeMetadataWriter();
+        writer->open(entity.file_path.toStdWString());
+        writer->writeTrack(static_cast<uint32_t>(track.trackNo));
+        writer->writeTitle(track.title.toStdWString());
+        writer->writeAlbum(selected_album_.toStdWString());
+        writer->writeArtist(artist.toStdWString());
+        if (writer->canWriteEmbeddedCover()) {
             tag_util::writeEmbeddedCover(*writer, coverArtForRelease(selected_release_id_));
         }
         completed_writes_ = 1;
@@ -1794,7 +2170,7 @@ void MusicbrainzEditPage::writeSelectedTag() {
     is_writing_ = false;
     updateWriteProgressText(tr("Completed"));
     updateWriteTagButtons();
-    XMessageBox::showInformation(tr("Write tag successfully!"));
+    XMessageBox::showInformation(tr("write tag successfully!"));
 }
 
 void MusicbrainzEditPage::writeSelectedAlbumTags() {
@@ -1817,6 +2193,8 @@ void MusicbrainzEditPage::writeSelectedAlbumTags() {
 
     QList<AlbumWriteItem> write_items;
     auto skipped_tracks = 0;
+    auto order_matched_tracks = 0;
+    QSet<int32_t> used_music_ids;
     QList<QStandardItem*> track_items;
     collectTrackDurationItems(scope_item, track_items);
     for (auto* duration_item : track_items) {
@@ -1827,15 +2205,25 @@ void MusicbrainzEditPage::writeSelectedAlbumTags() {
         }
 
         const auto track = track_data.value<musicbrain::TrackInfo>();
-        auto entity = matchedEntityForItem(duration_item);
+        auto entity = entityForTrackItemOrder(duration_item);
+        if (entity.has_value()) {
+            ++order_matched_tracks;
+        }
+        else {
+            entity = matchedEntityForItem(duration_item);
+        }
         if (!entity.has_value()) {
             entity = entityForExactTrack(track.trackNo);
         }
-        if (!entity.has_value() || entity->is_cue_file || !entity->isFilePath()) {
+        if (!entity.has_value()
+            || entity->is_cue_file
+            || !entity->isFilePath()
+            || used_music_ids.contains(entity->music_id)) {
             ++skipped_tracks;
             continue;
         }
 
+        used_music_ids.insert(entity->music_id);
         write_items.append({ *entity, track, album_data.value<QString>(), duration_item->data(kReleaseIdRole).toString() });
     }
 
@@ -1844,9 +2232,13 @@ void MusicbrainzEditPage::writeSelectedAlbumTags() {
         return;
     }
 
-    auto confirm_text = tr("Write tags to %1 tracks in this %2?\n\nThis will update metadata files on disk.")
+    auto confirm_text = tr("write tags to %1 tracks in this %2?\n\nThis will update metadata files on disk.")
         .arg(write_items.size())
         .arg(writeScopeText(scope_item));
+    if (order_matched_tracks > 0) {
+        confirm_text.append("\n\n"_str);
+        confirm_text.append(tr("Tracks will be matched by the current left-side order."));
+    }
     if (skipped_tracks > 0) {
         confirm_text.append("\n\n"_str);
         confirm_text.append(tr("%1 tracks will be skipped because they can not be written.").arg(skipped_tracks));
@@ -1869,13 +2261,13 @@ void MusicbrainzEditPage::writeSelectedAlbumTags() {
     try {
         for (const auto& item : write_items) {
             const auto artist = artistText(item.track);
-            auto writer = MakeMetadataWriter();
-            writer->Open(item.entity.file_path.toStdWString());
-            writer->WriteTrack(static_cast<uint32_t>(item.track.trackNo));
-            writer->WriteTitle(item.track.title.toStdWString());
-            writer->WriteAlbum(item.album.toStdWString());
-            writer->WriteArtist(artist.toStdWString());
-            if (writer->CanWriteEmbeddedCover()) {
+            auto writer = makeMetadataWriter();
+            writer->open(item.entity.file_path.toStdWString());
+            writer->writeTrack(static_cast<uint32_t>(item.track.trackNo));
+            writer->writeTitle(item.track.title.toStdWString());
+            writer->writeAlbum(item.album.toStdWString());
+            writer->writeArtist(artist.toStdWString());
+            if (writer->canWriteEmbeddedCover()) {
                 tag_util::writeEmbeddedCover(*writer, coverArtForRelease(item.release_id));
             }
             ++completed_writes_;
@@ -1934,7 +2326,7 @@ void MusicbrainzEditPage::writeSelectedAlbumTags() {
     is_writing_ = false;
     updateWriteProgressText(tr("Completed"));
     updateWriteTagButtons();
-    XMessageBox::showInformation(tr("Write album tags successfully!"));
+    XMessageBox::showInformation(tr("write album tags successfully!"));
 }
 
 void MusicbrainzEditPage::closeEvent(QCloseEvent* event) {
@@ -1958,16 +2350,20 @@ void MusicbrainzEditPage::onRetranslateUi() {
             updateFetchProgressText(is_fetching_ ? tr("Fetching") : tr("Completed"));
         }
     }
+    if (merge_discs_checkbox_ != nullptr) {
+        merge_discs_checkbox_->setText(tr("Merge CDs"));
+        merge_discs_checkbox_->setToolTip(tr("Merge multi-disc releases into one continuous CD track list."));
+    }
     if (export_album_cover_button_ != nullptr) {
         export_album_cover_button_->setText(tr("Export Album Cover"));
         export_album_cover_button_->setToolTip(tr("Export the selected MusicBrainz release cover to an image file."));
     }
     if (write_tag_button_ != nullptr) {
-        write_tag_button_->setText(tr("Write Selected Track"));
-        write_tag_button_->setToolTip(tr("Write tags only to the selected track."));
+        write_tag_button_->setText(tr("write Selected Track"));
+        write_tag_button_->setToolTip(tr("write tags only to the selected track."));
     }
     if (write_album_tags_button_ != nullptr) {
-        write_album_tags_button_->setText(tr("Write Entire Album"));
-        write_album_tags_button_->setToolTip(tr("Write tags to every matched track in the selected album."));
+        write_album_tags_button_->setText(tr("write Entire Album"));
+        write_album_tags_button_->setToolTip(tr("write tags to every matched track in the selected album."));
     }
 }

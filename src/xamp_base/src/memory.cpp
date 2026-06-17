@@ -50,8 +50,8 @@ bool PrefetchMemory(void* adddr, size_t length) {
 #endif
 
 bool PrefetchFile(MemoryMappedFile &file_, size_t prefech_size) {
-    const auto prefetch_file_size = (std::min)(prefech_size, file_.GetLength());
-	if (PrefetchMemory(const_cast<void*>(file_.GetData()), prefetch_file_size)) {		
+    const auto prefetch_file_size = (std::min)(prefech_size, file_.getLength());
+	if (PrefetchMemory(const_cast<void*>(file_.getData()), prefetch_file_size)) {		
 		return true;
 	}
 	return false;
@@ -87,7 +87,7 @@ bool PrefetchFile(std::wstring const & file_path) {
 	return true;
 #else
 	MemoryMappedFile file_;
-	if (file_.Open(file_path)) {
+	if (file_.open(file_path)) {
 		return PrefetchFile(file_);
 	}
 	return false;
@@ -101,7 +101,7 @@ void* AlignedMalloc(size_t size, size_t aligned_size) {
 	return ::posix_memalign(&p, aligned_size, size) == 0 ? p : nullptr;
 }
 
-void AlignedFree(void* p) {
+void alignedFree(void* p) {
 	return ::free(p);
 }
 
@@ -110,27 +110,27 @@ void* StackAlloc(size_t size) {
 	return ptr;
 }
 
-void StackFree(void* p) {
+void stackFree(void* p) {
 	(void)p;
 }
 
 #else
-void* AlignedMalloc(size_t size, size_t aligned_size) {
+void* alignedMalloc(size_t size, size_t aligned_size) {
 	XAMP_EXPECTS(IsPowerOfTwo(aligned_size));
 	return ::_aligned_malloc(size, aligned_size);
 }
 
-void AlignedFree(void* p) {
+void alignedFree(void* p) {
 	XAMP_EXPECTS(p != nullptr);
 	::_aligned_free(p);
 }
 
-void* StackAlloc(size_t size) {
+void* stackAlloc(size_t size) {
 	auto ptr = _malloca(size);
 	return ptr;
 }
 
-void StackFree(void* p) {
+void stackFree(void* p) {
 	XAMP_EXPECTS(p != nullptr);
 	::_freea(p);
 }

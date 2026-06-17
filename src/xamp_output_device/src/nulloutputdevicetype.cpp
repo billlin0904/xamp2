@@ -14,48 +14,48 @@ public:
 
 	NullOutputDeviceTypeImpl();
 
-	void ScanNewDevice();
+	void scanNewDevice();
 
-	[[nodiscard]] size_t GetDeviceCount() const;
+	[[nodiscard]] size_t getDeviceCount() const;
 
-	[[nodiscard]] DeviceInfo GetDeviceInfo(uint32_t device) const;
+	[[nodiscard]] DeviceInfo getDeviceInfo(uint32_t device) const;
 
-	[[nodiscard]] std::optional<DeviceInfo> GetDefaultDeviceInfo() const;
+	[[nodiscard]] std::optional<DeviceInfo> getDefaultDeviceInfo() const;
 
-	[[nodiscard]] std::vector<DeviceInfo> GetDeviceInfo() const;
+	[[nodiscard]] std::vector<DeviceInfo> getDeviceInfo() const;
 
-	ScopedPtr<IOutputDevice> MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::string& device_id);
+	ScopedPtr<IOutputDevice> makeDevice(const std::shared_ptr<IThreadPool>& thread_pool, const std::string& device_id);
 
 private:
 	LoggerPtr logger_;
 };
 
 NullOutputDeviceType::NullOutputDeviceTypeImpl::NullOutputDeviceTypeImpl() {
-	logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(NullOutputDeviceType));
+	logger_ = XampLoggerFactory.getLogger(XAMP_LOG_NAME(NullOutputDeviceType));
 }
 
-void NullOutputDeviceType::NullOutputDeviceTypeImpl::ScanNewDevice() {
+void NullOutputDeviceType::NullOutputDeviceTypeImpl::scanNewDevice() {
 }
 
-ScopedPtr<IOutputDevice> NullOutputDeviceType::NullOutputDeviceTypeImpl::MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::string& device_id) {
-	return MakeAlign<IOutputDevice, NullOutputDevice>(thread_pool);
+ScopedPtr<IOutputDevice> NullOutputDeviceType::NullOutputDeviceTypeImpl::makeDevice(const std::shared_ptr<IThreadPool>& thread_pool, const std::string& device_id) {
+	return makeAlign<IOutputDevice, NullOutputDevice>(thread_pool);
 }
 
-DeviceInfo NullOutputDeviceType::NullOutputDeviceTypeImpl::GetDeviceInfo(uint32_t device) const {
-	return GetDeviceInfo().at(device);
+DeviceInfo NullOutputDeviceType::NullOutputDeviceTypeImpl::getDeviceInfo(uint32_t device) const {
+	return getDeviceInfo().at(device);
 }
 
-size_t NullOutputDeviceType::NullOutputDeviceTypeImpl::GetDeviceCount() const {
+size_t NullOutputDeviceType::NullOutputDeviceTypeImpl::getDeviceCount() const {
 	return 1;
 }
 
-std::vector<DeviceInfo> NullOutputDeviceType::NullOutputDeviceTypeImpl::GetDeviceInfo() const {
+std::vector<DeviceInfo> NullOutputDeviceType::NullOutputDeviceTypeImpl::getDeviceInfo() const {
 	std::vector<DeviceInfo> device_info_list;
-	device_info_list.push_back(GetDefaultDeviceInfo().value());
+	device_info_list.push_back(getDefaultDeviceInfo().value());
 	return device_info_list;
 }
 
-std::optional<DeviceInfo> NullOutputDeviceType::NullOutputDeviceTypeImpl::GetDefaultDeviceInfo() const {
+std::optional<DeviceInfo> NullOutputDeviceType::NullOutputDeviceTypeImpl::getDefaultDeviceInfo() const {
 	DeviceInfo info;
 	info.name = kDescription;
 	info.device_id = kDeviceId;
@@ -66,31 +66,31 @@ std::optional<DeviceInfo> NullOutputDeviceType::NullOutputDeviceTypeImpl::GetDef
 }
 
 NullOutputDeviceType::NullOutputDeviceType()
-	: impl_(MakeAlign<NullOutputDeviceTypeImpl>()) {
+	: impl_(makeAlign<NullOutputDeviceTypeImpl>()) {
 }
 
-void NullOutputDeviceType::ScanNewDevice() {
-	impl_->ScanNewDevice();
+void NullOutputDeviceType::scanNewDevice() {
+	impl_->scanNewDevice();
 }
 
-size_t NullOutputDeviceType::GetDeviceCount() const {
-	return impl_->GetDeviceCount();
+size_t NullOutputDeviceType::getDeviceCount() const {
+	return impl_->getDeviceCount();
 }
 
-DeviceInfo NullOutputDeviceType::GetDeviceInfo(uint32_t device) const {
-	return impl_->GetDeviceInfo(device);
+DeviceInfo NullOutputDeviceType::getDeviceInfo(uint32_t device) const {
+	return impl_->getDeviceInfo(device);
 }
 
-std::optional<DeviceInfo> NullOutputDeviceType::GetDefaultDeviceInfo() const {
-	return impl_->GetDefaultDeviceInfo();
+std::optional<DeviceInfo> NullOutputDeviceType::getDefaultDeviceInfo() const {
+	return impl_->getDefaultDeviceInfo();
 }
 
-std::vector<DeviceInfo> NullOutputDeviceType::GetDeviceInfo() const {
-	return impl_->GetDeviceInfo();
+std::vector<DeviceInfo> NullOutputDeviceType::getDeviceInfo() const {
+	return impl_->getDeviceInfo();
 }
 
-ScopedPtr<IOutputDevice> NullOutputDeviceType::MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::string& device_id) {
-	return impl_->MakeDevice(thread_pool, device_id);
+ScopedPtr<IOutputDevice> NullOutputDeviceType::makeDevice(const std::shared_ptr<IThreadPool>& thread_pool, const std::string& device_id) {
+	return impl_->makeDevice(thread_pool, device_id);
 }
 
 XAMP_OUTPUT_DEVICE_NAMESPACE_END

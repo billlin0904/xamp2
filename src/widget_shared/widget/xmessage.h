@@ -55,7 +55,7 @@ public:
 
     void Show();
 
-    void Close();
+    void close();
 
     void SetDuration(int duration_ms);
 

@@ -3,7 +3,7 @@
 #include <widget/util/tag_util.h>
 
 #include <base/base.h>
-#include <base/threadpoolexecutor.h>
+#include <base/threadpool.h>
 #include <base/logger.h>
 
 #include <widget/util/str_util.h>
@@ -72,11 +72,11 @@ const FetchCoverCallback DatabaseFacade::GetDefaultFetchCover() {
         }
 
         try {
-            auto reader = MakeMetadataReader();
+            auto reader = makeMetadataReader();
             if (archive_entry.has_value()) {
-                reader->Open(std::move(archive_entry.value()));
+                reader->open(std::move(archive_entry.value()));
             } else {
-                reader->Open(file_path.toStdWString());
+                reader->open(file_path.toStdWString());
 			}            
             auto cover = tag_util::readEmbeddedCover(*reader);
             if (cover.isNull()) {
@@ -275,9 +275,9 @@ void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result,
 			std::optional<ArchiveEntry> archive_entry_opt;
             if (track_info.archive_entry_name) {
                 archive_file_name = toQString(track_info.archive_entry_name.value());
-                auto result = archive_file.Open(file_path.toStdWString());
+                auto result = archive_file.open(file_path.toStdWString());
                 if (result.has_value()) {
-                    auto archive_entry = archive_file.GetEntryByName(track_info.archive_entry_name.value());
+                    auto archive_entry = archive_file.getEntryByName(track_info.archive_entry_name.value());
                     if (archive_entry.has_value()) {
                         archive_entry_opt = std::move(archive_entry.value());
                     }
@@ -293,8 +293,8 @@ void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result,
             XAMP_LOG_DEBUG("Fetch cover completed music:{} album:{} file:{} archive_entry:{} has_archive_entry:{} elapsed:{:.3f}s",
                 music_id,
                 album_id,
-                String::ToString(file_path.toStdWString()),
-                String::ToString(archive_file_name.toStdWString()),
+                String::toString(file_path.toStdWString()),
+                String::toString(archive_file_name.toStdWString()),
                 has_archive_entry,
                 fetch_cover_elapsed.ElapsedSeconds());
         }

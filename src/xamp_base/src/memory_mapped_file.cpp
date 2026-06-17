@@ -13,8 +13,8 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 class MemoryMappedFile::MemoryMappedFileImpl {
 public:
-    bool Open(std::wstring const & file_path, bool is_module) {
-        Close();
+    bool open(std::wstring const & file_path, bool is_module) {
+        close();
 
         static constexpr DWORD kAccessMode = GENERIC_READ;
         static constexpr DWORD kCreateType = OPEN_EXISTING;
@@ -33,26 +33,26 @@ public:
             if (OpenMappingFile(is_module ? (kProtect | SEC_IMAGE_NO_EXECUTE) : kProtect, kAccess)) {
                 return true;
             }
-            Close();
+            close();
         }
 
         return false;
     }
 
     ~MemoryMappedFileImpl() {
-        Close();
+        close();
     }
 
-    void Close() {
+    void close() {
         address_.reset();
         file_.reset();
     }
 
-    [[nodiscard]] void const * GetData() const {
+    [[nodiscard]] void const * getData() const {
         return address_.get();
     }
 
-    [[nodiscard]] size_t GetLength() const {
+    [[nodiscard]] size_t getLength() const {
         LARGE_INTEGER li{};
 		::GetFileSizeEx(file_.get(), &li);
         return li.QuadPart;
@@ -90,15 +90,15 @@ public:
         , length_(0) {
     }
 
-    bool Open(std::wstring const& file_path, bool /*is_module*/) {
-        Close();
+    bool open(std::wstring const& file_path, bool /*is_module*/) {
+        close();
 
-        file_.reset(::open(String::ToUtf8String(file_path).c_str(), O_RDONLY));
+        file_.reset(::open(String::toUtf8String(file_path).c_str(), O_RDONLY));
         if (!file_) {
             return false;
         }
 
-        length_ = GetLength();
+        length_ = getLength();
         if (length_ == 0) {
             file_.reset();
             return false;
@@ -114,10 +114,10 @@ public:
     }
 
     ~MemoryMappedFileImpl() {
-        Close();
+        close();
     }
 
-    void Close() {
+    void close() {
         if (mem_ != MAP_FAILED) {
             ::munmap(mem_, length_);
             mem_ = MAP_FAILED;
@@ -126,11 +126,11 @@ public:
         file_.reset();
     }
 
-    void const * GetData() const {
+    void const * getData() const {
         return mem_ == MAP_FAILED ? nullptr : mem_;
     }
 
-    size_t GetLength() const {
+    size_t getLength() const {
         struct stat file_info;
         file_info.st_size = 0;
         ::fstat(file_.get(), &file_info);
@@ -144,25 +144,25 @@ private:
 #endif
 
 MemoryMappedFile::MemoryMappedFile()
-    : impl_(MakeAlign<MemoryMappedFileImpl>()) {
+    : impl_(makeAlign<MemoryMappedFileImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(MemoryMappedFile)
 
-bool MemoryMappedFile::Open(std::wstring const &file_path, bool is_module) {
-    return impl_->Open(file_path, is_module);
+bool MemoryMappedFile::open(std::wstring const &file_path, bool is_module) {
+    return impl_->open(file_path, is_module);
 }
 
-void const * MemoryMappedFile::GetData() const {
-    return impl_->GetData();
+void const * MemoryMappedFile::getData() const {
+    return impl_->getData();
 }
 
-size_t MemoryMappedFile::GetLength() const {
-    return impl_->GetLength();
+size_t MemoryMappedFile::getLength() const {
+    return impl_->getLength();
 }
 
-void MemoryMappedFile::Close() {
-    impl_->Close();
+void MemoryMappedFile::close() {
+    impl_->close();
 }
 
 XAMP_BASE_NAMESPACE_END

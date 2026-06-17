@@ -1,4 +1,4 @@
-﻿#include <QCloseEvent>
+#include <QCloseEvent>
 
 #include <QColor>
 

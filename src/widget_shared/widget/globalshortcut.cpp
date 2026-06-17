@@ -532,7 +532,7 @@ public:
 #endif
 
 GlobalShortcut::GlobalShortcut()
-    : impl_(MakeAlign<GlobalShortcutImpl>()) {
+    : impl_(makeAlign<GlobalShortcutImpl>()) {
 }
 
 bool GlobalShortcut::registerShortcut(const WId wid, quint32 native_key, quint32 native_mods) {

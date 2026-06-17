@@ -1,4 +1,4 @@
-﻿//=====================================================================================================================
+//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -20,17 +20,17 @@ class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE IAudioCallback {
 public:
 	XAMP_BASE_CLASS(IAudioCallback)
 
-    virtual DataCallbackResult OnGetSamples(void* samples,
+    virtual DataCallbackResult onGetSamples(void* samples,
 		size_t num_buffer_frames,
 		size_t & num_filled_bytes, 
 		double stream_time, 
 		double sample_time) = 0;
 
-    virtual void OnError(const std::exception& exception) = 0;
+    virtual void onError(const std::exception& exception) = 0;
 
-	virtual void OnVolumeChange(int32_t vol) = 0;
+	virtual void onVolumeChange(int32_t vol) = 0;
 	
-	virtual void OnGlitch(std::chrono::milliseconds duration, uint32_t count) = 0;
+	virtual void onGlitch(std::chrono::milliseconds duration, uint32_t count) = 0;
 protected:
 	IAudioCallback() = default;
 };

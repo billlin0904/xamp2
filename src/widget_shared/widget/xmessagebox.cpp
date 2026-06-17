@@ -197,8 +197,8 @@ void XMessageBox::onUpdate() {
 void XMessageBox::showBug(const Exception& exception,
 	const QString& title,
 	QWidget* parent) {
-    XMessageBox box(QString::fromStdString(exception.GetErrorMessage()),
-                    QString::fromStdString(exception.GetStackTrace()),
+    XMessageBox box(QString::fromStdString(exception.getErrorMessage()),
+                    QString::fromStdString(exception.getStackTrace()),
 		parent, 
 		QDialogButtonBox::Ok,
 		QDialogButtonBox::Ok,

@@ -19,9 +19,9 @@ class XAMP_BASE_API StackTrace final {
 public:
     StackTrace() ;   
 
-    static bool LoadSymbol();
+    static bool loadSymbol();
 
-    std::string CaptureStack(uint32_t skip = 5);
+    std::string captureStack(uint32_t skip = 5);
 };
 
 XAMP_BASE_NAMESPACE_END

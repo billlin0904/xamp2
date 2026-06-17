@@ -124,7 +124,7 @@ Uuid::operator std::string() const {
     return ostr.str();
 }
 
-Uuid Uuid::FromString(const std::string & hex_string) {
+Uuid Uuid::fromString(const std::string & hex_string) {
     UuidBuffer buffer{};
     if (!TryParseUuid(hex_string, buffer)) {
         throw std::invalid_argument("Invalid Uuid string.");
@@ -132,13 +132,13 @@ Uuid Uuid::FromString(const std::string & hex_string) {
 	return Uuid(buffer);
 }
 
-bool Uuid::TryParseString(const std::string & hex_string, Uuid& uuid) {
+bool Uuid::tryParseString(const std::string & hex_string, Uuid& uuid) {
     UuidBuffer buffer{};
     if (!TryParseUuid(hex_string, buffer)) {
         return false;
     }
 	const Uuid result(buffer);
-    if (!result.IsValid()) {
+    if (!result.isValid()) {
         return false;
     }
     uuid = result;

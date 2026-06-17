@@ -37,11 +37,11 @@ public:
 	XAMP_BASE_CLASS(IAudioProcessor)
 
     /*
-    * Initialize the audio processor.
+    * initialize the audio processor.
     * 
     * @param config: the configuration for the audio processor.
     */
-    virtual void Initialize(const Property& config) = 0;
+    virtual void initialize(const Property& config) = 0;
 
     /*
     * ReadStream the audio samples.
@@ -52,7 +52,7 @@ public:
     * 
     * @return: true if success, otherwise false.
     */
-    virtual bool Process(float const* samples, size_t num_samples, BufferRef<float>& output) = 0;
+    virtual bool process(float const* samples, size_t num_samples, BufferRef<float>& output) = 0;
 
 protected:
 	IAudioProcessor() = default;

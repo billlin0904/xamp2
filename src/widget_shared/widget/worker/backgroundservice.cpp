@@ -39,7 +39,7 @@ BackgroundService::BackgroundService()
     : nam_(this)
 	, http_client_(&nam_, QString(), this) {
     logger_ = XAMP_LOG_CREATE_LOGGER(BackgroundService);
-    thread_pool_ = ThreadPoolBuilder::MakeBackgroundThreadPool();
+    thread_pool_ = ThreadPoolBuilder::makeBackgroundThreadPool();
 }
 
 BackgroundService::~BackgroundService() = default;
@@ -86,7 +86,7 @@ BackgroundService::makeUniqueFile(const EncodeJob &job,
             break;
         }
         catch (const Exception& e) {
-            XAMP_LOG_ERROR(e.GetErrorMessage());
+            XAMP_LOG_ERROR(e.getErrorMessage());
         }
     }
     if (i == kMaxRetryTestUniqueFileName) {
@@ -116,20 +116,20 @@ void BackgroundService::executeEncodeJob(const QString& dir_name, const EncodeJo
     auto stop_token = stop_source_.get_token();
 
     try {
-        auto encoder = StreamFactory::MakeFileEncoder();
+        auto encoder = StreamFactory::makeFileEncoder();
 
         Property config;
-        config.Create(FileEncoderConfig::kInputFilePath,
+        config.create(FileEncoderConfig::kInputFilePath,
             input_path);
-        config.Create(FileEncoderConfig::kOutputFilePath,
+        config.create(FileEncoderConfig::kOutputFilePath,
             output_path);
-        config.Create(FileEncoderConfig::kCodecId,
+        config.create(FileEncoderConfig::kCodecId,
             job.codec_id.toStdString());
-        config.Create(FileEncoderConfig::kBitRate,
+        config.create(FileEncoderConfig::kBitRate,
             job.bit_rate);
 
-        encoder->Start(config, file_writer);
-        encoder->Encode([job, &stop_token, this](auto progress) {
+        encoder->start(config, file_writer);
+        encoder->encode([job, &stop_token, this](auto progress) {
             if (stop_token.stop_requested()) {
                 return false;
             }
@@ -149,18 +149,18 @@ void BackgroundService::executeEncodeJob(const QString& dir_name, const EncodeJo
 			return;
         }
 
-        auto writer = MakeMetadataWriter();
-        writer->Open(output_path);
-        writer->WriteArtist(job.file_.artist.toStdWString());
-        writer->WriteTitle(job.file_.title.toStdWString());
-        writer->WriteAlbum(job.file_.album.toStdWString());
-        writer->WriteComment(job.file_.comment.toStdWString());
-        writer->WriteGenre(job.file_.genre.toStdWString());
-        writer->WriteTrack(job.file_.track);
-        writer->WriteYear(job.file_.year);
+        auto writer = makeMetadataWriter();
+        writer->open(output_path);
+        writer->writeArtist(job.file_.artist.toStdWString());
+        writer->writeTitle(job.file_.title.toStdWString());
+        writer->writeAlbum(job.file_.album.toStdWString());
+        writer->writeComment(job.file_.comment.toStdWString());
+        writer->writeGenre(job.file_.genre.toStdWString());
+        writer->writeTrack(job.file_.track);
+        writer->writeYear(job.file_.year);
 
-        auto reader = MakeMetadataReader();
-        reader->Open(input_path);
+        auto reader = makeMetadataReader();
+        reader->open(input_path);
         auto cover = tag_util::readEmbeddedCover(*reader);
         if (!cover.isNull()) {
             tag_util::writeEmbeddedCover(*writer, cover);
@@ -169,7 +169,7 @@ void BackgroundService::executeEncodeJob(const QString& dir_name, const EncodeJo
         emit updateJobProgress(job.job_id, 100);
     }
     catch (const Exception& e) {
-        XAMP_LOG_ERROR(e.GetStackTrace());
+        XAMP_LOG_ERROR(e.getStackTrace());
         emit jobError(job.job_id, tr("executeEncodeJob error"));
     }
     catch (const std::exception& e) {
@@ -220,7 +220,7 @@ QCoro::Task<std::optional<QByteArray>> BackgroundService::fetchCoverArtByUrl(con
 
 void BackgroundService::parallelEncode(const QString& dir_name, QList<EncodeJob> jobs) {
     auto stop_token = stop_source_.get_token();
-    Executor::ParallelForEach(thread_pool_, jobs,
+    Executor::parallelFor(thread_pool_, jobs,
         [this, dir_name](const EncodeJob& job) {
         executeEncodeJob(dir_name, job);
         }, stop_token);
@@ -366,7 +366,7 @@ QCoro::Task<SearchLyricsResult> BackgroundService::downloadSingleKlrc(InfoItem i
             result.parsers.push_back(lrc_parser);
         }        
         catch (const Exception& e) {
-            XAMP_LOG_ERROR(e.GetErrorMessage());
+            XAMP_LOG_ERROR(e.getErrorMessage());
         }
         catch (const std::exception& e) {
             XAMP_LOG_ERROR(e.what());
@@ -449,27 +449,21 @@ QCoro::Task<> BackgroundService::searchNetease(const PlayListEntity& keyword) {
 QCoro::Task<> BackgroundService::searchLyrics(const PlayListEntity& keyword) {
     auto temp = keyword.cleanup();
 
-    try {
-        co_await searchNetease(temp);
-        XAMP_LOG_DEBUG("Search Netease lyrics completed!");
-    }
-    catch (const Exception& e) {
-        XAMP_LOG_ERROR(e.GetErrorMessage());
-    }
-    catch (const std::exception& e) {
-        XAMP_LOG_ERROR(e.what());
-	}
+	std::vector<QCoro::Task<>> tasks;
+	tasks.push_back(searchNetease(temp));
+	tasks.push_back(searchKugou(temp));
 
-    try {
-        co_await searchKugou(temp);
-        XAMP_LOG_DEBUG("Search Kugou lyrics completed!");
-    }
-    catch (const Exception& e) {
-        XAMP_LOG_ERROR(e.GetErrorMessage());
-    }
-    catch (const std::exception& e) {
-        XAMP_LOG_ERROR(e.what());
-    }
+	for (auto& task : tasks) {
+		try {
+			co_await task;
+		}
+		catch (const Exception& e) {
+			XAMP_LOG_ERROR(e.getErrorMessage());
+		}
+		catch (const std::exception& e) {
+			XAMP_LOG_ERROR(e.what());
+		}
+	}
     co_return;
 }
 
@@ -485,14 +479,14 @@ void BackgroundService::onFetchCdInfo(const DriveInfo& drive) {
     std::string url;
 
     try {
-        disc_id = mbdisc_id.GetDiscId(drive.drive_path.toStdString());
-        url = mbdisc_id.GetDiscIdLookupUrl(drive.drive_path.toStdString());
+        disc_id = mbdisc_id.getDiscId(drive.drive_path.toStdString());
+        url = mbdisc_id.getDiscIdLookupUrl(drive.drive_path.toStdString());
     } catch (const Exception &e) {
-        XAMP_LOG_DEBUG(e.GetErrorMessage());
+        XAMP_LOG_DEBUG(e.getErrorMessage());
         return;
     }
 
-    XAMP_LOG_D(logger_, "Start fetch cd information form musicbrainz.");
+    XAMP_LOG_D(logger_, "start fetch cd information form musicbrainz.");
 
     http_client_.setUrl(QString::fromStdString(url));
     http_client_.get().then([this, drive, disc_id](const auto& content) {
@@ -500,23 +494,23 @@ void BackgroundService::onFetchCdInfo(const DriveInfo& drive) {
 
         std::forward_list<TrackInfo> track_infos;
         const auto cd = OpenCD(drive.driver_letter);
-        cd->SetMaxSpeed();
-        const auto tracks = cd->GetTotalTracks();
+        cd->setMaxSpeed();
+        const auto tracks = cd->getTotalTracks();
 
         auto track_id = 0;
         for (const auto& track : tracks) {
             TrackInfo track_info;
-            auto reader = MakeMetadataReader();
-            reader->Open(track);
-            auto track_info_opt = reader->Extract();
+            auto reader = makeMetadataReader();
+            reader->open(track);
+            auto track_info_opt = reader->extract();
             if (track_info_opt.has_value()) {
 				track_info = track_info_opt.value();
             }
             track_info.title = mb_disc_id_info.tracks[track_id].title;
             track_info.file_path = track;
-            track_info.duration = cd->GetDuration(track_id++);
+            track_info.duration = cd->getDuration(track_id++);
             track_info.album = mb_disc_id_info.album;
-            track_info.sample_rate = AudioFormat::k16BitPCM441Khz.GetSampleRate();
+            track_info.sample_rate = AudioFormat::k16BitPCM441Khz.getSampleRate();
             track_info.disc_id = disc_id;
             track_info.track = track_id;
             track_infos.push_front(track_info);
@@ -536,7 +530,7 @@ void BackgroundService::onFetchCdInfo(const DriveInfo& drive) {
 
         emit fetchMbDiscInfoCompleted(mb_disc_id_info);
 
-        XAMP_LOG_D(logger_, "Start fetch cd cover image.");
+        XAMP_LOG_D(logger_, "start fetch cd cover image.");
 
         http_client_.setUrl(QString::fromStdString(image_url));
         http_client_.get().then([this, disc_id](const auto& content) {

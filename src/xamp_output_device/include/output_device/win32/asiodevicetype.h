@@ -41,7 +41,7 @@ public:
 	* 
 	* @return size_t
 	*/
-	size_t GetDeviceCount() const override;
+	size_t getDeviceCount() const override;
 
 	/*
 	* Get device info
@@ -49,27 +49,27 @@ public:
 	* @param device: device index
 	* @return DeviceInfo
 	*/
-    DeviceInfo GetDeviceInfo(uint32_t device) const override;
+    DeviceInfo getDeviceInfo(uint32_t device) const override;
 
 	/*
 	* Get default device info
 	* 
 	* @return std::optional<DeviceInfo>
 	*/
-	std::optional<DeviceInfo> GetDefaultDeviceInfo() const override;
+	std::optional<DeviceInfo> getDefaultDeviceInfo() const override;
 
 	/*
 	* Get device info
 	* 
 	* @return Vector<DeviceInfo>
 	*/
-	std::vector<DeviceInfo> GetDeviceInfo() const override;
+	std::vector<DeviceInfo> getDeviceInfo() const override;
 
 	/*
 	* Scan new device
 	* 
 	*/
-    void ScanNewDevice() override;
+    void scanNewDevice() override;
 
 	/*
 	* Make device
@@ -77,7 +77,7 @@ public:
 	* @param device_id: device id
 	* @return IOutputDevice
 	*/
-	ScopedPtr<IOutputDevice> MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, std::string const &device_id) override;
+	ScopedPtr<IOutputDevice> makeDevice(const std::shared_ptr<IThreadPool>& thread_pool, std::string const &device_id) override;
 private:
 	class AsioDeviceTypeImpl;
 	ScopedPtr<AsioDeviceTypeImpl> impl_;

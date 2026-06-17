@@ -20,13 +20,13 @@ public:
 
     XAMP_PIMPL(MemoryMappedFile)
 
-    [[nodiscard]] bool Open(std::wstring const &file_path, bool is_module = false);
+    [[nodiscard]] bool open(std::wstring const &file_path, bool is_module = false);
 
-    [[nodiscard]] void const * GetData() const ;
+    [[nodiscard]] void const * getData() const ;
 
-    [[nodiscard]] size_t GetLength() const;
+    [[nodiscard]] size_t getLength() const;
 
-	void Close() ;
+	void close() ;
 
 private:
 	class MemoryMappedFileImpl;

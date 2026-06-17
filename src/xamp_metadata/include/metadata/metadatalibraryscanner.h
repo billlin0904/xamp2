@@ -12,7 +12,7 @@
 #include <vector>
 
 #include <base/fs.h>
-#include <base/ithreadpoolexecutor.h>
+#include <base/threadpool.h>
 #include <base/trackinfo.h>
 #include <metadata/metadata.h>
 
@@ -39,15 +39,15 @@ struct MetadataScanCallbacks final {
 
 class XAMP_METADATA_API MetadataLibraryScanner final {
 public:
-	explicit MetadataLibraryScanner(std::shared_ptr<IThreadPoolExecutor> thread_pool);
+	explicit MetadataLibraryScanner(std::shared_ptr<IThreadPool> thread_pool);
 
-	MetadataScanProgress Scan(const Path& root_path,
+	MetadataScanProgress scan(const Path& root_path,
 		const std::stop_token& stop_token,
 		const MetadataScanCallbacks& callbacks,
 		const MetadataScanOptions& options = {});
 
 private:
-	std::shared_ptr<IThreadPoolExecutor> thread_pool_;
+	std::shared_ptr<IThreadPool> thread_pool_;
 };
 
 XAMP_METADATA_NAMESPACE_END

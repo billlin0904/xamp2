@@ -15,7 +15,7 @@ template <typename Ch>
 std::wstring parseCDATA(rapidxml::xml_node<Ch>* node) {
     auto nest_node = node->first_node();
     std::string cddata(nest_node->value(), nest_node->value_size());
-    return String::ToString(cddata);
+    return String::toString(cddata);
 }
 
 std::pair<std::string, MbDiscIdInfo> parseMbDiscIdXml(QString const& src) {

@@ -29,11 +29,11 @@ public:
 
 	SrcSampleRateConverter();
 
-    void SetQuality(SrcQuality quality);
+    void setQuality(SrcQuality quality);
 
-    void Initialize(const Property& config) override;
+    void initialize(const Property& config) override;
 
-    [[nodiscard]] bool Process(float const* samples, size_t num_samples, BufferRef<float>& output) override;
+    [[nodiscard]] bool process(float const* samples, size_t num_samples, BufferRef<float>& output) override;
 
 private:
     class SrcSampleRateConverterImpl;

@@ -33,7 +33,7 @@ public:
 	XAMP_DECLARE_DLL_NAME(AvRevertMmThreadCharacteristics);
 };
 
-#define AvrtLibDLL SharedSingleton<AvrtLib>::GetInstance()
+#define AvrtLibDLL SharedSingleton<AvrtLib>::getInstance()
 
 class Mmcss::MmcssImpl {
 public:
@@ -42,8 +42,8 @@ public:
 		, avrt_handle_(nullptr) {
 	}
 
-	void BoostPriority(std::wstring_view task_name, MmcssThreadPriority priority) {
-		RevertPriority();
+	void boostPriority(std::wstring_view task_name, MmcssThreadPriority priority) {
+		revertPriority();
 
 		avrt_handle_ = AvrtLibDLL.AvSetMmThreadCharacteristicsW(task_name.data(), &avrt_task_index_);
 		if (avrt_handle_ != nullptr) {
@@ -58,7 +58,7 @@ public:
 			GetLastErrorMessage());
 	}
 
-	void RevertPriority() {
+	void revertPriority() {
 		if (!avrt_handle_) {
 			return;
 		}
@@ -77,17 +77,17 @@ private:
 };
 
 Mmcss::Mmcss()
-	: impl_(MakeAlign<MmcssImpl>()) {
+	: impl_(makeAlign<MmcssImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(Mmcss)
 
-void Mmcss::BoostPriority(std::wstring_view task_name, MmcssThreadPriority priority) {
-	impl_->BoostPriority(task_name, priority);
+void Mmcss::boostPriority(std::wstring_view task_name, MmcssThreadPriority priority) {
+	impl_->boostPriority(task_name, priority);
 }
 
-void Mmcss::RevertPriority() {
-	impl_->RevertPriority();
+void Mmcss::revertPriority() {
+	impl_->revertPriority();
 }
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

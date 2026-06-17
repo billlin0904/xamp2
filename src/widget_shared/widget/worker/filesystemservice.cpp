@@ -1,4 +1,4 @@
-﻿#include <widget/worker/filesystemservice.h>
+#include <widget/worker/filesystemservice.h>
 
 #include <iterator>
 
@@ -33,7 +33,7 @@ FileSystemService::FileSystemService()
 	logger_ = XAMP_LOG_CREATE_LOGGER(FileSystemService);
 }
 
-void FileSystemService::setScannerThreadPool(std::shared_ptr<IThreadPoolExecutor> scanner_thread_pool) {
+void FileSystemService::setScannerThreadPool(std::shared_ptr<IThreadPool> scanner_thread_pool) {
     XAMP_ASSERT(scanner_thread_pool);
     thread_pool_ = std::move(scanner_thread_pool);
 }
@@ -59,8 +59,8 @@ void FileSystemService::onExtractFile(const QString& file_path,
 	completed_work_ = 0;
 	last_completed_work_ = 0;
 	total_work_ = 0;
-	total_time_elapsed_.Reset();
-	update_ui_elapsed_.Reset();
+	total_time_elapsed_.reset();
+	update_ui_elapsed_.reset();
 
 	timer_.start(std::chrono::seconds(1));
 
@@ -103,18 +103,18 @@ void FileSystemService::onExtractFile(const QString& file_path,
 			};
 
 		const Path root_path(toNativeSeparators(file_path).toStdWString());
-		const auto result = scanner.Scan(root_path,
+		const auto result = scanner.scan(root_path,
 			stop_source_.get_token(),
 			callbacks);
 
 		if (result.total_work == 0) {
 			XAMP_LOG_DEBUG("Not found file: {}",
-				String::ToString(file_path.toStdWString()));
+				String::toString(file_path.toStdWString()));
 		}
 	}
 	catch (const std::exception& e) {
 		XAMP_LOG_DEBUG("Failed to scan file:{} ({})",
-			String::ToString(file_path.toStdWString()),
+			String::toString(file_path.toStdWString()),
 			String::LocaleStringToUTF8(e.what()));
 	}
 }
@@ -154,7 +154,7 @@ void FileSystemService::updateProgress() {
 		static_cast<int32_t>(remaining_time));
 
 	last_completed_work_ = completed_work;
-	update_ui_elapsed_.Reset();
+	update_ui_elapsed_.reset();
 }
 
 void FileSystemService::cancelRequested() {

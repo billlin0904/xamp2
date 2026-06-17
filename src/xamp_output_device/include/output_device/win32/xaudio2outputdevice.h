@@ -18,7 +18,7 @@
 #include <base/buffer.h>
 #include <base/task.h>
 #include <base/platfrom_handle.h>
-#include <base/threadpoolexecutor.h>
+#include <base/threadpool.h>
 
 #include <xaudio2.h>
 #include <atomic>
@@ -38,7 +38,7 @@ public:
 	*
 	* @param device: device
 	*/
-	XAudio2OutputDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::wstring &device_id);
+	XAudio2OutputDevice(const std::shared_ptr<IThreadPool>& thread_pool, const std::wstring &device_id);
 
 	/*
 	* Destructor.
@@ -46,118 +46,118 @@ public:
 	virtual ~XAudio2OutputDevice() override;
 
 	/*
-	* Open stream.
+	* open stream.
 	*
 	* @param output_format: output format
 	* @return void
 	*/
-	void OpenStream(const AudioFormat& output_format) override;
+	void openStream(const AudioFormat& output_format) override;
 
 	/*
 	* Set audio callback.
 	*
 	* @param callback: audio callback
 	*/
-	void SetAudioCallback(IAudioCallback* callback) override;
+	void setAudioCallback(IAudioCallback* callback) override;
 
 	/*
 	* Is stream open.
 	*
 	* return bool
 	*/
-	bool IsStreamOpen() const override;
+	bool isStreamOpen() const override;
 
 	/*
 	* Is stream running.
 	*
 	* @return bool
 	*/
-	bool IsStreamRunning() const override;
+	bool isStreamRunning() const override;
 
 	/*
-	* Stop stream.
+	* stop stream.
 	*
 	* @param[in] wait_for_stop_stream: wait for stop stream
 	*/
-	void StopStream(bool wait_for_stop_stream = true) override;
+	void stopStream(bool wait_for_stop_stream = true) override;
 
 	/*
-	* Close stream.
+	* close stream.
 	*
 	*/
-	void CloseStream() override;
+	void closeStream() override;
 
 	/*
-	* Start stream.
+	* start stream.
 	*
 	*/
-	void StartStream() override;
+	void startStream() override;
 
 	/*
 	* Set stream time.
 	*
 	* @param stream_time: stream time
 	*/
-	void SetStreamTime(double stream_time) override;
+	void setStreamTime(double stream_time) override;
 
 	/*
 	* Get stream time.
 	*
 	*/
-	double GetStreamTime() const override;
+	double getStreamTime() const override;
 
 	/*
 	* Get volume.
 	*
 	* @return uint32_t
 	*/
-	uint32_t GetVolume() const override;
+	uint32_t getVolume() const override;
 
 	/*
 	* Set volume.
 	* @param volume: volume (1~100)
 	*/
-	void SetVolume(uint32_t volume) const override;
+	void setVolume(uint32_t volume) const override;
 
 	/*
 	* Set mute.
 	*
 	* @param mute: mute (true/false)
 	*/
-	void SetMute(bool mute) const override;
+	void setMute(bool mute) const override;
 
 	/*
 	* Is muted.
 	*
 	* @return bool
 	*/
-	bool IsMuted() const override;
+	bool isMuted() const override;
 
 	/*
 	* Get packed format.
 	*
 	* @return PackedFormat
 	*/
-	PackedFormat GetPackedFormat() const override;
+	PackedFormat getPackedFormat() const override;
 
 	/*
 	* Get device buffer size.
 	*
 	* @return uint32_t
 	*/
-	uint32_t GetBufferSize() const override;
+	uint32_t getBufferSize() const override;
 
 	/*
 	* Is hardware control volume.
 	*
 	* @return bool
 	*/
-	bool IsHardwareControlVolume() const override;
+	bool isHardwareControlVolume() const override;
 
 	/*
 	* Abort stream.
 	*/
-	void AbortStream() override;
+	void abortStream() override;
 
 private:
 	/*
@@ -165,9 +165,9 @@ private:
 	*
 	* @param hr: HRESULT
 	*/
-	void ReportError(HRESULT hr) ;
+	void reportError(HRESULT hr) ;
 
-	HRESULT FillSamples(bool& end_of_stream);
+	HRESULT fillSamples(bool& end_of_stream);
 
 	class XAudio2EngineContext;
 	class XAudio2VoiceContext;
@@ -190,7 +190,7 @@ private:
 	CComPtr<IXAudio2> xaudio2_;
 	LoggerPtr logger_;
 	FastMutex mutex_;
-	std::shared_ptr<IThreadPoolExecutor> thread_pool_;
+	std::shared_ptr<IThreadPool> thread_pool_;
 };
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

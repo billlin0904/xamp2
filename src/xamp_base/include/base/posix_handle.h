@@ -26,7 +26,7 @@ struct ModuleHandleTraits final {
         return nullptr;
     }
 
-    static void Close(void* value) {
+    static void close(void* value) {
         ::dlclose(value);
     }
 };
@@ -36,7 +36,7 @@ struct FileHandleTraits final {
         return -1;
     }
 
-    static void Close(int value) {
+    static void close(int value) {
         ::close(value);
     }
 };
@@ -46,7 +46,7 @@ struct TimerFdTraits final {
         return -1;
     }
 
-    static void Close(int value) {
+    static void close(int value) {
         ::close(value);
     }
 };

@@ -11,19 +11,19 @@ void logAndShowMessage(const std::exception_ptr& ptr) {
         std::rethrow_exception(ptr);
     }
     catch (const PlatformException& e) {
-        logMessage = e.GetErrorMessage();
-        uiMessage = qFormat(e.GetErrorMessage());
-		stack = e.GetStackTrace();
+        logMessage = e.getErrorMessage();
+        uiMessage = qFormat(e.getErrorMessage());
+		stack = e.getStackTrace();
     }
     catch (const Exception& e) {
-        logMessage = e.GetErrorMessage();
+        logMessage = e.getErrorMessage();
         uiMessage = QString::fromUtf8(logMessage.c_str());
-        stack = e.GetStackTrace();
+        stack = e.getStackTrace();
     }
     catch (const std::exception& e) {
         logMessage = String::LocaleStringToUTF8(e.what());
         uiMessage = QString::fromUtf8(logMessage.c_str());
-        stack = StackTrace{}.CaptureStack();
+        stack = StackTrace{}.captureStack();
     }
     catch (...) {
         logMessage = "Unknown error.";

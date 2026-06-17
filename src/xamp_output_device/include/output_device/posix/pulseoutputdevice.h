@@ -16,7 +16,7 @@
 #include <output_device/posix/pulse_private.h>
 
 namespace xamp::base {
-class IThreadPoolExecutor;
+class IThreadPool;
 }
 
 struct pa_context;
@@ -30,69 +30,69 @@ XAMP_DECLARE_LOG_NAME(PulseOutputDevice);
 
 class PulseOutputDevice final : public IOutputDevice {
 public:
-	explicit PulseOutputDevice(const std::shared_ptr<xamp::base::IThreadPoolExecutor>& thread_pool,
+	explicit PulseOutputDevice(const std::shared_ptr<xamp::base::IThreadPool>& thread_pool,
 		std::string device_id);
 
 	~PulseOutputDevice() override;
 
-	void OpenStream(const AudioFormat& output_format) override;
+	void openStream(const AudioFormat& output_format) override;
 
-	void SetAudioCallback(IAudioCallback* callback) override;
+	void setAudioCallback(IAudioCallback* callback) override;
 
-	[[nodiscard]] bool IsStreamOpen() const override;
+	[[nodiscard]] bool isStreamOpen() const override;
 
-	[[nodiscard]] bool IsStreamRunning() const override;
+	[[nodiscard]] bool isStreamRunning() const override;
 
-	void StopStream(bool wait_for_stop_stream = true) override;
+	void stopStream(bool wait_for_stop_stream = true) override;
 
-	void CloseStream() override;
+	void closeStream() override;
 
-	void StartStream() override;
+	void startStream() override;
 
-	void SetStreamTime(double stream_time) override;
+	void setStreamTime(double stream_time) override;
 
-	[[nodiscard]] double GetStreamTime() const override;
+	[[nodiscard]] double getStreamTime() const override;
 
-	[[nodiscard]] uint32_t GetVolume() const override;
+	[[nodiscard]] uint32_t getVolume() const override;
 
-	[[nodiscard]] bool IsMuted() const override;
+	[[nodiscard]] bool isMuted() const override;
 
-	void SetVolume(uint32_t volume) const override;
+	void setVolume(uint32_t volume) const override;
 
-	void SetMute(bool mute) const override;
+	void setMute(bool mute) const override;
 
-	[[nodiscard]] PackedFormat GetPackedFormat() const override;
+	[[nodiscard]] PackedFormat getPackedFormat() const override;
 
-	[[nodiscard]] uint32_t GetBufferSize() const override;
+	[[nodiscard]] uint32_t getBufferSize() const override;
 
-	[[nodiscard]] bool IsHardwareControlVolume() const override;
+	[[nodiscard]] bool isHardwareControlVolume() const override;
 
-	void AbortStream() override;
+	void abortStream() override;
 
 private:
-	static void ContextStateCallback(pa_context* context, void* userdata);
+	static void contextStateCallback(pa_context* context, void* userdata);
 
-	static void StreamStateCallback(pa_stream* stream, void* userdata);
+	static void streamStateCallback(pa_stream* stream, void* userdata);
 
-	static void StreamWriteCallback(pa_stream* stream, size_t bytes, void* userdata);
+	static void streamWriteCallback(pa_stream* stream, size_t bytes, void* userdata);
 
-	static void StreamSuccessCallback(pa_stream* stream, int success, void* userdata);
+	static void streamSuccessCallback(pa_stream* stream, int success, void* userdata);
 
-	void WaitForContextReady() const;
+	void waitForContextReady() const;
 
-	void WaitForStreamReady() const;
+	void waitForStreamReady() const;
 
-	void WaitForOperation(pa_operation* operation) const;
+	void waitForOperation(pa_operation* operation) const;
 
-	void OnStreamWrite(pa_stream* stream, size_t bytes);
+	void onStreamWrite(pa_stream* stream, size_t bytes);
 
-	void ApplySoftwareVolume(float* samples, size_t sample_count) const;
+	void applySoftwareVolume(float* samples, size_t sample_count) const;
 
-	void ResetPulseTimeBase();
+	void resetPulseTimeBase();
 
-	[[nodiscard]] double GetCallbackStreamTime(int64_t fallback_frame) const;
+	[[nodiscard]] double getCallbackStreamTime(int64_t fallback_frame) const;
 
-	void ConfigureRealtimeThreadPriority();
+	void configureRealtimeThreadPriority();
 
 	std::string device_id_;
 	AudioFormat output_format_;

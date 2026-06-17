@@ -61,7 +61,7 @@ public:
 	* Destructor.
 	*/
 	virtual ~WasapiWorkQueue() noexcept override {
-		Destroy();
+		destroy();
 	}
 
 	/*
@@ -69,15 +69,15 @@ public:
 	* 
 	* @return bool
 	*/
-	bool IsValid() const {
+	bool isValid() const {
 		return queue_id_ != MAXDWORD;
 	}
 
 	/*
-	* Destroy.
+	* destroy.
 	* 
 	*/
-	void Destroy() noexcept {
+	void destroy() noexcept {
 		std::lock_guard<SpinLock> guard{ mutex_ };
 		if (workitem_key_ != 0) {
 			::MFCancelWorkItem(workitem_key_);
@@ -125,17 +125,17 @@ public:
 	}
 
 	/*
-	* Initial.
+	* initial.
 	*/
 	void LoadStream() {
 		DWORD shared_queue_id = MF_MULTITHREADED_WORKQUEUE;
-		HrIfFailThrow(::MFLockSharedWorkQueue(mmcss_name_.c_str(), 0, &task_id_, &shared_queue_id));
+		hrIfFailThrow(::MFLockSharedWorkQueue(mmcss_name_.c_str(), 0, &task_id_, &shared_queue_id));
 
 		DWORD queue_id = MAXDWORD;
 		CComPtr<IMFAsyncResult> async_result;
 		try {
-			HrIfFailThrow(::MFAllocateSerialWorkQueue(shared_queue_id, &queue_id));
-			HrIfFailThrow(::MFCreateAsyncResult(nullptr, this, nullptr, &async_result));
+			hrIfFailThrow(::MFAllocateSerialWorkQueue(shared_queue_id, &queue_id));
+			hrIfFailThrow(::MFCreateAsyncResult(nullptr, this, nullptr, &async_result));
 		}
 		catch (...) {
 			if (queue_id != MAXDWORD) {
@@ -159,7 +159,7 @@ public:
 	STDMETHODIMP Invoke(IMFAsyncResult* async_result) override {
 		{
 			std::lock_guard<SpinLock> guard{ mutex_ };
-			if (!IsValid()) {
+			if (!isValid()) {
 				return S_OK;
 			}
 		}
@@ -172,11 +172,11 @@ public:
 	*/
 	void WaitAsync(HANDLE event) {
 		std::lock_guard<SpinLock> guard{ mutex_ };
-		if (!IsValid()) {
+		if (!isValid()) {
 			return;
 		}
 		workitem_key_ = 0;
-		HrIfFailThrow(::MFPutWaitingWorkItem(event, 1, async_result_, &workitem_key_));
+		hrIfFailThrow(::MFPutWaitingWorkItem(event, 1, async_result_, &workitem_key_));
 	}
 
 private:
@@ -191,10 +191,10 @@ private:
 	const Callback callback_; 
 };
 
-template <typename T>
-CComPtr<WasapiWorkQueue<T>> MakeWasapiWorkQueue(const std::wstring& mmcss_name,
-	T* ptr, typename WasapiWorkQueue<T>::Callback callback) {
-	return CComPtr<WasapiWorkQueue<T>>(new WasapiWorkQueue<T>(mmcss_name,
+template <typename t>
+CComPtr<WasapiWorkQueue<t>> MakeWasapiWorkQueue(const std::wstring& mmcss_name,
+	t* ptr, typename WasapiWorkQueue<t>::Callback callback) {
+	return CComPtr<WasapiWorkQueue<t>>(new WasapiWorkQueue<t>(mmcss_name,
 		ptr,
 		callback));
 }

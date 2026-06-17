@@ -21,7 +21,7 @@
 		} \
 	} while (false)
 
-#define HrIfFailThrow(hresult) \
+#define hrIfFailThrow(hresult) \
 	do { \
 		if (FAILED((hresult))) { \
 			throw_translated_com_error(hresult); \

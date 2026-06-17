@@ -35,10 +35,10 @@ static std::string FormatErrorMessage(OSStatus status) {
 }
 
 CoreAudioException::CoreAudioException(OSStatus status) {
-    message_ = ErrorToString(status) + " (" + FormatErrorMessage(status) + ").";
+    message_ = errorToString(status) + " (" + FormatErrorMessage(status) + ").";
 }
 
-std::string CoreAudioException::ErrorToString(OSStatus status) {
+std::string CoreAudioException::errorToString(OSStatus status) {
     auto str = ::SecCopyErrorMessageString(status, nullptr);
     std::string result;
     try {

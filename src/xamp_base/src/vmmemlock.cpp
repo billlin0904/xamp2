@@ -56,7 +56,7 @@ void VmMemLock::UnLock() {
 				XAMP_LOG_E(logger_,
 					"VirtualUnlock return failure! error:{} {}.",
 					GetPlatformErrorMessage(static_cast<int32_t>(last_error)),
-					StackTrace{}.CaptureStack());
+					StackTrace{}.captureStack());
 			}
 #endif
 		}

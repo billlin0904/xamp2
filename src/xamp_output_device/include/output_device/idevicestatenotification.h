@@ -18,9 +18,9 @@ public:
 	XAMP_BASE_CLASS(IDeviceStateNotification)
 
 	/*
-	* Run.
+	* run.
 	*/
-	virtual void Run() = 0;
+	virtual void run() = 0;
 
 protected:
 	/*

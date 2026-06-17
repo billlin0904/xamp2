@@ -20,101 +20,101 @@ class XAMP_METADATA_API XAMP_NO_VTABLE IMetadataWriter {
 public:
     XAMP_BASE_CLASS(IMetadataWriter)
 
-    virtual void Open(const Path& path) = 0;
+    virtual void open(const Path& path) = 0;
 
     /*
-    * Write track information to file.
+    * write track information to file.
     * 
     * @param[in] path file path.
     * @param[in] track_info track info.
     */
-    virtual void Write(const TrackInfo& track_info) = 0;
+    virtual void write(const TrackInfo& track_info) = 0;
 
     /*
-    * Write artist to file.
+    * write artist to file.
     * 
     * @param[in] path file path.
     * @param[in] artist.
     */
-    virtual void WriteArtist(const std::wstring& artist) = 0;
+    virtual void writeArtist(const std::wstring& artist) = 0;
 
     /*
-    * Write album to file.
+    * write album to file.
     * 
     * @param[in] path file path.
     * @param[in] album.
     */
-    virtual void WriteAlbum(const std::wstring& album) = 0;
+    virtual void writeAlbum(const std::wstring& album) = 0;
 
     /*
-    * Write title to file.
+    * write title to file.
     * 
     * @param[in] path file path.
     * @param[in] title.
     */
-    virtual void WriteTitle(const std::wstring& title) = 0;
+    virtual void writeTitle(const std::wstring& title) = 0;
     
     /*
-    * Write track number to file.
+    * write track number to file.
     * 
     * @param[in] path file path.
     * @param[in] track number.
     */
-    virtual void WriteTrack(uint32_t track) = 0;
+    virtual void writeTrack(uint32_t track) = 0;
 
     /*
-    * Write disc number to file.
+    * write disc number to file.
     * 
     * @param[in] path file path.
     * @param[in] genre.
     */
-    virtual void WriteGenre(const std::wstring& genre) = 0;
+    virtual void writeGenre(const std::wstring& genre) = 0;
 
     /*
-    * Write year to file.
+    * write year to file.
     * 
     * @param[in] path file path.
     * @param[in] comment.
     */
-    virtual void WriteComment(const std::wstring& comment) = 0;
+    virtual void writeComment(const std::wstring& comment) = 0;
 
     /*
-    * Write year to file.
+    * write year to file.
     * 
     * @param[in] path file path.
     * @param[in] year.
     */
-    virtual void WriteYear(uint32_t year) = 0;
+    virtual void writeYear(uint32_t year) = 0;
 
     /*
-    * Write ReplayGain to file.
+    * write ReplayGain to file.
     * 
     * @param[in] path file path.
     * @param[in] replay_gain replay gain.
     */
-    virtual void WriteReplayGain(const ReplayGain& replay_gain) = 0;
+    virtual void writeReplayGain(const ReplayGain& replay_gain) = 0;
 
     /*
-    * Write embedded cover to file.
+    * write embedded cover to file.
     * 
     * @param[in] path file path.
     * @param[in] image data.
     */
-    virtual void WriteEmbeddedCover(const std::vector<uint8_t> & image) const = 0;
+    virtual void writeEmbeddedCover(const std::vector<uint8_t> & image) const = 0;
 
     /*
     * Remove embedded cover from file.
     * 
     * @param[in] path file path.
     */
-    virtual void RemoveEmbeddedCover() = 0;
+    virtual void removeEmbeddedCover() = 0;
 
     /*
     * Check file is supported.
     * 
     * @param[in] path file path.
     */
-    [[nodiscard]] virtual bool CanWriteEmbeddedCover() const = 0;
+    [[nodiscard]] virtual bool canWriteEmbeddedCover() const = 0;
 protected:
     IMetadataWriter() = default;
 };

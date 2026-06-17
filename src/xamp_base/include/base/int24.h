@@ -21,9 +21,9 @@ public:
 
 	int24_t& operator=(float f) ;
 
-	[[nodiscard]] int32_t To2432Int() const ;
+	[[nodiscard]] int32_t to2432Int() const ;
 
-	[[nodiscard]] int32_t To32Int() const ;
+	[[nodiscard]] int32_t to32Int() const ;
 
 	std::array<uint8_t, 3> data;
 };
@@ -51,11 +51,11 @@ XAMP_ALWAYS_INLINE int24_t& int24_t::operator=(int32_t i) {
 	return *this;
 }
 
-XAMP_ALWAYS_INLINE int32_t int24_t::To2432Int() const {
-	return static_cast<int32_t>(static_cast<uint32_t>(To32Int()) << 8);
+XAMP_ALWAYS_INLINE int32_t int24_t::to2432Int() const {
+	return static_cast<int32_t>(static_cast<uint32_t>(to32Int()) << 8);
 }
 
-XAMP_ALWAYS_INLINE int32_t int24_t::To32Int() const {
+XAMP_ALWAYS_INLINE int32_t int24_t::to32Int() const {
 	uint32_t v = static_cast<uint32_t>(data[0])
 		| (static_cast<uint32_t>(data[1]) << 8)
 		| (static_cast<uint32_t>(data[2]) << 16);

@@ -320,7 +320,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
                 };
 
             try {
-                scanner->Scan(Path(native_path.toStdWString()),
+                scanner->scan(Path(native_path.toStdWString()),
                     stop_source->get_token(),
                     callbacks,
                     options);
@@ -372,7 +372,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
             qTheme.fontIcon(Glyphs::ICON_PLAYLIST));
 
         auto load_dir_act = action_map.addAction(
-            tr("Load file directory"), [this](auto pt) {
+            tr("load file directory"), [this](auto pt) {
             const auto dir_name = 
                 getExistingDirectory(this, tr("Select a directory"));
             if (dir_name.isEmpty()) {
@@ -404,7 +404,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
 
 }
 
-void FileSystemViewPage::setScannerThreadPool(std::shared_ptr<IThreadPoolExecutor> scanner_thread_pool) {
+void FileSystemViewPage::setScannerThreadPool(std::shared_ptr<IThreadPool> scanner_thread_pool) {
     XAMP_ASSERT(scanner_thread_pool);
     metadata_scanner_ = std::make_shared<MetadataLibraryScanner>(std::move(scanner_thread_pool));
 }

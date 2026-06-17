@@ -161,10 +161,10 @@ namespace {
             , XAMP_LOAD_DLL_API(libdeflate_deflate_compress_bound) {
         }
         catch (const Exception& e) {
-            XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+            XAMP_LOG_ERROR("{}", e.getErrorMessage());
         }
 
-#define LIBDEFLATE_LIB SharedSingleton<LibdeflateLib>::GetInstance()
+#define LIBDEFLATE_LIB SharedSingleton<LibdeflateLib>::getInstance()
 #endif
 
         libdeflate_compressor* allocCompressor(int level) {
@@ -286,7 +286,7 @@ namespace {
                 return nullptr;
             }
 
-            static void Close(libdeflate_decompressor* value) {
+            static void close(libdeflate_decompressor* value) {
                 freeDecompressor(value);
             }
         };
@@ -296,7 +296,7 @@ namespace {
                 return nullptr;
             }
 
-            static void Close(libdeflate_compressor* value) {
+            static void close(libdeflate_compressor* value) {
                 freeCompressor(value);
             }
         };

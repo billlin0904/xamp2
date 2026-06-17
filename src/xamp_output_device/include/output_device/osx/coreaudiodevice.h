@@ -29,43 +29,43 @@ public:
 
     virtual ~CoreAudioDevice() override;
 
-    void OpenStream(AudioFormat const &output_format) override;
+    void openStream(AudioFormat const &output_format) override;
 
-    void SetAudioCallback(IAudioCallback *callback) override;
+    void setAudioCallback(IAudioCallback *callback) override;
 
-    bool IsStreamOpen() const override;
+    bool isStreamOpen() const override;
 
-    bool IsStreamRunning() const override;
+    bool isStreamRunning() const override;
 
-    void StopStream(bool wait_for_stop_stream = true) override;
+    void stopStream(bool wait_for_stop_stream = true) override;
 
-    void CloseStream() override;
+    void closeStream() override;
 
-    void StartStream() override;
+    void startStream() override;
 
-    void SetStreamTime(double stream_time) override;
+    void setStreamTime(double stream_time) override;
 
-    double GetStreamTime() const override;
+    double getStreamTime() const override;
 
-    uint32_t GetVolume() const override;
+    uint32_t getVolume() const override;
 
-    void SetVolume(uint32_t volume) const override;
+    void setVolume(uint32_t volume) const override;
 
-    void SetMute(bool mute) const override;
+    void setMute(bool mute) const override;
 
-    bool IsMuted() const override;
+    bool isMuted() const override;
 
-    PackedFormat GetPackedFormat() const override;
+    PackedFormat getPackedFormat() const override;
 
-    uint32_t GetBufferSize() const override;
+    uint32_t getBufferSize() const override;
 
-    bool IsHardwareControlVolume() const override;
+    bool isHardwareControlVolume() const override;
 
-    void AbortStream() override;
+    void abortStream() override;
 
-    void SetVolumeLevelScalar(float level) override;
+    void setVolumeLevelScalar(float level) override;
 
-    void SetBlance();
+    void setBlance();
     
 private:
     static OSStatus OnAudioDeviceIOProc(AudioDeviceID,
@@ -76,9 +76,9 @@ private:
                                         AudioTimeStamp const*,
                                         void* user_data);
 
-    void FillSamples(AudioBufferList* output_data, double device_sample_time, bool is_slient);
+    void fillSamples(AudioBufferList* output_data, double device_sample_time, bool is_slient);
 
-    uint32_t GetHardwareLantency(AudioDeviceID device_id, AudioObjectPropertyScope scope);
+    uint32_t getHardwareLantency(AudioDeviceID device_id, AudioObjectPropertyScope scope);
 
     bool is_running_;
     bool is_hog_mode_;

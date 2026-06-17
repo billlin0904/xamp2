@@ -23,7 +23,7 @@ XAMP_MAKE_ENUM(DsdModes,
     DSD_MODE_DOP_AA,
     DSD_MODE_DSD2PCM)
 
-inline bool IsPcmAudio(DsdModes dsd_mode) {
+inline bool isPcmAudio(DsdModes dsd_mode) {
     return (dsd_mode == DsdModes::DSD_MODE_PCM || dsd_mode == DsdModes::DSD_MODE_DSD2PCM);
 }
 

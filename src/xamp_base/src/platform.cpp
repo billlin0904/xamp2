@@ -54,8 +54,8 @@ extern "C" int __ulock_wake(uint32_t operation, void* addr, uint64_t wake_value)
 #define UL_COMPARE_AND_WAIT	1
 #define ULF_WAKE_ALL 0x00000100
 
-template <typename T>
-static int MacOSFutexWake(std::atomic<T>& to_wake, bool notify_one) {
+template <typename t>
+static int MacOSFutexWake(std::atomic<t>& to_wake, bool notify_one) {
     return ::__ulock_wake(UL_COMPARE_AND_WAIT | (notify_one ? 0 : ULF_WAKE_ALL), &to_wake, 0);
 }
 #endif
@@ -76,7 +76,7 @@ namespace {
     public:
         XAMP_DECLARE_SINGLETON_NAME()
 
-        void RecordLocked(size_t size) {
+        void recordLocked(size_t size) {
             if (size == 0) {
                 return;
             }
@@ -88,13 +88,13 @@ namespace {
                 String::FormatBytes(active_locked_bytes_));
         }
 
-        bool ReserveForLock(size_t size) {
+        bool reserveForLock(size_t size) {
             if (size == 0) {
                 return true;
             }
 
             std::lock_guard lock{ mutex_ };
-            if (!EnsureInitialized()) {
+            if (!ensureInitialized()) {
                 return false;
             }
 
@@ -128,7 +128,7 @@ namespace {
             return true;
         }
 
-        void ReleaseLocked(size_t size) {
+        void releaseLocked(size_t size) {
             if (size == 0) {
                 return;
             }
@@ -143,7 +143,7 @@ namespace {
         }
 
     private:
-        bool EnsureInitialized() {
+        bool ensureInitialized() {
             if (initialized_) {
                 return true;
             }
@@ -157,7 +157,7 @@ namespace {
             requested_minimum_ = initial_minimum_;
             requested_maximum_ = initial_maximum_;
             initialized_ = true;
-            XAMP_LOG_TRACE("Initial process working set. minimum: {} maximum: {}.",
+            XAMP_LOG_TRACE("initial process working set. minimum: {} maximum: {}.",
                 String::FormatBytes(initial_minimum_),
                 String::FormatBytes(initial_maximum_));
             return true;
@@ -214,8 +214,8 @@ namespace {
      * @param[in] milliseconds The number of milliseconds to wait for.
      * @return true if the atomic variable was woken up, false if the wait timed out.
      */
-    template <typename T>
-    bool PlatformFutexWait(std::atomic<T>& to_wait_on, uint32_t& expected, uint32_t milliseconds) {
+    template <typename t>
+    bool PlatformFutexWait(std::atomic<t>& to_wait_on, uint32_t& expected, uint32_t milliseconds) {
 #ifdef XAMP_OS_WIN
         // 在 Windows 上，INFINITE 通常定義為 0xFFFFFFFF，表示無限等待
         return ::WaitOnAddress(&to_wait_on, &expected, sizeof(expected), milliseconds) != 0;
@@ -245,8 +245,8 @@ namespace {
     *
     * @param[out] to_wake The atomic variable to wake up.
     */
-    template <typename T>
-    void PlatformFutexWakeSingle(std::atomic<T>& to_wake) {
+    template <typename t>
+    void PlatformFutexWakeSingle(std::atomic<t>& to_wake) {
 #ifdef XAMP_OS_WIN
         ::WakeByAddressSingle(&to_wake);
 #elif defined (XAMP_OS_MAC)
@@ -261,8 +261,8 @@ namespace {
     *
     * @param[out] to_wake The atomic variable to wake up.
     */
-    template <typename T>
-	void PlatformFutexWakeAll(std::atomic<T>& to_wake) {
+    template <typename t>
+	void PlatformFutexWakeAll(std::atomic<t>& to_wake) {
 #ifdef XAMP_OS_WIN
         ::WakeByAddressAll(&to_wake);
 #elif defined (XAMP_OS_MAC)
@@ -350,7 +350,7 @@ void SetThreadName(std::wstring const& name) {
 #else
     static constexpr int kMaxNameLength = 15;
 #endif
-    const auto shortened_name = String::ToUtf8String(name).substr(0, kMaxNameLength);
+    const auto shortened_name = String::toUtf8String(name).substr(0, kMaxNameLength);
 #ifdef XAMP_OS_MAC
     ::pthread_setname_np(shortened_name.c_str());
 #else
@@ -611,6 +611,8 @@ void SetProcessMitigation() {
 }
 #endif
 
+#define WORKING_SET_LOCKER SharedSingleton<WorkingSetLocker>::getInstance()
+
 bool VirtualMemoryLock(void* address, size_t size) {
     if (size == 0) {
         return true;
@@ -621,16 +623,16 @@ bool VirtualMemoryLock(void* address, size_t size) {
 
 #ifdef XAMP_OS_WIN
     if (!::VirtualLock(address, size)) { // try lock memory!
-        if (!SharedSingleton<WorkingSetLocker>::GetInstance().ReserveForLock(size)) {
+        if (!WORKING_SET_LOCKER.reserveForLock(size)) {
             return false;
         }
         if (!::VirtualLock(address, size)) {
-            SharedSingleton<WorkingSetLocker>::GetInstance().ReleaseLocked(size);
+            WORKING_SET_LOCKER.releaseLocked(size);
             return false;
         }
         return true;
     }
-    SharedSingleton<WorkingSetLocker>::GetInstance().RecordLocked(size);
+    WORKING_SET_LOCKER.recordLocked(size);
     return true;
 #else
     return ::mlock(address, size) != -1;
@@ -649,12 +651,12 @@ bool VirtualMemoryUnLock(void* address, size_t size) {
     if (!::VirtualUnlock(address, size)) {
         const auto last_error = ::GetLastError();
         if (last_error == ERROR_NOT_LOCKED) {
-            SharedSingleton<WorkingSetLocker>::GetInstance().ReleaseLocked(size);
+            WORKING_SET_LOCKER.releaseLocked(size);
         }
         ::SetLastError(last_error);
         return false;
     }
-    SharedSingleton<WorkingSetLocker>::GetInstance().ReleaseLocked(size);
+    WORKING_SET_LOCKER.releaseLocked(size);
     return true;
 #else
     return ::munlock(address, size) != -1;
@@ -687,7 +689,7 @@ std::string GetSequentialUUID() {
 
 void MSleep(std::chrono::milliseconds timeout) {
     WaitableTimer timer;
-    timer.SetTimeout(timeout);
+    timer.setTimeout(timeout);
     timer.Wait();
 }
 
@@ -705,7 +707,7 @@ uint64_t GenRandomSeed() {
             return nullptr;
         }
 
-        static void Close(BCRYPT_ALG_HANDLE value) {
+        static void close(BCRYPT_ALG_HANDLE value) {
             ::BCryptCloseAlgorithmProvider(value, 0);
         }
     };
@@ -746,94 +748,5 @@ void Assert(const char* message, const char* file_, uint32_t line) {
     _wassert(utf16_message.c_str(), utf16_file_name.c_str(), line);
 #endif
 }
-
-#ifdef XAMP_OS_WIN
-bool KillProcessByNameAndChildren(const std::string& process_name) {
-    // 建立系統中所有進程的快照
-    FileHandle hSnapshot(::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0));
-    if (!hSnapshot) {
-        return false;
-    }
-
-    PROCESSENTRY32 pe;
-    pe.dwSize = sizeof(pe);
-
-    bool killedAny = false;
-
-    // 逐一檢查系統中所有進程
-    if (::Process32First(hSnapshot.get(), &pe)) {
-        do {
-#ifdef UNICODE
-            // 如果是 Unicode Project，pe.szExeFile 為 wchar_t[]
-            // 先轉成 std::string 以跟外部傳進來的 process_name 比較
-            std::wstring wexeFile(pe.szExeFile);
-            std::string exeFileName(wexeFile.begin(), wexeFile.end());
-#else
-            // 若不是 Unicode，pe.szExeFile 為 char[]
-            std::string exeFileName(pe.szExeFile);
-#endif
-            // 以不分大小寫的方式 (_stricmp) 比較名稱
-            if (_stricmp(exeFileName.c_str(), process_name.c_str()) == 0) {
-                // 找到符合名稱的進程，遞迴結束它以及所有子進程
-                bool result = KillProcessByPidAndChildren(pe.th32ProcessID);
-                if (result) {
-                    killedAny = true;
-                }
-            }
-        } while (::Process32Next(hSnapshot.get(), &pe));
-    }
-
-    return killedAny;
-}
-
-
-bool KillProcessByPidAndChildren(uint64_t pid) {
-    if (pid > (std::numeric_limits<DWORD>::max)()) {
-        return false;
-    }
-
-    const auto process_id = static_cast<DWORD>(pid);
-    std::vector<DWORD> childPids;
-
-    FileHandle snapshot(::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0));
-    if (!snapshot) {
-        XAMP_LOG_DEBUG("Failure to CreateToolhelp32Snapshot");
-        return false;
-    }
-
-    PROCESSENTRY32 pe;
-    pe.dwSize = sizeof(PROCESSENTRY32);
-
-    if (::Process32First(snapshot.get(), &pe)) {
-        do {
-            if (pe.th32ParentProcessID == process_id) {
-                childPids.push_back(pe.th32ProcessID);
-            }
-        } while (::Process32Next(snapshot.get(), &pe));
-    }
-
-	snapshot.reset();
-
-    for (DWORD childPid : childPids) {
-        KillProcessByPidAndChildren(childPid);
-    }
-
-    WinHandle hProcess(::OpenProcess(PROCESS_TERMINATE, FALSE, process_id));
-    if (hProcess) {
-        BOOL result = ::TerminateProcess(hProcess.get(), 1);
-        hProcess.reset();
-        if (!result) {
-            XAMP_LOG_DEBUG("Failure to TerminateProcess, pid {}", pid);
-            return false;
-        }
-    }
-    else {
-        XAMP_LOG_DEBUG("Failure to OpenProcess, pid {}", pid);
-        return false;
-    }
-
-    return true;
-}
-#endif
 
 XAMP_BASE_NAMESPACE_END

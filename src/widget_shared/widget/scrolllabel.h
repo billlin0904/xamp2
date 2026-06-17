@@ -19,6 +19,10 @@ public:
 
 	QString text() const;
 
+	void setElideMode(Qt::TextElideMode mode);
+
+	Qt::TextElideMode elideMode() const;
+
 public slots:
 	void onTimerTimeout();
 
@@ -29,12 +33,15 @@ private:
 
 	void resizeEvent(QResizeEvent* event) override;
 
+	void changeEvent(QEvent* event) override;
+
 	void updateText();
 
     const QLatin1String seperator_ = QLatin1String("   ");
 
 	bool scroll_enabled_;
 	bool waiting_;
+	Qt::TextElideMode elide_mode_{ Qt::ElideNone };
 	int left_margin_;
 	int scroll_pos_;
 	int single_text_width_;

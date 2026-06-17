@@ -8,8 +8,8 @@
 #include <QCryptographicHash>
 #include <QString>
 
-template <typename T>
-void addDataToHash(QCryptographicHash& hash, const T& arg) {
+template <typename t>
+void addDataToHash(QCryptographicHash& hash, const t& arg) {
     hash.addData(arg.toUtf8());
 }
 

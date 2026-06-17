@@ -18,7 +18,7 @@ class XAMP_NO_VTABLE IWaitableTimer {
 public:
 	virtual ~IWaitableTimer() = default;
 	
-	virtual void SetTimeout(std::chrono::milliseconds timeout) = 0;
+	virtual void setTimeout(std::chrono::milliseconds timeout) = 0;
 
 	virtual void Wait() = 0;
 protected:
@@ -65,19 +65,19 @@ public:
 		}
 	}
 
-	void SetTimeout(std::chrono::milliseconds timeout) override {
+	void setTimeout(std::chrono::milliseconds timeout) override {
 		timeout_ = timeout;
-		Reset();
+		reset();
 	}
 
 	void Wait() override {
 		if (::WaitForSingleObject(timer_.get(), INFINITE) != WAIT_OBJECT_0) {
 			throw PlatformException();
 		}
-		Reset();
+		reset();
 	}
 
-	void Reset() {
+	void reset() {
 		constexpr auto kMilliSecond = -10000;
 		LARGE_INTEGER timespan = { 0 };
 		timespan.QuadPart = kMilliSecond * timeout_.count();
@@ -98,7 +98,7 @@ public:
 		, tp_(std::chrono::steady_clock::now()) {
 	}
 
-	void SetTimeout(std::chrono::milliseconds timeout) override {
+	void setTimeout(std::chrono::milliseconds timeout) override {
 		timeout_ = timeout;
 	}
 
@@ -116,15 +116,15 @@ public:
 	WaitableTimerImpl()
 #ifdef XAMP_OS_WIN
 		: impl_(time_period_.IsSleepSranular() 
-			? MakeAlign<IWaitableTimer, StdWaitableTimerImpl>()
-			: MakeAlign<IWaitableTimer, APCWaitableTimerImpl>()) {
+			? makeAlign<IWaitableTimer, StdWaitableTimerImpl>()
+			: makeAlign<IWaitableTimer, APCWaitableTimerImpl>()) {
 #else
 		: impl_(MakeAlign<IWaitableTimer, StdWaitableTimerImpl>()) {
 #endif
 	}
 
-	void SetTimeout(std::chrono::milliseconds timeout) {
-		impl_->SetTimeout(timeout);
+	void setTimeout(std::chrono::milliseconds timeout) {
+		impl_->setTimeout(timeout);
 	}
 
 	void Wait() {
@@ -138,13 +138,13 @@ public:
 #ifdef XAMP_OS_WIN
 TimePeriod WaitableTimer::WaitableTimerImpl::time_period_;
 #endif
-WaitableTimer::WaitableTimer() : impl_(MakeAlign<WaitableTimerImpl>()) {
+WaitableTimer::WaitableTimer() : impl_(makeAlign<WaitableTimerImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(WaitableTimer)
 	
-void WaitableTimer::SetTimeout(std::chrono::milliseconds timeout) {
-	impl_->SetTimeout(timeout);
+void WaitableTimer::setTimeout(std::chrono::milliseconds timeout) {
+	impl_->setTimeout(timeout);
 }
 
 void WaitableTimer::Wait() {

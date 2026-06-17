@@ -43,7 +43,7 @@ namespace {
         ::mi_option_set_default(mi_option_purge_delay, 500);
         // Apply an even longer purge delay for arena memory, trading RSS for steadier latency.
         ::mi_option_set_default(mi_option_arena_purge_mult, 20);
-        // Reset pages instead of decommitting them; this is usually faster on Windows.
+        // reset pages instead of decommitting them; this is usually faster on Windows.
         ::mi_option_set_enabled_default(mi_option_purge_decommits, false);
         // Let active threads reclaim memory from finished threads during later frees.
         ::mi_option_set_enabled_default(mi_option_abandoned_reclaim_on_free, true);
@@ -108,7 +108,7 @@ namespace {
         stream << QString::fromStdString(get_file_name()) << ":" << context.line << " (" << QString::fromStdString(GetLastErrorMessage()) << ") \r\n"
             << context.function << ": " << msg;
         if (!disable_stack_trace) {
-            stream << QString::fromStdString(StackTrace{}.CaptureStack());
+            stream << QString::fromStdString(StackTrace{}.captureStack());
         }
 
         // Skip PNG image error
@@ -117,7 +117,7 @@ namespace {
         }
 
         if (str.contains("qwindowswindow.cpp"_str)) {
-            stream << QString::fromStdString(StackTrace{}.CaptureStack());
+            stream << QString::fromStdString(StackTrace{}.captureStack());
         }
 
         const auto logger = XAMP_LOG_CREATE_LOGGER(Qt);
@@ -142,7 +142,7 @@ namespace {
 #endif
 
     int execute(int argc, char* argv[], QStringList &args) {
-        XampCrashHandler.SetThreadExceptionHandlers();
+        XampCrashHandler.setThreadExceptionHandlers();
 
 #ifdef Q_OS_WIN
         const auto components_path = GetComponentsFilePath();
@@ -197,7 +197,7 @@ namespace {
             return -1;
         }
 
-        XAMP_LOG_DEBUG("Load component shared library success.");
+        XAMP_LOG_DEBUG("load component shared library success.");
 
         XAMP_LOG_DEBUG("Database start initial...");
 
@@ -211,7 +211,7 @@ namespace {
 
         XAMP_LOG_DEBUG("Database init success.");
 
-        XAMP_LOG_DEBUG("Start XAMP window...");
+        XAMP_LOG_DEBUG("start XAMP window...");
 
         XMainWindow main_window;
         //main_window.setContentWidget(nullptr);
@@ -226,7 +226,7 @@ namespace {
 
         logMimallocOptions();
 
-        XAMP_LOG_DEBUG("<<<Initial XAMP window done!>>>");
+        XAMP_LOG_DEBUG("<<<initial XAMP window done!>>>");
 
         if (qAppSettings.valueAsBool(kAppSettingEnableShortcut)) {
             main_window.setShortcut(QKeySequence(Qt::Key_MediaPlay));
@@ -248,20 +248,20 @@ int main() {
 
     try {
         XampLoggerFactory
-            .AddDebugOutput()
+            .addDebugOutput()
 #if !defined(Q_OS_WIN) && defined(_DEBUG)
-            .AddSink(std::make_shared<QDebugSink>())
+            .addSink(std::make_shared<QDebugSink>())
 #endif
-            .AddLogFile("xamp.log")
-            .Startup();        
+            .addLogFile("xamp.log")
+            .startup();        
     }
     catch (const std::exception& e) {
         return -1;
     }
 
     std::atexit([]() {
-        XAMP_LOG_DEBUG("<<<Shutdown XAMP logger>>>");
-        XampLoggerFactory.Shutdown();
+        XAMP_LOG_DEBUG("<<<shutdown XAMP logger>>>");
+        XampLoggerFactory.shutdown();
         });
 
     static char app_name[] = "xamp";
@@ -277,11 +277,11 @@ int main() {
     }
     catch (const Exception& e) {
         exist_code = -1;
-        XAMP_LOG_ERROR("message:{} {}", e.what(), e.GetStackTrace());
+        XAMP_LOG_ERROR("message:{} {}", e.what(), e.getStackTrace());
     }
 	catch (const std::exception& e) {
 		exist_code = -1;
-		XAMP_LOG_ERROR("message:{} {}", e.what(), StackTrace{}.CaptureStack());
+		XAMP_LOG_ERROR("message:{} {}", e.what(), StackTrace{}.captureStack());
 	}
     return exist_code;
 }

@@ -20,13 +20,13 @@ Win32DeviceStateNotification::~Win32DeviceStateNotification() {
 	}
 }
 
-void Win32DeviceStateNotification::Run() {
-	HrIfFailThrow(::CoCreateInstance(__uuidof(MMDeviceEnumerator),
+void Win32DeviceStateNotification::run() {
+	hrIfFailThrow(::CoCreateInstance(__uuidof(MMDeviceEnumerator),
 		nullptr,
 		CLSCTX_ALL,
 		__uuidof(IMMDeviceEnumerator),
 		reinterpret_cast<void**>(&enumerator_)));
-	HrIfFailThrow(enumerator_->RegisterEndpointNotificationCallback(this));	
+	hrIfFailThrow(enumerator_->RegisterEndpointNotificationCallback(this));	
 }
 
 STDMETHODIMP Win32DeviceStateNotification::QueryInterface(REFIID iid, void** object) {
@@ -48,16 +48,16 @@ STDMETHODIMP Win32DeviceStateNotification::OnPropertyValueChanged(LPCWSTR device
 
 STDMETHODIMP Win32DeviceStateNotification::OnDeviceAdded(LPCWSTR device_id) {
 	if (const auto callback = callback_.lock()) {
-		const auto utf8_device_id = String::ToUtf8String(device_id);
-		callback->OnDeviceStateChange(DeviceState::DEVICE_STATE_ADDED, utf8_device_id);
+		const auto utf8_device_id = String::toUtf8String(device_id);
+		callback->onDeviceStateChange(DeviceState::DEVICE_STATE_ADDED, utf8_device_id);
 	}
 	return S_OK;
 }
 
 STDMETHODIMP Win32DeviceStateNotification::OnDeviceRemoved(LPCWSTR device_id) {
 	if (const auto callback = callback_.lock()) {
-		const auto utf8_device_id = String::ToUtf8String(device_id);
-		callback->OnDeviceStateChange(DeviceState::DEVICE_STATE_REMOVED, utf8_device_id);
+		const auto utf8_device_id = String::toUtf8String(device_id);
+		callback->onDeviceStateChange(DeviceState::DEVICE_STATE_REMOVED, utf8_device_id);
 	}
 	return S_OK;
 }
@@ -77,8 +77,8 @@ STDMETHODIMP Win32DeviceStateNotification::OnDeviceStateChanged(LPCWSTR device_i
 	}
 
 	if (const auto callback = callback_.lock()) {
-		const auto utf8_device_id = String::ToUtf8String(device_id);
-		callback->OnDeviceStateChange(state, utf8_device_id);
+		const auto utf8_device_id = String::toUtf8String(device_id);
+		callback->onDeviceStateChange(state, utf8_device_id);
 	}
 	return S_OK;
 }
@@ -91,9 +91,9 @@ STDMETHODIMP Win32DeviceStateNotification::OnDefaultDeviceChanged(EDataFlow flow
 
 		std::string utf8_device_id;
 		if (new_default_device_id != nullptr) {
-			utf8_device_id = String::ToUtf8String(new_default_device_id);
+			utf8_device_id = String::toUtf8String(new_default_device_id);
 		}
-		callback->OnDeviceStateChange(DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE, utf8_device_id);
+		callback->onDeviceStateChange(DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE, utf8_device_id);
 	}
 	return S_OK;
 }

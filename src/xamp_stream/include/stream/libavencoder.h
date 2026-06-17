@@ -19,9 +19,9 @@ public:
 
 	XAMP_PIMPL(LibAbFileEncoder)
 
-	void Start(const Property& config, const std::shared_ptr<FastIOStream>& file) override;
+	void start(const Property& config, const std::shared_ptr<FastIOStream>& file) override;
 
-	void Encode(std::function<bool(uint32_t)> const& progress = nullptr, const std::stop_token& stop_token = std::stop_token()) override;
+	void encode(std::function<bool(uint32_t)> const& progress = nullptr, const std::stop_token& stop_token = std::stop_token()) override;
 
 private:
 	class LibAbFileEncoderImpl;

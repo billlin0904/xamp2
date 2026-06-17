@@ -4,7 +4,7 @@
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
-std::string_view AsioException::ErrorMessage(ASIOError error) {
+std::string_view AsioException::errorMessage(ASIOError error) {
 	switch (error) {
 	case ASE_NotPresent:
 		return "Hardware input or output is not present or available.";
@@ -40,7 +40,7 @@ AsioException::AsioException(Errors error)
 
 AsioException::AsioException(ASIOError error)
 	: Exception(ToErrors(error)) {
-	what_ = ErrorMessage(error);
+	what_ = errorMessage(error);
 }
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

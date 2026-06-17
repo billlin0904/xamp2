@@ -25,16 +25,16 @@ public:
 
 	~PipeWireDeviceStateNotification() override;
 
-	void Run() override;
+	void run() override;
 
 private:
-	void Stop() noexcept;
+	void stop() noexcept;
 
 	void Notify(DeviceState state, std::string device_id);
 
-	[[nodiscard]] bool RememberSink(uint32_t id, const spa_dict* props);
+	[[nodiscard]] bool rememberSink(uint32_t id, const spa_dict* props);
 
-	static void CoreDoneCallback(void* userdata, uint32_t id, int seq);
+	static void coreDoneCallback(void* userdata, uint32_t id, int seq);
 
 	static void RegistryGlobalCallback(void* userdata,
 		uint32_t id,
@@ -43,7 +43,7 @@ private:
 		uint32_t version,
 		const spa_dict* props);
 
-	static void RegistryGlobalRemoveCallback(void* userdata, uint32_t id);
+	static void registryGlobalRemoveCallback(void* userdata, uint32_t id);
 
 	std::weak_ptr<IDeviceStateListener> callback_;
 	LoggerPtr logger_;

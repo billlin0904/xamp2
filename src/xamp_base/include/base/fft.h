@@ -29,7 +29,7 @@ public:
 
 	XAMP_PIMPL(Window)
 
-    void Initialize(size_t frame_size, WindowType type = WindowType::HANN);
+    void initialize(size_t frame_size, WindowType type = WindowType::HANN);
 
     void operator()(float* buffer, size_t size) const ;
 
@@ -44,9 +44,9 @@ public:
 
     XAMP_PIMPL(FFT)
 
-	void Initialize(size_t frame_size);
+	void initialize(size_t frame_size);
 
-    const ComplexValarray& Forward(float const* data, size_t size);
+    const ComplexValarray& forward(float const* data, size_t size);
 
 private:
     class FFTImpl;

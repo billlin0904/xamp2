@@ -119,6 +119,13 @@ CREATE UNIQUE INDEX IF NOT EXISTS album_artist_unique_index ON albumArtist (albu
 CREATE UNIQUE INDEX IF NOT EXISTS album_category_unique_index ON albumCategories (albumId, category);
 CREATE INDEX IF NOT EXISTS album_music_id_index ON albumMusic (musicId);
 
+CREATE TABLE IF NOT EXISTS playlistAlbumStates (
+    playlistId integer NOT NULL,
+    albumId integer NOT NULL,
+    isCollapsed integer NOT NULL DEFAULT 0,
+    PRIMARY KEY (playlistId, albumId)
+);
+
 CREATE TABLE IF NOT EXISTS albumTags (
     tagId integer PRIMARY KEY AUTOINCREMENT,
     tag TEXT NOT NULL DEFAULT ''

@@ -36,9 +36,9 @@ public:
 	virtual ~Win32DeviceStateNotification() override;
 
 	/*
-	* Run.
+	* run.
 	*/
-	void Run() override;
+	void run() override;
 
 	/*
 	* QueryInterface.

@@ -36,6 +36,7 @@ private:
 	bool enable_{ true };
 	PooledDatabasePtr database_ptr_;
 	HashSet<int32_t> pending_album_cover_ids_;
+	HashSet<int32_t> completed_album_cover_ids_;
 	LoggerPtr logger_;
 };
 

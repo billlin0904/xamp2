@@ -30,7 +30,7 @@ public:
     static ScopedPtr<FileStream> MakeFileStream(const Path& filePath,
         bool use_mqa_decode = false);
 
-    // Create a file stream object based on the file path and DSD mode
+    // create a file stream object based on the file path and DSD mode
     static ScopedPtr<FileStream> MakeFileStream(const Path& filePath,
         DsdModes dsdMode, 
         bool use_mqa_decode = false);
@@ -41,22 +41,22 @@ public:
 	static std::expected<ArchiveFileStream, std::string> MakeArchiveFileStream(const Path& archive_path,
         const std::wstring& archive_entry_name);
 
-    // Create an AAC encoder object
-    static ScopedPtr<IFileEncoder> MakeFileEncoder();
+    // create an AAC encoder object
+    static ScopedPtr<IFileEncoder> makeFileEncoder();
 
-    // Create a parametric equalizer audio processor object
-    static ScopedPtr<IAudioProcessor> MakeParametricEq();
+    // create a parametric equalizer audio processor object
+    static ScopedPtr<IAudioProcessor> makeParametricEq();
 
-    // Create a DSP manager object
-    static ScopedPtr<IDSPManager> MakeDSPManager();
+    // create a DSP manager object
+    static ScopedPtr<IDSPManager> makeDSPManager();
 
-    // Create a CD device object (specific to Windows OS)
+    // create a CD device object (specific to Windows OS)
     #ifdef XAMP_OS_WIN
-    static ScopedPtr<ICDDevice> MakeCDDevice(int32_t driverLetter);
+    static ScopedPtr<ICDDevice> makeCDDevice(int32_t driverLetter);
     #endif
 };
 
-XAMP_STREAM_API bool IsDsdFile(Path const& path);
+XAMP_STREAM_API bool isDsdFile(Path const& path);
 
 XAMP_STREAM_API IDsdStream* AsDsdStream(FileStream* stream) ;
 

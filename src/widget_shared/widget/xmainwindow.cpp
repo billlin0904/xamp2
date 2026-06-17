@@ -149,7 +149,7 @@ void XMainWindow::addSystemMenuAction(QAction* action) {
     system_menu_->addAction(action);
 }
 
-std::shared_ptr<IThreadPoolExecutor> XMainWindow::getScannerThreadPool() const {
+std::shared_ptr<IThreadPool> XMainWindow::getScannerThreadPool() const {
     return scanner_thread_pool_;
 }
 
@@ -393,7 +393,7 @@ void XMainWindow::readDriveInfo() {
         const auto file_system_type = storage.fileSystemType();
         if (kCDFileSystemType.contains(file_system_type.toUpper())) {
             const auto device = OpenCD(driver_letter);
-            const auto device_info = device->GetCDDeviceInfo();
+            const auto device_info = device->getCDDeviceInfo();
             display_name += QString::fromStdWString(L" " + device_info.product);
             auto itr = exist_drives_.find(display_name);
             if (itr == exist_drives_.end()) {

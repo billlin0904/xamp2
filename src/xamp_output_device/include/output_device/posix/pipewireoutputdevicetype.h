@@ -26,17 +26,17 @@ public:
 
 	~PipeWireOutputDeviceType() override = default;
 
-	void ScanNewDevice() override;
+	void scanNewDevice() override;
 
-	[[nodiscard]] size_t GetDeviceCount() const override;
+	[[nodiscard]] size_t getDeviceCount() const override;
 
-	[[nodiscard]] DeviceInfo GetDeviceInfo(uint32_t device) const override;
+	[[nodiscard]] DeviceInfo getDeviceInfo(uint32_t device) const override;
 
-	[[nodiscard]] std::vector<DeviceInfo> GetDeviceInfo() const override;
+	[[nodiscard]] std::vector<DeviceInfo> getDeviceInfo() const override;
 
-	[[nodiscard]] std::optional<DeviceInfo> GetDefaultDeviceInfo() const override;
+	[[nodiscard]] std::optional<DeviceInfo> getDefaultDeviceInfo() const override;
 
-	ScopedPtr<IOutputDevice> MakeDevice(const std::shared_ptr<xamp::base::IThreadPoolExecutor>& thread_pool,
+	ScopedPtr<IOutputDevice> makeDevice(const std::shared_ptr<xamp::base::IThreadPool>& thread_pool,
 		const std::string& device_id) override;
 
 private:

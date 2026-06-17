@@ -27,7 +27,7 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 namespace {
     std::string GetFileName(std::filesystem::path const& path) {
-        return String::ToUtf8String(path.filename());
+        return String::toUtf8String(path.filename());
     }
 
     struct StackTraceEntry {
@@ -88,7 +88,7 @@ namespace {
         WinHandle process_;
     };
 
-#define SYMBOL_LOADER SharedSingleton<SymLoader>::GetInstance()
+#define SYMBOL_LOADER SharedSingleton<SymLoader>::getInstance()
 
     void WriteLog(std::ostringstream& ostr, size_t frame_count, CaptureStackAddress& addrlist) {
         ostr.str("");
@@ -194,7 +194,7 @@ namespace {
 
 StackTrace::StackTrace() = default;
 
-bool StackTrace::LoadSymbol() {
+bool StackTrace::loadSymbol() {
 #ifdef XAMP_OS_WIN
     return SYMBOL_LOADER.IsInit();
 #else
@@ -202,7 +202,7 @@ bool StackTrace::LoadSymbol() {
 #endif
 }
 
-std::string StackTrace::CaptureStack(uint32_t skip) {
+std::string StackTrace::captureStack(uint32_t skip) {
     auto skip_frame = (std::min)(skip, 1U);
     CaptureStackAddress addrlist;
 #ifdef XAMP_OS_WIN

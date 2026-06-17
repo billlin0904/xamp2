@@ -25,9 +25,9 @@ class XAMP_BASE_API Uuid final {
 public:
     static Uuid const kNullUuid;
 
-    static Uuid FromString(const std::string& hex_string);
+    static Uuid fromString(const std::string& hex_string);
 
-    static bool TryParseString(const std::string& hex_string, Uuid &uuid);
+    static bool tryParseString(const std::string& hex_string, Uuid &uuid);
 
     template <typename ForwardIterator>
     constexpr Uuid(ForwardIterator first, ForwardIterator last) {
@@ -48,7 +48,7 @@ public:
 
     explicit Uuid(const uint8_t(&byte_array)[kMaxUuidSize]) ;
 
-	[[nodiscard]] bool IsValid() const ;
+	[[nodiscard]] bool isValid() const ;
 
     Uuid(const Uuid &other) ;
     
@@ -58,7 +58,7 @@ public:
     
     Uuid& operator=(Uuid &&other) ;
 
-	[[nodiscard]] size_t GetHash() const ;
+	[[nodiscard]] size_t getHash() const ;
 
 	operator std::string() const;
 
@@ -78,7 +78,7 @@ private:
     UuidBuffer bytes_{0};
 };
 
-XAMP_ALWAYS_INLINE bool Uuid::IsValid() const {
+XAMP_ALWAYS_INLINE bool Uuid::isValid() const {
     return bytes_[0] ||
         bytes_[1] ||
         bytes_[2] ||
@@ -109,7 +109,7 @@ XAMP_ALWAYS_INLINE bool operator==(std::string const &str, Uuid const &id) {
 	return Uuid(str) == id;
 }
 
-XAMP_ALWAYS_INLINE size_t Uuid::GetHash() const {
+XAMP_ALWAYS_INLINE size_t Uuid::getHash() const {
     size_t seed = 0;
     for (const auto data : bytes_) {
         seed ^= static_cast<size_t>(data) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
@@ -127,7 +127,7 @@ struct hash<xamp::base::Uuid> {
 	typedef xamp::base::Uuid argument_type;
 
 	result_type operator()(argument_type const& uuid) const {
-		return uuid.GetHash();
+		return uuid.getHash();
 	}
 };
 

@@ -1,6 +1,6 @@
 #include <player/api.h>
 
-#include <base/ithreadpoolexecutor.h>
+#include <base/threadpool.h>
 #include <base/fftlib.h>
 #include <base/logger.h>
 #include <base/charset_detector.h>
@@ -14,51 +14,69 @@
 #include <metadata/api.h>
 #include <stream/mbdiscid.h>
 
+#include <cstddef>
+
 XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 
 namespace {
 
+struct RequiredComponentLoader {
+    const char* name;
+    void (*load)();
+};
+
 void LoadRequiredComponent(const char* name, void (*loader)()) {
     try {
         loader();
-        XAMP_LOG_DEBUG("Load {} lib success.", name);
+        XAMP_LOG_DEBUG("load {} lib success.", name);
     }
     catch (...) {
-        XAMP_LOG_ERROR("Load {} lib failed.", name);
+        XAMP_LOG_ERROR("load {} lib failed.", name);
         throw;
     }
 }
 
+template <size_t Size>
+void LoadRequiredComponents(const RequiredComponentLoader (&loaders)[Size]) {
+    for (const auto& loader : loaders) {
+        LoadRequiredComponent(loader.name, loader.load);
+    }
+}
+
+constexpr RequiredComponentLoader kComponentLoaders[] {
+    { "BASS", LoadBassLib },
+    { "MQA", LoadMqaLib },
+    { "Src", LoadSrcLib },
+#if defined(XAMP_OS_WIN) || defined(XAMP_OS_LINUX)
+    { "FFT", LoadFFTLib },
+#endif
+    { "avlib", LoadAvLib },
+    { "Soxr", LoadSoxrLib },
+    { "libcue", LoadCueLib },
+    { "uchardect", LoadUcharDectLib },
+    { "furigana", LoadFuriganaDll },
+#ifdef XAMP_OS_WIN
+    { "r8brain", LoadR8brainLib },
+    { "mbdiscid", LoadMBDiscIdLib },
+#endif
+};
+
 } // namespace
 
 void LoadComponentSharedLibrary() {
-    LoadRequiredComponent("BASS", LoadBassLib);
-    LoadRequiredComponent("MQA", LoadMqaLib);
-    LoadRequiredComponent("Src", LoadSrcLib);
-#if defined(XAMP_OS_WIN) || defined(XAMP_OS_LINUX)
-    LoadRequiredComponent("FFT", LoadFFTLib);
-#endif
-    LoadRequiredComponent("avlib", LoadAvLib);
-    LoadRequiredComponent("Soxr", LoadSoxrLib);
-    LoadRequiredComponent("libcue", LoadCueLib);
-    LoadRequiredComponent("uchardect", LoadUcharDectLib);
-    LoadRequiredComponent("furigana", LoadFuriganaDll);
-#ifdef XAMP_OS_WIN
-    LoadRequiredComponent("r8brain", LoadR8brainLib);
-    LoadRequiredComponent("mbdiscid", LoadMBDiscIdLib);
-#endif
+    LoadRequiredComponents(kComponentLoaders);
 }
 
 #ifdef XAMP_OS_WIN
 ScopedPtr<ICDDevice> OpenCD(int32_t driver_letter) {
-    return StreamFactory::MakeCDDevice(driver_letter);
+    return StreamFactory::makeCDDevice(driver_letter);
 }
 #endif
 
 std::shared_ptr<IAudioPlayer> MakeAudioPlayer() {
 	return std::make_shared<AudioPlayer>(
-        ThreadPoolBuilder::MakePlaybackThreadPool(),
-        ThreadPoolBuilder::MakePlayerThreadPool());
+        ThreadPoolBuilder::makePlaybackThreadPool(),
+        ThreadPoolBuilder::makePlayerThreadPool());
 }
 
 XAMP_AUDIO_PLAYER_NAMESPACE_END

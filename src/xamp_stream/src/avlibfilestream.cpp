@@ -28,7 +28,7 @@ XAMP_DECLARE_LOG_NAME(AvLibFileStream);
 constexpr auto kOutputSampleFormat = AV_SAMPLE_FMT_FLT;
 
 std::string ToAvFileName(const Path& file_path) {
-	return String::ToUtf8String(file_path.wstring());
+	return String::toUtf8String(file_path.wstring());
 }
 
 int64_t DefaultChannelLayout(int channels) {
@@ -89,19 +89,19 @@ class AvLibFileStream::AvLibFileStreamImpl {
 public:
 	AvLibFileStreamImpl()
 		: logger_(XAMP_LOG_CREATE_LOGGER(AvLibFileStream)) {
-		logger_->SetLevel(LogLevel::LOG_LEVEL_DEBUG);
+		logger_->setLevel(LogLevel::LOG_LEVEL_DEBUG);
 	}
 
 	~AvLibFileStreamImpl() {
-		Close();
+		close();
 	}
 
-	void OpenFile(const Path& file_path) {
-		Close();
+	void openFile(const Path& file_path) {
+		close();
 
 		file_path_ = file_path;
 		auto file_name = ToAvFileName(file_path);
-		XAMP_LOG_D(logger_, "Open AvLib file stream start: {}.", file_name);
+		XAMP_LOG_D(logger_, "open AvLib file stream start: {}.", file_name);
 
 		AVFormatContext* raw_format_context = nullptr;
 		AvIfFailedThrow(LibAvDLL.Format->avformat_open_input(
@@ -200,7 +200,7 @@ public:
 		eof_ = false;
 
 		XAMP_LOG_D(logger_,
-			"Open AvLib file stream: {} format:{} duration:{:.2f}s bit_depth:{} bitrate:{}kbps.",
+			"open AvLib file stream: {} format:{} duration:{:.2f}s bit_depth:{} bitrate:{}kbps.",
 			file_name,
 			format_,
 			duration_,
@@ -208,13 +208,13 @@ public:
 			bit_rate_);
 	}
 
-	void Open(ArchiveEntry) {
+	void open(ArchiveEntry) {
 		Throw<NotSupportFormatException>("AvLibFileStream does not support archive entry yet.");
 	}
 
-	void Close() {
+	void close() {
 		if (format_context_ != nullptr) {
-			XAMP_LOG_D(logger_, "Close AvLib file stream: {}.", ToAvFileName(file_path_));
+			XAMP_LOG_D(logger_, "close AvLib file stream: {}.", ToAvFileName(file_path_));
 		}
 		pending_samples_.clear();
 		pending_sample_offset_ = 0;
@@ -233,24 +233,24 @@ public:
 		bit_depth_ = 0;
 		bit_rate_ = 0;
 		duration_ = 0.0;
-		format_.Reset();
+		format_.reset();
 		active_ = false;
 		eof_ = true;
 	}
 
-	[[nodiscard]] double GetDuration() const {
+	[[nodiscard]] double getDuration() const {
 		return duration_;
 	}
 
-	[[nodiscard]] AudioFormat GetFormat() const {
+	[[nodiscard]] AudioFormat getFormat() const {
 		return format_;
 	}
 
-	[[nodiscard]] bool EndOfStream() const {
+	[[nodiscard]] bool endOfStream() const {
 		return eof_;
 	}
 
-	void Seek(double stream_time) {
+	void seek(double stream_time) {
 		if (!format_context_ || !codec_context_ || audio_stream_index_ < 0 || audio_stream_ == nullptr) {
 			XAMP_LOG_D(logger_, "AvLib seek ignored because stream is not opened. target:{:.3f}s.", stream_time);
 			return;
@@ -282,7 +282,7 @@ public:
 			audio_stream_index_);
 	}
 
-	[[nodiscard]] uint32_t GetSamples(void* buffer, uint32_t length) {
+	[[nodiscard]] uint32_t getSamples(void* buffer, uint32_t length) {
 		if (buffer == nullptr || length == 0 || !active_) {
 			return 0;
 		}
@@ -318,19 +318,19 @@ public:
 		return copied_samples;
 	}
 
-	[[nodiscard]] uint32_t GetSampleSize() const {
+	[[nodiscard]] uint32_t getSampleSize() const {
 		return sizeof(float);
 	}
 
-	[[nodiscard]] bool IsActive() const {
+	[[nodiscard]] bool isActive() const {
 		return active_ || HasPendingSamples();
 	}
 
-	[[nodiscard]] uint32_t GetBitDepth() const {
+	[[nodiscard]] uint32_t getBitDepth() const {
 		return bit_depth_;
 	}
 
-	[[nodiscard]] uint32_t GetBitRate() const {
+	[[nodiscard]] uint32_t getBitRate() const {
 		return bit_rate_;
 	}
 
@@ -374,7 +374,7 @@ private:
 		if (bits <= 0) {
 			bits = LibAvDLL.Codec->av_get_bits_per_sample(codec_parameters->codec_id);
 		}
-		return bits > 0 ? static_cast<uint32_t>(bits) : format_.GetBitsPerSample();
+		return bits > 0 ? static_cast<uint32_t>(bits) : format_.getBitsPerSample();
 	}
 
 	[[nodiscard]] double ResolveDuration() const {
@@ -529,57 +529,57 @@ private:
 };
 
 AvLibFileStream::AvLibFileStream()
-	: impl_(MakeAlign<AvLibFileStreamImpl>()) {
+	: impl_(makeAlign<AvLibFileStreamImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(AvLibFileStream)
 
-void AvLibFileStream::OpenFile(const Path& file_path) {
-	impl_->OpenFile(file_path);
+void AvLibFileStream::openFile(const Path& file_path) {
+	impl_->openFile(file_path);
 }
 
-void AvLibFileStream::Open(ArchiveEntry archive_entry) {
-	impl_->Open(std::move(archive_entry));
+void AvLibFileStream::open(ArchiveEntry archive_entry) {
+	impl_->open(std::move(archive_entry));
 }
 
-void AvLibFileStream::Close() {
-	impl_->Close();
+void AvLibFileStream::close() {
+	impl_->close();
 }
 
-double AvLibFileStream::GetDuration() const {
-	return impl_->GetDuration();
+double AvLibFileStream::getDuration() const {
+	return impl_->getDuration();
 }
 
-AudioFormat AvLibFileStream::GetFormat() const {
-	return impl_->GetFormat();
+AudioFormat AvLibFileStream::getFormat() const {
+	return impl_->getFormat();
 }
 
-void AvLibFileStream::Seek(double stream_time) const {
-	impl_->Seek(stream_time);
+void AvLibFileStream::seek(double stream_time) const {
+	impl_->seek(stream_time);
 }
 
-uint32_t AvLibFileStream::GetSamples(void* buffer, uint32_t length) const {
-	return impl_->GetSamples(buffer, length);
+uint32_t AvLibFileStream::getSamples(void* buffer, uint32_t length) const {
+	return impl_->getSamples(buffer, length);
 }
 
-uint32_t AvLibFileStream::GetSampleSize() const {
-	return impl_->GetSampleSize();
+uint32_t AvLibFileStream::getSampleSize() const {
+	return impl_->getSampleSize();
 }
 
-bool AvLibFileStream::IsActive() const {
-	return impl_->IsActive();
+bool AvLibFileStream::isActive() const {
+	return impl_->isActive();
 }
 
-uint32_t AvLibFileStream::GetBitDepth() const {
-	return impl_->GetBitDepth();
+uint32_t AvLibFileStream::getBitDepth() const {
+	return impl_->getBitDepth();
 }
 
-uint32_t AvLibFileStream::GetBitRate() const {
-	return impl_->GetBitRate();
+uint32_t AvLibFileStream::getBitRate() const {
+	return impl_->getBitRate();
 }
 
-bool AvLibFileStream::EndOfStream() const {
-	return impl_->EndOfStream();
+bool AvLibFileStream::endOfStream() const {
+	return impl_->endOfStream();
 }
 
 

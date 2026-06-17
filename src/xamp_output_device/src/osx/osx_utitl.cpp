@@ -50,7 +50,7 @@ SystemVolume::SystemVolume(AudioObjectPropertySelector selector, AudioDeviceID d
     }
 }
 
-double SystemVolume::GetGain() const {
+double SystemVolume::getGain() const {
     Float32 gain = 0;
     if (device_id_ != kAudioObjectUnknown) {
         UInt32 size = sizeof(gain);
@@ -64,8 +64,8 @@ double SystemVolume::GetGain() const {
     return static_cast<double>(gain);
 }
 
-void SystemVolume::SetGain(float gain) const {
-    if (device_id_ != kAudioObjectUnknown && CanSetVolume()) {
+void SystemVolume::setGain(float gain) const {
+    if (device_id_ != kAudioObjectUnknown && canSetVolume()) {
         Float32 newVolume = gain;
         UInt32 size = sizeof(newVolume);
         CoreAudioThrowIfError(::AudioObjectSetPropertyData(device_id_,
@@ -77,7 +77,7 @@ void SystemVolume::SetGain(float gain) const {
     }
 }
 
-float SystemVolume::GetBlance(AudioObjectPropertyScope scope) const {
+float SystemVolume::getBlance(AudioObjectPropertyScope scope) const {
     AudioObjectPropertyAddress virtualMasterBalanceAddress {
         kAudioHardwareServiceDeviceProperty_VirtualMainVolume,
         scope,
@@ -95,7 +95,7 @@ float SystemVolume::GetBlance(AudioObjectPropertyScope scope) const {
     return outVirtualMasterBalance;
 }
 
-void SystemVolume::SetBlance(float blance, AudioObjectPropertyScope scope) {
+void SystemVolume::setBlance(float blance, AudioObjectPropertyScope scope) {
     AudioObjectPropertyAddress virtualMasterBalanceAddress {
         kAudioHardwareServiceDeviceProperty_VirtualMainBalance,
         scope,
@@ -111,7 +111,7 @@ void SystemVolume::SetBlance(float blance, AudioObjectPropertyScope scope) {
                                                        &blance));
 }
 
-bool SystemVolume::IsMuted() const {
+bool SystemVolume::isMuted() const {
     UInt32 muted = 0;
     if (device_id_ != kAudioObjectUnknown) {
         UInt32 size = sizeof(muted);
@@ -125,8 +125,8 @@ bool SystemVolume::IsMuted() const {
     return muted != 0;
 }
 
-void SystemVolume::SetMuted(bool mute) const {
-    if (device_id_ != kAudioObjectUnknown && CanSetVolume()) {
+void SystemVolume::setMuted(bool mute) const {
+    if (device_id_ != kAudioObjectUnknown && canSetVolume()) {
         UInt32 newMute = mute ? 1 : 0;
         UInt32 size = sizeof(newMute);
         CoreAudioThrowIfError(::AudioObjectSetPropertyData(device_id_,
@@ -138,15 +138,15 @@ void SystemVolume::SetMuted(bool mute) const {
     }
 }
 
-bool SystemVolume::HasProperty() const {
-    return HasProperty(property_);
+bool SystemVolume::hasProperty() const {
+    return hasProperty(property_);
 }
 
-bool SystemVolume::HasProperty(const AudioObjectPropertyAddress &property) const {
+bool SystemVolume::hasProperty(const AudioObjectPropertyAddress &property) const {
     return ::AudioObjectHasProperty(device_id_, &property) > 0;
 }
 
-bool SystemVolume::CanSetVolume() const {
+bool SystemVolume::canSetVolume() const {
     Boolean is_settable = false;
     return ::AudioObjectIsPropertySettable(device_id_,
                                            &property_,

@@ -24,8 +24,10 @@ namespace Ui {
 class QPushButton;
 class QProgressBar;
 class QStandardItemModel;
+class QStandardItem;
 class QCloseEvent;
 class QLabel;
+class QCheckBox;
 
 class XAMP_WIDGET_SHARED_API MusicbrainzEditPage final : public QFrame {
     Q_OBJECT
@@ -46,6 +48,9 @@ private:
     void load(const QList<PlayListEntity>& entities);
     void rebuildCandidateView();
     void appendMusicBrainzAlbum(const MusicBrainzAlbum& album);
+    QList<PlayListEntity> orderedEntitiesForWrite() const;
+    std::optional<PlayListEntity> entityForTrackModelItem(const QStandardItem* duration_item) const;
+    std::optional<PlayListEntity> entityForTrackItemOrder(const QStandardItem* duration_item) const;
     std::optional<PlayListEntity> entityForTrack(int track_no) const;
     void selectTrackViewTrack(int track_no);
     void selectTrackViewEntity(int32_t music_id);
@@ -87,6 +92,7 @@ private:
     http::HttpClient http_client_;
     Ui::MusicbrainzEditPage* ui_;
     QProgressBar* fetch_progress_bar_{ nullptr };
+    QCheckBox* merge_discs_checkbox_{ nullptr };
     QPushButton* export_album_cover_button_{ nullptr };
     QPushButton* write_tag_button_{ nullptr };
     QPushButton* write_album_tags_button_{ nullptr };

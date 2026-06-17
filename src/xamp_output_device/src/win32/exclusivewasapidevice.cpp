@@ -28,7 +28,7 @@ namespace {
 	*/
 	void SetWaveformatEx(WAVEFORMATEX* input_format, const AudioFormat& audio_format, const int32_t valid_bits_samples) {
 		XAMP_EXPECTS(input_format != nullptr);
-		XAMP_EXPECTS(audio_format.GetChannels() == AudioFormat::kMaxChannel);
+		XAMP_EXPECTS(audio_format.getChannels() == AudioFormat::kMaxChannel);
 		XAMP_EXPECTS(valid_bits_samples > 0);
 
 		// Check if this is correct	
@@ -36,21 +36,21 @@ namespace {
 		auto& format = *reinterpret_cast<WAVEFORMATEXTENSIBLE*>(input_format);
 
 		// CopyFrom from AudioFormat
-		format.Format.nChannels = audio_format.GetChannels();
-		format.Format.nSamplesPerSec = audio_format.GetSampleRate();
-		format.Format.nAvgBytesPerSec = audio_format.GetAvgBytesPerSec();
-		format.Format.nBlockAlign = audio_format.GetBlockAlign();
+		format.Format.nChannels = audio_format.getChannels();
+		format.Format.nSamplesPerSec = audio_format.getSampleRate();
+		format.Format.nAvgBytesPerSec = audio_format.getAvgBytesPerSec();
+		format.Format.nBlockAlign = audio_format.getBlockAlign();
 		format.Samples.wValidBitsPerSample = valid_bits_samples;
 
-		if (audio_format.GetChannels() <= 2
-			&& ((audio_format.GetBitsPerSample() == 16) || (audio_format.GetBitsPerSample() == 8))) {
+		if (audio_format.getChannels() <= 2
+			&& ((audio_format.getBitsPerSample() == 16) || (audio_format.getBitsPerSample() == 8))) {
 			// If this is a PCM format, we can set the wFormatTag to WAVE_FORMAT_PCM
 			// and the SubFormat to KSDATAFORMAT_SUBTYPE_PCM. Otherwise, we need to
 			// set the wFormatTag to WAVE_FORMAT_PCM.
 			format.Format.cbSize = 0;
 			format.Format.wFormatTag = WAVE_FORMAT_PCM;
 			format.SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
-			format.Format.wBitsPerSample = audio_format.GetBitsPerSample();
+			format.Format.wBitsPerSample = audio_format.getBitsPerSample();
 		}
 		else {
 			// This is 24/32 bit float format setting.
@@ -61,7 +61,7 @@ namespace {
 			format.Format.cbSize = sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
 			format.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
 			format.SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
-			if (audio_format.GetBitsPerSample() == 24) 
+			if (audio_format.getBitsPerSample() == 24) 
 				format.Format.wBitsPerSample = 24;
 			else
 				format.Format.wBitsPerSample = 32;
@@ -92,7 +92,7 @@ namespace {
 
 	template <typename Predicate>
 	int32_t MakeAlignedPeriod(const AudioFormat& format, uint32_t frames_per_latency, Predicate f) {
-		return CalcAlignedFramePerBuffer(frames_per_latency, format.GetBlockAlign(), f);
+		return CalcAlignedFramePerBuffer(frames_per_latency, format.getBlockAlign(), f);
 	}
 
 	constexpr auto kAudioRenderClientID = __uuidof(IAudioRenderClient);
@@ -123,27 +123,27 @@ ExclusiveWasapiDevice::ExclusiveWasapiDevice(const CComPtr<IMMDevice>& device)
 	, aligned_period_(0)
 	, device_(device)
 	, callback_(nullptr)
-	, logger_(XampLoggerFactory.GetLogger(XAMP_LOG_NAME(ExclusiveWasapiDevice))) {
+	, logger_(XampLoggerFactory.getLogger(XAMP_LOG_NAME(ExclusiveWasapiDevice))) {
 }
 
 ExclusiveWasapiDevice::~ExclusiveWasapiDevice() {
     try {
-        CloseStream();
+        closeStream();
         sample_ready_.reset();
     } catch (...) {
     }
 }
 	
-void ExclusiveWasapiDevice::SetAlignedPeriod(REFERENCE_TIME device_period, const AudioFormat &output_format) {
+void ExclusiveWasapiDevice::setAlignedPeriod(REFERENCE_TIME device_period, const AudioFormat &output_format) {
 	// From device period to buffer size.
-	buffer_frames_ = ReferenceTimeToFrames(device_period, output_format.GetSampleRate());
+	buffer_frames_ = ReferenceTimeToFrames(device_period, output_format.getSampleRate());
 	// Make sure the buffer size is a multiple of the HD audio packet size.
 	buffer_frames_ = MakeAlignedPeriod(output_format, buffer_frames_, BackwardAligned);
 	// Get aligned period from buffer size.
-	aligned_period_ = MakeHnsPeriod(buffer_frames_, output_format.GetSampleRate());
+	aligned_period_ = MakeHnsPeriod(buffer_frames_, output_format.getSampleRate());
 }
 
-void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_format, const uint32_t valid_bits_samples) {
+void ExclusiveWasapiDevice::initialDeviceFormat(const AudioFormat & output_format, const uint32_t valid_bits_samples) {
 	// Set the mix format.
 	SetWaveformatEx(mix_format_, output_format, valid_bits_samples);
 
@@ -152,24 +152,24 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 
 	if (buffer_period_ == 0) {
 		// If buffer_period_ is not set, use default device period.
-		HrIfFailThrow(client_->GetDevicePeriod(&default_device_period, &minimum_device_period));
+		hrIfFailThrow(client_->GetDevicePeriod(&default_device_period, &minimum_device_period));
 		default_device_period = kGlitchFreePeriod;
 	} else {
 		default_device_period = buffer_period_;
 	}
 
 	// Exclusive WASAPI must be set	aligned period.
-	// SetAlignedPeriod will set buffer_frames_ and aligned_period_.
-	SetAlignedPeriod(default_device_period, output_format);
+	// setAlignedPeriod will set buffer_frames_ and aligned_period_.
+	setAlignedPeriod(default_device_period, output_format);
 
 	XAMP_LOG_D(logger_, "Device period: default: {:.2f} msec, min: {:.2f} msec.",
 		Nano100ToMillis(default_device_period),
 		Nano100ToMillis(minimum_device_period));
-	XAMP_LOG_D(logger_, "Initial aligned period: {:.2f} msec, buffer frames: {}.",
+	XAMP_LOG_D(logger_, "initial aligned period: {:.2f} msec, buffer frames: {}.",
 		Nano100ToMillis(aligned_period_), 
-		GetBufferSize());
+		getBufferSize());
 
-	// Initial device format and aligned period.
+	// initial device format and aligned period.
 	const auto hr = client_->Initialize(AUDCLNT_SHAREMODE_EXCLUSIVE,
 	                                    AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
 	                                    aligned_period_,
@@ -184,19 +184,19 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 		if (hr == AUDCLNT_E_DEVICE_IN_USE) {
 			throw DeviceInUseException();
 		}
-		HrIfFailThrow(hr);
+		hrIfFailThrow(hr);
 	}
 	
 	CComPtr<IAudioEndpointVolume> endpoint_volume;
 
-	HrIfFailThrow(device_->Activate(kAudioEndpointVolumeID,
+	hrIfFailThrow(device_->Activate(kAudioEndpointVolumeID,
 		CLSCTX_INPROC_SERVER,
 		nullptr,
 		reinterpret_cast<void**>(&endpoint_volume)
 	));
 
 	// Check hardware support volume control.
-	HrIfFailThrow(endpoint_volume->QueryHardwareSupport(&volume_support_mask_));
+	hrIfFailThrow(endpoint_volume->QueryHardwareSupport(&volume_support_mask_));
 	
 	if (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_VOLUME) {
 		XAMP_LOG_D(logger_, "Hardware support volume control.");
@@ -218,29 +218,29 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 	}
 }
 
-void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {    
+void ExclusiveWasapiDevice::openStream(const AudioFormat& output_format) {    
 	stream_time_ = 0;
 
 	if (!client_) {
 		XAMP_LOG_D(logger_, "Active device format: {}.", output_format);
 
-        HrIfFailThrow(device_->Activate(kAudioClient3ID,
+        hrIfFailThrow(device_->Activate(kAudioClient3ID,
 			CLSCTX_ALL,
 			nullptr,
 			reinterpret_cast<void**>(&client_)));
 
-		HrIfFailThrow(device_->Activate(kAudioEndpointVolumeID,
+		hrIfFailThrow(device_->Activate(kAudioEndpointVolumeID,
 			CLSCTX_ALL,
 			nullptr,
 			reinterpret_cast<void**>(&endpoint_volume_)));
-		if (IsBitstreamVolumeLocked()) {
-			ForceBitstreamEndpointVolume();
+		if (isBitstreamVolumeLocked()) {
+			forceBitstreamEndpointVolume();
 		}
 
-		HrIfFailThrow(client_->GetMixFormat(&mix_format_));
+		hrIfFailThrow(client_->GetMixFormat(&mix_format_));
 
 		HRESULT hr = S_OK;
-		if (output_format.GetByteFormat() == ByteFormat::SINT32) {
+		if (output_format.getByteFormat() == ByteFormat::SINT32) {
 			hr = client_->IsFormatSupported(AUDCLNT_SHAREMODE_EXCLUSIVE, mix_format_, nullptr);
 
 			auto is_32bit_format = false;
@@ -260,12 +260,12 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 			if (hr == AUDCLNT_E_UNSUPPORTED_FORMAT) {
 				if (!is_32bit_format) {
 					constexpr uint32_t kValidBitPerSamples = 24;
-					InitialDeviceFormat(output_format, kValidBitPerSamples);
+					initialDeviceFormat(output_format, kValidBitPerSamples);
 					XAMP_LOG_D(logger_, "Use valid output format: {}.", kValidBitPerSamples);
 					is_2432_format_ = true;
 				}
 				else {
-					InitialDeviceFormat(output_format, 32);
+					initialDeviceFormat(output_format, 32);
 					XAMP_LOG_D(logger_, "Fallback use valid output format: 32.");
 					is_2432_format_ = false;
 				}
@@ -273,88 +273,88 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 			else if (SUCCEEDED(hr)) {
 				// The format is supported.
 				if (is_32bit_format) {
-					InitialDeviceFormat(output_format, 32);
+					initialDeviceFormat(output_format, 32);
 					is_2432_format_ = false;
 				}
 				else {
 					constexpr uint32_t kValidBitPerSamples = 24;
-					InitialDeviceFormat(output_format, kValidBitPerSamples);
+					initialDeviceFormat(output_format, kValidBitPerSamples);
 					is_2432_format_ = true;
 				}
 			}
 			else {
 				// Some other error occurred.
-				HrIfFailThrow(hr);
+				hrIfFailThrow(hr);
 			}
 
-			if (GetIoFormat() == DsdIoFormat::IO_FORMAT_DSD
-				|| GetIoFormat() == DsdIoFormat::IO_FORMAT_DOP) {
+			if (getIoFormat() == DsdIoFormat::IO_FORMAT_DSD
+				|| getIoFormat() == DsdIoFormat::IO_FORMAT_DOP) {
 				is_2432_format_ = true;
 			}
 		} else {
 			is_2432_format_ = false;
-			switch (output_format.GetBitsPerSample()) {
+			switch (output_format.getBitsPerSample()) {
 			case 16:
-				InitialDeviceFormat(output_format, 16);
+				initialDeviceFormat(output_format, 16);
 				break;
 			case 24:
-				InitialDeviceFormat(output_format, 24);
+				initialDeviceFormat(output_format, 24);
 				break;
 			}		
 		}
     }
-	// Reset device state.
-    HrIfFailThrow(client_->Reset());
+	// reset device state.
+    hrIfFailThrow(client_->Reset());
 
 	// Get device render client. 
-    HrIfFailThrow(client_->GetService(kAudioRenderClientID,
+    hrIfFailThrow(client_->GetService(kAudioRenderClientID,
 		reinterpret_cast<void**>(&render_client_)));
 
 	// Get device clock.
-	HrIfFailThrow(client_->GetService(kAudioClockID,
+	hrIfFailThrow(client_->GetService(kAudioClockID,
 		reinterpret_cast<void**>(&clock_)));
 
 	if (clock_) {
-		HrIfFailThrow(clock_->GetFrequency(&device_frequency_));
+		hrIfFailThrow(clock_->GetFrequency(&device_frequency_));
 		using namespace std::chrono;
 		auto buffer_duration_ms =
 			duration_cast<milliseconds>(nanoseconds(aligned_period_ * 100));
-		glitch_detector_.Reset(device_frequency_, buffer_duration_ms);
+		glitch_detector_.reset(device_frequency_, buffer_duration_ms);
 	}
 
-	// Create sample ready event handle.
+	// create sample ready event handle.
 	if (!sample_ready_) {
 		sample_ready_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
-		HrIfFailThrow(client_->SetEventHandle(sample_ready_.get()));
+		hrIfFailThrow(client_->SetEventHandle(sample_ready_.get()));
 	}
 
-	rt_work_queue_ = MakeWasapiWorkQueue(mmcss_name_, this, &ExclusiveWasapiDevice::OnInvoke);
+	rt_work_queue_ = MakeWasapiWorkQueue(mmcss_name_, this, &ExclusiveWasapiDevice::onInvoke);
 
 	// Calculate buffer size.
-    const size_t buffer_size = buffer_frames_ * output_format.GetChannels();
+    const size_t buffer_size = buffer_frames_ * output_format.getChannels();
 	if (buffer_.size() != buffer_size) {
-		buffer_ = MakeBuffer<float>(buffer_size);		
+		buffer_ = makeBuffer<float>(buffer_size);		
 	}
 
-	// Create convert function.
-    data_convert_ = MakeConvert(buffer_frames_);
-	XAMP_LOG_D(logger_, "WASAPI internal buffer: {}.", String::FormatBytes(buffer_.GetByteSize()));
+	// create convert function.
+    data_convert_ = makeConvert(buffer_frames_);
+	XAMP_LOG_D(logger_, "WASAPI internal buffer: {}.", String::FormatBytes(buffer_.getByteSize()));
 }
 
-void ExclusiveWasapiDevice::SetSchedulerService(std::wstring const &mmcss_name, MmcssThreadPriority thread_priority) {
+void ExclusiveWasapiDevice::setSchedulerService(std::wstring const &mmcss_name, MmcssThreadPriority thread_priority) {
 	XAMP_EXPECTS(!mmcss_name.empty());
 	thread_priority_ = thread_priority;
 	mmcss_name_ = mmcss_name;
 }
 
-void ExclusiveWasapiDevice::ReportError(HRESULT hr) {
+void ExclusiveWasapiDevice::reportError(HRESULT hr) {
 	if (FAILED(hr)) {
-		callback_->OnError(com_to_system_error(hr));
+		callback_->onError(com_to_system_error(hr));
 		is_running_ = false;
 	}	
 }
 
-bool ExclusiveWasapiDevice::GetSample(bool is_silence) {
+bool ExclusiveWasapiDevice::getSample(bool is_silence) {
 	XAMP_ENSURES(render_client_ != nullptr);
 	XAMP_ENSURES(callback_ != nullptr);
 
@@ -365,14 +365,14 @@ bool ExclusiveWasapiDevice::GetSample(bool is_silence) {
 		UINT64 position = 0;
 		UINT64 qpc_position = 0;
 		if (SUCCEEDED(clock_->GetPosition(&position, &qpc_position))) {
-			if (auto g = glitch_detector_.Update(position, qpc_position)) {
+			if (auto g = glitch_detector_.update(position, qpc_position)) {
 				glitch_accumulator.Add(g.value());				
 			}
 		}
 	}
 
 	AudioGlitchInfo glitch_info = glitch_accumulator.GetAndReset();
-	callback_->OnGlitch(glitch_info.duration, glitch_info.count);
+	callback_->onGlitch(glitch_info.duration, glitch_info.count);
 
 	// Get buffer from device.
 	auto hr = render_client_->GetBuffer(buffer_frames_, &data);
@@ -393,7 +393,7 @@ bool ExclusiveWasapiDevice::GetSample(bool is_silence) {
 
 	// Get sample from callback.
 	size_t num_filled_frames = 0;
-	if (callback_->OnGetSamples(buffer_.Get(),
+	if (callback_->onGetSamples(buffer_.get(),
 		buffer_frames_,
 		num_filled_frames,
 		stream_time_float,
@@ -403,7 +403,7 @@ bool ExclusiveWasapiDevice::GetSample(bool is_silence) {
 			flags = AUDCLNT_BUFFERFLAGS_SILENT;
 			result = false;
 		}
-		convert_.convert(data, buffer_.Get(), data_convert_);
+		convert_.convert(data, buffer_.get(), data_convert_);
 		hr = render_client_->ReleaseBuffer(buffer_frames_, flags);
 		return result;
 	}
@@ -412,27 +412,27 @@ bool ExclusiveWasapiDevice::GetSample(bool is_silence) {
 	return false;
 }
 
-void ExclusiveWasapiDevice::SetAudioCallback(IAudioCallback* callback) {
+void ExclusiveWasapiDevice::setAudioCallback(IAudioCallback* callback) {
 	XAMP_EXPECTS(callback != nullptr);
 	callback_ = callback;
 }
 
-bool ExclusiveWasapiDevice::IsStreamOpen() const {
+bool ExclusiveWasapiDevice::isStreamOpen() const {
     return client_ != nullptr;
 }
 
-bool ExclusiveWasapiDevice::IsStreamRunning() const {
+bool ExclusiveWasapiDevice::isStreamRunning() const {
     return is_running_;
 }
 
-void ExclusiveWasapiDevice::CloseStream() {
-	XAMP_LOG_D(logger_, "CloseStream is_running_: {}", is_running_);
+void ExclusiveWasapiDevice::closeStream() {
+	XAMP_LOG_D(logger_, "closeStream is_running_: {}", is_running_);
 
 	if (rt_work_queue_) {
-		rt_work_queue_->Destroy();
+		rt_work_queue_->destroy();
 		rt_work_queue_.Release();
 	}
-	sample_ready_.Close();
+	sample_ready_.close();
 	render_client_.Release();
 	clock_.Release();
 	endpoint_volume_.Release();
@@ -440,35 +440,35 @@ void ExclusiveWasapiDevice::CloseStream() {
 	mix_format_.Free();
 }
 
-void ExclusiveWasapiDevice::AbortStream() {
+void ExclusiveWasapiDevice::abortStream() {
 }
 
-void ExclusiveWasapiDevice::SetIoFormat(DsdIoFormat format) {
+void ExclusiveWasapiDevice::setIoFormat(DsdIoFormat format) {
 	io_format_ = format;
 }
 
-DsdIoFormat ExclusiveWasapiDevice::GetIoFormat() const {
+DsdIoFormat ExclusiveWasapiDevice::getIoFormat() const {
 	return io_format_;
 }
 
-void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
+void ExclusiveWasapiDevice::stopStream(bool wait_for_stop_stream) {
 	std::unique_lock lock{ mutex_ };
 
-	XAMP_LOG_D(logger_, "StopStream is_running_: {}", is_running_);
+	XAMP_LOG_D(logger_, "stopStream is_running_: {}", is_running_);
 	ignore_wait_slow_ = true;
 	is_running_ = false;
 	if (rt_work_queue_) {
-		rt_work_queue_->Destroy();
+		rt_work_queue_->destroy();
 	}
 	if (client_) {
-		HrIfFailThrow(client_->Stop());
+		hrIfFailThrow(client_->Stop());
 	}
 }
 
-void ExclusiveWasapiDevice::StartStream() {
+void ExclusiveWasapiDevice::startStream() {
 	std::unique_lock lock{ mutex_ };
 
-	XAMP_LOG_D(logger_, "StartStream!");
+	XAMP_LOG_D(logger_, "startStream!");
 
 	if (!client_ || !render_client_) {
 		throw_translated_com_error(AUDCLNT_E_NOT_INITIALIZED);
@@ -478,33 +478,33 @@ void ExclusiveWasapiDevice::StartStream() {
 
 
 	// TODO: Add check 24/32 bit format.
-	convert_.SetFormat(mix_format_->wBitsPerSample, is_2432_format_);
+	convert_.setFormat(mix_format_->wBitsPerSample, is_2432_format_);
 
 	// Must be active device and prefill buffer.
-	GetSample(true);
+	getSample(true);
 
 	try {
 		rt_work_queue_->LoadStream();
 		rt_work_queue_->WaitAsync(sample_ready_.get());
 		is_running_ = true;
-		HrIfFailThrow(client_->Start());
+		hrIfFailThrow(client_->Start());
 	}
 	catch (...) {
 		is_running_ = false;
 		if (rt_work_queue_) {
-			rt_work_queue_->Destroy();
+			rt_work_queue_->destroy();
 		}
 		throw;
 	}
 }
 
-HRESULT ExclusiveWasapiDevice::OnInvoke(IMFAsyncResult*) {
+HRESULT ExclusiveWasapiDevice::onInvoke(IMFAsyncResult*) {
 	if (!is_running_ || rt_work_queue_ == nullptr) {
 		return S_OK;
 	}
 
 	try {
-		if (!GetSample(false)) {
+		if (!getSample(false)) {
 			is_running_ = false;
 			if (client_) {
 				client_->Stop();
@@ -516,7 +516,7 @@ HRESULT ExclusiveWasapiDevice::OnInvoke(IMFAsyncResult*) {
 	catch (const std::exception& e) {
 		XAMP_LOG_D(logger_, e.what());
 		if (callback_ != nullptr) {
-			callback_->OnError(e);
+			callback_->onError(e);
 		}
 		is_running_ = false;
 		if (client_) {
@@ -525,43 +525,43 @@ HRESULT ExclusiveWasapiDevice::OnInvoke(IMFAsyncResult*) {
 	}
 	return S_OK;
 }
-void ExclusiveWasapiDevice::SetStreamTime(const double stream_time) {
+void ExclusiveWasapiDevice::setStreamTime(const double stream_time) {
 	ThrowIf<std::invalid_argument>(mix_format_->nSamplesPerSec != 0,
 		"Output sample rate can not set zero.");
 	stream_time_ = static_cast<int64_t>(stream_time * static_cast<double>(mix_format_->nSamplesPerSec));
 }
 
-double ExclusiveWasapiDevice::GetStreamTime() const {
+double ExclusiveWasapiDevice::getStreamTime() const {
 	ThrowIf<std::invalid_argument>(mix_format_->nSamplesPerSec != 0,
 		"Output sample rate can not set zero.");
     return stream_time_ / static_cast<double>(mix_format_->nSamplesPerSec);
 }
 
-uint32_t ExclusiveWasapiDevice::GetVolume() const {
-	if (IsBitstreamVolumeLocked()) {
+uint32_t ExclusiveWasapiDevice::getVolume() const {
+	if (isBitstreamVolumeLocked()) {
 		return 100;
 	}
-	if (!IsHardwareControlVolume()) {
+	if (!isHardwareControlVolume()) {
 		return GainToVolumeLevel(data_convert_.volume_factor);
 	}
 	auto volume_scalar = 0.0F;
-	HrIfFailThrow(endpoint_volume_->GetMasterVolumeLevelScalar(&volume_scalar));
+	hrIfFailThrow(endpoint_volume_->GetMasterVolumeLevelScalar(&volume_scalar));
 	return static_cast<uint32_t>(volume_scalar * 100.0F);
 }
 
-void ExclusiveWasapiDevice::SetVolume(uint32_t volume) const {
-	if (IsBitstreamVolumeLocked()) {
+void ExclusiveWasapiDevice::setVolume(uint32_t volume) const {
+	if (isBitstreamVolumeLocked()) {
 		if (volume != 100) {
 			XAMP_LOG_D(logger_, "Ignore exclusive WASAPI volume {} in DSD bitstream mode to keep data intact.", volume);
 			if (callback_ != nullptr) {
-				callback_->OnVolumeChange(100);
+				callback_->onVolumeChange(100);
 			}
 		}
-		ForceBitstreamEndpointVolume();
+		forceBitstreamEndpointVolume();
 		return;
 	}
 
-	if (!IsHardwareControlVolume()) {
+	if (!isHardwareControlVolume()) {
 		data_convert_.volume_factor = VolumeLevelToGain(volume);
 		return;
 	}
@@ -571,79 +571,79 @@ void ExclusiveWasapiDevice::SetVolume(uint32_t volume) const {
 
 	// 如果目前為靜音狀態，先解靜音
 	auto is_mute = FALSE;
-	HrIfFailThrow(endpoint_volume_->GetMute(&is_mute));
+	hrIfFailThrow(endpoint_volume_->GetMute(&is_mute));
 	if (is_mute) {
-		HrIfFailThrow(endpoint_volume_->SetMute(FALSE, nullptr));
+		hrIfFailThrow(endpoint_volume_->SetMute(FALSE, nullptr));
 	}
 
 	// 將百分比轉換為線性比例(0.0f ~ 1.0f)
 	float target_volume_scale = static_cast<float>(volume) / 100.0f;
 
 	// 直接以線性比例設定音量
-	HrIfFailThrow(endpoint_volume_->SetMasterVolumeLevelScalar(target_volume_scale, nullptr));
+	hrIfFailThrow(endpoint_volume_->SetMasterVolumeLevelScalar(target_volume_scale, nullptr));
 
 	// 若需檢查當前dB值，可呼叫GetMasterVolumeLevel()取得
 	float db_volume = 0.0f;
-	HrIfFailThrow(endpoint_volume_->GetMasterVolumeLevel(&db_volume));
+	hrIfFailThrow(endpoint_volume_->GetMasterVolumeLevel(&db_volume));
 
 	XAMP_LOG_D(logger_,
 		"Set volume to {}%, linear scale: {:.2f}, current: {:.2f} dB.",
 		volume, target_volume_scale, db_volume);
 }
 
-void ExclusiveWasapiDevice::SetVolumeLevelScalar(float level) {
-	HrIfFailThrow(endpoint_volume_->SetMasterVolumeLevelScalar(level, nullptr));
+void ExclusiveWasapiDevice::setVolumeLevelScalar(float level) {
+	hrIfFailThrow(endpoint_volume_->SetMasterVolumeLevelScalar(level, nullptr));
 }
 
-bool ExclusiveWasapiDevice::IsMuted() const {
-	if (IsBitstreamVolumeLocked()) {
+bool ExclusiveWasapiDevice::isMuted() const {
+	if (isBitstreamVolumeLocked()) {
 		return false;
 	}
 	auto is_mute = FALSE;
-	HrIfFailThrow(endpoint_volume_->GetMute(&is_mute));
+	hrIfFailThrow(endpoint_volume_->GetMute(&is_mute));
 	return is_mute;
 }
 
-void ExclusiveWasapiDevice::SetMute(const bool mute) const {
-	if (IsBitstreamVolumeLocked()) {
+void ExclusiveWasapiDevice::setMute(const bool mute) const {
+	if (isBitstreamVolumeLocked()) {
 		if (mute) {
 			XAMP_LOG_D(logger_, "Ignore mute in exclusive WASAPI DSD bitstream mode to keep data intact.");
 			if (callback_ != nullptr) {
-				callback_->OnVolumeChange(100);
+				callback_->onVolumeChange(100);
 			}
 			return;
 		}
-		ForceBitstreamEndpointVolume();
+		forceBitstreamEndpointVolume();
 		return;
 	}
-	HrIfFailThrow(endpoint_volume_->SetMute(mute, nullptr));
+	hrIfFailThrow(endpoint_volume_->SetMute(mute, nullptr));
 }
 
-PackedFormat ExclusiveWasapiDevice::GetPackedFormat() const {
+PackedFormat ExclusiveWasapiDevice::getPackedFormat() const {
     return PackedFormat::INTERLEAVED;
 }
 
-uint32_t ExclusiveWasapiDevice::GetBufferSize() const {
+uint32_t ExclusiveWasapiDevice::getBufferSize() const {
 	return buffer_frames_ * mix_format_->nChannels;
 }
 
-bool ExclusiveWasapiDevice::IsHardwareControlVolume() const {
+bool ExclusiveWasapiDevice::isHardwareControlVolume() const {
 	const auto hw_support = (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_VOLUME)
 		&& (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_MUTE);
 	return hw_support;
 }
 
-bool ExclusiveWasapiDevice::IsBitstreamVolumeLocked() const {
+bool ExclusiveWasapiDevice::isBitstreamVolumeLocked() const {
 	return io_format_ == DsdIoFormat::IO_FORMAT_DSD
 		|| io_format_ == DsdIoFormat::IO_FORMAT_DOP;
 }
 
-void ExclusiveWasapiDevice::ForceBitstreamEndpointVolume() const {
+void ExclusiveWasapiDevice::forceBitstreamEndpointVolume() const {
 	if (endpoint_volume_ == nullptr) {
 		return;
 	}
-	HrIfFailThrow(endpoint_volume_->SetMute(FALSE, nullptr));
-	HrIfFailThrow(endpoint_volume_->SetMasterVolumeLevelScalar(1.0f, nullptr));
+	hrIfFailThrow(endpoint_volume_->SetMute(FALSE, nullptr));
+	hrIfFailThrow(endpoint_volume_->SetMasterVolumeLevelScalar(1.0f, nullptr));
 }
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

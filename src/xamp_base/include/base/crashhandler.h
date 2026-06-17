@@ -23,18 +23,18 @@ public:
 
 	XAMP_PIMPL(CrashHandler)
 
-	void SetProcessExceptionHandlers();
+	void setProcessExceptionHandlers();
 
-	void SetThreadExceptionHandlers();
+	void setThreadExceptionHandlers();
 
-	static void DumpStackInfo(void* info);
+	static void dumpStackInfo(void* info);
 
-	void Cleanup();
+	void cleanup();
 private:
 	class CrashHandlerImpl;
 	ScopedPtr<CrashHandlerImpl> impl_;
 };
 
-#define XampCrashHandler SharedSingleton<CrashHandler>::GetInstance()
+#define XampCrashHandler SharedSingleton<CrashHandler>::getInstance()
 
 XAMP_BASE_NAMESPACE_END

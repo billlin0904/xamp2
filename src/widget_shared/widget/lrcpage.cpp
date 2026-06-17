@@ -698,7 +698,7 @@ void LrcPage::initial() {
 
 	auto horizontal_layout_11 = new QHBoxLayout();
 	change_lrc_button_ = new QToolButton(this);
-	change_lrc_button_->setText(tr("Load LRC"));
+	change_lrc_button_->setText(tr("load LRC"));
 	change_lrc_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_SUBTITLE));
 	change_lrc_button_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	change_lrc_button_->setEnabled(false);
@@ -710,7 +710,7 @@ void LrcPage::initial() {
 		QScopedPointer<MaskWidget> mask_widget(new MaskWidget(getMainWindow()));
 		const QScopedPointer<XDialog> dialog(new XDialog(this));
 		const QScopedPointer<LyricsFrame> lyrics_frame(new LyricsFrame(dialog.get()));
-		dialog->setTitle(tr("Load LRC"));
+		dialog->setTitle(tr("load LRC"));
 		lyrics_frame->setLyrics(lyrics_results_);
 		dialog->setContentWidget(lyrics_frame.get());
 		dialog->setFixedSize(QSize(1000, 600));

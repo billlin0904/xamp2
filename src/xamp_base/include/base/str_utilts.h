@@ -24,33 +24,33 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 namespace detail {
 
-template <typename T>
+template <typename t>
 struct IsAtomic : std::false_type {
 };
 
-template <typename T>
-struct IsAtomic<std::atomic<T>> : std::true_type {
+template <typename t>
+struct IsAtomic<std::atomic<t>> : std::true_type {
 };
 
-template <typename T>
-XAMP_ALWAYS_INLINE decltype(auto) FormatArgument(T&& value) {
-	using ValueType = std::remove_cvref_t<T>;
+template <typename t>
+XAMP_ALWAYS_INLINE decltype(auto) FormatArgument(t&& value) {
+	using ValueType = std::remove_cvref_t<t>;
 	if constexpr (IsAtomic<ValueType>::value) {
 		return value.load();
 	}
-	else if constexpr (requires { std::forward<T>(value).ToString(); }) {
-		return std::forward<T>(value).ToString();
+	else if constexpr (requires { std::forward<t>(value).toString(); }) {
+		return std::forward<t>(value).toString();
 	}
-	else if constexpr (std::is_enum_v<ValueType> && requires(ValueType enum_value) { EnumToString(enum_value); }) {
-		return EnumToString(value);
+	else if constexpr (std::is_enum_v<ValueType> && requires(ValueType enum_value) { enumToString(enum_value); }) {
+		return enumToString(value);
 	}
-	else if constexpr (std::is_lvalue_reference_v<T&&>
+	else if constexpr (std::is_lvalue_reference_v<t&&>
 		&& !std::is_arithmetic_v<ValueType>
 		&& requires(std::ostream& os) { os << value; }) {
 		return fmt::streamed(value);
 	}
 	else {
-		return std::forward<T>(value);
+		return std::forward<t>(value);
 	}
 }
 
@@ -60,14 +60,14 @@ namespace String {
 
 XAMP_BASE_API std::wstring ToStdWString(std::string const& utf8);
 
-XAMP_BASE_API std::string ToUtf8String(std::wstring const& utf16);
+XAMP_BASE_API std::string toUtf8String(std::wstring const& utf16);
 
-XAMP_ALWAYS_INLINE std::wstring ToString(std::string const& utf8) {
+XAMP_ALWAYS_INLINE std::wstring toString(std::string const& utf8) {
 	return ToStdWString(utf8);
 }
 
-XAMP_ALWAYS_INLINE std::string ToString(std::wstring const& utf16) {
-	return ToUtf8String(utf16);
+XAMP_ALWAYS_INLINE std::string toString(std::wstring const& utf16) {
+	return toUtf8String(utf16);
 }
 
 XAMP_ALWAYS_INLINE std::string AsStdString(const std::string_view& s) {
@@ -149,17 +149,17 @@ XAMP_ALWAYS_INLINE std::string ToHex(const void* data,
     return output;
 }
 
-template <typename T>
-XAMP_ALWAYS_INLINE std::string ToHex(const T* data,
+template <typename t>
+XAMP_ALWAYS_INLINE std::string ToHex(const t* data,
     size_t count,
     size_t max_bytes = 256,
     std::string_view separator = " ") {
-    return ToHex(static_cast<const void*>(data), sizeof(T) * count, max_bytes, separator);
+    return ToHex(static_cast<const void*>(data), sizeof(t) * count, max_bytes, separator);
 }
 
-template <typename T>
+template <typename t>
 XAMP_ALWAYS_INLINE std::string FormatBytesBy(size_t bytes) {
-    return FormatBytes(sizeof(T) * bytes);
+    return FormatBytes(sizeof(t) * bytes);
 }
 
 template <typename  C>
@@ -177,10 +177,10 @@ std::string Join(C const& pieces, std::string_view const separator = ",") {
     return s;
 }
 
-template <typename T>
-XAMP_ALWAYS_INLINE std::vector<std::basic_string_view<T>> Split(std::basic_string_view<T> s,
-    const std::basic_string_view<T> delims = " ") {
-    std::vector<std::basic_string_view<T>> output;
+template <typename t>
+XAMP_ALWAYS_INLINE std::vector<std::basic_string_view<t>> Split(std::basic_string_view<t> s,
+    const std::basic_string_view<t> delims = " ") {
+    std::vector<std::basic_string_view<t>> output;
     size_t first = 0;
 
     while (first < s.size()) {
@@ -198,10 +198,10 @@ XAMP_ALWAYS_INLINE std::vector<std::basic_string_view<T>> Split(std::basic_strin
     return output;
 }
 
-template <typename T>
-XAMP_ALWAYS_INLINE std::vector<std::basic_string_view<T>> Split(const T* s,
-    const T* delims = " ") {
-    return Split(std::basic_string_view<T>(s), std::basic_string_view<T>(delims));
+template <typename t>
+XAMP_ALWAYS_INLINE std::vector<std::basic_string_view<t>> Split(const t* s,
+    const t* delims = " ") {
+    return Split(std::basic_string_view<t>(s), std::basic_string_view<t>(delims));
 }
 
 template <typename... Args>

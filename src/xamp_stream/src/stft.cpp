@@ -11,16 +11,16 @@ STFT::STFT(size_t frame_size, size_t shift_size)
     XAMP_EXPECTS(frame_size > 0);
     XAMP_EXPECTS(shift_size > 0);
     XAMP_EXPECTS(shift_size_ < frame_size_);
-    window_.Initialize(frame_size);
-    fft_.Initialize(frame_size);
+    window_.initialize(frame_size);
+    fft_.initialize(frame_size);
     output_size_ = frame_size - shift_size;
-    buf_ = MakeBuffer<float>(frame_size);
-    out_ = MakeBuffer<float>(frame_size);
-    in_ = MakeBuffer<float>(frame_size);
+    buf_ = makeBuffer<float>(frame_size);
+    out_ = makeBuffer<float>(frame_size);
+    in_ = makeBuffer<float>(frame_size);
 }
 
-void STFT::SetWindowType(WindowType type) {
-    window_.Initialize(frame_size_, type);
+void STFT::setWindowType(WindowType type) {
+    window_.initialize(frame_size_, type);
 }
 
 void STFT::Clear() {
@@ -29,7 +29,7 @@ void STFT::Clear() {
     in_.Fill(0);
 }
 
-const ComplexValarray& STFT::Process(const float* in, size_t length) {
+const ComplexValarray& STFT::process(const float* in, size_t length) {
     XAMP_EXPECTS(frame_size_ % AudioFormat::kMaxChannel == 0);
     XAMP_EXPECTS((length / AudioFormat::kMaxChannel) <= frame_size_);
     
@@ -52,16 +52,16 @@ const ComplexValarray& STFT::Process(const float* in, size_t length) {
     MemoryCopy(out_. data(), buf_.data(), sizeof(float) * frame_size_);
 
     window_(out_.data(), frame_size_);
-    return fft_.Forward(out_.data(), frame_size_);
+    return fft_.forward(out_.data(), frame_size_);
 }
 
-const ComplexValarray& STFT::Flush() {
-    auto leftover_samples = GetShiftSize();
+const ComplexValarray& STFT::flush() {
+    auto leftover_samples = getShiftSize();
     std::vector<float> zero_buffer(leftover_samples * AudioFormat::kMaxChannel, 0.0f);
-    return Process(zero_buffer.data(), zero_buffer.size());
+    return process(zero_buffer.data(), zero_buffer.size());
 }
 
-size_t STFT::GetShiftSize() const {
+size_t STFT::getShiftSize() const {
 	return shift_size_;
 }
 

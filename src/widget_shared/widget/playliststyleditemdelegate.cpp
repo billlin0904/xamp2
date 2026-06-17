@@ -1,6 +1,8 @@
 #include <QPainter>
 #include <QHeaderView>
 
+#include <base/logger.h>
+
 #include <thememanager.h>
 #include <widget/imagecache.h>
 #include <widget/playlisttableview.h>
@@ -146,14 +148,17 @@ void PlaylistStyledItemDelegate::paintTrackCell(QPainter* painter, const QStyleO
     break;
     case PLAYLIST_ALBUM_COVER_ID:
     {
-        auto music_cover_id = indexValue(index, PLAYLIST_MUSIC_COVER_ID).toString();
+        auto music_id = indexValue(index, PLAYLIST_MUSIC_ID).toInt();
         auto id = value.toString();
-        if (!music_cover_id.isEmpty()) {
-            id = music_cover_id;
-        }
-        if (isNullOfEmpty(id)) {
-            auto album_id = indexValue(index, PLAYLIST_ALBUM_ID).toInt();
-            emit findAlbumCover(DatabaseCoverId(kInvalidDatabaseId, album_id));
+        const auto has_cover_id = !isNullOfEmpty(id) && id != qImageCache.unknownCoverId();
+        const auto has_cached_cover = has_cover_id
+            && (qImageCache.contains(id) || qImageCache.isFileExists(QString{}, id));
+        if (!has_cached_cover) {
+            const auto album_id = indexValue(index, PLAYLIST_ALBUM_ID).toInt();
+            XAMP_LOG_DEBUG("Playlist cover missing, request album cover. album:{} row:{}",
+                album_id,
+                index.row());
+            emit findAlbumCover(DatabaseCoverId(music_id, album_id));
         }
         opt.icon = qImageCache.getOrAddIcon(id);
         opt.features = QStyleOptionViewItem::HasDecoration;

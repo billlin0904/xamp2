@@ -18,26 +18,26 @@ public:
 
     ~CTemporaryFile();
 
-    XAMP_ALWAYS_INLINE size_t Read(void* buffer, size_t size, size_t count) {
+    XAMP_ALWAYS_INLINE size_t read(void* buffer, size_t size, size_t count) {
         return std::fread(buffer, size, count, file());
     }
 
-    XAMP_ALWAYS_INLINE size_t Write(const void* buffer, size_t size, size_t count) {
+    XAMP_ALWAYS_INLINE size_t write(const void* buffer, size_t size, size_t count) {
         return std::fwrite(buffer, size, count, file());
     }
 
-    bool Seek(uint64_t off, int32_t origin) ;
+    bool seek(uint64_t off, int32_t origin) ;
 
-    uint64_t Tell() ;
+    uint64_t tell() ;
 
-    void Close() ;
+    void close() ;
 
 private:
     FILE* file() {
         return file_.get();
     }
 
-    std::tuple<CFilePtr, Path> GetTempFile();
+    std::tuple<CFilePtr, Path> getTempFile();
 
     Path path_;
     CFilePtr file_;
@@ -49,15 +49,15 @@ public:
 
     XAMP_PIMPL(TemporaryFile)
 
-    size_t Read(void* buffer, size_t size, size_t count) ;
+    size_t read(void* buffer, size_t size, size_t count) ;
 
-    size_t Write(const void* buffer, size_t size, size_t count) ;
+    size_t write(const void* buffer, size_t size, size_t count) ;
 
-    bool Seek(uint64_t off, int32_t origin) ;
+    bool seek(uint64_t off, int32_t origin) ;
 
-    uint64_t Tell() ;
+    uint64_t tell() ;
 
-    void Close() ;
+    void close() ;
 
 private:
     class TemporaryFileImpl;
@@ -66,13 +66,13 @@ private:
 
 class XAMP_BASE_API FastIOStream {
 public:
-    enum class Mode { Read, ReadWrite, ReadWriteOnlyExisting };
+    enum class Mode { read, ReadWrite, ReadWriteOnlyExisting };
 
     FastIOStream();
 
-    FastIOStream(const Path& file_path, Mode m = Mode::Read);
+    FastIOStream(const Path& file_path, Mode m = Mode::read);
 
-    void open(const Path& file_path, Mode m = Mode::Read);
+    void open(const Path& file_path, Mode m = Mode::read);
 
     XAMP_PIMPL(FastIOStream)
 

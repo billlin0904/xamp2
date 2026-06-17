@@ -123,13 +123,13 @@ AsioDevice::AsioDevice(const  std::string & device_id)
 	, clock_source_(kClockSourceSize)
 	, callback_(nullptr)
 	, get_samples_(nullptr)
-	, logger_(XampLoggerFactory.GetLogger(XAMP_LOG_NAME(AsioDevice)))
+	, logger_(XampLoggerFactory.getLogger(XAMP_LOG_NAME(AsioDevice)))
 	, device_id_(device_id) {
 }
 
 AsioDevice::~AsioDevice() {
 	try {
-		CloseStream();
+		closeStream();
 	}
 	catch (...) {
 	}
@@ -137,68 +137,68 @@ AsioDevice::~AsioDevice() {
 	the_driver_context.drivers.reset();
 }
 
-bool AsioDevice::IsHardwareControlVolume() const {	
+bool AsioDevice::isHardwareControlVolume() const {	
 	return is_hardware_control_volume_;
 }
 
-void AsioDevice::AbortStream() {
+void AsioDevice::abortStream() {
 	is_stop_streaming_ = true;
 }
 
-bool AsioDevice::IsMuted() const {
+bool AsioDevice::isMuted() const {
 	return volume_level_ == 0;
 }
 
-uint32_t AsioDevice::GetBufferSize() const {
-	return static_cast<uint32_t>(buffer_size_ * format_.GetChannels());
+uint32_t AsioDevice::getBufferSize() const {
+	return static_cast<uint32_t>(buffer_size_ * format_.getChannels());
 }
 
-void AsioDevice::SetSampleFormat(DsdFormat format) {
+void AsioDevice::setSampleFormat(DsdFormat format) {
 	sample_format_ = format;
 }
 
-DsdFormat AsioDevice::GetSampleFormat() const {
+DsdFormat AsioDevice::getSampleFormat() const {
 	return sample_format_;
 }
 
-void AsioDevice::SetIoFormat(DsdIoFormat format) {
+void AsioDevice::setIoFormat(DsdIoFormat format) {
 	io_format_ = format;
 }
 
-DsdIoFormat AsioDevice::GetIoFormat() const {
+DsdIoFormat AsioDevice::getIoFormat() const {
 	ASIOIoFormat asio_fomrmat{};
 	AsioIfFailedThrow2(::ASIOFuture(kAsioGetIoFormat, &asio_fomrmat), ASE_SUCCESS);
 	return (asio_fomrmat.FormatType == kASIOPCMFormat)
 		? DsdIoFormat::IO_FORMAT_PCM : DsdIoFormat::IO_FORMAT_DSD;
 }
 
-bool AsioDevice::IsSupportDsdFormat() const {
+bool AsioDevice::isSupportDsdFormat() const {
 	ASIOIoFormat asio_format{};
 	asio_format.FormatType = kASIODSDFormat;
 	auto error = ::ASIOFuture(kAsioCanDoIoFormat, &asio_format);
 	return error == ASE_SUCCESS;
 }
 
-void AsioDevice::ResetCurrentDriver() {
+void AsioDevice::resetCurrentDriver() {
 	if (!the_driver_context.drivers) {
 		return;
 	}
 	if (!the_driver_context.device) {
 		return;
 	}
-	the_driver_context.device->ReOpen();
+	the_driver_context.device->reOpen();
 	the_driver_context.drivers.reset();
 	XAMP_LOG_DEBUG("Remove ASIO driver");
 }
 
-void AsioDevice::RemoveCurrentDriver() {
+void AsioDevice::removeCurrentDriver() {
 	if (!is_removed_driver_ && the_driver_context.drivers != nullptr) {
 		the_driver_context.drivers->removeCurrentDriver();
 		is_removed_driver_ = true;
 	}
 }
 
-void AsioDevice::ReOpen() {
+void AsioDevice::reOpen() {
 	if (the_driver_context.drivers != nullptr) {
 		const auto driver_name = the_driver_context.GetDriverName();
 		if (the_driver_context.driver_name == driver_name) {
@@ -207,7 +207,7 @@ void AsioDevice::ReOpen() {
 		}		
 	}
 	if (!the_driver_context.drivers) {
-		the_driver_context.drivers = MakeAlign<AsioDrivers>();
+		the_driver_context.drivers = makeAlign<AsioDrivers>();
 	}
 	the_driver_context.drivers->removeCurrentDriver();
 	const auto driver_name = the_driver_context.GetDriverName();
@@ -219,7 +219,7 @@ void AsioDevice::ReOpen() {
 	is_removed_driver_ = false;
 }
 
-std::tuple<int32_t, int32_t> AsioDevice::GetDeviceBufferSize() const {
+std::tuple<int32_t, int32_t> AsioDevice::getDeviceBufferSize() const {
 	long min_size = 0;
 	long max_size = 0;
 	long prefer_size = 0;
@@ -281,8 +281,8 @@ std::tuple<int32_t, int32_t> AsioDevice::GetDeviceBufferSize() const {
 	return { prefer_size, buffer_size };
 }
 
-void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
-	const auto [prefer_size, buffer_size] = GetDeviceBufferSize();
+void AsioDevice::createBuffers(AudioFormat const & output_format) {
+	const auto [prefer_size, buffer_size] = getDeviceBufferSize();
 
 	long num_channel = 0;
 	for (auto& info : the_driver_context.buffer_infos) {
@@ -293,20 +293,20 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		++num_channel;
 	}
 
-	the_driver_context.asio_callbacks.bufferSwitch = OnBufferSwitchCallback;
-	the_driver_context.asio_callbacks.sampleRateDidChange = OnSampleRateChangedCallback;
-	the_driver_context.asio_callbacks.asioMessage = OnAsioMessagesCallback;
-	the_driver_context.asio_callbacks.bufferSwitchTimeInfo = OnBufferSwitchTimeInfoCallback;
+	the_driver_context.asio_callbacks.bufferSwitch = onBufferSwitchCallback;
+	the_driver_context.asio_callbacks.sampleRateDidChange = onSampleRateChangedCallback;
+	the_driver_context.asio_callbacks.asioMessage = onAsioMessagesCallback;
+	the_driver_context.asio_callbacks.bufferSwitchTimeInfo = onBufferSwitchTimeInfoCallback;
 	the_driver_context.data_context.volume_factor = VolumeLevelToGain(volume_level_);
 
 	const auto result = ::ASIOCreateBuffers(
 		the_driver_context.buffer_infos.data(),
-	    output_format.GetChannels(),
+	    output_format.getChannels(),
 	    buffer_size,
 	    &the_driver_context.asio_callbacks);
 	if (result != ASE_OK) {
 		AsioIfFailedThrow(::ASIOCreateBuffers(the_driver_context.buffer_infos.data(),
-			output_format.GetChannels(),
+			output_format.getChannels(),
 			prefer_size,
 			&the_driver_context.asio_callbacks));
 		buffer_size_ = prefer_size;
@@ -331,7 +331,7 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 
 	format_ = output_format;
 	// ASIO output always PLANAR format
-	format_.SetPackedFormat(PackedFormat::PLANAR);
+	format_.setPackedFormat(PackedFormat::PLANAR);
 
 	switch (channel_info.type) {
 	case ASIOSTInt16MSB:
@@ -367,16 +367,16 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		//break;
 		throw AsioException(Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT);
 	case ASIOSTInt32LSB: 
-		format_.SetByteFormat(ByteFormat::SINT32);
+		format_.setByteFormat(ByteFormat::SINT32);
 		XAMP_LOG_D(logger_, "Driver support format: ASIOSTInt32LSB.");
 		break;
 		// DSD 8 bit data, 1 sample per byte. No Endianness required.
 	case ASIOSTDSDInt8LSB1:
-		format_.SetByteFormat(ByteFormat::SINT8);
+		format_.setByteFormat(ByteFormat::SINT8);
 		XAMP_LOG_D(logger_, "Driver support format: ASIOSTDSDInt8LSB1.");
 		break;
 	case ASIOSTDSDInt8MSB1:
-		format_.SetByteFormat(ByteFormat::SINT8);
+		format_.setByteFormat(ByteFormat::SINT8);
 		XAMP_LOG_D(logger_, "Driver support format: ASIOSTDSDInt8MSB1.");
 		break;
 	case ASIOSTDSDInt8NER8:
@@ -387,16 +387,16 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		throw AsioException(Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT);
 	}
 
-	XAMP_LOG_D(logger_, "Native DSD support: {}.", IsSupportDsdFormat());
+	XAMP_LOG_D(logger_, "Native DSD support: {}.", isSupportDsdFormat());
 
 	size_t allocate_bytes = 0;
 	if (io_format_ == DsdIoFormat::IO_FORMAT_PCM) {
 		// note: 來源的資料格式均為float(4 bytes), 但實際上要輸出的格式不一定4 bytes, 
 		// 但是為了滿足來源的資料格式(4 bytes), 所以都要配置float(4 bytes)大小的緩衝區.
 		constexpr auto kFloatByteSize = 4;
-		allocate_bytes = buffer_size_ * kFloatByteSize * format_.GetChannels();
+		allocate_bytes = buffer_size_ * kFloatByteSize * format_.getChannels();
 		buffer_bytes_ = buffer_size_ * kFloatByteSize;
-		the_driver_context.data_context = MakeConvert(buffer_size_);
+		the_driver_context.data_context = makeConvert(buffer_size_);
 	}
 	else {
 		switch (channel_info.type) {
@@ -421,18 +421,18 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		const auto channel_buffer_size = buffer_size_ / 8;
 		buffer_bytes_ = channel_buffer_size;
 		allocate_bytes = buffer_size_;		
-		the_driver_context.data_context = MakeConvert(channel_buffer_size);
+		the_driver_context.data_context = makeConvert(channel_buffer_size);
 	}
 
-	if (buffer_.GetSize() != allocate_bytes) {
+	if (buffer_.getSize() != allocate_bytes) {
 		buffer_.reset();
-		buffer_ = MakeBuffer<std::byte>(allocate_bytes);
+		buffer_ = makeBuffer<std::byte>(allocate_bytes);
 	}
 
 	long input_latency = 0;
 	long output_latency = 0;
 	AsioIfFailedThrow(::ASIOGetLatencies(&input_latency, &output_latency));
-	latency_ = GetLatencyMs(output_latency, output_format.GetSampleRate());
+	latency_ = GetLatencyMs(output_latency, output_format.getSampleRate());
 	
 	the_driver_context.SetPostOutput();
 
@@ -443,7 +443,7 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 	is_hardware_control_volume_ = false;
 
 	XAMP_LOG_D(logger_, "IO format :{} ", io_format_);
-	XAMP_LOG_D(logger_, "Buffer size :{} ", String::FormatBytes(buffer_.GetByteSize()));
+	XAMP_LOG_D(logger_, "Buffer size :{} ", String::FormatBytes(buffer_.getByteSize()));
 	XAMP_LOG_D(logger_, "Driver support post output: {}", the_driver_context.post_output);
 
 	if (latency_ < 15) {
@@ -451,26 +451,26 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 	}
 }
 
-uint32_t AsioDevice::GetVolume() const {
+uint32_t AsioDevice::getVolume() const {
 	return volume_level_;
 }
 
-void AsioDevice::SetVolume(uint32_t volume) const {
+void AsioDevice::setVolume(uint32_t volume) const {
 	if (is_hardware_control_volume_) {
 		return;
 	}
 	volume_level_ = std::clamp(volume, static_cast<uint32_t>(0), static_cast<uint32_t>(100));
-	XAMP_LOG_D(logger_, "Current volume: {}({} db)", GetVolume(), VolumeLevelToDb(volume_level_));
+	XAMP_LOG_D(logger_, "Current volume: {}({} db)", getVolume(), VolumeLevelToDb(volume_level_));
 }
 
-void AsioDevice::SetMute(bool mute) const {
+void AsioDevice::setMute(bool mute) const {
 	if (mute) {
 		volume_level_ = 0;
 	}
 }
 
-void AsioDevice::FillSilentData() {
-	for (size_t i = 0, j = 0; i < format_.GetChannels(); ++i) {
+void AsioDevice::fillSilentData() {
+	for (size_t i = 0, j = 0; i < format_.getChannels(); ++i) {
 		MemorySet(the_driver_context.buffer_infos[i].buffers[0],
 			0,
 			buffer_bytes_);
@@ -480,7 +480,7 @@ void AsioDevice::FillSilentData() {
 	}
 }
 
-bool AsioDevice::GetPCMSamples(long index, double sample_time, size_t& num_filled_frame) {
+bool AsioDevice::getPCMSamples(long index, double sample_time, size_t& num_filled_frame) {
 	const auto vol = volume_level_.load();
 	if (the_driver_context.data_context.cache_volume != vol) {
 		the_driver_context.data_context.volume_factor = VolumeLevelToGain(vol);
@@ -488,10 +488,10 @@ bool AsioDevice::GetPCMSamples(long index, double sample_time, size_t& num_fille
 	}
 
 	// PCM mode input float to output format.
-	const auto stream_time = static_cast<double>(output_bytes_) / format_.GetAvgBytesPerSec();
+	const auto stream_time = static_cast<double>(output_bytes_) / format_.getAvgBytesPerSec();
 
-	if (callback_->OnGetSamples(buffer_.Get(), buffer_size_, num_filled_frame, stream_time, sample_time) == DataCallbackResult::CONTINUE) {
-		ConvertFloatToInt32SSE(reinterpret_cast<const float*>(buffer_.Get()),
+	if (callback_->onGetSamples(buffer_.get(), buffer_size_, num_filled_frame, stream_time, sample_time) == DataCallbackResult::CONTINUE) {
+		convertFloatToInt32SSE(reinterpret_cast<const float*>(buffer_.get()),
 			static_cast<int32_t*>(the_driver_context.buffer_infos[0].buffers[index]),
 			static_cast<int32_t*>(the_driver_context.buffer_infos[1].buffers[index]),
 			the_driver_context.data_context.convert_size,
@@ -502,13 +502,13 @@ bool AsioDevice::GetPCMSamples(long index, double sample_time, size_t& num_fille
 	}
 }
 
-bool AsioDevice::GetDSDSamples(long index, double sample_time, size_t& num_filled_frame) {
+bool AsioDevice::getDSDSamples(long index, double sample_time, size_t& num_filled_frame) {
 	// DSD mode input output same format (int8_t).
-	const auto avg_byte_per_sec = format_.GetAvgBytesPerSec() / 8;
+	const auto avg_byte_per_sec = format_.getAvgBytesPerSec() / 8;
 	const auto stream_time = static_cast<double>(output_bytes_) / avg_byte_per_sec;
 
-	if (callback_->OnGetSamples(buffer_.Get(), buffer_bytes_, num_filled_frame, stream_time, sample_time) == DataCallbackResult::CONTINUE) {
-		ConvertInt8ToInt8SSE(reinterpret_cast<const int8_t*>(buffer_.Get()),
+	if (callback_->onGetSamples(buffer_.get(), buffer_bytes_, num_filled_frame, stream_time, sample_time) == DataCallbackResult::CONTINUE) {
+		convertInt8ToInt8SSE(reinterpret_cast<const int8_t*>(buffer_.get()),
 			static_cast<int8_t*>(the_driver_context.buffer_infos[0].buffers[index]),
 			static_cast<int8_t*>(the_driver_context.buffer_infos[1].buffers[index]),
 			the_driver_context.data_context.convert_size);
@@ -518,11 +518,11 @@ bool AsioDevice::GetDSDSamples(long index, double sample_time, size_t& num_fille
 	}
 }
 
-void AsioDevice::GetSamples(long index, double sample_time) {
+void AsioDevice::getSamples(long index, double sample_time) {
 	if (!is_streaming_) {
 		XAMP_LOG_D(logger_, "Stream was stopped!1");
 		// 填充靜音的資料並通知結束.
-		FillSilentData();
+		fillSilentData();
 		is_stop_streaming_ = true;
 		condition_.notify_all();
 		the_driver_context.Post();
@@ -535,16 +535,16 @@ void AsioDevice::GetSamples(long index, double sample_time) {
 	
 	auto cache_played_bytes = output_bytes_.load();
 	if (the_driver_context.enable_host_mmcss_priority && cache_played_bytes == 0) {
-		the_driver_context.mmcss.BoostPriority();
+		the_driver_context.mmcss.boostPriority();
 	}
 	
-	cache_played_bytes += buffer_bytes_ * format_.GetChannels();
+	cache_played_bytes += buffer_bytes_ * format_.getChannels();
 	output_bytes_ = cache_played_bytes;	
 
 	size_t num_filled_frame = 0;
 	const bool filled = std::invoke(get_samples_, index, sample_time, num_filled_frame);
 	if (!filled) {
-		FillSilentData();
+		fillSilentData();
 	}
 
 	// ASIO SDK: ASIOOutputReady tells a supporting driver that the host has
@@ -553,19 +553,19 @@ void AsioDevice::GetSamples(long index, double sample_time) {
 	the_driver_context.Post();
 }
 
-void AsioDevice::OpenStream(AudioFormat const & output_format) {
+void AsioDevice::openStream(AudioFormat const & output_format) {
 	ASIODriverInfo asio_driver_info{};
 	asio_driver_info.asioVersion = 2;
 	asio_driver_info.sysRef = ::GetDesktopWindow();
 
 	// 如果有播放過的話(callbackInfo.device != nullptr), ASIO每次必須要重新建立!
-	ReOpen();
+	reOpen();
 
 	// Get driver name
 	auto name_len = (std::min)(sizeof(asio_driver_info.name) - 1, device_id_.length());
 	MemoryCopy(asio_driver_info.name, device_id_.c_str(), name_len);
 
-	// Initialize ASIO driver
+	// initialize ASIO driver
 	auto result = ::ASIOInit(&asio_driver_info);
 	if (result == ASE_NotPresent) {
 		const auto driver_name = the_driver_context.GetDriverName();
@@ -588,15 +588,15 @@ void AsioDevice::OpenStream(AudioFormat const & output_format) {
 		AsioIfFailedThrow2(::ASIOFuture(kAsioSetIoFormat, &asio_io_format), ASE_SUCCESS);
 	}
 	catch (const Exception & e) {
-		XAMP_LOG_D(logger_, "ASIOFuture return failure. {}", e.GetErrorMessage());
+		XAMP_LOG_D(logger_, "ASIOFuture return failure. {}", e.getErrorMessage());
 		// NOTE: DSD format must be support!
-		if (output_format.GetFormat() == DataFormat::FORMAT_DSD) {
+		if (output_format.getFormat() == DataFormat::FORMAT_DSD) {
 			throw;
 		}
 	}
 
-	SetOutputSampleRate(output_format);
-	CreateBuffers(output_format);
+	setOutputSampleRate(output_format);
+	createBuffers(output_format);
 
 	output_bytes_ = 0;
 	is_stopped_ = false;
@@ -604,14 +604,14 @@ void AsioDevice::OpenStream(AudioFormat const & output_format) {
 	the_driver_context.device = this;
 }
 
-void AsioDevice::SetOutputSampleRate(AudioFormat const & output_format) {
+void AsioDevice::setOutputSampleRate(AudioFormat const & output_format) {
 	// Set device sample rate
-	const auto error = ::ASIOSetSampleRate(output_format.GetSampleRate());
+	const auto error = ::ASIOSetSampleRate(output_format.getSampleRate());
 	if (error == ASE_NotPresent) {
 		throw DeviceUnSupportedFormatException(output_format);
 	}
 	AsioIfFailedThrow(error);
-	XAMP_LOG_D(logger_, "Set device sample rate: {}.", output_format.GetSampleRate());
+	XAMP_LOG_D(logger_, "Set device sample rate: {}.", output_format.getSampleRate());
 
 	clock_source_.resize(kClockSourceSize);
 
@@ -635,22 +635,22 @@ void AsioDevice::SetOutputSampleRate(AudioFormat const & output_format) {
 	}
 }
 
-void AsioDevice::SetAudioCallback(IAudioCallback* callback) {
+void AsioDevice::setAudioCallback(IAudioCallback* callback) {
 	callback_ = callback;
 }
 
-bool AsioDevice::IsStreamOpen() const {
+bool AsioDevice::isStreamOpen() const {
 	return !is_stopped_;
 }
 
-void AsioDevice::StopStream(bool wait_for_stop_stream) {
+void AsioDevice::stopStream(bool wait_for_stop_stream) {
 	std::unique_lock lock{ mutex_ };
 
 	if (!is_streaming_) {
 		return;
 	}
 
-	XAMP_LOG_D(logger_, "StopStream");
+	XAMP_LOG_D(logger_, "stopStream");
 
 	is_streaming_ = false;
 	is_stop_streaming_.store(false, std::memory_order_release);
@@ -665,12 +665,12 @@ void AsioDevice::StopStream(bool wait_for_stop_stream) {
 			});
 
 		if (!ok) {
-			XAMP_LOG_D(logger_, "StopStream timeout waiting for callback to quiesce.");
+			XAMP_LOG_D(logger_, "stopStream timeout waiting for callback to quiesce.");
 		}
 	}
 }
-void AsioDevice::CloseStream() {
-	XAMP_LOG_D(logger_, "CloseStream");
+void AsioDevice::closeStream() {
+	XAMP_LOG_D(logger_, "closeStream");
 
 	if (!is_removed_driver_) {
 		AsioIfFailedThrow(::ASIOStop());		
@@ -680,59 +680,59 @@ void AsioDevice::CloseStream() {
 	callback_ = nullptr;	
 }
 
-void AsioDevice::StartStream() {
+void AsioDevice::startStream() {
 	std::unique_lock lock{ mutex_ };
 
 	if (io_format_ == DsdIoFormat::IO_FORMAT_PCM) {
-		get_samples_ = bind_front(&AsioDevice::GetPCMSamples, this);
+		get_samples_ = bind_front(&AsioDevice::getPCMSamples, this);
 	}
 	else {
-		get_samples_ = bind_front(&AsioDevice::GetDSDSamples, this);
+		get_samples_ = bind_front(&AsioDevice::getDSDSamples, this);
 	}
 
-	the_driver_context.mmcss.RevertPriority();
+	the_driver_context.mmcss.revertPriority();
 	is_streaming_ = true;
 	is_stop_streaming_ = false;
-	the_driver_context.buffer_switch_stopwatch.Reset();
+	the_driver_context.buffer_switch_stopwatch.reset();
 	AsioIfFailedThrow(::ASIOStart());
 }
 
-bool AsioDevice::IsStreamRunning() const {
+bool AsioDevice::isStreamRunning() const {
 	return is_streaming_;
 }
 
-void AsioDevice::SetStreamTime(double stream_time) {
+void AsioDevice::setStreamTime(double stream_time) {
 	if (io_format_ == DsdIoFormat::IO_FORMAT_PCM) {
-		output_bytes_ = static_cast<int64_t>(stream_time * format_.GetAvgBytesPerSec());
+		output_bytes_ = static_cast<int64_t>(stream_time * format_.getAvgBytesPerSec());
 	}
 	else {
-		const auto avg_byte_per_sec = format_.GetAvgBytesPerSec() / 8;
+		const auto avg_byte_per_sec = format_.getAvgBytesPerSec() / 8;
 		output_bytes_ = static_cast<int64_t>(stream_time * static_cast<double>(avg_byte_per_sec));
 	}
 }
 
-double AsioDevice::GetStreamTime() const {
+double AsioDevice::getStreamTime() const {
 	if (io_format_ == DsdIoFormat::IO_FORMAT_PCM) {
-		return static_cast<double>(output_bytes_) / format_.GetAvgBytesPerSec();
+		return static_cast<double>(output_bytes_) / format_.getAvgBytesPerSec();
 	} else {
-		const auto avg_byte_per_sec = format_.GetAvgBytesPerSec() / 8;
+		const auto avg_byte_per_sec = format_.getAvgBytesPerSec() / 8;
 		return static_cast<double>(output_bytes_) / avg_byte_per_sec;
 	}
 }
 
-PackedFormat AsioDevice::GetPackedFormat() const {
+PackedFormat AsioDevice::getPackedFormat() const {
 	return PackedFormat::PLANAR;
 }
 
-ASIOTime* AsioDevice::OnBufferSwitchTimeInfoCallback(ASIOTime* timeInfo, long index, ASIOBool processNow) {
+ASIOTime* AsioDevice::onBufferSwitchTimeInfoCallback(ASIOTime* timeInfo, long index, ASIOBool processNow) {
 	return timeInfo;
 }
 
-void AsioDevice::OnBufferSwitchCallback(long index, ASIOBool processNow) {
+void AsioDevice::onBufferSwitchCallback(long index, ASIOBool processNow) {
 	// ASIO callback threads are owned by the driver. Leave host-side MMCSS
 	// boosting opt-in only for broken drivers that do not register Pro Audio.
 	if (the_driver_context.enable_host_mmcss_priority && !the_driver_context.mmcss_registered) {
-		the_driver_context.mmcss.BoostPriority(kMmcssProfileProAudio, MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL);
+		the_driver_context.mmcss.boostPriority(kMmcssProfileProAudio, MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL);
 		the_driver_context.mmcss_registered = true;
 	}
 
@@ -741,11 +741,11 @@ void AsioDevice::OnBufferSwitchCallback(long index, ASIOBool processNow) {
 		time_info.timeInfo.flags = kSystemTimeValid | kSamplePositionValid;
 	}
 
-	OnBufferSwitchTimeInfoCallback(&time_info, index, processNow);
+	onBufferSwitchTimeInfoCallback(&time_info, index, processNow);
 	double sample_time = 0;
 	if (time_info.timeInfo.flags & kSamplePositionValid) {
 		sample_time = ASIO64toDouble(time_info.timeInfo.samplePosition)
-		/ the_driver_context.device->format_.GetSampleRate();
+		/ the_driver_context.device->format_.getSampleRate();
 	}
 	
 	const auto elapsed = the_driver_context.buffer_switch_stopwatch.Elapsed<std::chrono::milliseconds>().count();
@@ -755,11 +755,11 @@ void AsioDevice::OnBufferSwitchCallback(long index, ASIOBool processNow) {
 		}
 	}
 
-	the_driver_context.device->GetSamples(index, sample_time);
-	the_driver_context.buffer_switch_stopwatch.Reset();
+	the_driver_context.device->getSamples(index, sample_time);
+	the_driver_context.buffer_switch_stopwatch.reset();
 }
 
-long AsioDevice::OnAsioMessagesCallback(long selector, long value, void* message, double* opt) {
+long AsioDevice::onAsioMessagesCallback(long selector, long value, void* message, double* opt) {
 	long ret = 0;
 
 	if (the_driver_context.device != nullptr) {
@@ -806,12 +806,12 @@ long AsioDevice::OnAsioMessagesCallback(long selector, long value, void* message
 	case kAsioResetRequest:
 		// Defer the task and perform the reset of the driver during the
 		// next "safe" situation.  You cannot reset the driver right now,
-		// as this code is called from the driver.  Reset the driver is
+		// as this code is called from the driver.  reset the driver is
 		// done by completely destruct is. I.e. ASIOStop(),
 		// ASIODisposeBuffers(), Destruction Afterwards you initialize the
 		// driver again.
 		XAMP_LOG_INFO("Driver reset requested!!!");
-		the_driver_context.device->AbortStream();		
+		the_driver_context.device->abortStream();		
 		the_driver_context.device->condition_.notify_one();
 		ret = 1L;
 		break;
@@ -858,7 +858,7 @@ long AsioDevice::OnAsioMessagesCallback(long selector, long value, void* message
 	return ret;
 }
 
-void AsioDevice::OnSampleRateChangedCallback(ASIOSampleRate sampleRate) {
+void AsioDevice::onSampleRateChangedCallback(ASIOSampleRate sampleRate) {
 	// The ASIO documentation says that this usually only happens during
 	// external sync. Audio processing is not stopped by the driver, and the
 	// actual sample rate may not have changed.

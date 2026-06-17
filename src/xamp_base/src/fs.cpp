@@ -34,7 +34,7 @@ namespace {
 
 std::string PathToLogString(const Path& path) {
 #ifdef XAMP_OS_WIN
-	return String::ToUtf8String(path.wstring());
+	return String::toUtf8String(path.wstring());
 #else
 	return path.string();
 #endif
@@ -46,7 +46,7 @@ bool IsFilePath(const Path& file_path) {
 	return file_path.has_extension();
 }
 
-std::tuple<std::fstream, Path> GetTempFile() {
+std::tuple<std::fstream, Path> getTempFile() {
 	// Short retry times to avoid cost too much time.
 	constexpr auto kMaxRetryCreateTempFile = 128;
 	const auto temp_path = Fs::temp_directory_path();
@@ -66,7 +66,7 @@ std::tuple<std::fstream, Path> GetTempFile() {
 	throw PlatformException("Can't create temp file.");
 }
 
-Path GetTempFileNamePath() {
+Path getTempFileNamePath() {
 	// Short retry times to avoid cost too much time.
 	constexpr auto kMaxRetryCreateTempFile = 128;
 	const auto temp_path = Fs::temp_directory_path();
@@ -208,7 +208,7 @@ std::expected<std::string, TextEncodeingError> ReadFileToUtf8String(const Path& 
 	std::string input_str(buffer.data(), length);
 
 	TextEncoding encoding;
-	return encoding.ToUtf8String(input_str, length, false);
+	return encoding.toUtf8String(input_str, length, false);
 }
 
 std::expected<std::wstring, Errors> NormalizePathToWideString(const Path& path) {

@@ -45,14 +45,14 @@ public:
 	* @param error: asio error
 	* @return error message
 	*/
-	static std::string_view ErrorMessage(ASIOError error) ;
+	static std::string_view errorMessage(ASIOError error) ;
 };
 
 #define LogAsioIfFailed(expr) \
 	do { \
 		auto result = expr; \
 		if (result != ASE_OK) { \
-			XAMP_LOG_ERROR(AsioException::ErrorMessage(result)); \
+			XAMP_LOG_ERROR(AsioException::errorMessage(result)); \
 		} \
 	} while (false)
 

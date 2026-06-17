@@ -37,11 +37,11 @@ public:
 	}
 
 	~SoxrSampleRateConverterImpl() {
-		Close();
+		close();
 	}
 
 	void Init(uint32_t input_sample_rate) {
-		Close();
+		close();
 
 		unsigned long quality_spec = 0;
 
@@ -114,54 +114,54 @@ public:
 		XAMP_LOG_D(logger_, "Soxr resampler setting=> input:{} output:{} quality:{} phase:{} passband:{} stopband:{} rolloff:{} dither:{}.",
 			input_sample_rate_,
 			output_sample_rate_,
-			EnumToString(quality_),
+			enumToString(quality_),
 			phase,
 			pass_band_,
 			stop_band_,
-			EnumToString(roll_off_),
+			enumToString(roll_off_),
 			enable_dither_ ? "enable" : "disable");
 	}
 
-	void Start(uint32_t output_sample_rate) {
+	void start(uint32_t output_sample_rate) {
 		output_sample_rate_ = output_sample_rate;
 	}
 
-    void SetRollOff(SoxrRollOff level) {
+    void setRollOff(SoxrRollOff level) {
 		roll_off_ = level;
     }
 
-	void Close() {
+	void close() {
 		handle_.reset();
 	}
 
-	void SetQuality(SoxrQuality quality) {
+	void setQuality(SoxrQuality quality) {
 		quality_ = quality;
 	}
 
-	void SetPassBand(double passband) {
+	void setPassBand(double passband) {
 		pass_band_ = passband;
 	}
 
-	void SetStopBand(double stopband) {
+	void setStopBand(double stopband) {
 		stop_band_ = stopband;
 	}
 
-	void SetPhase(int32_t phase) {
+	void setPhase(int32_t phase) {
 		phase_ = phase;
 	}
 
-	void SetDither(bool enable) {
+	void setDither(bool enable) {
 		enable_dither_ = enable;
 	}
 
-	void Flush() {
+	void flush() {
 		if (!handle_) {
 			return;
 		}
 		LibSoxrDLL.soxr_clear(handle_.get());
 	}
 
-	bool Process(float const* samples, size_t num_samples, BufferRef<float>& output) {
+	bool process(float const* samples, size_t num_samples, BufferRef<float>& output) {
 		auto required_size = static_cast<size_t>(num_samples * ratio_) + 256;
 		MaybeResizeBuffer(output, required_size);
 
@@ -201,7 +201,7 @@ private:
 			return nullptr;
 		}
 
-		static void Close(soxr_t value) {
+		static void close(soxr_t value) {
 			LibSoxrDLL.soxr_delete(value);
 		}
 	};
@@ -222,45 +222,45 @@ private:
 };
 
 SoxrSampleRateConverter::SoxrSampleRateConverter()
-    : impl_(MakeAlign<SoxrSampleRateConverterImpl>()) {
+    : impl_(makeAlign<SoxrSampleRateConverterImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(SoxrSampleRateConverter)
 
-void SoxrSampleRateConverter::Initialize(const Property& config) {
+void SoxrSampleRateConverter::initialize(const Property& config) {
 	const auto output_format = config.Get<AudioFormat>(DspConfig::kOutputFormat);
-	impl_->Start(output_format.GetSampleRate());
+	impl_->start(output_format.getSampleRate());
 
 	const auto input_format = config.Get<AudioFormat>(DspConfig::kInputFormat);
-    impl_->Init(input_format.GetSampleRate());
+    impl_->Init(input_format.getSampleRate());
 }
 
-void SoxrSampleRateConverter::SetQuality(SoxrQuality quality) {
-    impl_->SetQuality(quality);
+void SoxrSampleRateConverter::setQuality(SoxrQuality quality) {
+    impl_->setQuality(quality);
 }
 
-void SoxrSampleRateConverter::SetPassBand(double pass_band) {
-    impl_->SetPassBand(pass_band);
+void SoxrSampleRateConverter::setPassBand(double pass_band) {
+    impl_->setPassBand(pass_band);
 }
 
-void SoxrSampleRateConverter::SetStopBand(double stop_band) {
-    impl_->SetStopBand(stop_band);
+void SoxrSampleRateConverter::setStopBand(double stop_band) {
+    impl_->setStopBand(stop_band);
 }
 
-void SoxrSampleRateConverter::SetPhase(int32_t phase) {
-	impl_->SetPhase(phase);
+void SoxrSampleRateConverter::setPhase(int32_t phase) {
+	impl_->setPhase(phase);
 }
 
-void SoxrSampleRateConverter::SetRollOff(SoxrRollOff level) {
-    impl_->SetRollOff(level);
+void SoxrSampleRateConverter::setRollOff(SoxrRollOff level) {
+    impl_->setRollOff(level);
 }
 
-void SoxrSampleRateConverter::SetDither(bool enable) {
-	impl_->SetDither(enable);
+void SoxrSampleRateConverter::setDither(bool enable) {
+	impl_->setDither(enable);
 }
 
-bool SoxrSampleRateConverter::Process(float const* samples, size_t num_samples, BufferRef<float>& output) {
-	return impl_->Process(samples, num_samples, output);
+bool SoxrSampleRateConverter::process(float const* samples, size_t num_samples, BufferRef<float>& output) {
+	return impl_->process(samples, num_samples, output);
 }
 	
 XAMP_STREAM_NAMESPACE_END

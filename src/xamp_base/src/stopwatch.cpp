@@ -3,10 +3,10 @@
 XAMP_BASE_NAMESPACE_BEGIN
 
 Stopwatch::Stopwatch() {
-	Reset();
+	reset();
 }
 
-void Stopwatch::Reset() {
+void Stopwatch::reset() {
 	start_time_ = clock_.now();
 }
 

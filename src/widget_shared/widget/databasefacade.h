@@ -79,4 +79,4 @@ private:
     QScopedPointer<dao::DatabaseFacade> dao_facade_;
 };
 
-#define qDatabaseFacade SharedSingleton<DatabaseFacade>::GetInstance()
+#define qDatabaseFacade SharedSingleton<DatabaseFacade>::getInstance()

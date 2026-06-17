@@ -48,7 +48,6 @@ target_include_directories(xamp_player
         "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/bass/include"
         "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/spdlog/include"
         "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/robin_hood"
-        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/chromaprint/src"
 )
 
 target_link_libraries(xamp_player

@@ -62,9 +62,9 @@ inline ArchiveLib::ArchiveLib() try
 	, XAMP_LOAD_DLL_API(archive_entry_filetype) {
 }
 catch (const Exception& e) {
-	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+	XAMP_LOG_ERROR("{}", e.getErrorMessage());
 }
 
-#define LIBARCHIVE_LIB SharedSingleton<ArchiveLib>::GetInstance()
+#define LIBARCHIVE_LIB SharedSingleton<ArchiveLib>::getInstance()
 
 XAMP_BASE_NAMESPACE_END

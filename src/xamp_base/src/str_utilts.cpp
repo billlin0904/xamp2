@@ -27,7 +27,7 @@ std::wstring ToStdWString(const std::string & utf8) {
 std::string LocaleStringToUTF8(const std::string& str) noexcept {
 #ifdef XAMP_OS_WIN
 	try {
-		auto utf8 = TextEncoding().ToUtf8String("acp", str, str.size(), true);
+		auto utf8 = TextEncoding().toUtf8String("acp", str, str.size(), true);
 		if (utf8) {
 			return utf8.value();
 		}
@@ -40,7 +40,7 @@ std::string LocaleStringToUTF8(const std::string& str) noexcept {
 	return str;
 }
 
-std::string ToUtf8String(std::wstring const & utf16) {
+std::string toUtf8String(std::wstring const & utf16) {
 	std::string utf8;
 	try {
 		utf8.reserve(utf16.length());

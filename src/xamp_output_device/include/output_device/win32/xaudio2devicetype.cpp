@@ -18,17 +18,17 @@ public:
 
 	~XAudio2DeviceTypeImpl();
 
-	void ScanNewDevice();
+	void scanNewDevice();
 
-	[[nodiscard]] size_t GetDeviceCount() const;
+	[[nodiscard]] size_t getDeviceCount() const;
 
-	[[nodiscard]] DeviceInfo GetDeviceInfo(uint32_t device) const;
+	[[nodiscard]] DeviceInfo getDeviceInfo(uint32_t device) const;
 
-	[[nodiscard]] std::optional<DeviceInfo> GetDefaultDeviceInfo() const;
+	[[nodiscard]] std::optional<DeviceInfo> getDefaultDeviceInfo() const;
 
-	[[nodiscard]] std::vector<DeviceInfo> GetDeviceInfo() const;
+	[[nodiscard]] std::vector<DeviceInfo> getDeviceInfo() const;
 
-	ScopedPtr<IOutputDevice> MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::string& device_id);
+	ScopedPtr<IOutputDevice> makeDevice(const std::shared_ptr<IThreadPool>& thread_pool, const std::string& device_id);
 
 private:
 	[[nodiscard]] std::vector<DeviceInfo> GetDeviceInfoList() const;
@@ -39,38 +39,38 @@ private:
 };
 
 XAudio2DeviceType::XAudio2DeviceTypeImpl::XAudio2DeviceTypeImpl() {
-	logger_ = XampLoggerFactory.GetLogger(XAMP_LOG_NAME(XAudio2DeviceType));	
+	logger_ = XampLoggerFactory.getLogger(XAMP_LOG_NAME(XAudio2DeviceType));	
 }
 
 XAudio2DeviceType::XAudio2DeviceTypeImpl::~XAudio2DeviceTypeImpl() = default;
 
-void XAudio2DeviceType::XAudio2DeviceTypeImpl::ScanNewDevice() {
+void XAudio2DeviceType::XAudio2DeviceTypeImpl::scanNewDevice() {
 	enumerator_ = helper::CreateDeviceEnumerator();
 	device_list_ = GetDeviceInfoList();
 }
 
-ScopedPtr<IOutputDevice> XAudio2DeviceType::XAudio2DeviceTypeImpl::MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::string& device_id) {
-	return MakeAlign<IOutputDevice, XAudio2OutputDevice>(thread_pool, String::ToStdWString(device_id));
+ScopedPtr<IOutputDevice> XAudio2DeviceType::XAudio2DeviceTypeImpl::makeDevice(const std::shared_ptr<IThreadPool>& thread_pool, const std::string& device_id) {
+	return makeAlign<IOutputDevice, XAudio2OutputDevice>(thread_pool, String::ToStdWString(device_id));
 }
 
-DeviceInfo XAudio2DeviceType::XAudio2DeviceTypeImpl::GetDeviceInfo(uint32_t device) const {
+DeviceInfo XAudio2DeviceType::XAudio2DeviceTypeImpl::getDeviceInfo(uint32_t device) const {
 	auto itr = device_list_.begin();
-	if (device >= GetDeviceCount()) {
+	if (device >= getDeviceCount()) {
 		throw DeviceNotFoundException();
 	}
 	std::advance(itr, device);
 	return (*itr);
 }
 
-size_t XAudio2DeviceType::XAudio2DeviceTypeImpl::GetDeviceCount() const {
+size_t XAudio2DeviceType::XAudio2DeviceTypeImpl::getDeviceCount() const {
 	return device_list_.size();
 }
 
-std::vector<DeviceInfo> XAudio2DeviceType::XAudio2DeviceTypeImpl::GetDeviceInfo() const {
+std::vector<DeviceInfo> XAudio2DeviceType::XAudio2DeviceTypeImpl::getDeviceInfo() const {
 	return device_list_;
 }
 
-std::optional<DeviceInfo> XAudio2DeviceType::XAudio2DeviceTypeImpl::GetDefaultDeviceInfo() const {
+std::optional<DeviceInfo> XAudio2DeviceType::XAudio2DeviceTypeImpl::getDefaultDeviceInfo() const {
 	CComPtr<IMMDevice> default_output_device;
 	auto hr = enumerator_->GetDefaultAudioEndpoint(eRender, eConsole, &default_output_device);
 	constexpr auto kNotFoundHr = HRESULT_FROM_WIN32(ERROR_NOT_FOUND);
@@ -78,7 +78,7 @@ std::optional<DeviceInfo> XAudio2DeviceType::XAudio2DeviceTypeImpl::GetDefaultDe
 	if (hr == kNotFoundHr) {
 		return std::nullopt;
 	}
-	return MakeOptional<DeviceInfo>(helper::GetDeviceInfo(default_output_device, 
+	return MakeOptional<DeviceInfo>(helper::getDeviceInfo(default_output_device, 
 		XAMP_UUID_OF(XAudio2DeviceType),
 		XAudio2DeviceType::Description));
 }
@@ -91,14 +91,14 @@ std::vector<DeviceInfo> XAudio2DeviceType::XAudio2DeviceTypeImpl::GetDeviceInfoL
 
 	try {
 		// Get all active devices
-		HrIfFailThrow(enumerator_->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices));
+		hrIfFailThrow(enumerator_->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices));
 
 		// Get device count
-		HrIfFailThrow(devices->GetCount(&count));
+		hrIfFailThrow(devices->GetCount(&count));
 
 		device_list.reserve(count);
 
-		if (const auto default_device_info = GetDefaultDeviceInfo()) {
+		if (const auto default_device_info = getDefaultDeviceInfo()) {
 			default_device_name = default_device_info.value().name;
 		}
 	}
@@ -107,15 +107,15 @@ std::vector<DeviceInfo> XAudio2DeviceType::XAudio2DeviceTypeImpl::GetDeviceInfoL
 		return device_list;
 	}
 
-	XAMP_LOG_D(logger_, "Load all devices");
+	XAMP_LOG_D(logger_, "load all devices");
 
 	for (UINT i = 0; i < count; ++i) {
 		CComPtr<IMMDevice> device;
 
 		try {
-			HrIfFailThrow(devices->Item(i, &device));
+			hrIfFailThrow(devices->Item(i, &device));
 
-			auto info = helper::GetDeviceInfo(device, XAMP_UUID_OF(XAudio2DeviceType), XAudio2DeviceType::Description);
+			auto info = helper::getDeviceInfo(device, XAMP_UUID_OF(XAudio2DeviceType), XAudio2DeviceType::Description);
 			if (default_device_name == info.name) {
 				info.is_default_device = true;
 			}
@@ -142,7 +142,7 @@ std::vector<DeviceInfo> XAudio2DeviceType::XAudio2DeviceTypeImpl::GetDeviceInfoL
 			device_list.push_back(info);
 		}
 		catch (const std::exception& e) {
-			XAMP_LOG_D(logger_, "Load device failed: {}", e.what());
+			XAMP_LOG_D(logger_, "load device failed: {}", e.what());
 		}
 	}
 
@@ -157,31 +157,31 @@ std::vector<DeviceInfo> XAudio2DeviceType::XAudio2DeviceTypeImpl::GetDeviceInfoL
 XAMP_PIMPL_IMPL(XAudio2DeviceType)
 
 XAudio2DeviceType::XAudio2DeviceType()
-	: impl_(MakeAlign<XAudio2DeviceTypeImpl>()) {
+	: impl_(makeAlign<XAudio2DeviceTypeImpl>()) {
 }
 
-void XAudio2DeviceType::ScanNewDevice() {
-	impl_->ScanNewDevice();
+void XAudio2DeviceType::scanNewDevice() {
+	impl_->scanNewDevice();
 }
 
-size_t XAudio2DeviceType::GetDeviceCount() const {
-	return impl_->GetDeviceCount();
+size_t XAudio2DeviceType::getDeviceCount() const {
+	return impl_->getDeviceCount();
 }
 
-DeviceInfo XAudio2DeviceType::GetDeviceInfo(uint32_t device) const {
-	return impl_->GetDeviceInfo(device);
+DeviceInfo XAudio2DeviceType::getDeviceInfo(uint32_t device) const {
+	return impl_->getDeviceInfo(device);
 }
 
-std::optional<DeviceInfo> XAudio2DeviceType::GetDefaultDeviceInfo() const {
-	return impl_->GetDefaultDeviceInfo();
+std::optional<DeviceInfo> XAudio2DeviceType::getDefaultDeviceInfo() const {
+	return impl_->getDefaultDeviceInfo();
 }
 
-std::vector<DeviceInfo> XAudio2DeviceType::GetDeviceInfo() const {
-	return impl_->GetDeviceInfo();
+std::vector<DeviceInfo> XAudio2DeviceType::getDeviceInfo() const {
+	return impl_->getDeviceInfo();
 }
 
-ScopedPtr<IOutputDevice> XAudio2DeviceType::MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::string& device_id) {
-	return impl_->MakeDevice(thread_pool, device_id);
+ScopedPtr<IOutputDevice> XAudio2DeviceType::makeDevice(const std::shared_ptr<IThreadPool>& thread_pool, const std::string& device_id) {
+	return impl_->makeDevice(thread_pool, device_id);
 }
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

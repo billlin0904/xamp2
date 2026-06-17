@@ -264,7 +264,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             qDaoFacade.album_dao.updateAlbumSelectState(album_id, !styledDelegate()->isSelectedMode());
         }
         styledDelegate()->setSelectedMode(!styledDelegate()->isSelectedMode());
-        // Update selected album state
+        // update selected album state
         reload();
         });
 
@@ -437,14 +437,14 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
 			});
     };
 
-    auto* load_file_act = action_map.addAction(tr("Load local file"), [this]() {
-        getOpenMusicFileName(this, tr("Open file"), tr("Music Files "), [this](const auto& file_name) {
+    auto* load_file_act = action_map.addAction(tr("load local file"), [this]() {
+        getOpenMusicFileName(this, tr("open file"), tr("Music Files "), [this](const auto& file_name) {
             append(file_name);
             });
         });
     load_file_act->setIcon(qTheme.fontIcon(Glyphs::ICON_FILE_OPEN));
 
-    auto* load_dir_act = action_map.addAction(tr("Load file directory"), [this]() {
+    auto* load_dir_act = action_map.addAction(tr("load file directory"), [this]() {
         const auto dir_name = getExistingDirectory(this, tr("Select a directory"));
         if (dir_name.isEmpty()) {
             return;

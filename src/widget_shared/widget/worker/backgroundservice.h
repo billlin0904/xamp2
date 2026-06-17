@@ -8,7 +8,7 @@
 #include <stop_token>
 
 #include <QObject>
-#include <base/threadpoolexecutor.h>
+#include <base/threadpool.h>
 #include <base/lrucache.h>
 
 #include <widget/widget_shared.h>
@@ -111,5 +111,5 @@ private:
 	QNetworkAccessManager nam_;
 	http::HttpClient http_client_;
 	LruCache<QString, SearchLyricsResult> lyrics_cache_;
-	std::shared_ptr<IThreadPoolExecutor> thread_pool_;
+	std::shared_ptr<IThreadPool> thread_pool_;
 };

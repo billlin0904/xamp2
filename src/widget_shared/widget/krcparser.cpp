@@ -343,7 +343,7 @@ bool KrcParser::parse(const uint8_t* buffer, size_t size) {
 
     TextEncoding encoding;
     std::wstring wtext;
-    auto utf8_str = encoding.ToUtf8String(decompressed,
+    auto utf8_str = encoding.toUtf8String(decompressed,
         decompressed.length(),
         false);
     if (utf8_str) {

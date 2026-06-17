@@ -31,74 +31,74 @@ class XAMP_PLAYER_API XAMP_NO_VTABLE IAudioPlayer {
 public:
     XAMP_BASE_CLASS(IAudioPlayer)
 
-	virtual void SetStateAdapter(const std::weak_ptr<IPlaybackStateAdapter>& adapter) = 0;
+	virtual void setStateAdapter(const std::weak_ptr<IPlaybackStateAdapter>& adapter) = 0;
 
-    virtual void Destroy() = 0;
+    virtual void destroy() = 0;
 
-    virtual void OpenArchiveEntry(ArchiveEntry archive_entry,
+    virtual void openArchiveEntry(ArchiveEntry archive_entry,
                     const DeviceInfo& device_info,
                     uint32_t target_sample_rate = 0,
                     DsdModes output_mode = DsdModes::DSD_MODE_AUTO) = 0;
 
-    virtual void Open(ScopedPtr<FileStream> file_stream,
+    virtual void open(ScopedPtr<FileStream> file_stream,
                       const DeviceInfo& device_info,
                       uint32_t target_sample_rate = 0,
                       DsdModes output_mode = DsdModes::DSD_MODE_AUTO) = 0;
 
-    virtual void PrepareToPlay(ByteFormat byte_format = ByteFormat::INVALID_FORMAT,
+    virtual void prepareToPlay(ByteFormat byte_format = ByteFormat::INVALID_FORMAT,
         uint32_t device_sample_rate = 0) = 0;
 
-    virtual void BufferStream(double stream_time = 0.0,
+    virtual void bufferStream(double stream_time = 0.0,
         const std::optional<double>& offset = std::nullopt,
         const std::optional<double>& duration = std::nullopt) = 0;
 
-    virtual void Play() = 0;
+    virtual void play() = 0;
 
-    virtual void Pause() = 0;
+    virtual void pause() = 0;
 
-    virtual void Resume() = 0;
+    virtual void resume() = 0;
     
-    virtual void Stop(bool signal_to_stop = true,
+    virtual void stop(bool signal_to_stop = true,
         bool shutdown_device = false,
         bool wait_for_stop_stream = true) = 0;    
 
-    virtual void Seek(double stream_time) = 0;
+    virtual void seek(double stream_time) = 0;
 
-    virtual void SetParametricEq(bool enabled, const EqSettings& settings) = 0;
+    virtual void setParametricEq(bool enabled, const EqSettings& settings) = 0;
 
-    virtual void SetVolume(uint32_t volume) = 0;
+    virtual void setVolume(uint32_t volume) = 0;
 
-    [[nodiscard]] virtual uint32_t GetVolume() const = 0;
+    [[nodiscard]] virtual uint32_t getVolume() const = 0;
 
-    [[nodiscard]] virtual bool IsHardwareControlVolume() const = 0;
+    [[nodiscard]] virtual bool isHardwareControlVolume() const = 0;
 
-    [[nodiscard]] virtual bool IsMute() const = 0;
+    [[nodiscard]] virtual bool isMute() const = 0;
 
-    virtual void SetMute(bool mute) = 0;
+    virtual void setMute(bool mute) = 0;
 
-    [[nodiscard]] virtual bool IsPlaying() const = 0;
+    [[nodiscard]] virtual bool isPlaying() const = 0;
 
-    [[nodiscard]] virtual DsdModes GetDsdModes() const = 0;
+    [[nodiscard]] virtual DsdModes getDsdModes() const = 0;
 
-    [[nodiscard]] virtual bool IsDsdFile() const = 0;
+    [[nodiscard]] virtual bool isDsdFile() const = 0;
 
-    [[nodiscard]] virtual std::optional<uint32_t> GetDsdSpeed() const = 0;
+    [[nodiscard]] virtual std::optional<uint32_t> getDsdSpeed() const = 0;
 
-    [[nodiscard]] virtual double GetDuration() const = 0;
+    [[nodiscard]] virtual double getDuration() const = 0;
 
-    [[nodiscard]] virtual PlayerState GetState() const = 0;
+    [[nodiscard]] virtual PlayerState getState() const = 0;
 
-    [[nodiscard]] virtual AudioFormat GetInputFormat() const = 0;
+    [[nodiscard]] virtual AudioFormat getInputFormat() const = 0;
 
-    [[nodiscard]] virtual AudioFormat GetOutputFormat() const = 0;
+    [[nodiscard]] virtual AudioFormat getOutputFormat() const = 0;
 
-    [[nodiscard]] virtual uint32_t GetBitRate() const = 0;
+    [[nodiscard]] virtual uint32_t getBitRate() const = 0;
 
-    virtual const ScopedPtr<IAudioDeviceManager>& GetAudioDeviceManager() = 0;
+    virtual const ScopedPtr<IAudioDeviceManager>& getAudioDeviceManager() = 0;
 
-    virtual ScopedPtr<IDSPManager>& GetDspManager() = 0;
+    virtual ScopedPtr<IDSPManager>& getDspManager() = 0;
 
-    virtual Property& GetDspConfig() = 0;
+    virtual Property& getDspConfig() = 0;
 
 protected:
 	IAudioPlayer() = default;

@@ -99,51 +99,51 @@ public:
                          uint32_t sample_rate,
                          PackedFormat packed_format = PackedFormat::INTERLEAVED) ;
 
-    void SetFormat(DataFormat format) ;
+    void setFormat(DataFormat format) ;
 
-    void SetSampleRate(uint32_t sample_rate) ;
+    void setSampleRate(uint32_t sample_rate) ;
 
-    void SetBitPerSample(uint32_t bits_per_sample) ;
+    void setBitPerSample(uint32_t bits_per_sample) ;
 
-    void SetChannel(uint16_t num_channels) ;
+    void setChannel(uint16_t num_channels) ;
 
-    void SetByteFormat(ByteFormat format) ;
+    void setByteFormat(ByteFormat format) ;
 
-    void SetPackedFormat(PackedFormat format) ;
+    void setPackedFormat(PackedFormat format) ;
 
-    [[nodiscard]] DataFormat GetFormat() const ;
+    [[nodiscard]] DataFormat getFormat() const ;
 
-    [[nodiscard]] PackedFormat GetPackedFormat() const ;
+    [[nodiscard]] PackedFormat getPackedFormat() const ;
 
-    [[nodiscard]] uint32_t GetSampleRate() const ;
+    [[nodiscard]] uint32_t getSampleRate() const ;
 
-    [[nodiscard]] uint32_t GetAvgBytesPerSec() const ;
+    [[nodiscard]] uint32_t getAvgBytesPerSec() const ;
 
-    [[nodiscard]] uint32_t GetAvgFramesPerSec() const ;
+    [[nodiscard]] uint32_t getAvgFramesPerSec() const ;
 
-    [[nodiscard]] uint16_t GetChannels() const ;
+    [[nodiscard]] uint16_t getChannels() const ;
 
-    [[nodiscard]] uint32_t GetBitsPerSample() const ;
+    [[nodiscard]] uint32_t getBitsPerSample() const ;
 
-    [[nodiscard]] uint32_t GetBytesPerSample() const ;
+    [[nodiscard]] uint32_t getBytesPerSample() const ;
 
-    [[nodiscard]] uint32_t GetSampleSize() const ;
+    [[nodiscard]] uint32_t getSampleSize() const ;
 
-    [[nodiscard]] uint32_t GetBlockAlign() const ;
+    [[nodiscard]] uint32_t getBlockAlign() const ;
 
-    [[nodiscard]] ByteFormat GetByteFormat() const ;
+    [[nodiscard]] ByteFormat getByteFormat() const ;
 
-    [[nodiscard]] uint64_t GetSecondsSize(double sec) const ;
+    [[nodiscard]] uint64_t getSecondsSize(double sec) const ;
 
-    void Reset() ;
+    void reset() ;
 
-    static AudioFormat ToFloatFormat(AudioFormat const& source_format) ;
+    static AudioFormat toFloatFormat(AudioFormat const& source_format) ;
 
-    [[nodiscard]] std::string ToString() const;
+    [[nodiscard]] std::string toString() const;
 
-    [[nodiscard]] std::string ToShortString() const;
+    [[nodiscard]] std::string toShortString() const;
 
-    [[nodiscard]] size_t GetHash() const;
+    [[nodiscard]] size_t getHash() const;
 
 private:
     XAMP_BASE_API friend bool operator>(const AudioFormat& format, const AudioFormat& other) ;
@@ -171,7 +171,7 @@ XAMP_ALWAYS_INLINE AudioFormat::AudioFormat(DataFormat format,
     , packed_format_(interleaved_format)
     , num_channels_(number_of_channels)
     , sample_rate_(sample_rate) {
-    SetByteFormat(byte_format);
+    setByteFormat(byte_format);
 }
 
 XAMP_ALWAYS_INLINE AudioFormat::AudioFormat(DataFormat format,
@@ -182,86 +182,86 @@ XAMP_ALWAYS_INLINE AudioFormat::AudioFormat(DataFormat format,
     , packed_format_(PackedFormat::INTERLEAVED)
     , num_channels_(number_of_channels)
     , sample_rate_(sample_rate) {
-    SetBitPerSample(bits_per_sample);
+    setBitPerSample(bits_per_sample);
 }
 
-XAMP_ALWAYS_INLINE DataFormat AudioFormat::GetFormat() const {
+XAMP_ALWAYS_INLINE DataFormat AudioFormat::getFormat() const {
     return format_;
 }
 
-XAMP_ALWAYS_INLINE void AudioFormat::SetFormat(DataFormat format) {
+XAMP_ALWAYS_INLINE void AudioFormat::setFormat(DataFormat format) {
     format_ = format;
 }
 
-XAMP_ALWAYS_INLINE uint16_t AudioFormat::GetChannels() const {
+XAMP_ALWAYS_INLINE uint16_t AudioFormat::getChannels() const {
     return num_channels_;
 }
 
-XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetBitsPerSample() const {
+XAMP_ALWAYS_INLINE uint32_t AudioFormat::getBitsPerSample() const {
     return bits_per_sample_;
 }
 
-XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetBytesPerSample() const {
+XAMP_ALWAYS_INLINE uint32_t AudioFormat::getBytesPerSample() const {
     return bits_per_sample_ / 8;
 }
 
-XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetSampleSize() const {
-    return GetBytesPerSample() * GetChannels();
+XAMP_ALWAYS_INLINE uint32_t AudioFormat::getSampleSize() const {
+    return getBytesPerSample() * getChannels();
 }
 
-XAMP_ALWAYS_INLINE void AudioFormat::SetSampleRate(uint32_t sample_rate) {
+XAMP_ALWAYS_INLINE void AudioFormat::setSampleRate(uint32_t sample_rate) {
     sample_rate_ = sample_rate;
 }
 
-XAMP_ALWAYS_INLINE void AudioFormat::SetChannel(uint16_t num_channels) {
+XAMP_ALWAYS_INLINE void AudioFormat::setChannel(uint16_t num_channels) {
     num_channels_ = num_channels;
 }
 
-XAMP_ALWAYS_INLINE void AudioFormat::SetBitPerSample(uint32_t bits_per_sample) {
+XAMP_ALWAYS_INLINE void AudioFormat::setBitPerSample(uint32_t bits_per_sample) {
     switch (bits_per_sample) {
     case 8:
-        SetByteFormat(ByteFormat::SINT8);
+        setByteFormat(ByteFormat::SINT8);
         break;
     case 16:
-        SetByteFormat(ByteFormat::SINT16);
+        setByteFormat(ByteFormat::SINT16);
         break;
     case 24:
-        SetByteFormat(ByteFormat::SINT24);
+        setByteFormat(ByteFormat::SINT24);
         break;
     case 32:
-        SetByteFormat(ByteFormat::SINT32);
+        setByteFormat(ByteFormat::SINT32);
         break;
     default:
-        SetByteFormat(ByteFormat::INVALID_FORMAT);
+        setByteFormat(ByteFormat::INVALID_FORMAT);
         break;
     }
 }
 
-XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetSampleRate() const {
+XAMP_ALWAYS_INLINE uint32_t AudioFormat::getSampleRate() const {
     return sample_rate_;
 }
 
-XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetAvgBytesPerSec() const {
-    return GetSampleRate() * GetBlockAlign();
+XAMP_ALWAYS_INLINE uint32_t AudioFormat::getAvgBytesPerSec() const {
+    return getSampleRate() * getBlockAlign();
 }
 
-XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetAvgFramesPerSec() const {
-    return GetSampleRate() * GetChannels();
+XAMP_ALWAYS_INLINE uint32_t AudioFormat::getAvgFramesPerSec() const {
+    return getSampleRate() * getChannels();
 }
 
-XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetBlockAlign() const {
-    return GetBytesPerSample() * GetChannels();
+XAMP_ALWAYS_INLINE uint32_t AudioFormat::getBlockAlign() const {
+    return getBytesPerSample() * getChannels();
 }
 
-XAMP_ALWAYS_INLINE ByteFormat AudioFormat::GetByteFormat() const {
+XAMP_ALWAYS_INLINE ByteFormat AudioFormat::getByteFormat() const {
     return byte_format_;
 }
 
-XAMP_ALWAYS_INLINE uint64_t AudioFormat::GetSecondsSize(double sec) const {
-    return static_cast<uint64_t>(GetSampleRate() * GetBytesPerSample() * GetChannels() * sec);
+XAMP_ALWAYS_INLINE uint64_t AudioFormat::getSecondsSize(double sec) const {
+    return static_cast<uint64_t>(getSampleRate() * getBytesPerSample() * getChannels() * sec);
 }
 
-XAMP_ALWAYS_INLINE void AudioFormat::SetByteFormat(ByteFormat format) {
+XAMP_ALWAYS_INLINE void AudioFormat::setByteFormat(ByteFormat format) {
     switch (format) {
     case ByteFormat::FLOAT64:
         bits_per_sample_ = 64;
@@ -292,34 +292,34 @@ XAMP_ALWAYS_INLINE void AudioFormat::SetByteFormat(ByteFormat format) {
     }
 }
 
-XAMP_ALWAYS_INLINE void AudioFormat::SetPackedFormat(PackedFormat format) {
+XAMP_ALWAYS_INLINE void AudioFormat::setPackedFormat(PackedFormat format) {
     packed_format_ = format;
 }
 
-XAMP_ALWAYS_INLINE PackedFormat AudioFormat::GetPackedFormat() const {
+XAMP_ALWAYS_INLINE PackedFormat AudioFormat::getPackedFormat() const {
     return packed_format_;
 }
 
 XAMP_ALWAYS_INLINE std::ostream& operator<<(std::ostream& ostr, AudioFormat const & format) {
-    ostr << format.GetByteFormat() << "-" << format.GetPackedFormat() << "-"
-         << format.ToShortString();
+    ostr << format.getByteFormat() << "-" << format.getPackedFormat() << "-"
+         << format.toShortString();
     return ostr;
 }
 
 XAMP_ALWAYS_INLINE bool operator>(const AudioFormat& format, const AudioFormat& other) {
-    return format.GetBitsPerSample() > other.GetBitsPerSample()
-        && format.GetSampleRate() > other.GetSampleRate();
+    return format.getBitsPerSample() > other.getBitsPerSample()
+        && format.getSampleRate() > other.getSampleRate();
 }
 
 XAMP_ALWAYS_INLINE bool operator!=(AudioFormat const & format, AudioFormat const & other) {
-    return format.GetHash() != other.GetHash();
+    return format.getHash() != other.getHash();
 }
 
 XAMP_ALWAYS_INLINE bool operator==(AudioFormat const & format, AudioFormat const & other) {
-    return format.GetHash() == other.GetHash();
+    return format.getHash() == other.getHash();
 }
 
-XAMP_ALWAYS_INLINE void AudioFormat::Reset() {
+XAMP_ALWAYS_INLINE void AudioFormat::reset() {
     *this = kUnknownFormat;
 }
 
@@ -328,6 +328,6 @@ XAMP_BASE_NAMESPACE_END
 template <>
 struct std::hash<xamp::base::AudioFormat> {
     size_t operator()(xamp::base::AudioFormat const& f) const {
-        return f.GetHash();
+        return f.getHash();
     }
 };

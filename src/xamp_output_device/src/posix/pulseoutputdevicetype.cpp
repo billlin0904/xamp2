@@ -57,7 +57,7 @@ void IterateMainloop(pa_mainloop* mainloop) {
 	}
 }
 
-void WaitForContextReady(pa_mainloop* mainloop, pa_context* context) {
+void waitForContextReady(pa_mainloop* mainloop, pa_context* context) {
 	while (true) {
 		switch (::pa_context_get_state(context)) {
 		case PA_CONTEXT_READY:
@@ -73,7 +73,7 @@ void WaitForContextReady(pa_mainloop* mainloop, pa_context* context) {
 	}
 }
 
-void WaitForOperation(pa_mainloop* mainloop, pa_operation* operation) {
+void waitForOperation(pa_mainloop* mainloop, pa_operation* operation) {
 	if (operation == nullptr) {
 		Throw<PlatformException>("PulseAudio operation create failed.");
 	}
@@ -87,7 +87,7 @@ struct ServerInfoState {
 	bool done{ false };
 };
 
-void ServerInfoCallback(pa_context*, const pa_server_info* info, void* userdata) {
+void serverInfoCallback(pa_context*, const pa_server_info* info, void* userdata) {
 	auto* state = static_cast<ServerInfoState*>(userdata);
 	if (info != nullptr && info->default_sink_name != nullptr) {
 		state->default_sink_name = info->default_sink_name;
@@ -101,7 +101,7 @@ struct SinkListState {
 	bool done{ false };
 };
 
-void SinkInfoCallback(pa_context*, const pa_sink_info* info, int eol, void* userdata) {
+void sinkInfoCallback(pa_context*, const pa_sink_info* info, int eol, void* userdata) {
 	auto* state = static_cast<SinkListState*>(userdata);
 	if (eol > 0) {
 		state->done = true;
@@ -145,23 +145,23 @@ std::vector<DeviceInfo> EnumeratePulseSinks() {
 			::pa_strerror(::pa_context_errno(context.get())));
 	}
 
-	WaitForContextReady(mainloop.get(), context.get());
+	waitForContextReady(mainloop.get(), context.get());
 
 	ServerInfoState server_state;
 	{
 		PulseOperationPtr operation(::pa_context_get_server_info(context.get(),
-			ServerInfoCallback,
+			serverInfoCallback,
 			&server_state));
-		WaitForOperation(mainloop.get(), operation.get());
+		waitForOperation(mainloop.get(), operation.get());
 	}
 
 	SinkListState sink_state;
 	sink_state.default_sink_name = std::move(server_state.default_sink_name);
 	{
 		PulseOperationPtr operation(::pa_context_get_sink_info_list(context.get(),
-			SinkInfoCallback,
+			sinkInfoCallback,
 			&sink_state));
-		WaitForOperation(mainloop.get(), operation.get());
+		waitForOperation(mainloop.get(), operation.get());
 	}
 
 	if (!sink_state.default_sink_name.empty()) {
@@ -181,11 +181,11 @@ std::vector<DeviceInfo> EnumeratePulseSinks() {
 class PulseOutputDeviceType::PulseOutputDeviceTypeImpl final {
 public:
 	PulseOutputDeviceTypeImpl()
-		: logger_(XampLoggerFactory.GetLogger(XAMP_LOG_NAME(PulseOutputDeviceType))) {
-		ScanNewDevice();
+		: logger_(XampLoggerFactory.getLogger(XAMP_LOG_NAME(PulseOutputDeviceType))) {
+		scanNewDevice();
 	}
 
-	void ScanNewDevice() {
+	void scanNewDevice() {
 		try {
 			devices_ = EnumeratePulseSinks();
 		}
@@ -199,26 +199,26 @@ public:
 		}
 	}
 
-	[[nodiscard]] size_t GetDeviceCount() const {
+	[[nodiscard]] size_t getDeviceCount() const {
 		return devices_.size();
 	}
 
-	[[nodiscard]] DeviceInfo GetDeviceInfo(uint32_t device) const {
+	[[nodiscard]] DeviceInfo getDeviceInfo(uint32_t device) const {
 		return devices_.at(device);
 	}
 
-	[[nodiscard]] std::vector<DeviceInfo> GetDeviceInfo() const {
+	[[nodiscard]] std::vector<DeviceInfo> getDeviceInfo() const {
 		return devices_;
 	}
 
-	[[nodiscard]] std::optional<DeviceInfo> GetDefaultDeviceInfo() const {
+	[[nodiscard]] std::optional<DeviceInfo> getDefaultDeviceInfo() const {
 		if (devices_.empty()) {
 			return std::nullopt;
 		}
 		return devices_.front();
 	}
 
-	ScopedPtr<IOutputDevice> MakeDevice(const std::shared_ptr<xamp::base::IThreadPoolExecutor>& thread_pool,
+	ScopedPtr<IOutputDevice> makeDevice(const std::shared_ptr<xamp::base::IThreadPool>& thread_pool,
 		const std::string& device_id) {
 		return MakeAlign<IOutputDevice, PulseOutputDevice>(thread_pool, device_id);
 	}
@@ -232,29 +232,29 @@ PulseOutputDeviceType::PulseOutputDeviceType()
 	: impl_(MakeAlign<PulseOutputDeviceTypeImpl>()) {
 }
 
-void PulseOutputDeviceType::ScanNewDevice() {
-	impl_->ScanNewDevice();
+void PulseOutputDeviceType::scanNewDevice() {
+	impl_->scanNewDevice();
 }
 
-size_t PulseOutputDeviceType::GetDeviceCount() const {
-	return impl_->GetDeviceCount();
+size_t PulseOutputDeviceType::getDeviceCount() const {
+	return impl_->getDeviceCount();
 }
 
-DeviceInfo PulseOutputDeviceType::GetDeviceInfo(uint32_t device) const {
-	return impl_->GetDeviceInfo(device);
+DeviceInfo PulseOutputDeviceType::getDeviceInfo(uint32_t device) const {
+	return impl_->getDeviceInfo(device);
 }
 
-std::vector<DeviceInfo> PulseOutputDeviceType::GetDeviceInfo() const {
-	return impl_->GetDeviceInfo();
+std::vector<DeviceInfo> PulseOutputDeviceType::getDeviceInfo() const {
+	return impl_->getDeviceInfo();
 }
 
-std::optional<DeviceInfo> PulseOutputDeviceType::GetDefaultDeviceInfo() const {
-	return impl_->GetDefaultDeviceInfo();
+std::optional<DeviceInfo> PulseOutputDeviceType::getDefaultDeviceInfo() const {
+	return impl_->getDefaultDeviceInfo();
 }
 
-ScopedPtr<IOutputDevice> PulseOutputDeviceType::MakeDevice(const std::shared_ptr<xamp::base::IThreadPoolExecutor>& thread_pool,
+ScopedPtr<IOutputDevice> PulseOutputDeviceType::makeDevice(const std::shared_ptr<xamp::base::IThreadPool>& thread_pool,
 	const std::string& device_id) {
-	return impl_->MakeDevice(thread_pool, device_id);
+	return impl_->makeDevice(thread_pool, device_id);
 }
 
 XAMP_OUTPUT_DEVICE_POSIX_NAMESPACE_END

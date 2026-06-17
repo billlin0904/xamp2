@@ -20,7 +20,7 @@
 XAMP_OUTPUT_DEVICE_WIN32_HELPER_NAMESPACE_BEGIN
 
 /*
-* Convert reference time to milliseconds.
+* convert reference time to milliseconds.
 * 
 * @param[in] ref: reference time
 * @return milliseconds
@@ -31,7 +31,7 @@ XAMP_ALWAYS_INLINE constexpr double Nano100ToMillis(REFERENCE_TIME ref) {
 }
 
 /*
-* Convert reference time to frames
+* convert reference time to frames
 * 
 * @param period: period
 * @param samplerate: samplerate
@@ -48,7 +48,7 @@ XAMP_ALWAYS_INLINE constexpr UINT32 ReferenceTimeToFrames(REFERENCE_TIME period,
 }
 
 /*
-* Convert frames to reference time.
+* convert frames to reference time.
 * 
 * @param[in] frames: frames
 * @param[in] samplerate: samplerate
@@ -59,7 +59,7 @@ XAMP_ALWAYS_INLINE constexpr REFERENCE_TIME MakeHnsPeriod(UINT32 frames, UINT32 
 }
 
 /*
-* Convert milliseconds to reference time.
+* convert milliseconds to reference time.
 * 
 * @param[in] ms: milliseconds
 * @return reference time
@@ -75,10 +75,10 @@ XAMP_ALWAYS_INLINE constexpr REFERENCE_TIME MsToPeriod(uint32_t ms) {
 * @param[in] device_type_id: device type id
 * @return DeviceInfo
 */
-DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, const Uuid& device_type_id, std::string_view desc);
+DeviceInfo getDeviceInfo(CComPtr<IMMDevice>& device, const Uuid& device_type_id, std::string_view desc);
 
 /*
-* Create device enumerator.
+* create device enumerator.
 * 
 * @return IMMDeviceEnumerator
 */

@@ -21,7 +21,7 @@ char const* AvException::what() const noexcept {
 	return message_.c_str();
 }
 
-int32_t AvException::GetErrorCode() const {
+int32_t AvException::getErrorCode() const {
 	return error_code_;
 }
 
@@ -55,7 +55,7 @@ AvFormatLib::AvFormatLib() try
 	, XAMP_LOAD_DLL_API(av_find_best_stream) {
 }
 catch (const Exception& e) {
-	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+	XAMP_LOG_ERROR("{}", e.getErrorMessage());
 }
 
 AvCodecLib::AvCodecLib() try
@@ -86,7 +86,7 @@ AvCodecLib::AvCodecLib() try
 	, XAMP_LOAD_DLL_API(avcodec_find_encoder_by_name) {
 }
 catch (const Exception& e) {
-	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+	XAMP_LOG_ERROR("{}", e.getErrorMessage());
 }
 
 AvUtilLib::AvUtilLib() try
@@ -124,7 +124,7 @@ AvUtilLib::AvUtilLib() try
 	, XAMP_LOAD_DLL_API(av_get_sample_fmt_name) {
 }
 catch (const Exception& e) {
-	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+	XAMP_LOG_ERROR("{}", e.getErrorMessage());
 }
 
 AvSwLib::AvSwLib() try
@@ -138,7 +138,7 @@ AvSwLib::AvSwLib() try
 	, XAMP_LOAD_DLL_API(swr_alloc) {
 }
 catch (const Exception& e) {
-	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+	XAMP_LOG_ERROR("{}", e.getErrorMessage());
 }
 
 static void LogPrintf(void* ptr, int level, const char* fmt, va_list vl) {
@@ -197,33 +197,33 @@ void AvLib::Free() {
 }
 
 AvLib::AvLib() {
-	logger = XampLoggerFactory.GetLogger(kLibAvLoggerName);
-	XAMP_LOG_D(logger, "Load {} success.", LIBAVCODEC_IDENT);
+	logger = XampLoggerFactory.getLogger(kLibAvLoggerName);
+	XAMP_LOG_D(logger, "load {} success.", LIBAVCODEC_IDENT);
 
-	Format = MakeAlign<AvFormatLib>();
-	Codec = MakeAlign<AvCodecLib>();
-	Swr = MakeAlign<AvSwLib>();
-	Util = MakeAlign<AvUtilLib>();
+	Format = makeAlign<AvFormatLib>();
+	Codec = makeAlign<AvCodecLib>();
+	Swr = makeAlign<AvSwLib>();
+	Util = makeAlign<AvUtilLib>();
 
 	Util->av_log_set_callback(LogPrintf);
 	Util->av_log_set_level(AV_LOG_FATAL);
 
 	Format->avformat_network_init();
 
-	const auto level = logger->GetLevel();
-	logger->SetLevel(LOG_LEVEL_DEBUG);
+	const auto level = logger->getLevel();
+	logger->setLevel(LOG_LEVEL_DEBUG);
 	XAMP_LOG_D(logger, Codec->avcodec_configuration());
-	logger->SetLevel(level);
+	logger->setLevel(level);
 
 	XAMP_LOG_D(logger, "Network init.");
 }
 
-HashSet<std::string> AvLib::GetSupportFileExtensions() const {
+HashSet<std::string> AvLib::getSupportFileExtensions() const {
 	HashSet<std::string> result;
 	HashSet<std::string> ordered_extension;
 
-	//const auto level = logger->GetLevel();
-	//logger->SetLevel(LOG_LEVEL_DEBUG);
+	//const auto level = logger->getLevel();
+	//logger->setLevel(LOG_LEVEL_DEBUG);
 
     const AVInputFormat *output_format;
     void *opaque = nullptr;
@@ -256,11 +256,11 @@ HashSet<std::string> AvLib::GetSupportFileExtensions() const {
 
 	for (const auto& extension : ordered_extension) {
 		const auto file_extensions = String::Format(".{}", extension);
-		XAMP_LOG_T(logger, "Load Libav format extensions: {}", file_extensions);
+		XAMP_LOG_T(logger, "load Libav format extensions: {}", file_extensions);
 		result.insert(file_extensions);
 	}
 
-	//logger->SetLevel(level);
+	//logger->setLevel(level);
 	return result;
 }
 

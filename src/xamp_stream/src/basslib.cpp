@@ -9,23 +9,23 @@ XAMP_STREAM_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(BASS);
 
-template <typename T>
-constexpr uint8_t HiByte(T val) {
+template <typename t>
+constexpr uint8_t HiByte(t val) {
     return static_cast<uint8_t>(val >> 8);
 }
 
-template <typename T>
-constexpr uint8_t LowByte(T val) {
+template <typename t>
+constexpr uint8_t LowByte(t val) {
     return static_cast<uint8_t>(val);
 }
 
-template <typename T>
-constexpr uint16_t HiWord(T val) {
+template <typename t>
+constexpr uint16_t HiWord(t val) {
     return static_cast<uint16_t>((static_cast<uint32_t>(val) >> 16) & 0xFFFF);
 }
 
-template <typename T>
-constexpr uint16_t LoWord(T val) {
+template <typename t>
+constexpr uint16_t LoWord(t val) {
     return static_cast<uint16_t>(static_cast<uint32_t>(val) & 0xFFFF);
 }
 
@@ -50,7 +50,7 @@ BassDSDLib::BassDSDLib() try
     , XAMP_LOAD_DLL_API(BASS_DSD_StreamCreateFileUser) {
 }
 catch (const Exception& e) {
-    XAMP_LOG_E(BassLibDLL.logger, "{}", e.GetErrorMessage());
+    XAMP_LOG_E(BassLibDLL.logger, "{}", e.getErrorMessage());
 }
 
 BassMixLib::BassMixLib() try
@@ -60,10 +60,10 @@ BassMixLib::BassMixLib() try
     , XAMP_LOAD_DLL_API(BASS_Mixer_GetVersion) {
 }
 catch (const Exception& e) {
-    XAMP_LOG_E(BassLibDLL.logger, "{}", e.GetErrorMessage());
+    XAMP_LOG_E(BassLibDLL.logger, "{}", e.getErrorMessage());
 }
 
-std::string BassMixLib::GetName() const {
+std::string BassMixLib::getName() const {
     return GetSharedLibraryName("bassmix");
 }
 
@@ -74,10 +74,10 @@ BassFxLib::BassFxLib() try
     , XAMP_LOAD_DLL_API(BASS_FX_GetVersion) {
 }
 catch (const Exception& e) {
-    XAMP_LOG_E(BassLibDLL.logger, "{}", e.GetErrorMessage());
+    XAMP_LOG_E(BassLibDLL.logger, "{}", e.getErrorMessage());
 }
 
-std::string BassFxLib::GetName() const {
+std::string BassFxLib::getName() const {
     return GetSharedLibraryName("bass_fx");
 }
 
@@ -99,18 +99,18 @@ BassCDLib::BassCDLib() try
     , XAMP_LOAD_DLL_API(BASS_CD_GetTrackLength) {
 }
 catch (const Exception& e) {
-    XAMP_LOG_E(BassLibDLL.logger, "{}", e.GetErrorMessage());
+    XAMP_LOG_E(BassLibDLL.logger, "{}", e.getErrorMessage());
 }
 #endif
 
 #ifdef XAMP_OS_WIN
-std::string BassCDLib::GetName() const {
+std::string BassCDLib::getName() const {
     return GetSharedLibraryName("basscd");
 }
 #endif
 
 BassLib::BassLib() try
-    : logger(XampLoggerFactory.GetLogger(kBASSLoggerName))
+    : logger(XampLoggerFactory.getLogger(kBASSLoggerName))
     , module_(OpenSharedLibrary("bass"))
     , XAMP_LOAD_DLL_API(BASS_Init)
     , XAMP_LOAD_DLL_API(BASS_GetVersion)
@@ -145,11 +145,11 @@ BassLib::BassLib() try
     , XAMP_LOAD_DLL_API(BASS_StreamCreateFileUser) {
 }
 catch (const Exception& e) {
-    XAMP_LOG_E(logger, "{}", e.GetErrorMessage());
+    XAMP_LOG_E(logger, "{}", e.getErrorMessage());
 }
 
 BassLib::~BassLib() {
-    XAMP_LOG_E(logger, "Destroy BASS library.");
+    XAMP_LOG_E(logger, "destroy BASS library.");
 
 	if (!module_.is_valid()) {
         return;
@@ -157,7 +157,7 @@ BassLib::~BassLib() {
     Free();
 }
 
-std::string BassLib::GetName() const {
+std::string BassLib::getName() const {
     return GetSharedLibraryName("bass");
 }
 
@@ -165,7 +165,7 @@ HPLUGIN BassPluginLoadDeleter::invalid() {
     return 0;
 }
 
- void BassPluginLoadDeleter::Close(HPLUGIN value) {
+ void BassPluginLoadDeleter::close(HPLUGIN value) {
      BassLibDLL.BASS_PluginFree(value);
 }
 
@@ -173,11 +173,11 @@ HSTREAM BassStreamDeleter::invalid() {
     return 0;
 }
 
-void BassStreamDeleter::Close(HSTREAM value) {
+void BassStreamDeleter::close(HSTREAM value) {
     BassLibDLL.BASS_StreamFree(value);
 }
 
-void BassLib::Load() {
+void BassLib::load() {
     if (IsLoaded()) {
         return;
     }
@@ -196,23 +196,23 @@ void BassLib::Load() {
 #endif
 
     BassLibDLL.BASS_Init(0, 44100, 0, nullptr, nullptr);
-    XAMP_LOG_D(logger, "Load BASS_LIB {} successfully.", GetBassVersion(BassLibDLL.BASS_GetVersion()));
+    XAMP_LOG_D(logger, "load BASS_LIB {} successfully.", GetBassVersion(BassLibDLL.BASS_GetVersion()));
 #ifdef XAMP_OS_WIN
     // Disable Media Foundation
     BassLibDLL.BASS_SetConfig(BASS_CONFIG_MF_DISABLE, true);
     BassLibDLL.BASS_SetConfig(BASS_CONFIG_MF_VIDEO, false);
-    LoadPlugin("bass_aac.dll");
-    LoadPlugin("bassflac.dll");
-    LoadPlugin("bassape.dll");
-    LoadPlugin("bassalac.dll");
-    LoadPlugin("basscd.dll");
-    // For GetSupportFileExtensions need!
-    LoadPlugin("bassdsd.dll");
-    LoadPlugin("bassopus.dll");
-    LoadPlugin("basswebm.dll");
+    loadPlugin("bass_aac.dll");
+    loadPlugin("bassflac.dll");
+    loadPlugin("bassape.dll");
+    loadPlugin("bassalac.dll");
+    loadPlugin("basscd.dll");
+    // For getSupportFileExtensions need!
+    loadPlugin("bassdsd.dll");
+    loadPlugin("bassopus.dll");
+    loadPlugin("basswebm.dll");
 #else
-    LoadPlugin(GetSharedLibraryName("bassflac"));
-    LoadPlugin(GetSharedLibraryName("bassdsd"));
+    loadPlugin(GetSharedLibraryName("bassflac"));
+    loadPlugin(GetSharedLibraryName("bassdsd"));
 #endif
 
     BassLibDLL.BASS_SetConfig(BASS_CONFIG_DSD_FREQ, 88200);
@@ -238,23 +238,23 @@ void BassLib::Free() {
     }
 }
 
-void BassLib::LoadPlugin(const std::string & file_name) {
+void BassLib::loadPlugin(const std::string & file_name) {
     const auto plugin_fully_path = GetComponentsFilePath() / Path(file_name);
     BassPluginHandle plugin(BassLibDLL.BASS_PluginLoad(plugin_fully_path.string().c_str(), 0));
     if (!plugin) {
-        XAMP_LOG_D(logger, "Load {} failure. error:{}",
+        XAMP_LOG_D(logger, "load {} failure. error:{}",
             file_name,
             BassLibDLL.BASS_ErrorGetCode());
         return;
     }
 
     const auto* info = BassLibDLL.BASS_PluginGetInfo(plugin.get());
-    XAMP_LOG_D(logger, "Load {} {} successfully.", file_name, GetBassVersion(info->version));
+    XAMP_LOG_D(logger, "load {} {} successfully.", file_name, GetBassVersion(info->version));
 
     plugins_[file_name] = std::move(plugin);
 }
 
-OrderedMap<std::string, std::string> BassLib::GetPluginVersion() const {
+OrderedMap<std::string, std::string> BassLib::getPluginVersion() const {
     OrderedMap<std::string, std::string> vers;
 
     for (const auto& [key, value] : plugins_) {
@@ -264,25 +264,25 @@ OrderedMap<std::string, std::string> BassLib::GetPluginVersion() const {
     return vers;
 }
 
-void BassLib::LoadVersionInfo() {
-    dll_versions_ = GetPluginVersion();
-    dll_versions_[BassLibDLL.GetName()] = GetBassVersion(BassLibDLL.BASS_GetVersion());
-    dll_versions_[BassLibDLL.MixLib->GetName()] = GetBassVersion(BassLibDLL.MixLib->BASS_Mixer_GetVersion());
-    dll_versions_[BassLibDLL.FxLib->GetName()] = GetBassVersion(BassLibDLL.FxLib->BASS_FX_GetVersion());
+void BassLib::loadVersionInfo() {
+    dll_versions_ = getPluginVersion();
+    dll_versions_[BassLibDLL.getName()] = GetBassVersion(BassLibDLL.BASS_GetVersion());
+    dll_versions_[BassLibDLL.MixLib->getName()] = GetBassVersion(BassLibDLL.MixLib->BASS_Mixer_GetVersion());
+    dll_versions_[BassLibDLL.FxLib->getName()] = GetBassVersion(BassLibDLL.FxLib->BASS_FX_GetVersion());
 }
 
-OrderedMap<std::string, std::string> BassLib::GetVersions() const {
+OrderedMap<std::string, std::string> BassLib::getVersions() const {
     return dll_versions_;
 }
 
-HashSet<std::string> BassLib::GetSupportFileExtensions() const {
+HashSet<std::string> BassLib::getSupportFileExtensions() const {
     HashSet<std::string> result;
 	
 	for (const auto& [key, value] : plugins_) {
         const auto* info = BassLibDLL.BASS_PluginGetInfo(value.get());
 		
         for (DWORD i = 0; i < info->formatc; ++i) {
-            XAMP_LOG_T(logger, "Load BASS_LIB {} {}", info->formats[i].name, info->formats[i].exts);
+            XAMP_LOG_T(logger, "load BASS_LIB {} {}", info->formats[i].name, info->formats[i].exts);
         	for (auto file_ext : String::Split(info->formats[i].exts, ";")) {
                 std::string ext(file_ext);
                 auto pos = ext.find('*');

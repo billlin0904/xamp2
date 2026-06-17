@@ -18,9 +18,9 @@ XAMP_STREAM_NAMESPACE_BEGIN
 
 class XAMP_STREAM_API Property {
 public:
-    template <typename T>
-    void Create(const std::string_view &name, T&& value) {
-        configs_.insert_or_assign(name, std::forward<T>(value));
+    template <typename t>
+    void create(const std::string_view &name, t&& value) {
+        configs_.insert_or_assign(name, std::forward<t>(value));
     }
 
     AudioFormat AsAudioFormat(const std::string_view& name) const {
@@ -35,13 +35,13 @@ public:
         return Get<std::wstring>(name);
     }
 
-    template <typename T>
-    T Get(const std::string_view& name) const {
-        return std::any_cast<T>(configs_.at(name));
+    template <typename t>
+    t Get(const std::string_view& name) const {
+        return std::any_cast<t>(configs_.at(name));
     }
 
-    template <typename T>
-    bool Set(const std::string_view& name, const T &value) {
+    template <typename t>
+    bool Set(const std::string_view& name, const t &value) {
 	    if (!configs_.contains(name)) {
             return false;
 	    }

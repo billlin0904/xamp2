@@ -72,11 +72,11 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
     (void)QObject::connect(this, &PlaylistTabWidget::customContextMenuRequested, [this](auto pt) {
         ActionMap<PlaylistTabWidget> action_map(this);
 
-        auto* close_all_tab_act = action_map.addAction(tr("Close all tab"), [this]() {
+        auto* close_all_tab_act = action_map.addAction(tr("close all tab"), [this]() {
             closeAllTab();
             });
 
-        auto* close_other_tab_act = action_map.addAction(tr("Close other tab"), [pt, this]() {
+        auto* close_other_tab_act = action_map.addAction(tr("close other tab"), [pt, this]() {
             auto index = tabBar()->tabAt(pt);
             if (index == -1) {
                 return;
@@ -112,7 +112,7 @@ PlaylistTabWidget::PlaylistTabWidget(QWidget* parent)
             emit saveToM3UFile(playlist_page->playlist()->playlistId(), tabBar()->tabText(tab_index));
 			});
 
-        action_map.addAction(tr("Load playlist file"), [pt, this]() {
+        action_map.addAction(tr("load playlist file"), [pt, this]() {
             auto tab_index = tabBar()->tabAt(pt);
             if (tab_index == -1) {
                 return;
@@ -368,7 +368,7 @@ void PlaylistTabWidget::mouseMoveEvent(QMouseEvent* event) {
         tooltip_->hide();
 
         if (hovered_tab_index_ != -1) {
-            // Start the timer
+            // start the timer
             tooltip_timer_->start();
         }
     }

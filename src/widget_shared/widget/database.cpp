@@ -152,7 +152,7 @@ PooledDatabasePtr getPooledDatabase(int32_t pool_size) {
 
 QScopedPointer<Database> makeDatabaseConnection() {
     DatabaseFactory factory;
-    return QScopedPointer<Database>(factory.Create());
+    return QScopedPointer<Database>(factory.create());
 }
 
 SqlException::SqlException(const SqlQuery& query) 
@@ -160,13 +160,13 @@ SqlException::SqlException(const SqlQuery& query)
     XAMP_LOG_DEBUG("SqlException: {}\r\n{}\r\n{}",
         query.lastError().text().toStdString(),
         query.lastQuery().toStdString(),
-        GetStackTrace());
+        getStackTrace());
 }
 
 SqlException::SqlException(QSqlError error)
     : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR,
         error.text().toStdString()) {
-    XAMP_LOG_DEBUG("SqlException: {}{}", error.text().toStdString(), GetStackTrace());
+    XAMP_LOG_DEBUG("SqlException: {}{}", error.text().toStdString(), getStackTrace());
 }
 
 const char* SqlException::what() const noexcept {
@@ -197,10 +197,10 @@ QSqlDatabase& Database::database() {
 }
 
 Database::~Database() {
-    Close();
+    close();
 }
 
-void Database::Close() {
+void Database::close() {
     if (db_.isOpen()) {
     	db_.close();
         XAMP_LOG_I(logger_, "Database {} closed.", connection_name_.toStdString());

@@ -58,303 +58,20 @@ namespace {
         XAMP_DECLARE_DLL_NAME(FLAC__stream_decoder_set_metadata_respond);
     };
 
-#define FLAC_LIB SharedSingleton<FlacLib>::GetInstance()
+#define LibFlacDLL SharedSingleton<FlacLib>::getInstance()
 
     struct FlacDecoderHandleTraits final {
         static FLAC__StreamDecoder* invalid() {
             return nullptr;
         }
 
-        static void Close(FLAC__StreamDecoder* value) {
-            FLAC_LIB.FLAC__stream_decoder_finish(value);
-            FLAC_LIB.FLAC__stream_decoder_delete(value);
+        static void close(FLAC__StreamDecoder* value) {
+            LibFlacDLL.FLAC__stream_decoder_finish(value);
+            LibFlacDLL.FLAC__stream_decoder_delete(value);
         }
     };
 
     using FlacDecoderHandle = UniqueHandle<FLAC__StreamDecoder*, FlacDecoderHandleTraits>;
-}
-
-// See: https://github.com/purpl3F0x/MQA_identifier/tree/master
-class MqaIdentifier::MqaIdentifierImpl {
-public:
-    class MqaFile {
-    public:
-        friend class MqaIdentifierImpl;
-
-        explicit MqaFile(const Path& path)
-            : path_(path) {
-        }
-
-        void decode();
-
-        static FLAC__StreamDecoderWriteStatus WriteCallback(const FLAC__StreamDecoder*,
-            const FLAC__Frame* frame,
-            const FLAC__int32* const buffer[],
-            void* client_data);
-
-        static void MetadataCallback(const FLAC__StreamDecoder*,
-            const FLAC__StreamMetadata* metadata,
-            void* client_data);
-
-        static void ErrorCallback(const FLAC__StreamDecoder*,
-            FLAC__StreamDecoderErrorStatus,
-            void* client_data);
-
-    private:
-        uint32_t sample_rate_ = 0;
-        uint32_t channels_ = 0;
-        uint32_t bps_ = 0;
-        uint32_t original_sample_rate_ = 0;   
-        FLAC__uint64 decoded_samples_ = 0;
-        const Path path_;
-        std::string mqa_encoder_;
-        std::vector<std::array<const FLAC__int32, 2>> samples_;
-    };
-
-    explicit MqaIdentifierImpl(const Path& path);
-
-    bool Detect();
-    
-    bool IsMQA() const {
-        return is_mqa_;
-    }
-
-    bool IsMQAStudio() const {
-        return is_mqa_studio_;
-	}
-
-    uint32_t GetOriginalSampleRate() const {
-		return file_.original_sample_rate_;
-    }
-
-private:
-    uint32_t OriginalSampleRateDecoder(unsigned c) {
-        /*
-         * If LSB is 0 then base is 44100 else 48000
-         * 3 MSB need to be rotated and raised to the power of 2 (so 1, 2, 4, 8, ...)
-         * output is base * multiplier
-         */
-        const uint32_t base = (c & 1u) ? 48000 : 44100;
-
-        uint32_t multiplier = 1u << (((c >> 3u) & 1u) | (((c >> 2u) & 1u) << 1u) | (((c >> 1u) & 1u) << 2u));
-        // Double for DSD
-        if (multiplier > 16) multiplier *= 2;
-
-        return base * multiplier;
-    }
-
-    bool is_mqa_{ false };
-    bool is_mqa_studio_{ false };
-    MqaFile file_;
-};
-
-MqaIdentifier::MqaIdentifierImpl::MqaIdentifierImpl(const Path& path)
-    : file_(path) {
-}
-
-bool MqaIdentifier::MqaIdentifierImpl::Detect() {
-    file_.decode();
-
-	static constexpr uint64_t kMQASignature = 0xbe0498c88;
-
-    uint64_t buffer = 0;
-    uint64_t buffer1 = 0;
-    uint64_t buffer2 = 0;
-    const auto pos = (file_.bps_ - 16u);
-
-    for (const auto& s : file_.samples_) {
-        buffer |= ((static_cast<uint32_t>(s[0]) ^ static_cast<uint32_t>(s[1])) >> pos) & 1u;
-        buffer1 |= ((static_cast<uint32_t>(s[0]) ^ static_cast<uint32_t>(s[1])) >> pos + 1) & 1u;
-        buffer2 |= ((static_cast<uint32_t>(s[0]) ^ static_cast<uint32_t>(s[1])) >> pos + 2) & 1u;
-
-        if (buffer == kMQASignature) {
-            is_mqa_ = true;
-            // Get Original Sample Rate
-            uint8_t orsf = 0;
-            for (auto m = 3u; m < 7; m++) { // TODO: this need fix (orsf is 5bits)
-                auto cur = *(&s + m);
-                auto j = ((static_cast<uint32_t>(cur[0]) ^ static_cast<uint32_t>(cur[1])) >> pos) & 1u;
-                orsf |= j << (6u - m);
-            }
-            file_.original_sample_rate_ = OriginalSampleRateDecoder(orsf);
-
-            // Get MQA Studio
-            uint8_t provenance = 0u;
-            for (auto m = 29u; m < 34; m++) {
-                auto cur = *(&s + m);
-                auto j = ((static_cast<uint32_t>(cur[0]) ^ static_cast<uint32_t>(cur[1])) >> pos) & 1u;
-                provenance |= j << (33u - m);
-            }
-            is_mqa_studio_ = provenance > 8;
-
-            // We are done return true
-            return true;
-		}
-		else if (buffer1 == kMQASignature) {
-            is_mqa_ = true;
-            // Get Original Sample Rate
-            uint8_t orsf = 0;
-            for (auto m = 3u; m < 7; m++) { // TODO: this need fix (orsf is 5bits)
-                auto cur = *(&s + m);
-                auto j = ((static_cast<uint32_t>(cur[0]) ^ static_cast<uint32_t>(cur[1])) >> pos + 1) & 1u;
-                orsf |= j << (6u - m);
-            }
-            file_.original_sample_rate_ = OriginalSampleRateDecoder(orsf);
-
-            // Get MQA Studio
-            uint8_t provenance = 0u;
-            for (auto m = 29u; m < 34; m++) {
-                auto cur = *(&s + m);
-                auto j = ((static_cast<uint32_t>(cur[0]) ^ static_cast<uint32_t>(cur[1])) >> pos + 1) & 1u;
-                provenance |= j << (33u - m);
-            }
-            is_mqa_studio_ = provenance > 8;
-
-            // We are done return true
-            return true;
-        }
-        else if (buffer2 == kMQASignature) {
-            is_mqa_ = true;
-            // Get Original Sample Rate
-            uint8_t orsf = 0;
-            for (auto m = 3u; m < 7; m++) { // TODO: this need fix (orsf is 5bits)
-                auto cur = *(&s + m);
-                auto j = ((static_cast<uint32_t>(cur[0]) ^ static_cast<uint32_t>(cur[1])) >> pos + 2) & 1u;
-                orsf |= j << (6u - m);
-            }
-            file_.original_sample_rate_ = OriginalSampleRateDecoder(orsf);
-
-            // Get MQA Studio
-            uint8_t provenance = 0u;
-            for (auto m = 29u; m < 34; m++) {
-                auto cur = *(&s + m);
-                auto j = ((static_cast<uint32_t>(cur[0]) ^ static_cast<uint32_t>(cur[1])) >> pos + 2) & 1u;
-                provenance |= j << (33u - m);
-            }
-            is_mqa_studio_ = provenance > 8;
-
-            // We are done return true
-            return true;
-        }
-        else {
-            buffer = (buffer << 1u) & 0xFFFFFFFFFu;
-            buffer1 = (buffer1 << 1u) & 0xFFFFFFFFFu;
-            buffer2 = (buffer2 << 1u) & 0xFFFFFFFFFu;
-        }
-    }
-    return false;
-}
-
-FLAC__StreamDecoderWriteStatus MqaIdentifier::MqaIdentifierImpl::MqaFile::WriteCallback(
-    const FLAC__StreamDecoder*,
-    const FLAC__Frame* frame,
-    const FLAC__int32* const buffer[],
-    void* client_data) {
-    auto* self = static_cast<MqaFile*>(client_data);
-    if (self->channels_ != 2 || (self->bps_ != 16 && self->bps_ != 24)) {
-        return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
-    }
-
-    self->decoded_samples_ += frame->header.blocksize;
-
-    for (size_t i = 0; i < frame->header.blocksize; i++)
-        self->samples_.push_back(std::array<const FLAC__int32, 2 >{buffer[0][i], buffer[1][i]});
-
-    return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
-}
-
-void MqaIdentifier::MqaIdentifierImpl::MqaFile::ErrorCallback(const FLAC__StreamDecoder*,
-    FLAC__StreamDecoderErrorStatus,
-    void*) {
-}
-
-void MqaIdentifier::MqaIdentifierImpl::MqaFile::MetadataCallback(const FLAC__StreamDecoder*,
-    const FLAC__StreamMetadata* metadata,
-    void* client_data) {
-    auto* self = static_cast<MqaFile*>(client_data);
-    if (metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
-        self->sample_rate_ = metadata->data.stream_info.sample_rate;
-        self->channels_ = metadata->data.stream_info.channels;
-        self->bps_ = metadata->data.stream_info.bits_per_sample;
-    }
-    else if (metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
-        for (FLAC__uint32 i = 0; i < metadata->data.vorbis_comment.num_comments; i++) {
-            const auto comment = reinterpret_cast<char*>(metadata->data.vorbis_comment.comments[i].entry);
-
-            if (std::strncmp("MQAENCODER", comment, 10) == 0)
-                self->mqa_encoder_ = std::string(comment + 10, comment + metadata->data.vorbis_comment.comments[i].length);
-        }
-    }
-}
-
-void MqaIdentifier::MqaIdentifierImpl::MqaFile::decode() {
-    FlacDecoderHandle decoder(FLAC_LIB.FLAC__stream_decoder_new());
-    if (!decoder) {
-        throw std::runtime_error("FLAC__stream_decoder_new failed.");
-    }
-
-    sample_rate_ = 0;
-    channels_ = 0;
-    bps_ = 0;
-    original_sample_rate_ = 0;
-    decoded_samples_ = 0;
-    samples_.clear();
-    mqa_encoder_.clear();
-
-    FLAC_LIB.FLAC__stream_decoder_set_md5_checking(decoder.get(), true);
-    FLAC_LIB.FLAC__stream_decoder_set_metadata_respond(decoder.get(), FLAC__METADATA_TYPE_VORBIS_COMMENT);
-
-    auto file_path = String::ToUtf8String(path_.wstring());
-
-    const auto init_status = FLAC_LIB.FLAC__stream_decoder_init_file(
-        decoder.get(),
-        file_path.c_str(),
-        &WriteCallback,
-        &MetadataCallback,
-        &ErrorCallback,
-        this);
-    if (init_status != FLAC__STREAM_DECODER_INIT_STATUS_OK) {
-        throw std::runtime_error("FLAC init_file failed.");
-    }
-
-    if (!FLAC_LIB.FLAC__stream_decoder_process_until_end_of_metadata(decoder.get())) {
-        throw std::runtime_error("FLAC metadata parse failed.");
-    }
-    
-    samples_.reserve(sample_rate_ * 3);
-
-    while (decoded_samples_ < sample_rate_ * 3) {
-        if (!FLAC_LIB.FLAC__stream_decoder_process_single(decoder.get())) {
-			throw std::runtime_error("FLAC__stream_decoder_process_single failed.");
-        }
-
-        const auto state = FLAC_LIB.FLAC__stream_decoder_get_state(decoder.get());
-        if (state == FLAC__STREAM_DECODER_END_OF_STREAM || state == FLAC__STREAM_DECODER_ABORTED) {
-            break;
-        }
-    }
-}
-
-XAMP_PIMPL_IMPL(MqaIdentifier)
-
-MqaIdentifier::MqaIdentifier(const Path& path)
-    : impl_(MakeAlign<MqaIdentifierImpl>(path)) {
-}
-
-bool MqaIdentifier::Detect() {
-	return impl_->Detect();
-}
-
-bool MqaIdentifier::IsMQA() const {
-    return impl_->IsMQA();
-}
-
-bool MqaIdentifier::IsMQAStudio() const {
-    return impl_->IsMQAStudio();
-}
-
-uint32_t MqaIdentifier::GetOriginalSampleRate() const {
-    return impl_->GetOriginalSampleRate();
 }
 
 class MqaFileStream::MqaFileStreamImpl {
@@ -363,13 +80,13 @@ public:
         logger_ = XAMP_LOG_CREATE_LOGGER(MqaFileStreamImpl);
     }
 
-    void Open(const Path& path) {
-        decoder_.reset(FLAC_LIB.FLAC__stream_decoder_new());
+    void open(const Path& path) {
+        decoder_.reset(LibFlacDLL.FLAC__stream_decoder_new());
         if (!decoder_) throw std::runtime_error("FLAC__stream_decoder_new failed.");
 
-        auto file_path = String::ToUtf8String(path.wstring());
+        auto file_path = String::toUtf8String(path.wstring());
 
-        const auto st = FLAC_LIB.FLAC__stream_decoder_init_file(
+        const auto st = LibFlacDLL.FLAC__stream_decoder_init_file(
             decoder_.get(),
             file_path.c_str(),
             &WriteCallback,
@@ -382,14 +99,14 @@ public:
             throw std::runtime_error("FLAC init_file failed.");
         }
 
-        if (!FLAC_LIB.FLAC__stream_decoder_process_until_end_of_metadata(decoder_.get())) {
+        if (!LibFlacDLL.FLAC__stream_decoder_process_until_end_of_metadata(decoder_.get())) {
             throw std::runtime_error("FLAC metadata parse failed.");
         }
 
         active_ = true;
     }
 
-    void Close() {
+    void close() {
         decoder_.reset();
 
         active_ = false;
@@ -397,13 +114,13 @@ public:
         queue_read_bytes_ = 0;
     }
 
-    double GetDuration() const {
+    double getDuration() const {
         if (sample_rate_ == 0) return 0.0;
         if (total_samples_ == 0) return 0.0;
         return static_cast<double>(total_samples_) / static_cast<double>(sample_rate_);
     }
 
-    uint32_t GetSamples(void* buffer, uint32_t length) const {
+    uint32_t getSamples(void* buffer, uint32_t length) const {
         if (!buffer || length == 0 || !active_) return 0;
 
 		length *= sizeof(int32_t);
@@ -438,11 +155,11 @@ public:
         return written / sizeof(int32_t);
     }
 
-    AudioFormat GetFormat() const {
+    AudioFormat getFormat() const {
         return AudioFormat(DataFormat::FORMAT_PCM, channels_, bits_per_sample_, sample_rate_);
     }
 
-    void Seek(double stream_time) const {
+    void seek(double stream_time) const {
         if (!active_ || sample_rate_ == 0) return;
 
         const double t = std::max(0.0, stream_time);
@@ -451,40 +168,40 @@ public:
         pcm_queue_.clear();
         queue_read_bytes_ = 0;
 
-        FLAC_LIB.FLAC__stream_decoder_seek_absolute(decoder_.get(), target);
+        LibFlacDLL.FLAC__stream_decoder_seek_absolute(decoder_.get(), target);
     }
 
-    uint32_t GetSampleSize() const {
+    uint32_t getSampleSize() const {
         return sizeof(int32_t);
     }
 
-    bool IsActive() const {
+    bool isActive() const {
         return active_; 
     }
 
-    uint32_t GetBitDepth() const { 
+    uint32_t getBitDepth() const { 
         return bits_per_sample_; 
     }
 
-    uint32_t GetBitRate() const {
+    uint32_t getBitRate() const {
         return 0;
     }
 
-	bool EndOfStream() const {
+	bool endOfStream() const {
 		if (!active_) return true;
-		const auto state = FLAC_LIB.FLAC__stream_decoder_get_state(decoder_.get());
+		const auto state = LibFlacDLL.FLAC__stream_decoder_get_state(decoder_.get());
 		return state == FLAC__STREAM_DECODER_END_OF_STREAM || state == FLAC__STREAM_DECODER_ABORTED;
 	}
 
 private:
     bool DecodeOneBlock() const {
-        const auto state = FLAC_LIB.FLAC__stream_decoder_get_state(decoder_.get());
+        const auto state = LibFlacDLL.FLAC__stream_decoder_get_state(decoder_.get());
         if (state == FLAC__STREAM_DECODER_END_OF_STREAM) return false;
         if (state == FLAC__STREAM_DECODER_ABORTED) return false;
 
-        if (!FLAC_LIB.FLAC__stream_decoder_process_single(decoder_.get())) return false;
+        if (!LibFlacDLL.FLAC__stream_decoder_process_single(decoder_.get())) return false;
 
-        const auto state2 = FLAC_LIB.FLAC__stream_decoder_get_state(decoder_.get());
+        const auto state2 = LibFlacDLL.FLAC__stream_decoder_get_state(decoder_.get());
         if (state2 == FLAC__STREAM_DECODER_END_OF_STREAM) return false;
         if (state2 == FLAC__STREAM_DECODER_ABORTED) return false;
 
@@ -567,60 +284,60 @@ private:
 };
 
 MqaFileStream::MqaFileStream()
-	: impl_(MakeAlign<MqaFileStreamImpl>()) {
+	: impl_(makeAlign<MqaFileStreamImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(MqaFileStream)
 
-void MqaFileStream::OpenFile(Path const& file_path) {
-    impl_->Open(file_path);
+void MqaFileStream::openFile(Path const& file_path) {
+    impl_->open(file_path);
 }
 
-void MqaFileStream::Open(ArchiveEntry archive_entry) {
+void MqaFileStream::open(ArchiveEntry archive_entry) {
 }
 
-bool MqaFileStream::EndOfStream() const {
-    return impl_->EndOfStream();
+bool MqaFileStream::endOfStream() const {
+    return impl_->endOfStream();
 }
 
-void MqaFileStream::Close() {
-    impl_->Close();
+void MqaFileStream::close() {
+    impl_->close();
 }
 
-double MqaFileStream::GetDuration() const {
-    return impl_->GetDuration();
+double MqaFileStream::getDuration() const {
+    return impl_->getDuration();
 }
 
-AudioFormat MqaFileStream::GetFormat() const {
-    return impl_->GetFormat();
+AudioFormat MqaFileStream::getFormat() const {
+    return impl_->getFormat();
 }
 
-void MqaFileStream::Seek(double stream_time) const {
-    impl_->Seek(stream_time);
+void MqaFileStream::seek(double stream_time) const {
+    impl_->seek(stream_time);
 }
 
-uint32_t MqaFileStream::GetSamples(void* buffer, uint32_t length) const {
-    return impl_->GetSamples(buffer, length);
+uint32_t MqaFileStream::getSamples(void* buffer, uint32_t length) const {
+    return impl_->getSamples(buffer, length);
 }
 
-uint32_t MqaFileStream::GetSampleSize() const {
-    return impl_->GetSampleSize();
+uint32_t MqaFileStream::getSampleSize() const {
+    return impl_->getSampleSize();
 }
 
-uint32_t MqaFileStream::GetBitDepth() const {
-    return impl_->GetBitDepth();
+uint32_t MqaFileStream::getBitDepth() const {
+    return impl_->getBitDepth();
 }
 
-uint32_t MqaFileStream::GetBitRate() const {
-    return impl_->GetBitRate();
+uint32_t MqaFileStream::getBitRate() const {
+    return impl_->getBitRate();
 }
 
-bool MqaFileStream::IsActive() const {
-    return impl_->IsActive();
+bool MqaFileStream::isActive() const {
+    return impl_->isActive();
 }
 
 void LoadMqaLib() {
-    SharedSingleton<FlacLib>::GetInstance();
+    SharedSingleton<FlacLib>::getInstance();
 }
 
 XAMP_STREAM_NAMESPACE_END

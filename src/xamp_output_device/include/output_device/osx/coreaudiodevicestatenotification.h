@@ -25,12 +25,12 @@ public:
 
     ~CoreAudioDeviceStateNotification() override;
 
-    void Run() override;
+    void run() override;
 
 private:
-    void AddPropertyListener();
+    void addPropertyListener();
 
-    void RemovePropertyListener();
+    void removePropertyListener();
 
     static OSStatus OnDefaultDeviceChangedCallback(
         AudioObjectID object,

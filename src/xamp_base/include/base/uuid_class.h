@@ -15,11 +15,11 @@ XAMP_BASE_NAMESPACE_BEGIN
     public:\
     constexpr static auto Description = std::string_view(#ClassName); \
     \
-    [[nodiscard]] Uuid GetTypeId() const override { \
+    [[nodiscard]] Uuid getTypeId() const override { \
         return XAMP_UUID_OF(ClassName); \
     } \
     \
-    [[nodiscard]] std::string_view GetDescription() const override { \
+    [[nodiscard]] std::string_view getDescription() const override { \
         return Description; \
     }
 
@@ -27,11 +27,11 @@ XAMP_BASE_NAMESPACE_BEGIN
     public:\
     constexpr static auto Description = std::string_view(Desc); \
     \
-    [[nodiscard]] Uuid GetTypeId() const override { \
+    [[nodiscard]] Uuid getTypeId() const override { \
         return XAMP_UUID_OF(ClassName); \
     } \
     \
-    [[nodiscard]] std::string_view GetDescription() const override { \
+    [[nodiscard]] std::string_view getDescription() const override { \
         return Description; \
     }
 
@@ -44,14 +44,14 @@ public:
      *
      * @return the type id of the audio processor.
      */
-    [[nodiscard]] virtual Uuid GetTypeId() const = 0;
+    [[nodiscard]] virtual Uuid getTypeId() const = 0;
 
     /*
      * Get the description of the audio processor.
      *
      * @return the description of the audio processor.
      */
-    [[nodiscard]] virtual std::string_view GetDescription() const = 0;
+    [[nodiscard]] virtual std::string_view getDescription() const = 0;
 
 protected:
     IUUIDClass() = default;

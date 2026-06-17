@@ -23,32 +23,14 @@ XAMP_BASE_NAMESPACE_BEGIN
 */
 class XAMP_BASE_API FastConditionVariable final {
 public:
-	/*
-	* Construct.
-	* 
-	*/
 	FastConditionVariable() = default;
 
 	XAMP_DISABLE_COPY(FastConditionVariable)
 
-	/*
-	* Destruct.
-	*/
 	~FastConditionVariable() = default;
 
-	/*
-	* Wait for the condition variable.
-	* 
-	* @param lock The lock.	 
-	*/
 	void wait(std::unique_lock<FastMutex>& lock);
 
-	/*
-	* Wait for the condition variable.
-	* 
-	* @param lock The lock.
-	* @param predicate The predicate.
-	*/
 	template <typename Predicate>
 	void wait(std::unique_lock<FastMutex>& lock, Predicate&& predicate) {
 		while (!predicate()) {
@@ -56,13 +38,6 @@ public:
 		}
 	}
 
-	/*
-	* Wait for the condition variable.
-	* 
-	* @param lock The lock.
-	* @param rel_time The relative time.
-	* @return std::cv_status::no_timeout if the condition variable is notified, std::cv_status::timeout if the condition variable is timeout.	
-	*/
 	template <typename Rep, typename Period>
 	std::cv_status wait_for(std::unique_lock<FastMutex>& lock, const std::chrono::duration<Rep, Period>& rel_time) {
         if (rel_time <= std::chrono::duration<Rep, Period>::zero()) {
@@ -94,26 +69,10 @@ public:
         return true;
     }
 
-	/*
-	* Notify one thread.
-	* 
-	*/
 	void notify_one() ;
 
-	/*
-	* Notify all threads.
-	* 
-	*/
 	void notify_all() ;
 private:
-	/*
-	* Wait for the condition variable.
-	* 
-	* @param to_wait_on The atomic variable to wait on.
-	* @param expected The expected value.
-	* @param duration The duration.
-	* @return std::cv_status::no_timeout if the condition variable is notified, std::cv_status::timeout if the condition variable is timeout.
-	*/
 	template <typename Rep, typename Period>
 	std::cv_status FastWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, std::chrono::duration<Rep, Period> const& duration) {
 		using namespace std::chrono;		

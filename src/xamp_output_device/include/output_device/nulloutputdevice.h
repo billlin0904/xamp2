@@ -8,7 +8,7 @@
 #include <base/base.h>
 #include <base/buffer.h>
 #include <base/fastconditionvariable.h>
-#include <base/ithreadpoolexecutor.h>
+#include <base/threadpool.h>
 #include <base/logger.h>
 #include <base/task.h>
 
@@ -28,7 +28,7 @@ public:
 	/*
 	* Constructor
 	*/
-	explicit NullOutputDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool);
+	explicit NullOutputDevice(const std::shared_ptr<IThreadPool>& thread_pool);
 
 	/*
 	* Destructor
@@ -36,134 +36,134 @@ public:
 	virtual ~NullOutputDevice() override;
 
 	/*
-	* Open stream
+	* open stream
 	*
 	* @param output_format: output format
 	* @return void
 	*/
-	void OpenStream(AudioFormat const& output_format) override;
+	void openStream(AudioFormat const& output_format) override;
 
 	/*
 	* Set audio callback
 	*
 	* @param callback: audio callback
 	*/
-	void SetAudioCallback(IAudioCallback* callback) override;
+	void setAudioCallback(IAudioCallback* callback) override;
 
 	/*
 	* Is stream open
 	*
 	* return bool
 	*/
-	bool IsStreamOpen() const override;
+	bool isStreamOpen() const override;
 
 	/*
 	* Is stream running
 	*
 	* @return bool
 	*/
-	bool IsStreamRunning() const override;
+	bool isStreamRunning() const override;
 
 	/*
-	* Stop stream
+	* stop stream
 	*
 	* @param[in] wait_for_stop_stream: wait for stop stream
 	*/
-	void StopStream(bool wait_for_stop_stream = true) override;
+	void stopStream(bool wait_for_stop_stream = true) override;
 
 	/*
-	* Close stream
+	* close stream
 	*
 	*/
-	void CloseStream() override;
+	void closeStream() override;
 
 	/*
-	* Start stream
+	* start stream
 	*
 	*/
-	void StartStream() override;
+	void startStream() override;
 
 	/*
 	* Set stream time
 	*
 	* @param stream_time: stream time
 	*/
-	void SetStreamTime(double stream_time) override;
+	void setStreamTime(double stream_time) override;
 
 	/*
 	* Get stream time
 	*
 	*/
-	double GetStreamTime() const override;
+	double getStreamTime() const override;
 
 	/*
 	* Get volume
 	*
 	* @return uint32_t
 	*/
-	uint32_t GetVolume() const override;
+	uint32_t getVolume() const override;
 
 	/*
 	* Is muted
 	*
 	* @return bool
 	*/
-	bool IsMuted() const override;
+	bool isMuted() const override;
 
 	/*
 	* Set volume
 	* @param volume: volume (1~100)
 	*/
-	void SetVolume(uint32_t volume) const override;
+	void setVolume(uint32_t volume) const override;
 
 	/*
 	* Set mute
 	*
 	* @param[in] mute: mute (true/false)
 	*/
-	void SetMute(bool mute) const override;
+	void setMute(bool mute) const override;
 
 	/*
 	* Get packed format
 	*
 	* @return PackedFormat
 	*/
-	PackedFormat GetPackedFormat() const override;
+	PackedFormat getPackedFormat() const override;
 
 	/*
 	* Get device buffer size
 	*
 	* @return uint32_t
 	*/
-	uint32_t GetBufferSize() const override;
+	uint32_t getBufferSize() const override;
 
 	/*
 	* Is hardware control volume
 	*
 	* @return bool
 	*/
-	bool IsHardwareControlVolume() const override;
+	bool isHardwareControlVolume() const override;
 
 	/*
 	* Abort stream
 	*
 	* @return void
 	*/
-	void AbortStream() override;
+	void abortStream() override;
 
 	/*
 	* Set DSD IO format.
 	*
 	* @param[in] format: DSD IO format
 	*/
-	void SetIoFormat(DsdIoFormat format) override;
+	void setIoFormat(DsdIoFormat format) override;
 
 	/*
 	* Get DSD IO format.
 	*
 	* @return DsdIoFormat
 	*/
-	[[nodiscard]] virtual DsdIoFormat GetIoFormat() const override;
+	[[nodiscard]] virtual DsdIoFormat getIoFormat() const override;
 
 private:
 	bool is_running_;
@@ -180,7 +180,7 @@ private:
 	LoggerPtr logger_;
 	AudioFormat output_format_;
 	Buffer<float> buffer_;
-	std::shared_ptr<IThreadPoolExecutor> thread_pool_;
+	std::shared_ptr<IThreadPool> thread_pool_;
 };
 
 XAMP_OUTPUT_DEVICE_NAMESPACE_END

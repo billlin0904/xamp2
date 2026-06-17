@@ -20,11 +20,11 @@ public:
 
 	XAMP_PIMPL(Timer)
 
-	void Start(std::chrono::milliseconds interval, std::move_only_function<void()> callback);
+	void start(std::chrono::milliseconds interval, std::move_only_function<void()> callback);
 
-	void Stop();
+	void stop();
 
-	bool IsStarted() const;
+	bool isStarted() const;
 
 private:
 	class TimerImpl;

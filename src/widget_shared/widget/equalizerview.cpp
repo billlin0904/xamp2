@@ -50,7 +50,9 @@ namespace {
     constexpr int32_t kPreampScaleWidth = 56;
     constexpr size_t kAnalyzerBuckets = 180;
     constexpr double kAnalyzerWindowCoherentGain = 0.54;
-    constexpr double kAnalyzerDisplayOffsetDb = 24.0;
+    constexpr double kAnalyzerMinDbFs = -90.0;
+    constexpr double kAnalyzerMaxDbFs = 0.0;
+    constexpr double kAnalyzerFloor = 1e-8;
     constexpr double kAnalyzerSmoothing = 0.82;
     const auto kEqGraphPanelColor = "#303032"_str;
 
@@ -293,11 +295,15 @@ protected:
                 }
 
                 if (count > 0 && power > 0.0) {
-                    const auto bucket_energy = std::sqrt(power);
+                    const auto bucket_energy = std::sqrt(power / static_cast<double>(count));
                     const auto normalized_energy = bucket_energy * 2.0
                         / (static_cast<double>(analyzer_frame_size_) * kAnalyzerWindowCoherentGain);
-                    analyzer_db[bucket] = 20.0 * std::log10(normalized_energy + 1e-8)
-                        + kAnalyzerDisplayOffsetDb;
+                    const auto dbfs = std::clamp(
+                        20.0 * std::log10((std::max)(normalized_energy, kAnalyzerFloor)),
+                        kAnalyzerMinDbFs,
+                        kAnalyzerMaxDbFs);
+                    const auto level = (dbfs - kAnalyzerMinDbFs) / (kAnalyzerMaxDbFs - kAnalyzerMinDbFs);
+                    analyzer_db[bucket] = kMinDb + level * (0.0 - kMinDb);
                 }
             }
 
@@ -826,7 +832,7 @@ void EqualizerView::samplesChanged(std::vector<float> samples, size_t num_sample
     }
 
     graph_->setAnalyzerSpectrum(
-        analyzer_stft_->Process(samples.data(), samples.size()),
+        analyzer_stft_->process(samples.data(), samples.size()),
         analyzer_sample_rate_,
         analyzer_frame_size_);
 }
@@ -873,8 +879,8 @@ void EqualizerView::configureAnalyzer(size_t num_samples) {
 
     analyzer_frame_size_ = frame_size;
     analyzer_shift_size_ = shift_size;
-    analyzer_stft_ = xamp::base::MakeAlign<xamp::stream::STFT>(analyzer_frame_size_, analyzer_shift_size_);
-    analyzer_stft_->SetWindowType(WindowType::HAMMING);
+    analyzer_stft_ = xamp::base::makeAlign<xamp::stream::STFT>(analyzer_frame_size_, analyzer_shift_size_);
+    analyzer_stft_->setWindowType(WindowType::HAMMING);
 }
 
 void EqualizerView::toggleTestWaveformGeneration() {
@@ -890,15 +896,15 @@ void EqualizerView::toggleTestWaveformGeneration() {
     }
 
     test_noise_state_.clear();
-    test_wave_button_->setText(QStringLiteral("Stop generate"));
-    test_wave_button_->setToolTip(QStringLiteral("Stop generating pink noise"));
+    test_wave_button_->setText(QStringLiteral("stop generate"));
+    test_wave_button_->setToolTip(QStringLiteral("stop generating pink noise"));
     generateTestWaveform();
     test_wave_timer_->start();
 }
 
 void EqualizerView::generateTestWaveform() {
     if (analyzer_sample_rate_ <= 0) {
-        analyzer_sample_rate_ = AudioFormat::kFloatPCM48Khz.GetSampleRate();
+        analyzer_sample_rate_ = AudioFormat::kFloatPCM48Khz.getSampleRate();
         resetAnalyzer();
         resetTestEq();
     }
@@ -908,10 +914,10 @@ void EqualizerView::generateTestWaveform() {
     }
 
     constexpr auto kTestSampleFrames = size_t{ 4096 };
-    auto& prng = PRNG::GetThreadLocal();
+    auto& prng = PRNG::getThreadLocal();
     std::vector<float> samples(kTestSampleFrames * AudioFormat::kMaxChannel);
     for (auto frame = size_t{ 0 }; frame < kTestSampleFrames; ++frame) {
-        const auto white = static_cast<double>(prng.NextSingle(-1.0f, 1.0f));
+        const auto white = static_cast<double>(prng.nextSingle(-1.0f, 1.0f));
         test_noise_state_[0] = 0.99886 * test_noise_state_[0] + white * 0.0555179;
         test_noise_state_[1] = 0.99332 * test_noise_state_[1] + white * 0.0750759;
         test_noise_state_[2] = 0.96900 * test_noise_state_[2] + white * 0.1538520;
@@ -945,19 +951,19 @@ void EqualizerView::configureTestEq(const EqSettings& settings) {
 
     if (test_eq_ == nullptr || test_eq_sample_rate_ != analyzer_sample_rate_) {
         auto output_format = AudioFormat::kFloatPCM48Khz;
-        output_format.SetSampleRate(static_cast<uint32_t>(analyzer_sample_rate_));
+        output_format.setSampleRate(static_cast<uint32_t>(analyzer_sample_rate_));
 
         Property config;
-        config.Create(DspConfig::kOutputFormat, output_format);
-        config.Create(DspConfig::kEQSettings, settings);
+        config.create(DspConfig::kOutputFormat, output_format);
+        config.create(DspConfig::kEQSettings, settings);
 
-        test_eq_ = xamp::base::MakeAlign<xamp::stream::BassParametricEq>();
-        test_eq_->Initialize(config);
+        test_eq_ = xamp::base::makeAlign<xamp::stream::BassParametricEq>();
+        test_eq_->initialize(config);
         test_eq_sample_rate_ = analyzer_sample_rate_;
         return;
     }
 
-    test_eq_->SetEq(settings);
+    test_eq_->setEq(settings);
 }
 
 void EqualizerView::applyTestEq(std::vector<float>& samples) {
@@ -972,10 +978,10 @@ void EqualizerView::applyTestEq(std::vector<float>& samples) {
         }
 
         if (test_eq_buffer_.size() != samples.size()) {
-            test_eq_buffer_ = MakeBuffer<float>(samples.size());
+            test_eq_buffer_ = makeBuffer<float>(samples.size());
         }
         BufferRef<float> output(test_eq_buffer_);
-        if (!test_eq_->Process(samples.data(), samples.size(), output) || output.empty()) {
+        if (!test_eq_->process(samples.data(), samples.size(), output) || output.empty()) {
             return;
         }
         samples.assign(output.begin(), output.end());

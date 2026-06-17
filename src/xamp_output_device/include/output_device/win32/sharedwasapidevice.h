@@ -46,11 +46,11 @@ public:
 	virtual ~SharedWasapiDevice() override;
 
 	/*
-	* Open stream.
+	* open stream.
 	* 
 	* @param output_format AudioFormat
 	*/
-	void OpenStream(const AudioFormat & output_format) override;
+	void openStream(const AudioFormat & output_format) override;
 
 	/*
 	* Set audio callback.
@@ -58,100 +58,100 @@ public:
 	* @param callback: audio callback
 	* @return void
 	*/
-	void SetAudioCallback(IAudioCallback* callback) override;
+	void setAudioCallback(IAudioCallback* callback) override;
 
 	/*
 	* Is stream open.
 	*
 	* @return bool
 	*/
-	bool IsStreamOpen() const override;
+	bool isStreamOpen() const override;
 
 	/*
 	* Is stream running.
 	*
 	* @return bool
 	*/
-	bool IsStreamRunning() const override;
+	bool isStreamRunning() const override;
 
 	/*
-	* Stop stream.
+	* stop stream.
 	*
 	* @param wait_for_stop_stream: wait for stop stream
 	*/
-	void StopStream(bool wait_for_stop_stream = true) override;
+	void stopStream(bool wait_for_stop_stream = true) override;
 
 	/*
-	* Close stream.
+	* close stream.
 	*/
-	void CloseStream() override;
+	void closeStream() override;
 
 	/*
-	* Start stream.
+	* start stream.
 	*/
-	void StartStream() override;
+	void startStream() override;
 
 	/*
 	* Set stream time.
 	*
 	* @param stream_time: stream time
 	*/
-	void SetStreamTime(double stream_time) override;
+	void setStreamTime(double stream_time) override;
 
 	/*
 	* Get stream time.
 	*
 	* @return double
 	*/
-	double GetStreamTime() const override;
+	double getStreamTime() const override;
 
 	/*
 	* Get volume.
 	*
 	* @return uint32_t
 	*/
-	uint32_t GetVolume() const override;
+	uint32_t getVolume() const override;
 
 	/*
 	* Is muted.
 	*
 	* @return bool
 	*/
-	bool IsMuted() const override;
+	bool isMuted() const override;
 
 	/*
 	* Set volume
 	* @param volume: volume (1~100)
 	*/
-	void SetVolume(uint32_t volume) const override;
+	void setVolume(uint32_t volume) const override;
 
 	/*
 	* Set mute.
 	*
 	* @param mute: mute (true/false)
 	*/
-	void SetMute(bool mute) const override;
+	void setMute(bool mute) const override;
 
 	/*
 	* Set DSD IO format.
 	*
 	* @param[in] format: DSD IO format
 	*/
-	void SetIoFormat(DsdIoFormat format) override;
+	void setIoFormat(DsdIoFormat format) override;
 
 	/*
 	* Get DSD IO format.
 	*
 	* @return DsdIoFormat
 	*/
-	[[nodiscard]] DsdIoFormat GetIoFormat() const override;
+	[[nodiscard]] DsdIoFormat getIoFormat() const override;
 
 	/*
 	* Get packed format.
 	*
 	* @return PackedFormat
 	*/
-	PackedFormat GetPackedFormat() const override;
+	PackedFormat getPackedFormat() const override;
 
 	/*
 	* Set scheduler service
@@ -159,47 +159,47 @@ public:
 	* @param[in] mmcss_name: mmcss name
 	* @param[in] thread_priority: thread priority
 	*/
-	void SetSchedulerService(const std::wstring & mmcss_name, MmcssThreadPriority thread_priority);
+	void setSchedulerService(const std::wstring & mmcss_name, MmcssThreadPriority thread_priority);
 
 	/*
 	* Get device buffer size.
 	*
 	* @return uint32_t
 	*/
-	uint32_t GetBufferSize() const override;
+	uint32_t getBufferSize() const override;
 
 	/*
 	* Is hardware control volume.
 	*
 	* @return bool
 	*/
-	bool IsHardwareControlVolume() const override;
+	bool isHardwareControlVolume() const override;
 
 	/*
 	* Abort stream.
 	*/
-	void AbortStream() override;
+	void abortStream() override;
 
 private:
-	HRESULT GetSample(bool is_silence);
+	HRESULT getSample(bool is_silence);
 
-	HRESULT GetSample(uint32_t frame_available, bool is_silence);
+	HRESULT getSample(uint32_t frame_available, bool is_silence);
 
-	void ReportError(HRESULT hr);
+	void reportError(HRESULT hr);
 
-	void UnRegisterDeviceVolumeChange();
+	void unRegisterDeviceVolumeChange();
 
-	void RegisterDeviceVolumeChange();
+	void registerDeviceVolumeChange();
 
-	void InitialDevice(const AudioFormat & output_format);
+	void initialDevice(const AudioFormat & output_format);
 
-	void InitialDeviceFormat(const AudioFormat & output_format);
+	void initialDeviceFormat(const AudioFormat & output_format);
 
-	[[nodiscard]] bool IsBitstreamVolumeLocked() const;
+	[[nodiscard]] bool isBitstreamVolumeLocked() const;
 
-	void ForceBitstreamSessionVolume() const;
+	void forceBitstreamSessionVolume() const;
 
-	HRESULT OnInvoke(IMFAsyncResult* async_result);
+	HRESULT onInvoke(IMFAsyncResult* async_result);
 
 	class DeviceEventNotification;
 

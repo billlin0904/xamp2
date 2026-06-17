@@ -27,7 +27,7 @@ public:
 	    logger_ = XAMP_LOG_CREATE_LOGGER(BassParametricEq);
     }
     
-    void Start(uint32_t sample_rate) {
+    void start(uint32_t sample_rate) {
         RemoveFx();
 
         impl_.reset(BassLibDLL.BASS_StreamCreate(sample_rate,
@@ -106,7 +106,7 @@ public:
         fx_handles_.push_back(fx_handle);
     }
 
-    void SetEq(const EqSettings& settings) {
+    void setEq(const EqSettings& settings) {
         RemoveBandFx();
         for (const auto& band_setting : settings.bands) {
             AddBand(band_setting.type,
@@ -127,11 +127,11 @@ public:
         XAMP_LOG_D(logger_, "Preamp {:.02} dB", preamp);
     }
 
-    bool Process(float const* samples, size_t num_samples, BufferRef<float>& out) {
+    bool process(float const* samples, size_t num_samples, BufferRef<float>& out) {
         return bass_util::ReadStream(impl_, samples, num_samples, out);
     }
 
-    uint32_t Process(float const* samples, float* out, size_t num_samples) {
+    uint32_t process(float const* samples, float* out, size_t num_samples) {
         return bass_util::ReadStream(impl_, samples, out, num_samples);
     }
 
@@ -157,25 +157,25 @@ private:
 };
 
 BassParametricEq::BassParametricEq()
-    : impl_(MakeAlign<BassParametricEqImpl>()) {
+    : impl_(makeAlign<BassParametricEqImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(BassParametricEq)
 
-void BassParametricEq::Initialize(const Property& config) {
+void BassParametricEq::initialize(const Property& config) {
     const auto output_format = config.Get<AudioFormat>(DspConfig::kOutputFormat);
-    impl_->Start(output_format.GetSampleRate());
+    impl_->start(output_format.getSampleRate());
 
     const auto settings = config.Get<EqSettings>(DspConfig::kEQSettings);
-    SetEq(settings);    
+    setEq(settings);    
 }
 
-void BassParametricEq::SetEq(const EqSettings& settings) {
-    impl_->SetEq(settings);
+void BassParametricEq::setEq(const EqSettings& settings) {
+    impl_->setEq(settings);
 }
 
-bool BassParametricEq::Process(float const* samples, size_t num_samples, BufferRef<float>& out)  {
-    return impl_->Process(samples, num_samples, out);
+bool BassParametricEq::process(float const* samples, size_t num_samples, BufferRef<float>& out)  {
+    return impl_->process(samples, num_samples, out);
 }
 
 XAMP_STREAM_NAMESPACE_END

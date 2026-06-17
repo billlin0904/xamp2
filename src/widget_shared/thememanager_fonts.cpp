@@ -117,7 +117,7 @@ void ThemeManager::installFileFont(const QString& file_name, QList<QString> &ui_
     const auto loaded_font_id = QFontDatabase::addApplicationFont(font_path);
     const auto font_families = QFontDatabase::applicationFontFamilies(loaded_font_id);
     if (font_families.isEmpty()) {
-        XAMP_LOG_ERROR("Load font failed: {}", file_name.toStdString());
+        XAMP_LOG_ERROR("load font failed: {}", file_name.toStdString());
         return;
     }
 
@@ -135,7 +135,7 @@ void ThemeManager::setGoogleMaterialFontIcons() {
     const auto font_icon_json_path = qFormat("%1/fonticon.json")
         .arg(QCoreApplication::applicationDirPath());
     const QFileInfo font_icon_json_info(font_icon_json_path);
-    XAMP_LOG_DEBUG("Load font icon glyph config: {} exists:{}",
+    XAMP_LOG_DEBUG("load font icon glyph config: {} exists:{}",
         font_icon_json_path.toStdString(),
         font_icon_json_info.exists());
 
@@ -150,12 +150,12 @@ void ThemeManager::setGoogleMaterialFontIcons() {
             }
         }
     } else {
-        XAMP_LOG_ERROR("Load font icon glyph config failed: {}", font_icon_json_path.toStdString());
+        XAMP_LOG_ERROR("load font icon glyph config failed: {}", font_icon_json_path.toStdString());
     }
 
     const auto material_icon_font_path = fontNamePath("MaterialIcons-Regular.ttf"_str);
     const QFileInfo material_icon_font_info(material_icon_font_path);
-    XAMP_LOG_DEBUG("Load Material Icons font: {} exists:{}",
+    XAMP_LOG_DEBUG("load Material Icons font: {} exists:{}",
         material_icon_font_path.toStdString(),
         material_icon_font_info.exists());
 

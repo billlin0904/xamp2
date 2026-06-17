@@ -31,38 +31,38 @@ DECLARE_AUDIO_FORMAT_IMPL(PCM768Khz, 768000);
 
 const AudioFormat AudioFormat::kUnknownFormat;
 
-AudioFormat AudioFormat::ToFloatFormat(AudioFormat const& source_format) {
+AudioFormat AudioFormat::toFloatFormat(AudioFormat const& source_format) {
 	return AudioFormat{
 		DataFormat::FORMAT_PCM,
-		source_format.GetChannels(),
+		source_format.getChannels(),
 		ByteFormat::FLOAT32,
-		source_format.GetSampleRate(),
+		source_format.getSampleRate(),
 		PackedFormat::INTERLEAVED
 	};
 }
 
-std::string AudioFormat::ToString() const {
+std::string AudioFormat::toString() const {
 	std::ostringstream ostr;
 	ostr << *this;
 	return ostr.str();
 }
 
-std::string AudioFormat::ToShortString() const {
+std::string AudioFormat::toShortString() const {
 	std::ostringstream ostr;
 
-    ostr << GetChannels() << "Ch/" <<  GetBitsPerSample() << "bit/";
+    ostr << getChannels() << "Ch/" <<  getBitsPerSample() << "bit/";
 
-	if (GetSampleRate() % 1000 > 0) {
-		ostr << std::fixed << std::setprecision(1) << static_cast<float>(GetSampleRate()) / 1000.0f << " Khz";
+	if (getSampleRate() % 1000 > 0) {
+		ostr << std::fixed << std::setprecision(1) << static_cast<float>(getSampleRate()) / 1000.0f << " Khz";
 	}
 	else {
-		ostr << GetSampleRate() / 1000 << " Khz";
+		ostr << getSampleRate() / 1000 << " Khz";
 	}
 	return ostr.str();
 }
 
-size_t AudioFormat::GetHash() const {	
-	return std::hash<std::string>{}(ToString());
+size_t AudioFormat::getHash() const {	
+	return std::hash<std::string>{}(toString());
 }
 
 XAMP_BASE_NAMESPACE_END

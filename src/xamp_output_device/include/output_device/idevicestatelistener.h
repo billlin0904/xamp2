@@ -23,12 +23,12 @@ public:
 	XAMP_BASE_CLASS(IDeviceStateListener)
 
 	/*
-	* OnDeviceStateChange is called when device state changed.
+	* onDeviceStateChange is called when device state changed.
 	* 
 	* @param[in] state is a device state.
 	* @param[in] device_id is a device id.
 	*/
-    virtual void OnDeviceStateChange(DeviceState state, const std::string &device_id) = 0;
+    virtual void onDeviceStateChange(DeviceState state, const std::string &device_id) = 0;
 
 protected:
 	/*

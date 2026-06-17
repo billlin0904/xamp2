@@ -26,7 +26,7 @@ public:
 
     virtual ~FileSystemService() override;
 
-    void setScannerThreadPool(std::shared_ptr<IThreadPoolExecutor> scanner_thread_pool);
+    void setScannerThreadPool(std::shared_ptr<IThreadPool> scanner_thread_pool);
 
 signals:
     void insertDatabase(const std::forward_list<TrackInfo>& result, int32_t playlist_id);
@@ -64,7 +64,7 @@ private:
     Stopwatch update_ui_elapsed_;
     FastMutex progress_mutex_;
     QTimer timer_;
-    std::shared_ptr<IThreadPoolExecutor> thread_pool_;
+    std::shared_ptr<IThreadPool> thread_pool_;
     std::stop_source stop_source_;
     QScopedPointer<Database> database_;
     LoggerPtr logger_;

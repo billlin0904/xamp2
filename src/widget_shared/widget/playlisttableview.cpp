@@ -401,7 +401,7 @@ void PlaylistTableView::setPlaylistId(const int32_t playlist_id, const QString &
     reload();
 
     model_->setHeaderData(PLAYLIST_MUSIC_ID, Qt::Horizontal, tr("Id"));
-    model_->setHeaderData(PLAYLIST_IS_PLAYING, Qt::Horizontal, tr("IsPlaying"));
+    model_->setHeaderData(PLAYLIST_IS_PLAYING, Qt::Horizontal, tr("isPlaying"));
     model_->setHeaderData(PLAYLIST_TRACK, Qt::Horizontal, tr("   #"));
     model_->setHeaderData(PLAYLIST_FILE_PATH, Qt::Horizontal, tr("FilePath"));
     model_->setHeaderData(PLAYLIST_TITLE, Qt::Horizontal, tr("Title"));
@@ -601,29 +601,7 @@ void PlaylistTableView::initial() {
         PlayListEntity entity;
         if (model_->rowCount() > 0 && index.isValid() && !isAlbumHeaderRow(index)) {
             entity = getEntity(index);
-        }             
-
-        action_map.addSeparator();
-
-        auto* add_music_to_new_playlist_menu = action_map.addSubMenu(tr("Add music to new playlist"));
-        qDaoFacade.playlist_dao.forEachPlaylist([add_music_to_new_playlist_menu, this](auto playlist_id, auto, auto name) {
-			if (notAddablePlaylist(playlist_id)) {
-				return;
-			}
-            add_music_to_new_playlist_menu->addAction(name, [playlist_id, this]() {
-                const auto entities = selectItems();
-                QList<int32_t> music_ids;
-                music_ids.reserve(entities.size());
-                for (const auto& entity : entities) {
-                    music_ids.push_back(entity.music_id);
-                }
-                if (music_ids.isEmpty()) {
-                    return;
-                }
-                qDaoFacade.playlist_dao.addMusicToPlaylist(music_ids, playlist_id);
-                emit playlistChanged(playlist_id);
-                });
-            });
+        }
 
         action_map.addSeparator();
         auto * copy_album_act = action_map.addAction(tr("Copy album"));
@@ -641,17 +619,17 @@ void PlaylistTableView::initial() {
 
         action_map.addSeparator();
 
-        auto* encode_pcm_file_act = action_map.addAction(tr("Encode to PCM File"));
+        auto* encode_pcm_file_act = action_map.addAction(tr("encode to PCM File"));
         action_map.setCallback(encode_pcm_file_act, [this]() {
             emit encodeAlacFiles(EncodeType::ENCODE_PCM, selectItems());
             });
 
-        auto* encode_alac_file_act = action_map.addAction(tr("Encode to ALAC File"));
+        auto* encode_alac_file_act = action_map.addAction(tr("encode to ALAC File"));
         action_map.setCallback(encode_alac_file_act, [this]() {
             emit encodeAlacFiles(EncodeType::ENCODE_ALAC, selectItems());
             });
 
-        auto* encode_aac_file_act = action_map.addAction(tr("Encode to AAC File (256Kbps)"));
+        auto* encode_aac_file_act = action_map.addAction(tr("encode to AAC File (256Kbps)"));
         action_map.setCallback(encode_aac_file_act, [this]() {
             emit encodeAlacFiles(EncodeType::ENCODE_AAC, selectItems());
             });
@@ -679,22 +657,12 @@ void PlaylistTableView::initial() {
                 }
                 emit playlistChanged(other_playlist_id.value());
             }
-            });
+         });
 
-        auto* select_item_edit_track_info_act = action_map.addAction(tr("Edit track information"));
-        select_item_edit_track_info_act->setIcon(qTheme.fontIcon(Glyphs::ICON_EDIT));
-
-        auto reload_track_info_act = action_map.addAction(tr("Reload track information"));
-        reload_track_info_act->setIcon(qTheme.fontIcon(Glyphs::ICON_RELOAD));
-
-        auto* open_local_file_path_act = action_map.addAction(tr("Open local file path"));
+        auto* open_local_file_path_act = action_map.addAction(tr("open local file path"));
         open_local_file_path_act->setIcon(qTheme.fontIcon(Glyphs::ICON_OPEN_FILE_PATH));
         action_map.setCallback(open_local_file_path_act, [entity]() {
             QDesktopServices::openUrl(QUrl::fromLocalFile(entity.parent_path));
-        });
-
-        action_map.setCallback(reload_track_info_act, [this, entity]() {
-            onReloadEntity(entity);
         });
     	
         action_map.addSeparator();
@@ -706,21 +674,6 @@ void PlaylistTableView::initial() {
         });
         action_map.setCallback(copy_title_act, [entity]() {
             QApplication::clipboard()->setText(entity.title);
-        });
-
-        action_map.setCallback(select_item_edit_track_info_act, [this]() {
-            const auto rows = selectItemIndex();
-            QList<PlayListEntity> entities;
-            for (const auto& row : rows) {
-                entities.push_front(this->item(row.second));
-            }
-            if (entities.isEmpty()) {
-                return;
-            }
-            emit editTags(playlistId(), entities);
-            Q_FOREACH(auto play_list_entity, entities) {
-                onReloadEntity(play_list_entity);
-            }
         });
 
         XAMP_TRY_LOG(
@@ -766,15 +719,15 @@ void PlaylistTableView::onReloadEntity(const PlayListEntity& item) {
     dao::MusicDao music_dao(qGuiDb.getDatabase());
 
     XAMP_TRY_LOG(
-        auto reader = MakeMetadataReader();
-        reader->Open(item.file_path.toStdWString());
-        auto track_info = reader->Extract();
+        auto reader = makeMetadataReader();
+        reader->open(item.file_path.toStdWString());
+        auto track_info = reader->extract();
         if (track_info) {
             music_dao.addOrUpdateMusic(track_info.value());
             reload();
             play_index_ = proxy_model_->index(play_index_.row(), play_index_.column());
         }        
-        );
+    );
 }
 
 bool PlaylistTableView::isAlbumHeaderRow(const QModelIndex& index) const {
@@ -974,7 +927,7 @@ QModelIndex PlaylistTableView::shuffleIndex() {
         current_playlist_music_id = indexValue(play_index_, PLAYLIST_PLAYLIST_MUSIC_ID).toInt();
     }
     if (current_playlist_music_id != 0) {
-        rng_.SetSeed(current_playlist_music_id);
+        rng_.setSeed(current_playlist_music_id);
     }
     const auto count = proxy_model_->rowCount();
     if (count == 0) {
@@ -1005,7 +958,7 @@ QModelIndex PlaylistTableView::shuffleAlbumIndex() {
     }
 
 	// Avoid reappearing the same album.
-    rng_.SetSeed(current_playlist_album_id);
+    rng_.setSeed(current_playlist_album_id);
 
     if (album_songs_id_cache_.isEmpty()) {
         for (auto index = 0; index < count; ++index) {
@@ -1032,7 +985,7 @@ QModelIndex PlaylistTableView::shuffleAlbumIndex() {
 
 	// Avoid reappearing the same music.
     if (current_playlist_music_id != 0) {
-        rng_.SetSeed(current_playlist_music_id);
+        rng_.setSeed(current_playlist_music_id);
     }    
 
     const auto& selected_album_songs = album_songs_id_cache_[selected_album_id];
@@ -1056,28 +1009,41 @@ void PlaylistTableView::setNowPlaying(const QModelIndex& index) {
 }
 
 void PlaylistTableView::setAlbumCoverId(int32_t album_id, const QString& cover_id) {
-    // 為了避免多次觸發 dataChanged，可以先收集要改的 index
-    QVector<QModelIndex> changed_indexes;
+    XAMP_LOG_DEBUG("Playlist update album cover start. playlist:{} album:{} cover:{} rows:{}",
+        playlist_id_,
+        album_id,
+        cover_id.toStdString(),
+        proxy_model_->rowCount());
+
+    auto changed_count = 0;
+    auto first_row = -1;
+    auto last_row = -1;
 
     for (int row = 0; row < proxy_model_->rowCount(); ++row) {
-        auto index = proxy_model_->index(row, PLAYLIST_MUSIC_COVER_ID);
+        auto index = proxy_model_->index(row, PLAYLIST_ALBUM_COVER_ID);
         auto entity = item(index);
-        // 僅針對同一個 album_id 的列進行更新
         if (entity.album_id == album_id) {
-            // 若要改變顯示資料(暫時儲存在 model)，直接 setData
-            proxy_model_->setData(index, cover_id);
-            changed_indexes.push_back(index);
+            if (first_row < 0) {
+                first_row = row;
+            }
+            last_row = row;
+            ++changed_count;
         }
     }
 
-    // 最後再一次性觸發 dataChanged
-    // 若 changed_indexes 為空就不必通知
-    if (!changed_indexes.isEmpty()) {
-        // 如果這些 row 連續，可一次 dataChanged(first, last)
-        // 若不連續，則可用循環或另一種方式通知
-        const auto first_index = changed_indexes.first();
-        const auto last_index = changed_indexes.last();
+    if (changed_count > 0) {
+        XAMP_LOG_DEBUG("Playlist update album cover completed. playlist:{} album:{} changed:{} first_row:{} last_row:{}",
+            playlist_id_,
+            album_id,
+            changed_count,
+            first_row,
+            last_row);
         reload();
+    }
+    else {
+        XAMP_LOG_DEBUG("Playlist update album cover skipped because no row matched. playlist:{} album:{}",
+            playlist_id_,
+            album_id);
     }
 }
 

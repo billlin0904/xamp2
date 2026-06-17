@@ -12,7 +12,7 @@
 #include <base/shared_singleton.h>
 #include <base/logger.h>
 #include <base/exception.h>
-#include <base/ithreadpoolexecutor.h>
+#include <base/threadpool.h>
 #include <base/stopwatch.h>
 #include <base/lrucache.h>
 #include <base/stl.h>

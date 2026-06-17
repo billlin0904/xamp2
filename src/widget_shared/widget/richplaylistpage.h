@@ -7,9 +7,11 @@
 
 #include <QFrame>
 #include <QPoint>
+#include <QSet>
 
 #include <base/trackinfo.h>
 
+#include <widget/databasecoverid.h>
 #include <widget/playlistentity.h>
 #include <widget/tabpage.h>
 #include <widget/widget_shared.h>
@@ -32,6 +34,8 @@ public:
 
 	void clearNowPlaying();
 
+	void onAlbumCoverLoaded(int32_t album_id);
+
 	ScanFileProgressPage* progressPage() const;
 
 	bool playNextItem(int32_t forward);
@@ -43,10 +47,14 @@ signals:
 
 	void extractFile(const QString& file_path, int32_t playlist_id);
 
+	void findAlbumCover(const DatabaseCoverId& id) const;
+
 private:
 	void initial();
 
 	void showImportMenu(const QPoint& pos);
+
+	void showPlaylistContextMenu(const QPoint& pos);
 
 	void loadLocalFile();
 
@@ -58,7 +66,10 @@ private:
 
 	void showProgressPage();
 
+	void requestMissingAlbumCovers();
+
 	RichPlaylistCoverPanel* cover_panel_{ nullptr };
 	RichPlaylistView* rich_playlist_view_{ nullptr };
 	ScanFileProgressPage* progress_page_{ nullptr };
+	QSet<int32_t> requested_album_cover_ids_;
 };

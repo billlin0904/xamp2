@@ -65,17 +65,17 @@ namespace {
         switch (dsd_mode) {
         case DsdModes::DSD_MODE_DOP:
             ThrowIf<NotSupportFormatException>(
-                dsd_stream->SupportDOP(),
+                dsd_stream->supportDOP(),
                 "Stream not support mode: {}", dsd_mode);
             break;
         case DsdModes::DSD_MODE_DOP_AA:
             ThrowIf<NotSupportFormatException>(
-                dsd_stream->SupportDOP_AA(),
+                dsd_stream->supportDOP_AA(),
                 "Stream not support mode: {}", dsd_mode);
             break;
         case DsdModes::DSD_MODE_NATIVE:
             ThrowIf<NotSupportFormatException>(
-                dsd_stream->SupportNativeSD(),
+                dsd_stream->supportNativeSD(),
                 "Stream not support mode: {}", dsd_mode);
             break;
         case DsdModes::DSD_MODE_DSD2PCM:
@@ -87,11 +87,11 @@ namespace {
                 "Not support dsd-mode: {}.", dsd_mode);
             break;
         }
-        dsd_stream->SetDSDMode(dsd_mode);
+        dsd_stream->setDSDMode(dsd_mode);
     }
 }
 
-bool IsDsdFile(const Path & path) {
+bool isDsdFile(const Path & path) {
     FastIOStream file_(path);
     std::array<char, 4> buffer{ 0 };
     auto readbytes = file_.read(buffer.data(), buffer.size());
@@ -104,7 +104,7 @@ bool IsDsdFile(const Path & path) {
 
 ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& filePath, bool use_mqa_decode) {
     auto dsd_mode = DsdModes::DSD_MODE_DSD2PCM;
-    if (!IsDsdFile(filePath)) {
+    if (!isDsdFile(filePath)) {
         dsd_mode = DsdModes::DSD_MODE_PCM;
     }
 	return MakeFileStream(filePath, dsd_mode, use_mqa_decode);
@@ -116,24 +116,24 @@ ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& file_path,
     ScopedPtr<FileStream> file_stream;
 
     if (RequiresBassDsdStream(dsd_mode)) {
-        file_stream = MakeAlign<FileStream, BassFileStream>();
+        file_stream = makeAlign<FileStream, BassFileStream>();
     }
     else if (use_mqa_decode) {
         try {
             MqaIdentifier identifier(file_path);
-            if (identifier.Detect() && identifier.IsMQA()) {
-                file_stream = MakeAlign<FileStream, MqaFileStream>();
+            if (identifier.detect() && identifier.isMQA()) {
+                file_stream = makeAlign<FileStream, MqaFileStream>();
             }
             else {
-                file_stream = MakeAlign<FileStream, AvLibFileStream>();
+                file_stream = makeAlign<FileStream, AvLibFileStream>();
             }
         }
         catch (...) {
-            file_stream = MakeAlign<FileStream, AvLibFileStream>();
+            file_stream = makeAlign<FileStream, AvLibFileStream>();
         }
     }
     else {
-		file_stream = MakeAlign<FileStream, AvLibFileStream>();
+		file_stream = makeAlign<FileStream, AvLibFileStream>();
     }
 
     ConfigureDsdStream(file_stream, dsd_mode);
@@ -143,7 +143,7 @@ ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& file_path,
         && dynamic_cast<AvLibFileStream*>(file_stream.get()) != nullptr;
 
     try {
-        file_stream->OpenFile(file_path);
+        file_stream->openFile(file_path);
     }
     catch (...) {
         if (!allow_bass_fallback) {
@@ -151,30 +151,30 @@ ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& file_path,
         }
 
         XAMP_LOG_DEBUG("AvLibFileStream open failed, fallback to BassFileStream: {}",
-            String::ToUtf8String(file_path.wstring()));
-        auto bass_file_stream = MakeAlign<FileStream, BassFileStream>();
+            String::toUtf8String(file_path.wstring()));
+        auto bass_file_stream = makeAlign<FileStream, BassFileStream>();
         ConfigureDsdStream(bass_file_stream, dsd_mode);
-        bass_file_stream->OpenFile(file_path);
+        bass_file_stream->openFile(file_path);
         file_stream = std::move(bass_file_stream);
     }
     return file_stream;
 }
 
-ScopedPtr<IFileEncoder> StreamFactory::MakeFileEncoder() {
-    return MakeAlign<IFileEncoder, LibAbFileEncoder>();
+ScopedPtr<IFileEncoder> StreamFactory::makeFileEncoder() {
+    return makeAlign<IFileEncoder, LibAbFileEncoder>();
 }
 
-ScopedPtr<IAudioProcessor> StreamFactory::MakeParametricEq() {
-    return MakeAlign<IAudioProcessor, BassParametricEq>();
+ScopedPtr<IAudioProcessor> StreamFactory::makeParametricEq() {
+    return makeAlign<IAudioProcessor, BassParametricEq>();
 }
 
-ScopedPtr<IDSPManager> StreamFactory::MakeDSPManager() {
-    return MakeAlign<IDSPManager, DSPManager>();
+ScopedPtr<IDSPManager> StreamFactory::makeDSPManager() {
+    return makeAlign<IDSPManager, DSPManager>();
 }
 
 #ifdef XAMP_OS_WIN
-ScopedPtr<ICDDevice> StreamFactory::MakeCDDevice(int32_t driver_letter) {
-    return MakeAlign<ICDDevice, BassCDDevice>(static_cast<char>(driver_letter));
+ScopedPtr<ICDDevice> StreamFactory::makeCDDevice(int32_t driver_letter) {
+    return makeAlign<ICDDevice, BassCDDevice>(static_cast<char>(driver_letter));
 }
 #endif
 
@@ -194,12 +194,12 @@ std::expected<ArchiveFileStream, std::string> StreamFactory::MakeArchiveFileStre
     const std::wstring& archive_entry_name) {
     ArchiveFile file_;
     
-    auto enitities = file_.Open(archive_path);
+    auto enitities = file_.open(archive_path);
     if (enitities.has_value()) {
-        auto archive_entiry = file_.GetEntryByName(archive_entry_name);
+        auto archive_entiry = file_.getEntryByName(archive_entry_name);
         if (archive_entiry.has_value()) {
-            auto file_stream = MakeAlign<FileStream, BassFileStream>();
-            file_stream->Open(std::move(archive_entiry.value()));
+            auto file_stream = makeAlign<FileStream, BassFileStream>();
+            file_stream->open(std::move(archive_entiry.value()));
 			ArchiveFileStream result;
 			result.archive_file = std::move(file_);
 			result.file_stream = std::move(file_stream);
@@ -212,56 +212,56 @@ std::expected<ArchiveFileStream, std::string> StreamFactory::MakeArchiveFileStre
 
 ScopedPtr<FileStream> StreamFactory::MakeFileStream(ArchiveEntry archive_entry, 
     DsdModes dsd_mode) {
-    auto file_stream = MakeAlign<FileStream, BassFileStream>();
+    auto file_stream = makeAlign<FileStream, BassFileStream>();
 
     ConfigureDsdStream(file_stream, dsd_mode);
-    file_stream->Open(std::move(archive_entry));
+    file_stream->open(std::move(archive_entry));
     return file_stream;
 }
 
 void LoadBassLib() {
     if (!BassLibDLL.IsLoaded()) {
-        SharedSingleton<BassLib>::GetInstance().Load();
+        SharedSingleton<BassLib>::getInstance().load();
     }
-    BassLibDLL.MixLib = MakeAlign<BassMixLib>();
-    BassLibDLL.DSDLib = MakeAlign<BassDSDLib>();
-    BassLibDLL.FxLib = MakeAlign<BassFxLib>();
+    BassLibDLL.MixLib = makeAlign<BassMixLib>();
+    BassLibDLL.DSDLib = makeAlign<BassDSDLib>();
+    BassLibDLL.FxLib = makeAlign<BassFxLib>();
 #ifdef XAMP_OS_WIN
-    BassLibDLL.CDLib = MakeAlign<BassCDLib>();
+    BassLibDLL.CDLib = makeAlign<BassCDLib>();
 #endif
-    BassLibDLL.LoadVersionInfo();
-    for (const auto& info : BassLibDLL.GetVersions()) {
+    BassLibDLL.loadVersionInfo();
+    for (const auto& info : BassLibDLL.getVersions()) {
         XAMP_LOG_DEBUG("DLL {} version: {}", info.first, info.second);
     }
 }
 
 OrderedMap<std::string, std::string> GetBassDLLVersion() {
-    return BassLibDLL.GetVersions();
+    return BassLibDLL.getVersions();
 }
 
 #ifdef XAMP_OS_WIN
 void LoadR8brainLib() {
-    SharedSingleton<R8brainLib>::GetInstance();
+    SharedSingleton<R8brainLib>::getInstance();
 }
 void LoadMBDiscIdLib() {
-    SharedSingleton<DiscIdLib>::GetInstance();
+    SharedSingleton<DiscIdLib>::getInstance();
 }
 #endif
 
 void LoadAvLib() {
-    SharedSingleton<AvLib>::GetInstance();
+    SharedSingleton<AvLib>::getInstance();
 }
 
 void FreeAvLib() {
-    SharedSingleton<AvLib>::GetInstance().Free();
+    SharedSingleton<AvLib>::getInstance().Free();
 }
 
 void LoadSoxrLib() {
-    SharedSingleton<SoxrLib>::GetInstance();
+    SharedSingleton<SoxrLib>::getInstance();
 }
 
 void LoadSrcLib() {
-    SharedSingleton<SrcLib>::GetInstance();
+    SharedSingleton<SrcLib>::getInstance();
 }
 
 XAMP_STREAM_NAMESPACE_END

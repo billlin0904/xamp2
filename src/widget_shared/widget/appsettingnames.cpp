@@ -35,6 +35,7 @@ IMPL_APP_SETTING_NAME(AppSettingResamplerType, "AppSettings/resamplerType");
 IMPL_APP_SETTING_NAME(AppSettingFileSystemLastOpenPath, "AppSettings/fileSystemLastOpenPath");
 
 IMPL_APP_SETTING_NAME(AppSettingWaveformColor, "AppSettings/Waveform/color");
+IMPL_APP_SETTING_NAME(AppSettingSpectrogramFFTSize, "AppSettings/Spectrogram/fftSize");
 
 IMPL_APP_SETTING_NAME(ResampleSampleRate, "resampleSampleRate");
 IMPL_APP_SETTING_NAME(AppSettingSoxrSettingName, "AppSettings/soxr/userSettingName");
@@ -55,7 +56,7 @@ IMPL_APP_SETTING_NAME(SoxrRollOffLevel, "rolloffLevel");
 IMPL_APP_SETTING_NAME(R8Brain, "R8Brain");
 IMPL_APP_SETTING_NAME(Src, "Src");
 
-IMPL_APP_SETTING_NAME(Log, "Log");
+IMPL_APP_SETTING_NAME(log, "log");
 IMPL_APP_SETTING_NAME(LogMinimumLevel, "MinimumLevel");
 IMPL_APP_SETTING_NAME(LogDefault, "Default");
 IMPL_APP_SETTING_NAME(LogOverride, "Override");

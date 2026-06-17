@@ -31,12 +31,12 @@ uint32_t FramesFromMilliseconds(uint32_t sample_rate, uint32_t milliseconds) {
 }
 
 spa_audio_format ToSpaAudioFormat(const AudioFormat& format) {
-	if (format.GetFormat() != DataFormat::FORMAT_PCM
-		|| format.GetPackedFormat() != PackedFormat::INTERLEAVED) {
+	if (format.getFormat() != DataFormat::FORMAT_PCM
+		|| format.getPackedFormat() != PackedFormat::INTERLEAVED) {
 		throw DeviceUnSupportedFormatException(format);
 	}
 
-	switch (format.GetByteFormat()) {
+	switch (format.getByteFormat()) {
 	case ByteFormat::FLOAT32:
 		return SPA_AUDIO_FORMAT_F32;
 	default:
@@ -59,23 +59,23 @@ std::string PipeWireErrorToString(int error) {
 
 }
 
-PipeWireOutputDevice::PipeWireOutputDevice(const std::shared_ptr<xamp::base::IThreadPoolExecutor>& thread_pool,
+PipeWireOutputDevice::PipeWireOutputDevice(const std::shared_ptr<xamp::base::IThreadPool>& thread_pool,
 	std::string device_id)
 	: device_id_(std::move(device_id))
-	, logger_(XampLoggerFactory.GetLogger(XAMP_LOG_NAME(PipeWireOutputDevice))) {
+	, logger_(XampLoggerFactory.getLogger(XAMP_LOG_NAME(PipeWireOutputDevice))) {
 	(void)thread_pool;
-	logger_->SetLevel(LogLevel::LOG_LEVEL_DEBUG);
+	logger_->setLevel(LogLevel::LOG_LEVEL_DEBUG);
 }
 
 PipeWireOutputDevice::~PipeWireOutputDevice() {
 	try {
-		CloseStream();
+		closeStream();
 	}
 	catch (...) {
 	}
 }
 
-void PipeWireOutputDevice::CoreDoneCallback(void* userdata, uint32_t id, int seq) {
+void PipeWireOutputDevice::coreDoneCallback(void* userdata, uint32_t id, int seq) {
 	auto* self = static_cast<PipeWireOutputDevice*>(userdata);
 	if (self == nullptr || id != PW_ID_CORE || seq != self->core_sync_seq_) {
 		return;
@@ -86,7 +86,7 @@ void PipeWireOutputDevice::CoreDoneCallback(void* userdata, uint32_t id, int seq
 	}
 }
 
-void PipeWireOutputDevice::StreamStateCallback(void* userdata,
+void PipeWireOutputDevice::streamStateCallback(void* userdata,
 	pw_stream_state,
 	pw_stream_state state,
 	const char* error) {
@@ -109,21 +109,21 @@ void PipeWireOutputDevice::StreamStateCallback(void* userdata,
 	}
 }
 
-void PipeWireOutputDevice::StreamProcessCallback(void* userdata) {
+void PipeWireOutputDevice::streamProcessCallback(void* userdata) {
 	auto* self = static_cast<PipeWireOutputDevice*>(userdata);
 	if (self != nullptr) {
-		self->ConfigureRealtimeThreadPriority();
-		self->OnStreamProcess();
+		self->configureRealtimeThreadPriority();
+		self->onStreamProcess();
 	}
 }
 
-void PipeWireOutputDevice::WaitForCoreReady() {
+void PipeWireOutputDevice::waitForCoreReady() {
 	while (!core_ready_) {
 		::pw_thread_loop_wait(loop_.get());
 	}
 }
 
-void PipeWireOutputDevice::WaitForStreamReady() {
+void PipeWireOutputDevice::waitForStreamReady() {
 	while (!stream_ready_) {
 		const auto state = pw_stream_get_state(stream_.get(), nullptr);
 		if (state == PW_STREAM_STATE_ERROR || state == PW_STREAM_STATE_UNCONNECTED) {
@@ -133,17 +133,17 @@ void PipeWireOutputDevice::WaitForStreamReady() {
 	}
 }
 
-void PipeWireOutputDevice::OpenStream(const AudioFormat& output_format) {
+void PipeWireOutputDevice::openStream(const AudioFormat& output_format) {
 	if (device_id_.empty()) {
 		throw DeviceNotFoundException(device_id_);
 	}
 
-	CloseStream();
+	closeStream();
 
-	XAMP_LOG_D(logger_, "PipeWireOutputDevice open stream: {}.", output_format.ToString());
+	XAMP_LOG_D(logger_, "PipeWireOutputDevice open stream: {}.", output_format.toString());
 
 	const auto spa_format = ToSpaAudioFormat(output_format);
-	buffer_frames_ = FramesFromMilliseconds(output_format.GetSampleRate(), kDefaultCallbackMilliseconds);
+	buffer_frames_ = FramesFromMilliseconds(output_format.getSampleRate(), kDefaultCallbackMilliseconds);
 	core_ready_ = false;
 	stream_ready_ = false;
 
@@ -166,7 +166,7 @@ void PipeWireOutputDevice::OpenStream(const AudioFormat& output_format) {
 
 	static constexpr pw_core_events core_events{
 		.version = PW_VERSION_CORE_EVENTS,
-		.done = &PipeWireOutputDevice::CoreDoneCallback,
+		.done = &PipeWireOutputDevice::coreDoneCallback,
 	};
 	pw_core_add_listener(core_.get(), &core_listener_, &core_events, this);
 	core_sync_seq_ = pw_core_sync(core_.get(), PW_ID_CORE, 0);
@@ -177,7 +177,7 @@ void PipeWireOutputDevice::OpenStream(const AudioFormat& output_format) {
 
 	{
 		const PipeWireThreadLoopLock lock(loop_.get());
-		WaitForCoreReady();
+		waitForCoreReady();
 
 		auto* props = ::pw_properties_new(PW_KEY_MEDIA_TYPE, "Audio",
 			PW_KEY_MEDIA_CATEGORY, "Playback",
@@ -189,8 +189,8 @@ void PipeWireOutputDevice::OpenStream(const AudioFormat& output_format) {
 			Throw<PlatformException>("PipeWire stream properties create failed.");
 		}
 
-		::pw_properties_setf(props, PW_KEY_NODE_RATE, "1/%u", output_format.GetSampleRate());
-		::pw_properties_setf(props, PW_KEY_NODE_LATENCY, "%u/%u", buffer_frames_, output_format.GetSampleRate());
+		::pw_properties_setf(props, PW_KEY_NODE_RATE, "1/%u", output_format.getSampleRate());
+		::pw_properties_setf(props, PW_KEY_NODE_LATENCY, "%u/%u", buffer_frames_, output_format.getSampleRate());
 		if (!device_id_.empty()) {
 			::pw_properties_setf(props, PW_KEY_TARGET_OBJECT, "%s", device_id_.c_str());
 		}
@@ -202,8 +202,8 @@ void PipeWireOutputDevice::OpenStream(const AudioFormat& output_format) {
 
 		static constexpr pw_stream_events stream_events{
 			.version = PW_VERSION_STREAM_EVENTS,
-			.state_changed = &PipeWireOutputDevice::StreamStateCallback,
-			.process = &PipeWireOutputDevice::StreamProcessCallback,
+			.state_changed = &PipeWireOutputDevice::streamStateCallback,
+			.process = &PipeWireOutputDevice::streamProcessCallback,
 		};
 		::pw_stream_add_listener(stream_.get(), &stream_listener_, &stream_events, this);
 
@@ -212,8 +212,8 @@ void PipeWireOutputDevice::OpenStream(const AudioFormat& output_format) {
 		spa_audio_info_raw audio_info{
 			.format = spa_format,
 			.flags = SPA_AUDIO_FLAG_NONE,
-			.rate = output_format.GetSampleRate(),
-			.channels = output_format.GetChannels(),
+			.rate = output_format.getSampleRate(),
+			.channels = output_format.getChannels(),
 		};
 
 		const spa_pod* params[]{
@@ -235,7 +235,7 @@ void PipeWireOutputDevice::OpenStream(const AudioFormat& output_format) {
 			Throw<PlatformException>("PipeWire stream connect failed.");
 		}
 
-		WaitForStreamReady();
+		waitForStreamReady();
 	}
 
 	output_format_ = output_format;
@@ -246,23 +246,23 @@ void PipeWireOutputDevice::OpenStream(const AudioFormat& output_format) {
 		"PipeWire stream ready device:{} callback_frames:{}({:.2f}ms).",
 		device_id_,
 		buffer_frames_,
-		static_cast<double>(buffer_frames_) * 1000.0 / output_format.GetSampleRate());
+		static_cast<double>(buffer_frames_) * 1000.0 / output_format.getSampleRate());
 }
 
-void PipeWireOutputDevice::SetAudioCallback(IAudioCallback* callback) {
+void PipeWireOutputDevice::setAudioCallback(IAudioCallback* callback) {
 	callback_ = callback;
 }
 
-bool PipeWireOutputDevice::IsStreamOpen() const {
+bool PipeWireOutputDevice::isStreamOpen() const {
 	return stream_ != nullptr;
 }
 
-bool PipeWireOutputDevice::IsStreamRunning() const {
+bool PipeWireOutputDevice::isStreamRunning() const {
 	return is_running_;
 }
 
-void PipeWireOutputDevice::StopStream(bool) {
-	if (!IsStreamOpen()) {
+void PipeWireOutputDevice::stopStream(bool) {
+	if (!isStreamOpen()) {
 		return;
 	}
 
@@ -274,7 +274,7 @@ void PipeWireOutputDevice::StopStream(bool) {
 	::pw_stream_flush(stream_.get(), false);
 }
 
-void PipeWireOutputDevice::CloseStream() {
+void PipeWireOutputDevice::closeStream() {
 	if (loop_ != nullptr) {
 		{
 			const PipeWireThreadLoopLock lock(loop_.get());
@@ -301,8 +301,8 @@ void PipeWireOutputDevice::CloseStream() {
 	is_running_ = false;
 }
 
-void PipeWireOutputDevice::StartStream() {
-	if (!IsStreamOpen() || is_running_) {
+void PipeWireOutputDevice::startStream() {
+	if (!isStreamOpen() || is_running_) {
 		return;
 	}
 	if (callback_ == nullptr) {
@@ -316,49 +316,49 @@ void PipeWireOutputDevice::StartStream() {
 	::pw_stream_set_active(stream_.get(), true);
 }
 
-void PipeWireOutputDevice::SetStreamTime(double stream_time) {
-	const auto frame = static_cast<int64_t>(stream_time * output_format_.GetSampleRate());
+void PipeWireOutputDevice::setStreamTime(double stream_time) {
+	const auto frame = static_cast<int64_t>(stream_time * output_format_.getSampleRate());
 	stream_frame_ = frame;
 	stream_time_offset_frame_ = frame;
 }
 
-double PipeWireOutputDevice::GetStreamTime() const {
-	if (output_format_.GetSampleRate() == 0) {
+double PipeWireOutputDevice::getStreamTime() const {
+	if (output_format_.getSampleRate() == 0) {
 		return 0.0;
 	}
-	return static_cast<double>(stream_frame_.load()) / output_format_.GetSampleRate();
+	return static_cast<double>(stream_frame_.load()) / output_format_.getSampleRate();
 }
 
-uint32_t PipeWireOutputDevice::GetVolume() const {
+uint32_t PipeWireOutputDevice::getVolume() const {
 	return volume_;
 }
 
-void PipeWireOutputDevice::SetVolume(uint32_t volume) const {
+void PipeWireOutputDevice::setVolume(uint32_t volume) const {
 	volume_ = std::clamp(volume, 0U, 100U);
 }
 
-void PipeWireOutputDevice::SetMute(bool mute) const {
+void PipeWireOutputDevice::setMute(bool mute) const {
 	is_muted_ = mute;
 }
 
-bool PipeWireOutputDevice::IsMuted() const {
+bool PipeWireOutputDevice::isMuted() const {
 	return is_muted_;
 }
 
-bool PipeWireOutputDevice::IsHardwareControlVolume() const {
+bool PipeWireOutputDevice::isHardwareControlVolume() const {
 	return false;
 }
 
-PackedFormat PipeWireOutputDevice::GetPackedFormat() const {
+PackedFormat PipeWireOutputDevice::getPackedFormat() const {
 	return PackedFormat::INTERLEAVED;
 }
 
-uint32_t PipeWireOutputDevice::GetBufferSize() const {
+uint32_t PipeWireOutputDevice::getBufferSize() const {
 	return buffer_frames_ * AudioFormat::kMaxChannel;
 }
 
-void PipeWireOutputDevice::AbortStream() {
-	if (!IsStreamOpen()) {
+void PipeWireOutputDevice::abortStream() {
+	if (!isStreamOpen()) {
 		return;
 	}
 
@@ -370,8 +370,8 @@ void PipeWireOutputDevice::AbortStream() {
 	PipeWireLogIfError(::pw_stream_flush(stream_.get(), false));
 }
 
-void PipeWireOutputDevice::ApplySoftwareVolume(float* samples, size_t sample_count) const {
-	if (output_format_.GetByteFormat() != ByteFormat::FLOAT32) {
+void PipeWireOutputDevice::applySoftwareVolume(float* samples, size_t sample_count) const {
+	if (output_format_.getByteFormat() != ByteFormat::FLOAT32) {
 		return;
 	}
 
@@ -391,7 +391,7 @@ void PipeWireOutputDevice::ApplySoftwareVolume(float* samples, size_t sample_cou
 	}
 }
 
-void PipeWireOutputDevice::ConfigureRealtimeThreadPriority() {
+void PipeWireOutputDevice::configureRealtimeThreadPriority() {
 	bool expected = false;
 	if (!realtime_priority_configured_.compare_exchange_strong(expected, true)) {
 		return;
@@ -400,15 +400,15 @@ void PipeWireOutputDevice::ConfigureRealtimeThreadPriority() {
 	SetRealtimeThreadPriority("PipeWire process thread");
 }
 
-double PipeWireOutputDevice::GetCallbackStreamTime(int64_t next_frame) const {
-	const auto sample_rate = output_format_.GetSampleRate();
+double PipeWireOutputDevice::getCallbackStreamTime(int64_t next_frame) const {
+	const auto sample_rate = output_format_.getSampleRate();
 	if (sample_rate == 0) {
 		return 0.0;
 	}
 	return static_cast<double>(next_frame) / sample_rate;
 }
 
-void PipeWireOutputDevice::OnStreamProcess() {
+void PipeWireOutputDevice::onStreamProcess() {
 	try {
 		if (is_stopped_ || callback_ == nullptr || stream_ == nullptr) {
 			return;
@@ -425,7 +425,7 @@ void PipeWireOutputDevice::OnStreamProcess() {
 			return;
 		}
 
-		const auto block_align = output_format_.GetBlockAlign();
+		const auto block_align = output_format_.getBlockAlign();
 		if (block_align == 0) {
 			::pw_stream_queue_buffer(stream_.get(), buffer);
 			return;
@@ -441,18 +441,18 @@ void PipeWireOutputDevice::OnStreamProcess() {
 		}
 
 		auto* const samples = static_cast<float*>(data.data);
-		std::fill_n(samples, frames_to_write * output_format_.GetChannels(), 0.0f);
+		std::fill_n(samples, frames_to_write * output_format_.getChannels(), 0.0f);
 
 		size_t filled_frames = 0;
 		const auto current_frame = stream_frame_.load();
 		const auto next_frame = current_frame + static_cast<int64_t>(frames_to_write);
-		const auto stream_time = GetCallbackStreamTime(next_frame);
+		const auto stream_time = getCallbackStreamTime(next_frame);
 
-		const auto result = callback_->OnGetSamples(samples,
+		const auto result = callback_->onGetSamples(samples,
 			frames_to_write,
 			filled_frames,
 			stream_time,
-			GetStreamTime());
+			getStreamTime());
 
 		filled_frames = (std::min)(filled_frames, frames_to_write);
 		if (result != DataCallbackResult::CONTINUE && filled_frames == 0) {
@@ -473,7 +473,7 @@ void PipeWireOutputDevice::OnStreamProcess() {
 			? frames_to_write
 			: filled_frames;
 
-		ApplySoftwareVolume(samples, frames_ready * output_format_.GetChannels());
+		applySoftwareVolume(samples, frames_ready * output_format_.getChannels());
 
 		/*XAMP_LOG_D(logger_,
 			"Stream process callback: result: {}, requested frames: {}, filled frames: {}, stream time: {:.2f}ms.",
@@ -498,7 +498,7 @@ void PipeWireOutputDevice::OnStreamProcess() {
 		is_stopped_ = true;
 		is_running_ = false;
 		if (callback_ != nullptr) {
-			callback_->OnError(e);
+			callback_->onError(e);
 		}
 	}
 }

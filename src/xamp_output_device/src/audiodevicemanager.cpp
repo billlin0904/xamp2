@@ -50,7 +50,7 @@ public:
 
     DeviceStateNotificationImpl() = default;
 
-    void SetCallback(const std::weak_ptr<IDeviceStateListener> & callback) {
+    void setCallback(const std::weak_ptr<IDeviceStateListener> & callback) {
 #ifdef XAMP_OS_WIN
         notification_ = new DeviceStateNotification(callback);
 #elif defined(XAMP_OS_MAC)
@@ -62,9 +62,9 @@ public:
 #endif
     }
 
-    void Run() const {
+    void run() const {
 #if defined(XAMP_OS_WIN) || defined(XAMP_OS_MAC) || defined(XAMP_OS_LINUX)
-        notification_->Run();
+        notification_->run();
 #endif
     }
 
@@ -75,27 +75,27 @@ private:
 };
 
 #define XAMP_REGISTER_DEVICE_TYPE(DeviceTypeClass) \
-    RegisterDevice(XAMP_UUID_OF(DeviceTypeClass), []() {\
-		return MakeAlign<IDeviceType, DeviceTypeClass>();\
+    registerDevice(XAMP_UUID_OF(DeviceTypeClass), []() {\
+		return makeAlign<IDeviceType, DeviceTypeClass>();\
 	})
 
 AudioDeviceManager::AudioDeviceManager()
-	: impl_(MakeAlign<DeviceStateNotificationImpl>()) {
+	: impl_(makeAlign<DeviceStateNotificationImpl>()) {
 }
 
-void AudioDeviceManager::Initial() {
+void AudioDeviceManager::initial() {
     if (is_initialized_) {
         return;
     }
 
     if (!impl_) {
-        impl_ = MakeAlign<DeviceStateNotificationImpl>();
+        impl_ = makeAlign<DeviceStateNotificationImpl>();
     }
 
 #ifdef XAMP_OS_WIN
     using namespace win32;
     XAMP_LOG_DEBUG("LoadAvrtLib success");
-    HrIfFailThrow(::MFStartup(MF_VERSION, MFSTARTUP_LITE));
+    hrIfFailThrow(::MFStartup(MF_VERSION, MFSTARTUP_LITE));
     XAMP_LOG_DEBUG("MFStartup startup success");
     XAMP_REGISTER_DEVICE_TYPE(XAudio2DeviceType);
     XAMP_REGISTER_DEVICE_TYPE(SharedWasapiDeviceType);
@@ -136,26 +136,26 @@ void AudioDeviceManager::Initial() {
 }
 
 AudioDeviceManager::~AudioDeviceManager() {
-    Shutdown();
+    shutdown();
 }
 
-void AudioDeviceManager::Clear() {
+void AudioDeviceManager::clear() {
     factory_.clear();
 }
 
-ScopedPtr<IDeviceType> AudioDeviceManager::CreateDefaultDeviceType() const {
+ScopedPtr<IDeviceType> AudioDeviceManager::createDefaultDeviceType() const {
 #ifdef XAMP_OS_WIN
-    return Create(XAMP_UUID_OF(win32::SharedWasapiDeviceType));
+    return create(XAMP_UUID_OF(win32::SharedWasapiDeviceType));
 #elif defined(XAMP_OS_MAC)
-    return Create(XAMP_UUID_OF(osx::CoreAudioDeviceType));
+    return create(XAMP_UUID_OF(osx::CoreAudioDeviceType));
 #elif defined(XAMP_OS_LINUX)
-    return Create(XAMP_UUID_OF(posix::AlsaOutputDeviceType));
+    return create(XAMP_UUID_OF(posix::AlsaOutputDeviceType));
 #else
-    return Create(XAMP_UUID_OF(NullOutputDeviceType));
+    return create(XAMP_UUID_OF(NullOutputDeviceType));
 #endif
 }
 
-ScopedPtr<IDeviceType> AudioDeviceManager::Create(const Uuid & id) const {
+ScopedPtr<IDeviceType> AudioDeviceManager::create(const Uuid & id) const {
     auto itr = factory_.find(id);
     if (itr == factory_.end()) {
         throw DeviceNotFoundException();
@@ -163,23 +163,23 @@ ScopedPtr<IDeviceType> AudioDeviceManager::Create(const Uuid & id) const {
     return itr->second();
 }
 
-bool AudioDeviceManager::IsSupportAsio() const {
+bool AudioDeviceManager::isSupportAsio() const {
 #if defined(XAMP_OS_WIN)
-    return IsDeviceTypeExist(XAMP_UUID_OF(win32::AsioDeviceType));
+    return isDeviceTypeExist(XAMP_UUID_OF(win32::AsioDeviceType));
 #else
     return false;
 #endif
 }
 
-DeviceTypeFactoryMap::iterator AudioDeviceManager::Begin() {
+DeviceTypeFactoryMap::iterator AudioDeviceManager::begin() {
     return factory_.begin();
 }
 
-DeviceTypeFactoryMap::iterator AudioDeviceManager::End() {
+DeviceTypeFactoryMap::iterator AudioDeviceManager::end() {
     return factory_.end();
 }
 
-std::vector<Uuid> AudioDeviceManager::GetAvailableDeviceType() const {
+std::vector<Uuid> AudioDeviceManager::getAvailableDeviceType() const {
     std::vector<Uuid> device_types;
     device_types.reserve(factory_.size());
     for (auto [uuid, _] :factory_) {
@@ -188,11 +188,11 @@ std::vector<Uuid> AudioDeviceManager::GetAvailableDeviceType() const {
     return device_types;
 }
 
-bool AudioDeviceManager::IsDeviceTypeExist(Uuid const& id) const {
+bool AudioDeviceManager::isDeviceTypeExist(Uuid const& id) const {
     return factory_.find(id) != factory_.end();
 }
 
-bool AudioDeviceManager::IsSharedDevice(const Uuid& type) const {
+bool AudioDeviceManager::isSharedDevice(const Uuid& type) const {
 #ifdef XAMP_OS_WIN
     return type == XAMP_UUID_OF(win32::SharedWasapiDeviceType);
 #elif defined(XAMP_OS_MAC)
@@ -208,7 +208,7 @@ bool AudioDeviceManager::IsSharedDevice(const Uuid& type) const {
 #endif
 }
 
-bool AudioDeviceManager::IsASIODevice(const Uuid& type) const {
+bool AudioDeviceManager::isASIODevice(const Uuid& type) const {
 #ifdef XAMP_OS_WIN
     return type == XAMP_UUID_OF(win32::AsioDeviceType);
 #else
@@ -216,7 +216,7 @@ bool AudioDeviceManager::IsASIODevice(const Uuid& type) const {
 #endif
 }
 
-void AudioDeviceManager::Shutdown() {
+void AudioDeviceManager::shutdown() {
     impl_.reset();
     if (!is_initialized_) {
         return;
@@ -233,18 +233,18 @@ void AudioDeviceManager::Shutdown() {
 #else
     PreventSleep(false);
 #endif
-    Clear();
+    clear();
 }
 
-void AudioDeviceManager::RegisterDeviceListener(std::weak_ptr<IDeviceStateListener> const& callback) {
+void AudioDeviceManager::registerDeviceListener(std::weak_ptr<IDeviceStateListener> const& callback) {
     if (!impl_) {
         return;
     }
-    impl_->SetCallback(callback);
-    impl_->Run();
+    impl_->setCallback(callback);
+    impl_->run();
 }
 
-void AudioDeviceManager::RegisterDevice(Uuid const& id, std::function<ScopedPtr<IDeviceType>()> func) {
+void AudioDeviceManager::registerDevice(Uuid const& id, std::function<ScopedPtr<IDeviceType>()> func) {
     factory_.emplace(std::make_pair(id, std::move(func)));
 }
 

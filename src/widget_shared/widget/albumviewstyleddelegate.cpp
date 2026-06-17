@@ -202,7 +202,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     auto is_hires = indexValue(index, ALBUM_INDEX_IS_HIRES).toBool();
     auto is_selected = indexValue(index, ALBUM_INDEX_IS_SELECTED).toBool();
 
-    // Process edit album view 
+    // process edit album view 
     if (enable_album_view_ && enable_selected_mode_ && is_selected) {
         painter->save();
         QPainterPath path;
@@ -263,16 +263,19 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     painter->drawText(artist_text_rect, Qt::AlignVCenter,
         artist_metrics.elidedText(artist, Qt::ElideRight, cover_size_.width() - kMoreIconSize));
 
-    if (isNullOfEmpty(cover_id)) {
+    auto cover_rect = coverRect(option, cover_size_);
+    const auto has_cover_id = !isNullOfEmpty(cover_id) && cover_id != qImageCache.unknownCoverId();
+    const auto has_cached_cover = has_cover_id
+        && (qImageCache.contains(cover_id) || qImageCache.isFileExists(QString{}, cover_id));
+    if (!has_cached_cover) {
         auto visible_albums = getVisibleAlbumId(option);
         if (visible_albums.contains(album_id)) {
             XAMP_LOG_D(logger_, "Perform search album id: {}", album_id);
             emit findAlbumCover(DatabaseCoverId(kInvalidDatabaseId, album_id));
         }
-        painter->drawPixmap(coverRect(option, cover_size_), qTheme.unknownCover());
+        painter->drawPixmap(cover_rect, qTheme.unknownCover());
     }
     else {
-        auto cover_rect = coverRect(option, cover_size_);
         // Try get image from cache.
         auto cache_cover = qImageCache.tryGet(kAlbumCacheTag, cover_id);
         if (!cache_cover.has_value()) {

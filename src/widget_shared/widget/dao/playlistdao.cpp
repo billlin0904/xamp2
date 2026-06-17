@@ -293,4 +293,33 @@ namespace dao {
         }
         return stats;
     }
+
+    QSet<int32_t> PlaylistDao::getCollapsedAlbumIds(int32_t playlist_id) {
+        SqlQuery query(db_);
+        query.prepare(R"(
+            SELECT albumId
+            FROM playlistAlbumStates
+            WHERE playlistId = :playlistId AND isCollapsed = 1
+        )"_str);
+        query.bindValue(":playlistId"_str, playlist_id);
+        DbIfFailedThrow1(query);
+
+        QSet<int32_t> album_ids;
+        while (query.next()) {
+            album_ids.insert(query.value("albumId"_str).toInt());
+        }
+        return album_ids;
+    }
+
+    void PlaylistDao::setAlbumCollapsed(int32_t playlist_id, int32_t album_id, bool is_collapsed) {
+        SqlQuery query(db_);
+        query.prepare(R"(
+            INSERT OR REPLACE INTO playlistAlbumStates (playlistId, albumId, isCollapsed)
+            VALUES (:playlistId, :albumId, :isCollapsed)
+        )"_str);
+        query.bindValue(":playlistId"_str, playlist_id);
+        query.bindValue(":albumId"_str, album_id);
+        query.bindValue(":isCollapsed"_str, is_collapsed ? 1 : 0);
+        DbIfFailedThrow1(query);
+    }
 }

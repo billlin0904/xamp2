@@ -5,7 +5,7 @@
 XAMP_BASE_NAMESPACE_BEGIN
 
 namespace {
-    Sfc64Engine<> MakeRandomEngine() {
+    Sfc64Engine<> makeRandomEngine() {
         using Clock = std::chrono::high_resolution_clock;
         uint32_t random_address = 0;
         // 利用系統級熵源 (GetSystemEntropy) 提供高品質初始亂數，再加上
@@ -31,14 +31,14 @@ namespace {
     }
 }
 
-PRNG::PRNG() : engine_(MakeRandomEngine()) {
+PRNG::PRNG() : engine_(makeRandomEngine()) {
 }
 
-void PRNG::SetSeed(uint64_t seed) {
+void PRNG::setSeed(uint64_t seed) {
     engine_.seed(GetTime_t<std::chrono::milliseconds>() + seed);
 }
 
-std::string PRNG::GetRandomString(size_t size) {
+std::string PRNG::getRandomString(size_t size) {
     static constexpr std::string_view alphanum =
         "0123456789"
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -54,7 +54,7 @@ std::string PRNG::GetRandomString(size_t size) {
     return temp;
 }
 
-PRNG& PRNG::GetThreadLocal() {
+PRNG& PRNG::getThreadLocal() {
     XAMP_NO_TLS_GUARDS thread_local static PRNG instance;
 	return instance;
 }

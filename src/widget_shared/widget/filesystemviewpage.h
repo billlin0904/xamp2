@@ -30,7 +30,7 @@ public:
 
 	virtual ~FileSystemViewPage() override;
 
-    void setScannerThreadPool(std::shared_ptr<IThreadPoolExecutor> scanner_thread_pool);
+    void setScannerThreadPool(std::shared_ptr<IThreadPool> scanner_thread_pool);
 
 	PlaylistPage* playlistPage();
 

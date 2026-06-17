@@ -53,20 +53,20 @@ Exception::Exception(Errors error, const std::string& message, std::string_view 
 	: error_(error)
     , what_(what)
 	, message_(message) {
-    stacktrace_ = StackTrace{}.CaptureStack();
+    stacktrace_ = StackTrace{}.captureStack();
 	if (what.empty()) {
         std::ostringstream ostr;
-        ostr << error << "(" << ErrorToString(error) << ")";
+        ostr << error << "(" << errorToString(error) << ")";
         what_ = ostr.str();
 	}
 	if (message_.empty()) {
         std::ostringstream ostr;
-        ostr << error << "(" << ErrorToString(error) << ")";
+        ostr << error << "(" << errorToString(error) << ")";
 		message_ = ostr.str();
 	}    
 }
 
-char const* Exception::GetStackTrace() const {
+char const* Exception::getStackTrace() const {
     return stacktrace_.c_str();
 }
 
@@ -74,19 +74,19 @@ char const * Exception::what() const noexcept {
     return what_.data();
 }
 
-Errors Exception::GetError() const {
+Errors Exception::getError() const {
 	return error_;
 }
 
-char const * Exception::GetErrorMessage() const {
+char const * Exception::getErrorMessage() const {
 	return message_.c_str();
 }
 
-char const * Exception::GetExpression() const {
+char const * Exception::getExpression() const {
 	return "";
 }
 
-std::string_view Exception::ErrorToString(Errors error) {
+std::string_view Exception::errorToString(Errors error) {
     static const HashMap<Errors, const std::string_view> error_msgs {
         { Errors::XAMP_ERROR_SUCCESS, "Success." },
         { Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, "Platform spec error." },
@@ -99,8 +99,8 @@ std::string_view Exception::ErrorToString(Errors error) {
         { Errors::XAMP_ERROR_FILE_NOT_FOUND, "File not found." },
         { Errors::XAMP_ERROR_NOT_SUPPORT_SAMPLE_RATE, "Not support samplerate." },
         { Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT, "Not support format." },
-        { Errors::XAMP_ERROR_LOAD_DLL_FAILURE, "Load dll failure." },
-        { Errors::XAMP_ERROR_STOP_STREAM_TIMEOUT, "Stop stream thread timeout." },
+        { Errors::XAMP_ERROR_LOAD_DLL_FAILURE, "load dll failure." },
+        { Errors::XAMP_ERROR_STOP_STREAM_TIMEOUT, "stop stream thread timeout." },
         { Errors::XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLE_RATE, "Resampler not support variable resample." },
         { Errors::XAMP_ERROR_SAMPLE_RATE_CHANGED, "SampleRate was changed." },
         { Errors::XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC, "Not found dll export function." },
@@ -125,7 +125,7 @@ LoadDllFailureException::LoadDllFailureException(std::string_view dll_name)
 	: Exception(Errors::XAMP_ERROR_LOAD_DLL_FAILURE)
 	, dll_name_(dll_name) {
 	std::ostringstream ostr;
-	ostr << "Load dll " << dll_name << " failure. (" << GetLastErrorMessage() << ")";
+	ostr << "load dll " << dll_name << " failure. (" << GetLastErrorMessage() << ")";
 	message_ = ostr.str();
 }
 
@@ -133,7 +133,7 @@ NotFoundDllExportFuncException::NotFoundDllExportFuncException(std::string_view 
     : Exception(Errors::XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC)
     , func_name_(func_name) {
     std::ostringstream ostr;
-    ostr << "Load dll function " << func_name << " failure. (" << GetLastErrorMessage() << ")";
+    ostr << "load dll function " << func_name << " failure. (" << GetLastErrorMessage() << ")";
     message_ = ostr.str();
 }
 

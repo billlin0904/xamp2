@@ -15,40 +15,40 @@ class AsioDeviceType::AsioDeviceTypeImpl final {
 public:
 	AsioDeviceTypeImpl() = default;
 
-	size_t GetDeviceCount() const;
+	size_t getDeviceCount() const;
 
-    DeviceInfo GetDeviceInfo(uint32_t device) const;
+    DeviceInfo getDeviceInfo(uint32_t device) const;
 
-	std::optional<DeviceInfo> GetDefaultDeviceInfo() const;
+	std::optional<DeviceInfo> getDefaultDeviceInfo() const;
 
-	std::vector<DeviceInfo> GetDeviceInfo() const;
+	std::vector<DeviceInfo> getDeviceInfo() const;
 
-    void ScanNewDevice();
+    void scanNewDevice();
 
-	ScopedPtr<IOutputDevice> MakeDevice(const  std::string &device_id);
+	ScopedPtr<IOutputDevice> makeDevice(const  std::string &device_id);
 private:
-	DeviceInfo GetDeviceInfo(std::wstring const& name, const  std::string & device_id) const;
+	DeviceInfo getDeviceInfo(std::wstring const& name, const  std::string & device_id) const;
 
 	HashMap<std::string, DeviceInfo> device_info_cache_;
 };
 
-DeviceInfo AsioDeviceType::AsioDeviceTypeImpl::GetDeviceInfo(uint32_t device) const {
+DeviceInfo AsioDeviceType::AsioDeviceTypeImpl::getDeviceInfo(uint32_t device) const {
 	auto itr = device_info_cache_.begin();
-	if (device >= GetDeviceCount()) {
+	if (device >= getDeviceCount()) {
 		throw DeviceNotFoundException();
 	}
 	std::advance(itr, device);
 	return (*itr).second;
 }
 
-std::optional<DeviceInfo> AsioDeviceType::AsioDeviceTypeImpl::GetDefaultDeviceInfo() const {
+std::optional<DeviceInfo> AsioDeviceType::AsioDeviceTypeImpl::getDefaultDeviceInfo() const {
 	if (device_info_cache_.empty()) {
 		return std::nullopt;
 	}
-	return MakeOptional<DeviceInfo>(GetDeviceInfo(0));
+	return MakeOptional<DeviceInfo>(getDeviceInfo(0));
 }
 
-std::vector<DeviceInfo> AsioDeviceType::AsioDeviceTypeImpl::GetDeviceInfo() const {
+std::vector<DeviceInfo> AsioDeviceType::AsioDeviceTypeImpl::getDeviceInfo() const {
 	std::vector<DeviceInfo> device_infos;
 	device_infos.reserve(device_info_cache_.size());
 
@@ -58,7 +58,7 @@ std::vector<DeviceInfo> AsioDeviceType::AsioDeviceTypeImpl::GetDeviceInfo() cons
 	return device_infos;
 }
 
-void AsioDeviceType::AsioDeviceTypeImpl::ScanNewDevice() {
+void AsioDeviceType::AsioDeviceTypeImpl::scanNewDevice() {
     constexpr auto kMaxPathLen = 256;
 
 	AsioDrivers drivers;
@@ -70,13 +70,13 @@ void AsioDeviceType::AsioDeviceTypeImpl::ScanNewDevice() {
 			char driver_name[kMaxPathLen + 1]{};
 			drivers.asioGetDriverName(i, driver_name, kMaxPathLen);
 			if (!device_info_cache_.contains(driver_name)) {
-				device_info_cache_[driver_name] = GetDeviceInfo(String::ToStdWString(driver_name), driver_name);
+				device_info_cache_[driver_name] = getDeviceInfo(String::ToStdWString(driver_name), driver_name);
 			}			
 		}
 	}
 }
 
-DeviceInfo AsioDeviceType::AsioDeviceTypeImpl::GetDeviceInfo(std::wstring const& name, const  std::string & device_id) const {
+DeviceInfo AsioDeviceType::AsioDeviceTypeImpl::getDeviceInfo(std::wstring const& name, const  std::string & device_id) const {
 	DeviceInfo info;
 	info.name = name;
 	info.device_id = device_id;
@@ -87,41 +87,41 @@ DeviceInfo AsioDeviceType::AsioDeviceTypeImpl::GetDeviceInfo(std::wstring const&
 	return info;
 }
 
-ScopedPtr<IOutputDevice> AsioDeviceType::AsioDeviceTypeImpl::MakeDevice(const  std::string & device_id) {
-	return MakeAlign<IOutputDevice, AsioDevice>(device_id);
+ScopedPtr<IOutputDevice> AsioDeviceType::AsioDeviceTypeImpl::makeDevice(const  std::string & device_id) {
+	return makeAlign<IOutputDevice, AsioDevice>(device_id);
 }
 
 XAMP_PIMPL_IMPL(AsioDeviceType)
 
 AsioDeviceType::AsioDeviceType()
-	: impl_(MakeAlign<AsioDeviceTypeImpl>()) {
+	: impl_(makeAlign<AsioDeviceTypeImpl>()) {
 }
 
-size_t AsioDeviceType::GetDeviceCount() const {
-	return impl_->GetDeviceCount();
+size_t AsioDeviceType::getDeviceCount() const {
+	return impl_->getDeviceCount();
 }
 
-DeviceInfo AsioDeviceType::GetDeviceInfo(uint32_t device) const {
-	return impl_->GetDeviceInfo(device);
+DeviceInfo AsioDeviceType::getDeviceInfo(uint32_t device) const {
+	return impl_->getDeviceInfo(device);
 }
 
-std::optional<DeviceInfo> AsioDeviceType::GetDefaultDeviceInfo() const {
-	return impl_->GetDefaultDeviceInfo();
+std::optional<DeviceInfo> AsioDeviceType::getDefaultDeviceInfo() const {
+	return impl_->getDefaultDeviceInfo();
 }
 
-std::vector<DeviceInfo> AsioDeviceType::GetDeviceInfo() const {
-	return impl_->GetDeviceInfo();
+std::vector<DeviceInfo> AsioDeviceType::getDeviceInfo() const {
+	return impl_->getDeviceInfo();
 }
 
-void AsioDeviceType::ScanNewDevice() {
-	impl_->ScanNewDevice();
+void AsioDeviceType::scanNewDevice() {
+	impl_->scanNewDevice();
 }
 
-ScopedPtr<IOutputDevice> AsioDeviceType::MakeDevice(const std::shared_ptr<IThreadPoolExecutor>&, std::string const& device_id) {
-	return impl_->MakeDevice(device_id);
+ScopedPtr<IOutputDevice> AsioDeviceType::makeDevice(const std::shared_ptr<IThreadPool>&, std::string const& device_id) {
+	return impl_->makeDevice(device_id);
 }
 
-size_t AsioDeviceType::AsioDeviceTypeImpl::GetDeviceCount() const {
+size_t AsioDeviceType::AsioDeviceTypeImpl::getDeviceCount() const {
 	return device_info_cache_.size();
 }
 

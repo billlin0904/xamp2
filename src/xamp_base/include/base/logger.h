@@ -31,15 +31,15 @@ namespace spdlog {
     using sink_ptr = std::shared_ptr<sinks::sink>;
 }
 
-template <typename T, size_t S>
-XAMP_ALWAYS_INLINE constexpr size_t compiler_time_get_file_name_offset(const T(&str)[S], size_t i = S - 1) {
+template <typename t, size_t S>
+XAMP_ALWAYS_INLINE constexpr size_t compiler_time_get_file_name_offset(const t(&str)[S], size_t i = S - 1) {
     return (str[i] == '/' || str[i] == '\\')
         ? i + 1
         : (i > 0 ? compiler_time_get_file_name_offset(str, i - 1) : 0);
 }
 
-template <typename T>
-XAMP_ALWAYS_INLINE constexpr size_t compiler_time_get_file_name_offset(T(&)[1]) {
+template <typename t>
+XAMP_ALWAYS_INLINE constexpr size_t compiler_time_get_file_name_offset(t(&)[1]) {
     return 0;
 }
 
@@ -119,7 +119,7 @@ using LoggerMutex = std::recursive_mutex;
 
 #define XAMP_DECLARE_LOG_NAME(LogName) inline constexpr std::string_view k##LogName##LoggerName(#LogName)
 #define XAMP_LOG_NAME(LogName) k##LogName##LoggerName
-#define XAMP_LOG_CREATE_LOGGER(LogName) XampLoggerFactory.GetLogger(#LogName)
+#define XAMP_LOG_CREATE_LOGGER(LogName) XampLoggerFactory.getLogger(#LogName)
 
 XAMP_DECLARE_LOG_NAME(Xamp);
 XAMP_DECLARE_LOG_NAME(CoreAudio);
@@ -130,130 +130,130 @@ public:
 
     template <typename Args>
     void LogTrace(Args&& args) {
-        Log(LOG_LEVEL_TRACE, nullptr, 0, nullptr, "{}", std::forward<Args>(args));
+        log(LOG_LEVEL_TRACE, nullptr, 0, nullptr, "{}", std::forward<Args>(args));
     }
 
     template <typename... Args>
     void LogTrace(std::string_view s, Args&&... args) {
-        Log(LOG_LEVEL_TRACE, nullptr, 0, nullptr, s, std::forward<Args>(args)...);
+        log(LOG_LEVEL_TRACE, nullptr, 0, nullptr, s, std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     void LogTrace(const char* filename, int32_t line, const char* func, std::string_view s, Args&&... args) {
-        Log(LOG_LEVEL_TRACE, filename, line, func, s, std::forward<Args>(args)...);
+        log(LOG_LEVEL_TRACE, filename, line, func, s, std::forward<Args>(args)...);
     }
 
     template <typename Args>
     void LogDebug(Args&& args) {
-        Log(LOG_LEVEL_DEBUG, nullptr, 0, nullptr, "{}", std::forward<Args>(args));
+        log(LOG_LEVEL_DEBUG, nullptr, 0, nullptr, "{}", std::forward<Args>(args));
     }
 
     template <typename... Args>
     void LogDebug(std::string_view s, Args&&... args) {
-        Log(LOG_LEVEL_DEBUG, nullptr, 0, nullptr, s, std::forward<Args>(args)...);
+        log(LOG_LEVEL_DEBUG, nullptr, 0, nullptr, s, std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     void LogDebug(const char* filename, int32_t line, const char* func, std::string_view s, Args&&... args) {
-        Log(LOG_LEVEL_DEBUG, filename, line, func, s, std::forward<Args>(args)...);
+        log(LOG_LEVEL_DEBUG, filename, line, func, s, std::forward<Args>(args)...);
     }
 
     template <typename Args>
     void LogInfo(Args&& args) {
-        Log(LOG_LEVEL_INFO, nullptr, 0, nullptr, "{}", std::forward<Args>(args));
+        log(LOG_LEVEL_INFO, nullptr, 0, nullptr, "{}", std::forward<Args>(args));
     }
 
     template <typename... Args>
     void LogInfo(std::string_view s, Args&&... args) {
-        Log(LOG_LEVEL_INFO, nullptr, 0, nullptr, s, std::forward<Args>(args)...);
+        log(LOG_LEVEL_INFO, nullptr, 0, nullptr, s, std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     void LogInfo(const char* filename, int32_t line, const char* func, std::string_view s, Args&&... args) {
-        Log(LOG_LEVEL_INFO, filename, line, func, s, std::forward<Args>(args)...);
+        log(LOG_LEVEL_INFO, filename, line, func, s, std::forward<Args>(args)...);
     }
 
     template <typename Args>
     void LogWarn(Args&& args) {
-        Log(LOG_LEVEL_WARN, nullptr, 0, nullptr, "{}", std::forward<Args>(args));
+        log(LOG_LEVEL_WARN, nullptr, 0, nullptr, "{}", std::forward<Args>(args));
     }
 
     template <typename... Args>
     void LogWarn(std::string_view s, Args&&... args) {
-        Log(LOG_LEVEL_WARN, nullptr, 0, nullptr, s, std::forward<Args>(args)...);
+        log(LOG_LEVEL_WARN, nullptr, 0, nullptr, s, std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     void LogWarn(const char* filename, int32_t line, const char* func, std::string_view s, Args&&... args) {
-        Log(LOG_LEVEL_WARN, filename, line, func, s, std::forward<Args>(args)...);
+        log(LOG_LEVEL_WARN, filename, line, func, s, std::forward<Args>(args)...);
     }
 
     template <typename Args>
     void LogError(Args&& args) {
-        Log(LOG_LEVEL_ERROR, nullptr, 0, nullptr, "{}", std::forward<Args>(args));
+        log(LOG_LEVEL_ERROR, nullptr, 0, nullptr, "{}", std::forward<Args>(args));
     }
 
     template <typename... Args>
     void LogError(std::string_view s, Args&&... args) {
-        Log(LOG_LEVEL_ERROR, nullptr, 0, nullptr, s, std::forward<Args>(args)...);
+        log(LOG_LEVEL_ERROR, nullptr, 0, nullptr, s, std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     void LogError(const char* filename, int32_t line, const char* func, std::string_view s, Args&&... args) {
-        Log(LOG_LEVEL_ERROR, filename, line, func, s, std::forward<Args>(args)...);
+        log(LOG_LEVEL_ERROR, filename, line, func, s, std::forward<Args>(args)...);
     }
 
     template <typename Args>
     void LogCritical(Args&& args) {
-        Log(LOG_LEVEL_CRITICAL, nullptr, 0, nullptr, "{}", std::forward<Args>(args));
+        log(LOG_LEVEL_CRITICAL, nullptr, 0, nullptr, "{}", std::forward<Args>(args));
     }
 
     template <typename... Args>
     void LogCritical(std::string_view s, Args&&... args) {
-        Log(LOG_LEVEL_CRITICAL, nullptr, 0, nullptr, s, std::forward<Args>(args)...);
+        log(LOG_LEVEL_CRITICAL, nullptr, 0, nullptr, s, std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     void LogCritical(const char* filename, int32_t line, const char* func, std::string_view s, Args&&... args) {
-        Log(LOG_LEVEL_CRITICAL, filename, line, func, s, std::forward<Args>(args)...);
+        log(LOG_LEVEL_CRITICAL, filename, line, func, s, std::forward<Args>(args)...);
     }
 
-    void SetLevel(LogLevel level);
+    void setLevel(LogLevel level);
 
-    [[nodiscard]] LogLevel GetLevel() const;
+    [[nodiscard]] LogLevel getLevel() const;
 
-    [[nodiscard]] const std::string& GetName() const;
+    [[nodiscard]] const std::string& getName() const;
 
-    [[nodiscard]] bool ShouldLog(LogLevel level) const;
+    [[nodiscard]] bool shouldLog(LogLevel level) const;
 
-    template <typename T>
-    void Log(LogLevel level, const SourceLocation& source_location, const T& message) {
-        if (!ShouldLog(level)) {
+    template <typename t>
+    void log(LogLevel level, const SourceLocation& source_location, const t& message) {
+        if (!shouldLog(level)) {
             return;
         }
-        LogMsg(level, source_location.file_name(), source_location.line(), source_location.function_name(), message);
-    }
-
-    template <typename... Args>
-    void Log(LogLevel level, const SourceLocation& source_location, std::string_view s, Args&&... args) {
-        if (!ShouldLog(level)) {
-            return;
-        }
-        auto message = fmt::format(fmt::runtime(s), detail::FormatArgument(std::forward<Args>(args))...);
-        LogMsg(level, source_location.file_name(), source_location.line(), source_location.function_name(), message);
+        logMsg(level, source_location.file_name(), source_location.line(), source_location.function_name(), message);
     }
 
     template <typename... Args>
-    void Log(LogLevel level, const char* filename, int32_t line, const char* func, std::string_view s, Args&&... args) {
-        if (!ShouldLog(level)) {
+    void log(LogLevel level, const SourceLocation& source_location, std::string_view s, Args&&... args) {
+        if (!shouldLog(level)) {
             return;
         }
         auto message = fmt::format(fmt::runtime(s), detail::FormatArgument(std::forward<Args>(args))...);
-        LogMsg(level, filename, line, func, message);
+        logMsg(level, source_location.file_name(), source_location.line(), source_location.function_name(), message);
+    }
+
+    template <typename... Args>
+    void log(LogLevel level, const char* filename, int32_t line, const char* func, std::string_view s, Args&&... args) {
+        if (!shouldLog(level)) {
+            return;
+        }
+        auto message = fmt::format(fmt::runtime(s), detail::FormatArgument(std::forward<Args>(args))...);
+        logMsg(level, filename, line, func, message);
     }
 
 private:
-    void LogMsg(LogLevel level, const char* filename, int32_t line, const char* func, const std::string& msg) const;
+    void logMsg(LogLevel level, const char* filename, int32_t line, const char* func, const std::string& msg) const;
 
     std::shared_ptr<spdlog::logger> logger_;
 };
@@ -270,28 +270,28 @@ public:
 
     XAMP_DISABLE_COPY(LoggerManager)
 
-    LoggerManager& Startup();
+    LoggerManager& startup();
 
-    LoggerManager& AddDebugOutput();
+    LoggerManager& addDebugOutput();
 
-    LoggerManager& AddLogFile(const std::string& file_name);
+    LoggerManager& addLogFile(const std::string& file_name);
 
-    LoggerManager& AddSink(spdlog::sink_ptr sink);
+    LoggerManager& addSink(spdlog::sink_ptr sink);
 
     XAMP_CHECK_LIFETIME [[nodiscard]] Logger* GetDefaultLogger() const {
         return default_logger_.get();
     }
 
-    LoggerPtr GetLogger(const std::string_view& name);
+    LoggerPtr getLogger(const std::string_view& name);
 
-    std::vector<LoggerPtr> GetAllLogger();
+    std::vector<LoggerPtr> getAllLogger();
 
-    void SetLevel(LogLevel level);
+    void setLevel(LogLevel level);
 
-    void Shutdown();
+    void shutdown();
 
 private:
-    LoggerPtr GetLoggerImpl(const std::string& name);
+    LoggerPtr getLoggerImpl(const std::string& name);
 
     FastMutex lock_;
     std::vector<spdlog::sink_ptr> sinks_;
@@ -300,9 +300,16 @@ private:
 
 XAMP_BASE_NAMESPACE_END
 
-#define XampLoggerFactory xamp::base::SharedSingleton<xamp::base::LoggerManager>::GetInstance()
+#define XampLoggerFactory xamp::base::SharedSingleton<xamp::base::LoggerManager>::getInstance()
 
-#define XAMP_LOG(Level, ...) xamp::base::SharedSingleton<xamp::base::LoggerManager>::GetInstance().GetDefaultLogger()->Log(Level, CurrentLocation, __VA_ARGS__)
+#define XAMP_LOG(Level, ...) \
+    do { \
+        auto* default_logger__ = xamp::base::SharedSingleton<xamp::base::LoggerManager>::getInstance().GetDefaultLogger(); \
+        if (default_logger__ != nullptr && default_logger__->shouldLog(Level)) { \
+            default_logger__->log(Level, CurrentLocation, __VA_ARGS__); \
+        } \
+    } while (false)
+     
 #define XAMP_LOG_DEBUG(...)    XAMP_LOG(xamp::base::LOG_LEVEL_DEBUG, __VA_ARGS__)
 #define XAMP_LOG_INFO(...)     XAMP_LOG(xamp::base::LOG_LEVEL_INFO,  __VA_ARGS__)
 #define XAMP_LOG_ERROR(...)    XAMP_LOG(xamp::base::LOG_LEVEL_ERROR, __VA_ARGS__)
@@ -310,7 +317,14 @@ XAMP_BASE_NAMESPACE_END
 #define XAMP_LOG_WARN(...)     XAMP_LOG(xamp::base::LOG_LEVEL_WARN,  __VA_ARGS__)
 #define XAMP_LOG_CRITICAL(...) XAMP_LOG(xamp::base::LOG_LEVEL_CRITICAL, __VA_ARGS__)
 
-#define XAMP_LOG_LEVEL(logger, Level, ...) logger->Log(Level, CurrentLocation, __VA_ARGS__)
+#define XAMP_LOG_LEVEL(logger, Level, ...) \
+    do { \
+        auto* xamp_logger__ = (logger).get(); \
+        if (xamp_logger__ != nullptr && xamp_logger__->shouldLog(Level)) { \
+            xamp_logger__->log(Level, CurrentLocation, __VA_ARGS__); \
+        } \
+    } while (false)
+
 #define XAMP_LOG_D(logger, ...) XAMP_LOG_LEVEL(logger, xamp::base::LOG_LEVEL_DEBUG, __VA_ARGS__)
 #define XAMP_LOG_I(logger, ...) XAMP_LOG_LEVEL(logger, xamp::base::LOG_LEVEL_INFO,  __VA_ARGS__)
 #define XAMP_LOG_E(logger, ...) XAMP_LOG_LEVEL(logger, xamp::base::LOG_LEVEL_ERROR, __VA_ARGS__)

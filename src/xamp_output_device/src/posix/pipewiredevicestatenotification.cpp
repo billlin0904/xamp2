@@ -16,14 +16,14 @@ XAMP_OUTPUT_DEVICE_POSIX_NAMESPACE_BEGIN
 
 PipeWireDeviceStateNotification::PipeWireDeviceStateNotification(std::weak_ptr<IDeviceStateListener> callback)
 	: callback_(std::move(callback))
-	, logger_(XampLoggerFactory.GetLogger(XAMP_LOG_NAME(PipeWireDeviceStateNotification))) {
+	, logger_(XampLoggerFactory.getLogger(XAMP_LOG_NAME(PipeWireDeviceStateNotification))) {
 }
 
 PipeWireDeviceStateNotification::~PipeWireDeviceStateNotification() {
-	Stop();
+	stop();
 }
 
-void PipeWireDeviceStateNotification::Run() {
+void PipeWireDeviceStateNotification::run() {
 	if (is_running_.exchange(true)) {
 		return;
 	}
@@ -48,7 +48,7 @@ void PipeWireDeviceStateNotification::Run() {
 
 		static constexpr pw_core_events core_events{
 			.version = PW_VERSION_CORE_EVENTS,
-			.done = &PipeWireDeviceStateNotification::CoreDoneCallback,
+			.done = &PipeWireDeviceStateNotification::coreDoneCallback,
 		};
 		pw_core_add_listener(core_.get(), &core_listener_, &core_events, this);
 
@@ -60,7 +60,7 @@ void PipeWireDeviceStateNotification::Run() {
 		static constexpr pw_registry_events registry_events{
 			.version = PW_VERSION_REGISTRY_EVENTS,
 			.global = &PipeWireDeviceStateNotification::RegistryGlobalCallback,
-			.global_remove = &PipeWireDeviceStateNotification::RegistryGlobalRemoveCallback,
+			.global_remove = &PipeWireDeviceStateNotification::registryGlobalRemoveCallback,
 		};
 		pw_registry_add_listener(registry_.get(), &registry_listener_, &registry_events, this);
 
@@ -81,11 +81,11 @@ void PipeWireDeviceStateNotification::Run() {
 	}
 	catch (const std::exception& e) {
 		XAMP_LOG_D(logger_, "PipeWire device state notification disabled: {}", e.what());
-		Stop();
+		stop();
 	}
 }
 
-void PipeWireDeviceStateNotification::Stop() noexcept {
+void PipeWireDeviceStateNotification::stop() noexcept {
 	is_running_ = false;
 
 	if (loop_ != nullptr) {
@@ -108,11 +108,11 @@ void PipeWireDeviceStateNotification::Stop() noexcept {
 
 void PipeWireDeviceStateNotification::Notify(DeviceState state, std::string device_id) {
 	if (auto callback = callback_.lock()) {
-		callback->OnDeviceStateChange(state, device_id);
+		callback->onDeviceStateChange(state, device_id);
 	}
 }
 
-bool PipeWireDeviceStateNotification::RememberSink(uint32_t id, const spa_dict* props) {
+bool PipeWireDeviceStateNotification::rememberSink(uint32_t id, const spa_dict* props) {
 	const auto* name = spa_dict_lookup(props, PW_KEY_NODE_NAME);
 	if (name == nullptr || name[0] == '\0') {
 		return false;
@@ -130,7 +130,7 @@ bool PipeWireDeviceStateNotification::RememberSink(uint32_t id, const spa_dict* 
 	return true;
 }
 
-void PipeWireDeviceStateNotification::CoreDoneCallback(void* userdata, uint32_t id, int seq) {
+void PipeWireDeviceStateNotification::coreDoneCallback(void* userdata, uint32_t id, int seq) {
 	auto* self = static_cast<PipeWireDeviceStateNotification*>(userdata);
 	if (self == nullptr || id != PW_ID_CORE || seq != self->core_sync_seq_) {
 		return;
@@ -162,14 +162,14 @@ void PipeWireDeviceStateNotification::RegistryGlobalCallback(void* userdata,
 		return;
 	}
 
-	if (!self->RememberSink(id, props)) {
+	if (!self->rememberSink(id, props)) {
 		return;
 	}
 
 	self->Notify(DeviceState::DEVICE_STATE_ADDED, self->sinks_.at(id));
 }
 
-void PipeWireDeviceStateNotification::RegistryGlobalRemoveCallback(void* userdata, uint32_t id) {
+void PipeWireDeviceStateNotification::registryGlobalRemoveCallback(void* userdata, uint32_t id) {
 	auto* self = static_cast<PipeWireDeviceStateNotification*>(userdata);
 	if (self == nullptr) {
 		return;

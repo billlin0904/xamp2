@@ -44,13 +44,13 @@ archive* ArchivePtrDeleter::invalid() {
 	return nullptr;
 }
 
-void ArchivePtrDeleter::Close(archive* value) {
+void ArchivePtrDeleter::close(archive* value) {
 	if (value) {
 		LIBARCHIVE_LIB.archive_read_free(value);
 	}
 }
 
-std::expected<ptrdiff_t, std::string> ArchiveEntry::Read(char* buffer, size_t length) {
+std::expected<ptrdiff_t, std::string> ArchiveEntry::read(char* buffer, size_t length) {
 	auto ret = LIBARCHIVE_LIB.archive_read_data(archive_ptr.get(), buffer, length);
 	if (ret < 0) {
 		return std::unexpected(GetLinArchiveErrorMessage(archive_ptr));
@@ -62,7 +62,7 @@ class ArchiveFile::ArchiveFileImpl {
 public:
 	static constexpr size_t kArchiveBlockSize = 10240;
 
-	std::expected<std::vector<std::wstring>, std::string> Open(const Path& archive_path) {
+	std::expected<std::vector<std::wstring>, std::string> open(const Path& archive_path) {
 		try {
 			auto archive_ptr = MakeArchivePtr();			
 			PrefetchFile(archive_path.wstring());
@@ -90,11 +90,11 @@ public:
 		return entries_;
 	}
 
-	std::vector<std::wstring> ListEntries() const {
+	std::vector<std::wstring> listEntries() const {
 		return entries_;
 	}
 
-	std::expected<ArchiveEntry, std::string> GetEntryByName(const std::wstring& entry_name) {
+	std::expected<ArchiveEntry, std::string> getEntryByName(const std::wstring& entry_name) {
 		auto entry = FindEntry(entry_name);
 		if (!entry) {
 			return entry;
@@ -138,26 +138,26 @@ private:
 XAMP_PIMPL_IMPL(ArchiveFile)
 
 ArchiveFile::ArchiveFile()
-	: impl_(MakeAlign<ArchiveFileImpl>()) {
+	: impl_(makeAlign<ArchiveFileImpl>()) {
 }
 
-std::expected<std::vector<std::wstring>, std::string> ArchiveFile::Open(const Path& archive_path) {
-	return impl_->Open(archive_path);
+std::expected<std::vector<std::wstring>, std::string> ArchiveFile::open(const Path& archive_path) {
+	return impl_->open(archive_path);
 }
 
-std::vector<std::wstring> ArchiveFile::ListEntries() const {
-	return impl_->ListEntries();
+std::vector<std::wstring> ArchiveFile::listEntries() const {
+	return impl_->listEntries();
 }
 
-std::expected<ArchiveEntry, std::string> ArchiveFile::GetEntryByName(const std::wstring& entry_name) {
-	return impl_->GetEntryByName(entry_name);
+std::expected<ArchiveEntry, std::string> ArchiveFile::getEntryByName(const std::wstring& entry_name) {
+	return impl_->getEntryByName(entry_name);
 }
 
-std::vector<std::expected<ArchiveEntry, std::string>> ArchiveFile::GetAllEntry(ArchiveFile& file_) {
+std::vector<std::expected<ArchiveEntry, std::string>> ArchiveFile::getAllEntry(ArchiveFile& file_) {
 	std::vector<std::expected<ArchiveEntry, std::string>> entries;
 
-	for (const auto& entry : file_.ListEntries()) {
-		entries.push_back(file_.GetEntryByName(entry));
+	for (const auto& entry : file_.listEntries()) {
+		entries.push_back(file_.getEntryByName(entry));
 	}
 	return entries;
 }

@@ -26,7 +26,7 @@ public:
 
 	XAMP_PIMPL(CueLoader)
 
-	std::expected<std::vector<TrackInfo>, ParseCueError> Load(const Path& file_path);
+	std::expected<std::vector<TrackInfo>, ParseCueError> load(const Path& file_path);
 private:
 	class CueLoaderImpl;
 	ScopedPtr<CueLoaderImpl> impl_;

@@ -49,7 +49,7 @@ public:
 		logger_ = XAMP_LOG_CREATE_LOGGER(CueLoader);
 	}
 
-	std::expected<std::vector<TrackInfo>, ParseCueError> Load(const Path& path) {
+	std::expected<std::vector<TrackInfo>, ParseCueError> load(const Path& path) {
 		std::vector<TrackInfo> track_infos;
 
 		auto utf8_text = ReadFileToUtf8String(path);
@@ -72,7 +72,7 @@ public:
 		if (cd_text != nullptr) {
 			const char* s = nullptr;
 			if ((s = LIBCUE_LIB.cdtext_get(PTI_TITLE, cd_text)))
-				album = String::ToString(s);
+				album = String::toString(s);
 		}
 				
 		auto tracks = LIBCUE_LIB.cd_get_ntrack(cd.get());
@@ -88,12 +88,12 @@ public:
 		double file_duration = 0;
 		for (int track = 1; track <= tracks; track++) {
 			if (!same_file) {
-				auto reader = MakeMetadataReader();
-				auto wide_cur_name = String::ToString(cur_name);
+				auto reader = makeMetadataReader();
+				auto wide_cur_name = String::toString(cur_name);
 				if (path.has_root_path()) {
 					auto file_path = path.parent_path() / Path(wide_cur_name);
-					reader->Open(file_path);
-					auto result = reader->Extract();
+					reader->open(file_path);
+					auto result = reader->extract();
 					if (!result) {
 						return std::unexpected(ParseCueError::PARSE_ERROR_READ_TRACK_INFO);
 					}
@@ -101,8 +101,8 @@ public:
 					file_duration = track_info.duration;
 				}
 				else {
-					reader->Open(Path(wide_cur_name));
-					auto temp = reader->Extract();
+					reader->open(Path(wide_cur_name));
+					auto temp = reader->extract();
 					if (!temp) {
 						return std::unexpected(ParseCueError::PARSE_ERROR_READ_TRACK_INFO);
 					}
@@ -113,12 +113,12 @@ public:
 				track_info.album = album;
 				auto* cd_text = LIBCUE_LIB.cd_get_cdtext(cd.get());
 				if (cd_text != nullptr) {
-					GetCdText(cd_text, track_info);
+					getCdText(cd_text, track_info);
 				}
 				auto* rem = LIBCUE_LIB.cd_get_rem(cd.get());
 				if (rem != nullptr) {
-					GetYear(rem, track_info);
-					GetReplayGain(rem, track_info);
+					getYear(rem, track_info);
+					getReplayGain(rem, track_info);
 				}
 				opt_track_info = track_info;
 			}
@@ -128,7 +128,7 @@ public:
 			same_file = (next_name && !strcmp(next_name, cur_name));
 
 			if (auto track_info = opt_track_info) {
-				auto wide_cur_name = !cur_name ? L"" : String::ToString(cur_name);
+				auto wide_cur_name = !cur_name ? L"" : String::toString(cur_name);
 				auto file_path = path.parent_path() / Path(wide_cur_name);
 				track_info.value().file_path = file_path;
 
@@ -145,12 +145,12 @@ public:
 
 				auto* cd_text = LIBCUE_LIB.track_get_cdtext(cur);
 				if (cd_text != nullptr) {
-					GetCdText(cd_text, track_info.value());
+					getCdText(cd_text, track_info.value());
 				}
 
 				auto* rem = LIBCUE_LIB.track_get_rem(cur);
 				if (rem) {
-					GetReplayGain(rem, track_info.value());
+					getReplayGain(rem, track_info.value());
 				}
 				track_info.value().track = track;
 				track_infos.push_back(track_info.value());
@@ -166,7 +166,7 @@ public:
 		return track_infos;
 	}
 
-	void GetYear(Rem* rem, TrackInfo& info) {
+	void getYear(Rem* rem, TrackInfo& info) {
 		const char* s;
 		if ((s = LIBCUE_LIB.rem_get(REM_DATE, rem))) {
 			if (IsYear(s))
@@ -176,7 +176,7 @@ public:
 		}
 	}
 
-	void GetReplayGain(Rem* rem, TrackInfo& info) {
+	void getReplayGain(Rem* rem, TrackInfo& info) {
 		const char* s = nullptr;		
 		ReplayGain replay_gain;
 		if ((s = LIBCUE_LIB.rem_get(REM_REPLAYGAIN_ALBUM_GAIN, rem)))
@@ -190,16 +190,16 @@ public:
 		info.replay_gain = replay_gain;
 	}
 
-	void GetCdText(Cdtext* cd_text, TrackInfo& track_info) {
+	void getCdText(Cdtext* cd_text, TrackInfo& track_info) {
 		const char* s = nullptr;
 		if ((s = LIBCUE_LIB.cdtext_get(PTI_PERFORMER, cd_text)))
-			track_info.artist = String::ToString(s);
+			track_info.artist = String::toString(s);
 		if ((s = LIBCUE_LIB.cdtext_get(PTI_TITLE, cd_text)))
-			track_info.title = String::ToString(s);
+			track_info.title = String::toString(s);
 		if ((s = LIBCUE_LIB.cdtext_get(PTI_GENRE, cd_text)))
-			track_info.genre = String::ToString(s);
+			track_info.genre = String::toString(s);
 		if (track_info.artist.empty() && (s = LIBCUE_LIB.cdtext_get(PTI_COMPOSER, cd_text)))
-			track_info.artist = String::ToString(s);
+			track_info.artist = String::toString(s);
 	}
 
 private:
@@ -216,13 +216,13 @@ private:
 };
 
 CueLoader::CueLoader()
-	: impl_(MakeAlign<CueLoaderImpl>()) {
+	: impl_(makeAlign<CueLoaderImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(CueLoader)
 
-std::expected<std::vector<TrackInfo>, ParseCueError> CueLoader::Load(const Path& path) {
-	return impl_->Load(path);
+std::expected<std::vector<TrackInfo>, ParseCueError> CueLoader::load(const Path& path) {
+	return impl_->load(path);
 }
 
 XAMP_METADATA_NAMESPACE_END

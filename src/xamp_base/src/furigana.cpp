@@ -49,14 +49,14 @@ namespace {
         XAMP_DECLARE_DLL_NAME(mecab_sparse_tonode);
     };
 
-#define MECAB_LIB SharedSingleton<MeCabLib>::GetInstance()
+#define MECAB_LIB SharedSingleton<MeCabLib>::getInstance()
 
     struct MeCabTaggerDeleter final {
         static mecab_t* invalid() {
             return nullptr;
         }
 
-        static void Close(mecab_t* value) {
+        static void close(mecab_t* value) {
             if (value != nullptr) {
                 MECAB_LIB.mecab_destroy(value);
             }
@@ -110,7 +110,7 @@ namespace {
             return nullptr;
         }
 
-        static void Close(UTransliterator* value) {
+        static void close(UTransliterator* value) {
             if (value != nullptr) {
                 ::utrans_close(value);
             }
@@ -138,7 +138,7 @@ namespace {
             trans_.reset(trans);
         }
 
-        std::wstring Convert(const std::wstring_view& name) {
+        std::wstring convert(const std::wstring_view& name) {
             UErrorCode status = U_ZERO_ERROR;
 
             if (name.length() > static_cast<size_t>((std::numeric_limits<int32_t>::max)())) {
@@ -168,7 +168,7 @@ namespace {
                 throw std::runtime_error("Failed to transliterate name");
             }
 
-            // Convert the result to UTF-8
+            // convert the result to UTF-8
             int32_t utf8_length = 0;
             ::u_strToUTF8(nullptr, 0, &utf8_length, result.data(), result_length, &status);
             if (status != U_BUFFER_OVERFLOW_ERROR && U_FAILURE(status)) {
@@ -254,7 +254,7 @@ public:
         }
 	}
 
-    std::vector<FuriganaEntity> Convert(const std::wstring& text, bool trim_overlapping = false) {
+    std::vector<FuriganaEntity> convert(const std::wstring& text, bool trim_overlapping = false) {
         if (text.empty()) {
             return {};
         }
@@ -265,7 +265,7 @@ public:
         std::vector<FuriganaEntity> result;
         result.reserve(text.size());
 
-        const auto utf8 = String::ToUtf8String(text);
+        const auto utf8 = String::toUtf8String(text);
         const auto* node = MECAB_LIB.mecab_sparse_tonode(tagger_.get(), utf8.c_str());
 
         for (; node != nullptr; node = node->next) {
@@ -283,7 +283,7 @@ public:
                 continue;
             }
 
-            auto furigana = converter_.Convert(features[7]);
+            auto furigana = converter_.convert(features[7]);
             if (surface != furigana) {
                 // 在這裡應用 TrimOverlappingSuffix
                 if (trim_overlapping) {
@@ -327,13 +327,13 @@ public:
 };
 
 Furigana::Furigana()
-	: impl_(MakeAlign<FuriganaImpl>()) {
+	: impl_(makeAlign<FuriganaImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(Furigana)
 
-std::vector<FuriganaEntity> Furigana::Convert(const std::wstring& text) {
-	return impl_->Convert(text, true);
+std::vector<FuriganaEntity> Furigana::convert(const std::wstring& text) {
+	return impl_->convert(text, true);
 }
 
 void LoadFuriganaDll() {

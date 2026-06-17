@@ -16,15 +16,15 @@ class XAMP_STREAM_API XAMP_NO_VTABLE FileStream : public IAudioStream {
 public:
     XAMP_BASE_CLASS(FileStream)
 
-    [[nodiscard]] bool IsFile() const override {
+    [[nodiscard]] bool isFile() const override {
 		return true;
 	}
 
-    virtual void OpenFile(const Path & file_path) = 0;
+    virtual void openFile(const Path & file_path) = 0;
 
-    virtual void Open(ArchiveEntry archive_entry) = 0;
+    virtual void open(ArchiveEntry archive_entry) = 0;
 
-    virtual bool EndOfStream() const = 0;
+    virtual bool endOfStream() const = 0;
 protected:
     FileStream() = default;
 };

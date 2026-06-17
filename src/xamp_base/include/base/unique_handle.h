@@ -11,10 +11,10 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-template <typename T, typename Traits>
+template <typename t, typename Traits>
 class UniqueHandle final {
 public:
-	explicit UniqueHandle(T value = Traits::invalid()) : value_(value) {
+	explicit UniqueHandle(t value = Traits::invalid()) : value_(value) {
 	}
 
 	UniqueHandle(UniqueHandle&& other) : value_(other.release()) {
@@ -26,23 +26,23 @@ public:
 	}
 
 	~UniqueHandle() {
-		Close();
+		close();
 	}
 
 	XAMP_DISABLE_COPY(UniqueHandle)
 
-	[[nodiscard]] T get() const {
+	[[nodiscard]] t get() const {
 		return value_;
 	}
 
-	void reset(T value = Traits::invalid()) {
+	void reset(t value = Traits::invalid()) {
 		if (value_ != value) {
-			Close();
+			close();
 			value_ = value;
 		}
 	}
 
-	[[nodiscard]] T release() {
+	[[nodiscard]] t release() {
 		auto value = value_;
 		value_ = Traits::invalid();
 		return value;
@@ -60,9 +60,9 @@ public:
 		return is_valid();
 	}
 
-	void Close()  {
+	void close()  {
 		if (is_valid()) {
-			Traits::Close(value_);
+			Traits::close(value_);
 			value_ = Traits::invalid();
 		}
 	}
@@ -70,41 +70,41 @@ private:
 	bool operator==(UniqueHandle const &);
 	bool operator!=(UniqueHandle const &);	
 
-	T value_;
+	t value_;
 };
 
-template <typename T, typename Traits>
-auto swap(UniqueHandle<T, Traits> & left, UniqueHandle<T, Traits> & right) -> void {
+template <typename t, typename Traits>
+auto swap(UniqueHandle<t, Traits> & left, UniqueHandle<t, Traits> & right) -> void {
 	left.swap(right);
 }
 
-template <typename T, typename Traits>
-auto operator==(UniqueHandle<T, Traits> const & left, UniqueHandle<T, Traits> const & right) -> bool {
+template <typename t, typename Traits>
+auto operator==(UniqueHandle<t, Traits> const & left, UniqueHandle<t, Traits> const & right) -> bool {
 	return left.get() == right.get();
 }
 
-template <typename T, typename Traits>
-auto operator!=(UniqueHandle<T, Traits> const & left, UniqueHandle<T, Traits> const & right) -> bool {
+template <typename t, typename Traits>
+auto operator!=(UniqueHandle<t, Traits> const & left, UniqueHandle<t, Traits> const & right) -> bool {
 	return left.get() != right.get();
 }
 
-template <typename T, typename Traits>
-auto operator<(UniqueHandle<T, Traits> const & left, UniqueHandle<T, Traits> const & right) -> bool {
+template <typename t, typename Traits>
+auto operator<(UniqueHandle<t, Traits> const & left, UniqueHandle<t, Traits> const & right) -> bool {
 	return left.get() < right.get();
 }
 
-template <typename T, typename Traits>
-auto operator>=(UniqueHandle<T, Traits> const & left, UniqueHandle<T, Traits> const & right) -> bool {
+template <typename t, typename Traits>
+auto operator>=(UniqueHandle<t, Traits> const & left, UniqueHandle<t, Traits> const & right) -> bool {
 	return left.get() >= right.get();
 }
 
-template <typename T, typename Traits>
-auto operator>(UniqueHandle<T, Traits> const & left, UniqueHandle<T, Traits> const & right) -> bool {
+template <typename t, typename Traits>
+auto operator>(UniqueHandle<t, Traits> const & left, UniqueHandle<t, Traits> const & right) -> bool {
 	return left.get() > right.get();
 }
 
-template <typename T, typename Traits>
-auto operator<=(UniqueHandle<T, Traits> const & left, UniqueHandle<T, Traits> const & right) -> bool {
+template <typename t, typename Traits>
+auto operator<=(UniqueHandle<t, Traits> const & left, UniqueHandle<t, Traits> const & right) -> bool {
 	return left.get() <= right.get();
 }
 

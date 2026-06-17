@@ -22,11 +22,11 @@ public:
 
     HogCoreAudioDeviceType();
 
-    std::string_view GetDescription() const override;
+    std::string_view getDescription() const override;
 
-    Uuid GetTypeId() const override;
+    Uuid getTypeId() const override;
 
-    AlignPtr<IOutputDevice> MakeDevice(const std::string &device_id) override;
+    AlignPtr<IOutputDevice> makeDevice(const std::string &device_id) override;
 };
 
 }

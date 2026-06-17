@@ -16,9 +16,9 @@ class XAMP_STREAM_API XAMP_NO_VTABLE ISampleWriter : public IUUIDClass {
 public:
     XAMP_BASE_CLASS(ISampleWriter)
 
-    [[nodiscard]] virtual bool Process(BufferRef<float> const &input, AudioBuffer<std::byte>& buffer) = 0;
+    [[nodiscard]] virtual bool process(BufferRef<float> const &input, AudioBuffer<std::byte>& buffer) = 0;
 	
-    [[nodiscard]] virtual bool Process(float const * samples, size_t num_sample, AudioBuffer<std::byte>& buffer) = 0;
+    [[nodiscard]] virtual bool process(float const * samples, size_t num_sample, AudioBuffer<std::byte>& buffer) = 0;
 protected:
     ISampleWriter() = default;
 };

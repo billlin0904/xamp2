@@ -9,6 +9,8 @@
 #include <widget/widget_shared_global.h>
 
 class QMouseEvent;
+class QEvent;
+class QResizeEvent;
 
 class XAMP_WIDGET_SHARED_API ClickableLabel final : public QLabel {
 	Q_OBJECT
@@ -17,6 +19,14 @@ public:
 
 	ClickableLabel(const QString& text, QWidget* parent = nullptr);
 
+	void setText(const QString& text);
+
+	QString text() const;
+
+	void setElideMode(Qt::TextElideMode mode);
+
+	Qt::TextElideMode elideMode() const;
+
 signals:
 	void clicked();
 
@@ -24,4 +34,14 @@ protected:
 	void mousePressEvent(QMouseEvent* event) override;
 
 	void mouseMoveEvent(QMouseEvent* event) override;
+
+	void resizeEvent(QResizeEvent* event) override;
+
+	void changeEvent(QEvent* event) override;
+
+private:
+	void updateElidedText();
+
+	QString text_;
+	Qt::TextElideMode elide_mode_{ Qt::ElideNone };
 };

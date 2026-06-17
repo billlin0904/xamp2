@@ -13,11 +13,11 @@
 XAMP_BASE_NAMESPACE_BEGIN
 
 // C++17 ScopeGuard
-template <typename T, bool ExceptedSuccess, bool ExceptedFailure>
+template <typename t, bool ExceptedSuccess, bool ExceptedFailure>
 class ScopeGuard final {
 public:
-    ScopeGuard(T&& f) 
-        : f_(std::forward<T>(f)) {
+    ScopeGuard(t&& f) 
+        : f_(std::forward<t>(f)) {
     }
 
     ScopeGuard(ScopeGuard&& other)
@@ -47,7 +47,7 @@ private:
     };
 
     UncaughtExceptionDetector detector_;
-    T f_;
+    t f_;
 };
 
 struct ScopeGuardOnSuccess {};

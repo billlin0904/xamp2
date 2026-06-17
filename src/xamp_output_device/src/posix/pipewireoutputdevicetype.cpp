@@ -107,7 +107,7 @@ public:
 
 		static constexpr pw_core_events core_events{
 			.version = PW_VERSION_CORE_EVENTS,
-			.done = &PipeWireDeviceScanner::CoreDoneCallback,
+			.done = &PipeWireDeviceScanner::coreDoneCallback,
 		};
 		pw_core_add_listener(core_.get(), &core_listener_, &core_events, this);
 
@@ -135,7 +135,7 @@ public:
 			}
 		}
 
-		Stop();
+		stop();
 
 		std::ranges::sort(devices_, [](const auto& lhs, const auto& rhs) {
 			return lhs.name < rhs.name;
@@ -145,11 +145,11 @@ public:
 	}
 
 	~PipeWireDeviceScanner() {
-		Stop();
+		stop();
 	}
 
 private:
-	static void CoreDoneCallback(void* userdata, uint32_t id, int seq) {
+	static void coreDoneCallback(void* userdata, uint32_t id, int seq) {
 		auto* self = static_cast<PipeWireDeviceScanner*>(userdata);
 		if (self == nullptr || id != PW_ID_CORE || seq != self->core_sync_seq_) {
 			return;
@@ -193,7 +193,7 @@ private:
 			kFallbackSampleRate));
 	}
 
-	void Stop() noexcept {
+	void stop() noexcept {
 		if (loop_ != nullptr) {
 			{
 				const PipeWireThreadLoopLock lock(loop_.get());
@@ -232,11 +232,11 @@ std::vector<DeviceInfo> EnumeratePipeWireSinks() {
 class PipeWireOutputDeviceType::PipeWireOutputDeviceTypeImpl final {
 public:
 	PipeWireOutputDeviceTypeImpl()
-		: logger_(XampLoggerFactory.GetLogger(XAMP_LOG_NAME(PipeWireOutputDeviceType))) {
-		ScanNewDevice();
+		: logger_(XampLoggerFactory.getLogger(XAMP_LOG_NAME(PipeWireOutputDeviceType))) {
+		scanNewDevice();
 	}
 
-	void ScanNewDevice() {
+	void scanNewDevice() {
 		try {
 			devices_ = EnumeratePipeWireSinks();
 		}
@@ -250,26 +250,26 @@ public:
 		}
 	}
 
-	[[nodiscard]] size_t GetDeviceCount() const {
+	[[nodiscard]] size_t getDeviceCount() const {
 		return devices_.size();
 	}
 
-	[[nodiscard]] DeviceInfo GetDeviceInfo(uint32_t device) const {
+	[[nodiscard]] DeviceInfo getDeviceInfo(uint32_t device) const {
 		return devices_.at(device);
 	}
 
-	[[nodiscard]] std::vector<DeviceInfo> GetDeviceInfo() const {
+	[[nodiscard]] std::vector<DeviceInfo> getDeviceInfo() const {
 		return devices_;
 	}
 
-	[[nodiscard]] std::optional<DeviceInfo> GetDefaultDeviceInfo() const {
+	[[nodiscard]] std::optional<DeviceInfo> getDefaultDeviceInfo() const {
 		if (devices_.empty()) {
 			return std::nullopt;
 		}
 		return devices_.front();
 	}
 
-	ScopedPtr<IOutputDevice> MakeDevice(const std::shared_ptr<xamp::base::IThreadPoolExecutor>& thread_pool,
+	ScopedPtr<IOutputDevice> makeDevice(const std::shared_ptr<xamp::base::IThreadPool>& thread_pool,
 		const std::string& device_id) {
 		return MakeAlign<IOutputDevice, PipeWireOutputDevice>(thread_pool, device_id);
 	}
@@ -283,29 +283,29 @@ PipeWireOutputDeviceType::PipeWireOutputDeviceType()
 	: impl_(MakeAlign<PipeWireOutputDeviceTypeImpl>()) {
 }
 
-void PipeWireOutputDeviceType::ScanNewDevice() {
-	impl_->ScanNewDevice();
+void PipeWireOutputDeviceType::scanNewDevice() {
+	impl_->scanNewDevice();
 }
 
-size_t PipeWireOutputDeviceType::GetDeviceCount() const {
-	return impl_->GetDeviceCount();
+size_t PipeWireOutputDeviceType::getDeviceCount() const {
+	return impl_->getDeviceCount();
 }
 
-DeviceInfo PipeWireOutputDeviceType::GetDeviceInfo(uint32_t device) const {
-	return impl_->GetDeviceInfo(device);
+DeviceInfo PipeWireOutputDeviceType::getDeviceInfo(uint32_t device) const {
+	return impl_->getDeviceInfo(device);
 }
 
-std::vector<DeviceInfo> PipeWireOutputDeviceType::GetDeviceInfo() const {
-	return impl_->GetDeviceInfo();
+std::vector<DeviceInfo> PipeWireOutputDeviceType::getDeviceInfo() const {
+	return impl_->getDeviceInfo();
 }
 
-std::optional<DeviceInfo> PipeWireOutputDeviceType::GetDefaultDeviceInfo() const {
-	return impl_->GetDefaultDeviceInfo();
+std::optional<DeviceInfo> PipeWireOutputDeviceType::getDefaultDeviceInfo() const {
+	return impl_->getDefaultDeviceInfo();
 }
 
-ScopedPtr<IOutputDevice> PipeWireOutputDeviceType::MakeDevice(const std::shared_ptr<xamp::base::IThreadPoolExecutor>& thread_pool,
+ScopedPtr<IOutputDevice> PipeWireOutputDeviceType::makeDevice(const std::shared_ptr<xamp::base::IThreadPool>& thread_pool,
 	const std::string& device_id) {
-	return impl_->MakeDevice(thread_pool, device_id);
+	return impl_->makeDevice(thread_pool, device_id);
 }
 
 XAMP_OUTPUT_DEVICE_POSIX_NAMESPACE_END

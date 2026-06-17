@@ -19,7 +19,7 @@ class CoreAudioException final : public base::Exception {
 public:
     explicit CoreAudioException(OSStatus status);
 
-    static std::string ErrorToString(OSStatus status);
+    static std::string errorToString(OSStatus status);
 };
 
 #define CoreAudioThrowIfError(err) \
@@ -33,7 +33,7 @@ do { \
     do {\
         auto err = expr;\
         if (err != noErr) {\
-            XAMP_LOG_DEBUG(CoreAudioException::ErrorToString(err));\
+            XAMP_LOG_DEBUG(CoreAudioException::errorToString(err));\
         }\
     } while(false)
 

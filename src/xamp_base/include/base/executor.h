@@ -12,7 +12,7 @@
 #include <base/fastconditionvariable.h>
 #include <base/fastmutex.h>
 #include <base/workstealingtaskqueue.h>
-#include <base/ithreadpoolexecutor.h>
+#include <base/threadpool.h>
 #include <base/blocking_queue.h>
 #include <condition_variable>
 
@@ -21,16 +21,16 @@ XAMP_BASE_NAMESPACE_BEGIN
 namespace Executor {
 
 template <typename F, typename ... Args>
-decltype(auto) Spawn(const std::shared_ptr<IThreadPoolExecutor>& executor,
+decltype(auto) spawn(const std::shared_ptr<IThreadPool>& executor,
     F&& f, 
     Args&&... args,
     ExecuteFlags flags = ExecuteFlags::EXECUTE_NORMAL) {
     XAMP_ENSURES(executor != nullptr);
-    return executor->Spawn(f, std::forward<Args>(args) ..., flags);
+    return executor->spawn(f, std::forward<Args>(args) ..., flags);
 }
 
 template <typename C, typename Func>
-void ParallelFor(const std::shared_ptr<IThreadPoolExecutor>& executor,
+void parallelFor(const std::shared_ptr<IThreadPool>& executor,
     C& items,
     Func&& f,
     const std::stop_token& stop_token = std::stop_token(),
@@ -65,13 +65,13 @@ void ParallelFor(const std::shared_ptr<IThreadPoolExecutor>& executor,
         };
 
     if (worker_count == 0) {
-        worker_count = executor->GetThreadSize();
+        worker_count = executor->getThreadSize();
     }    
     std::vector<SharedFuture<void>> futures;
     futures.reserve(worker_count);
 
     for (size_t i = 0; i < worker_count; ++i) {
-        futures.push_back(Executor::Spawn(executor, worker).share());
+        futures.push_back(Executor::spawn(executor, worker).share());
     }
 
     for (auto& fut : futures) {
@@ -80,7 +80,7 @@ void ParallelFor(const std::shared_ptr<IThreadPoolExecutor>& executor,
 }
 
 template <typename C, typename Func>
-void ParallelForEach(const std::shared_ptr<IThreadPoolExecutor>& executor,
+void parallelForEach(const std::shared_ptr<IThreadPool>& executor,
     C& items,
     Func&& f,
     const std::stop_token& stop_token = std::stop_token()) {
@@ -98,7 +98,7 @@ void ParallelForEach(const std::shared_ptr<IThreadPoolExecutor>& executor,
         size_t batch_size = (std::min)(batches, static_cast<size_t>(std::distance(itr, end)));
         std::vector<Future<void>> futures((std::min)(size - i, batches));
         for (auto& ff : futures) {
-            ff = Executor::Spawn(executor,
+            ff = Executor::spawn(executor,
                 [func = std::forward<Func>(f), itr](const auto& token) -> void {
                     if constexpr (can_call_with_stop) {
 						func(*itr, token);
@@ -117,9 +117,9 @@ void ParallelForEach(const std::shared_ptr<IThreadPoolExecutor>& executor,
 }
 
 template <typename Func>
-void ParallelForEach(const std::shared_ptr<IThreadPoolExecutor>& executor, size_t begin, size_t end, Func&& f) {
+void parallelForEach(const std::shared_ptr<IThreadPool>& executor, size_t begin, size_t end, Func&& f) {
     size_t size = end - begin;
-    size_t batches = (executor->GetThreadSize() / 2) + 1;
+    size_t batches = (executor->getThreadSize() / 2) + 1;
 
     constexpr bool can_call_with_stop =
         std::is_invocable_v<Func, size_t, const std::stop_token&>;
@@ -127,7 +127,7 @@ void ParallelForEach(const std::shared_ptr<IThreadPoolExecutor>& executor, size_
     for (size_t i = 0; i < size;) {
         std::vector<Future<void>> futures((std::min)(size - i, batches));
         for (auto& ff : futures) {
-            ff = Executor::Spawn(executor, 
+            ff = Executor::spawn(executor, 
                 [func = std::forward<Func>(f), begin, i](const auto& token) -> void {
                 if constexpr (can_call_with_stop) {
                     func(begin + i, token);
@@ -145,7 +145,7 @@ void ParallelForEach(const std::shared_ptr<IThreadPoolExecutor>& executor, size_
 }
 
 template <typename C, typename Func>
-void ParallelForSimple(const std::shared_ptr<IThreadPoolExecutor>& executor,
+void ParallelForSimple(const std::shared_ptr<IThreadPool>& executor,
     C& items,
     Func&& f) {
     using ValueType = typename C::value_type;
@@ -163,7 +163,7 @@ void ParallelForSimple(const std::shared_ptr<IThreadPoolExecutor>& executor,
     futures.reserve(size);
 
     for (auto& item : items) {
-        futures.push_back(Executor::Spawn(executor, [ff = std::forward<Func>(f), item_ptr = std::addressof(item)](const auto& stop_token) mutable -> void {
+        futures.push_back(Executor::spawn(executor, [ff = std::forward<Func>(f), item_ptr = std::addressof(item)](const auto& stop_token) mutable -> void {
             if constexpr (can_call_with_stop) {
                 ff(*item_ptr, stop_token);
             }

@@ -199,5 +199,5 @@ private:
     QPixmap default_size_unknown_cover_;
 };
 
-#define qTheme SharedSingleton<ThemeManager>::GetInstance()
-#define qIconCache SharedSingleton<LruCache<QString, QIcon>>::GetInstance()
+#define qTheme SharedSingleton<ThemeManager>::getInstance()
+#define qIconCache SharedSingleton<LruCache<QString, QIcon>>::getInstance()

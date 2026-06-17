@@ -112,7 +112,7 @@ public:
     ~CrashHandlerImpl() = default;
 
 #ifdef XAMP_OS_WIN    
-    static void DumpStackInfo(void* info) {
+    static void dumpStackInfo(void* info) {
         std::lock_guard<std::recursive_mutex> guard{ mutex_ };
 
         StackTrace stack_trace;
@@ -126,18 +126,18 @@ public:
         const auto itr = kIgnoreExceptionCode.find(exception_pointers->ExceptionRecord->ExceptionCode);
         if (itr != kIgnoreExceptionCode.end()) {
             XAMP_LOG_TRACE("Ignore exception code: {}({:#010X}) {}",
-                itr->second, itr->first, stack_trace.CaptureStack());
+                itr->second, itr->first, stack_trace.captureStack());
             return;
         }
 
         const auto itr2 = kWellKnownExceptionCode.find(code);
         if (itr2 != kWellKnownExceptionCode.end()) {
             XAMP_LOG_DEBUG("Uncaught exception: {} {}\r\n",
-                (*itr2).second, stack_trace.CaptureStack());
+                (*itr2).second, stack_trace.captureStack());
         }
         else {
             XAMP_LOG_DEBUG("Uncaught exception: {:#010X} ({}) {}\r\n",
-                code, GetPlatformErrorMessage(code), stack_trace.CaptureStack());
+                code, GetPlatformErrorMessage(code), stack_trace.captureStack());
         }
 
         CreateMinidump(exception_pointers);
@@ -146,11 +146,11 @@ public:
     static void DumpCurrentExceptionStack() {
         ExceptionPointer exception_pointers;
         GetExceptionPointers(0, &exception_pointers);
-        DumpStackInfo(&exception_pointers);
+        dumpStackInfo(&exception_pointers);
     }
 
     static LONG VectoredHandler(PEXCEPTION_POINTERS exception_pointers) {
-        DumpStackInfo(exception_pointers);
+        dumpStackInfo(exception_pointers);
         return EXCEPTION_EXECUTE_HANDLER;
     }
 
@@ -190,13 +190,13 @@ public:
     static void SigfpeHandler(int32_t) {
         // Floating point exception (SIGFPE)
         auto* exception_pointers = static_cast<PEXCEPTION_POINTERS>(_pxcptinfoptrs);
-        DumpStackInfo(exception_pointers);
+        dumpStackInfo(exception_pointers);
     }
 
     // CRT SIGSEGV signal handler
     static void SigsegvHandler(int32_t) {
         auto* exception_pointers = static_cast<PEXCEPTION_POINTERS>(_pxcptinfoptrs);
-        DumpStackInfo(exception_pointers);
+        dumpStackInfo(exception_pointers);
     }
 
     static int NewHandler(size_t) {
@@ -215,7 +215,7 @@ public:
         exception_pointers->ExceptionRecord->ExceptionAddress = ::_ReturnAddress();
     }
 
-    void SetProcessExceptionHandlers() {
+    void setProcessExceptionHandlers() {
         //XAMP_LOG_DEBUG("Install process exception handler.");
 
         // Vectored Exception Handling (VEH) is an extension to structured exception handling.
@@ -239,7 +239,7 @@ public:
         (void)::signal(SIGSEGV, SigsegvHandler);
     }
 
-    void SetThreadExceptionHandlers() {
+    void setThreadExceptionHandlers() {
         //XAMP_LOG_INFO("Install thread exception handler.");
 
         // C++ terminate handler 是「每個 thread 各自一份」，
@@ -248,14 +248,14 @@ public:
     }
 
 #else
-    static void DumpStackInfo(void* info) {
+    static void dumpStackInfo(void* info) {
     }
 
-    void SetProcessExceptionHandlers() {
+    void setProcessExceptionHandlers() {
         InstallSignalHandler();
     }
 
-    void SetThreadExceptionHandlers() {
+    void setThreadExceptionHandlers() {
         InstallSignalHandler();
     }
 
@@ -314,7 +314,7 @@ public:
             info ? info->si_code : 0,
             info ? info->si_addr : nullptr);
         StackTrace trace;
-        XAMP_LOG_ERROR("{}", trace.CaptureStack());
+        XAMP_LOG_ERROR("{}", trace.captureStack());
     }
 
     static void CrashSignalHandler(int signal_number, siginfo_t* info, void*) {
@@ -324,7 +324,7 @@ public:
 
         LogCrashSignal(signal_number, info);
 
-        // Reset signal to SIG_DFL
+        // reset signal to SIG_DFL
         ::signal(signal_number, SIG_DFL);
 
         std::exit(0);
@@ -354,30 +354,30 @@ public:
 std::recursive_mutex CrashHandler::CrashHandlerImpl::mutex_;
 
 CrashHandler::CrashHandler()
-	: impl_(MakeAlign<CrashHandlerImpl>()) {
+	: impl_(makeAlign<CrashHandlerImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(CrashHandler)
 
-void CrashHandler::SetProcessExceptionHandlers() {
+void CrashHandler::setProcessExceptionHandlers() {
     if (!impl_) {
         return;
     }
-    impl_->SetProcessExceptionHandlers();
+    impl_->setProcessExceptionHandlers();
 }
 
-void CrashHandler::SetThreadExceptionHandlers() {
+void CrashHandler::setThreadExceptionHandlers() {
     if (!impl_) {
         return;
     }
-    impl_->SetThreadExceptionHandlers();
+    impl_->setThreadExceptionHandlers();
 }
 
-void CrashHandler::DumpStackInfo(void* info) {
-    CrashHandlerImpl::DumpStackInfo(info);
+void CrashHandler::dumpStackInfo(void* info) {
+    CrashHandlerImpl::dumpStackInfo(info);
 }
 
-void CrashHandler::Cleanup() {
+void CrashHandler::cleanup() {
 	impl_.reset();
 }
 

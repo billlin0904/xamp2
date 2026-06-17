@@ -48,9 +48,9 @@ inline SoxrLib::SoxrLib() try
     , XAMP_LOAD_DLL_API(soxr_clear) {
 }
 catch (const Exception& e) {
-    XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+    XAMP_LOG_ERROR("{}", e.getErrorMessage());
 }
 
-#define LibSoxrDLL SharedSingleton<SoxrLib>::GetInstance()
+#define LibSoxrDLL SharedSingleton<SoxrLib>::getInstance()
 
 XAMP_STREAM_NAMESPACE_END

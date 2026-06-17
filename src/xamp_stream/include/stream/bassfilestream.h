@@ -26,53 +26,53 @@ public:
 
 	XAMP_PIMPL(BassFileStream)
 
-    void OpenFile(const Path& file_path) override;
+    void openFile(const Path& file_path) override;
 
-	void Open(ArchiveEntry archive_entry) override;
+	void open(ArchiveEntry archive_entry) override;
 
-	void Close() override;
+	void close() override;
 
 	// Check if the stream is at the end.
 	// If read CD or use BASS_ASYNCFILE flag, Must use this function to check.
-	bool EndOfStream() const override;
+	bool endOfStream() const override;
 
-	[[nodiscard]] double GetDuration() const override;
+	[[nodiscard]] double getDuration() const override;
 
-	[[nodiscard]] AudioFormat GetFormat() const override;
+	[[nodiscard]] AudioFormat getFormat() const override;
 
-	[[nodiscard]] uint32_t GetSamples(void* buffer, uint32_t length) const override;
+	[[nodiscard]] uint32_t getSamples(void* buffer, uint32_t length) const override;
 
-	void Seek(double stream_time) const override;
+	void seek(double stream_time) const override;
 
-	[[nodiscard]] uint32_t GetSampleSize() const override;
+	[[nodiscard]] uint32_t getSampleSize() const override;
 
-	[[nodiscard]] bool IsDsdFile() const override;
+	[[nodiscard]] bool isDsdFile() const override;
 
-	void SetDSDMode(DsdModes mode) override;
+	void setDSDMode(DsdModes mode) override;
 
-	[[nodiscard]] DsdModes GetDsdMode() const override;
+	[[nodiscard]] DsdModes getDsdMode() const override;
 
-	[[nodiscard]] uint32_t GetDsdSampleRate() const override;
+	[[nodiscard]] uint32_t getDsdSampleRate() const override;
 
-	[[nodiscard]] DsdFormat GetDsdFormat() const override;
+	[[nodiscard]] DsdFormat getDsdFormat() const override;
 
-    void SetDsdToPcmSampleRate(uint32_t sample_rate) override;
+    void setDsdToPcmSampleRate(uint32_t sample_rate) override;
 
-	[[nodiscard]] uint32_t GetDsdSpeed() const override;
+	[[nodiscard]] uint32_t getDsdSpeed() const override;
 
-	[[nodiscard]] uint32_t GetBitDepth() const override;
+	[[nodiscard]] uint32_t getBitDepth() const override;
 
-	[[nodiscard]] uint32_t GetBitRate() const override;
+	[[nodiscard]] uint32_t getBitRate() const override;
 
-	[[nodiscard]] uint32_t GetHStream() const ;
+	[[nodiscard]] uint32_t getHStream() const ;
 
-	[[nodiscard]] bool IsActive() const override;
+	[[nodiscard]] bool isActive() const override;
 
-	[[nodiscard]] bool SupportDOP() const override;
+	[[nodiscard]] bool supportDOP() const override;
 
-	[[nodiscard]] bool SupportDOP_AA() const override;
+	[[nodiscard]] bool supportDOP_AA() const override;
 
-	[[nodiscard]] bool SupportNativeSD() const override;
+	[[nodiscard]] bool supportNativeSD() const override;
 
 private:	
 	class BassFileStreamImpl;

@@ -1,6 +1,9 @@
 #include <widget/scrolllabel.h>
 
+#include <QEvent>
 #include <QPainter>
+
+#include <algorithm>
 
 ScrollLabel::ScrollLabel(QWidget* parent) 
 	: QLabel(parent) {
@@ -29,11 +32,41 @@ QString ScrollLabel::text() const {
 	return text_;
 }
 
+void ScrollLabel::setElideMode(Qt::TextElideMode mode) {
+	if (elide_mode_ == mode) {
+		return;
+	}
+
+	elide_mode_ = mode;
+	scroll_pos_ = 0;
+	updateText();
+	update();
+	updateGeometry();
+}
+
+Qt::TextElideMode ScrollLabel::elideMode() const {
+	return elide_mode_;
+}
+
 void ScrollLabel::updateText() {
 	timer_.stop();
+	wait_timer_.stop();
 
 	single_text_width_ = fontMetrics().horizontalAdvance(text_);
-    scroll_enabled_ = single_text_width_ > (width() - left_margin_);
+	const auto available_width = (std::max)(0, width() - left_margin_);
+
+	if (elide_mode_ != Qt::ElideNone) {
+		scroll_enabled_ = false;
+		const auto elided_text = fontMetrics().elidedText(text_, elide_mode_, available_width);
+		static_text_.setText(elided_text);
+		static_text_.prepare(QTransform(), font());
+		whole_text_size_ = QSize(fontMetrics().horizontalAdvance(static_text_.text()), fontMetrics().height());
+		setToolTip(elided_text == text_ ? QString() : text_);
+		return;
+	}
+
+	setToolTip(QString());
+    scroll_enabled_ = single_text_width_ > available_width;
 
 	if (scroll_enabled_) {
         static_text_.setText(text_ + seperator_);
@@ -145,7 +178,14 @@ void ScrollLabel::resizeEvent(QResizeEvent*) {
 	}
 
 	const auto new_scroll_enabled = (single_text_width_ > width() - left_margin_);
-	if (new_scroll_enabled != scroll_enabled_) {
+	if (elide_mode_ != Qt::ElideNone || new_scroll_enabled != scroll_enabled_) {
+		updateText();
+	}
+}
+
+void ScrollLabel::changeEvent(QEvent* event) {
+	QLabel::changeEvent(event);
+	if (event->type() == QEvent::FontChange || event->type() == QEvent::StyleChange) {
 		updateText();
 	}
 }

@@ -16,7 +16,7 @@ struct AudioGlitchInfo {
 	AudioGlitchInfo() = default;
 
 	// 建立一個「單一系統層級的 glitch」資訊，duration 會被 clamp 在 [0, 1s]
-	static AudioGlitchInfo SingleBoundedSystemGlitch(Duration duration);
+	static AudioGlitchInfo singleBoundedSystemGlitch(Duration duration);
 
 	AudioGlitchInfo& operator+=(const AudioGlitchInfo& other) {
 		duration += other.duration;
@@ -48,7 +48,7 @@ inline bool operator==(const AudioGlitchInfo& lhs, const AudioGlitchInfo& rhs) {
 }
 
 // static
-inline AudioGlitchInfo AudioGlitchInfo::SingleBoundedSystemGlitch(Duration duration) {
+inline AudioGlitchInfo AudioGlitchInfo::singleBoundedSystemGlitch(Duration duration) {
 	using namespace std::chrono;
 	// 負值當成 0，超過 1 秒就 clamp
 	const auto clamped =
@@ -66,11 +66,11 @@ public:
 
 	GlitchDetector() = default;
 
-	void Reset(uint64_t device_frequency, Duration buffer_duration) ;
+	void reset(uint64_t device_frequency, Duration buffer_duration) ;
 
-	std::optional<AudioGlitchInfo> Update(uint64_t position, uint64_t qpc_position_100ns) ;
+	std::optional<AudioGlitchInfo> update(uint64_t position, uint64_t qpc_position_100ns) ;
 
-	AudioGlitchInfo GetTotalGlitchInfoAndReset() ;
+	AudioGlitchInfo getTotalGlitchInfoAndReset() ;
 
 private:
 	uint64_t device_frequency_{ 0 }; // IAudioClock::GetFrequency()
@@ -82,7 +82,7 @@ private:
 	Accumulator total_glitch_accumulator_;
 };
 
-inline void GlitchDetector::Reset(uint64_t device_frequency, Duration buffer_duration) {
+inline void GlitchDetector::reset(uint64_t device_frequency, Duration buffer_duration) {
 	device_frequency_ = device_frequency;
 	buffer_duration_ = buffer_duration;
 	last_position_ = 0;
@@ -90,7 +90,7 @@ inline void GlitchDetector::Reset(uint64_t device_frequency, Duration buffer_dur
 	total_glitch_accumulator_ = Accumulator{};
 }
 
-inline std::optional<AudioGlitchInfo> GlitchDetector::Update(uint64_t position, uint64_t qpc_position_100ns) {
+inline std::optional<AudioGlitchInfo> GlitchDetector::update(uint64_t position, uint64_t qpc_position_100ns) {
 	// 尚未初始化或參數異常就直接跳過
 	if (device_frequency_ == 0) {
 		return std::nullopt;
@@ -138,7 +138,7 @@ inline std::optional<AudioGlitchInfo> GlitchDetector::Update(uint64_t position, 
 
 	if (gap_duration > glitch_threshold) {
 		// 記錄為 glitch，clamp 在 [0, 1s]，count=1
-		auto info = AudioGlitchInfo::SingleBoundedSystemGlitch(gap_duration);
+		auto info = AudioGlitchInfo::singleBoundedSystemGlitch(gap_duration);
 		total_glitch_accumulator_.Add(info);
 		result = info;
 	}
@@ -149,7 +149,7 @@ inline std::optional<AudioGlitchInfo> GlitchDetector::Update(uint64_t position, 
 	return result;
 }
 
-inline AudioGlitchInfo GlitchDetector::GetTotalGlitchInfoAndReset() {
+inline AudioGlitchInfo GlitchDetector::getTotalGlitchInfoAndReset() {
 	return total_glitch_accumulator_.GetAndReset();
 }
 

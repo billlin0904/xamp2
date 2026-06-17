@@ -25,6 +25,7 @@
         <file>Resource/Black/unknown_album.png</file>
         <file>migrations/2024-01-12-093210_init/up.sql</file>
         <file>migrations/2026-05-22-110000_scan_insert_indexes/up.sql</file>
+        <file>migrations/2026-06-15-120000_playlist_album_states/up.sql</file>
         <file>Resource/Theme/dark/darkstyle.qss</file>
         <file>Resource/Theme/light/lightstyle.qss</file>
         <file>xamp_startup.png</file>

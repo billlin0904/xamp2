@@ -18,15 +18,15 @@ public:
 
 	XAMP_DISABLE_COPY(STFT)
 
-	void SetWindowType(WindowType type);
+	void setWindowType(WindowType type);
 
 	void Clear();
 
-	const ComplexValarray& Process(const float* in, size_t length);
+	const ComplexValarray& process(const float* in, size_t length);
 
-	const ComplexValarray& Flush();
+	const ComplexValarray& flush();
 
-	size_t GetShiftSize() const;
+	size_t getShiftSize() const;
 private:
 	size_t frame_size_;
 	size_t shift_size_;

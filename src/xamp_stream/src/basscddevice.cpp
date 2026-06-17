@@ -33,26 +33,26 @@ public:
 	}
 
 	~BassCDDeviceImpl() {
-		Release();
+		release();
 	}
 
-	void SetAction(CDDeviceAction action) {
+	void setAction(CDDeviceAction action) {
 		BassIfFailedThrow(BassLibDLL.CDLib->BASS_CD_Door(driver_, static_cast<DWORD>(action)));
 	}
 
-	void SetSpeed(uint32_t speed) {
+	void setSpeed(uint32_t speed) {
 		BassIfFailedThrow(BassLibDLL.CDLib->BASS_CD_SetSpeed(driver_, speed));
 	}
 
-	[[nodiscard]] uint32_t GetSpeed() const {
+	[[nodiscard]] uint32_t getSpeed() const {
 		return static_cast<uint32_t>((BassLibDLL.CDLib->BASS_CD_GetSpeed(driver_) / kCDSpeedMultiplier));
 	}
 
-	[[nodiscard]] bool DoorIsOpen() const {
+	[[nodiscard]] bool doorIsOpen() const {
 		return BassLibDLL.CDLib->BASS_CD_DoorIsOpen(driver_);
 	}
 
-	std::string GetISRC(uint32_t track) const {
+	std::string getISRC(uint32_t track) const {
 		auto const* text = BassLibDLL.CDLib->BASS_CD_GetID(driver_, BASS_CDID_ISRC + track);
 		if (!text) {
 			return "";
@@ -60,7 +60,7 @@ public:
 		return text;
 	}
 
-	[[nodiscard]] CDText GetCDText() const {
+	[[nodiscard]] CDText getCDText() const {
 		CDText cd_text;
 		auto const * text = BassLibDLL.CDLib->BASS_CD_GetID(driver_, BASS_CDID_TEXT);
 		if (!text) {
@@ -76,7 +76,7 @@ public:
 		return cd_text;
 	}
 
-	[[nodiscard]] std::vector<std::wstring> GetTotalTracks() const {
+	[[nodiscard]] std::vector<std::wstring> getTotalTracks() const {
 		std::vector<std::wstring> tracks;
 		const auto num_track = BassLibDLL.CDLib->BASS_CD_GetTracks(driver_);
 		if (num_track == kBassError) {
@@ -91,7 +91,7 @@ public:
 		return tracks;
 	}
 
-	[[nodiscard]] CDDeviceInfo GetCDDeviceInfo() const {
+	[[nodiscard]] CDDeviceInfo getCDDeviceInfo() const {
 		BASS_CD_INFO info{};
 		BassIfFailedThrow(BassLibDLL.CDLib->BASS_CD_GetInfo(driver_, &info));
 		CDDeviceInfo device_info;
@@ -113,20 +113,20 @@ public:
 		return device_info;
 	}
 
-	uint32_t GetTrackLength(uint32_t track) const {
+	uint32_t getTrackLength(uint32_t track) const {
 		return BassLibDLL.CDLib->BASS_CD_GetTrackLength(driver_, track);
 	}
 
-	void Release() {
+	void release() {
 		BassLibDLL.CDLib->BASS_CD_Release(driver_);
 	}
 
-	void SetMaxSpeed() {
+	void setMaxSpeed() {
 		// -1 = optimal performace.
 		BassIfFailedThrow(BassLibDLL.CDLib->BASS_CD_SetSpeed(driver_, -1));
 	}
 
-	double GetDuration(uint32_t track) const {		
+	double getDuration(uint32_t track) const {		
 		return BassLibDLL.CDLib->BASS_CD_GetTrackLength(driver_, track) / kCDBytesPerSecond;
 	}
 private:
@@ -135,53 +135,53 @@ private:
 };
 
 BassCDDevice::BassCDDevice(char driver_letter)
-	: impl_(MakeAlign<BassCDDeviceImpl>(driver_letter)) {
+	: impl_(makeAlign<BassCDDeviceImpl>(driver_letter)) {
 }
 
 XAMP_PIMPL_IMPL(BassCDDevice)
 
-void BassCDDevice::SetAction(CDDeviceAction action) {
-	impl_->SetAction(action);
+void BassCDDevice::setAction(CDDeviceAction action) {
+	impl_->setAction(action);
 }
 
-void BassCDDevice::SetSpeed(uint32_t speed) {
-	impl_->SetSpeed(speed);
+void BassCDDevice::setSpeed(uint32_t speed) {
+	impl_->setSpeed(speed);
 }
 
-void BassCDDevice::SetMaxSpeed() {
-	impl_->SetMaxSpeed();
+void BassCDDevice::setMaxSpeed() {
+	impl_->setMaxSpeed();
 }
 
-uint32_t BassCDDevice::GetSpeed() const {
-	return impl_->GetSpeed();
+uint32_t BassCDDevice::getSpeed() const {
+	return impl_->getSpeed();
 }
 
-bool BassCDDevice::DoorIsOpen() const {
-	return impl_->DoorIsOpen();
+bool BassCDDevice::doorIsOpen() const {
+	return impl_->doorIsOpen();
 }
 
-CDText BassCDDevice::GetCDText() const {
-	return impl_->GetCDText();
+CDText BassCDDevice::getCDText() const {
+	return impl_->getCDText();
 }
 
-std::vector<std::wstring> BassCDDevice::GetTotalTracks() const {
-	return impl_->GetTotalTracks();
+std::vector<std::wstring> BassCDDevice::getTotalTracks() const {
+	return impl_->getTotalTracks();
 }
 
-double BassCDDevice::GetDuration(uint32_t track) const {
-	return impl_->GetDuration(track);
+double BassCDDevice::getDuration(uint32_t track) const {
+	return impl_->getDuration(track);
 }
 
-std::string BassCDDevice::GetISRC(uint32_t track) const {
-	return impl_->GetISRC(track);
+std::string BassCDDevice::getISRC(uint32_t track) const {
+	return impl_->getISRC(track);
 }
 
-CDDeviceInfo BassCDDevice::GetCDDeviceInfo() const {
-	return impl_->GetCDDeviceInfo();
+CDDeviceInfo BassCDDevice::getCDDeviceInfo() const {
+	return impl_->getCDDeviceInfo();
 }
 
-void BassCDDevice::Release() {
-	impl_->Release();
+void BassCDDevice::release() {
+	impl_->release();
 }
 
 #endif

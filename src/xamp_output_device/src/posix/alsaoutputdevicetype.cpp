@@ -51,7 +51,7 @@ struct AlsaControlTraits final {
 		return nullptr;
 	}
 
-	static void Close(handle_type handle) noexcept {
+	static void close(handle_type handle) noexcept {
 		if (handle != nullptr) {
 			::snd_ctl_close(handle);
 			::snd_config_update_free_global();
@@ -68,7 +68,7 @@ struct AlsaPcmTraits final {
 		return nullptr;
 	}
 
-	static void Close(handle_type handle) noexcept {
+	static void close(handle_type handle) noexcept {
 		if (handle != nullptr) {
 			::snd_pcm_close(handle);
 			::snd_config_update_free_global();
@@ -266,11 +266,11 @@ std::vector<DeviceInfo> EnumerateAlsaPlaybackDevices() {
 class AlsaOutputDeviceType::AlsaOutputDeviceTypeImpl final {
 public:
 	AlsaOutputDeviceTypeImpl()
-		: logger_(XampLoggerFactory.GetLogger(XAMP_LOG_NAME(AlsaOutputDeviceType))) {
-		ScanNewDevice();
+		: logger_(XampLoggerFactory.getLogger(XAMP_LOG_NAME(AlsaOutputDeviceType))) {
+		scanNewDevice();
 	}
 
-	void ScanNewDevice() {
+	void scanNewDevice() {
 		try {
 			devices_ = EnumerateAlsaPlaybackDevices();
 		}
@@ -284,26 +284,26 @@ public:
 		}
 	}
 
-	[[nodiscard]] size_t GetDeviceCount() const {
+	[[nodiscard]] size_t getDeviceCount() const {
 		return devices_.size();
 	}
 
-	[[nodiscard]] DeviceInfo GetDeviceInfo(uint32_t device) const {
+	[[nodiscard]] DeviceInfo getDeviceInfo(uint32_t device) const {
 		return devices_.at(device);
 	}
 
-	[[nodiscard]] std::vector<DeviceInfo> GetDeviceInfo() const {
+	[[nodiscard]] std::vector<DeviceInfo> getDeviceInfo() const {
 		return devices_;
 	}
 
-	[[nodiscard]] std::optional<DeviceInfo> GetDefaultDeviceInfo() const {
+	[[nodiscard]] std::optional<DeviceInfo> getDefaultDeviceInfo() const {
 		if (devices_.empty()) {
 			return std::nullopt;
 		}
 		return devices_.front();
 	}
 
-	ScopedPtr<IOutputDevice> MakeDevice(const std::shared_ptr<xamp::base::IThreadPoolExecutor>& thread_pool,
+	ScopedPtr<IOutputDevice> makeDevice(const std::shared_ptr<xamp::base::IThreadPool>& thread_pool,
 		const std::string& device_id) {
 		return MakeAlign<IOutputDevice, AlsaOutputDevice>(thread_pool, device_id);
 	}
@@ -317,29 +317,29 @@ AlsaOutputDeviceType::AlsaOutputDeviceType()
 	: impl_(MakeAlign<AlsaOutputDeviceTypeImpl>()) {
 }
 
-void AlsaOutputDeviceType::ScanNewDevice() {
-	impl_->ScanNewDevice();
+void AlsaOutputDeviceType::scanNewDevice() {
+	impl_->scanNewDevice();
 }
 
-size_t AlsaOutputDeviceType::GetDeviceCount() const {
-	return impl_->GetDeviceCount();
+size_t AlsaOutputDeviceType::getDeviceCount() const {
+	return impl_->getDeviceCount();
 }
 
-DeviceInfo AlsaOutputDeviceType::GetDeviceInfo(uint32_t device) const {
-	return impl_->GetDeviceInfo(device);
+DeviceInfo AlsaOutputDeviceType::getDeviceInfo(uint32_t device) const {
+	return impl_->getDeviceInfo(device);
 }
 
-std::vector<DeviceInfo> AlsaOutputDeviceType::GetDeviceInfo() const {
-	return impl_->GetDeviceInfo();
+std::vector<DeviceInfo> AlsaOutputDeviceType::getDeviceInfo() const {
+	return impl_->getDeviceInfo();
 }
 
-std::optional<DeviceInfo> AlsaOutputDeviceType::GetDefaultDeviceInfo() const {
-	return impl_->GetDefaultDeviceInfo();
+std::optional<DeviceInfo> AlsaOutputDeviceType::getDefaultDeviceInfo() const {
+	return impl_->getDefaultDeviceInfo();
 }
 
-ScopedPtr<IOutputDevice> AlsaOutputDeviceType::MakeDevice(const std::shared_ptr<xamp::base::IThreadPoolExecutor>& thread_pool,
+ScopedPtr<IOutputDevice> AlsaOutputDeviceType::makeDevice(const std::shared_ptr<xamp::base::IThreadPool>& thread_pool,
 	const std::string& device_id) {
-	return impl_->MakeDevice(thread_pool, device_id);
+	return impl_->makeDevice(thread_pool, device_id);
 }
 
 XAMP_OUTPUT_DEVICE_POSIX_NAMESPACE_END

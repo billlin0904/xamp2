@@ -124,7 +124,7 @@ namespace http {
             const ConstexprQString& verb,
             const QNetworkRequest& request,
             const QNetworkReply* reply = nullptr) {
-            if (!logger->ShouldLog(logger->GetLevel())) {
+            if (!logger->shouldLog(logger->getLevel())) {
                 return;
             }
             logHttpRequest(logger, verb, request.url().toString(), request, reply);
@@ -140,7 +140,7 @@ namespace http {
         if (manager_ && !manager_->cache()) {
             manager_->setCache(new NetworkDiskCache(manager_));
         }
-		logger_->SetLevel(LogLevel::LOG_LEVEL_DEBUG);
+		//logger_->setLevel(LogLevel::LOG_LEVEL_DEBUG);
     }
 
     HttpClient::HttpClient(const QString& url, QObject* parent)

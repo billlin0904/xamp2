@@ -13,31 +13,31 @@
 XAMP_BASE_NAMESPACE_BEGIN
 
 /*
-* Buffer<T> is a wrapper of std::unique_ptr<T[]>.
+* Buffer<t> is a wrapper of std::unique_ptr<t[]>.
 * 
-* @tparam T Type of buffer.
-* @tparam U Enable if T is trivially copyable.
+* @tparam t Type of buffer.
+* @tparam U Enable if t is trivially copyable.
 */
-template <typename T>
+template <typename t>
 class Buffer {
 public:
-    static_assert(std::is_trivially_copyable_v<T>, "Buffer only supports trivially copyable types.");
+    static_assert(std::is_trivially_copyable_v<t>, "Buffer only supports trivially copyable types.");
 
     Buffer() = default;
 
     explicit Buffer(const size_t size)
         : size_(size)
-        , ptr_(MakeAlignedArray<T>(size)) {
-        lock_.Lock(ptr_.get(), GetByteSize());
+        , ptr_(makeAlignedArray<t>(size)) {
+        lock_.Lock(ptr_.get(), getByteSize());
     }
 
 	XAMP_DISABLE_COPY(Buffer)
 
-    Buffer(Buffer<T>&& other) {
+    Buffer(Buffer<t>&& other) {
         *this = std::move(other);
     }
 
-    Buffer<T>& operator=(Buffer<T>&& other) {
+    Buffer<t>& operator=(Buffer<t>&& other) {
         if (this != &other) {
             ptr_ = std::move(other.ptr_);
             lock_ = std::move(other.lock_);
@@ -47,49 +47,41 @@ public:
         return *this;
     }
 
-    [[nodiscard]] T* Get() XAMP_CHECK_LIFETIME {
+    [[nodiscard]] const t* data() const XAMP_CHECK_LIFETIME {
         return ptr_.get();
     }
 
-    [[nodiscard]] const T* Get() const XAMP_CHECK_LIFETIME {
-        return ptr_.get();
-    }
-
-    [[nodiscard]] const T* data() const XAMP_CHECK_LIFETIME {
-        return ptr_.get();
-    }
-
-    [[nodiscard]] size_t GetSize() const {
+    [[nodiscard]] size_t getSize() const {
         return size_;
     }
 
-    [[nodiscard]] size_t GetByteSize() const {
-        return size_ * sizeof(T);
+    [[nodiscard]] size_t getByteSize() const {
+        return size_ * sizeof(t);
     }
 
-    [[nodiscard]] std::string GetByteSizeString() const {
-        return String::FormatBytesBy<T>(GetByteSize());
+    [[nodiscard]] std::string getByteSizeString() const {
+        return String::FormatBytesBy<t>(getByteSize());
     }
 
-    void Fill(T value) {
+    void Fill(t value) {
         std::fill(ptr_.get(), ptr_.get() + size_, value);
     }
 
     // 兼容STL容器相關函數.
 
-    [[nodiscard]] T* data() XAMP_CHECK_LIFETIME {
+    [[nodiscard]] t* data() XAMP_CHECK_LIFETIME {
         return ptr_.get();
     }
 
-    [[nodiscard]] T* get() XAMP_CHECK_LIFETIME {
+    [[nodiscard]] t* get() XAMP_CHECK_LIFETIME {
         return ptr_.get();
     }
 
-    [[nodiscard]] T& operator[](size_t i) XAMP_CHECK_LIFETIME {
+    [[nodiscard]] t& operator[](size_t i) XAMP_CHECK_LIFETIME {
         return ptr_[i]; 
     }
 
-    [[nodiscard]] const T& operator[](size_t i) const XAMP_CHECK_LIFETIME {
+    [[nodiscard]] const t& operator[](size_t i) const XAMP_CHECK_LIFETIME {
         return ptr_[i]; 
     }
 
@@ -105,8 +97,8 @@ public:
             size_ = new_size;
         }
         else {
-            Buffer<T> new_buf(new_size);
-            MemoryCopy(new_buf.data(), ptr_.get(), size_ * sizeof(T));
+            Buffer<t> new_buf(new_size);
+            MemoryCopy(new_buf.data(), ptr_.get(), size_ * sizeof(t));
             *this = std::move(new_buf);
         }
     }
@@ -119,20 +111,20 @@ public:
 
 private:
     size_t size_ = 0;
-    ScopedArray<T> ptr_;
+    ScopedArray<t> ptr_;
     VmMemLock lock_;
 };
 
 /*
-* BufferRef<T> is a wrapper of Buffer<T>.
+* BufferRef<t> is a wrapper of Buffer<t>.
 * 
-* @tparam T Type of buffer.
-* @tparam U Enable if T is trivially copyable.
-* @note BufferRef<T> is not thread safe.
+* @tparam t Type of buffer.
+* @tparam U Enable if t is trivially copyable.
+* @note BufferRef<t> is not thread safe.
 */
-template <typename T, typename U = std::enable_if_t<std::is_trivially_copyable_v<T>>>
+template <typename t, typename U = std::enable_if_t<std::is_trivially_copyable_v<t>>>
 struct BufferRef {
-    using value_type = T;
+    using value_type = t;
     using size_type = size_t;
     using difference_type = std::ptrdiff_t;
     using reference = value_type&;
@@ -142,7 +134,7 @@ struct BufferRef {
     using iterator = pointer;
     using const_iterator = const_pointer;
 
-    explicit BufferRef(Buffer<T>& buf)
+    explicit BufferRef(Buffer<t>& buf)
         : buffer_(buf.get())
         , size_(buf.size())
 		, ref_(buf) {
@@ -150,19 +142,19 @@ struct BufferRef {
 
     XAMP_DISABLE_COPY_AND_MOVE(BufferRef)
 
-    void CopyFrom(const T *buffer, size_t buffer_size) {
+    void CopyFrom(const t *buffer, size_t buffer_size) {
         XAMP_ENSURES(buffer != nullptr);
         XAMP_ENSURES(buffer_size <= size_);
         if (buffer_size > 0) {
-            MemoryCopy(data(), buffer, buffer_size * sizeof(T));
+            MemoryCopy(data(), buffer, buffer_size * sizeof(t));
         }
     }
 
     template <typename InputIt>
-    void CopyFrom(InputIt first, InputIt last) {
+    void copyFrom(InputIt first, InputIt last) {
         const auto count = std::distance(first, last);
         if (count > 0) {
-            CopyFrom(&(*first), static_cast<size_type>(count));
+            copyFrom(&(*first), static_cast<size_type>(count));
         }
     }
 
@@ -237,20 +229,20 @@ struct BufferRef {
         return size_;
     }
 
-    [[nodiscard]] size_t GetByteSize() const {
-        return size_ * sizeof(T);
+    [[nodiscard]] size_t getByteSize() const {
+        return size_ * sizeof(t);
     }
 
 private:
-    T* buffer_;
+    t* buffer_;
     size_t size_;
-    Buffer<T>& ref_;
+    Buffer<t>& ref_;
 };
 
-template <typename T>
-Buffer<T> MakeBuffer(size_t size) {
+template <typename t>
+Buffer<t> makeBuffer(size_t size) {
     XAMP_ENSURES(size > 0);
-    return Buffer<T>(size);
+    return Buffer<t>(size);
 }
 
 XAMP_BASE_NAMESPACE_END

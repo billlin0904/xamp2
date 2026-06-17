@@ -15,8 +15,8 @@ XAMP_BASE_NAMESPACE_BEGIN
 using SharedTaskQueue = BlockingQueue<Task>;
 using SharedTaskQueuePtr = ScopedPtr<SharedTaskQueue>;
 
-template <typename T>
-using ConcurrentQueue = moodycamel::ConcurrentQueue<T>;
+template <typename t>
+using ConcurrentQueue = moodycamel::ConcurrentQueue<t>;
 
 using WorkStealingTaskQueue = moodycamel::ConcurrentQueue<Task>;
 using WorkStealingTaskQueuePtr = ScopedPtr<WorkStealingTaskQueue>;

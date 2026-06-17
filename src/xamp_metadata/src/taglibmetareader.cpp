@@ -17,7 +17,7 @@
 
 XAMP_METADATA_NAMESPACE_BEGIN
 namespace {
-    double ParseStringList(const std::string& s, bool string_dummy = true) {
+    double parseStringList(const std::string& s, bool string_dummy = true) {
         std::stringstream ss;
         ss << s;
         if (string_dummy) {
@@ -29,7 +29,7 @@ namespace {
         return d;
     }
 
-    std::optional<std::vector<std::byte>> CopyCoverData(const TagLib::ByteVector& data) {
+    std::optional<std::vector<std::byte>> copyCoverData(const TagLib::ByteVector& data) {
         if (data.isEmpty()) {
             return std::nullopt;
         }
@@ -39,12 +39,12 @@ namespace {
         return MakeOptional<std::vector<std::byte>>(std::move(buffer));
     }
 
-    std::optional<std::vector<std::byte>> ReadDefaultEmbeddedCover(
+    std::optional<std::vector<std::byte>> readDefaultEmbeddedCover(
         const TagLib::List<TagLib::VariantMap>& pictures) {
         std::optional<std::vector<std::byte>> first_cover;
         for (const auto& picture : pictures) {
             const auto data = picture.value("data").value<TagLib::ByteVector>();
-            auto cover = CopyCoverData(data);
+            auto cover = copyCoverData(data);
             if (!cover) {
                 continue;
             }
@@ -59,21 +59,21 @@ namespace {
         return first_cover;
     }
 
-    std::optional<std::vector<std::byte>> ReadDefaultEmbeddedCover(const TagLib::Tag* tag) {
+    std::optional<std::vector<std::byte>> readDefaultEmbeddedCover(const TagLib::Tag* tag) {
         if (!tag) {
             return std::nullopt;
         }
-        return ReadDefaultEmbeddedCover(tag->complexProperties("PICTURE"));
+        return readDefaultEmbeddedCover(tag->complexProperties("PICTURE"));
     }
 
-    std::optional<std::vector<std::byte>> ReadDefaultEmbeddedCover(const File* file_) {
+    std::optional<std::vector<std::byte>> readDefaultEmbeddedCover(const File* file_) {
         if (!file_) {
             return std::nullopt;
         }
-        return ReadDefaultEmbeddedCover(file_->complexProperties("PICTURE"));
+        return readDefaultEmbeddedCover(file_->complexProperties("PICTURE"));
     }
 
-    std::expected<ReplayGain, ParseMetadataError> ReadID3v2ReplayGain(const ID3v2::Tag* tag) {
+    std::expected<ReplayGain, ParseMetadataError> readID3v2ReplayGain(const ID3v2::Tag* tag) {
         ReplayGain replay_gain;
         bool found = false;
         if (tag) {
@@ -82,7 +82,7 @@ namespace {
                 const auto* fr = dynamic_cast<TagLib::ID3v2::UserTextIdentificationFrame*>(it);
                 if (fr) {
                     const auto desc = fr->description().upper();
-                    const auto value = ParseStringList(fr->fieldList().toString().to8Bit());
+                    const auto value = parseStringList(fr->fieldList().toString().to8Bit());
                     if (desc == kReplaygainAlbumGain) {
                         replay_gain.album_gain = value;
                         found = true;
@@ -112,7 +112,7 @@ namespace {
         return replay_gain;
     }
 
-    std::expected<ReplayGain, ParseMetadataError> ReadApeReplayGain(const APE::Tag* tag) {
+    std::expected<ReplayGain, ParseMetadataError> readApeReplayGain(const APE::Tag* tag) {
         if (!tag) {
             return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
         }
@@ -128,7 +128,7 @@ namespace {
             if (values.isEmpty()) {
                 return;
             }
-            value = ParseStringList(values.front().to8Bit(), false);
+            value = parseStringList(values.front().to8Bit(), false);
             found = true;
             };
 
@@ -146,20 +146,20 @@ namespace {
 
     struct XAMP_NO_VTABLE IFileTagReader {
         virtual ~IFileTagReader() = default;
-        virtual std::expected<ReplayGain, ParseMetadataError> ReadReplayGain(File* file_) = 0;
-        virtual std::expected<std::vector<std::byte>, ParseMetadataError> ReadEmbeddedCover(File* file_) = 0;
+        virtual std::expected<ReplayGain, ParseMetadataError> readReplayGain(File* file_) = 0;
+        virtual std::expected<std::vector<std::byte>, ParseMetadataError> readEmbeddedCover(File* file_) = 0;
     };
 
     struct Mp3TagReader : public IFileTagReader {
-        std::expected<ReplayGain, ParseMetadataError> ReadReplayGain(File* file_) override {
+        std::expected<ReplayGain, ParseMetadataError> readReplayGain(File* file_) override {
             if (auto* mp3_file = dynamic_cast<TagLib::MPEG::File*>(file_)) {
-                return ReadID3v2ReplayGain(mp3_file->ID3v2Tag(false));
+                return readID3v2ReplayGain(mp3_file->ID3v2Tag(false));
             }
             return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
         }
 
-        std::expected<std::vector<std::byte>, ParseMetadataError> ReadEmbeddedCover(File* file_) override {
-            if (auto cover = ReadDefaultEmbeddedCover(file_)) {
+        std::expected<std::vector<std::byte>, ParseMetadataError> readEmbeddedCover(File* file_) override {
+            if (auto cover = readDefaultEmbeddedCover(file_)) {
                 return cover.value();
             }
             return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
@@ -167,15 +167,15 @@ namespace {
     };
 
     struct ApeTagReader : public IFileTagReader {
-        std::expected<ReplayGain, ParseMetadataError> ReadReplayGain(File* file_) override {
+        std::expected<ReplayGain, ParseMetadataError> readReplayGain(File* file_) override {
             if (auto* ape_file = dynamic_cast<TagLib::APE::File*>(file_)) {
-                return ReadApeReplayGain(ape_file->APETag(false));
+                return readApeReplayGain(ape_file->APETag(false));
             }
             return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
         }
 
-        std::expected<std::vector<std::byte>, ParseMetadataError> ReadEmbeddedCover(File* file_) override {
-            if (auto cover = ReadDefaultEmbeddedCover(file_)) {
+        std::expected<std::vector<std::byte>, ParseMetadataError> readEmbeddedCover(File* file_) override {
+            if (auto cover = readDefaultEmbeddedCover(file_)) {
                 return cover.value();
             }
             return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
@@ -183,15 +183,15 @@ namespace {
     };
 
     struct WavTagReader : public IFileTagReader {
-        std::expected<ReplayGain, ParseMetadataError> ReadReplayGain(File* file_) override {
+        std::expected<ReplayGain, ParseMetadataError> readReplayGain(File* file_) override {
             if (const auto* wav_file = dynamic_cast<TagLib::RIFF::WAV::File*>(file_)) {
-                return ReadID3v2ReplayGain(wav_file->ID3v2Tag());
+                return readID3v2ReplayGain(wav_file->ID3v2Tag());
             }
             return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
         }
 
-        std::expected<std::vector<std::byte>, ParseMetadataError> ReadEmbeddedCover(File* file_) override {
-            if (auto cover = ReadDefaultEmbeddedCover(file_)) {
+        std::expected<std::vector<std::byte>, ParseMetadataError> readEmbeddedCover(File* file_) override {
+            if (auto cover = readDefaultEmbeddedCover(file_)) {
                 return cover.value();
             }
             return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
@@ -199,40 +199,40 @@ namespace {
     };
 
     struct DsfTagReader : public IFileTagReader {
-        std::expected<std::vector<std::byte>, ParseMetadataError> ReadEmbeddedCover(File* file_) override {
-            if (auto cover = ReadDefaultEmbeddedCover(file_)) {
+        std::expected<std::vector<std::byte>, ParseMetadataError> readEmbeddedCover(File* file_) override {
+            if (auto cover = readDefaultEmbeddedCover(file_)) {
                 return cover.value();
             }
             return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
         }
 
-        std::expected<ReplayGain, ParseMetadataError> ReadReplayGain(File* file_) override {
+        std::expected<ReplayGain, ParseMetadataError> readReplayGain(File* file_) override {
             return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
         }
     };
 
     struct DiffTagReader : public IFileTagReader {
-        std::expected<std::vector<std::byte>, ParseMetadataError> ReadEmbeddedCover(File* file_) override {
-            if (auto cover = ReadDefaultEmbeddedCover(file_)) {
+        std::expected<std::vector<std::byte>, ParseMetadataError> readEmbeddedCover(File* file_) override {
+            if (auto cover = readDefaultEmbeddedCover(file_)) {
                 return cover.value();
             }
             return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
         }
 
-        std::expected<ReplayGain, ParseMetadataError> ReadReplayGain(File* file_) override {
+        std::expected<ReplayGain, ParseMetadataError> readReplayGain(File* file_) override {
             return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
         }
     };
 
     struct Mp4TagReader : public IFileTagReader {
-        std::expected<std::vector<std::byte>, ParseMetadataError> ReadEmbeddedCover(File* file_) override {
-            if (auto cover = ReadDefaultEmbeddedCover(file_)) {
+        std::expected<std::vector<std::byte>, ParseMetadataError> readEmbeddedCover(File* file_) override {
+            if (auto cover = readDefaultEmbeddedCover(file_)) {
                 return cover.value();
             }
             return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
         }
 
-        std::expected<ReplayGain, ParseMetadataError> ReadReplayGain(File* file_) override {
+        std::expected<ReplayGain, ParseMetadataError> readReplayGain(File* file_) override {
             ReplayGain replay_gain;
             auto found = false;
             if (const auto* mp4_file = dynamic_cast<TagLib::MP4::File*>(file_)) {
@@ -240,27 +240,27 @@ namespace {
                     auto const& dict = tag->itemMap();
                     const auto track_gain = kITunesReplaygainTrackGain;
                     if (dict.contains(track_gain)) {
-                        replay_gain.track_gain = ParseStringList(dict[track_gain].toStringList()[0].to8Bit(), false);
+                        replay_gain.track_gain = parseStringList(dict[track_gain].toStringList()[0].to8Bit(), false);
                         found = true;
                     }
                     const auto track_peak = kITunesReplaygainTrackPeak;
                     if (dict.contains(track_peak)) {
-                        replay_gain.track_peak = ParseStringList(dict[track_peak].toStringList()[0].to8Bit(), false);
+                        replay_gain.track_peak = parseStringList(dict[track_peak].toStringList()[0].to8Bit(), false);
                         found = true;
                     }
                     const auto album_gain = kITunesReplaygainAlbumGain;
                     if (dict.contains(album_gain)) {
-                        replay_gain.album_gain = ParseStringList(dict[album_gain].toStringList()[0].to8Bit(), false);
+                        replay_gain.album_gain = parseStringList(dict[album_gain].toStringList()[0].to8Bit(), false);
                         found = true;
                     }
                     const auto album_peak = kITunesReplaygainAlbumPeak;
                     if (dict.contains(String::AsStdString(album_peak))) {
-                        replay_gain.album_peak = ParseStringList(dict[album_peak].toStringList()[0].to8Bit(), false);
+                        replay_gain.album_peak = parseStringList(dict[album_peak].toStringList()[0].to8Bit(), false);
                         found = true;
                     }
                     const auto reference_loudness = kITunesReplaygainReferenceLoudness;
                     if (dict.contains(reference_loudness)) {
-                        replay_gain.album_peak = ParseStringList(dict[reference_loudness].toStringList()[0].to8Bit(), false);
+                        replay_gain.album_peak = parseStringList(dict[reference_loudness].toStringList()[0].to8Bit(), false);
                         found = true;
                     }
                 }
@@ -274,14 +274,14 @@ namespace {
     };
 
     struct FlacTagReader : public IFileTagReader {
-        std::expected<std::vector<std::byte>, ParseMetadataError> ReadEmbeddedCover(File* file_) override {
-            if (auto cover = ReadDefaultEmbeddedCover(file_)) {
+        std::expected<std::vector<std::byte>, ParseMetadataError> readEmbeddedCover(File* file_) override {
+            if (auto cover = readDefaultEmbeddedCover(file_)) {
                 return cover.value();
             }
             return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
         }
 
-        std::expected<ReplayGain, ParseMetadataError> ReadReplayGain(File* file_) override {
+        std::expected<ReplayGain, ParseMetadataError> readReplayGain(File* file_) override {
             ReplayGain replay_gain;
             bool found = false;
             if (auto* const flac_file = dynamic_cast<TagLib::FLAC::File*>(file_)) {
@@ -319,14 +319,41 @@ namespace {
     };
 
     struct OpusTagReader : public IFileTagReader {
-        std::expected<std::vector<std::byte>, ParseMetadataError> ReadEmbeddedCover(File* file_) override {
-            if (auto cover = ReadDefaultEmbeddedCover(file_)) {
-                return cover.value();
+        std::expected<std::vector<std::byte>, ParseMetadataError> readEmbeddedCover(File* file_) override {
+            auto read_default_embedded_cover = [file_]() -> std::expected<std::vector<std::byte>, ParseMetadataError> {
+                if (auto cover = readDefaultEmbeddedCover(file_)) {
+                    return cover.value();
+                }
+                return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
+                };
+
+            auto* opus_file = dynamic_cast<TagLib::Ogg::Opus::File*>(file_);
+            if (!opus_file || !opus_file->isValid()) {
+                return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
             }
-            return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
+
+            auto* xiph_comment = opus_file->tag();
+            if (!xiph_comment) {
+                return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
+            }
+            auto complex_keys = xiph_comment->complexPropertyKeys();
+            if (!complex_keys.contains("PICTURE")) {
+                return read_default_embedded_cover();
+            }
+            
+            auto picture_list = xiph_comment->complexProperties("PICTURE");
+            for (const auto& picture : picture_list) {
+                auto image_data = picture["data"].toByteVector();
+				std::vector<std::byte> buffer;
+				buffer.resize(image_data.size());
+				MemoryCopy(buffer.data(), image_data.data(), static_cast<int32_t>(image_data.size()));
+				return buffer;
+            }
+
+            return read_default_embedded_cover();
         }
 
-        std::expected<ReplayGain, ParseMetadataError> ReadReplayGain(File* file_) override {
+        std::expected<ReplayGain, ParseMetadataError> readReplayGain(File* file_) override {
             auto* opus_file = dynamic_cast<TagLib::Ogg::Opus::File*>(file_);
             if (!opus_file || !opus_file->isValid()) {
                 return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
@@ -389,19 +416,19 @@ namespace {
 
     const HashMap<std::string_view, std::function<ScopedPtr<IFileTagReader>()>>
         kFileTagReaderLut{
-        { ".flac", [] { return MakeAlign<IFileTagReader, FlacTagReader>(); } },
-        { ".mp3",  [] { return MakeAlign<IFileTagReader, Mp3TagReader>(); } },
-        { ".wav",  [] { return MakeAlign<IFileTagReader, WavTagReader>(); } },
-        { ".wave", [] { return MakeAlign<IFileTagReader, WavTagReader>(); } },
-        { ".m4a",  [] { return MakeAlign<IFileTagReader, Mp4TagReader>(); } },
-        { ".mp4",  [] { return MakeAlign<IFileTagReader, Mp4TagReader>(); } },
-	    { ".opus", [] { return MakeAlign<IFileTagReader, OpusTagReader>(); } },
-        { ".ape",  [] { return MakeAlign<IFileTagReader, ApeTagReader>(); } },
-        { ".dff",  [] { return MakeAlign<IFileTagReader, DiffTagReader>(); } },
-		{ ".dsf",  [] { return MakeAlign<IFileTagReader, DsfTagReader>(); } }
+        { ".flac", [] { return makeAlign<IFileTagReader, FlacTagReader>(); } },
+        { ".mp3",  [] { return makeAlign<IFileTagReader, Mp3TagReader>();  } },
+        { ".wav",  [] { return makeAlign<IFileTagReader, WavTagReader>();  } },
+        { ".wave", [] { return makeAlign<IFileTagReader, WavTagReader>();  } },
+        { ".m4a",  [] { return makeAlign<IFileTagReader, Mp4TagReader>();  } },
+        { ".mp4",  [] { return makeAlign<IFileTagReader, Mp4TagReader>();  } },
+	    { ".opus", [] { return makeAlign<IFileTagReader, OpusTagReader>(); } },
+        { ".ape",  [] { return makeAlign<IFileTagReader, ApeTagReader>();  } },
+        { ".dff",  [] { return makeAlign<IFileTagReader, DiffTagReader>(); } },
+		{ ".dsf",  [] { return makeAlign<IFileTagReader, DsfTagReader>();  } }
     };
 
-    ScopedPtr<IFileTagReader> MakeFileTagReader(const std::string& ext) {
+    ScopedPtr<IFileTagReader> makeFileTagReader(const std::string& ext) {
         const auto itr = kFileTagReaderLut.find(ext);
         if (itr != kFileTagReaderLut.end()) {
             return itr->second();
@@ -409,7 +436,7 @@ namespace {
         return nullptr;
     }
 
-    void SetFileInfo(const Path& path, TrackInfo& track_info) {
+    void setFileInfo(const Path& path, TrackInfo& track_info) {
         track_info.file_path = path;        
         try {
             track_info.file_size = Fs::file_size(path);
@@ -418,7 +445,7 @@ namespace {
         }
     }
 
-    void SetAudioProperties(const AudioProperties* audio_properties, TrackInfo& track_info) {
+    void setAudioProperties(const AudioProperties* audio_properties, TrackInfo& track_info) {
         if (audio_properties != nullptr) {
             track_info.duration = audio_properties->lengthInMilliseconds() / 1000.0;
             track_info.bit_rate = audio_properties->bitrate();
@@ -426,7 +453,7 @@ namespace {
         }
     }
 
-    bool TryExtractTitleAndTrack(const std::wstring& file_name, TrackInfo& track_info) {
+    bool tryExtractTitleAndTrack(const std::wstring& file_name, TrackInfo& track_info) {
         const std::wregex pattern(LR"(^(?:Track\s*)?(\d{1,3})\s*[\.\-_)\]、．]\s*(.+)$)",
             std::regex::icase);
         std::wsmatch matches;
@@ -445,17 +472,17 @@ namespace {
         return true;
     }
 
-    void ExtractTitleFromFileName(TrackInfo& track_info) {
+    void extractTitleFromFileName(TrackInfo& track_info) {
         std::optional<std::wstring> file_name_no_ext(track_info.file_name_no_ext());
 
         if (file_name_no_ext) {
-            if (!TryExtractTitleAndTrack(file_name_no_ext.value(), track_info)) {
+            if (!tryExtractTitleAndTrack(file_name_no_ext.value(), track_info)) {
                 track_info.title = file_name_no_ext.value();
             }
         }
     }
 
-    void ExtractTag(Path const& path, const Tag* tag, const AudioProperties* audio_properties, TrackInfo& track_info) {
+    void extractTag(Path const& path, const Tag* tag, const AudioProperties* audio_properties, TrackInfo& track_info) {
         try {
             if (!tag->isEmpty()) {
                 if (!tag->artist().toWString().empty()) {
@@ -498,11 +525,11 @@ namespace {
     public:
         XAMP_DECLARE_SINGLETON_NAME()
 
-        [[nodiscard]] HashSet<std::string> const& GetSupportFileExtensions() const {
+        [[nodiscard]] HashSet<std::string> const& getSupportFileExtensions() const {
             return support_file_extensions_;
         }
 
-        [[nodiscard]] bool IsSupported(const std::string& file_ext) const {
+        [[nodiscard]] bool isSupported(const std::string& file_ext) const {
             return support_file_extensions_.find(file_ext) != support_file_extensions_.end();
         }
 
@@ -528,7 +555,7 @@ namespace {
 #ifdef _WIN32
             return entry.Name().c_str();
 #else
-            name_ = String::ToUtf8String(entry.Name());
+            name_ = String::toUtf8String(entry.Name());
             return name_.c_str();
 #endif
         }
@@ -544,13 +571,13 @@ namespace {
 
             int64_t total_read = 0;
             while (total_read < entry.Length()) {
-                auto chunk = entry.Read(buffer_.data() + total_read,
+                auto chunk = entry.read(buffer_.data() + total_read,
                     static_cast<size_t>(entry.Length() - total_read));
                 if (!chunk) {
                     throw std::runtime_error(chunk.error().c_str());
                 }
                 if (chunk.value() <= 0)
-                    throw std::runtime_error("ArchiveEntry Read failed or truncated.");
+                    throw std::runtime_error("ArchiveEntry read failed or truncated.");
                 total_read += chunk.value();
             }
             pos_ = 0;
@@ -622,47 +649,47 @@ namespace {
         mutable std::string name_;
     };
 
-    ScopedPtr<TagLib::IOStream> MakeIOStream(ArchiveEntry entry) {
-        return MakeAlign<TagLib::IOStream, LibarchiveIOStream>(std::move(entry));
+    ScopedPtr<TagLib::IOStream> makeIOStream(ArchiveEntry entry) {
+        return makeAlign<TagLib::IOStream, LibarchiveIOStream>(std::move(entry));
     }
 
-    ScopedPtr<TagLib::IOStream> MakeIOStream(const Path& path, FastIOStream::Mode mode = FastIOStream::Mode::ReadWriteOnlyExisting) {
-        return MakeAlign<TagLib::IOStream, TaglibIOStream>(path, mode);
+    ScopedPtr<TagLib::IOStream> makeIOStream(const Path& path, FastIOStream::Mode mode = FastIOStream::Mode::ReadWriteOnlyExisting) {
+        return makeAlign<TagLib::IOStream, TaglibIOStream>(path, mode);
     }
 }
 
 class TaglibMetadataReader::TaglibMetadataReaderImpl {
 public:
-    void Open(ArchiveEntry entry) {
+    void open(ArchiveEntry entry) {
         fileref_opt_ = std::nullopt;
         auto entry_name = entry.Name();
         auto archive_path = entry.ArchivePath();
         PrefetchFile(archive_path.wstring());
-        io_stream_ = MakeIOStream(std::move(entry));
+        io_stream_ = makeIOStream(std::move(entry));
         FileRef fileref(io_stream_.get(), true, TagLib::AudioProperties::Fast);
         if (!fileref.isNull()) {
             fileref_opt_ = fileref;
             path_ = archive_path;
             entry_name_ = entry_name;
             file_ext_ = String::ToLower(Path(entry_name).extension().string());
-            tag_reader_ = MakeFileTagReader(file_ext_);
+            tag_reader_ = makeFileTagReader(file_ext_);
             is_archive_file_ = true;
         }
     }
 
-    void Open(const Path& path) {
+    void open(const Path& path) {
         fileref_opt_ = std::nullopt;
-        io_stream_ = MakeIOStream(path, FastIOStream::Mode::Read);
+        io_stream_ = makeIOStream(path, FastIOStream::Mode::read);
         FileRef fileref(io_stream_.get(), true, TagLib::AudioProperties::Fast);
         if (!fileref.isNull()) {
             fileref_opt_ = fileref;
             path_ = path;
             file_ext_ = String::ToLower(path_.extension().string());
-            tag_reader_ = MakeFileTagReader(file_ext_);
+            tag_reader_ = makeFileTagReader(file_ext_);
         }
 	}
 
-    std::expected<TrackInfo, ParseMetadataError> Extract() const {
+    std::expected<TrackInfo, ParseMetadataError> extract() const {
         TrackInfo track_info;
 
 		if (!fileref_opt_) {
@@ -678,67 +705,67 @@ public:
             track_info.file_path = path_;
             track_info.is_zip_file = true;
             if (tag != nullptr) {
-                ExtractTag(path_, tag, file_ref.audioProperties(), track_info);
+                extractTag(path_, tag, file_ref.audioProperties(), track_info);
             }
-            SetAudioProperties(file_ref.audioProperties(), track_info);
+            setAudioProperties(file_ref.audioProperties(), track_info);
 			if (track_info.title.empty()) {
 				track_info.title = Path(track_info.archive_entry_name.value()).stem().wstring();
             }
         }
         else {
             if (tag != nullptr) {
-                ExtractTag(path_, tag, file_ref.audioProperties(), track_info);
+                extractTag(path_, tag, file_ref.audioProperties(), track_info);
             }
-            SetFileInfo(path_, track_info);
-            SetAudioProperties(file_ref.audioProperties(), track_info);
+            setFileInfo(path_, track_info);
+            setAudioProperties(file_ref.audioProperties(), track_info);
         }
 
         // Tag not empty but title maybe empty!
         if (tag) {
             if (track_info.title.empty()) {
-                ExtractTitleFromFileName(track_info);
+                extractTitleFromFileName(track_info);
             }
         }
-        auto replay_gain = ReadReplayGain(file_ref.file());
+        auto replay_gain = readReplayGain(file_ref.file());
         if (replay_gain) {
             track_info.replay_gain = replay_gain.value();
         }
         return track_info;
     }
 
-    std::expected<std::vector<std::byte>, ParseMetadataError> ReadEmbeddedCover() const {
-		if (!IsSupported()) {
+    std::expected<std::vector<std::byte>, ParseMetadataError> readEmbeddedCover() const {
+		if (!isSupported()) {
             return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_SUPPORT);
 		}
 
         if (!fileref_opt_ || !fileref_opt_->tag()) {
             return std::unexpected(ParseMetadataError::PARSE_ERROR_OPEN_FILE);
         }
-        return ReadEmbeddedCover(fileref_opt_->file());
+        return readEmbeddedCover(fileref_opt_->file());
     }
 
-    XAMP_ALWAYS_INLINE bool IsSupported() const {
-		return SharedSingleton<TaglibHelper>::GetInstance().IsSupported(file_ext_);
+    XAMP_ALWAYS_INLINE bool isSupported() const {
+		return SharedSingleton<TaglibHelper>::getInstance().isSupported(file_ext_);
     }
 
-    std::expected<ReplayGain, ParseMetadataError> ReadReplayGain() const {
+    std::expected<ReplayGain, ParseMetadataError> readReplayGain() const {
         if (!fileref_opt_) {
             return std::unexpected(ParseMetadataError::PARSE_ERROR_OPEN_FILE);
         }
-        return ReadReplayGain(fileref_opt_->file());
+        return readReplayGain(fileref_opt_->file());
     }
 
 private:
-    std::expected<ReplayGain, ParseMetadataError> ReadReplayGain(File* file_) const {
+    std::expected<ReplayGain, ParseMetadataError> readReplayGain(File* file_) const {
         if (tag_reader_ != nullptr) {
-            return tag_reader_->ReadReplayGain(file_);
+            return tag_reader_->readReplayGain(file_);
         }
         return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
     }
 
-    std::expected<std::vector<std::byte>, ParseMetadataError> ReadEmbeddedCover(File* file_) const {
+    std::expected<std::vector<std::byte>, ParseMetadataError> readEmbeddedCover(File* file_) const {
         if (tag_reader_ != nullptr) {
-            return tag_reader_->ReadEmbeddedCover(file_);
+            return tag_reader_->readEmbeddedCover(file_);
         }
         return std::unexpected(ParseMetadataError::PARSE_ERROR_NOT_FOUND);
     }
@@ -755,35 +782,35 @@ private:
 XAMP_PIMPL_IMPL(TaglibMetadataReader)
 
 TaglibMetadataReader::TaglibMetadataReader()
-    : reader_(MakeAlign<TaglibMetadataReaderImpl>()) {
+    : reader_(makeAlign<TaglibMetadataReaderImpl>()) {
 }
 
-void TaglibMetadataReader::Open(ArchiveEntry archive_entry) {
-    return reader_->Open(std::move(archive_entry));
+void TaglibMetadataReader::open(ArchiveEntry archive_entry) {
+    return reader_->open(std::move(archive_entry));
 }
 
-void TaglibMetadataReader::Open(const Path& path) {
-    return reader_->Open(path);
+void TaglibMetadataReader::open(const Path& path) {
+    return reader_->open(path);
 }
 
-std::expected<TrackInfo, ParseMetadataError> TaglibMetadataReader::Extract() {
-    return reader_->Extract();
+std::expected<TrackInfo, ParseMetadataError> TaglibMetadataReader::extract() {
+    return reader_->extract();
 }
 
-std::expected<ReplayGain, ParseMetadataError> TaglibMetadataReader::ReadReplayGain() {
-    return reader_->ReadReplayGain();
+std::expected<ReplayGain, ParseMetadataError> TaglibMetadataReader::readReplayGain() {
+    return reader_->readReplayGain();
 }
 
-std::expected<std::vector<std::byte>, ParseMetadataError> TaglibMetadataReader::ReadEmbeddedCover() {
-    return reader_->ReadEmbeddedCover();
+std::expected<std::vector<std::byte>, ParseMetadataError> TaglibMetadataReader::readEmbeddedCover() {
+    return reader_->readEmbeddedCover();
 }
 
-const HashSet<std::string>& TaglibMetadataReader::GetSupportFileExtensions() {
-    return SharedSingleton<TaglibHelper>::GetInstance().GetSupportFileExtensions();
+const HashSet<std::string>& TaglibMetadataReader::getSupportFileExtensions() {
+    return SharedSingleton<TaglibHelper>::getInstance().getSupportFileExtensions();
 }
 
-bool TaglibMetadataReader::IsSupported() const {
-    return reader_->IsSupported();
+bool TaglibMetadataReader::isSupported() const {
+    return reader_->isSupported();
 }
 
 XAMP_METADATA_NAMESPACE_END

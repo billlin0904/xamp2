@@ -15,16 +15,16 @@ CoreAudioDeviceStateNotification::CoreAudioDeviceStateNotification(std::weak_ptr
 
 CoreAudioDeviceStateNotification::~CoreAudioDeviceStateNotification() {
     try {
-        RemovePropertyListener();
+        removePropertyListener();
     } catch (...) {
     }
 }
 
-void CoreAudioDeviceStateNotification::Run() {
-    AddPropertyListener();
+void CoreAudioDeviceStateNotification::run() {
+    addPropertyListener();
 }
 
-void CoreAudioDeviceStateNotification::RemovePropertyListener() {
+void CoreAudioDeviceStateNotification::removePropertyListener() {
     CoreAudioThrowIfError(::AudioObjectRemovePropertyListener(
         kAudioObjectSystemObject,
         &kAddOrRemoveDevicesPropertyAddress,
@@ -32,7 +32,7 @@ void CoreAudioDeviceStateNotification::RemovePropertyListener() {
         this));
 }
 
-void CoreAudioDeviceStateNotification::AddPropertyListener() {
+void CoreAudioDeviceStateNotification::addPropertyListener() {
     CoreAudioThrowIfError(::AudioObjectAddPropertyListener(
         kAudioObjectSystemObject,
         &kAddOrRemoveDevicesPropertyAddress,
@@ -52,7 +52,7 @@ OSStatus CoreAudioDeviceStateNotification::OnDefaultDeviceChangedCallback(
             && addresses[i].mElement == kAddOrRemoveDevicesPropertyAddress.mElement
             && context != nullptr) {
             if (auto callback = (*notification).callback_.lock()) {
-                callback->OnDeviceStateChange(DeviceState::DEVICE_STATE_ADDED, std::to_string(object));
+                callback->onDeviceStateChange(DeviceState::DEVICE_STATE_ADDED, std::to_string(object));
             }
             break;
         }

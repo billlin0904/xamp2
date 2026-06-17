@@ -19,9 +19,9 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 template
 <
-    typename T,
+    typename t,
     typename Mutex = FastMutex,
-    typename Queue = CircularBuffer<T>,
+    typename Queue = CircularBuffer<t>,
     typename ConditionVariable = FastConditionVariable
 >
 class BlockingQueue final {
@@ -53,7 +53,7 @@ public:
             if (queue_.full()) {
 				return false;
 			}
-            queue_.emplace_back(std::forward<T>(task));
+            queue_.emplace_back(std::forward<t>(task));
         } // unlock
         notify_.notify_one();
         return true;
@@ -68,7 +68,7 @@ public:
     void enqueue(U &&task) {
         {
             std::lock_guard guard{ mutex_ };
-            queue_.emplace_back(std::forward<T>(task));
+            queue_.emplace_back(std::forward<t>(task));
         } // unlock
         notify_.notify_one();
     }
@@ -79,7 +79,7 @@ public:
     * @param[in] value The value popped from the queue.
     * @return true if the value was popped, false if the queue is empty.
     */
-    bool try_dequeue(T& value) {
+    bool try_dequeue(t& value) {
         const std::unique_lock lock{ mutex_, std::try_to_lock };
         if (!lock) {
             return false;
@@ -100,7 +100,7 @@ public:
     * @param[in] value The value popped from the queue.
     * @return true if the value was popped, false if the queue is empty.
     */
-	bool dequeue(T& task) {
+	bool dequeue(t& task) {
 		std::unique_lock guard{ mutex_ };
 
 		while (queue_.empty() && !done_) { 
@@ -124,7 +124,7 @@ public:
     * @param[in] wait_time The time to wait for the queue to be not empty.
     * @return true if the value was popped, false if the queue is empty.
     */
-    bool dequeue(T& task, const std::chrono::milliseconds wait_time) {
+    bool dequeue(t& task, const std::chrono::milliseconds wait_time) {
         std::unique_lock guard{ mutex_ };
 
         while (queue_.empty() && !done_) {

@@ -79,19 +79,19 @@ public:
 
 	void loadIniFile(const QString& file_name);
 
-	template <typename T, typename = std::enable_if_t<std::is_integral_v<T>, T>>
-	void setValue(const QString& key, T value) {
+	template <typename t, typename = std::enable_if_t<std::is_integral_v<t>, t>>
+	void setValue(const QString& key, t value) {
 		setValue(key, std::to_string(value));
 	}
 
-	template <typename T, typename = std::enable_if_t<std::is_integral_v<T>, T>>
-	void setValue(const char* key, T value) {
+	template <typename t, typename = std::enable_if_t<std::is_integral_v<t>, t>>
+	void setValue(const char* key, t value) {
 		SetValue(QLatin1String(key), std::to_string(value));
 	}
 
-	template <typename T>
-	void setEnumValue(const QString& key, T value) {
-		static_assert(std::is_enum_v<T>, "T must be enum value");
+	template <typename t>
+	void setEnumValue(const QString& key, t value) {
+		static_assert(std::is_enum_v<t>, "t must be enum value");
 		setValue<int32_t>(key, static_cast<int32_t>(value));
 	}
 
@@ -123,14 +123,14 @@ public:
 		settings_->setValue(key, value);
 	}
 
-	template <typename T>
-	void setDefaultValue(const QString& key, T value) {
+	template <typename t>
+	void setDefaultValue(const QString& key, t value) {
 		default_settings_[key] = value;
 	}
 
-	template <typename T>
-	void setDefaultEnumValue(const QString& key, T value) {
-		static_assert(std::is_enum_v<T>, "T must be enum value");
+	template <typename t>
+	void setDefaultEnumValue(const QString& key, t value) {
+		static_assert(std::is_enum_v<t>, "t must be enum value");
 		setDefaultValue<int32_t>(key, static_cast<int32_t>(value));
 	}
 
@@ -149,10 +149,10 @@ public:
 
 	int32_t valueAsInt(const QString& key);
 
-	template <typename T>
-	T valueAsEnum(const QString& key) {
-		static_assert(std::is_enum_v<T>, "T must be enum value");
-		return static_cast<T>(valueAsInt(key));
+	template <typename t>
+	t valueAsEnum(const QString& key) {
+		static_assert(std::is_enum_v<t>, "t must be enum value");
+		return static_cast<t>(valueAsInt(key));
 	}
 
 	bool valueAsBool(const QString& key) {
@@ -227,4 +227,4 @@ private:
 	QMap<QString, EqSettings> eq_settings_;
 };
 
-#define qAppSettings SharedSingleton<AppSettings>::GetInstance()
+#define qAppSettings SharedSingleton<AppSettings>::getInstance()

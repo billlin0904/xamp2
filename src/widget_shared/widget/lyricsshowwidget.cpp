@@ -93,7 +93,7 @@ namespace {
 		}
 
 		if (!make_parser_func) {
-			// Create default parser, make GUI happy!
+			// create default parser, make GUI happy!
 			use_default = true;
 			return QSharedPointer<ILrcParser>(new LrcParser());
 		}
@@ -275,6 +275,112 @@ namespace {
 		result.setWeight(QFont::Black);
 		return result;
 	}
+
+	QString decodeLyricsEntities(const QString& text) {
+		if (!text.contains(QChar(u'&'))) {
+			return text;
+		}
+
+		QString result;
+		result.reserve(text.size());
+
+		for (qsizetype i = 0; i < text.size();) {
+			if (text[i] != QChar(u'&')) {
+				result += text[i++];
+				continue;
+			}
+
+			const auto semicolon = text.indexOf(QChar(u';'), i + 1);
+			if (semicolon < 0 || semicolon - i > 32) {
+				result += text[i++];
+				continue;
+			}
+
+			const auto entity = text.mid(i + 1, semicolon - i - 1);
+			if (entity == "amp"_str) {
+				result += QChar(u'&');
+			}
+			else if (entity == "apos"_str) {
+				result += QChar(u'\'');
+			}
+			else if (entity == "quot"_str) {
+				result += QChar(u'"');
+			}
+			else if (entity == "lt"_str) {
+				result += QChar(u'<');
+			}
+			else if (entity == "gt"_str) {
+				result += QChar(u'>');
+			}
+			else if (entity.startsWith("#x"_str, Qt::CaseInsensitive)) {
+				bool ok = false;
+				const auto code_point = entity.mid(2).toUInt(&ok, 16);
+				if (!ok || code_point > 0x10FFFF) {
+					result += text[i++];
+					continue;
+				}
+				const auto value = static_cast<char32_t>(code_point);
+				result += QString::fromUcs4(&value, 1);
+			}
+			else if (entity.startsWith(QChar(u'#'))) {
+				bool ok = false;
+				const auto code_point = entity.mid(1).toUInt(&ok, 10);
+				if (!ok || code_point > 0x10FFFF) {
+					result += text[i++];
+					continue;
+				}
+				const auto value = static_cast<char32_t>(code_point);
+				result += QString::fromUcs4(&value, 1);
+			}
+			else {
+				result += text[i++];
+				continue;
+			}
+			i = semicolon + 1;
+		}
+
+		return result;
+	}
+
+	QString collapseConsecutiveLineBreaks(const QString& text) {
+		if (!text.contains(QChar(u'\n')) && !text.contains(QChar(u'\r'))) {
+			return text;
+		}
+
+		QString result;
+		result.reserve(text.size());
+		auto previous_was_line_break = false;
+
+		for (const auto ch : text) {
+			const auto is_line_break = ch == QChar(u'\n') || ch == QChar(u'\r');
+			if (is_line_break) {
+				if (!previous_was_line_break) {
+					result += QChar(u'\n');
+					previous_was_line_break = true;
+				}
+				continue;
+			}
+			result += ch;
+			previous_was_line_break = false;
+		}
+		return result;
+	}
+
+	QString normalizeLyricsText(const QString& text) {
+		return collapseConsecutiveLineBreaks(decodeLyricsEntities(text));
+	}
+
+	std::wstring normalizeLyricsText(const std::wstring& text) {
+		return normalizeLyricsText(QString::fromStdWString(text)).toStdWString();
+	}
+
+	void decodeLyricsEntry(LyricEntry& entry) {
+		entry.lrc = normalizeLyricsText(entry.lrc);
+		entry.tlrc = normalizeLyricsText(entry.tlrc);
+		for (auto& word : entry.words) {
+			word.content = normalizeLyricsText(word.content);
+		}
+	}
 }
 
 LyricsShowWidget::LyricsShowWidget(QWidget* parent) 
@@ -350,7 +456,7 @@ void LyricsShowWidget::initial() {
 	setAcceptDrops(true);
 
     const auto opencc_config_path = applicationPath() + "/opencc"_str;
-	convert_.Load("s2tw.json", opencc_config_path.toStdString());
+	convert_.load("s2tw.json", opencc_config_path.toStdString());
 }
 
 void LyricsShowWidget::setBackgroundColor(QColor color) {
@@ -738,20 +844,21 @@ void LyricsShowWidget::loadFromParser(const QSharedPointer<ILrcParser>& parser) 
 	furiganas_.clear();
 	
 	for (auto& lrc : *lyric_) {
-		if (language_detector_.IsJapanese(lrc.lrc)) {
-			furiganas_.push_back(furigana_.Convert(lrc.lrc));
+		decodeLyricsEntry(lrc);
+		if (language_detector_.isJapanese(lrc.lrc)) {
+			furiganas_.push_back(furigana_.convert(lrc.lrc));
 		} else {
 			// 這裡要補空的，否則會造成 index 不一致.
 			furiganas_.emplace_back();
 		}
-		if (language_detector_.IsChinese(lrc.lrc)) {
-			lrc.lrc = convert_.Convert(lrc.lrc);
+		if (language_detector_.isChinese(lrc.lrc)) {
+			lrc.lrc = convert_.convert(lrc.lrc);
 			for (auto& word : lrc.words) {
-				word.content = convert_.Convert(word.content);
+				word.content = convert_.convert(word.content);
 			}
-			lrc.lrc = convert_.Convert(lrc.lrc);
+			lrc.lrc = convert_.convert(lrc.lrc);
 		}
-		lrc.tlrc = convert_.Convert(lrc.tlrc);
+		lrc.tlrc = convert_.convert(lrc.tlrc);
 	}
 	is_lrc_valid_ = true;
 	is_fulled_ = false;
@@ -789,7 +896,7 @@ void LyricsShowWidget::setFullLrc(const QString& lrc, double duration) {
 
 	// 2) 以換行分割整段文字，可視需求是否跳過空行
 	//    這裡如果要顯示空行，也可以改成 Qt::KeepEmptyParts
-	const auto lines = lrc.split(QChar(u'\n'), Qt::KeepEmptyParts);
+	const auto lines = normalizeLyricsText(lrc).split(QChar(u'\n'), Qt::KeepEmptyParts);
 
 	// 若沒有任何行，則顯示預設「無歌詞」
 	if (lines.isEmpty()) {
@@ -835,7 +942,7 @@ void LyricsShowWidget::setFullLrc(const QString& lrc, double duration) {
 
 void LyricsShowWidget::loadLrc(const QString& lrc) {
 	furiganas_.clear();
-	std::wistringstream stream{ lrc.toStdWString() };
+	std::wistringstream stream{ collapseConsecutiveLineBreaks(lrc).toStdWString() };
 	if (!lyric_->parse(stream)) {
 		setDefaultLrc();
 	}
@@ -845,12 +952,13 @@ void LyricsShowWidget::loadLrc(const QString& lrc) {
 		is_fulled_ = false;
 		LanguageDetector detector;
 		for (auto& lrc : *lyric_) {
-			if (detector.IsJapanese(lrc.lrc)) {
-				furiganas_.push_back(furigana_.Convert(lrc.lrc));
+			decodeLyricsEntry(lrc);
+			if (detector.isJapanese(lrc.lrc)) {
+				furiganas_.push_back(furigana_.convert(lrc.lrc));
 			} else {
 				// 這裡要補空的，否則會造成 index 不一致.
 				furiganas_.emplace_back();
-				lrc.tlrc = convert_.Convert(lrc.tlrc);
+				lrc.tlrc = convert_.convert(lrc.tlrc);
 			}
 		}
 	}

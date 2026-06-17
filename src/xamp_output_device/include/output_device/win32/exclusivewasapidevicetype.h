@@ -1,4 +1,4 @@
-﻿//=====================================================================================================================
+//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -37,14 +37,14 @@ public:
 	/*
 	* Scan new device
 	*/
-	void ScanNewDevice() override;
+	void scanNewDevice() override;
 
 	/*
 	* Get device count
 	* 
 	* @return size_t
 	*/
-	[[nodiscard]] size_t GetDeviceCount() const override;
+	[[nodiscard]] size_t getDeviceCount() const override;
 
 	/*
 	* Get device info
@@ -52,21 +52,21 @@ public:
 	* @param device: device index
 	* @return DeviceInfo
 	*/
-	[[nodiscard]] DeviceInfo GetDeviceInfo(uint32_t device) const override;
+	[[nodiscard]] DeviceInfo getDeviceInfo(uint32_t device) const override;
 
 	/*
 	* Get default device info
 	* 
 	* @return std::optional<DeviceInfo>	 
 	*/
-	[[nodiscard]] std::optional<DeviceInfo> GetDefaultDeviceInfo() const override;
+	[[nodiscard]] std::optional<DeviceInfo> getDefaultDeviceInfo() const override;
 
 	/*
 	* Get device info
 	* 
 	* @return std::vector<DeviceInfo>
 	*/
-	[[nodiscard]] std::vector<DeviceInfo> GetDeviceInfo() const override;
+	[[nodiscard]] std::vector<DeviceInfo> getDeviceInfo() const override;
 
 	/*
 	* Make device
@@ -74,7 +74,7 @@ public:
 	* @param device_id: device id
 	* @return ScopedPtr<IOutputDevice>
 	*/
-	ScopedPtr<IOutputDevice> MakeDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::string & device_id) override;
+	ScopedPtr<IOutputDevice> makeDevice(const std::shared_ptr<IThreadPool>& thread_pool, const std::string & device_id) override;
 
 private:
 	class ExclusiveWasapiDeviceTypeImpl;	

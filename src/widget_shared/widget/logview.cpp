@@ -1,4 +1,4 @@
-﻿#include <widget/logview.h>
+#include <widget/logview.h>
 #include <thememanager.h>
 #include <QPushButton>
 #include <QTextStream>

@@ -20,14 +20,14 @@ class XAMP_BASE_API PRNG final {
 public:
     PRNG() ;
 
-    template <typename T, std::enable_if_t<std::is_same_v<T, float>>* = nullptr>
-    T operator()(T min, T max) {
-        return std::uniform_real_distribution<T>(min, max)(engine_);
+    template <typename t, std::enable_if_t<std::is_same_v<t, float>>* = nullptr>
+    t operator()(t min, t max) {
+        return std::uniform_real_distribution<t>(min, max)(engine_);
     }
 
-    template <typename T, std::enable_if_t<std::is_integral_v<T>>* = nullptr>
-    T operator()(T min, T max) {
-        return std::uniform_int_distribution<T>(min, max)(engine_);
+    template <typename t, std::enable_if_t<std::is_integral_v<t>>* = nullptr>
+    t operator()(t min, t max) {
+        return std::uniform_int_distribution<t>(min, max)(engine_);
     }
 
     uint64_t operator()() {
@@ -56,7 +56,7 @@ public:
         return (*this)(min, max);
     }
 
-    float NextSingle(
+    float nextSingle(
         const float min = 0.0f,
         const float max = 1.0f) {
         return (*this)(min, max);
@@ -73,13 +73,13 @@ public:
         return output;
     }
 
-    template <typename T>
-	std::vector<T> NextBytes(size_t size,
-		const T min = (std::numeric_limits<T>::min)(),
-		const T max = (std::numeric_limits<T>::max)()) {        
-        std::vector<T> output(size);
+    template <typename t>
+	std::vector<t> NextBytes(size_t size,
+		const t min = (std::numeric_limits<t>::min)(),
+		const t max = (std::numeric_limits<t>::max)()) {        
+        std::vector<t> output(size);
         const auto gen = [this, min, max]() {
-            return static_cast<T>((*this)(min, max));
+            return static_cast<t>((*this)(min, max));
         };
         std::generate_n(output.begin(), size, gen);
 		return output;
@@ -90,21 +90,21 @@ public:
         const float max = 1.0f) {
         std::vector<float> output(size);
 		const auto gen = [this, min, max]() {
-			return NextSingle(min, max);
+			return nextSingle(min, max);
 			};
         std::generate_n(output.begin(), size, gen);
         return output;
     }
 
-    void SetSeed(uint64_t seed);
+    void setSeed(uint64_t seed);
 
     Sfc64Engine<>& engine() {
         return engine_;
     }
 
-    std::string GetRandomString(size_t size);
+    std::string getRandomString(size_t size);
 
-    static PRNG& GetThreadLocal();
+    static PRNG& getThreadLocal();
 private:
     Sfc64Engine<> engine_;
 };

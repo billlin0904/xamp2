@@ -18,31 +18,31 @@ public:
 
     XAMP_PIMPL(TaglibMetadataWriter)
 
-    void Open(const Path& path) override;
+    void open(const Path& path) override;
 
-    void WriteReplayGain(const ReplayGain& replay_gain) override;
+    void writeReplayGain(const ReplayGain& replay_gain) override;
    
-    void Write(TrackInfo const& track_info) override;
+    void write(TrackInfo const& track_info) override;
 
-    void WriteTitle(const std::wstring & title) override;
+    void writeTitle(const std::wstring & title) override;
 
-    void WriteArtist(const std::wstring & artist) override;
+    void writeArtist(const std::wstring & artist) override;
 
-    void WriteAlbum(const std::wstring & album) override;
+    void writeAlbum(const std::wstring & album) override;
 
-    void WriteTrack(uint32_t track) override;
+    void writeTrack(uint32_t track) override;
 
-    void WriteComment(const std::wstring& comment) override;
+    void writeComment(const std::wstring& comment) override;
 
-    void WriteGenre(const std::wstring& genre) override;
+    void writeGenre(const std::wstring& genre) override;
 
-    void WriteYear(uint32_t year) override;
+    void writeYear(uint32_t year) override;
 
-    void WriteEmbeddedCover(const std::vector<uint8_t> &image) const override;
+    void writeEmbeddedCover(const std::vector<uint8_t> &image) const override;
 
-    void RemoveEmbeddedCover() override;
+    void removeEmbeddedCover() override;
 
-    [[nodiscard]] bool CanWriteEmbeddedCover() const override;
+    [[nodiscard]] bool canWriteEmbeddedCover() const override;
 private:
     class TaglibMetadataWriterImpl;
     ScopedPtr<TaglibMetadataWriterImpl> writer_;

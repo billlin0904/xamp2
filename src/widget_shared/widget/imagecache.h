@@ -118,4 +118,4 @@ private:
 	mutable std::shared_ptr<ObjectPool<QBuffer>> buffer_pool_;
 };
 
-#define qImageCache SharedSingleton<ImageCache>::GetInstance()
+#define qImageCache SharedSingleton<ImageCache>::getInstance()

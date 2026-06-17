@@ -43,7 +43,7 @@ namespace {
         case AUDCLNT_E_DEVICE_INVALIDATED:
             return "The audio device has been unplugged or otherwise made unavailable.";
         case AUDCLNT_E_NOT_STOPPED:
-            return "The audio stream was not stopped at the time of the Start call.";
+            return "The audio stream was not stopped at the time of the start call.";
         case AUDCLNT_E_BUFFER_TOO_LARGE:
             return "The buffer is too large.";
         case AUDCLNT_E_OUT_OF_ORDER:

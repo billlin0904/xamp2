@@ -35,6 +35,6 @@ namespace dao {
 		MusicDao music_dao;
 	};
 
-#define qDaoFacade SharedSingleton<dao::DatabaseFacade>::GetInstance()
+#define qDaoFacade SharedSingleton<dao::DatabaseFacade>::getInstance()
 }
 

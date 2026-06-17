@@ -45,12 +45,12 @@ namespace {
 		, XAMP_LOAD_DLL_API(uchardet_reset) {
 	}
 	catch (const Exception& e) {
-		XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+		XAMP_LOG_ERROR("{}", e.getErrorMessage());
 	}
 
-#define UCHARDECT_LIB SharedSingleton<UcharDectLib>::GetInstance()
+#define UCHARDECT_LIB SharedSingleton<UcharDectLib>::getInstance()
 
-	template <typename T>
+	template <typename t>
 	struct UcharDetDeleter;
 
 	template <>
@@ -87,14 +87,14 @@ namespace {
 		XAMP_DECLARE_DLL_NAME(opencc_error);
 	};
 
-#define OPENCC_LIB SharedSingleton<OpenCCLib>::GetInstance()
+#define OPENCC_LIB SharedSingleton<OpenCCLib>::getInstance()
 
 	struct OpenCCHandleTraits final {
 		static opencc_t invalid() {
 			return reinterpret_cast<opencc_t>(-1);
 		}
 
-		static void Close(opencc_t value) {
+		static void close(opencc_t value) {
 			if (value != nullptr && value != invalid()) {
 				OPENCC_LIB.opencc_close(value);
 			}
@@ -103,7 +103,7 @@ namespace {
 
 	using OpenCCHandle = UniqueHandle<opencc_t, OpenCCHandleTraits>;
 
-	std::string GetOpenCCError() {
+	std::string getOpenCCError() {
 		const auto* error = OPENCC_LIB.opencc_error();
 		if (error == nullptr) {
 			return "Unknown OpenCC error";
@@ -111,7 +111,7 @@ namespace {
 		return error;
 	}
 
-	std::string MakeOpenCCConfigPath(const std::string& file_name, const std::string& file_path) {
+	std::string makeOpenCCConfigPath(const std::string& file_name, const std::string& file_path) {
 		if (file_path.empty()) {
 			return file_name;
 		}
@@ -133,7 +133,7 @@ class EncodingDetector::EncodingDetectorImpl {
 public:
 	EncodingDetectorImpl() = default;
 
-	std::expected<std::string, EncodingDetectorError> Detect(const char* data, size_t size) {
+	std::expected<std::string, EncodingDetectorError> detect(const char* data, size_t size) {
 		UcharDetPtr detector;
 
 		// create detector
@@ -164,15 +164,15 @@ public:
 #ifdef XAMP_OS_LINUX
 	LanguageDetectorImpl() = default;
 
-	bool IsJapanese(const std::wstring& text) {
-		return ContainsRange(text, 0x3040, 0x30FF);
+	bool isJapanese(const std::wstring& text) {
+		return containsRange(text, 0x3040, 0x30FF);
 	}
 
-	bool IsChinese(const std::wstring& text) {
-		return ContainsRange(text, 0x4E00, 0x9FFF);
+	bool isChinese(const std::wstring& text) {
+		return containsRange(text, 0x4E00, 0x9FFF);
 	}
 private:
-	static bool ContainsRange(const std::wstring& text, wchar_t first, wchar_t last) {
+	static bool containsRange(const std::wstring& text, wchar_t first, wchar_t last) {
 		return std::any_of(text.begin(), text.end(), [=](wchar_t ch) {
 			return ch >= first && ch <= last;
 		});
@@ -182,18 +182,18 @@ private:
 		: indentifier_(0, 1000) {
 	}
 
-	bool IsJapanese(const std::wstring& text) {		
-		const auto result = FindLanguage(text);
+	bool isJapanese(const std::wstring& text) {		
+		const auto result = findLanguage(text);
 		return result.is_reliable && result.language == kJapaneseLanguage;
 	}
 
-	bool IsChinese(const std::wstring& text) {		
-		const auto result = FindLanguage(text);
+	bool isChinese(const std::wstring& text) {		
+		const auto result = findLanguage(text);
 		return result.is_reliable && result.language == kSimpleChineseLanguage;
 	}
 private:
-	chrome_lang_id::NNetLanguageIdentifier::Result FindLanguage(const std::wstring& text) {
-		return indentifier_.FindLanguage(String::ToUtf8String(text));
+	chrome_lang_id::NNetLanguageIdentifier::Result findLanguage(const std::wstring& text) {
+		return indentifier_.FindLanguage(String::toUtf8String(text));
 	}
 	chrome_lang_id::NNetLanguageIdentifier indentifier_;
 #endif
@@ -203,27 +203,27 @@ class OpenCCConvert::OpenCCConvertImpl {
 public:
 	OpenCCConvertImpl() = default;
 
-	void Load(const std::string &file_name, const std::string &file_path) {
-		const auto config_path = MakeOpenCCConfigPath(file_name, file_path);
+	void load(const std::string &file_name, const std::string &file_path) {
+		const auto config_path = makeOpenCCConfigPath(file_name, file_path);
 		const auto handle = OPENCC_LIB.opencc_open(config_path.c_str());
 		if (handle == nullptr || handle == OpenCCHandleTraits::invalid()) {
-			throw std::runtime_error(GetOpenCCError());
+			throw std::runtime_error(getOpenCCError());
 		}
 		converter_.reset(handle);
 	}
 
-	std::wstring Convert(const std::wstring& text) const {
+	std::wstring convert(const std::wstring& text) const {
 		if (text.empty() || !converter_) {
 			return text;
 		}
 
-		auto utf8_str = String::ToUtf8String(text);
+		auto utf8_str = String::toUtf8String(text);
 		auto* converted = OPENCC_LIB.opencc_convert_utf8(
 			converter_.get(),
 			utf8_str.c_str(),
 			utf8_str.length());
 		if (converted == nullptr) {
-			throw std::runtime_error(GetOpenCCError());
+			throw std::runtime_error(getOpenCCError());
 		}
 		XAMP_ON_SCOPE_EXIT(OPENCC_LIB.opencc_convert_utf8_free(converted););
 
@@ -236,41 +236,41 @@ private:
 };
 
 OpenCCConvert::OpenCCConvert()
-	: impl_(MakeAlign<OpenCCConvertImpl>()) {
+	: impl_(makeAlign<OpenCCConvertImpl>()) {
 }
 
-void OpenCCConvert::Load(const std::string& file_name, const std::string& file_path) {
-	impl_->Load(file_name, file_path);
+void OpenCCConvert::load(const std::string& file_name, const std::string& file_path) {
+	impl_->load(file_name, file_path);
 }
 
-std::wstring OpenCCConvert::Convert(const std::wstring& text) const {
-	return impl_->Convert(text);
+std::wstring OpenCCConvert::convert(const std::wstring& text) const {
+	return impl_->convert(text);
 }
 
 XAMP_PIMPL_IMPL(OpenCCConvert)
 
 EncodingDetector::EncodingDetector()
-	: impl_(MakeAlign<EncodingDetectorImpl>()) {
+	: impl_(makeAlign<EncodingDetectorImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(EncodingDetector)
 
-std::expected<std::string, EncodingDetectorError> EncodingDetector::Detect(const char* data, size_t size) {
-	return impl_->Detect(data, size);
+std::expected<std::string, EncodingDetectorError> EncodingDetector::detect(const char* data, size_t size) {
+	return impl_->detect(data, size);
 }
 
 LanguageDetector::LanguageDetector()
-	: impl_(MakeAlign<LanguageDetectorImpl>()) {
+	: impl_(makeAlign<LanguageDetectorImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(LanguageDetector)
 
-bool LanguageDetector::IsJapanese(const std::wstring& text) {
-	return impl_->IsJapanese(text);
+bool LanguageDetector::isJapanese(const std::wstring& text) {
+	return impl_->isJapanese(text);
 }
 
-bool LanguageDetector::IsChinese(const std::wstring& text) {
-	return impl_->IsChinese(text);
+bool LanguageDetector::isChinese(const std::wstring& text) {
+	return impl_->isChinese(text);
 }
 
 void LoadUcharDectLib() {

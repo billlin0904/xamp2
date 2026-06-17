@@ -154,7 +154,7 @@ void LrcParser::parseMultiLrc(std::wstring const & line) {
         catch (const std::invalid_argument&) {
             // 如果不是時間，就把整個 bracket 當作一般文字
             lrc_text.append(L"[" + bracket_content + L"]");
-            XAMP_LOG_DEBUG("invalid_argument => {}", String::ToString(line));
+            XAMP_LOG_DEBUG("invalid_argument => {}", String::toString(line));
         }
     }
 
@@ -189,17 +189,17 @@ bool LrcParser::parseStream(std::wistream &istr) {
 		if (!start_read_lrc) {
 			if (line.find(L"[ti") != std::wstring::npos) {
 				title_ = TagParser<>::parseIdTag(L"ti", line);
-				XAMP_LOG_DEBUG("title: {}", String::ToUtf8String(title_));
+				XAMP_LOG_DEBUG("title: {}", String::toUtf8String(title_));
 				continue;
 			}
 			if (line.find(L"[ar") != std::wstring::npos) {
 				artist_ = TagParser<>::parseIdTag(L"ar", line);
-				XAMP_LOG_DEBUG("artist: {}", String::ToUtf8String(artist_));
+				XAMP_LOG_DEBUG("artist: {}", String::toUtf8String(artist_));
 				continue;
 			}
 			if (line.find(L"[al") != std::wstring::npos) {
 				album_ = TagParser<>::parseIdTag(L"al", line);
-				XAMP_LOG_DEBUG("album: {}", String::ToUtf8String(album_));
+				XAMP_LOG_DEBUG("album: {}", String::toUtf8String(album_));
 				continue;
 			}
 			if (line.find(L"[offset") != std::wstring::npos) {

@@ -18,7 +18,7 @@ public:
 
 	XAMP_PIMPL(WaitableTimer)
 
-	void SetTimeout(std::chrono::milliseconds timeout) ;
+	void setTimeout(std::chrono::milliseconds timeout) ;
 
 	void Wait();
 private:

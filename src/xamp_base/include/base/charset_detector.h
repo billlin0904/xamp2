@@ -23,9 +23,9 @@ public:
 
 	XAMP_PIMPL(OpenCCConvert)
 
-	void Load(const std::string& file_name, const std::string& file_path);
+	void load(const std::string& file_name, const std::string& file_path);
 
-	std::wstring Convert(const std::wstring& text) const;
+	std::wstring convert(const std::wstring& text) const;
 private:
 	class OpenCCConvertImpl;
 	ScopedPtr<OpenCCConvertImpl> impl_;
@@ -37,10 +37,10 @@ public:
 
 	XAMP_PIMPL(EncodingDetector)
 
-	std::expected<std::string, EncodingDetectorError> Detect(const char* data, size_t size);
+	std::expected<std::string, EncodingDetectorError> detect(const char* data, size_t size);
 
-	std::expected<std::string, EncodingDetectorError> Detect(const std::string &str) {
-		return Detect(str.data(), str.size());
+	std::expected<std::string, EncodingDetectorError> detect(const std::string &str) {
+		return detect(str.data(), str.size());
 	}
 
 private:
@@ -54,9 +54,9 @@ public:
 
 	XAMP_PIMPL(LanguageDetector)
 
-	bool IsJapanese(const std::wstring& text);
+	bool isJapanese(const std::wstring& text);
 
-	bool IsChinese(const std::wstring& text);
+	bool isChinese(const std::wstring& text);
 private:
 	class LanguageDetectorImpl;
 	ScopedPtr<LanguageDetectorImpl> impl_;

@@ -48,30 +48,29 @@ class XAMP_STREAM_API XAMP_NO_VTABLE ICDDevice {
 public:
 	XAMP_BASE_CLASS(ICDDevice)
 
-	virtual void SetAction(CDDeviceAction action);
+	virtual void setAction(CDDeviceAction action);
 
-	virtual void SetSpeed(uint32_t speed) = 0;
+	virtual void setSpeed(uint32_t speed) = 0;
 
-	virtual void SetMaxSpeed() = 0;
+	virtual void setMaxSpeed() = 0;
 
-	[[nodiscard]] virtual uint32_t GetSpeed() const = 0;
+	[[nodiscard]] virtual uint32_t getSpeed() const = 0;
 
-	[[nodiscard]] virtual bool DoorIsOpen() const = 0;
+	[[nodiscard]] virtual bool doorIsOpen() const = 0;
 
-	[[nodiscard]] virtual CDDeviceInfo GetCDDeviceInfo() const = 0;
+	[[nodiscard]] virtual CDDeviceInfo getCDDeviceInfo() const = 0;
 
-	[[nodiscard]] virtual CDText GetCDText() const = 0;
+	[[nodiscard]] virtual CDText getCDText() const = 0;
 
-	[[nodiscard]] virtual std::vector<std::wstring> GetTotalTracks() const = 0;
+	[[nodiscard]] virtual std::vector<std::wstring> getTotalTracks() const = 0;
 
-	virtual void Release() = 0;
+	virtual void release() = 0;
 
-	[[nodiscard]] virtual double GetDuration(uint32_t track) const = 0;
+	[[nodiscard]] virtual double getDuration(uint32_t track) const = 0;
 
-	[[nodiscard]] virtual std::string GetISRC(uint32_t track) const = 0;
+	[[nodiscard]] virtual std::string getISRC(uint32_t track) const = 0;
 protected:
 	ICDDevice() = default;
 };
 
 XAMP_STREAM_NAMESPACE_END
-

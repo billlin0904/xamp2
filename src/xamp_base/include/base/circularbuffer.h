@@ -12,28 +12,28 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 // CopyFrom from book 'The Modern Cpp Challenge'
 
-template <typename T>
+template <typename t>
 class CircularBuffer;
 
 /*
 * CircularBufferIterator is an iterator for a circular buffer.
 * 
-* @param[in] T The type of the elements in the buffer.
+* @param[in] t The type of the elements in the buffer.
 */
-template <typename T>
+template <typename t>
 class CircularBufferIterator {
     typedef CircularBufferIterator self_type;
-    typedef T value_type;
-    typedef T& reference;
-    typedef T const& const_reference;
-    typedef T* pointer;
+    typedef t value_type;
+    typedef t& reference;
+    typedef t const& const_reference;
+    typedef t* pointer;
     typedef std::random_access_iterator_tag iterator_category;
     typedef ptrdiff_t difference_type;
 public:
     /*
     * Constructor.
     */
-    CircularBufferIterator(CircularBuffer<T> const& buf, size_t const pos, bool const last)
+    CircularBufferIterator(CircularBuffer<t> const& buf, size_t const pos, bool const last)
         : buffer_(buf)
         , index_(pos)
         , last_(last) {
@@ -110,7 +110,7 @@ private:
         return &buffer_ == &other.buffer_;
     }
 
-    CircularBuffer<T> const& buffer_;
+    CircularBuffer<t> const& buffer_;
     size_t index_;
     bool last_;
 };
@@ -122,11 +122,11 @@ private:
 * The buffer is bounded, and the size is specified in the constructor.
 * The buffer is not thread-safe, and can only be used by one producer and one consumer.
 * 
-* @param[in] T The type of the elements in the buffer.
+* @param[in] t The type of the elements in the buffer.
 */
-template <typename T>
+template <typename t>
 class CircularBuffer {
-    typedef CircularBufferIterator<T> const_iterator;
+    typedef CircularBufferIterator<t> const_iterator;
 
     CircularBuffer() = delete;
 public:
@@ -189,7 +189,7 @@ public:
     * 
     * @param[in] item The item to add to the buffer.    
     */
-    void emplace_back(T&& item) {
+    void emplace_back(t&& item) {
         head_ = next_pos();
         data_[head_] = std::move(item);
 
@@ -203,7 +203,7 @@ public:
     * 
     * @param[in] item The item to add to the buffer.
     */
-    void push(const T & item) {
+    void push(const t & item) {
         head_ = next_pos();
         data_[head_] = item;
 
@@ -215,7 +215,7 @@ public:
     /*
      * Get the front item in the buffer.
      */
-    [[nodiscard]] T& front() XAMP_CHECK_LIFETIME {
+    [[nodiscard]] t& front() XAMP_CHECK_LIFETIME {
         if (empty()) {
             throw std::runtime_error("empty buffer");
         }
@@ -225,7 +225,7 @@ public:
     /*
 	 * Get the front item in the buffer.
 	 */
-    [[nodiscard]] const T& front() const XAMP_CHECK_LIFETIME {
+    [[nodiscard]] const t& front() const XAMP_CHECK_LIFETIME {
         if (empty()) {
             throw std::runtime_error("empty buffer");
         }
@@ -263,7 +263,7 @@ public:
 private:
     size_t head_ = -1;
     size_t size_ = 0;
-    std::vector<T> data_;
+    std::vector<t> data_;
 
     /*
     * Get the next position.
@@ -283,7 +283,7 @@ private:
         return size_ == 0 ? 0 : (head_ + data_.size() - size_ + 1) % data_.size(); 
     }
 
-    friend class CircularBufferIterator<T>;
+    friend class CircularBufferIterator<t>;
 };
 
 XAMP_BASE_NAMESPACE_END

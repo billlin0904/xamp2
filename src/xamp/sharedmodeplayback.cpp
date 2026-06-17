@@ -8,15 +8,15 @@
 #include <algorithm>
 
 namespace {
-    const uint32_t kFallbackSharedModeSampleRate = AudioFormat::k16BitPCM48Khz.GetSampleRate();
-    const uint32_t kBluetoothMaxSampleRate = AudioFormat::k16BitPCM48Khz.GetSampleRate();
+    const uint32_t kFallbackSharedModeSampleRate = AudioFormat::k16BitPCM48Khz.getSampleRate();
+    const uint32_t kBluetoothMaxSampleRate = AudioFormat::k16BitPCM48Khz.getSampleRate();
 }
 
 uint32_t resolveSharedModeTargetSampleRate(
     const DeviceInfo& device_info,
     uint32_t input_sample_rate,
     DsdModes output_mode) {
-    if (!IsPcmAudio(output_mode)) {
+    if (!isPcmAudio(output_mode)) {
         return 0;
     }
 
@@ -26,7 +26,7 @@ uint32_t resolveSharedModeTargetSampleRate(
 
 #if defined(XAMP_OS_WIN)
     if (device_info.default_format.has_value()) {
-        target_sample_rate = device_info.default_format->GetSampleRate();
+        target_sample_rate = device_info.default_format->getSampleRate();
     }
 #endif
 
@@ -60,7 +60,7 @@ SharedModePlaybackConfig resolveSharedModePlaybackConfig(
         config.byte_format = ByteFormat::SINT16;
     }
 
-    config.needs_resample = IsPcmAudio(output_mode)
+    config.needs_resample = isPcmAudio(output_mode)
         && config.target_sample_rate != 0
         && config.target_sample_rate != input_sample_rate;
 

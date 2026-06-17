@@ -139,14 +139,14 @@ static constexpr const std::array<std::string_view, kMaxEnumSize> EnumName##_enu
 inline constexpr size_t Get##EnumName##Size() {\
     return EnumName##_enum_names.size();\
 }\
-inline constexpr std::string_view EnumToString(EnumName value) {\
+inline constexpr std::string_view enumToString(EnumName value) {\
     size_t index = static_cast<size_t>(value); \
     return (index < EnumName##_enum_names.size() - 1) ? EnumName##_enum_names[index] : "Unknown";\
 }\
 inline bool Find##EnumName(std::string_view str, EnumName &result) {\
     for (size_t i = 0; i < Get##EnumName##Size(); ++i) {\
         auto ename = static_cast<EnumName>(i);\
-        if (str == EnumToString(ename)) {\
+        if (str == enumToString(ename)) {\
             result = ename; \
             return true;\
         }\
@@ -154,7 +154,7 @@ inline bool Find##EnumName(std::string_view str, EnumName &result) {\
     return false;\
 }\
 inline std::ostream &operator<<(std::ostream &os, EnumName value) {\
-    os << EnumToString(value);\
+    os << enumToString(value);\
     return os;\
 }
 

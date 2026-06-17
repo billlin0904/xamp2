@@ -44,7 +44,7 @@ inline R8brainLib::R8brainLib() try
 	, XAMP_LOAD_DLL_API(r8b_process) {
 }
 catch (const Exception& e) {
-	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+	XAMP_LOG_ERROR("{}", e.getErrorMessage());
 }
 #else
 class R8brainLib final {
@@ -78,6 +78,6 @@ public:
 };
 #endif
 
-#define LibR8brainDLL SharedSingleton<R8brainLib>::GetInstance()
+#define LibR8brainDLL SharedSingleton<R8brainLib>::getInstance()
 
 XAMP_STREAM_NAMESPACE_END

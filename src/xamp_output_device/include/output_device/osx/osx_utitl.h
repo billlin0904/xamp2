@@ -21,23 +21,23 @@ namespace xamp::output_device::osx {
 struct SystemVolume {
     explicit SystemVolume(AudioObjectPropertySelector selector, AudioDeviceID device_id = kAudioObjectUnknown) ;
 
-    double GetGain() const;
+    double getGain() const;
 
-    void SetGain(float gain) const;
+    void setGain(float gain) const;
 
-    float GetBlance(AudioObjectPropertyScope scope = kAudioDevicePropertyScopeOutput) const;
+    float getBlance(AudioObjectPropertyScope scope = kAudioDevicePropertyScopeOutput) const;
 
-    void SetBlance(float blance, AudioObjectPropertyScope scope = kAudioDevicePropertyScopeOutput);
+    void setBlance(float blance, AudioObjectPropertyScope scope = kAudioDevicePropertyScopeOutput);
 
-    bool IsMuted() const;
+    bool isMuted() const;
 
-    void SetMuted(bool mute) const;
+    void setMuted(bool mute) const;
 
-    bool HasProperty() const ;
+    bool hasProperty() const ;
 
-    bool HasProperty(const AudioObjectPropertyAddress &property) const ;
+    bool hasProperty(const AudioObjectPropertyAddress &property) const ;
 
-    bool CanSetVolume() const ;
+    bool canSetVolume() const ;
 private:
     AudioDeviceID device_id_;
     AudioObjectPropertyAddress property_;

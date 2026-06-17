@@ -26,21 +26,21 @@ public:
 
     CoreAudioDeviceType();
 
-    void ScanNewDevice() override;
+    void scanNewDevice() override;
 
-    std::string_view GetDescription() const override;
+    std::string_view getDescription() const override;
 
-    Uuid GetTypeId() const override;
+    Uuid getTypeId() const override;
 
-    AlignPtr<IOutputDevice> MakeDevice(const std::string &device_id) override;
+    AlignPtr<IOutputDevice> makeDevice(const std::string &device_id) override;
 
-    size_t GetDeviceCount() const override;
+    size_t getDeviceCount() const override;
 
-    DeviceInfo GetDeviceInfo(uint32_t device) const override;
+    DeviceInfo getDeviceInfo(uint32_t device) const override;
 
-    Vector<DeviceInfo> GetDeviceInfo() const override;
+    Vector<DeviceInfo> getDeviceInfo() const override;
 
-    std::optional<DeviceInfo> GetDefaultDeviceInfo() const override;
+    std::optional<DeviceInfo> getDefaultDeviceInfo() const override;
 
 protected:
     class CoreAudioDeviceTypeImpl;

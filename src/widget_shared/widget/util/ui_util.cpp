@@ -49,7 +49,7 @@ namespace {
 }
 
 QString formatSampleRate(const AudioFormat& format) {
-    return formatSampleRate(format.GetSampleRate());
+    return formatSampleRate(format.getSampleRate());
 }
 
 QString format2String(const PlaybackFormat& playback_format, const QString& file_ext, const QString &desc) {
@@ -60,14 +60,14 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
 
     auto precision = 1;
     auto is_mhz_sample_rate = false;
-    if (format.GetSampleRate() / 1000 > 1000) {
+    if (format.getSampleRate() / 1000 > 1000) {
         is_mhz_sample_rate = true;
     }
     else {
-        precision = format.GetSampleRate() % 1000 == 0 ? 0 : 1;
+        precision = format.getSampleRate() % 1000 == 0 ? 0 : 1;
     }
 
-    auto bits = (std::max)(format.GetBitsPerSample(), 16U);
+    auto bits = (std::max)(format.getBitsPerSample(), 16U);
 
     QString dsd_speed_format;
     if (playback_format.is_dsd_file
@@ -84,7 +84,7 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
     case DsdModes::DSD_MODE_PCM:
     case DsdModes::DSD_MODE_DSD2PCM:
         output_format_str = formatSampleRate(playback_format.file_format);
-        if (playback_format.file_format.GetSampleRate() != playback_format.output_format.GetSampleRate()) {
+        if (playback_format.file_format.getSampleRate() != playback_format.output_format.getSampleRate()) {
             output_format_str += "/"_str + formatSampleRate(playback_format.output_format);
         }
         break;
@@ -184,12 +184,12 @@ PlayerOrder getNextOrder(PlayerOrder cur) {
 }
 
 ScopedPtr<IAudioProcessor> makeR8BrainSampleRateConverter() {
-    return MakeAlign<IAudioProcessor, R8brainSampleRateConverter>();
+    return makeAlign<IAudioProcessor, R8brainSampleRateConverter>();
 }
 
 ScopedPtr<IAudioProcessor> makeSrcSampleRateConverter() {
-    auto converter = MakeAlign<IAudioProcessor, SrcSampleRateConverter>();
-	dynamic_cast<SrcSampleRateConverter*>(converter.get())->SetQuality(SrcQuality::SINC_HQ);
+    auto converter = makeAlign<IAudioProcessor, SrcSampleRateConverter>();
+	dynamic_cast<SrcSampleRateConverter*>(converter.get())->setQuality(SrcQuality::SINC_HQ);
     return converter;
 }
 
@@ -207,13 +207,13 @@ ScopedPtr<IAudioProcessor> makeSoxrSampleRateConverter(const QVariantMap& settin
     const auto phase = settings[kSoxrPhase].toInt();
     const auto roll_off_level = static_cast<SoxrRollOff>(settings[kSoxrRollOffLevel].toInt());
 
-    auto converter = MakeAlign<IAudioProcessor, SoxrSampleRateConverter>();
+    auto converter = makeAlign<IAudioProcessor, SoxrSampleRateConverter>();
     auto* soxr_sample_rate_converter = dynamic_cast<SoxrSampleRateConverter*>(converter.get());
-    soxr_sample_rate_converter->SetQuality(quality);
-    soxr_sample_rate_converter->SetStopBand(stop_band);
-    soxr_sample_rate_converter->SetPassBand(pass_band);
-    soxr_sample_rate_converter->SetPhase(phase);
-    soxr_sample_rate_converter->SetRollOff(roll_off_level);
+    soxr_sample_rate_converter->setQuality(quality);
+    soxr_sample_rate_converter->setStopBand(stop_band);
+    soxr_sample_rate_converter->setPassBand(pass_band);
+    soxr_sample_rate_converter->setPhase(phase);
+    soxr_sample_rate_converter->setRollOff(roll_off_level);
 
     return converter;
 }
@@ -233,15 +233,15 @@ ScopedPtr<IAudioProcessor> makeSampleRateConverter(uint32_t sample_rate) {
 PlaybackFormat getPlaybackFormat(IAudioPlayer* player) {
     PlaybackFormat format;
 
-    if (player->IsDsdFile()) {
-        format.dsd_mode = player->GetDsdModes();
-        format.dsd_speed = *player->GetDsdSpeed();
+    if (player->isDsdFile()) {
+        format.dsd_mode = player->getDsdModes();
+        format.dsd_speed = *player->getDsdSpeed();
         format.is_dsd_file = true;
     }
 
-    format.enable_sample_rate_convert = player->GetDspManager()->IsEnableSampleRateConverter();
-    format.file_format = player->GetInputFormat();
-    format.output_format = player->GetOutputFormat();
+    format.enable_sample_rate_convert = player->getDspManager()->isEnableSampleRateConverter();
+    format.file_format = player->getInputFormat();
+    format.output_format = player->getOutputFormat();
     return format;
 }
 
@@ -261,7 +261,7 @@ QString getFileDialogFileExtensions() {
     static QString file_extension;
     if (file_extension.isEmpty()) {
         QString exts("("_str);
-        const auto file_exts = GetSupportFileExtensions();
+        const auto file_exts = getSupportFileExtensions();
         for (const auto& file_ext : file_exts) {
             exts += "*"_str + QString::fromStdString(file_ext);
             exts += " "_str;
@@ -365,7 +365,7 @@ const QStringList& getTrackInfoFileNameFilter() {
         XAMP_DECLARE_SINGLETON_NAME()
 
         StaticGetFileNameFilter() {
-            for (auto& file_ext : GetSupportFileExtensions()) {
+            for (auto& file_ext : getSupportFileExtensions()) {
                 name_filter << qFormat("*%1").arg(QString::fromStdString(file_ext));
             }
             name_filter << "*.cue"_str;
@@ -373,11 +373,11 @@ const QStringList& getTrackInfoFileNameFilter() {
         }
         QStringList name_filter;
     };
-    return SharedSingleton<StaticGetFileNameFilter>::GetInstance().name_filter;
+    return SharedSingleton<StaticGetFileNameFilter>::getInstance().name_filter;
 }
 
 bool isSupportFileExtension(const QString& file_ext) {
-    return GetSupportFileExtensions().contains(file_ext.toStdString());
+    return getSupportFileExtensions().contains(file_ext.toStdString());
 }
 
 size_t getFileCount(const QString& dir, const QStringList& file_name_filters) {

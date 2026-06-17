@@ -20,27 +20,27 @@ public:
 
 	explicit BassCDDevice(char driver_letter);
 
-	void SetAction(CDDeviceAction action) override;
+	void setAction(CDDeviceAction action) override;
 
-	void SetSpeed(uint32_t speed) override;
+	void setSpeed(uint32_t speed) override;
 
-	void SetMaxSpeed() override;
+	void setMaxSpeed() override;
 
-	[[nodiscard]] uint32_t GetSpeed() const override;
+	[[nodiscard]] uint32_t getSpeed() const override;
 
-	[[nodiscard]] bool DoorIsOpen() const override;
+	[[nodiscard]] bool doorIsOpen() const override;
 
-	[[nodiscard]] CDDeviceInfo GetCDDeviceInfo() const override;
+	[[nodiscard]] CDDeviceInfo getCDDeviceInfo() const override;
 
-	void Release() override;
+	void release() override;
 
-	[[nodiscard]] CDText GetCDText() const override;
+	[[nodiscard]] CDText getCDText() const override;
 
-	[[nodiscard]] double GetDuration(uint32_t track) const override;
+	[[nodiscard]] double getDuration(uint32_t track) const override;
 
-	[[nodiscard]] std::vector<std::wstring> GetTotalTracks() const override;
+	[[nodiscard]] std::vector<std::wstring> getTotalTracks() const override;
 
-	[[nodiscard]] std::string GetISRC(uint32_t track) const override;
+	[[nodiscard]] std::string getISRC(uint32_t track) const override;
 private:
 	class BassCDDeviceImpl;
 	ScopedPtr<BassCDDeviceImpl> impl_;
@@ -49,4 +49,3 @@ private:
 #endif
 
 XAMP_STREAM_NAMESPACE_END
-

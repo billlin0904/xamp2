@@ -95,7 +95,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>../widget_shared/x64/Debug/;./x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Debug/;../thirdparty/QSimpleUpdater/debug/;../thirdparty/qcoro/msvc/qcoro/core/;../thirdparty/qcoro/msvc/qcoro/network/;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/msvc/qcoro/network/QCoro;../thirdparty/qcoro/msvc/qcoro/QCoro;../thirdparty/qcoro/qcoro/network/;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;../thirdparty/qcoro/msvc/qcoro/core/Debug/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../xamp_base/x64/Debug/;../xamp_stream/x64/Debug/;../xamp_output_device/x64/Debug/;../xamp_player/x64/Debug/;../xamp_metadata/x64/Debug/;../widget_shared/x64/Debug/;./x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Debug/;../thirdparty/QSimpleUpdater/debug/;../thirdparty/qcoro/msvc/qcoro/core/;../thirdparty/qcoro/msvc/qcoro/network/;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/msvc/qcoro/network/QCoro;../thirdparty/qcoro/msvc/qcoro/QCoro;../thirdparty/qcoro/qcoro/network/;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;../thirdparty/qcoro/msvc/qcoro/core/Debug/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;widget_shared.lib;QSimpleUpdater.lib;QCoro6Cored.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/INCLUDE:mi_version %(AdditionalOptions)</AdditionalOptions>
@@ -182,7 +182,7 @@ copy /Y "$(ProjectDir)..\thirdparty\uchardet\msvc\src\Debug\uchardet.dll" "$(Out
     <Link>
       <SubSystem>Windows</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>../widget_shared/x64/Release/;./x64/Release/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/QSimpleUpdater/release/;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/msvc/qcoro/core/;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;../thirdparty/qcoro/msvc/qcoro/QCoro;../thirdparty/qcoro/msvc/qcoro/core/Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../xamp_base/x64/Release/;../xamp_stream/x64/Release/;../xamp_output_device/x64/Release/;../xamp_player/x64/Release/;../xamp_metadata/x64/Release/;../widget_shared/x64/Release/;./x64/Release/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/QSimpleUpdater/release/;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/msvc/qcoro/core/;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;../thirdparty/qcoro/msvc/qcoro/QCoro;../thirdparty/qcoro/msvc/qcoro/core/Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;widget_shared.lib;QSimpleUpdater.lib;QCoro6Core.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -282,8 +282,6 @@ copy /Y "$(ProjectDir)..\thirdparty\uchardet\msvc\src\Release\uchardet.dll" "$(O
     <None Include="..\versions\updates.json" />
     <None Include="config.json" />
     <None Include="fonticon.json" />
-    <None Include="migrations\2024-01-12-093210_init\up.sql" />
-    <None Include="migrations\2026-05-22-110000_scan_insert_indexes\up.sql" />
     <None Include="xamp.ini" />
   </ItemGroup>
   <ItemGroup>

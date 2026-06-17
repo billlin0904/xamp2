@@ -32,12 +32,12 @@ inline constexpr DWORD kBassError{ 0xFFFFFFFF };
 
 struct BassPluginLoadDeleter final {
     static HPLUGIN invalid() ;
-    static void Close(HPLUGIN value);
+    static void close(HPLUGIN value);
 };
 
 struct BassStreamDeleter final {
     static HSTREAM invalid() ;
-    static void Close(HSTREAM value);
+    static void close(HSTREAM value);
 };
 
 using BassPluginHandle = UniqueHandle<HPLUGIN, BassPluginLoadDeleter>;
@@ -65,7 +65,7 @@ public:
 
     XAMP_DISABLE_COPY(BassMixLib)
 
-	std::string GetName() const;
+	std::string getName() const;
 private:
     SharedLibraryHandle module_;
 
@@ -79,7 +79,7 @@ class BassFxLib final {
 public:
     BassFxLib();
 
-    std::string GetName() const;
+    std::string getName() const;
 
     XAMP_DISABLE_COPY(BassFxLib)
 
@@ -97,7 +97,7 @@ class BassCDLib final {
 public:
     BassCDLib();
 
-    std::string GetName() const;
+    std::string getName() const;
 
     XAMP_DISABLE_COPY(BassCDLib)
 
@@ -131,7 +131,7 @@ public:
 
     ~BassLib();
 
-    void Load();
+    void load();
 
     void Free();
 
@@ -139,9 +139,9 @@ public:
         return !plugins_.empty();
     }
 
-    std::string GetName() const;
+    std::string getName() const;
 
-    HashSet<std::string> GetSupportFileExtensions() const;
+    HashSet<std::string> getSupportFileExtensions() const;
 
     XAMP_DISABLE_COPY(BassLib)
 
@@ -154,9 +154,9 @@ public:
 #ifdef XAMP_OS_WIN
     ScopedPtr<BassCDLib> CDLib;
 #endif
-    void LoadVersionInfo();
-    OrderedMap<std::string, std::string> GetPluginVersion() const;
-    OrderedMap<std::string, std::string> GetVersions() const;
+    void loadVersionInfo();
+    OrderedMap<std::string, std::string> getPluginVersion() const;
+    OrderedMap<std::string, std::string> getVersions() const;
 private:
     HashMap<std::string, BassPluginHandle> plugins_;
     OrderedMap<std::string, std::string> dll_versions_;
@@ -199,10 +199,10 @@ public:
     XAMP_DECLARE_DLL_NAME(BASS_SampleGetChannel);
     XAMP_DECLARE_DLL_NAME(BASS_StreamCreateFileUser);
 private:
-    void LoadPlugin(const  std::string & file_name);
+    void loadPlugin(const  std::string & file_name);
 };
 
-#define BassLibDLL SharedSingleton<BassLib>::GetInstance()
+#define BassLibDLL SharedSingleton<BassLib>::getInstance()
 
 XAMP_STREAM_NAMESPACE_END
 

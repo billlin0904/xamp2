@@ -54,11 +54,11 @@ VolumeControlDialog::~VolumeControlDialog() {
 }
 
 void VolumeControlDialog::updateVolume() {
-    if (player_->IsHardwareControlVolume()) {
+    if (player_->isHardwareControlVolume()) {
         setVolumeUi(100, false);
         return;
     }
-    setVolumeUi(player_->GetVolume(), true);
+    setVolumeUi(player_->getVolume(), true);
 }
 
 void VolumeControlDialog::paintEvent(QPaintEvent* event) {
@@ -78,11 +78,11 @@ void VolumeControlDialog::paintEvent(QPaintEvent* event) {
 }
 
 //bool VolumeControlDialog::isHardwareControlVolume() const {
-//    return player_->IsHardwareControlVolume();
+//    return player_->isHardwareControlVolume();
 //}
 
 void VolumeControlDialog::updateState() {
-    if (!player_->IsHardwareControlVolume()) {
+    if (!player_->isHardwareControlVolume()) {
         if (qAppSettings.valueAsBool(kAppSettingIsMuted)) {
             setVolume(0);
         }
@@ -102,22 +102,22 @@ void VolumeControlDialog::setVolume(uint32_t volume, bool notify) {
     }
 
     try {
-        if (player_->IsHardwareControlVolume()) {
+        if (player_->isHardwareControlVolume()) {
             setVolumeUi(100, false);
             return;
         }
 
         if (volume > 0) {
-            player_->SetMute(false);
+            player_->setMute(false);
         }
         else {
-            player_->SetMute(true);
+            player_->setMute(true);
         }
 
         qAppSettings.setValue(kAppSettingVolume, volume);
 
-        if (!player_->IsMute()) {
-            player_->SetVolume(volume);
+        if (!player_->isMute()) {
+            player_->setVolume(volume);
         }
 
         setVolumeUi(volume, true);
@@ -127,7 +127,7 @@ void VolumeControlDialog::setVolume(uint32_t volume, bool notify) {
         }
     }
     catch (const std::exception& e) {
-        player_->Stop(false);
+        player_->stop(false);
     }
 }
 

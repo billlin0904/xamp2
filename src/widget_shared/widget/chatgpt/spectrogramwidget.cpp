@@ -25,13 +25,32 @@
 #include <atomic>
 #include <cmath>
 #include <functional>
+#include <iterator>
 #include <thread>
 #include <vector>
 
 namespace {
-    constexpr size_t kFFTSize = 2048 * 2;
-    constexpr size_t kHopSize = kFFTSize * 0.5;
-    constexpr float kPower2FFSize = kFFTSize * kFFTSize;
+    constexpr size_t kDefaultFFTSize = 4096;
+    constexpr size_t kSpectrogramFFTSizes[] = {
+        4096,
+        8192,
+        16384,
+        32768,
+        65536
+    };
+
+    size_t normalizeFFTSize(size_t fft_size) {
+        const auto found = std::find(std::begin(kSpectrogramFFTSizes),
+            std::end(kSpectrogramFFTSizes),
+            fft_size);
+        return found != std::end(kSpectrogramFFTSizes)
+            ? fft_size
+            : kDefaultFFTSize;
+    }
+
+    size_t hopSizeFromFFTSize(size_t fft_size) {
+        return fft_size / 2;
+    }
 
     auto makeImage(double duration_sec, uint32_t sample_rate, size_t hop_size, const QImage& chunk) -> QImage {
         size_t max_time_bins = static_cast<size_t>(std::ceil(
@@ -44,19 +63,20 @@ namespace {
         return spec_img;
     }
 
-    float toDbFromNorm(float p) {
+    float toDbFromNorm(float p, size_t fft_size) {
         if (p <= 0.0f) {
             return ColorTable::kMinDb;
         }
-        return 10.0f * log10f_fast(p / kPower2FFSize);
+        const auto power2_fft_size = static_cast<float>(fft_size * fft_size);
+        return 10.0f * log10f_fast(p / power2_fft_size);
     }
 
-    float getDb(const std::complex<float>& c) {
-        return toDbFromNorm(std::norm(c));
+    float getDb(const std::complex<float>& c, size_t fft_size) {
+        return toDbFromNorm(std::norm(c), fft_size);
     }
 
-    float getRealDb(float r) {
-        return toDbFromNorm(r * r);
+    float getRealDb(float r, size_t fft_size) {
+        return toDbFromNorm(r * r, fft_size);
     }
 
     uint32_t readFloatFrames(ScopedPtr<FileStream>& file_stream,
@@ -72,12 +92,12 @@ namespace {
         constexpr auto kMaxRetryCount = 4;
         while (true) {
             buffer.Fill(0.0f);
-            const auto samples_read = file_stream->GetSamples(buffer.data(), samples_to_read);
+            const auto samples_read = file_stream->getSamples(buffer.data(), samples_to_read);
             if (samples_read > 0) {
                 return samples_read / channels;
             }
             if (retry_count < kMaxRetryCount) {
-                if (!file_stream->EndOfStream()) {
+                if (!file_stream->endOfStream()) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(100));
                     retry_count++;
                     continue;
@@ -91,6 +111,7 @@ namespace {
         SpectrogramColor color{ SpectrogramColor::SPECTROGRAM_COLOR_DEFAULT };
         PlayListEntity entity;
         int target_columns{ 1 };
+        size_t fft_size{ kDefaultFFTSize };
     };
 
     void shiftLeft(std::vector<float>& buffer, size_t count) {
@@ -179,6 +200,8 @@ namespace {
 
             try {
                 request.target_columns = (std::max)(1, request.target_columns);
+                request.fft_size = normalizeFFTSize(request.fft_size);
+                const auto hop_size = hopSizeFromFFTSize(request.fft_size);
                 ArchiveFileStream afs;
 
                 if (request.entity.is_zip_file && request.entity.archive_entry_name.has_value()) {
@@ -194,29 +217,29 @@ namespace {
                     afs.file_stream = makePcmFileStream(request.entity.file_path.toStdWString());
                 }
 
-                if (!afs.file_stream || afs.file_stream->GetDuration() <= 0.0) {
+                if (!afs.file_stream || afs.file_stream->getDuration() <= 0.0) {
                     finished();
                     return;
                 }
 
-                const auto duration_sec = afs.file_stream->GetDuration();
-                const auto format = afs.file_stream->GetFormat();
-                const auto sample_rate = format.GetSampleRate();
-                const auto channels = (std::max<uint16_t>)(1, format.GetChannels());
+                const auto duration_sec = afs.file_stream->getDuration();
+                const auto format = afs.file_stream->getFormat();
+                const auto sample_rate = format.getSampleRate();
+                const auto channels = (std::max<uint16_t>)(1, format.getChannels());
                 const auto total_frames = (std::max<uint64_t>)(1,
                     static_cast<uint64_t>(std::llround(duration_sec * sample_rate)));
 
                 Window window;
-                window.Initialize(kFFTSize, WindowType::HANN);
+                window.initialize(request.fft_size, WindowType::HANN);
 
                 FFT fft;
-                fft.Initialize(kFFTSize);
+                fft.initialize(request.fft_size);
 
-                const auto bands = static_cast<int>((kFFTSize / 2) + 1);
+                const auto bands = static_cast<int>((request.fft_size / 2) + 1);
                 metadata_ready(duration_sec, sample_rate, request.target_columns, bands);
 
-                std::vector<float> fft_input(kFFTSize, 0.0f);
-                Buffer<float> read_buffer(kHopSize * channels + 1024);
+                std::vector<float> fft_input(request.fft_size, 0.0f);
+                Buffer<float> read_buffer(hop_size * channels + 1024);
                 std::vector<double> db_sums(request.target_columns * bands, 0.0);
                 std::vector<uint32_t> counts(request.target_columns, 0);
 
@@ -225,17 +248,17 @@ namespace {
 
                 int emitted_column = 0;
                 uint64_t processed_frames = 0;
-                while (!cancelled_.load(std::memory_order_relaxed) && afs.file_stream->IsActive()) {
+                while (!cancelled_.load(std::memory_order_relaxed) && afs.file_stream->isActive()) {
                     const auto frames_read = readFloatFrames(afs.file_stream,
                         read_buffer,
                         channels,
-                        static_cast<uint32_t>(kHopSize));
+                        static_cast<uint32_t>(hop_size));
                     if (frames_read == 0) {
                         break;
                     }
 
-                    shiftLeft(fft_input, kHopSize);
-                    const auto write_offset = kFFTSize - kHopSize;
+                    shiftLeft(fft_input, hop_size);
+                    const auto write_offset = request.fft_size - hop_size;
                     for (uint32_t frame = 0; frame < frames_read; ++frame) {
                         fft_input[write_offset + frame] = downmixFrame(
                             read_buffer.data() + frame * channels,
@@ -244,7 +267,7 @@ namespace {
 
                     auto windowed_input = fft_input;
                     window(windowed_input.data(), windowed_input.size());
-                    const auto& freq_bins = fft.Forward(windowed_input.data(), windowed_input.size());
+                    const auto& freq_bins = fft.forward(windowed_input.data(), windowed_input.size());
 
                     const auto column = (std::min<int>)(
                         request.target_columns - 1,
@@ -252,10 +275,10 @@ namespace {
                     for (int band = 0; band < bands; ++band) {
                         double db;
                         if ((band == 0) || (band == bands - 1)) {
-                            db = getRealDb(freq_bins[band].real());
+                            db = getRealDb(freq_bins[band].real(), request.fft_size);
                         }
                         else {
-                            db = getDb(freq_bins[band]);
+                            db = getDb(freq_bins[band], request.fft_size);
                         }
                         db_sums[column * bands + band] += db;
                     }
@@ -288,7 +311,7 @@ namespace {
                 }
             }
             catch (const Exception& e) {
-                error_ready(QString::fromUtf8(e.GetErrorMessage()));
+                error_ready(QString::fromUtf8(e.getErrorMessage()));
             }
             catch (const std::exception& e) {
                 error_ready(QString::fromUtf8(e.what()));
@@ -309,6 +332,7 @@ SpectrogramWidget::SpectrogramWidget(QWidget *parent)
     setContextMenuPolicy(Qt::CustomContextMenu);
 
     color_ = qAppSettings.valueAsEnum<SpectrogramColor>(kAppSettingWaveformColor);
+    fft_size_ = normalizeFFTSize(static_cast<size_t>(qAppSettings.valueAsInt(kAppSettingSpectrogramFFTSize)));
  
     (void)QObject::connect(this, &SpectrogramWidget::customContextMenuRequested, [this](auto pt) {
         ActionMap<SpectrogramWidget> action_map(this);
@@ -325,6 +349,18 @@ SpectrogramWidget::SpectrogramWidget(QWidget *parent)
             qAppSettings.setValue(kAppSettingWaveformColor, static_cast<int32_t>(color_));
             startReadSpectrogram(color_, file_path_);
             });
+
+        auto* fft_size_menu = action_map.addSubMenu(tr("FFT Size (%1)").arg(fft_size_));
+        for (const auto fft_size : kSpectrogramFFTSizes) {
+            fft_size_menu->addAction(QString::number(fft_size), [this, fft_size]() {
+                if (fft_size_ == fft_size) {
+                    return;
+                }
+                fft_size_ = fft_size;
+                qAppSettings.setValue(kAppSettingSpectrogramFFTSize, static_cast<int32_t>(fft_size_));
+                startReadSpectrogram(color_, file_path_);
+                }, fft_size_ == fft_size);
+        }
 
         const auto last_dir = qAppSettings.valueAsString(kAppSettingLastOpenFolderPath);
         const auto save_file_name = last_dir + "/"_str + "spectrogram.png"_str;
@@ -944,7 +980,8 @@ void SpectrogramWidget::startReadSpectrogram(SpectrogramColor color, const PlayL
     SpectrogramReadRequest request{
         color,
         entity,
-        target_columns
+        target_columns,
+        fft_size_
     };
 
     auto metadata_ready = [guard, load_id](double duration_sec,

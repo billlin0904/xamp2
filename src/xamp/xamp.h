@@ -123,7 +123,7 @@ private:
     QScopedPointer<AlbumCoverService> album_cover_service_;
     QScopedPointer<BackgroundService> background_service_;
     QList<QWidget*> widgets_;
-    std::shared_ptr<IThreadPoolExecutor> thread_pool_;
+    std::shared_ptr<IThreadPool> thread_pool_;
     std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
     std::shared_ptr<IAudioPlayer> player_;
     std::optional<DeviceInfo> device_info_;

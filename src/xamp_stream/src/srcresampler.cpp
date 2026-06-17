@@ -21,11 +21,11 @@ public:
 		logger_ = XAMP_LOG_CREATE_LOGGER(SrcSampleRateConverter);
 	}
 
-	void Start(uint32_t output_sample_rate) {
+	void start(uint32_t output_sample_rate) {
 		output_sample_rate_ = output_sample_rate;
 	}
 
-	void Initialize(uint32_t input_sample_rate) {
+	void initialize(uint32_t input_sample_rate) {
 		input_sample_rate_ = input_sample_rate;
 
 		int32_t error = 0;
@@ -57,7 +57,7 @@ public:
 		XAMP_LOG_D(logger_, "quality: {}", quality_);
 	}
 
-	bool Process(float const* samples, size_t num_samples, BufferRef<float>& output) {
+	bool process(float const* samples, size_t num_samples, BufferRef<float>& output) {
 		const auto required_size = static_cast<size_t>(num_samples * ratio_);
 		MaybeResizeBuffer(output, required_size);
 
@@ -92,7 +92,7 @@ public:
 		return true;
 	}
 
-	void SetQuality(SrcQuality quality) {
+	void setQuality(SrcQuality quality) {
 		quality_ = quality;
 	}
 private:
@@ -108,7 +108,7 @@ private:
 			return nullptr;
 		}
 
-		static void Close(SRC_STATE* value) {
+		static void close(SRC_STATE* value) {
 			LibSrcDLL.src_delete(value);
 		}
 	};
@@ -124,25 +124,25 @@ private:
 };
 
 SrcSampleRateConverter::SrcSampleRateConverter()
-	: impl_(MakeAlign<SrcSampleRateConverterImpl>()) {
+	: impl_(makeAlign<SrcSampleRateConverterImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(SrcSampleRateConverter)
 
-void SrcSampleRateConverter::SetQuality(SrcQuality quality) {
-	return impl_->SetQuality(quality);
+void SrcSampleRateConverter::setQuality(SrcQuality quality) {
+	return impl_->setQuality(quality);
 }
 
-bool SrcSampleRateConverter::Process(float const* samples, size_t num_samples, BufferRef<float>& output) {
-	return impl_->Process(samples, num_samples, output);
+bool SrcSampleRateConverter::process(float const* samples, size_t num_samples, BufferRef<float>& output) {
+	return impl_->process(samples, num_samples, output);
 }
 
-void SrcSampleRateConverter::Initialize(const Property& config) {
+void SrcSampleRateConverter::initialize(const Property& config) {
 	const auto output_format = config.Get<AudioFormat>(DspConfig::kOutputFormat);
-	impl_->Start(output_format.GetSampleRate());
+	impl_->start(output_format.getSampleRate());
 
 	const auto input_format = config.Get<AudioFormat>(DspConfig::kInputFormat);
-	impl_->Initialize(input_format.GetSampleRate());
+	impl_->initialize(input_format.getSampleRate());
 }
 
 XAMP_STREAM_NAMESPACE_END

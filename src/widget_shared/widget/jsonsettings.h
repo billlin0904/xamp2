@@ -29,8 +29,8 @@ public:
 
     void remove(const QString& key) const;
 
-    template <typename T>
-    void setDefaultValue(QString const& key, T const & value) {
+    template <typename t>
+    void setDefaultValue(QString const& key, t const & value) {
         default_settings_[key] = value;
     }
 
@@ -51,4 +51,4 @@ private:
     QMap<QString, QVariant> default_settings_;
 };
 
-#define qJsonSettings SharedSingleton<JsonSettings>::GetInstance()
+#define qJsonSettings SharedSingleton<JsonSettings>::getInstance()

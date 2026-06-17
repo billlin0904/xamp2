@@ -27,7 +27,7 @@ inline constexpr double XAMP_PI{ 3.14159265358979323846 };
 * @return uint64_t
 */
 template <uint32_t TShiftBits>
-uint64_t Rotl64(const uint64_t x) {
+uint64_t rotl64(const uint64_t x) {
 	const uint64_t left = x << TShiftBits;
 	const uint64_t right = x >> (64 - TShiftBits);
 	return left | right;
@@ -40,7 +40,7 @@ uint64_t Rotl64(const uint64_t x) {
 * @param[in] shift
 * @return uint64_t
 */
-XAMP_ALWAYS_INLINE uint64_t Rotl64(const uint64_t x, uint32_t shift) {
+XAMP_ALWAYS_INLINE uint64_t rotl64(const uint64_t x, uint32_t shift) {
 #ifdef XAMP_OS_WIN
 	return _rotl64(x, shift);
 #else
@@ -62,12 +62,12 @@ XAMP_ALWAYS_INLINE size_t IsPowerOfTwo(size_t v) {
 * Round.
 * 
 * @param[in] a
-* @return T
+* @return t
 */
-template <typename T>
-T Round(T a) {
-    static_assert(std::is_floating_point_v<T>, "Round<T>: T must be floating point");
-    return (a > 0) ? ::floor(a + static_cast<T>(0.5)) : ::ceil(a - static_cast<T>(0.5));
+template <typename t>
+t Round(t a) {
+    static_assert(std::is_floating_point_v<t>, "Round<t>: t must be floating point");
+    return (a > 0) ? ::floor(a + static_cast<t>(0.5)) : ::ceil(a - static_cast<t>(0.5));
 }
 
 /*
@@ -75,13 +75,13 @@ T Round(T a) {
 * 
 * @param[in] a
 * @param[in] places
-* @return T
+* @return t
 * @note places must be positive.
 */
-template <typename T>
-T Round(T a, int32_t places) {
-    static_assert(std::is_floating_point_v<T>, "Round<T>: T must be floating point");
-    const T shift = pow(static_cast<T>(10.0), places);
+template <typename t>
+t Round(t a, int32_t places) {
+    static_assert(std::is_floating_point_v<t>, "Round<t>: t must be floating point");
+    const t shift = pow(static_cast<t>(10.0), places);
     return Round(a * shift) / shift;
 }
 

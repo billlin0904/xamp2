@@ -34,23 +34,23 @@ public:
 
 	XAMP_DECLARE_UUID_CLASS(SoxrSampleRateConverter)
 
-    void Initialize(const Property& config) override;
+    void initialize(const Property& config) override;
 
     XAMP_PIMPL(SoxrSampleRateConverter)
 
-    void SetQuality(SoxrQuality quality);
+    void setQuality(SoxrQuality quality);
 
-    void SetStopBand(double stop_band);
+    void setStopBand(double stop_band);
 
-    void SetPassBand(double pass_band);
+    void setPassBand(double pass_band);
 
-    void SetPhase(int32_t phase);
+    void setPhase(int32_t phase);
 
-    void SetRollOff(SoxrRollOff level);
+    void setRollOff(SoxrRollOff level);
 
-    void SetDither(bool enable);
+    void setDither(bool enable);
 
-    [[nodiscard]] bool Process(float const* samples, size_t num_samples, BufferRef<float>& output) override;
+    [[nodiscard]] bool process(float const* samples, size_t num_samples, BufferRef<float>& output) override;
 
 private:
     class SoxrSampleRateConverterImpl;

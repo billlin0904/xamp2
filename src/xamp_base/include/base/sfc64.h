@@ -52,7 +52,7 @@ public:
         auto const tmp = a_ + b_ + inc_++;
         a_ = b_ ^ (b_ >> TRightShift);
         b_ = c_ + (c_ << TLeftShift);
-    	c_= Rotl64(c_, TRotation) + tmp;
+    	c_= rotl64(c_, TRotation) + tmp;
         return tmp;
     }
 

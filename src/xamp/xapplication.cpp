@@ -86,18 +86,18 @@ void XApplication::setTheme() {
 }
 
 void XApplication::loadLang() {
-	XAMP_LOG_DEBUG("Load language file.");
+	XAMP_LOG_DEBUG("load language file.");
 
 	if (qAppSettings.valueAsString(kAppSettingLang).isEmpty()) {
 		const LocaleLanguage lang;
-		XAMP_LOG_DEBUG("Load locale language file: {}.", lang.isoCode().toStdString());
+		XAMP_LOG_DEBUG("load locale language file: {}.", lang.isoCode().toStdString());
 		qAppSettings.loadLanguage(lang.isoCode());
 		qAppSettings.loadLanguage(qFormat("qt_%1").arg(lang.isoCode()));
 		qAppSettings.setValue(kAppSettingLang, lang.isoCode());
 	}
 	else {
 		qAppSettings.loadLanguage(qAppSettings.valueAsString(kAppSettingLang));
-		XAMP_LOG_DEBUG("Load locale language file: {}.",
+		XAMP_LOG_DEBUG("load locale language file: {}.",
 			qAppSettings.valueAsString(kAppSettingLang).toStdString());
 	}
 }

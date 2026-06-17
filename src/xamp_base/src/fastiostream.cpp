@@ -21,16 +21,16 @@ namespace llfio = LLFIO_V2_NAMESPACE;
 
 CTemporaryFile::CTemporaryFile()
 	: file_(nullptr, fclose) {
-	auto [file_ptr, path] = GetTempFile();
+	auto [file_ptr, path] = getTempFile();
 	file_ = std::move(file_ptr);
 	path_ = std::move(path);
 }
 
 CTemporaryFile::~CTemporaryFile() {
-	Close();
+	close();
 }
 
-bool CTemporaryFile::Seek(uint64_t off, int32_t origin) {
+bool CTemporaryFile::seek(uint64_t off, int32_t origin) {
 #ifdef XAMP_OS_WIN
 	return _fseeki64(file(), static_cast<uint64_t>(off), origin) == 0;
 #else
@@ -38,7 +38,7 @@ bool CTemporaryFile::Seek(uint64_t off, int32_t origin) {
 #endif
 }
 
-uint64_t CTemporaryFile::Tell() {
+uint64_t CTemporaryFile::tell() {
 #ifdef XAMP_OS_WIN
 	return static_cast<uint64_t>(_ftelli64(file()));
 #else
@@ -46,7 +46,7 @@ uint64_t CTemporaryFile::Tell() {
 #endif
 }
 
-void CTemporaryFile::Close() {
+void CTemporaryFile::close() {
 	if (!file_) {
 		return;
 	}
@@ -58,7 +58,7 @@ void CTemporaryFile::Close() {
 	}
 }
 
-std::tuple<CFilePtr, Path> CTemporaryFile::GetTempFile() {
+std::tuple<CFilePtr, Path> CTemporaryFile::getTempFile() {
 	constexpr auto kMaxRetryCreateTempFile = 128;
 	const auto temp_path = Fs::temp_directory_path();
 
@@ -100,13 +100,13 @@ public:
 			throw PlatformException("Can't create temp file.");
 		}
 #else
-		auto [file, path] = xamp::base::GetTempFile();
+		auto [file, path] = xamp::base::getTempFile();
 		file_ = std::move(file);
 		path_ = std::move(path);
 #endif
 	}
 
-	size_t Write(const void* buffer, size_t size, size_t count) {
+	size_t write(const void* buffer, size_t size, size_t count) {
 #ifdef XAMP_OS_WIN
 		if (!handle_.is_valid() || size == 0 || count == 0)
 			return 0;
@@ -134,7 +134,7 @@ public:
 #endif
 	}
 
-	size_t Read(void* buffer, size_t size, size_t count) {
+	size_t read(void* buffer, size_t size, size_t count) {
 #ifdef XAMP_OS_WIN
 		if (!handle_.is_valid() || size == 0 || count == 0)
 			return 0;
@@ -162,7 +162,7 @@ public:
 #endif
 	}
 
-	bool Seek(uint64_t off, int origin) {
+	bool seek(uint64_t off, int origin) {
 #ifdef XAMP_OS_WIN
 		switch (origin) {
 		case SEEK_SET: pos_ = off;                 break;
@@ -189,7 +189,7 @@ public:
 #endif
 	}
 
-	uint64_t Tell() const {
+	uint64_t tell() const {
 #ifdef XAMP_OS_WIN
 		return pos_;
 #else
@@ -197,7 +197,7 @@ public:
 #endif
 	}
 
-	void Close() {
+	void close() {
 #ifdef XAMP_OS_WIN
 		auto res = handle_.close();
 		pos_ = 0;
@@ -217,29 +217,29 @@ public:
 };
 
 TemporaryFile::TemporaryFile()
-	: impl_(MakeAlign<TemporaryFileImpl>()) {
+	: impl_(makeAlign<TemporaryFileImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(TemporaryFile)
 
-size_t TemporaryFile::Read(void* buffer, size_t size, size_t count) {
-	return impl_->Read(buffer, size, count);
+size_t TemporaryFile::read(void* buffer, size_t size, size_t count) {
+	return impl_->read(buffer, size, count);
 }
 
-size_t TemporaryFile::Write(const void* buffer, size_t size, size_t count) {
-	return impl_->Write(buffer, size, count);
+size_t TemporaryFile::write(const void* buffer, size_t size, size_t count) {
+	return impl_->write(buffer, size, count);
 }
 
-bool TemporaryFile::Seek(uint64_t off, int32_t origin) {
-	return impl_->Seek(off, origin);
+bool TemporaryFile::seek(uint64_t off, int32_t origin) {
+	return impl_->seek(off, origin);
 }
 
-uint64_t TemporaryFile::Tell() {
-	return impl_->Tell();
+uint64_t TemporaryFile::tell() {
+	return impl_->tell();
 }
 
-void TemporaryFile::Close() {
-	return impl_->Close();
+void TemporaryFile::close() {
+	return impl_->close();
 }
 
 #ifdef XAMP_OS_WIN
@@ -255,11 +255,11 @@ public:
 		close();
 	}
 
-	void open(const Path& file_path, Mode m = Mode::Read) {
+	void open(const Path& file_path, Mode m = Mode::read) {
 		close();
 
 		path_ = file_path;
-		readonly_ = (m == Mode::Read);
+		readonly_ = (m == Mode::read);
 		pos_ = 0;
 
 		auto mode = readonly_
@@ -416,14 +416,14 @@ public:
 		close();
 	}
 
-	void open(const Path& file_path, Mode m = Mode::Read) {
+	void open(const Path& file_path, Mode m = Mode::read) {
 		close();
 
 		path_ = file_path;
-		readonly_ = (m == Mode::Read);
+		readonly_ = (m == Mode::read);
 
 		std::ios::openmode mode = std::ios::binary;
-		if (m == Mode::Read) {
+		if (m == Mode::read) {
 			mode |= std::ios::in;
 		}
 		else if (m == Mode::ReadWriteOnlyExisting) {
@@ -516,11 +516,11 @@ private:
 #endif
 
 FastIOStream::FastIOStream()
-	: impl_(MakeAlign<FastIOStreamImpl>()) {
+	: impl_(makeAlign<FastIOStreamImpl>()) {
 }
 
 FastIOStream::FastIOStream(const Path& file_path, Mode m)
-	: impl_(MakeAlign<FastIOStreamImpl>(file_path, m)) {
+	: impl_(makeAlign<FastIOStreamImpl>(file_path, m)) {
 }
 
 void FastIOStream::open(const Path& file_path, Mode m) {

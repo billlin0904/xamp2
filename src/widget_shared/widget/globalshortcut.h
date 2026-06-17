@@ -33,4 +33,4 @@ private:
     ScopedPtr<GlobalShortcutImpl> impl_;
 };
 
-#define qGlobalShortcut SharedSingleton<GlobalShortcut>::GetInstance()
+#define qGlobalShortcut SharedSingleton<GlobalShortcut>::getInstance()

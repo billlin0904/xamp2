@@ -18,7 +18,7 @@ XAMP_BASE_NAMESPACE_BEGIN
 /*
 * LoadSharedLibrary
 * 
-* Load shared library.
+* load shared library.
 * @param[in] file_name Library file name.
 * @return Shared library handle.
 */
@@ -27,7 +27,7 @@ XAMP_BASE_API SharedLibraryHandle LoadSharedLibrary(const std::string_view& file
 /*
 * OpenSharedLibrary
 * 
-* Open shared library.
+* open shared library.
 * @param[in] file_name Library file name.
 * @return Shared library handle.
 */
@@ -45,7 +45,7 @@ XAMP_BASE_API Path GetSharedLibraryPath(const SharedLibraryHandle &module);
 /*
 * LoadSharedLibrarySymbol
 * 
-* Load shared library symbol.
+* load shared library symbol.
 * @param[in] dll Shared library handle.
 * @param[in] name Symbol name.
 */
@@ -73,7 +73,7 @@ XAMP_BASE_API bool AddSharedLibrarySearchDirectory(const Path &path);
 /*
 * LoadSharedLibrarySymbolEx
 * 
-* Load shared library symbol with flags.
+* load shared library symbol with flags.
 * @param[in] dll Shared library handle.
 * @param[in] name Symbol name.
 * @param[in] flags Symbol flags.
@@ -95,19 +95,19 @@ XAMP_BASE_API SharedLibraryHandle PinSystemLibrary(const std::string_view& file_
 * SharedLibraryFunction
 * 
 * A wrapper class for shared library function.
-* @param T Function type.
-* @param U Must be std::enable_if_t<std::is_function_v<T>>.
+* @param t Function type.
+* @param U Must be std::enable_if_t<std::is_function_v<t>>.
 */
 template
 <
-    typename T,
-    typename U = std::enable_if_t<std::is_function_v<T>>
+    typename t,
+    typename U = std::enable_if_t<std::is_function_v<t>>
 >
 class SharedLibraryFunction final {
 public:
-    static_assert(std::is_function_v<std::remove_pointer_t<T>>, "T must be a function pointer type");
+    static_assert(std::is_function_v<std::remove_pointer_t<t>>, "t must be a function pointer type");
     
-    using FuncPtr = T*;
+    using FuncPtr = t*;
 
     /*
     * Constructor.
@@ -116,7 +116,7 @@ public:
     * @param name Function name.    
     */
     SharedLibraryFunction(SharedLibraryHandle const& dll, const std::string_view name) {
-        func_ = reinterpret_cast<T*>(LoadSharedLibrarySymbol(dll, name));
+        func_ = reinterpret_cast<t*>(LoadSharedLibrarySymbol(dll, name));
     }
 
 #ifdef XAMP_OS_WIN
@@ -128,7 +128,7 @@ public:
     * @param flags Function flags.
     */
     SharedLibraryFunction(SharedLibraryHandle const& dll, const std::string_view name, uint32_t flags) {
-        func_ = reinterpret_cast<T*>(LoadSharedLibrarySymbolEx(dll, name, flags));
+        func_ = reinterpret_cast<t*>(LoadSharedLibrarySymbolEx(dll, name, flags));
     }
 #endif
     
@@ -137,7 +137,7 @@ public:
         return func_(std::forward<decltype(args)>(args)...);
     }
 
-    [[nodiscard]] T* Get() const XAMP_CHECK_LIFETIME {
+    [[nodiscard]] t* Get() const XAMP_CHECK_LIFETIME {
         XAMP_ASSERT(func_ != nullptr);
         return func_;
     }

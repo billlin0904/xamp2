@@ -38,13 +38,13 @@ public:
 	* @param[in] task_name
 	* @param[in] priority
 	*/
-	void BoostPriority(std::wstring_view task_name = kMmcssProfileProAudio,
+	void boostPriority(std::wstring_view task_name = kMmcssProfileProAudio,
 		MmcssThreadPriority priority = MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL) ;
 
 	/*
 	* Revert current thread priority.
 	*/
-	void RevertPriority() ;
+	void revertPriority() ;
 private:
 	class MmcssImpl;
 	ScopedPtr<MmcssImpl> impl_;

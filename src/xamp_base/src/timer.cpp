@@ -22,13 +22,13 @@ public:
 		, timer_(nullptr) {		
 	}
 
-	void Reset(HANDLE timer_queue, HANDLE timer) {
-		Close();
+	void reset(HANDLE timer_queue, HANDLE timer) {
+		close();
 		timer_queue_ = timer_queue;
 		timer_ = timer;
 	}
 
-	void Close() {
+	void close() {
 		if (!timer_queue_ || !timer_) {
 			return;
 		}
@@ -40,7 +40,7 @@ public:
 	}
 
 	~TimerQueueTimer() {
-		Close();
+		close();
 	}
 
 	XAMP_DISABLE_COPY(TimerQueueTimer)
@@ -54,10 +54,10 @@ public:
 	TimerImpl() = default;
 
 	~TimerImpl() {
-		Stop();
+		stop();
 	}
 
-	void Start(std::chrono::milliseconds interval, std::move_only_function<void()> callback) {
+	void start(std::chrono::milliseconds interval, std::move_only_function<void()> callback) {
 		if (!is_stop_) {
 			return;
 		}
@@ -82,21 +82,21 @@ public:
 			WT_EXECUTEINTIMERTHREAD | WT_EXECUTELONGFUNCTION)) {
 			throw PlatformException();
 		}
-		timer_.Reset(timer_queue_.get(), timer);
+		timer_.reset(timer_queue_.get(), timer);
 		is_stop_ = false;
 	}
 
-	void Stop() {
+	void stop() {
 		if (is_stop_) {
 			return;
 		}
 		is_stop_ = true;
-		timer_.Close();
+		timer_.close();
 		timer_queue_.reset();
 		callback_ = nullptr;
 	}
 
-	bool IsStarted() const {
+	bool isStarted() const {
 		return !is_stop_;
 	}
 private:
@@ -119,10 +119,10 @@ public:
 	TimerImpl() = default;
 
 	~TimerImpl() {
-		Stop();
+		stop();
 	}
 
-	void Start(std::chrono::milliseconds interval, std::move_only_function<void()> callback) {
+	void start(std::chrono::milliseconds interval, std::move_only_function<void()> callback) {
         if (!is_stop_) {
             return;
         }
@@ -142,11 +142,11 @@ public:
         ::dispatch_resume(timer_);
 	}
 
-	bool IsStarted() const {
+	bool isStarted() const {
 		return !is_stop_;
 	}
 
-	void Stop() {
+	void stop() {
         if (is_stop_) {
             return;
         }
@@ -176,10 +176,10 @@ public:
 	TimerImpl() = default;
 
 	~TimerImpl() {
-		Stop();
+		stop();
 	}
 
-	void Start(std::chrono::milliseconds interval, std::move_only_function<void()> callback) {
+	void start(std::chrono::milliseconds interval, std::move_only_function<void()> callback) {
 		if (!is_stop_) {
 			return;
 		}
@@ -199,11 +199,11 @@ public:
 		});
 	}
 
-	bool IsStarted() const {
+	bool isStarted() const {
 		return !is_stop_;
 	}
 
-	void Stop() {
+	void stop() {
 		if (is_stop_) {
 			return;
 		}
@@ -222,19 +222,19 @@ private:
 XAMP_PIMPL_IMPL(Timer)
 
 Timer::Timer()
-	: impl_(MakeAlign<TimerImpl>()) {
+	: impl_(makeAlign<TimerImpl>()) {
 }
 
-void Timer::Start(std::chrono::milliseconds interval, std::move_only_function<void()> callback) {
-	impl_->Start(interval, std::move(callback));
+void Timer::start(std::chrono::milliseconds interval, std::move_only_function<void()> callback) {
+	impl_->start(interval, std::move(callback));
 }
 
-void Timer::Stop() {
-	impl_->Stop();
+void Timer::stop() {
+	impl_->stop();
 }
 
-bool Timer::IsStarted() const {
-	return impl_->IsStarted();
+bool Timer::isStarted() const {
+	return impl_->isStarted();
 }
 
 XAMP_BASE_NAMESPACE_END

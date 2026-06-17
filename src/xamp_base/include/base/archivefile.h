@@ -18,7 +18,7 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 struct ArchivePtrDeleter final {
 	static archive* invalid() ;
-	static void Close(archive* value);
+	static void close(archive* value);
 };
 
 using ArchivePtrHandle = UniqueHandle<archive*, ArchivePtrDeleter>;
@@ -45,11 +45,11 @@ public:
 		, archive_ptr(std::move(archive_ptr)) {
 	}
 
-	ArchiveEntry(ArchiveEntry&& other) {
+	ArchiveEntry(ArchiveEntry&& other) noexcept {
 		*this = std::move(other);
 	}
 
-	ArchiveEntry& operator=(ArchiveEntry&& other) {
+	ArchiveEntry& operator=(ArchiveEntry&& other) noexcept {
 		if (this != &other) {
 			name         = std::move(other.name);
 			archive_path = std::move(other.archive_path);
@@ -62,7 +62,7 @@ public:
 		return *this;
 	}
 
-	std::expected<ptrdiff_t, std::string> Read(char *buffer, size_t length);
+	std::expected<ptrdiff_t, std::string> read(char *buffer, size_t length);
 
 	const std::wstring& Name() const {
 		return name; 
@@ -91,13 +91,13 @@ public:
 
 	XAMP_PIMPL(ArchiveFile)
 
-	std::expected<std::vector<std::wstring>, std::string> Open(const Path& archive_path);
+	std::expected<std::vector<std::wstring>, std::string> open(const Path& archive_path);
 
-	std::vector<std::wstring> ListEntries() const;
+	std::vector<std::wstring> listEntries() const;
 
-	std::expected<ArchiveEntry, std::string> GetEntryByName(const std::wstring& entry_name);
+	std::expected<ArchiveEntry, std::string> getEntryByName(const std::wstring& entry_name);
 
-	static std::vector<std::expected<ArchiveEntry, std::string>> GetAllEntry(ArchiveFile &file_);
+	static std::vector<std::expected<ArchiveEntry, std::string>> getAllEntry(ArchiveFile &file_);
 private:
 	class ArchiveFileImpl;
 	ScopedPtr<ArchiveFileImpl> impl_;

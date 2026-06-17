@@ -10,14 +10,14 @@ XAMP_OUTPUT_DEVICE_POSIX_NAMESPACE_BEGIN
 
 PulseDeviceStateNotification::PulseDeviceStateNotification(std::weak_ptr<IDeviceStateListener> callback)
 	: callback_(std::move(callback))
-	, logger_(XampLoggerFactory.GetLogger(XAMP_LOG_NAME(PulseDeviceStateNotification))) {
+	, logger_(XampLoggerFactory.getLogger(XAMP_LOG_NAME(PulseDeviceStateNotification))) {
 }
 
 PulseDeviceStateNotification::~PulseDeviceStateNotification() {
-	Stop();
+	stop();
 }
 
-void PulseDeviceStateNotification::Run() {
+void PulseDeviceStateNotification::run() {
 	if (is_running_.exchange(true)) {
 		return;
 	}
@@ -34,7 +34,7 @@ void PulseDeviceStateNotification::Run() {
 			Throw<PlatformException>("PulseAudio notification context create failed.");
 		}
 
-		::pa_context_set_state_callback(context_.get(), &PulseDeviceStateNotification::ContextStateCallback, this);
+		::pa_context_set_state_callback(context_.get(), &PulseDeviceStateNotification::contextStateCallback, this);
 		if (::pa_context_connect(context_.get(), nullptr, PA_CONTEXT_NOFLAGS, nullptr) < 0) {
 			Throw<PlatformException>("PulseAudio notification connect failed: {}",
 				::pa_strerror(::pa_context_errno(context_.get())));
@@ -71,11 +71,11 @@ void PulseDeviceStateNotification::Run() {
 	}
 	catch (const std::exception& e) {
 		XAMP_LOG_D(logger_, "PulseAudio device state notification disabled: {}", e.what());
-		Stop();
+		stop();
 	}
 }
 
-void PulseDeviceStateNotification::Stop() noexcept {
+void PulseDeviceStateNotification::stop() noexcept {
 	is_running_ = false;
 
 	if (context_) {
@@ -96,11 +96,11 @@ void PulseDeviceStateNotification::Stop() noexcept {
 
 void PulseDeviceStateNotification::Notify(DeviceState state, std::string device_id) {
 	if (auto callback = callback_.lock()) {
-		callback->OnDeviceStateChange(state, device_id);
+		callback->onDeviceStateChange(state, device_id);
 	}
 }
 
-void PulseDeviceStateNotification::OnContextStateChanged(pa_context* context) {
+void PulseDeviceStateNotification::onContextStateChanged(pa_context* context) {
 	if (mainloop_ == nullptr) {
 		return;
 	}
@@ -111,7 +111,7 @@ void PulseDeviceStateNotification::OnContextStateChanged(pa_context* context) {
 	}
 }
 
-void PulseDeviceStateNotification::OnSubscriptionEvent(pa_context* context,
+void PulseDeviceStateNotification::onSubscriptionEvent(pa_context* context,
 	pa_subscription_event_type_t event_type,
 	uint32_t index) {
 	const auto facility = event_type & PA_SUBSCRIPTION_EVENT_FACILITY_MASK;
@@ -119,7 +119,7 @@ void PulseDeviceStateNotification::OnSubscriptionEvent(pa_context* context,
 
 	if (facility == PA_SUBSCRIPTION_EVENT_SERVER) {
 		PulseOperationPtr operation(::pa_context_get_server_info(context,
-			&PulseDeviceStateNotification::ServerInfoCallback,
+			&PulseDeviceStateNotification::serverInfoCallback,
 			this));
 		return;
 	}
@@ -133,7 +133,7 @@ void PulseDeviceStateNotification::OnSubscriptionEvent(pa_context* context,
 	case PA_SUBSCRIPTION_EVENT_CHANGE: {
 		PulseOperationPtr operation(::pa_context_get_sink_info_by_index(context,
 			index,
-			&PulseDeviceStateNotification::SinkInfoCallback,
+			&PulseDeviceStateNotification::sinkInfoCallback,
 			this));
 		break;
 	}
@@ -145,7 +145,7 @@ void PulseDeviceStateNotification::OnSubscriptionEvent(pa_context* context,
 	}
 }
 
-void PulseDeviceStateNotification::OnServerInfo(const pa_server_info* info) {
+void PulseDeviceStateNotification::onServerInfo(const pa_server_info* info) {
 	if (info == nullptr || info->default_sink_name == nullptr || info->default_sink_name[0] == '\0') {
 		Notify(DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE, {});
 		return;
@@ -153,7 +153,7 @@ void PulseDeviceStateNotification::OnServerInfo(const pa_server_info* info) {
 	Notify(DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE, info->default_sink_name);
 }
 
-void PulseDeviceStateNotification::OnSinkInfo(const pa_sink_info* info, DeviceState state, uint32_t index) {
+void PulseDeviceStateNotification::onSinkInfo(const pa_sink_info* info, DeviceState state, uint32_t index) {
 	if (info == nullptr) {
 		Notify(state, std::to_string(index));
 		return;
@@ -161,11 +161,11 @@ void PulseDeviceStateNotification::OnSinkInfo(const pa_sink_info* info, DeviceSt
 	Notify(state, info->name != nullptr ? info->name : std::to_string(index));
 }
 
-void PulseDeviceStateNotification::ContextStateCallback(pa_context* context, void* userdata) {
+void PulseDeviceStateNotification::contextStateCallback(pa_context* context, void* userdata) {
 	if (userdata == nullptr) {
 		return;
 	}
-	static_cast<PulseDeviceStateNotification*>(userdata)->OnContextStateChanged(context);
+	static_cast<PulseDeviceStateNotification*>(userdata)->onContextStateChanged(context);
 }
 
 void PulseDeviceStateNotification::SubscriptionCallback(pa_context* context,
@@ -175,26 +175,26 @@ void PulseDeviceStateNotification::SubscriptionCallback(pa_context* context,
 	if (userdata == nullptr) {
 		return;
 	}
-	static_cast<PulseDeviceStateNotification*>(userdata)->OnSubscriptionEvent(context, event_type, index);
+	static_cast<PulseDeviceStateNotification*>(userdata)->onSubscriptionEvent(context, event_type, index);
 }
 
-void PulseDeviceStateNotification::ServerInfoCallback(pa_context*,
+void PulseDeviceStateNotification::serverInfoCallback(pa_context*,
 	const pa_server_info* info,
 	void* userdata) {
 	if (userdata == nullptr) {
 		return;
 	}
-	static_cast<PulseDeviceStateNotification*>(userdata)->OnServerInfo(info);
+	static_cast<PulseDeviceStateNotification*>(userdata)->onServerInfo(info);
 }
 
-void PulseDeviceStateNotification::SinkInfoCallback(pa_context*,
+void PulseDeviceStateNotification::sinkInfoCallback(pa_context*,
 	const pa_sink_info* info,
 	int eol,
 	void* userdata) {
 	if (userdata == nullptr || eol != 0) {
 		return;
 	}
-	static_cast<PulseDeviceStateNotification*>(userdata)->OnSinkInfo(info,
+	static_cast<PulseDeviceStateNotification*>(userdata)->onSinkInfo(info,
 		DeviceState::DEVICE_STATE_ADDED,
 		info != nullptr ? info->index : PA_INVALID_INDEX);
 }

@@ -15,23 +15,21 @@
 XAMP_METADATA_NAMESPACE_BEGIN
 
 /*
- * Create a metadata reader instance.
+ * create a metadata reader instance.
 */
-XAMP_METADATA_API ScopedPtr<IMetadataReader> MakeMetadataReader();
+XAMP_METADATA_API ScopedPtr<IMetadataReader> makeMetadataReader();
 
 /*
- * Create a metadata writer instance.
+ * create a metadata writer instance.
 */
-XAMP_METADATA_API ScopedPtr<IMetadataWriter> MakeMetadataWriter();
+XAMP_METADATA_API ScopedPtr<IMetadataWriter> makeMetadataWriter();
 
 /*
  * Get the supported file extensions.
 */
-XAMP_METADATA_API const HashSet<std::string>& GetSupportFileExtensions();
+XAMP_METADATA_API const HashSet<std::string>& getSupportFileExtensions();
 
 XAMP_METADATA_API void LoadCueLib();
-
-XAMP_METADATA_API void LoadChromaprintLib();
 
 XAMP_METADATA_NAMESPACE_END
 

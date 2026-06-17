@@ -30,33 +30,33 @@ XAMP_BASE_API bool PrefetchMemory(void* adddr, size_t length) ;
 #define MemoryCopy(dest, src, size) std::memcpy(dest, src, size)
 #define MemoryMove(dest, src, size) std::memmove(dest, src, size)
 
-XAMP_BASE_API XAMP_CHECK_LIFETIME void* AlignedMalloc(size_t size, size_t aligned_size) ;
+XAMP_BASE_API XAMP_CHECK_LIFETIME void* alignedMalloc(size_t size, size_t aligned_size) ;
 
-XAMP_BASE_API void AlignedFree(void* p) ;
+XAMP_BASE_API void alignedFree(void* p) ;
 
-XAMP_BASE_API XAMP_CHECK_LIFETIME void* StackAlloc(size_t size);
+XAMP_BASE_API XAMP_CHECK_LIFETIME void* stackAlloc(size_t size);
 
-XAMP_BASE_API void StackFree(void* p);
+XAMP_BASE_API void stackFree(void* p);
 
-template <typename T>
-constexpr T AlignUp(T value, size_t aligned_size = kMallocAlignSize) {
-    return T((value + (T(aligned_size) - 1)) & ~T(aligned_size - 1));
+template <typename t>
+constexpr t alignUp(t value, size_t aligned_size = kMallocAlignSize) {
+    return t((value + (t(aligned_size) - 1)) & ~t(aligned_size - 1));
 }
 
-template <typename T>
-XAMP_CHECK_LIFETIME T* AlignedMallocObject(size_t aligned_size) {
-    return static_cast<T*>(AlignedMalloc(sizeof(T), aligned_size));
+template <typename t>
+XAMP_CHECK_LIFETIME t* alignedMallocObject(size_t aligned_size) {
+    return static_cast<t*>(alignedMalloc(sizeof(t), aligned_size));
 }
 
 template <typename Type>
-XAMP_CHECK_LIFETIME Type* AlignedMallocArray(size_t n, size_t aligned_size) {
-    return static_cast<Type*>(AlignedMalloc(sizeof(Type) * n, aligned_size));
+XAMP_CHECK_LIFETIME Type* alignedMallocArray(size_t n, size_t aligned_size) {
+    return static_cast<Type*>(alignedMalloc(sizeof(Type) * n, aligned_size));
 }
 
 template <typename Type>
 struct AlignedDeleter {
     void operator()(Type* p) const {
-        AlignedFree(p);
+        alignedFree(p);
     }
 };
 
@@ -66,21 +66,21 @@ struct AlignedClassDeleter {
         if constexpr (!std::is_trivially_destructible_v<Type>) {
             p->~Type();
         }        
-        AlignedFree(p);
+        alignedFree(p);
     }
 };
 
 template <typename Type>
 struct StackBufferDeleter {
     void operator()(Type* p) const {
-        StackFree(p);
+        stackFree(p);
     }
 };
 
 template <typename Type>
 struct FreeDeleter {
     void operator()(Type* p) const {
-        free(p);
+        ::free(p);
     }
 };
 
@@ -102,14 +102,14 @@ using ScopedArray = std::unique_ptr<Type[], AlignedDeleter<Type>>;
 * @return ScopedPtr<BaseType>
 */
 template <typename BaseType, typename ImplType, size_t AlignSize = kMallocAlignSize, typename... Args>
-XAMP_CHECK_LIFETIME ScopedPtr<BaseType> MakeAlign(Args&& ... args) {
+XAMP_CHECK_LIFETIME ScopedPtr<BaseType> makeAlign(Args&& ... args) {
     static_assert(std::is_base_of_v<BaseType, ImplType>, "ImplType must derive from BaseType.");
     static_assert(std::is_same_v<BaseType, ImplType> || std::has_virtual_destructor_v<BaseType>,
         "BaseType must have a virtual destructor when MakeAlign returns ScopedPtr<BaseType> for a derived ImplType.");
     static_assert((AlignSize & (AlignSize - 1)) == 0, "AlignSize must be a power of two.");
 
     constexpr auto kActualAlignSize = (std::max)(AlignSize, alignof(ImplType));
-    auto* storage = AlignedMallocObject<ImplType>(kActualAlignSize);
+    auto* storage = alignedMallocObject<ImplType>(kActualAlignSize);
     if (!storage) {
         throw std::bad_alloc();
     }
@@ -127,11 +127,11 @@ XAMP_CHECK_LIFETIME ScopedPtr<BaseType> MakeAlign(Args&& ... args) {
 * @return ScopedPtr<Type>
 */
 template <typename Type, size_t AlignSize = kMallocAlignSize, typename... Args>
-XAMP_CHECK_LIFETIME ScopedPtr<Type> MakeAlign(Args&& ... args) {
+XAMP_CHECK_LIFETIME ScopedPtr<Type> makeAlign(Args&& ... args) {
     static_assert((AlignSize & (AlignSize - 1)) == 0, "AlignSize must be a power of two.");
 
     constexpr auto kActualAlignSize = (std::max)(AlignSize, alignof(Type));
-    auto* storage = AlignedMallocObject<Type>(kActualAlignSize);
+    auto* storage = alignedMallocObject<Type>(kActualAlignSize);
     if (!storage) {
         throw std::bad_alloc();
     }
@@ -143,7 +143,7 @@ XAMP_CHECK_LIFETIME ScopedPtr<Type> MakeAlign(Args&& ... args) {
 }
 
 template <typename BaseType, typename ImplType, typename... Args>
-std::shared_ptr<BaseType> MakeShared(Args&&... args) {
+std::shared_ptr<BaseType> makeShared(Args&&... args) {
     constexpr size_t AlignSize = alignof(ImplType);
     void* mem = ::operator new(sizeof(ImplType), std::align_val_t{ AlignSize });
     if (!mem) {
@@ -170,11 +170,11 @@ std::shared_ptr<BaseType> MakeShared(Args&&... args) {
 * @return ScopedArray<Type>
 */
 template <typename Type>
-ScopedArray<Type> MakeAlignedArray(size_t n) {
-    static_assert(std::is_trivially_copyable_v<Type>, "MakeAlignedArray only supports trivially copyable types.");
+ScopedArray<Type> makeAlignedArray(size_t n) {
+    static_assert(std::is_trivially_copyable_v<Type>, "makeAlignedArray only supports trivially copyable types.");
 
     constexpr auto kActualAlignSize = (std::max)(kMallocAlignSize, alignof(Type));
-    auto ptr = AlignedMallocArray<Type>(n, kActualAlignSize);
+    auto ptr = alignedMallocArray<Type>(n, kActualAlignSize);
     if (!ptr) {
         throw std::bad_alloc();
     }
@@ -189,8 +189,8 @@ ScopedArray<Type> MakeAlignedArray(size_t n) {
 * @note StackAlloc is not thread safe.
 */
 template <typename Type = std::byte>
-StackBuffer<Type> MakeStackBuffer(size_t n) {
-    auto* ptr = StackAlloc(sizeof(Type) * n);
+StackBuffer<Type> makeStackBuffer(size_t n) {
+    auto* ptr = stackAlloc(sizeof(Type) * n);
     if (!ptr) {
             throw std::bad_alloc();
     }

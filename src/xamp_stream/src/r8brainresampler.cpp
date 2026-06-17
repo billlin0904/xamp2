@@ -24,7 +24,7 @@ public:
 		input_data_.resize(AudioFormat::kMaxChannel);
 	}
 
-	void Start(uint32_t output_sample_rate) {
+	void start(uint32_t output_sample_rate) {
 		output_sample_rate_ = output_sample_rate;
 	}
 
@@ -36,7 +36,7 @@ public:
 			ER8BResamplerRes::r8brr24));
 	}
 
-	bool Process(float const* samples, size_t num_samples, BufferRef<float>& output) {
+	bool process(float const* samples, size_t num_samples, BufferRef<float>& output) {
 		XAMP_EXPECTS(num_samples <= kR8brainBufferSize);
 		input_data_.resize(num_samples);
 
@@ -66,7 +66,7 @@ public:
 			return nullptr;
 		}
 
-		static void Close(CR8BResampler value) {
+		static void close(CR8BResampler value) {
 			LibR8brainDLL.r8b_clear(value);
 			LibR8brainDLL.r8b_delete(value);
 		}
@@ -80,21 +80,21 @@ public:
 };
 
 R8brainSampleRateConverter::R8brainSampleRateConverter()
-    : impl_(MakeAlign<R8brainSampleRateConverterImpl>()) {
+    : impl_(makeAlign<R8brainSampleRateConverterImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(R8brainSampleRateConverter)
 
-bool R8brainSampleRateConverter::Process(float const* samples, size_t num_samples, BufferRef<float>& output) {
-	return impl_->Process(samples, num_samples, output);
+bool R8brainSampleRateConverter::process(float const* samples, size_t num_samples, BufferRef<float>& output) {
+	return impl_->process(samples, num_samples, output);
 }
 
-void R8brainSampleRateConverter::Initialize(const Property& config) {
+void R8brainSampleRateConverter::initialize(const Property& config) {
 	const auto output_format = config.Get<AudioFormat>(DspConfig::kOutputFormat);
-	impl_->Start(output_format.GetSampleRate());
+	impl_->start(output_format.getSampleRate());
 
 	const auto input_format = config.Get<AudioFormat>(DspConfig::kInputFormat);
-	impl_->Init(input_format.GetSampleRate());
+	impl_->Init(input_format.getSampleRate());
 }
 
 XAMP_STREAM_NAMESPACE_END

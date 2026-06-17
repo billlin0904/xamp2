@@ -10,21 +10,6 @@ xamp_find_imported_library(XAMP_LIBCUE_TARGET XampLibCue
     LIB_NAMES cue libcue
     PKG libcue)
 
-find_package(chromaprint CONFIG QUIET)
-if(TARGET chromaprint::chromaprint)
-    set(XAMP_CHROMAPRINT_TARGET chromaprint::chromaprint)
-elseif(TARGET Chromaprint::chromaprint)
-    set(XAMP_CHROMAPRINT_TARGET Chromaprint::chromaprint)
-elseif(TARGET unofficial::chromaprint::chromaprint)
-    set(XAMP_CHROMAPRINT_TARGET unofficial::chromaprint::chromaprint)
-else()
-    xamp_find_imported_library(XAMP_CHROMAPRINT_TARGET XampChromaprint
-        REQUIRED
-        HEADER chromaprint.h
-        LIB_NAMES chromaprint
-        PKG libchromaprint)
-endif()
-
 if(NOT TARGET xamp_base)
     add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../xamp_base" "${CMAKE_BINARY_DIR}/xamp_base")
 endif()
@@ -91,7 +76,6 @@ target_link_libraries(xamp_metadata
     PRIVATE
         tag
         ${XAMP_LIBCUE_TARGET}
-        ${XAMP_CHROMAPRINT_TARGET}
 )
 
 if(UNIX AND NOT APPLE)

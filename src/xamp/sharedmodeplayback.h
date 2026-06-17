@@ -16,7 +16,7 @@ struct SharedModePlaybackConfig final {
 };
 
 struct PlaybackPlan final {
-    bool use_mqa_decode{ false };
+    bool use_mqa_decode{ true };
     bool needs_resample{ false };
     bool is_shared_device{ false };
     DsdModes output_mode{ DsdModes::DSD_MODE_PCM };

@@ -25,70 +25,70 @@ public:
 
     XAMP_DISABLE_COPY(DSPManager)
 
-	void Initialize(const Property& config) override;
+	void initialize(const Property& config) override;
 
-    bool ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<std::byte>& fifo) override;
+    bool processDSP(const float* samples, uint32_t num_samples, AudioBuffer<std::byte>& fifo) override;
 
-    void AddPreDSP(ScopedPtr<IAudioProcessor> processor) override;
+    void addPreDSP(ScopedPtr<IAudioProcessor> processor) override;
 
-    void AddPostDSP(ScopedPtr<IAudioProcessor> processor) override;
+    void addPostDSP(ScopedPtr<IAudioProcessor> processor) override;
 
-    IDSPManager& AddParametricEq() override;
+    IDSPManager& addParametricEq() override;
 
-    IDSPManager& SetParametricEq(bool enabled, const EqSettings& settings, const Property& config) override;
+    IDSPManager& setParametricEq(bool enabled, const EqSettings& settings, const Property& config) override;
 
-    IDSPManager& RemoveParametricEq() override;
+    IDSPManager& removeParametricEq() override;
 
-    IDSPManager& RemoveSampleRateConverter() override;
+    IDSPManager& removeSampleRateConverter() override;
 
-    void SetSampleWriter(ScopedPtr<ISampleWriter> writer = nullptr) override;
+    void setSampleWriter(ScopedPtr<ISampleWriter> writer = nullptr) override;
 
-    [[nodiscard]] bool IsEnableSampleRateConverter() const override;
+    [[nodiscard]] bool isEnableSampleRateConverter() const override;
 
-    [[nodiscard]] bool CanProcess() const override;
+    [[nodiscard]] bool canProcess() const override;
 
-    [[nodiscard]] bool Contains(const Uuid& type) const override;
+    [[nodiscard]] bool contains(const Uuid& type) const override;
 private:
-    void AddOrReplace(ScopedPtr<IAudioProcessor> processor, std::vector<ScopedPtr<IAudioProcessor>>& dsp_chain);
+    void addOrReplace(ScopedPtr<IAudioProcessor> processor, std::vector<ScopedPtr<IAudioProcessor>>& dsp_chain);
 
-    bool Process(const float* samples, uint32_t num_samples, AudioBuffer<std::byte>& fifo);
+    bool process(const float* samples, uint32_t num_samples, AudioBuffer<std::byte>& fifo);
 
-    bool DefaultProcess(const float* samples, uint32_t num_samples, AudioBuffer<std::byte>& fifo);
+    bool defaultProcess(const float* samples, uint32_t num_samples, AudioBuffer<std::byte>& fifo);
 
     using DspIterator = std::vector<ScopedPtr<IAudioProcessor>>::iterator;
     using ConstDspIterator = std::vector<ScopedPtr<IAudioProcessor>>::const_iterator;
 
     template <typename TDSP>
-    DspIterator Find(DspIterator begin,
+    DspIterator find(DspIterator begin,
         DspIterator end) {
         auto itr = std::find_if(begin, end, [](auto const& processor) {
-            return processor->GetTypeId() == XAMP_UUID_OF(TDSP);
+            return processor->getTypeId() == XAMP_UUID_OF(TDSP);
             });
         return itr;
     }
 
     template <typename Func>
-    [[nodiscard]] bool Contains(Func &&func) const {
-        if (FindIf(pre_dsp_.begin(), pre_dsp_.end(), func) == pre_dsp_.end()) {
-            return FindIf(post_dsp_.begin(), post_dsp_.end(), func) != post_dsp_.end();
+    [[nodiscard]] bool contains(Func &&func) const {
+        if (findIf(pre_dsp_.begin(), pre_dsp_.end(), func) != pre_dsp_.end()) {
+            return true;
         }
-        return false;
+        return findIf(post_dsp_.begin(), post_dsp_.end(), func) != post_dsp_.end();
     }
 
     template <typename Func>
-    [[nodiscard]] ConstDspIterator FindIf(ConstDspIterator begin, ConstDspIterator end, Func &&func) const {
+    [[nodiscard]] ConstDspIterator findIf(ConstDspIterator begin, ConstDspIterator end, Func &&func) const {
         auto itr = std::find_if(begin, end, [&](auto const& processor) {
-            return func(processor->GetTypeId());
+            return func(processor->getTypeId());
             });
         return itr;
     }
 
     template <typename TDSP>
-    std::optional<TDSP*> GetDSP(
+    std::optional<TDSP*> getDSP(
         DspIterator begin,
         DspIterator end
     ) {
-        auto itr = Find<TDSP>(begin, end);
+        auto itr = find<TDSP>(begin, end);
         if (itr == end) {
             return std::nullopt;
         }
@@ -96,29 +96,29 @@ private:
     }
 
     template <typename TDSP>
-    void RemovePreDSP() {
-        auto itr = Find<TDSP>(pre_dsp_.begin(), pre_dsp_.end());
+    void removePreDSP() {
+        auto itr = find<TDSP>(pre_dsp_.begin(), pre_dsp_.end());
         if (itr != pre_dsp_.end()) {
             pre_dsp_.erase(itr);
         }
     }
 
     template <typename TDSP>
-    void RemovePostDSP() {
-        auto itr = Find<TDSP>(post_dsp_.begin(), post_dsp_.end());
+    void removePostDSP() {
+        auto itr = find<TDSP>(post_dsp_.begin(), post_dsp_.end());
         if (itr != post_dsp_.end()) {
             post_dsp_.erase(itr);
         }
     }
 
     template <typename TDSP>
-    std::optional<TDSP*> GetPreDSP() {
-        return GetDSP<TDSP>(pre_dsp_.begin(), pre_dsp_.end());
+    std::optional<TDSP*> getPreDSP() {
+        return getDSP<TDSP>(pre_dsp_.begin(), pre_dsp_.end());
     }
 
     template <typename TDSP>
-    std::optional<TDSP*> GetPostDSP() {
-        return GetDSP<TDSP>(post_dsp_.begin(), post_dsp_.end());
+    std::optional<TDSP*> getPostDSP() {
+        return getDSP<TDSP>(post_dsp_.begin(), post_dsp_.end());
     }
 
     std::vector<ScopedPtr<IAudioProcessor>> pre_dsp_;

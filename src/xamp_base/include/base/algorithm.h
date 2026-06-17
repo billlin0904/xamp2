@@ -24,9 +24,9 @@ time_t GetTime_t() {
 		std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
-template <typename T, typename C>
-std::vector<T> Union(C const& a, C const& b) {
-	std::vector<T> result;
+template <typename t, typename C>
+std::vector<t> Union(C const& a, C const& b) {
+	std::vector<t> result;
 	result.reserve(a.size() + b.size());
 	std::set_union(a.begin(), a.end(),
 	               b.begin(), b.end(),
@@ -61,8 +61,8 @@ double Median(C const& v) {
 	}
 }
 
-template <typename T>
-T Max(const std::vector<T>& v) {
+template <typename t>
+t Max(const std::vector<t>& v) {
 	return *std::max_element(std::begin(v), std::end(v));
 }
 
@@ -88,8 +88,8 @@ std::vector<TValue> Values(const TMap<TKey, TValue>& map) {
 	return keys;
 }
 
-template <typename ForwardIt, typename T, typename Compare = std::less<>>
-ForwardIt BinarySearch(ForwardIt first, ForwardIt last, const T& value, Compare comp = {}) {
+template <typename ForwardIt, typename t, typename Compare = std::less<>>
+ForwardIt BinarySearch(ForwardIt first, ForwardIt last, const t& value, Compare comp = {}) {
 	first = std::lower_bound(first, last, value, comp);
 	return first != last && !comp(*first, value) ? first : last;
 }

@@ -45,7 +45,7 @@ namespace {
 			return nullptr;
 		}
 
-		static void Close(HBITMAP value) {
+		static void close(HBITMAP value) {
 			::DeleteObject(value);
 		}
 	};
@@ -57,7 +57,7 @@ namespace {
 			return nullptr;
 		}
 
-		static void Close(HICON value) {
+		static void close(HICON value) {
 			::DestroyIcon(value);
 		}
 	};
@@ -89,7 +89,7 @@ namespace {
 		XAMP_DECLARE_DLL_NAME(DwmSetIconicLivePreviewBitmap);
 		XAMP_DECLARE_DLL_NAME(DwmExtendFrameIntoClientArea);
 	};
-#define DwmDll SharedSingleton<DwmapiLib>::GetInstance()
+#define DwmDll SharedSingleton<DwmapiLib>::getInstance()
 
 	TBPFLAG convertToProgressState(TaskbarProgressState state) {
 		static const QMap<TaskbarProgressState, TBPFLAG> state_lut{
@@ -234,7 +234,7 @@ struct WinTaskbar::ButtonIcon {
 };
 
 WinTaskbar::WinTaskbar(XMainWindow* window, IXFrame* frame)
-	: button_icons_(MakeAlign<ButtonIcon>()) {
+	: button_icons_(makeAlign<ButtonIcon>()) {
 	frame_ = frame;
 
 	auto hr = ::CoCreateInstance(CLSID_TaskbarList,
@@ -435,8 +435,8 @@ void WinTaskbar::addThumbnailButtons() {
 	auto play_icon = button_icons_->play_icon.get();
 
 	init_thumb_button(buttons[0], ID_BACKWARD,button_icons_->seek_backward_icon.get(), L"Backward");
-	init_thumb_button(buttons[1], ID_PLAY_PAUSE, play_icon, L"Play");
-	init_thumb_button(buttons[2], ID_FORWARD, button_icons_->seek_forward_icon.get(), L"Forward");
+	init_thumb_button(buttons[1], ID_PLAY_PAUSE, play_icon, L"play");
+	init_thumb_button(buttons[2], ID_FORWARD, button_icons_->seek_forward_icon.get(), L"forward");
 
 	HRESULT hr = taskbar_list_->ThumbBarAddButtons(hwnd, buttons.size(),
 	                                               buttons.data());
@@ -592,7 +592,7 @@ void WinTaskbar::setTaskbarPlayerPaused() {
 	updateProgressIndicator();
 	updateOverlay();
 	button_icons_->play_icon.reset(play_icon.pixmap(button_icons_->getIconSize()).toImage().toHICON());
-	updateThumbnailButton(ID_PLAY_PAUSE, button_icons_->play_icon.get(), L"Play");
+	updateThumbnailButton(ID_PLAY_PAUSE, button_icons_->play_icon.get(), L"play");
 }
 
 void WinTaskbar::setTaskbarPlayerPlaying() {

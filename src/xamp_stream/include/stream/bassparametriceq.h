@@ -26,11 +26,11 @@ public:
 
     XAMP_PIMPL(BassParametricEq)
 
-    void Initialize(const Property& config) override;
+    void initialize(const Property& config) override;
 
-    void SetEq(const EqSettings& settings);
+    void setEq(const EqSettings& settings);
 
-    bool Process(float const* samples, size_t num_samples, BufferRef<float>& out) override;
+    bool process(float const* samples, size_t num_samples, BufferRef<float>& out) override;
 
 private:    
     class BassParametricEqImpl;

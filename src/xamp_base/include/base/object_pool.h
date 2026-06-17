@@ -13,30 +13,30 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-template <typename T>
+template <typename t>
 class DefaultFactory {
 public:
-    T *Create() {
-        return new T();
+    t *create() {
+        return new t();
     }
 };
 
 template 
 <
-    typename T,
-    typename FactoryType = DefaultFactory<T>
+    typename t,
+    typename FactoryType = DefaultFactory<t>
 >
-class ObjectPool : public std::enable_shared_from_this<ObjectPool<T, FactoryType>> {
+class ObjectPool : public std::enable_shared_from_this<ObjectPool<t, FactoryType>> {
 private:
     class ReturnToPool;
 
     using factory_type = FactoryType;
-    using pool_type = ObjectPool<T, FactoryType>;
+    using pool_type = ObjectPool<t, FactoryType>;
     using deleter_type = typename pool_type::ReturnToPool;
-    using ptr_type = std::unique_ptr<T>;
+    using ptr_type = std::unique_ptr<t>;
 
 public:
-    using return_ptr_type = std::unique_ptr<T, deleter_type>;
+    using return_ptr_type = std::unique_ptr<t, deleter_type>;
 
     explicit ObjectPool(const size_t init_size)
         : current_size_(0)
@@ -96,12 +96,12 @@ private:
     FastConditionVariable idle_cv_;
 
     factory_type factory_;
-    std::deque<std::unique_ptr<T>> objects_;
+    std::deque<std::unique_ptr<t>> objects_;
 
-    XAMP_CHECK_LIFETIME [[nodiscard]] T *CreateObject() {
+    XAMP_CHECK_LIFETIME [[nodiscard]] t *CreateObject() {
         if (current_size_ < max_size_) {
             current_size_++;
-            return factory_.Create();
+            return factory_.create();
         }
         else {
             return nullptr;
@@ -120,7 +120,7 @@ private:
             : pool_(ptr) {
         }
 
-        void operator()(T *object) {
+        void operator()(t *object) {
             ptr_type ptr(object);
             if (auto sp = pool_.lock()) {
                 try {
@@ -134,9 +134,9 @@ private:
     };
 };
 
-template <typename T>
-std::shared_ptr<ObjectPool<T>> MakeObjectPool(size_t size) {
-    return std::make_shared<ObjectPool<T>>(size);
+template <typename t>
+std::shared_ptr<ObjectPool<t>> MakeObjectPool(size_t size) {
+    return std::make_shared<ObjectPool<t>>(size);
 }
 
 XAMP_BASE_NAMESPACE_END

@@ -87,7 +87,7 @@ QList<QString> M3uParser::parseM3UFile(const QString& file_name) {
 
     QString file_contents;
 
-    if (!TextEncoding().IsUtf8(byte_array.constData())) {
+    if (!TextEncoding().isUtf8(byte_array.constData())) {
         file_contents = QTextCodec::codecForName(kStandardM3uTextEncoding)
             ->toUnicode(byte_array);
     }

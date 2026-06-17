@@ -35,7 +35,7 @@ XAMP_WIDGET_SHARED_API QPixmap resizeImage(const QPixmap& source, const QSize& s
 
 XAMP_WIDGET_SHARED_API std::vector<uint8_t> image2JpegBuffer(const QPixmap& source, int32_t quality = 90);
 
-XAMP_WIDGET_SHARED_API QImage blurImage(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const QPixmap& source, QSize size);
+XAMP_WIDGET_SHARED_API QImage blurImage(const std::shared_ptr<IThreadPool>& thread_pool, const QPixmap& source, QSize size);
 
 XAMP_WIDGET_SHARED_API int sampleImageBlur(const QImage &image, int blur_alpha);
 

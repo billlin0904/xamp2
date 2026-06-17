@@ -253,18 +253,18 @@ public:
 		return ConvertTo8String(input_encoding, input, kUTF8Encoding, buf_size, ignore_error);
 	}
 
-	bool IsUtf8(const std::string& input) {		
-		const auto encoding_name = detector_.Detect(input);
+	bool isUtf8(const std::string& input) {		
+		const auto encoding_name = detector_.detect(input);
 		if (!encoding_name) {
 			return false;
 		}
 		return IsUtf8Encoding(encoding_name.value());
 	}
 
-	std::expected<std::string, TextEncodeingError> ToUtf8String(const std::string& input,
+	std::expected<std::string, TextEncodeingError> toUtf8String(const std::string& input,
 		size_t buf_size,
 		bool ignore_error) {
-		const auto encoding_name = detector_.Detect(input);
+		const auto encoding_name = detector_.detect(input);
 		if (!encoding_name) {
 			return std::unexpected(TextEncodeingError::TEXT_ENCODING_DETECT_ERROR);
 		}
@@ -290,7 +290,7 @@ public:
 	EncodingDetector detector_;
 };
 
-std::expected<std::string, TextEncodeingError> TextEncoding::ToUtf8String(const std::string& input_encoding,
+std::expected<std::string, TextEncodeingError> TextEncoding::toUtf8String(const std::string& input_encoding,
 	const std::string& input,
 	size_t buf_size,
 	bool ignore_error) {
@@ -300,18 +300,18 @@ std::expected<std::string, TextEncodeingError> TextEncoding::ToUtf8String(const 
 		ignore_error);
 }
 
-bool TextEncoding::IsUtf8(const std::string& input) {
-	return impl_->IsUtf8(input);
+bool TextEncoding::isUtf8(const std::string& input) {
+	return impl_->isUtf8(input);
 }
 
-std::expected<std::string, TextEncodeingError> TextEncoding::ToUtf8String(const std::string& input,
+std::expected<std::string, TextEncodeingError> TextEncoding::toUtf8String(const std::string& input,
 	size_t buf_size,
 	bool ignore_error) {
-	return impl_->ToUtf8String(input, buf_size, ignore_error);
+	return impl_->toUtf8String(input, buf_size, ignore_error);
 }
 
 TextEncoding::TextEncoding()
-	: impl_(MakeAlign<TextEncodingImpl>()) {
+	: impl_(makeAlign<TextEncodingImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(TextEncoding)

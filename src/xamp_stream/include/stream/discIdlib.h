@@ -49,10 +49,10 @@ inline DiscIdLib::DiscIdLib() try
 	, XAMP_LOAD_DLL_API(discid_get_error_msg) {
 }
 catch (const Exception& e) {
-	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+	XAMP_LOG_ERROR("{}", e.getErrorMessage());
 }
 
-#define DiscIdDLL SharedSingleton<DiscIdLib>::GetInstance()
+#define DiscIdDLL SharedSingleton<DiscIdLib>::getInstance()
 
 XAMP_STREAM_NAMESPACE_END
 

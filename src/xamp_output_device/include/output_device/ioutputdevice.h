@@ -23,12 +23,12 @@ public:
 	XAMP_BASE_CLASS(IOutputDevice)
 
 	/*
-	* Open stream.
+	* open stream.
 	* 
 	* @param output_format: output format
 	* @return void
 	*/	
-    virtual void OpenStream(const AudioFormat & output_format) = 0;
+    virtual void openStream(const AudioFormat & output_format) = 0;
 
 	/*
 	* Set audio callback.
@@ -36,106 +36,106 @@ public:
 	* @param callback: audio callback
 	* @return void
 	*/
-	virtual void SetAudioCallback(IAudioCallback* callback) = 0;
+	virtual void setAudioCallback(IAudioCallback* callback) = 0;
 
 	/*
 	* Is stream open.
 	* 
 	* @return bool
 	*/
-	[[nodiscard]] virtual bool IsStreamOpen() const = 0;
+	[[nodiscard]] virtual bool isStreamOpen() const = 0;
 
 	/*
 	* Is stream running.
 	* 
 	* @return bool
 	*/
-	[[nodiscard]] virtual bool IsStreamRunning() const = 0;
+	[[nodiscard]] virtual bool isStreamRunning() const = 0;
 
 	/*
-	* Stop stream.
+	* stop stream.
 	* 
 	* @param wait_for_stop_stream: wait for stop stream
 	*/
-	virtual void StopStream(bool wait_for_stop_stream = true) = 0;
+	virtual void stopStream(bool wait_for_stop_stream = true) = 0;
 
 	/*
-	* Close stream.
+	* close stream.
 	*/
-	virtual void CloseStream() = 0;
+	virtual void closeStream() = 0;
 
 	/*
-	* Start stream.
+	* start stream.
 	*/
-	virtual void StartStream() = 0;
+	virtual void startStream() = 0;
 
 	/*
 	* Set stream time.
 	* 
 	* @param stream_time: stream time
 	*/
-	virtual void SetStreamTime(double stream_time) = 0;
+	virtual void setStreamTime(double stream_time) = 0;
 
 	/*
 	* Get stream time.
 	* 
 	* @return double
 	*/
-	[[nodiscard]] virtual double GetStreamTime() const = 0;
+	[[nodiscard]] virtual double getStreamTime() const = 0;
 
 	/*
 	* Get volume.
 	* 
 	* @return uint32_t
 	*/
-    [[nodiscard]] virtual uint32_t GetVolume() const = 0;
+    [[nodiscard]] virtual uint32_t getVolume() const = 0;
 
 	/*
 	* Set volume.
 	* 
 	* @param volume: volume (1~100)
 	*/
-    virtual void SetVolume(uint32_t volume) const = 0;
+    virtual void setVolume(uint32_t volume) const = 0;
 
 	/*
 	* Set mute.
 	* 
 	* @param mute: mute (true/false)
 	*/
-	virtual void SetMute(bool mute) const = 0;
+	virtual void setMute(bool mute) const = 0;
 
 	/*
 	* Is muted.
 	* 
 	* @return bool
 	*/
-	[[nodiscard]] virtual bool IsMuted() const = 0;
+	[[nodiscard]] virtual bool isMuted() const = 0;
 
 	/*
 	* Is hardware control volume.
 	* 
 	* @return bool
 	*/
-	[[nodiscard]] virtual bool IsHardwareControlVolume() const = 0;
+	[[nodiscard]] virtual bool isHardwareControlVolume() const = 0;
 
 	/*
 	* Get packed format.
 	* 
 	* @return PackedFormat
 	*/
-	[[nodiscard]] virtual PackedFormat GetPackedFormat() const = 0;
+	[[nodiscard]] virtual PackedFormat getPackedFormat() const = 0;
 
 	/*
 	* Get device buffer size.
 	* 
 	* @return uint32_t
 	*/
-	[[nodiscard]] virtual uint32_t GetBufferSize() const = 0;
+	[[nodiscard]] virtual uint32_t getBufferSize() const = 0;
 
 	/*
 	* Abort stream.
 	*/	
-	virtual void AbortStream() = 0;
+	virtual void abortStream() = 0;
 
 protected:
 	/*

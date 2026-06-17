@@ -31,7 +31,7 @@ XAMP_OUTPUT_DEVICE_API [[nodiscard]] bool IsExclusiveDevice(const DeviceInfo& in
 XAMP_OUTPUT_DEVICE_API [[nodiscard]] bool IsAsioDevice(const Uuid& id) ;
 
 /*
-* Reset asio driver.
+* reset asio driver.
 * 
 */
 XAMP_OUTPUT_DEVICE_API void ResetAsioDriver();

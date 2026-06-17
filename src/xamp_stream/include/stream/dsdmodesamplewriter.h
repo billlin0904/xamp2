@@ -22,14 +22,14 @@ public:
 
     DsdModeSampleWriter(DsdModes dsd_mode, uint8_t sample_size);
 
-    [[nodiscard]] bool Process(float const * sample_buffer, size_t num_samples, AudioBuffer<std::byte>& buffer) override;
+    [[nodiscard]] bool process(float const * sample_buffer, size_t num_samples, AudioBuffer<std::byte>& buffer) override;
 
-    [[nodiscard]] bool Process(const BufferRef<float>& input, AudioBuffer<std::byte>& buffer) override;
+    [[nodiscard]] bool process(const BufferRef<float>& input, AudioBuffer<std::byte>& buffer) override;
 
 private:
-    bool ProcessNativeDsd(const std::byte* sample_buffer, size_t num_samples, AudioBuffer<std::byte>& buffer);
+    bool processNativeDsd(const std::byte* sample_buffer, size_t num_samples, AudioBuffer<std::byte>& buffer);
 
-    bool ProcessPcm(const std::byte* sample_buffer, size_t num_samples, AudioBuffer<std::byte>& buffer);
+    bool processPcm(const std::byte* sample_buffer, size_t num_samples, AudioBuffer<std::byte>& buffer);
 
 	DsdModes dsd_mode_;
     uint8_t sample_size_;

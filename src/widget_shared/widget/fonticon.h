@@ -132,4 +132,4 @@ protected:
     mutable HashMap<int32_t, uint32_t> glyphs_;
 };
 
-#define qFontIcon SharedSingleton<FontIcon>::GetInstance()
+#define qFontIcon SharedSingleton<FontIcon>::getInstance()

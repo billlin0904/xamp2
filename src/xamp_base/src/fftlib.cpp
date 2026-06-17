@@ -36,10 +36,11 @@ MKLLib::MKLLib() try
 	, XAMP_LOAD_DLL_API(DftiSetValue)
 	, XAMP_LOAD_DLL_API(DftiCommitDescriptor)
 	, XAMP_LOAD_DLL_API(DftiComputeBackward)
-	, XAMP_LOAD_DLL_API(DftiErrorMessage) {
+	, XAMP_LOAD_DLL_API(DftiErrorMessage)
+	, XAMP_LOAD_DLL_API(mkl_get_version_string) {
 }
 catch (const Exception& e) {
-	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+	XAMP_LOG_ERROR("{}", e.getErrorMessage());
 }
 
 #else
@@ -58,18 +59,18 @@ MKLLib::MKLLib()
 	, DftiSetValue(&::DftiSetValue)
 	, DftiCommitDescriptor(&::DftiCommitDescriptor)
 	, DftiComputeBackward(&::DftiComputeBackward)
-	, DftiErrorMessage(&::DftiErrorMessage) {
+	, DftiErrorMessage(&::DftiErrorMessage)
+	, mkl_get_version_string(&::mkl_get_version_str) {
 }
 
 #endif
 
 void LoadFFTLib() {
-	SharedSingleton<MKLLib>::GetInstance();
-#ifdef XAMP_OS_LINUX
+	MklDLL;
+
 	std::array<char, 256> version{};
-	mkl_get_version_string(version.data(), static_cast<int>(version.size()));
+	MklDLL.mkl_get_version_string(version.data(), static_cast<int>(version.size()));
 	XAMP_LOG_DEBUG("MKL version: {}", version.data());
-#endif
 }
 
 XAMP_BASE_NAMESPACE_END

@@ -38,14 +38,14 @@ public:
     * 
     * @param format: DSD IO format
     */
-    virtual void SetIoFormat(DsdIoFormat format) = 0;
+    virtual void setIoFormat(DsdIoFormat format) = 0;
 
     /*
     * Get DSD IO format
     * 
     * @return DsdIoFormat
     */
-    [[nodiscard]] virtual DsdIoFormat GetIoFormat() const = 0;
+    [[nodiscard]] virtual DsdIoFormat getIoFormat() const = 0;
 
 protected:
     /*

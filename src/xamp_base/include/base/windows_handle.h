@@ -30,43 +30,43 @@ XAMP_BASE_NAMESPACE_BEGIN
 struct XAMP_BASE_API HandleTraits final {
 	static HANDLE invalid() ;
 
-	static void Close(HANDLE value) ;
+	static void close(HANDLE value) ;
 };
 
 struct XAMP_BASE_API FileHandleTraits final {
 	static HANDLE invalid() ;
 
-	static void Close(HANDLE value) ;
+	static void close(HANDLE value) ;
 };
 
 struct XAMP_BASE_API ModuleHandleTraits final {
 	static HMODULE invalid() ;
 
-	static void Close(HMODULE value) ;
+	static void close(HMODULE value) ;
 };
 
 struct XAMP_BASE_API MappingFileHandleTraits final {
 	static HANDLE invalid() ;
 
-	static void Close(HANDLE value) ;
+	static void close(HANDLE value) ;
 };
 
 struct XAMP_BASE_API MappingMemoryAddressTraits final {
 	static void* invalid() ;
 
-	static void Close(void* value) ;
+	static void close(void* value) ;
 };
 
 struct XAMP_BASE_API TimerQueueTraits final {
 	static HANDLE invalid() ;
 
-	static void Close(HANDLE value) ;
+	static void close(HANDLE value) ;
 };
 
 struct XAMP_BASE_API RegTraits final {
 	static HKEY invalid() ;
 
-	static void Close(HKEY value) ;
+	static void close(HKEY value) ;
 };
 
 using WinHandle = UniqueHandle<HANDLE, HandleTraits>;

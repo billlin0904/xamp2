@@ -11,12 +11,14 @@
 
 #include <base/logger.h>
 #include <base/scopeguard.h>
+#include <base/stopwatch.h>
 #include <base/str_utilts.h>
 #include <base/object_pool.h>
 
 #include <QStringList>
 #include <QPixmap>
 #include <QBuffer>
+#include <QFile>
 #include <QImageWriter>
 #include <QDirIterator>
 #include <QImageReader>
@@ -43,6 +45,14 @@ namespace {
 	void resetBuffer(QBuffer& buffer) {
 		buffer.close();
 		buffer.setData(QByteArray());
+	}
+
+	bool writeCacheFile(const QString& file_path, const QByteArray& image_data) {
+		QFile file(file_path);
+		if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+			return false;
+		}
+		return file.write(image_data) == image_data.size();
 	}
 }
 
@@ -285,6 +295,8 @@ void ImageCache::addCache(const QString& cover_id, const QPixmap& cover) {
 }
 
 QString ImageCache::addImage(const QPixmap& cover, bool save_only, bool resize) {
+	Stopwatch total_elapsed;
+	Stopwatch stage_elapsed;
 	const auto cover_size = qTheme.cacheCoverSize();
 
 	const auto buffer = buffer_pool_->Acquire();
@@ -298,31 +310,60 @@ QString ImageCache::addImage(const QPixmap& cover, bool save_only, bool resize) 
 	} else {
 		resize_image = cover;
 	}
+	const auto resize_elapsed = stage_elapsed.ElapsedSeconds();
 	
+	stage_elapsed.reset();
 	if (!resize_image.save(buffer.get(), kImageFileFormat)) {
 		XAMP_LOG_DEBUG("Failure to save buffer.");
 	}
+	const auto encode_elapsed = stage_elapsed.ElapsedSeconds();
 
 	auto tag_id = qetag::getTagId(buffer->buffer());
-	auto file_path = makeImageCachePath(kAlbumCacheTag + tag_id);
+	const auto image_data = buffer->buffer();
 
-	if (!resize_image.save(file_path, kImageFileFormat)) {
-		XAMP_LOG_DEBUG("Failure to save image cache.");
+	stage_elapsed.reset();
+	auto file_path = makeImageCachePath(kAlbumCacheTag + tag_id);
+	if (!writeCacheFile(file_path, image_data)) {
+		XAMP_LOG_DEBUG("Failure to save image cache. ({})", file_path.toStdString());
 	}
 
 	file_path = makeImageCachePath(tag_id);
-	if (!resize_image.save(file_path, kImageFileFormat)) {
-		XAMP_LOG_DEBUG("Failure to save image cache.");
+	if (!writeCacheFile(file_path, image_data)) {
+		XAMP_LOG_DEBUG("Failure to save image cache. ({})", file_path.toStdString());
 	}
+	const auto write_elapsed = stage_elapsed.ElapsedSeconds();
+	const auto image_size_text = qFormat("%1x%2")
+		.arg(resize_image.width())
+		.arg(resize_image.height())
+		.toStdString();
 
 	if (save_only) {
+		XAMP_LOG_D(logger_, "Add image cache save only. cover:{} size:{} bytes:{} resize:{:.3f}s encode:{:.3f}s write:{:.3f}s total:{:.3f}s",
+			tag_id.toStdString(),
+			image_size_text,
+			image_data.size(),
+			resize_elapsed,
+			encode_elapsed,
+			write_elapsed,
+			total_elapsed.ElapsedSeconds());
 		resetBuffer(*buffer);
 		return tag_id;
 	}
 	
+	stage_elapsed.reset();
 	thumbnail_cache_.AddOrUpdate(tag_id, { buffer->size(), resize_image });
+	const auto cache_update_elapsed = stage_elapsed.ElapsedSeconds();
 
 	if (!resize) {
+		XAMP_LOG_D(logger_, "Add image cache. cover:{} size:{} bytes:{} resize:{:.3f}s encode:{:.3f}s write:{:.3f}s cache_update:{:.3f}s total:{:.3f}s",
+			tag_id.toStdString(),
+			image_size_text,
+			image_data.size(),
+			resize_elapsed,
+			encode_elapsed,
+			write_elapsed,
+			cache_update_elapsed,
+			total_elapsed.ElapsedSeconds());
 		resetBuffer(*buffer);
 		return tag_id;
 	}
@@ -330,6 +371,15 @@ QString ImageCache::addImage(const QPixmap& cover, bool save_only, bool resize) 
 	resetBuffer(*buffer);
 
 	addOrUpdateCover(kAlbumCacheTag, tag_id, resize_image);
+	XAMP_LOG_D(logger_, "Add image cache. cover:{} size:{} bytes:{} resize:{:.3f}s encode:{:.3f}s write:{:.3f}s cache_update:{:.3f}s total:{:.3f}s",
+		tag_id.toStdString(),
+		image_size_text,
+		image_data.size(),
+		resize_elapsed,
+		encode_elapsed,
+		write_elapsed,
+		cache_update_elapsed,
+		total_elapsed.ElapsedSeconds());
 	return tag_id;
 }
 
@@ -402,7 +452,7 @@ QPixmap ImageCache::getOrDefault(const QString& tag, const QString& cover_id) {
 
 QPixmap ImageCache::getOrAddDefault(const QString& tag_id, bool not_found_use_default) const {
 	const auto [size, image] = thumbnail_cache_.GetOrAdd(tag_id, [tag_id, this]() {
-		XAMP_LOG_D(logger_, "Load tag:{}", tag_id.toStdString());
+		XAMP_LOG_D(logger_, "load tag:{}", tag_id.toStdString());
 		return getFromFile(tag_id);
 	});
 

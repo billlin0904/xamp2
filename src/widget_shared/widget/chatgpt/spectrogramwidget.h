@@ -106,6 +106,7 @@ private:
     float total_ms_ = 0.f;
     float cursor_ms_ = -1.f;
 	uint32_t sample_rate_ = 44100;
+    size_t fft_size_{ 4096 };
     PlayListEntity file_path_;
     QImage spectrogram_;
     QImage spectrogram_cache_;

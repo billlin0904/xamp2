@@ -1,10 +1,10 @@
 #include <output_device/win32/xaudio2outputdevice.h>
 
 #include <base/executor.h>
-#include <base/ithreadpoolexecutor.h>
+#include <base/threadpool.h>
 #include <base/logger.h>
 #include <base/scopeguard.h>
-#include <base/ithreadpoolexecutor.h>
+#include <base/threadpool.h>
 
 #include <output_device/win32/wasapi.h>
 #include <output_device/iaudiocallback.h>
@@ -28,28 +28,28 @@ namespace {
 		format.nAvgBytesPerSec = format.nSamplesPerSec * format.nBlockAlign;
 	}
 
-	uint32_t GetDeviceBufferSize(const std::wstring& device_id, uint32_t sample_rate) {
+	uint32_t getDeviceBufferSize(const std::wstring& device_id, uint32_t sample_rate) {
 		REFERENCE_TIME default_period = 0;
 		REFERENCE_TIME min_period = 0;
 
 		CComPtr<IMMDeviceEnumerator> enumerator;
-		HrIfFailThrow(::CoCreateInstance(__uuidof(MMDeviceEnumerator),
+		hrIfFailThrow(::CoCreateInstance(__uuidof(MMDeviceEnumerator),
 			nullptr,
 			CLSCTX_ALL,
 			IID_PPV_ARGS(&enumerator)));
 
 		CComPtr<IMMDevice> device;
-		HrIfFailThrow(enumerator->GetDevice(device_id.c_str(), &device));
+		hrIfFailThrow(enumerator->GetDevice(device_id.c_str(), &device));
 
 		CComPtr<IAudioClient> client;
-		HrIfFailThrow(device->Activate(__uuidof(IAudioClient),
+		hrIfFailThrow(device->Activate(__uuidof(IAudioClient),
 			CLSCTX_ALL,
 			nullptr,
 			reinterpret_cast<void**>(&client)));
 
 		CComHeapPtr<WAVEFORMATEX> mix_format;
-		HrIfFailThrow(client->GetMixFormat(&mix_format));
-		HrIfFailThrow(client->GetDevicePeriod(&default_period, &min_period));
+		hrIfFailThrow(client->GetMixFormat(&mix_format));
+		hrIfFailThrow(client->GetDevicePeriod(&default_period, &min_period));
 
 		auto default_frames = static_cast<uint32_t>(
 			(static_cast<double>(sample_rate) * default_period) / 10'000'000.0);
@@ -124,18 +124,18 @@ private:
 	LoggerPtr logger_;
 };
 
-XAudio2OutputDevice::XAudio2OutputDevice(const std::shared_ptr<IThreadPoolExecutor>& thread_pool, const std::wstring& device_id)
+XAudio2OutputDevice::XAudio2OutputDevice(const std::shared_ptr<IThreadPool>& thread_pool, const std::wstring& device_id)
 	: is_running_(false)
 	, buffer_frames_(0)
 	, callback_(nullptr)
 	, device_id_(device_id)
 	, mastering_voice_(nullptr)
 	, source_voice_(nullptr)
-	, logger_(XampLoggerFactory.GetLogger(XAMP_LOG_NAME(XAudio2OutputDevice)))
+	, logger_(XampLoggerFactory.getLogger(XAMP_LOG_NAME(XAudio2OutputDevice)))
 	, thread_pool_(thread_pool) {
 #ifdef _DEBUG
 	UINT32 flags = 0;
-	HrIfFailThrow(::XAudio2Create(&xaudio2_, XAUDIO2_DEBUG_ENGINE, XAUDIO2_DEFAULT_PROCESSOR));
+	hrIfFailThrow(::XAudio2Create(&xaudio2_, XAUDIO2_DEBUG_ENGINE, XAUDIO2_DEFAULT_PROCESSOR));
 
 	XAUDIO2_DEBUG_CONFIGURATION debug_config;
 	debug_config.TraceMask = XAUDIO2_LOG_WARNINGS | XAUDIO2_LOG_DETAIL | XAUDIO2_LOG_FUNC_CALLS | XAUDIO2_LOG_TIMING | XAUDIO2_LOG_LOCKS | XAUDIO2_LOG_MEMORY | XAUDIO2_LOG_STREAMING;
@@ -146,29 +146,29 @@ XAudio2OutputDevice::XAudio2OutputDevice(const std::shared_ptr<IThreadPoolExecut
 	debug_config.LogTiming = TRUE;
 	xaudio2_->SetDebugConfiguration(&debug_config, nullptr);
 #else
-	HrIfFailThrow(::XAudio2Create(&xaudio2_));
+	hrIfFailThrow(::XAudio2Create(&xaudio2_));
 #endif
-	auto context_logger = XampLoggerFactory.GetLogger(kXAudio2EngineContextLoggerName);
-	engine_context_ = MakeAlign<XAudio2EngineContext>(context_logger);
-	voice_context_ = MakeAlign<XAudio2VoiceContext>(context_logger);
-	HrIfFailThrow(xaudio2_->RegisterForCallbacks(engine_context_.get()));
+	auto context_logger = XampLoggerFactory.getLogger(kXAudio2EngineContextLoggerName);
+	engine_context_ = makeAlign<XAudio2EngineContext>(context_logger);
+	voice_context_ = makeAlign<XAudio2VoiceContext>(context_logger);
+	hrIfFailThrow(xaudio2_->RegisterForCallbacks(engine_context_.get()));
 }
 
 XAudio2OutputDevice::~XAudio2OutputDevice() {
-	StopStream();
-	CloseStream();
+	stopStream();
+	closeStream();
 }
 
-bool XAudio2OutputDevice::IsStreamOpen() const {
+bool XAudio2OutputDevice::isStreamOpen() const {
 	return mastering_voice_ != nullptr;
 }
 
-void XAudio2OutputDevice::SetAudioCallback(IAudioCallback* callback) {
+void XAudio2OutputDevice::setAudioCallback(IAudioCallback* callback) {
 	XAMP_EXPECTS(callback != nullptr);
 	callback_ = callback;
 }
 
-void XAudio2OutputDevice::StopStream(bool wait_for_stop_stream) {
+void XAudio2OutputDevice::stopStream(bool wait_for_stop_stream) {
 	auto render_task_done = false;
 	{
 		std::unique_lock lock{ mutex_ };
@@ -177,7 +177,7 @@ void XAudio2OutputDevice::StopStream(bool wait_for_stop_stream) {
 		}
 		render_task_done = !render_task_.valid();
 
-		XAMP_LOG_D(logger_, "StopStream");
+		XAMP_LOG_D(logger_, "stopStream");
 		if (close_request_) {
 			::SetEvent(close_request_.get());
 		}
@@ -200,7 +200,7 @@ void XAudio2OutputDevice::StopStream(bool wait_for_stop_stream) {
 	}
 }
 
-void XAudio2OutputDevice::CloseStream() {
+void XAudio2OutputDevice::closeStream() {
 	if (source_voice_ != nullptr) {
 		source_voice_->DestroyVoice();
 		source_voice_ = nullptr;
@@ -215,9 +215,9 @@ void XAudio2OutputDevice::CloseStream() {
 		mastering_voice_ = nullptr;
 	}
 
-	thread_start_.Close();
-	thread_exit_.Close();
-	close_request_.Close();
+	thread_start_.close();
+	thread_exit_.close();
+	close_request_.close();
 	render_task_ = Future<void>();
 
 	if (xaudio2_ != nullptr && engine_context_ != nullptr) {
@@ -225,10 +225,10 @@ void XAudio2OutputDevice::CloseStream() {
 	}	
 }
 
-void XAudio2OutputDevice::OpenStream(AudioFormat const& output_format) {
+void XAudio2OutputDevice::openStream(AudioFormat const& output_format) {
 	uint32_t default_buffer_size = 0;
 	try {
-		default_buffer_size = GetDeviceBufferSize(device_id_, output_format.GetSampleRate());
+		default_buffer_size = getDeviceBufferSize(device_id_, output_format.getSampleRate());
 	}
 	catch (const Exception &e) {
 		constexpr double kBufferDurationMs = 20.0;
@@ -237,31 +237,31 @@ void XAudio2OutputDevice::OpenStream(AudioFormat const& output_format) {
 			return static_cast<uint32_t>(
 				sample_rate * (kBufferDurationMs / 1000.0));
 			};
-		default_buffer_size = get_buffer_frames(output_format.GetSampleRate());
+		default_buffer_size = get_buffer_frames(output_format.getSampleRate());
 		XAMP_LOG_W(logger_, 
 			"Failed to get device buffer size: {}. Using default buffer size: {} frames",
 			e.what(),
 			default_buffer_size);
 	}
 
-	HrIfFailThrow(xaudio2_->CreateMasteringVoice(&mastering_voice_,
-		output_format.GetChannels(),
-		output_format.GetSampleRate(),
+	hrIfFailThrow(xaudio2_->CreateMasteringVoice(&mastering_voice_,
+		output_format.getChannels(),
+		output_format.getSampleRate(),
 		0,
 		device_id_.c_str(),
 		nullptr));
 
-	// Create thread start event handle.
+	// create thread start event handle.
 	if (!thread_start_) {
 		thread_start_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
 	}
 
-	// Create thread exit event handle.
+	// create thread exit event handle.
 	if (!thread_exit_) {
 		thread_exit_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
 	}
 
-	// Create close request event handle.
+	// create close request event handle.
 	if (!close_request_) {
 		close_request_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
 	}
@@ -270,14 +270,14 @@ void XAudio2OutputDevice::OpenStream(AudioFormat const& output_format) {
 	const auto frames_per_buffer = default_buffer_size;
 
 	buffer_frames_ = frames_per_buffer;
-	buffer_.resize(static_cast<size_t>(buffer_frames_) * output_format.GetChannels());
-	XAMP_LOG_DEBUG("XAudio2OutputDevice buffer frames: {} ({})", buffer_frames_, buffer_.GetByteSizeString());
+	buffer_.resize(static_cast<size_t>(buffer_frames_) * output_format.getChannels());
+	XAMP_LOG_DEBUG("XAudio2OutputDevice buffer frames: {} ({})", buffer_frames_, buffer_.getByteSizeString());
 
 	if (!source_voice_) {
 		WAVEFORMATEX waveformat{};
-		SetWaveformatEx(waveformat, output_format_.GetSampleRate());
+		SetWaveformatEx(waveformat, output_format_.getSampleRate());
 
-		HrIfFailThrow(xaudio2_->CreateSourceVoice(&source_voice_,
+		hrIfFailThrow(xaudio2_->CreateSourceVoice(&source_voice_,
 			&waveformat,
 			XAUDIO2_VOICE_NOSRC |
 			XAUDIO2_VOICE_NOPITCH,
@@ -286,26 +286,26 @@ void XAudio2OutputDevice::OpenStream(AudioFormat const& output_format) {
 	}
 }
 
-bool XAudio2OutputDevice::IsMuted() const {
-	return GetVolume() == 0;
+bool XAudio2OutputDevice::isMuted() const {
+	return getVolume() == 0;
 }
 
-void XAudio2OutputDevice::SetMute(bool mute) const {
+void XAudio2OutputDevice::setMute(bool mute) const {
 	if (mute) {
-		SetVolume(0);
+		setVolume(0);
 	}
 }
 
-PackedFormat XAudio2OutputDevice::GetPackedFormat() const {
+PackedFormat XAudio2OutputDevice::getPackedFormat() const {
 	return PackedFormat::INTERLEAVED;
 }
 
-uint32_t XAudio2OutputDevice::GetBufferSize() const {
-	// todo: return buffer_frames_ * output_format_.GetChannels();
+uint32_t XAudio2OutputDevice::getBufferSize() const {
+	// todo: return buffer_frames_ * output_format_.getChannels();
 	return buffer_frames_ * AudioFormat::kMaxChannel;
 }
 
-uint32_t XAudio2OutputDevice::GetVolume() const {
+uint32_t XAudio2OutputDevice::getVolume() const {
 	if (!source_voice_) {
 		return 0;
 	}
@@ -315,27 +315,27 @@ uint32_t XAudio2OutputDevice::GetVolume() const {
 	return mapped_volume;
 }
 
-void XAudio2OutputDevice::SetVolume(uint32_t volume) const {
+void XAudio2OutputDevice::setVolume(uint32_t volume) const {
 	if (!source_voice_) {
 		return;
 	}
 	float mapped_volume = volume / 100.0f;
-	HrIfFailThrow(source_voice_->SetVolume(mapped_volume));
+	hrIfFailThrow(source_voice_->SetVolume(mapped_volume));
 }
 
-void XAudio2OutputDevice::SetStreamTime(double stream_time) {
+void XAudio2OutputDevice::setStreamTime(double stream_time) {
 	stream_time_ = static_cast<int64_t>(stream_time
-		* static_cast<double>(output_format_.GetSampleRate()));
+		* static_cast<double>(output_format_.getSampleRate()));
 }
 
-double XAudio2OutputDevice::GetStreamTime() const {
-	return stream_time_ / static_cast<double>(output_format_.GetSampleRate());
+double XAudio2OutputDevice::getStreamTime() const {
+	return stream_time_ / static_cast<double>(output_format_.getSampleRate());
 }
 
-void XAudio2OutputDevice::StartStream() {
+void XAudio2OutputDevice::startStream() {
 	std::unique_lock lock{ mutex_ };
 
-	// note: Reset stream time. but in the end of rendering task, we need to keep stream time.
+	// note: reset stream time. but in the end of rendering task, we need to keep stream time.
 	//stream_time_ = 0;
 
 	::ResetEvent(close_request_.get());
@@ -345,9 +345,9 @@ void XAudio2OutputDevice::StartStream() {
 
 	if (!source_voice_) {
 		WAVEFORMATEX waveformat{};
-		SetWaveformatEx(waveformat, output_format_.GetSampleRate());
+		SetWaveformatEx(waveformat, output_format_.getSampleRate());
 
-		HrIfFailThrow(xaudio2_->CreateSourceVoice(&source_voice_,
+		hrIfFailThrow(xaudio2_->CreateSourceVoice(&source_voice_,
 			&waveformat,
 			XAUDIO2_VOICE_NOSRC |
 			XAUDIO2_VOICE_NOPITCH,
@@ -355,7 +355,7 @@ void XAudio2OutputDevice::StartStream() {
 			voice_context_.get()));
 	}
 
-	render_task_ = Executor::Spawn(thread_pool_, [this](const auto& stop_token) {
+	render_task_ = Executor::spawn(thread_pool_, [this](const auto& stop_token) {
 		is_running_.store(true, std::memory_order_release);
 
 		const std::array<HANDLE, 2> objects{
@@ -396,9 +396,9 @@ void XAudio2OutputDevice::StartStream() {
 				continue;
 			}
 
-			auto hr = FillSamples(thread_exit);
+			auto hr = fillSamples(thread_exit);
 			if (!thread_exit) {
-				ReportError(hr);
+				reportError(hr);
 				thread_exit = FAILED(hr);
 			}
 		}
@@ -421,8 +421,8 @@ void XAudio2OutputDevice::StartStream() {
 		XAMP_LOG_D(logger_, "Render task done!");
 	});
 
-	HrIfFailThrow(xaudio2_->StartEngine());
-	HrIfFailThrow(source_voice_->Start(0, XAUDIO2_COMMIT_NOW));
+	hrIfFailThrow(xaudio2_->StartEngine());
+	hrIfFailThrow(source_voice_->Start(0, XAUDIO2_COMMIT_NOW));
 
 	while (!is_running_.load(std::memory_order_acquire)) {
 		if (::WaitForSingleObject(thread_start_.get(), static_cast<DWORD>(kWaitStreamStartTimeout.count())) == WAIT_TIMEOUT) {
@@ -432,22 +432,22 @@ void XAudio2OutputDevice::StartStream() {
 	}
 }
 
-HRESULT XAudio2OutputDevice::FillSamples(bool &end_of_stream) {
+HRESULT XAudio2OutputDevice::fillSamples(bool &end_of_stream) {
 	XAUDIO2_BUFFER buffer{};
 	size_t num_filled_frames = 0;
 
 	float sample_time = 0;
 	auto stream_time = stream_time_ + buffer_frames_;
-	float stream_time_float = static_cast<float>(static_cast<double>(stream_time) / static_cast<double>(output_format_.GetSampleRate()));
+	float stream_time_float = static_cast<float>(static_cast<double>(stream_time) / static_cast<double>(output_format_.getSampleRate()));
 	stream_time_ = stream_time;
 
-	if (callback_->OnGetSamples(buffer_.Get(),
+	if (callback_->onGetSamples(buffer_.get(),
 		buffer_frames_,
 		num_filled_frames,
 		stream_time_float,
 		sample_time) == DataCallbackResult::CONTINUE) {
-		buffer.AudioBytes = static_cast<UINT32>(num_filled_frames * output_format_.GetChannels() * output_format_.GetBytesPerSample());
-		buffer.pAudioData = reinterpret_cast<const BYTE*>(buffer_.Get());
+		buffer.AudioBytes = static_cast<UINT32>(num_filled_frames * output_format_.getChannels() * output_format_.getBytesPerSample());
+		buffer.pAudioData = reinterpret_cast<const BYTE*>(buffer_.get());
 		buffer.pContext = this;
 		end_of_stream = false;
 		return source_voice_->SubmitSourceBuffer(&buffer);
@@ -459,25 +459,25 @@ HRESULT XAudio2OutputDevice::FillSamples(bool &end_of_stream) {
 	}
 }
 
-bool XAudio2OutputDevice::IsStreamRunning() const {
+bool XAudio2OutputDevice::isStreamRunning() const {
 	return is_running_.load(std::memory_order_acquire);
 }
 
-void XAudio2OutputDevice::AbortStream() {
+void XAudio2OutputDevice::abortStream() {
 	is_running_.store(false, std::memory_order_release);
 	if (close_request_) {
 		::SetEvent(close_request_.get());
 	}
 }
 
-void XAudio2OutputDevice::ReportError(HRESULT hr) {
+void XAudio2OutputDevice::reportError(HRESULT hr) {
 	if (FAILED(hr)) {
-		callback_->OnError(com_to_system_error(hr));
+		callback_->onError(com_to_system_error(hr));
 		is_running_.store(false, std::memory_order_release);
 	}
 }
 
-bool XAudio2OutputDevice::IsHardwareControlVolume() const {
+bool XAudio2OutputDevice::isHardwareControlVolume() const {
 	return false;
 }
 

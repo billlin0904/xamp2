@@ -92,4 +92,4 @@ private:\
 	static inline constexpr std::string_view ClassName##_ID = UuidString;\
 
 
-#define XAMP_UUID_OF(T) T::uuidof()
+#define XAMP_UUID_OF(t) t::uuidof()

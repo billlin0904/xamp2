@@ -35,31 +35,31 @@ namespace {
 		std::vector<Path> archive_files;
 	};
 
-	std::string PathToUtf8(const Path& path) {
-		return String::ToString(path.wstring());
+	std::string pathToUtf8(const Path& path) {
+		return String::toString(path.wstring());
 	}
 
-	std::string NormalizeExtension(const Path& path) {
-		auto extension = String::ToString(path.extension().wstring());
+	std::string normalizeExtension(const Path& path) {
+		auto extension = String::toString(path.extension().wstring());
 		std::transform(extension.begin(), extension.end(), extension.begin(), [](unsigned char ch) {
 			return static_cast<char>(std::tolower(ch));
 			});
 		return extension;
 	}
 
-	bool IsSupportedTrackFile(const Path& path) {
-		return GetSupportFileExtensions().contains(NormalizeExtension(path));
+	bool isSupportedTrackFile(const Path& path) {
+		return getSupportFileExtensions().contains(normalizeExtension(path));
 	}
 
-	void CollectFile(const Path& path, ScanFiles& files, const MetadataScanOptions& options) {
-		const auto extension = NormalizeExtension(path);
+	void collectFile(const Path& path, ScanFiles& files, const MetadataScanOptions& options) {
+		const auto extension = normalizeExtension(path);
 		if (extension == kCueFileExtension) {
 			files.cue_files.push_back(path);
 		}
 		else if (options.include_archive_files && extension == kZipFileExtension) {
 			files.archive_files.push_back(path);
 		}
-		else if (IsSupportedTrackFile(path)) {
+		else if (isSupportedTrackFile(path)) {
 			auto parent_path = path.parent_path();
 			auto& directory = files.directory_files[parent_path];
 			if (directory.empty()) {
@@ -69,13 +69,13 @@ namespace {
 		}
 	}
 
-	void CollectFiles(const Path& root_path,
+	void collectFiles(const Path& root_path,
 		ScanFiles& files,
 		const MetadataScanOptions& options,
 		const std::stop_token& stop_token) {
 		std::error_code ec;
 		if (Fs::is_regular_file(root_path, ec)) {
-			CollectFile(root_path, files, options);
+			collectFile(root_path, files, options);
 			return;
 		}
 
@@ -85,11 +85,11 @@ namespace {
 
 		auto collect_entry = [&](const DirectoryEntry& entry) {
 			if (entry.is_regular_file(ec)) {
-				CollectFile(entry.path(), files, options);
+				collectFile(entry.path(), files, options);
 			}
 			if (ec) {
 				XAMP_LOG_DEBUG("Failed to read path: {} ({})",
-					PathToUtf8(entry.path()),
+					pathToUtf8(entry.path()),
 					ec.message());
 				ec.clear();
 			}
@@ -101,7 +101,7 @@ namespace {
 				it.increment(ec);
 				if (ec) {
 					XAMP_LOG_DEBUG("Failed to iterate path: {} ({})",
-						PathToUtf8(root_path),
+						pathToUtf8(root_path),
 						ec.message());
 					ec.clear();
 				}
@@ -115,14 +115,14 @@ namespace {
 			it.increment(ec);
 			if (ec) {
 				XAMP_LOG_DEBUG("Failed to iterate path: {} ({})",
-					PathToUtf8(root_path),
+					pathToUtf8(root_path),
 					ec.message());
 				ec.clear();
 			}
 		}
 	}
 
-	size_t CountArchiveEntries(const std::vector<Path>& archive_files, const std::stop_token& stop_token) {
+	size_t countArchiveEntries(const std::vector<Path>& archive_files, const std::stop_token& stop_token) {
 		size_t count = 0;
 		for (const auto& archive_path : archive_files) {
 			if (stop_token.stop_requested()) {
@@ -130,10 +130,10 @@ namespace {
 			}
 
 			ArchiveFile archive_file;
-			auto result = archive_file.Open(archive_path);
+			auto result = archive_file.open(archive_path);
 			if (!result) {
 				XAMP_LOG_DEBUG("Failed to open archive: {} ({})",
-					PathToUtf8(archive_path),
+					pathToUtf8(archive_path),
 					result.error());
 				continue;
 			}
@@ -142,47 +142,47 @@ namespace {
 		return count;
 	}
 
-	size_t CountScanFiles(const ScanFiles& files, const std::stop_token& stop_token) {
+	size_t countScanFiles(const ScanFiles& files, const std::stop_token& stop_token) {
 		size_t total_work = files.cue_files.size();
 		for (const auto& [directory, paths] : files.directory_files) {
 			total_work += paths.size();
 		}
-		total_work += CountArchiveEntries(files.archive_files, stop_token);
+		total_work += countArchiveEntries(files.archive_files, stop_token);
 		return total_work;
 	}
 
-	void SortTracks(std::forward_list<TrackInfo>& tracks) {
+	void sortTracks(std::forward_list<TrackInfo>& tracks) {
 		tracks.sort([](const auto& first, const auto& last) {
 			return first.track < last.track;
 			});
 	}
 
-	size_t CountTracks(const std::forward_list<TrackInfo>& tracks) {
+	size_t countTracks(const std::forward_list<TrackInfo>& tracks) {
 		return static_cast<size_t>(std::distance(tracks.begin(), tracks.end()));
 	}
 
-	size_t CountTrackBatches(const std::vector<std::forward_list<TrackInfo>>& batches) {
+	size_t countTrackBatches(const std::vector<std::forward_list<TrackInfo>>& batches) {
 		size_t track_count = 0;
 		for (const auto& tracks : batches) {
-			track_count += CountTracks(tracks);
+			track_count += countTracks(tracks);
 		}
 		return track_count;
 	}
 
 	template <typename Callback, typename... Args>
-	void InvokeCallback(const Callback& callback, Args&&... args) {
+	void invokeCallback(const Callback& callback, Args&&... args) {
 		if (callback) {
 			std::invoke(callback, std::forward<Args>(args)...);
 		}
 	}
 }
 
-MetadataLibraryScanner::MetadataLibraryScanner(std::shared_ptr<IThreadPoolExecutor> thread_pool)
+MetadataLibraryScanner::MetadataLibraryScanner(std::shared_ptr<IThreadPool> thread_pool)
 	: thread_pool_(std::move(thread_pool)) {
 	XAMP_ENSURES(thread_pool_ != nullptr);
 }
 
-MetadataScanProgress MetadataLibraryScanner::Scan(const Path& root_path,
+MetadataScanProgress MetadataLibraryScanner::scan(const Path& root_path,
 	const std::stop_token& stop_token,
 	const MetadataScanCallbacks& callbacks,
 	const MetadataScanOptions& options) {
@@ -190,16 +190,16 @@ MetadataScanProgress MetadataLibraryScanner::Scan(const Path& root_path,
 	Stopwatch stage_elapsed;
 
 	ScanFiles files;
-	CollectFiles(root_path, files, options, stop_token);
+	collectFiles(root_path, files, options, stop_token);
 	const auto collect_seconds = stage_elapsed.ElapsedSeconds();
 
-	stage_elapsed.Reset();
-	const auto total_work = CountScanFiles(files, stop_token);
+	stage_elapsed.reset();
+	const auto total_work = countScanFiles(files, stop_token);
 	const auto count_seconds = stage_elapsed.ElapsedSeconds();
-	InvokeCallback(callbacks.on_found_file_count, total_work);
+	invokeCallback(callbacks.on_found_file_count, total_work);
 
 	XAMP_LOG_DEBUG("Metadata scan prepare path:{} total:{} directories:{} cues:{} archives:{} collect:{:.3f}s count:{:.3f}s",
-		PathToUtf8(root_path),
+		pathToUtf8(root_path),
 		total_work,
 		files.directory_files.size(),
 		files.cue_files.size(),
@@ -211,7 +211,7 @@ MetadataScanProgress MetadataLibraryScanner::Scan(const Path& root_path,
 	progress.total_work = total_work;
 	if (total_work == 0 || stop_token.stop_requested()) {
 		XAMP_LOG_DEBUG("Metadata scan completed path:{} total:{} completed:{} elapsed:{:.3f}s",
-			PathToUtf8(root_path),
+			pathToUtf8(root_path),
 			total_work,
 			progress.completed_work,
 			total_elapsed.ElapsedSeconds());
@@ -224,7 +224,7 @@ MetadataScanProgress MetadataLibraryScanner::Scan(const Path& root_path,
 		MetadataScanProgress progress;
 		progress.total_work = total_work;
 		progress.completed_work = completed;
-		InvokeCallback(callbacks.on_progress, progress);
+		invokeCallback(callbacks.on_progress, progress);
 		};
 
 	FastMutex batch_mutex;
@@ -249,19 +249,19 @@ MetadataScanProgress MetadataLibraryScanner::Scan(const Path& root_path,
 		}
 
 		const auto batch_size = batch.size();
-		const auto track_count = CountTrackBatches(batch);
+		const auto track_count = countTrackBatches(batch);
 		XAMP_LOG_DEBUG("Metadata scan emit batch path:{} directories:{} tracks:{} elapsed:{:.3f}s",
-			PathToUtf8(path),
+			pathToUtf8(path),
 			batch_size,
 			track_count,
 			total_elapsed.ElapsedSeconds());
 
-		InvokeCallback(callbacks.on_read_path, path, path_size);
-		InvokeCallback(callbacks.on_batch_tracks, std::move(batch));
+		invokeCallback(callbacks.on_read_path, path, path_size);
+		invokeCallback(callbacks.on_batch_tracks, std::move(batch));
 		};
 
-	stage_elapsed.Reset();
-	Executor::ParallelForEach(thread_pool_,
+	stage_elapsed.reset();
+	Executor::parallelFor(thread_pool_,
 		files.directory_files,
 		[&](auto& path_info, const auto& token) {
 			if (stop_token.stop_requested() || token.stop_requested()) {
@@ -270,7 +270,7 @@ MetadataScanProgress MetadataLibraryScanner::Scan(const Path& root_path,
 
 			std::forward_list<TrackInfo> tracks;
 			size_t local_track_count = 0;
-			auto reader = MakeMetadataReader();
+			auto reader = makeMetadataReader();
 
 			for (const auto& path : path_info.second) {
 				if (stop_token.stop_requested() || token.stop_requested()) {
@@ -278,8 +278,8 @@ MetadataScanProgress MetadataLibraryScanner::Scan(const Path& root_path,
 				}
 
 				try {
-					reader->Open(path);
-					auto track_info = reader->Extract();
+					reader->open(path);
+					auto track_info = reader->extract();
 					if (track_info) {
 						tracks.push_front(std::move(track_info.value()));
 						++local_track_count;
@@ -287,13 +287,13 @@ MetadataScanProgress MetadataLibraryScanner::Scan(const Path& root_path,
 				}
 				catch (const std::exception& e) {
 					XAMP_LOG_DEBUG("Failed to read metadata: {} ({})",
-						PathToUtf8(path),
+						pathToUtf8(path),
 						e.what());
 				}
 				notify_progress();
 			}
 
-			SortTracks(tracks);
+			sortTracks(tracks);
 			{
 				std::scoped_lock lock(batch_mutex);
 				if (!tracks.empty()) {
@@ -311,8 +311,8 @@ MetadataScanProgress MetadataLibraryScanner::Scan(const Path& root_path,
 
 	flush_batch(root_path, 0, true);
 
-	stage_elapsed.Reset();
-	Executor::ParallelForEach(thread_pool_,
+	stage_elapsed.reset();
+	Executor::parallelFor(thread_pool_,
 		files.archive_files,
 		[&](auto& archive_path, const auto& token) {
 			if (stop_token.stop_requested() || token.stop_requested()) {
@@ -320,26 +320,26 @@ MetadataScanProgress MetadataLibraryScanner::Scan(const Path& root_path,
 			}
 
 			ArchiveFile archive_file;
-			auto result = archive_file.Open(archive_path);
+			auto result = archive_file.open(archive_path);
 			if (!result) {
 				XAMP_LOG_DEBUG("Failed to open archive: {} ({})",
-					PathToUtf8(archive_path),
+					pathToUtf8(archive_path),
 					result.error());
 				return;
 			}
 
-			auto reader = MakeMetadataReader();
+			auto reader = makeMetadataReader();
 			std::forward_list<TrackInfo> tracks;
 			for (const auto& entry_name : result.value()) {
 				if (stop_token.stop_requested() || token.stop_requested()) {
 					return;
 				}
 
-				auto entry = archive_file.GetEntryByName(entry_name);
+				auto entry = archive_file.getEntryByName(entry_name);
 				try {
 					if (entry) {						
-						reader->Open(std::move(entry.value()));
-						auto track_info = reader->Extract();
+						reader->open(std::move(entry.value()));
+						auto track_info = reader->extract();
 						if (track_info) {
 							tracks.push_front(std::move(track_info.value()));
 						}
@@ -347,20 +347,20 @@ MetadataScanProgress MetadataLibraryScanner::Scan(const Path& root_path,
 				}
 				catch (const std::exception& e) {
 					XAMP_LOG_DEBUG("Failed to read archive metadata: {} ({})",
-						PathToUtf8(archive_path),
+						pathToUtf8(archive_path),
 						e.what());
 				}
 				notify_progress();
 			}
 
-			SortTracks(tracks);
+			sortTracks(tracks);
 			if (!tracks.empty()) {
-				const auto track_count = CountTracks(tracks);
+				const auto track_count = countTracks(tracks);
 				XAMP_LOG_DEBUG("Metadata scan emit archive path:{} tracks:{} elapsed:{:.3f}s",
-					PathToUtf8(archive_path),
+					pathToUtf8(archive_path),
 					track_count,
 					total_elapsed.ElapsedSeconds());
-				InvokeCallback(callbacks.on_tracks, std::move(tracks));
+				invokeCallback(callbacks.on_tracks, std::move(tracks));
 			}
 		},
 		stop_token);
@@ -370,8 +370,8 @@ MetadataScanProgress MetadataLibraryScanner::Scan(const Path& root_path,
 		total_elapsed.ElapsedSeconds());
 
 	FastMutex cue_mutex;
-	stage_elapsed.Reset();
-	Executor::ParallelForEach(thread_pool_,
+	stage_elapsed.reset();
+	Executor::parallelFor(thread_pool_,
 		files.cue_files,
 		[&](auto& cue_path, const auto& token) {
 			if (stop_token.stop_requested() || token.stop_requested()) {
@@ -383,7 +383,7 @@ MetadataScanProgress MetadataLibraryScanner::Scan(const Path& root_path,
 			{
 				std::scoped_lock lock(cue_mutex);
 				CueLoader loader;
-				auto track_infos = loader.Load(cue_path);
+				auto track_infos = loader.load(cue_path);
 				if (track_infos) {
 					for (auto& track : track_infos.value()) {
 						tracks.push_front(std::move(track));
@@ -392,19 +392,19 @@ MetadataScanProgress MetadataLibraryScanner::Scan(const Path& root_path,
 			}
 			catch (const std::exception& e) {
 				XAMP_LOG_DEBUG("Failed to read cue metadata: {} ({})",
-					PathToUtf8(cue_path),
+					pathToUtf8(cue_path),
 					e.what());
 			}
 			notify_progress();
 
-			SortTracks(tracks);
+			sortTracks(tracks);
 			if (!tracks.empty()) {
-				const auto track_count = CountTracks(tracks);
+				const auto track_count = countTracks(tracks);
 				XAMP_LOG_DEBUG("Metadata scan emit cue path:{} tracks:{} elapsed:{:.3f}s",
-					PathToUtf8(cue_path),
+					pathToUtf8(cue_path),
 					track_count,
 					total_elapsed.ElapsedSeconds());
-				InvokeCallback(callbacks.on_tracks, std::move(tracks));
+				invokeCallback(callbacks.on_tracks, std::move(tracks));
 			}
 		},
 		stop_token);
@@ -415,7 +415,7 @@ MetadataScanProgress MetadataLibraryScanner::Scan(const Path& root_path,
 
 	progress.completed_work = completed_work.load();
 	XAMP_LOG_DEBUG("Metadata scan completed path:{} total:{} completed:{} elapsed:{:.3f}s",
-		PathToUtf8(root_path),
+		pathToUtf8(root_path),
 		total_work,
 		progress.completed_work,
 		total_elapsed.ElapsedSeconds());

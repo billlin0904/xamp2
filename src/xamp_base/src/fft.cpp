@@ -31,17 +31,17 @@ class Window::WindowImpl {
 public:
 	WindowImpl() = default;
 
-	void Initialize(size_t frame_size, WindowType type) {
+	void initialize(size_t frame_size, WindowType type) {
 		frame_size_ = frame_size;
-		data_ = MakeBuffer<float>(frame_size);
-		cos_lut_ = MakeBuffer<float>(frame_size);
+		data_ = makeBuffer<float>(frame_size);
+		cos_lut_ = makeBuffer<float>(frame_size);
 		for (size_t i = 0; i < frame_size; i++) {
 			cos_lut_[i] = cosf((2.0 * XAMP_PI * i) / (frame_size - 1));
 		}
-		SetWindowType(type);
+		setWindowType(type);
 	}
 
-	void SetWindowType(WindowType type) {
+	void setWindowType(WindowType type) {
 		switch (type) {
 		case WindowType::NO_WINDOW:
 			dispatch_ = bind_front(&WindowImpl::NoWindow, this);
@@ -121,7 +121,7 @@ struct DftiDescriptorTraits final {
 		return nullptr;
 	}
 
-	static void Close(DFTI_DESCRIPTOR_HANDLE value) {
+	static void close(DFTI_DESCRIPTOR_HANDLE value) {
 		XAMP_EXPECTS(value != nullptr);
 		MklDLL.DftiFreeDescriptor(&value);
 	}
@@ -137,7 +137,7 @@ public:
 		descriptor_.reset();
 	}
 
-	void Initialize(size_t frame_size) {
+	void initialize(size_t frame_size) {
 		XAMP_EXPECTS(frame_size >= 2);
 
 		descriptor_.reset();
@@ -169,7 +169,7 @@ public:
 		output_.resize(complex_size_);
 	}
 
-	const ComplexValarray& Forward(const float* signals,
+	const ComplexValarray& forward(const float* signals,
 		size_t frame_size) {
 		XAMP_ASSERT(frame_size_ == frame_size);
 		XAMP_ASSERT(descriptor_);
@@ -196,7 +196,7 @@ class FFT::FFTImpl {
 public:
 	FFTImpl() = default;
 
-	void Initialize(size_t frame_size) {
+	void initialize(size_t frame_size) {
 		XAMP_ASSERT(IsPowerOfTwo(frame_size));
 		frame_size_ = frame_size;
         size_over2_ = frame_size_ / 2;
@@ -211,7 +211,7 @@ public:
 		split_complex_.imagp = im_.get();
 	}
 
-	const ComplexValarray& Forward(float const* signals, size_t frame_size) {
+	const ComplexValarray& forward(float const* signals, size_t frame_size) {
 		MemoryCopy(input_.get(), signals, sizeof(float) * frame_size);
 
 		::vDSP_ctoz(reinterpret_cast<const COMPLEX*>(input_.get()), 2, &split_complex_, 1, size_over2_);
@@ -235,7 +235,7 @@ private:
 			return nullptr;
 		}
 
-		static void Close(FFTSetup value) {
+		static void close(FFTSetup value) {
 			::vDSP_destroy_fftsetup(value);
 		}
 	};
@@ -260,7 +260,7 @@ class FFT::FFTImpl {
 public:
 	FFTImpl() = default;
 
-	void Initialize(size_t frame_size) {
+	void initialize(size_t frame_size) {
 		XAMP_ASSERT(IsPowerOfTwo(frame_size));
 		frame_size_ = frame_size;
 		complex_size_ = ComplexSize(frame_size);
@@ -268,7 +268,7 @@ public:
 		output_.assign(complex_size_, Complex{});
 	}
 
-	const ComplexValarray& Forward(float const* signals, size_t frame_size) {
+	const ComplexValarray& forward(float const* signals, size_t frame_size) {
 		XAMP_ASSERT(frame_size_ == frame_size);
 
 		for (size_t i = 0; i < frame_size_; ++i) {
@@ -315,13 +315,13 @@ private:
 #endif
 
 Window::Window()
-	: impl_(MakeAlign<WindowImpl>()) {
+	: impl_(makeAlign<WindowImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(Window)
 
-void Window::Initialize(size_t frame_size, WindowType type) {
-	impl_->Initialize(frame_size, type);
+void Window::initialize(size_t frame_size, WindowType type) {
+	impl_->initialize(frame_size, type);
 }
 
 void Window::operator()(float* buffer, size_t size) const {
@@ -329,17 +329,17 @@ void Window::operator()(float* buffer, size_t size) const {
 }
 
 FFT::FFT()
-	: impl_(MakeAlign<FFTImpl>()) {
+	: impl_(makeAlign<FFTImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(FFT)
 
-void FFT::Initialize(size_t frame_size) {
-	impl_->Initialize(frame_size);
+void FFT::initialize(size_t frame_size) {
+	impl_->initialize(frame_size);
 }
 
-const ComplexValarray& FFT::Forward(float const* data, size_t size) {
-	return impl_->Forward(data, size);
+const ComplexValarray& FFT::forward(float const* data, size_t size) {
+	return impl_->forward(data, size);
 }
 
 XAMP_BASE_NAMESPACE_END

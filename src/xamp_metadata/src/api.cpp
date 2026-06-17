@@ -1,7 +1,6 @@
 #include <metadata/api.h>
 
 #include <metadata/libcuelib.h>
-#include <metadata/chromaprintlib.h>
 
 #include <metadata/imetadatareader.h>
 #include <metadata/imetadatawriter.h>
@@ -11,24 +10,20 @@
 
 XAMP_METADATA_NAMESPACE_BEGIN
 
-ScopedPtr<IMetadataReader> MakeMetadataReader() {
-	return MakeAlign<IMetadataReader, TaglibMetadataReader>();
+ScopedPtr<IMetadataReader> makeMetadataReader() {
+	return makeAlign<IMetadataReader, TaglibMetadataReader>();
 }
 
-ScopedPtr<IMetadataWriter> MakeMetadataWriter() {
-	return MakeAlign<IMetadataWriter, TaglibMetadataWriter>();
+ScopedPtr<IMetadataWriter> makeMetadataWriter() {
+	return makeAlign<IMetadataWriter, TaglibMetadataWriter>();
 }
 
-const HashSet<std::string>& GetSupportFileExtensions() {
-	return TaglibMetadataReader::GetSupportFileExtensions();
+const HashSet<std::string>& getSupportFileExtensions() {
+	return TaglibMetadataReader::getSupportFileExtensions();
 }
 
 void LoadCueLib() {
 	LIBCUE_LIB;
-}
-
-void LoadChromaprintLib() {
-	CHROMAPRINT_LIB;
 }
 
 XAMP_METADATA_NAMESPACE_END

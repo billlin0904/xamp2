@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="src\audioformat.cpp" />
@@ -12,7 +12,6 @@
     <ClCompile Include="src\fft.cpp" />
     <ClCompile Include="src\fftlib.cpp" />
     <ClCompile Include="src\fs.cpp" />
-    <ClCompile Include="src\ithreadpool.cpp" />
     <ClCompile Include="src\memory_mapped_file.cpp" />
     <ClCompile Include="src\shared_singleton.cpp" />
     <ClCompile Include="src\stl.cpp" />
@@ -24,7 +23,7 @@
     <ClCompile Include="src\rng.cpp" />
     <ClCompile Include="src\stacktrace.cpp" />
     <ClCompile Include="src\stopwatch.cpp" />
-    <ClCompile Include="src\threadpoolexecutor.cpp" />
+    <ClCompile Include="src\threadpool.cpp" />
     <ClCompile Include="src\timer.cpp" />
     <ClCompile Include="src\str_utilts.cpp" />
     <ClCompile Include="src\vmmemlock.cpp" />
@@ -54,9 +53,8 @@
     <ClInclude Include="include\base\fs.h" />
     <ClInclude Include="include\base\int24.h" />
     <ClInclude Include="include\base\object_pool.h" />
-    <ClInclude Include="include\base\pimplptr.h" />
     <ClInclude Include="include\base\platfrom_handle.h" />
-    <ClInclude Include="include\base\ithreadpoolexecutor.h" />
+    <ClInclude Include="include\base\threadpool.h" />
     <ClInclude Include="include\base\math.h" />
     <ClInclude Include="include\base\executor.h" />
     <ClInclude Include="include\base\sfc64.h" />
@@ -76,7 +74,6 @@
     <ClInclude Include="include\base\stacktrace.h" />
     <ClInclude Include="include\base\stopwatch.h" />
     <ClInclude Include="include\base\task.h" />
-    <ClInclude Include="include\base\threadpoolexecutor.h" />
     <ClInclude Include="include\base\uuidof.h" />
     <ClInclude Include="include\base\vmmemlock.h" />
     <ClInclude Include="include\base\memory_mapped_file.h" />

@@ -14,7 +14,7 @@ class XAMP_BASE_API Stopwatch final {
 public:
 	Stopwatch() ;
 	
-	void Reset() ;
+	void reset() ;
 
 	template <typename Resolution = std::chrono::microseconds>
 	[[nodiscard]] Resolution Elapsed() const {
