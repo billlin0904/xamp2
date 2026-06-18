@@ -50,11 +50,16 @@ XAMP_MAKE_ENUM(ExecuteFlags,
     EXECUTE_NORMAL, 
     EXECUTE_LONG_RUNNING)
 
+XAMP_MAKE_ENUM(SubmitPolicy,
+    SUBMIT_POLICY_NORMAL,    
+    SUBMIT_POLICY_LOCAL,
+    SUBMIT_POLICY_FORK)
+
 class XAMP_BASE_API XAMP_NO_VTABLE ITaskScheduler {
 public:
     XAMP_BASE_CLASS(ITaskScheduler)
 
-	virtual void submitJob(Task task, ExecuteFlags flags) = 0;
+	virtual void submitJob(Task task, ExecuteFlags flags, SubmitPolicy policty) = 0;
 
     virtual size_t getThreadSize() const = 0;
 
@@ -72,7 +77,15 @@ public:
     virtual void stop() = 0;
 
     template <typename F, typename... Args>
-    decltype(auto) spawn(F&& f, Args&&... args, ExecuteFlags flags = ExecuteFlags::EXECUTE_NORMAL);
+    decltype(auto) spawn(
+        SubmitPolicy policy,
+        ExecuteFlags flags,
+        F&& f, Args&&... args);
+
+    template <typename F, typename... Args>
+    void post(ExecuteFlags flags,
+        F&& f,
+        Args&&... args);
 
 protected:
     explicit IThreadPool(ScopedPtr<ITaskScheduler> scheduler)
@@ -83,7 +96,34 @@ protected:
 };
 
 template <typename F, typename ... Args>
-decltype(auto) IThreadPool::spawn(F&& f, Args&&... args, ExecuteFlags flags) {
+void IThreadPool::post(ExecuteFlags flags, F&& f, Args&&... args) {
+    scheduler_->submitJob(
+        [func = std::forward<F>(f),
+        tuple_args = std::make_tuple(std::forward<Args>(args)...)]
+        (const std::stop_token& stop_token) mutable {
+            try {
+                std::apply([&](auto&... args) {
+                    if constexpr (std::is_invocable_v<decltype(func)&, const std::stop_token&, decltype(args)&...>) {
+                        std::invoke(func, stop_token, args...);
+                    }
+                    else {
+                        std::invoke(func, args...);
+                    }
+                    }, tuple_args);
+			}
+			catch (const std::exception& ex) {
+				XAMP_LOG_ERROR("Exception in posted task: {}", ex.what());
+			}
+            catch (...) {
+                XAMP_LOG_ERROR("Unknown exception in posted task.");
+            }
+        },
+        flags,
+        SubmitPolicy::SUBMIT_POLICY_LOCAL);
+}
+
+template <typename F, typename ... Args>
+decltype(auto) IThreadPool::spawn(SubmitPolicy policy, ExecuteFlags flags, F&& f, Args&&... args) {
     constexpr bool kAcceptsStopToken = std::is_invocable_v<std::decay_t<F>&,
         const std::stop_token&,
         std::decay_t<Args>&...>;
@@ -124,7 +164,7 @@ decltype(auto) IThreadPool::spawn(F&& f, Args&&... args, ExecuteFlags flags) {
 
     scheduler_->submitJob([t = std::move(task)](const auto& stop_token) mutable {
         t(stop_token);
-    }, flags);
+    }, flags, policy);
 
     return future;
 }
@@ -142,7 +182,7 @@ public:
 
     size_t getThreadSize() const override;
 
-    void submitJob(Task task, ExecuteFlags flags) override;
+    void submitJob(Task task, ExecuteFlags flags, SubmitPolicy policy) override;
 
     void destroy() override;
 
@@ -186,19 +226,19 @@ private:
         std::atomic<t> value;
     };
 
-    std::atomic<bool> is_stopped_;
+    std::atomic<bool> is_stopped_;    
     std::atomic<size_t> running_thread_;
     size_t max_thread_;
     size_t bulk_size_;
-    std::string name_;
-    std::vector<std::jthread> threads_;
-    std::vector<AlignedAtomic<ExecuteFlags>> task_execute_flags_;
-    AlignedAtomic<size_t> enqueue_hint_;
+    std::string name_;    
+    AlignedAtomic<uint32_t> work_epoch_{0};
+    AlignedAtomic<size_t> enqueue_hint_{0};
     SharedTaskQueuePtr task_pool_;
     std::vector<WorkStealingTaskQueuePtr> task_work_queues_;
+    std::vector<std::jthread> threads_;
+    std::vector<AlignedAtomic<ExecuteFlags>> task_execute_flags_;
     FastMutex idle_mutex_;
-    FastConditionVariable idle_cv_;
-    XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<uint32_t> work_epoch_{ 0 };
+    FastConditionVariable idle_cv_;    
     std::latch work_done_;
     std::latch start_clean_up_;
     LoggerPtr logger_;
@@ -218,19 +258,6 @@ public:
     void stop() override;
 
     size_t getThreadSize() const override;
-};
-
-struct XAMP_BASE_API ThreadPoolBuilder {
-    static std::shared_ptr<IThreadPool> MakeThreadPool(const std::string_view& pool_name,
-        uint32_t max_thread = std::thread::hardware_concurrency(),
-        size_t bulk_size = std::thread::hardware_concurrency() / 2,
-        ThreadPriority priority = ThreadPriority::PRIORITY_NORMAL);
-
-    static std::shared_ptr<IThreadPool> makeBackgroundThreadPool();
-
-    static std::shared_ptr<IThreadPool> makePlaybackThreadPool();
-
-	static std::shared_ptr<IThreadPool> makePlayerThreadPool();
 };
 
 XAMP_BASE_NAMESPACE_END

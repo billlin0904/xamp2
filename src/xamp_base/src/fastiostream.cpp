@@ -63,7 +63,7 @@ std::tuple<CFilePtr, Path> CTemporaryFile::getTempFile() {
 	const auto temp_path = Fs::temp_directory_path();
 
 	for (auto i = 0; i < kMaxRetryCreateTempFile; ++i) {
-		auto path = temp_path / Fs::path(GetSequentialUUID() + ".tmp");
+		auto path = temp_path / Fs::path(getSequentialUuid() + ".tmp");
 #ifdef XAMP_OS_WIN
 		CFilePtr file_(::_wfopen(path.wstring().c_str(), L"wb+"), fclose);
 #else
@@ -83,7 +83,7 @@ public:
 	TemporaryFileImpl() {
 #ifdef XAMP_OS_WIN
 		for (auto i = 0; i < kMaxRetryCreateTempFile; ++i) {
-			auto file_name = Fs::path(GetSequentialUUID() + ".tmp");
+			auto file_name = Fs::path(getSequentialUuid() + ".tmp");
 			auto r = llfio::file_handle::temp_file(file_name,
 				llfio::file_handle::mode::write,
 				llfio::file_handle::creation::if_needed,

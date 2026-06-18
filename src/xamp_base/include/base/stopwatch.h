@@ -17,12 +17,12 @@ public:
 	void reset() ;
 
 	template <typename Resolution = std::chrono::microseconds>
-	[[nodiscard]] Resolution Elapsed() const {
+	[[nodiscard]] Resolution elapsed() const {
 		return std::chrono::duration_cast<Resolution>(Clock::now() - start_time_);
 	}
 
-	[[nodiscard]] double ElapsedSeconds() const {		
-		return static_cast<double>(Elapsed<std::chrono::milliseconds>().count()) / 1000.0;
+	[[nodiscard]] double elapsedSeconds() const {		
+		return static_cast<double>(elapsed<std::chrono::milliseconds>().count()) / 1000.0;
 	}
 
 private:

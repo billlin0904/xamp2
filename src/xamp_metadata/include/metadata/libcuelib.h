@@ -47,7 +47,7 @@ public:
 
 inline LibCueLib::LibCueLib() try
 #ifdef XAMP_OS_WIN
-	: module_(OpenSharedLibrary("libcue"))
+	: module_(openSharedLibrary("libcue"))
 #else
 	: module_(OpenSharedLibrary("cue"))
 #endif

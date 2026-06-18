@@ -30,21 +30,21 @@ public:
     void start(uint32_t sample_rate) {
         RemoveFx();
 
-        impl_.reset(BassLibDLL.BASS_StreamCreate(sample_rate,
+        impl_.reset(LIB_BASS.BASS_StreamCreate(sample_rate,
             AudioFormat::kMaxChannel,
             BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
             STREAMPROC_DUMMY,
             nullptr));
         BassIfFailedThrow(impl_);
 
-        preamp_ = BassLibDLL.BASS_ChannelSetFX(impl_.get(), BASS_FX_BFX_VOLUME, 0);
+        preamp_ = LIB_BASS.BASS_ChannelSetFX(impl_.get(), BASS_FX_BFX_VOLUME, 0);
         BassIfFailedThrow(preamp_);
 
         sample_rate_ = sample_rate;
     }
 
     void AddBand(EQFilterTypes filter, float fCenter, float fBandWidth, float fGain, float fQ, float fS) {
-	    const auto fx_handle = BassLibDLL.BASS_ChannelSetFX(impl_.get(), BASS_FX_BFX_BQF, 1);
+	    const auto fx_handle = LIB_BASS.BASS_ChannelSetFX(impl_.get(), BASS_FX_BFX_BQF, 1);
         BassIfFailedThrow(fx_handle);
 
         BASS_BFX_BQF bqf{};
@@ -86,7 +86,7 @@ public:
             bqf.lFilter = BASS_BFX_BQF_PEAKINGEQ;
             break;
         default:
-            BassLibDLL.BASS_ChannelRemoveFX(impl_.get(), fx_handle);
+            LIB_BASS.BASS_ChannelRemoveFX(impl_.get(), fx_handle);
             return;
         }
 
@@ -101,7 +101,7 @@ public:
         XAMP_LOG_D(logger_, "{} fBandwidth:{}, fCenter:{}, fGain:{}, fQ:{} fS:{}",
             filter, bqf.fBandwidth, bqf.fCenter, bqf.fGain, bqf.fQ, bqf.fS);
 
-    	BassIfFailedThrow(BassLibDLL.BASS_FXSetParameters(fx_handle, &bqf));
+    	BassIfFailedThrow(LIB_BASS.BASS_FXSetParameters(fx_handle, &bqf));
 
         fx_handles_.push_back(fx_handle);
     }
@@ -123,29 +123,29 @@ public:
         BASS_BFX_VOLUME fv;
         fv.lChannel = 0;
         fv.fVolume = static_cast<float>(std::pow(10, (preamp / 20)));
-        BassIfFailedThrow(BassLibDLL.BASS_FXSetParameters(preamp_, &fv));
+        BassIfFailedThrow(LIB_BASS.BASS_FXSetParameters(preamp_, &fv));
         XAMP_LOG_D(logger_, "Preamp {:.02} dB", preamp);
     }
 
     bool process(float const* samples, size_t num_samples, BufferRef<float>& out) {
-        return bass_util::ReadStream(impl_, samples, num_samples, out);
+        return bass_util::readStream(impl_, samples, num_samples, out);
     }
 
     uint32_t process(float const* samples, float* out, size_t num_samples) {
-        return bass_util::ReadStream(impl_, samples, out, num_samples);
+        return bass_util::readStream(impl_, samples, out, num_samples);
     }
 
 private:
     void RemoveBandFx() {
         for (const auto fx_handle : fx_handles_) {
-            BassLibDLL.BASS_ChannelRemoveFX(impl_.get(), fx_handle);
+            LIB_BASS.BASS_ChannelRemoveFX(impl_.get(), fx_handle);
         }
         fx_handles_.clear();
     }
 
     void RemoveFx() {
         RemoveBandFx();
-        BassLibDLL.BASS_ChannelRemoveFX(impl_.get(), preamp_);
+        LIB_BASS.BASS_ChannelRemoveFX(impl_.get(), preamp_);
         preamp_ = 0;
     }
 
@@ -163,10 +163,10 @@ BassParametricEq::BassParametricEq()
 XAMP_PIMPL_IMPL(BassParametricEq)
 
 void BassParametricEq::initialize(const Property& config) {
-    const auto output_format = config.Get<AudioFormat>(DspConfig::kOutputFormat);
+    const auto output_format = config.get<AudioFormat>(DspConfig::kOutputFormat);
     impl_->start(output_format.getSampleRate());
 
-    const auto settings = config.Get<EqSettings>(DspConfig::kEQSettings);
+    const auto settings = config.get<EqSettings>(DspConfig::kEQSettings);
     setEq(settings);    
 }
 

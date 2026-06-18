@@ -20,7 +20,7 @@ namespace {
  * 其中 level=100 -> 0 dB, level=0 -> -50 dB
  * 最後做四捨五入(整數 dB)
  */
-float VolumeLevelToDb(int32_t volume_level) {
+float volumeLevelToDb(int32_t volume_level) {
 	volume_level = std::clamp(volume_level, 0, 100);
 
 	// 原公式: dB = -0.5f * (100 - volume_level)
@@ -37,7 +37,7 @@ float VolumeLevelToDb(int32_t volume_level) {
  *   其中 level=100 => gain=1.0, level=0 => gain=10^(-50/20) = 0.00316...
  * 最後保留小數第3位為例
  */
-float VolumeLevelToGain(int32_t volume_level) {	
+float volumeLevelToGain(int32_t volume_level) {	
 	volume_level = std::clamp(volume_level, 0, 100);
 
 	// exponent = (100 - level) * kDbConvert
@@ -51,7 +51,7 @@ float VolumeLevelToGain(int32_t volume_level) {
 	return gain;
 }
 
-int32_t GainToVolumeLevel(float volume_db) {
+int32_t gainToVolumeLevel(float volume_db) {
 	return volume_db ? 100 - static_cast<int32_t>(kDbConvertInverse * std::log(volume_db) + 0.5) : 0;
 }
 

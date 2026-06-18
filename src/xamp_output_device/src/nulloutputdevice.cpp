@@ -115,7 +115,10 @@ void NullOutputDevice::startStream() {
 	is_playing_ = false;
 	is_stopped_ = false;
 
-	render_task_ = Executor::spawn(thread_pool_, [this](const auto& stop_token) {
+	render_task_ = thread_pool_->spawn(
+		SubmitPolicy::SUBMIT_POLICY_NORMAL,
+		ExecuteFlags::EXECUTE_LONG_RUNNING,
+		[this](const auto& stop_token) {
 		size_t num_filled_frames = 0;
 		double sample_time = 0;
 
@@ -144,7 +147,7 @@ void NullOutputDevice::startStream() {
 
 		XAMP_LOG_D(logger_, "NullOutputDevice stop render.");
 
-		}, ExecuteFlags::EXECUTE_LONG_RUNNING);
+		});
 }
 
 bool NullOutputDevice::isStreamRunning() const {

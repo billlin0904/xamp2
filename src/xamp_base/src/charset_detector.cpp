@@ -36,7 +36,7 @@ namespace {
 	};
 
 	inline UcharDectLib::UcharDectLib() try
-		: module_(OpenSharedLibrary("uchardet"))
+		: module_(openSharedLibrary("uchardet"))
 		, XAMP_LOAD_DLL_API(uchardet_new)
 		, XAMP_LOAD_DLL_API(uchardet_handle_data)
 		, XAMP_LOAD_DLL_API(uchardet_delete)
@@ -67,7 +67,7 @@ namespace {
 		XAMP_DECLARE_SINGLETON_NAME()
 
 		OpenCCLib()
-			: module_(OpenSharedLibrary("opencc"))
+			: module_(openSharedLibrary("opencc"))
 			, XAMP_LOAD_DLL_API(opencc_open)
 			, XAMP_LOAD_DLL_API(opencc_close)
 			, XAMP_LOAD_DLL_API(opencc_convert_utf8)
@@ -227,7 +227,7 @@ public:
 		}
 		XAMP_ON_SCOPE_EXIT(OPENCC_LIB.opencc_convert_utf8_free(converted););
 
-		const auto result = String::ToStdWString(converted);
+		const auto result = String::toStdWString(converted);
 		return result;
 	}
 
@@ -273,10 +273,9 @@ bool LanguageDetector::isChinese(const std::wstring& text) {
 	return impl_->isChinese(text);
 }
 
-void LoadUcharDectLib() {
+void loadUcharDectLib() {
 	UCHARDECT_LIB;
 	OPENCC_LIB;
 }
 
 XAMP_BASE_NAMESPACE_END
-

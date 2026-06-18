@@ -988,7 +988,7 @@ void MusicbrainzEditPage::rebuildCandidateView() {
 
     cover_art_map_.clear();
     album_track_model_->removeRows(0, album_track_model_->rowCount());
-    const auto clear_seconds = stage_elapsed.ElapsedSeconds();
+    const auto clear_seconds = stage_elapsed.elapsedSeconds();
     stage_elapsed.reset();
 
     QList<CandidateAlbum> candidate_pool;
@@ -1038,13 +1038,13 @@ void MusicbrainzEditPage::rebuildCandidateView() {
         seenCandidates.insert(key);
         candidates.append(candidate);
     }
-    const auto candidate_seconds = stage_elapsed.ElapsedSeconds();
+    const auto candidate_seconds = stage_elapsed.elapsedSeconds();
     stage_elapsed.reset();
 
     std::sort(candidates.begin(), candidates.end(), [](const auto& left, const auto& right) {
         return left.albumScore > right.albumScore;
     });
-    const auto sort_seconds = stage_elapsed.ElapsedSeconds();
+    const auto sort_seconds = stage_elapsed.elapsedSeconds();
     stage_elapsed.reset();
 
     QHash<QString, QStandardItem*> albumItems;
@@ -1136,11 +1136,11 @@ void MusicbrainzEditPage::rebuildCandidateView() {
             ++track_row_count;
         }
     }
-    const auto model_seconds = stage_elapsed.ElapsedSeconds();
+    const auto model_seconds = stage_elapsed.elapsedSeconds();
     stage_elapsed.reset();
 
     ui_->albumRecordingView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    const auto resize_seconds = stage_elapsed.ElapsedSeconds();
+    const auto resize_seconds = stage_elapsed.elapsedSeconds();
 
     XAMP_LOG_DEBUG("MusicBrainz rebuild candidates albums:{} recordings:{} source_tracks:{} candidates:{} merge_discs:{} rows:{}->{} album_rows:{} disc_rows:{} track_rows:{} skipped_empty:{} low_score:{} skipped_duplicate:{} clear:{:.3f}s candidate:{:.3f}s sort:{:.3f}s model:{:.3f}s resize:{:.3f}s total:{:.3f}s",
         album_count,
@@ -1161,7 +1161,7 @@ void MusicbrainzEditPage::rebuildCandidateView() {
         sort_seconds,
         model_seconds,
         resize_seconds,
-        total_elapsed.ElapsedSeconds());
+        total_elapsed.elapsedSeconds());
 }
 
 void MusicbrainzEditPage::appendMusicBrainzAlbum(const MusicBrainzAlbum& album) {
@@ -1178,11 +1178,11 @@ void MusicbrainzEditPage::appendMusicBrainzAlbum(const MusicBrainzAlbum& album) 
     const auto before_row_count = album_track_model_ != nullptr ? album_track_model_->rowCount() : 0;
 
     recording_list_.append(album);
-    const auto append_seconds = stage_elapsed.ElapsedSeconds();
+    const auto append_seconds = stage_elapsed.elapsedSeconds();
     stage_elapsed.reset();
 
     rebuildCandidateView();
-    const auto rebuild_seconds = stage_elapsed.ElapsedSeconds();
+    const auto rebuild_seconds = stage_elapsed.elapsedSeconds();
 
     XAMP_LOG_DEBUG("MusicBrainz append album recordings:{} tracks:{} album_count:{}->{} rows:{}->{} append:{:.3f}s rebuild:{:.3f}s total:{:.3f}s",
         album.recordings.size(),
@@ -1193,7 +1193,7 @@ void MusicbrainzEditPage::appendMusicBrainzAlbum(const MusicBrainzAlbum& album) 
         album_track_model_ != nullptr ? album_track_model_->rowCount() : 0,
         append_seconds,
         rebuild_seconds,
-        total_elapsed.ElapsedSeconds());
+        total_elapsed.elapsedSeconds());
 }
 
 QList<PlayListEntity> MusicbrainzEditPage::orderedEntitiesForWrite() const {
@@ -1391,7 +1391,7 @@ QCoro::Task<> MusicbrainzEditPage::startFetchMusicBrainzRecording() {
     XAMP_LOG_DEBUG("MusicBrainz recording fetch prepared albums:{} tracks:{} elapsed:{:.3f}s",
         total_albums_,
         entities_.size(),
-        stage_elapsed.ElapsedSeconds());
+        stage_elapsed.elapsedSeconds());
 
     try {
         stage_elapsed.reset();
@@ -1416,22 +1416,22 @@ QCoro::Task<> MusicbrainzEditPage::startFetchMusicBrainzRecording() {
                 list_entities.size(),
                 candidate_releases.size(),
                 pending_release_ids.size(),
-                album_elapsed.ElapsedSeconds(),
-                total_elapsed.ElapsedSeconds());
+                album_elapsed.elapsedSeconds(),
+                total_elapsed.elapsedSeconds());
         }
         total_releases_ = pending_release_ids.size();
         XAMP_LOG_DEBUG("MusicBrainz candidate phase completed albums:{} pending_lookups:{} unique_releases:{} elapsed:{:.3f}s total_elapsed:{:.3f}s",
             total_albums_,
             pending_lookups.size(),
             total_releases_,
-            stage_elapsed.ElapsedSeconds(),
-            total_elapsed.ElapsedSeconds());
+            stage_elapsed.elapsedSeconds(),
+            total_elapsed.elapsedSeconds());
 
         if (pending_lookups.isEmpty()) {
             XAMP_LOG_DEBUG("MusicBrainz recording fetch completed with no releases albums:{} tracks:{} total_elapsed:{:.3f}s",
                 total_albums_,
                 entities_.size(),
-                total_elapsed.ElapsedSeconds());
+                total_elapsed.elapsedSeconds());
             is_fetching_ = false;
             completed_albums_ = 0;
             if (fetch_progress_bar_ != nullptr) {
@@ -1476,24 +1476,24 @@ QCoro::Task<> MusicbrainzEditPage::startFetchMusicBrainzRecording() {
                 found,
                 completed_releases_,
                 total_releases_,
-                release_elapsed.ElapsedSeconds(),
-                total_elapsed.ElapsedSeconds());
+                release_elapsed.elapsedSeconds(),
+                total_elapsed.elapsedSeconds());
         }
         XAMP_LOG_DEBUG("MusicBrainz release phase completed albums:{} releases:{} recordings:{} elapsed:{:.3f}s total_elapsed:{:.3f}s",
             completed_albums_,
             total_releases_,
             total_recordings_,
-            stage_elapsed.ElapsedSeconds(),
-            total_elapsed.ElapsedSeconds());
+            stage_elapsed.elapsedSeconds(),
+            total_elapsed.elapsedSeconds());
     }
     catch (const std::exception& e) {
         XAMP_LOG_DEBUG("MusicBrainz recording fetch failed: {} total_elapsed:{:.3f}s",
             e.what(),
-            total_elapsed.ElapsedSeconds());
+            total_elapsed.elapsedSeconds());
     }
     catch (...) {
         XAMP_LOG_DEBUG("MusicBrainz recording fetch failed with unknown error total_elapsed:{:.3f}s",
-            total_elapsed.ElapsedSeconds());
+            total_elapsed.elapsedSeconds());
     }
 
     is_fetching_ = false;
@@ -1516,7 +1516,7 @@ QCoro::Task<> MusicbrainzEditPage::startFetchMusicBrainzRecording() {
         total_albums_,
         total_releases_,
         total_recordings_,
-        total_elapsed.ElapsedSeconds());
+        total_elapsed.elapsedSeconds());
     co_return;
 }
 
@@ -1535,7 +1535,7 @@ QCoro::Task<std::optional<QByteArray>> MusicbrainzEditPage::tryFetchCoverArt(con
         release_id.toStdString(),
         size,
         img.size(),
-        elapsed.ElapsedSeconds());
+        elapsed.elapsedSeconds());
     if (!img.isEmpty()) {
         co_return img;
     }
@@ -1568,13 +1568,13 @@ QCoro::Task<std::optional<QByteArray>> MusicbrainzEditPage::fetchCoverArtByUrl(c
     if (!b.has_value()) {
         XAMP_LOG_DEBUG("MusicBrainz cover art completed release:{} found:false elapsed:{:.3f}s",
             release_id.toStdString(),
-            elapsed.ElapsedSeconds());
+            elapsed.elapsedSeconds());
         co_return std::nullopt;
     }
     XAMP_LOG_DEBUG("MusicBrainz cover art completed release:{} found:true bytes:{} elapsed:{:.3f}s",
         release_id.toStdString(),
         b->size(),
-        elapsed.ElapsedSeconds());
+        elapsed.elapsedSeconds());
     co_return b;
 }
 
@@ -1583,7 +1583,7 @@ QCoro::Task<QList<musicbrain::Release>> MusicbrainzEditPage::fetchCandidateRelea
     Stopwatch stage_elapsed;
     QList<musicbrain::Release> candidate_releases;
     const auto queries = buildMusicBrainzReleaseQueries(entities);
-    const auto query_build_seconds = stage_elapsed.ElapsedSeconds();
+    const auto query_build_seconds = stage_elapsed.elapsedSeconds();
     if (queries.isEmpty()) {
         XAMP_LOG_DEBUG("MusicBrainz candidate request skipped empty query tracks:{} query_build:{:.3f}s",
             entities.size(),
@@ -1606,7 +1606,7 @@ QCoro::Task<QList<musicbrain::Release>> MusicbrainzEditPage::fetchCandidateRelea
                 query_releases.size(),
                 candidate_releases.size(),
                 query_build_seconds,
-                total_elapsed.ElapsedSeconds());
+                total_elapsed.elapsedSeconds());
         }
         else {
             http_client_.setUrl("https://musicbrainz.org/ws/2/release"_str);
@@ -1615,7 +1615,7 @@ QCoro::Task<QList<musicbrain::Release>> MusicbrainzEditPage::fetchCandidateRelea
             http_client_.param("limit"_str, 10);
             stage_elapsed.reset();
             auto content = co_await http_client_.get();
-            const auto request_seconds = stage_elapsed.ElapsedSeconds();
+            const auto request_seconds = stage_elapsed.elapsedSeconds();
 
             stage_elapsed.reset();
             auto releases = musicbrain::parseReleaseList(content);
@@ -1633,8 +1633,8 @@ QCoro::Task<QList<musicbrain::Release>> MusicbrainzEditPage::fetchCandidateRelea
                 query_releases.size(),
                 query_build_seconds,
                 request_seconds,
-                stage_elapsed.ElapsedSeconds(),
-                total_elapsed.ElapsedSeconds());
+                stage_elapsed.elapsedSeconds(),
+                total_elapsed.elapsedSeconds());
         }
 
         for (const auto& release : query_releases) {
@@ -1652,7 +1652,7 @@ QCoro::Task<QList<musicbrain::Release>> MusicbrainzEditPage::fetchCandidateRelea
         queries.size(),
         candidate_releases.size(),
         query_build_seconds,
-        total_elapsed.ElapsedSeconds());
+        total_elapsed.elapsedSeconds());
     co_return candidate_releases;
 }
 
@@ -1704,7 +1704,7 @@ QCoro::Task<bool> MusicbrainzEditPage::fetchMusicBrainzRelease(const QList<PlayL
                 r.title.toStdString(),
                 tracks.size(),
                 cover_art_size,
-                release_elapsed.ElapsedSeconds());
+                release_elapsed.elapsedSeconds());
         }
         else if (const auto itr = g_release_detail_cache.constFind(r.id);
             itr != g_release_detail_cache.cend()) {
@@ -1731,7 +1731,7 @@ QCoro::Task<bool> MusicbrainzEditPage::fetchMusicBrainzRelease(const QList<PlayL
                 tracks.size(),
                 cached_release.unique_recording_count,
                 cover_art_size,
-                release_elapsed.ElapsedSeconds());
+                release_elapsed.elapsedSeconds());
         }
         else {
             http_client_.setUrl("https://musicbrainz.org/ws/2/release/"_str + r.id);
@@ -1741,13 +1741,13 @@ QCoro::Task<bool> MusicbrainzEditPage::fetchMusicBrainzRelease(const QList<PlayL
 
             stage_elapsed.reset();
             const auto content = co_await http_client_.get();
-            const auto request_seconds = stage_elapsed.ElapsedSeconds();
+            const auto request_seconds = stage_elapsed.elapsedSeconds();
 
             stage_elapsed.reset();
             QList<musicbrain::Release> current_release;
             current_release.append(r);
             auto parsed_tracks = musicbrain::parseReleaseTracklist(content.toUtf8(), current_release);
-            const auto parse_seconds = stage_elapsed.ElapsedSeconds();
+            const auto parse_seconds = stage_elapsed.elapsedSeconds();
             fetched_release_ids.insert(r.id);
             if (!parsed_tracks.has_value()) {
                 completed_releases_ = std::min(completed_releases_ + 1, total_releases_);
@@ -1760,13 +1760,13 @@ QCoro::Task<bool> MusicbrainzEditPage::fetchMusicBrainzRelease(const QList<PlayL
                     content.size(),
                     request_seconds,
                     parse_seconds,
-                    release_elapsed.ElapsedSeconds());
+                    release_elapsed.elapsedSeconds());
                 continue;
             }
 
             stage_elapsed.reset();
             const auto cover_art_bytes = co_await fetchCoverArtByUrl("release"_str, r.id, kDefaultSize);
-            const auto cover_seconds = stage_elapsed.ElapsedSeconds();
+            const auto cover_seconds = stage_elapsed.elapsedSeconds();
             if (cover_art_bytes.has_value() && !cover_art_bytes->isEmpty()) {
                 stage_elapsed.reset();
                 cover_art.loadFromData(cover_art_bytes.value());
@@ -1774,7 +1774,7 @@ QCoro::Task<bool> MusicbrainzEditPage::fetchMusicBrainzRelease(const QList<PlayL
                 XAMP_LOG_DEBUG("MusicBrainz release cover decode release:{} bytes:{} elapsed:{:.3f}s",
                     r.id.toStdString(),
                     cover_art_size,
-                    stage_elapsed.ElapsedSeconds());
+                    stage_elapsed.elapsedSeconds());
             }
 
             tracks = parsed_tracks.value();
@@ -1807,7 +1807,7 @@ QCoro::Task<bool> MusicbrainzEditPage::fetchMusicBrainzRelease(const QList<PlayL
                 request_seconds,
                 parse_seconds,
                 cover_seconds,
-                release_elapsed.ElapsedSeconds());
+                release_elapsed.elapsedSeconds());
         }
 
         stage_elapsed.reset();
@@ -1838,8 +1838,8 @@ QCoro::Task<bool> MusicbrainzEditPage::fetchMusicBrainzRelease(const QList<PlayL
             r.id.toStdString(),
             tracks.size(),
             release_album.recordings.size(),
-            stage_elapsed.ElapsedSeconds(),
-            release_elapsed.ElapsedSeconds());
+            stage_elapsed.elapsedSeconds(),
+            release_elapsed.elapsedSeconds());
     }
     co_return found;
 }

@@ -43,7 +43,7 @@ void readAll(Path const& file_path,
 }
 
 ScopedPtr<FileStream> makePcmFileStream(const Path& file_path) {
-    return StreamFactory::MakeFileStream(file_path);
+    return StreamFactory::makeFileStream(file_path);
 }
 
 QString readAll(const QString& file_path) {

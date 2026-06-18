@@ -12,9 +12,9 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 #ifdef XAMP_OS_WIN
 
-SharedLibraryHandle PinSystemLibrary(const std::string_view& file_name) {
-    auto library = LoadSharedLibrary(file_name);
-    const auto library_path = GetSharedLibraryPath(library);
+SharedLibraryHandle pinSystemLibrary(const std::string_view& file_name) {
+    auto library = loadSharedLibrary(file_name);
+    const auto library_path = getSharedLibraryPath(library);
 
     HMODULE module = nullptr;
     if (!::GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN,
@@ -25,7 +25,7 @@ SharedLibraryHandle PinSystemLibrary(const std::string_view& file_name) {
     return SharedLibraryHandle(module);
 }
 
-void* LoadSharedLibrarySymbolEx(SharedLibraryHandle const& dll, const std::string_view name, uint32_t flags) {
+void* loadSharedLibrarySymbolEx(SharedLibraryHandle const& dll, const std::string_view name, uint32_t flags) {
 	auto func = ::GetProcAddress(dll.get(), MAKEINTRESOURCEA(flags));
     if (!func) {
         throw NotFoundDllExportFuncException(name);
@@ -33,7 +33,7 @@ void* LoadSharedLibrarySymbolEx(SharedLibraryHandle const& dll, const std::strin
     return func;
 }
 
-bool AddSharedLibrarySearchDirectory(const Path& path) {
+bool addSharedLibrarySearchDirectory(const Path& path) {
     static FastMutex thread_safe_lock;
     std::lock_guard<FastMutex> guard{ thread_safe_lock };
 
@@ -49,7 +49,7 @@ bool AddSharedLibrarySearchDirectory(const Path& path) {
         return false;
     }
 
-    auto normalize_path = NormalizePathToWideString(path);
+    auto normalize_path = normalizePathToWideString(path);
     if (!normalize_path) {
         return false;
 	}
@@ -69,7 +69,7 @@ bool AddSharedLibrarySearchDirectory(const Path& path) {
     return true;
 }
 
-SharedLibraryHandle LoadSharedLibrary(const std::string_view& file_name) {
+SharedLibraryHandle loadSharedLibrary(const std::string_view& file_name) {
 	const auto module = ::LoadLibraryExA(file_name.data(),
 	                                     nullptr,
 	                                     LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
@@ -80,17 +80,17 @@ SharedLibraryHandle LoadSharedLibrary(const std::string_view& file_name) {
     if (!shared_library) {
 		throw LoadDllFailureException(file_name);
 	}
-    PrefetchSharedLibrary(shared_library);
+    prefetchSharedLibrary(shared_library);
 	return shared_library;
 }
 
-Path GetSharedLibraryPath(const SharedLibraryHandle& module) {
+Path getSharedLibraryPath(const SharedLibraryHandle& module) {
     char path[MAX_PATH]{ 0 };
     ::GetModuleFileNameA(module.get(), path, MAX_PATH - 1);
     return path;
 }
 
-void* LoadSharedLibrarySymbol(const SharedLibraryHandle& dll, const std::string_view& name) {
+void* loadSharedLibrarySymbol(const SharedLibraryHandle& dll, const std::string_view& name) {
     auto func = ::GetProcAddress(dll.get(), name.data());
     if (!func) {
         throw NotFoundDllExportFuncException(name);
@@ -99,13 +99,13 @@ void* LoadSharedLibrarySymbol(const SharedLibraryHandle& dll, const std::string_
 }
 #else
 
-Path GetSharedLibraryPath(const SharedLibraryHandle& module) {
+Path getSharedLibraryPath(const SharedLibraryHandle& module) {
     Dl_info info{};
     ::dladdr(module.get(), &info);
     return info.dli_fname;
 }
 
-SharedLibraryHandle LoadSharedLibrary(const std::string_view& name) {
+SharedLibraryHandle loadSharedLibrary(const std::string_view& name) {
     auto path = GetComponentsFilePath() / name;
     auto path_string = path.native();
     auto module = ::dlopen(path_string.c_str(), RTLD_NOW);
@@ -118,7 +118,7 @@ SharedLibraryHandle LoadSharedLibrary(const std::string_view& name) {
     return SharedLibraryHandle(module);
 }
 
-void* LoadSharedLibrarySymbol(const SharedLibraryHandle& dll, const std::string_view& name) {
+void* loadSharedLibrarySymbol(const SharedLibraryHandle& dll, const std::string_view& name) {
      auto func = ::dlsym(dll.get(), name.data());
      if (!func) {
          throw NotFoundDllExportFuncException(name);
@@ -127,20 +127,20 @@ void* LoadSharedLibrarySymbol(const SharedLibraryHandle& dll, const std::string_
 }
 #endif
 
-bool PrefetchSharedLibrary(SharedLibraryHandle const& module) {
+bool prefetchSharedLibrary(SharedLibraryHandle const& module) {
     if (!module) {
         return false;
     }
-    const auto path = GetSharedLibraryPath(module);
+    const auto path = getSharedLibraryPath(module);
     MemoryMappedFile file_;
     if (file_.open(path.wstring(), true)) {
-        return PrefetchMemory(const_cast<void*>(file_.getData()), file_.getLength());
+        return prefetchMemory(const_cast<void*>(file_.data()), file_.length());
     }    
     return false;
 }
 
-SharedLibraryHandle OpenSharedLibrary(const std::string_view& file_name) {
-    return LoadSharedLibrary(GetSharedLibraryName(file_name));
+SharedLibraryHandle openSharedLibrary(const std::string_view& file_name) {
+    return loadSharedLibrary(getSharedLibraryName(file_name));
 }
 
 XAMP_BASE_NAMESPACE_END

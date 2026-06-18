@@ -254,7 +254,7 @@ namespace {
                         found = true;
                     }
                     const auto album_peak = kITunesReplaygainAlbumPeak;
-                    if (dict.contains(String::AsStdString(album_peak))) {
+                    if (dict.contains(String::asStdString(album_peak))) {
                         replay_gain.album_peak = parseStringList(dict[album_peak].toStringList()[0].to8Bit(), false);
                         found = true;
                     }
@@ -664,14 +664,14 @@ public:
         fileref_opt_ = std::nullopt;
         auto entry_name = entry.Name();
         auto archive_path = entry.ArchivePath();
-        PrefetchFile(archive_path.wstring());
+        prefetchFile(archive_path.wstring());
         io_stream_ = makeIOStream(std::move(entry));
         FileRef fileref(io_stream_.get(), true, TagLib::AudioProperties::Fast);
         if (!fileref.isNull()) {
             fileref_opt_ = fileref;
             path_ = archive_path;
             entry_name_ = entry_name;
-            file_ext_ = String::ToLower(Path(entry_name).extension().string());
+            file_ext_ = String::toLower(Path(entry_name).extension().string());
             tag_reader_ = makeFileTagReader(file_ext_);
             is_archive_file_ = true;
         }
@@ -684,7 +684,7 @@ public:
         if (!fileref.isNull()) {
             fileref_opt_ = fileref;
             path_ = path;
-            file_ext_ = String::ToLower(path_.extension().string());
+            file_ext_ = String::toLower(path_.extension().string());
             tag_reader_ = makeFileTagReader(file_ext_);
         }
 	}

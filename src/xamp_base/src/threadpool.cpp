@@ -16,14 +16,17 @@ namespace {
 	constexpr auto kIdleWaitTimeout = std::chrono::milliseconds(100);
 	constexpr auto kSharedTaskQueueSize = 4096;
 	constexpr auto kMaxWorkQueueSize = 65536;
-	constexpr size_t kMinThreadPoolSize = 1;
-	constexpr auto kMaxPlaybackThreadPoolSize{ 4 };
-	constexpr auto kMaxPlayerThreadPoolSize{ 4 };
-	constexpr auto kMaxBackgroundThreadPoolSize{ 12 };
+	constexpr size_t kMinThreadPoolSize = 1;	
 
-	XAMP_DECLARE_LOG_NAME(BackgroundThreadPool);
-	XAMP_DECLARE_LOG_NAME(PlaybackThreadPool);
-	XAMP_DECLARE_LOG_NAME(PlayerThreadPool);
+	thread_local struct CurrentTaskScheduler {
+		size_t thread_index{ static_cast<size_t>(-1) };
+		TaskScheduler* scheduler{ nullptr };		
+	} g_current_scheduler;
+
+	bool isCurrentThreadInScheduler(const TaskScheduler* scheduler, size_t thread_index) {
+		return g_current_scheduler.scheduler == scheduler 
+			&& g_current_scheduler.thread_index == thread_index;
+	}
 }
 
 TaskScheduler::TaskScheduler(const std::string_view& name,
@@ -40,6 +43,7 @@ TaskScheduler::TaskScheduler(const std::string_view& name,
 	, work_done_(static_cast<ptrdiff_t>(max_thread_))
 	, start_clean_up_(1) {
 	logger_ = XampLoggerFactory.getLogger(name);
+	//logger_->setLevel(LogLevel::LOG_LEVEL_DEBUG);
 
 	try {
 		task_pool_ = makeAlign<SharedTaskQueue>(kSharedTaskQueueSize);
@@ -55,11 +59,6 @@ TaskScheduler::TaskScheduler(const std::string_view& name,
 	}
 
 	work_done_.wait();
-
-	/*std::jthread([this]() mutable {
-        XAMP_LOG_D(logger_, "Set ({}) Thread affinity, priority is success.", max_thread_);
-		start_clean_up_.count_down();
-		}).detach();*/
 	XAMP_LOG_D(logger_, "Set ({}) Thread affinity, priority is success.", max_thread_);
 	start_clean_up_.count_down();
 
@@ -197,23 +196,58 @@ size_t TaskScheduler::trySteal(std::vector<Task>& tasks,
 	return 0;
 }
 
-void TaskScheduler::submitJob(Task task, ExecuteFlags flags) {
-	// Prefer a non-long-running local queue first.
-	// If all local queues are busy or unavailable, fall back to the shared queue.
+void TaskScheduler::submitJob(Task task, ExecuteFlags flags, SubmitPolicy policy) {
+	// Enqueue policy:
+	// - LOCAL keeps worker-originated fire-and-forget tasks on the current
+	//   worker queue for cache locality and lower submit overhead.
+	// - External LOCAL submissions fall back to the round-robin path below.
+	// - FORK avoids the current worker queue so nested spawn/wait patterns do
+	//   not depend on the worker that is already blocked waiting for the result.
+	// - NORMAL uses round-robin probing to spread work across worker queues.
 
 	const auto probe_count = (std::min)(max_thread_, kMaxAttempts);
+
+	auto enqueue_to_worker = [this, flags, &task](size_t index) {
+		auto* task_queue = task_work_queues_[index].get();
+		if (task_queue == nullptr || !task_queue->try_enqueue(std::move(task))) {
+			return false;
+		}
+
+		task_execute_flags_[index].value.store(flags, std::memory_order_release);
+		XAMP_LOG_D(logger_, "TaskScheduler::submitJob() enqueue task to local queue.");
+		notifyWorkAvailable();
+		return true;
+	};
+
+	if (policy == SubmitPolicy::SUBMIT_POLICY_LOCAL) {
+		const bool is_current_worker =
+			g_current_scheduler.scheduler == this &&
+			g_current_scheduler.thread_index < max_thread_;
+
+		if (is_current_worker && enqueue_to_worker(g_current_scheduler.thread_index)) {
+			return;
+		}		
+	}
+
+	// round-robin enqueue hint to reduce contention on the same thread's local queue.
 	const auto start_index = enqueue_hint_.value.fetch_add(1, std::memory_order_relaxed);
+
 	for (size_t attempts = 0; attempts < probe_count; ++attempts) {
 		size_t random_index = (start_index + attempts) % max_thread_;
 
-		if (!isLongRunning(random_index)) {
-			auto* task_queue = task_work_queues_[random_index].get();
-			if (task_queue != nullptr && task_queue->try_enqueue(std::move(task))) {
-				task_execute_flags_[random_index].value.store(flags, std::memory_order_release);
-				XAMP_LOG_D(logger_, "TaskScheduler::submitJob() enqueue task to local queue.");
-				notifyWorkAvailable();
-				return;
+		if (policy == SubmitPolicy::SUBMIT_POLICY_FORK) {
+			// Avoid enqueue to the current worker thread's local queue to prevent deadlock in nested spawn/wait patterns.
+			if (isCurrentThreadInScheduler(this, random_index)) {
+				continue;
 			}
+		}
+		
+		if (isLongRunning(random_index)) {
+			continue;
+		}
+
+		if (enqueue_to_worker(random_index)) {
+			return;
 		}
 	}
 
@@ -224,8 +258,8 @@ void TaskScheduler::submitJob(Task task, ExecuteFlags flags) {
 
 void TaskScheduler::setWorkerThreadName(size_t i) {
 	std::wostringstream stream;
-	stream << String::ToStdWString(name_) << L" Worker Thread(" << i << ")";
-	SetThreadName(stream.str());
+	stream << String::toStdWString(name_) << L" Worker Thread(" << i << ")";
+	setThreadName(stream.str());
 }
 
 void TaskScheduler::execute(std::vector<Task>& tasks,
@@ -234,16 +268,7 @@ void TaskScheduler::execute(std::vector<Task>& tasks,
 	const std::stop_token& stop_token) {
 	for (size_t i = 0; i < task_size; ++i) {
 		auto running_thread = ++running_thread_;
-		try {
-			std::invoke(tasks[i], stop_token);
-			XAMP_LOG_D(logger_, "Execute running {} task", running_thread);
-		}
-		catch (const std::exception& e) {
-			XAMP_LOG_E(logger_, "Execute running {} task failed. Exception:{}", running_thread, e.what());
-		}
-		catch (...) {
-			XAMP_LOG_E(logger_, "Execute running {} task failed. Unknown exception.", running_thread);
-		}
+		std::invoke(tasks[i], stop_token);
 		tasks[i] = nullptr;
 		--running_thread_;
 	}
@@ -251,12 +276,12 @@ void TaskScheduler::execute(std::vector<Task>& tasks,
 }
 
 void TaskScheduler::notifyWorkAvailable() {
-	work_epoch_.fetch_add(1, std::memory_order_release);
+	work_epoch_.value.fetch_add(1, std::memory_order_release);
 	idle_cv_.notify_one();
 }
 
 void TaskScheduler::notifyAllWorkers() {
-	work_epoch_.fetch_add(1, std::memory_order_release);
+	work_epoch_.value.fetch_add(1, std::memory_order_release);
 	idle_cv_.notify_all();
 }
 
@@ -270,29 +295,34 @@ void TaskScheduler::waitForWork(uint32_t observed_epoch,
 	idle_cv_.wait_for(lock, kIdleWaitTimeout, [this, observed_epoch, &stop_token] {
 		return is_stopped_.load(std::memory_order_acquire)
 			|| stop_token.stop_requested()
-			|| work_epoch_.load(std::memory_order_acquire) != observed_epoch;
+			|| work_epoch_.value.load(std::memory_order_acquire) != observed_epoch;
 		});
 }
 
 void TaskScheduler::addThread(size_t i, ThreadPriority priority) {
-    threads_.emplace_back([i, this, priority](const auto& stop_token) mutable {
-		task_work_queues_[i] = makeAlign<WorkStealingTaskQueue>(kMaxWorkQueueSize);
-		auto * local_work_queue = task_work_queues_[i].get();
+	task_work_queues_[i] = makeAlign<WorkStealingTaskQueue>(kMaxWorkQueueSize);
+	auto* local_work_queue = task_work_queues_[i].get();
 
+    threads_.emplace_back([i, this, local_work_queue, priority](const auto& stop_token) mutable {
 		auto& prng = PRNG::getThreadLocal();
 		XampCrashHandler.setThreadExceptionHandlers();
 		setWorkerThreadName(i);
 
-		XAMP_LOG_D(logger_, "Worker Thread {} priority:{}.", i, enumToString(priority));
+		g_current_scheduler = CurrentTaskScheduler{ i, this };
 
-		const auto thread_id = GetCurrentThreadId();
+		XAMP_LOG_D(logger_, "Worker Thread {} priority:{} g_current_thread_index:{}.",
+			i, 
+			enumToString(priority),
+			g_current_scheduler.thread_index);
+
+		const auto thread_id = getCurrentThreadId();
 
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) suspend.", thread_id, i);
 		work_done_.count_down();
 
-		SetCurrentThreadPriority(priority);
+		setCurrentThreadPriority(priority);
 #ifdef XAMP_OS_WIN
-		SetCurrentThreadMitigation();
+		setCurrentThreadMitigation();
 #endif
 
 		start_clean_up_.wait();
@@ -320,7 +350,7 @@ void TaskScheduler::addThread(size_t i, ThreadPriority priority) {
 				continue;
 			}
 
-			const auto observed_epoch = work_epoch_.load(std::memory_order_acquire);
+			const auto observed_epoch = work_epoch_.value.load(std::memory_order_acquire);
 			task_size = try_get_task();
 			if (task_size > 0) {
 				execute(tasks, task_size, i, stop_token);
@@ -355,37 +385,6 @@ size_t ThreadPool::getThreadSize() const {
 
 void ThreadPool::stop() {
 	scheduler_->destroy();
-}
-
-std::shared_ptr<IThreadPool> ThreadPoolBuilder::MakeThreadPool(const std::string_view& pool_name,
-	uint32_t max_thread,
-	size_t bulk_size,
-	ThreadPriority priority) {
-	return makeShared<IThreadPool, ThreadPool>(pool_name,
-		max_thread,
-		bulk_size,
-		priority);
-}
-
-std::shared_ptr<IThreadPool> ThreadPoolBuilder::makeBackgroundThreadPool() {
-	return MakeThreadPool(XAMP_LOG_NAME(BackgroundThreadPool),
-		kMaxBackgroundThreadPoolSize,
-		kMaxBackgroundThreadPoolSize / 2,
-		ThreadPriority::PRIORITY_BACKGROUND);
-}
-
-std::shared_ptr<IThreadPool> ThreadPoolBuilder::makePlaybackThreadPool() {
-	return MakeThreadPool(XAMP_LOG_NAME(PlaybackThreadPool),
-		kMaxPlaybackThreadPoolSize,
-		1,
-		ThreadPriority::PRIORITY_HIGHEST);
-}
-
-std::shared_ptr<IThreadPool> ThreadPoolBuilder::makePlayerThreadPool() {
-	return MakeThreadPool(XAMP_LOG_NAME(PlayerThreadPool),
-		kMaxPlayerThreadPoolSize,
-		1,
-		ThreadPriority::PRIORITY_NORMAL);
 }
 
 XAMP_BASE_NAMESPACE_END

@@ -29,7 +29,6 @@ XAMP_METADATA_API ScopedPtr<IMetadataWriter> makeMetadataWriter();
 */
 XAMP_METADATA_API const HashSet<std::string>& getSupportFileExtensions();
 
-XAMP_METADATA_API void LoadCueLib();
+XAMP_METADATA_API void loadCueLib();
 
 XAMP_METADATA_NAMESPACE_END
-

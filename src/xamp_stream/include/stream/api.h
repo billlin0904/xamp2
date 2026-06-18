@@ -27,18 +27,18 @@ class XAMP_STREAM_API StreamFactory {
 public:
     StreamFactory() = delete;
 
-    static ScopedPtr<FileStream> MakeFileStream(const Path& filePath,
+    static ScopedPtr<FileStream> makeFileStream(const Path& filePath,
         bool use_mqa_decode = false);
 
     // create a file stream object based on the file path and DSD mode
-    static ScopedPtr<FileStream> MakeFileStream(const Path& filePath,
+    static ScopedPtr<FileStream> makeFileStream(const Path& filePath,
         DsdModes dsdMode, 
         bool use_mqa_decode = false);
 
-    static ScopedPtr<FileStream> MakeFileStream(ArchiveEntry archive_entry,
+    static ScopedPtr<FileStream> makeFileStream(ArchiveEntry archive_entry,
         DsdModes dsd_mode);
 
-	static std::expected<ArchiveFileStream, std::string> MakeArchiveFileStream(const Path& archive_path,
+	static std::expected<ArchiveFileStream, std::string> makeArchiveFileStream(const Path& archive_path,
         const std::wstring& archive_entry_name);
 
     // create an AAC encoder object
@@ -58,29 +58,29 @@ public:
 
 XAMP_STREAM_API bool isDsdFile(Path const& path);
 
-XAMP_STREAM_API IDsdStream* AsDsdStream(FileStream* stream) ;
+XAMP_STREAM_API IDsdStream* asDsdStream(FileStream* stream) ;
 
-XAMP_STREAM_API OrderedMap<std::string, std::string> GetBassDLLVersion();
+XAMP_STREAM_API OrderedMap<std::string, std::string> getBassDLLVersion();
 
-XAMP_STREAM_API IDsdStream* AsDsdStream(ScopedPtr<FileStream> const & stream) ;
+XAMP_STREAM_API IDsdStream* asDsdStream(ScopedPtr<FileStream> const & stream) ;
 
-XAMP_STREAM_API FileStream* AsFileStream(ScopedPtr<IAudioStream> const& stream) ;
+XAMP_STREAM_API FileStream* asFileStream(ScopedPtr<IAudioStream> const& stream) ;
 
 #ifdef XAMP_OS_WIN
-XAMP_STREAM_API void LoadR8brainLib();
-XAMP_STREAM_API void LoadMBDiscIdLib();
+XAMP_STREAM_API void loadR8BrainLib();
+XAMP_STREAM_API void loadMBDiscIdLib();
 #endif
 
-XAMP_STREAM_API void LoadAvLib();
+XAMP_STREAM_API void loadAvLib();
 
-XAMP_STREAM_API void FreeAvLib();
+XAMP_STREAM_API void freeAvLib();
 
-XAMP_STREAM_API void LoadSoxrLib();
+XAMP_STREAM_API void loadSoxrLib();
 
-XAMP_STREAM_API void LoadSrcLib();
+XAMP_STREAM_API void loadSrcLib();
 
-XAMP_STREAM_API void LoadBassLib();
+XAMP_STREAM_API void loadBassLib();
 
-XAMP_STREAM_API void LoadMqaLib();
+XAMP_STREAM_API void loadMqaLib();
 
 XAMP_STREAM_NAMESPACE_END

@@ -21,7 +21,7 @@ void logAndShowMessage(const std::exception_ptr& ptr) {
         stack = e.getStackTrace();
     }
     catch (const std::exception& e) {
-        logMessage = String::LocaleStringToUTF8(e.what());
+        logMessage = String::localeStringToUTF8(e.what());
         uiMessage = QString::fromUtf8(logMessage.c_str());
         stack = StackTrace{}.captureStack();
     }

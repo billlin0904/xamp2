@@ -18,30 +18,30 @@ XAMP_STREAM_NAMESPACE_BEGIN
 
 class XAMP_STREAM_API Property {
 public:
-    template <typename t>
-    void create(const std::string_view &name, t&& value) {
-        configs_.insert_or_assign(name, std::forward<t>(value));
+    template <typename T>
+    void create(const std::string_view &name, T&& value) {
+        configs_.insert_or_assign(name, std::forward<T>(value));
     }
 
-    AudioFormat AsAudioFormat(const std::string_view& name) const {
-        return Get<AudioFormat>(name);
+    AudioFormat asAudioFormat(const std::string_view& name) const {
+        return get<AudioFormat>(name);
     }
 
-    Path AsPath(const std::string_view& name) const {
-        return Get<Path>(name);
+    Path asPath(const std::string_view& name) const {
+        return get<Path>(name);
     }
 
-    std::wstring AsStdWString(const std::string_view& name) const {
-        return Get<std::wstring>(name);
+    std::wstring asStdWString(const std::string_view& name) const {
+        return get<std::wstring>(name);
     }
 
-    template <typename t>
-    t Get(const std::string_view& name) const {
-        return std::any_cast<t>(configs_.at(name));
+    template <typename T>
+    T get(const std::string_view& name) const {
+        return std::any_cast<T>(configs_.at(name));
     }
 
-    template <typename t>
-    bool Set(const std::string_view& name, const t &value) {
+    template <typename T>
+    bool set(const std::string_view& name, const T &value) {
 	    if (!configs_.contains(name)) {
             return false;
 	    }
@@ -49,7 +49,7 @@ public:
 		return true;
     }
 
-    void Remove(const std::string_view& name) {
+    void remove(const std::string_view& name) {
         configs_.erase(name);
     }
 private:

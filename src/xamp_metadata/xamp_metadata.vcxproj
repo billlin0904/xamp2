@@ -70,6 +70,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Label="XampOutput" Condition="'$(Platform)'=='x64'">
+    <OutDir>$(ProjectDir)..\xamp\$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
   <PropertyGroup />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -86,23 +89,12 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>../xamp_base/x64/Debug/;../xamp/x64/Debug/;../thirdparty/taglib2/msvc/taglib/Debug</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/taglib2/msvc/taglib/Debug</AdditionalLibraryDirectories>
       <AdditionalDependencies>xamp_base.lib;tag.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Bscmake>
       <PreserveSbr>false</PreserveSbr>
     </Bscmake>
-    <PostBuildEvent>
-      <Command>set "XAMP_METADATA_DEST=$(ProjectDir)..\xamp\$(Platform)\$(Configuration)\"
-if not exist "%XAMP_METADATA_DEST%" mkdir "%XAMP_METADATA_DEST%"
-for %%I in ("$(TargetDir).") do set "XAMP_METADATA_SRC_DIR=%%~fI"
-for %%I in ("%XAMP_METADATA_DEST%.") do set "XAMP_METADATA_DST_DIR=%%~fI"
-if /I not "%XAMP_METADATA_SRC_DIR%"=="%XAMP_METADATA_DST_DIR%" (
-copy /Y "$(TargetPath)" "%XAMP_METADATA_DEST%"
-copy /Y "$(TargetDir)$(TargetName).lib" "%XAMP_METADATA_DEST%"
-if exist "$(TargetDir)$(TargetName).pdb" copy /Y "$(TargetDir)$(TargetName).pdb" "%XAMP_METADATA_DEST%"
-)</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -159,7 +151,7 @@ if exist "$(TargetDir)$(TargetName).pdb" copy /Y "$(TargetDir)$(TargetName).pdb"
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>../xamp_base/x64/Release/;../xamp/x64/Release/;../thirdparty/taglib2/msvc/taglib/Release</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../xamp/x64/Release/;../thirdparty/taglib2/msvc/taglib/Release</AdditionalLibraryDirectories>
       <AdditionalDependencies>xamp_base.lib;tag.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
@@ -170,17 +162,6 @@ if exist "$(TargetDir)$(TargetName).pdb" copy /Y "$(TargetDir)$(TargetName).pdb"
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
-    <PostBuildEvent>
-      <Command>set "XAMP_METADATA_DEST=$(ProjectDir)..\xamp\$(Platform)\$(Configuration)\"
-if not exist "%XAMP_METADATA_DEST%" mkdir "%XAMP_METADATA_DEST%"
-for %%I in ("$(TargetDir).") do set "XAMP_METADATA_SRC_DIR=%%~fI"
-for %%I in ("%XAMP_METADATA_DEST%.") do set "XAMP_METADATA_DST_DIR=%%~fI"
-if /I not "%XAMP_METADATA_SRC_DIR%"=="%XAMP_METADATA_DST_DIR%" (
-copy /Y "$(TargetPath)" "%XAMP_METADATA_DEST%"
-copy /Y "$(TargetDir)$(TargetName).lib" "%XAMP_METADATA_DEST%"
-if exist "$(TargetDir)$(TargetName).pdb" copy /Y "$(TargetDir)$(TargetName).pdb" "%XAMP_METADATA_DEST%"
-)</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\metadata\cuefilereader.h" />

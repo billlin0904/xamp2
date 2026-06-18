@@ -26,7 +26,7 @@ namespace {
         XAMP_DECLARE_SINGLETON_NAME()
 
         MeCabLib()
-            : module_(OpenSharedLibrary("mecab"))
+            : module_(openSharedLibrary("mecab"))
             , XAMP_LOAD_DLL_API(mecab_new)
             , XAMP_LOAD_DLL_API(mecab_new2)
             , XAMP_LOAD_DLL_API(mecab_strerror)
@@ -65,7 +65,7 @@ namespace {
 
     using MeCabTaggerHandle = UniqueHandle<mecab_t*, MeCabTaggerDeleter>;
 
-    std::string GetMeCabError(mecab_t* tagger) {
+    std::string getMeCabError(mecab_t* tagger) {
         const auto* error = MECAB_LIB.mecab_strerror(tagger);
         if (error == nullptr) {
             return "Unknown MeCab error";
@@ -73,7 +73,7 @@ namespace {
         return error;
     }
 
-    std::vector<std::string> GetMeCabArguments() {
+    std::vector<std::string> getMeCabArguments() {
         std::vector<std::string> args{
             "xamp",
             "-Ochasen"
@@ -94,7 +94,7 @@ namespace {
         return args;
     }
 
-    std::string JoinMeCabArguments(const std::vector<std::string>& args) {
+    std::string joinMeCabArguments(const std::vector<std::string>& args) {
         std::string result;
         for (const auto& arg : args) {
             if (!result.empty()) {
@@ -182,7 +182,7 @@ namespace {
                 throw std::runtime_error("Failed to convert result to UTF-8");
             }
 
-			return String::ToStdWString(utf8_result);
+			return String::toStdWString(utf8_result);
         }
 
     private:
@@ -214,17 +214,17 @@ namespace {
         }
     }
 
-    bool IsKanji(wchar_t c) {
+    bool isKanji(wchar_t c) {
         return (c >= 0x4E00 && c <= 0x9FAF);
     }
 
-    bool HasKanji(const std::wstring& kata) {
+    bool hasKanji(const std::wstring& kata) {
         return std::any_of(kata.begin(), kata.end(), [](wchar_t c) {
-            return IsKanji(c);
+            return isKanji(c);
             });
     }
 
-    bool IsAscii(const std::wstring& text) {
+    bool isAscii(const std::wstring& text) {
         return std::all_of(text.begin(), text.end(), [](auto c) {
             return isascii(c);
             });
@@ -234,7 +234,7 @@ namespace {
 class Furigana::FuriganaImpl {
 public:
 	FuriganaImpl() {
-        auto args = GetMeCabArguments();
+        auto args = getMeCabArguments();
         std::vector<char*> argv;
         argv.reserve(args.size());
         for (auto& arg : args) {
@@ -243,14 +243,14 @@ public:
 
 		tagger_.reset(MECAB_LIB.mecab_new(static_cast<int>(argv.size()), argv.data()));
         if (!tagger_) {
-            auto error = GetMeCabError(nullptr);
+            auto error = getMeCabError(nullptr);
             if (error.empty()) {
-                error = "MeCab initialization failed: " + JoinMeCabArguments(args);
+                error = "MeCab initialization failed: " + joinMeCabArguments(args);
             }
             throw std::runtime_error(error);
         }
         if (MECAB_LIB.mecab_sparse_tostr(tagger_.get(), "") == nullptr) {
-            throw std::runtime_error(GetMeCabError(tagger_.get()));
+            throw std::runtime_error(getMeCabError(tagger_.get()));
         }
 	}
 
@@ -258,7 +258,7 @@ public:
         if (text.empty()) {
             return {};
         }
-        if (IsAscii(text)) {
+        if (isAscii(text)) {
             return { FuriganaEntity{ text } };
         }
 
@@ -273,12 +273,12 @@ public:
                 continue;
             }
 
-            auto surface = String::ToStdWString(std::string(node->surface, node->length));
-            auto feature = String::ToStdWString(node->feature);
+            auto surface = String::toStdWString(std::string(node->surface, node->length));
+            auto feature = String::toStdWString(node->feature);
 
-            auto features = String::Split<wchar_t>(feature, L",");
+            auto features = String::split<wchar_t>(feature, L",");
 
-            if (!HasKanji(surface) || features.size() <= 7 || features[7].empty()) {
+            if (!hasKanji(surface) || features.size() <= 7 || features[7].empty()) {
                 result.emplace_back(surface);
                 continue;
             }
@@ -336,9 +336,8 @@ std::vector<FuriganaEntity> Furigana::convert(const std::wstring& text) {
 	return impl_->convert(text, true);
 }
 
-void LoadFuriganaDll() {
+void loadFuriganaDll() {
     MECAB_LIB;
 }
 
 XAMP_BASE_NAMESPACE_END
-

@@ -44,13 +44,13 @@ public:
 			break;
 		}
 
-		handle_.reset(LibSrcDLL.src_new(quality, AudioFormat::kMaxChannel, &error));
+		handle_.reset(LIB_SRC.src_new(quality, AudioFormat::kMaxChannel, &error));
 		if (!handle_ || error > 0) {
-			throw LibraryException(String::Format("src_new return failure! {}", LibSrcDLL.src_strerror(error)));
+			throw LibraryException(String::format("src_new return failure! {}", LIB_SRC.src_strerror(error)));
 		}
 
 		ratio_ = static_cast<double>(output_sample_rate_) / static_cast<double>(input_sample_rate_);
-		if (!LibSrcDLL.src_is_valid_ratio(ratio_)) {
+		if (!LIB_SRC.src_is_valid_ratio(ratio_)) {
 			throw LibraryException("Sample rate change out of valid range.");
 		}
 
@@ -72,7 +72,7 @@ public:
 		src_data.data_out = output.data() + src_data.output_frames_gen;
 		src_data.output_frames = output.size() / AudioFormat::kMaxChannel;
 
-		const auto result = LibSrcDLL.src_process(handle_.get(), &src_data);
+		const auto result = LIB_SRC.src_process(handle_.get(), &src_data);
 		if (result > 0) {
 			return false;
 		}
@@ -100,7 +100,7 @@ private:
 		if (required_size > output.size()) {
 			XAMP_LOG_D(logger_, "Resize size: {} => {}", output.size(), required_size);
 		}
-		output.maybe_resize(required_size);
+		output.maybeResize(required_size);
 	}
 
 	struct SrcStateHandleTraits final {
@@ -109,7 +109,7 @@ private:
 		}
 
 		static void close(SRC_STATE* value) {
-			LibSrcDLL.src_delete(value);
+			LIB_SRC.src_delete(value);
 		}
 	};
 
@@ -138,10 +138,10 @@ bool SrcSampleRateConverter::process(float const* samples, size_t num_samples, B
 }
 
 void SrcSampleRateConverter::initialize(const Property& config) {
-	const auto output_format = config.Get<AudioFormat>(DspConfig::kOutputFormat);
+	const auto output_format = config.get<AudioFormat>(DspConfig::kOutputFormat);
 	impl_->start(output_format.getSampleRate());
 
-	const auto input_format = config.Get<AudioFormat>(DspConfig::kInputFormat);
+	const auto input_format = config.get<AudioFormat>(DspConfig::kInputFormat);
 	impl_->initialize(input_format.getSampleRate());
 }
 

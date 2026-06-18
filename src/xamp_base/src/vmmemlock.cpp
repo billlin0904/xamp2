@@ -20,11 +20,11 @@ VmMemLock::VmMemLock() {
 }
 
 VmMemLock::~VmMemLock() {
-	UnLock();
+	unlock();
 }
 
-void VmMemLock::Lock(void* address, size_t size) {
-	UnLock();	
+void VmMemLock::lock(void* address, size_t size) {
+	unlock();	
 
 	if (address == nullptr || size == 0) {
 		return;
@@ -33,8 +33,8 @@ void VmMemLock::Lock(void* address, size_t size) {
 	// note: 強制配置實體記憶體page, 可以優化後面的相關操作. 等同於mmap API的MAP_POPULATE旗標.
 	MemorySet(address, 0, size);
 
-	if (!VirtualMemoryLock(address, size)) { // try lock memory!
-		XAMP_LOG_E(logger_, "VirtualLock return failure! {}", GetLastErrorMessage());
+	if (!virtualMemoryLock(address, size)) { // try lock memory!
+		XAMP_LOG_E(logger_, "virtualMemoryLock return failure! {}", GetLastErrorMessage());
 		return;
 	}
 
@@ -44,17 +44,17 @@ void VmMemLock::Lock(void* address, size_t size) {
 	XAMP_LOG_T(logger_,
 		"VmMemLock lock address: 0x{:08x} size: {}.",
 		reinterpret_cast<int64_t>(address_),
-		String::FormatBytes(size_));
+		String::formatBytes(size_));
 }
 
-void VmMemLock::UnLock() {
+void VmMemLock::unlock() {
 	if (address_) {
-		if (!VirtualMemoryUnLock(address_, size_)) {
+		if (!virtualMemoryUnlock(address_, size_)) {
 #ifdef XAMP_OS_WIN
 			const auto last_error = ::GetLastError();
 			if (last_error != ERROR_NOT_LOCKED) {
 				XAMP_LOG_E(logger_,
-					"VirtualUnlock return failure! error:{} {}.",
+					"virtualMemoryUnlock return failure! error:{} {}.",
 					GetPlatformErrorMessage(static_cast<int32_t>(last_error)),
 					StackTrace{}.captureStack());
 			}
@@ -63,7 +63,7 @@ void VmMemLock::UnLock() {
 		XAMP_LOG_T(logger_,
 			"VmMemLock unlock address: 0x{:08x} size: {}.",
 			reinterpret_cast<int64_t>(address_),
-			String::FormatBytes(size_));
+			String::formatBytes(size_));
 	}
 	address_ = nullptr;
 	size_ = 0;
@@ -73,7 +73,7 @@ VmMemLock& VmMemLock::operator=(VmMemLock&& other) {
 	if (this != &other) {
 		// Move assignment replaces the lock owned by *this, so release the
 		// current pages before taking ownership from other.
-		UnLock();
+		unlock();
 		address_ = other.address_;
 		size_ = other.size_;
 		other.address_ = nullptr;

@@ -70,12 +70,14 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(ProjectDir)..\xamp\$(Platform)\$(Configuration)\</OutDir>
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(ProjectDir)..\xamp\$(Platform)\$(Configuration)\</OutDir>
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -103,7 +105,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>../xamp_base/x64/Release/;../xamp_stream/x64/Release/;../xamp_player/x64/Release/;../xamp_output_device/x64/Release/;../xamp_metadata/x64/Release/;../xamp/x64/Release/;../thirdparty/benchmark/msvc/src/Release/</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../xamp/x64/Release/;../thirdparty/benchmark/msvc/src/Release/</AdditionalLibraryDirectories>
       <AdditionalDependencies>xamp_base.lib;xamp_stream.lib;xamp_player.lib;Shlwapi.lib;benchmark.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
@@ -138,7 +140,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>../xamp_base/x64/Debug/;../xamp_stream/x64/Debug/;../xamp_player/x64/Debug/;../xamp_output_device/x64/Debug/;../xamp_metadata/x64/Debug/;../xamp/x64/Debug/;../thirdparty/benchmark/msvc/src/Debug/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/benchmark/msvc/src/Debug/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>xamp_base.lib;xamp_stream.lib;xamp_player.lib;Shlwapi.lib;benchmark.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

@@ -7,23 +7,23 @@
 
 XAMP_STREAM_UTIL_NAMESPACE_BEGIN
 
-uint32_t ReadStream(const BassStreamHandle& stream, float const* samples, float* out, size_t num_samples) {
+uint32_t readStream(const BassStreamHandle& stream, float const* samples, float* out, size_t num_samples) {
     MemoryCopy(out, samples, num_samples * sizeof(float));
     const auto bytes_read =
-        BassLibDLL.BASS_ChannelGetData(stream.get(),
+        LIB_BASS.BASS_ChannelGetData(stream.get(),
             out,
             num_samples * sizeof(float));
     return bytes_read;
 }
 
-bool ReadStream(const BassStreamHandle& stream, float const* samples, size_t num_samples, BufferRef<float>& out) {
+bool readStream(const BassStreamHandle& stream, float const* samples, size_t num_samples, BufferRef<float>& out) {
     if (out.size() != num_samples) {
-        out.maybe_resize(num_samples);
+        out.maybeResize(num_samples);
     }
     MemoryCopy(out.data(), samples, num_samples * sizeof(float));
 
     const auto bytes_read =
-        BassLibDLL.BASS_ChannelGetData(stream.get(),
+        LIB_BASS.BASS_ChannelGetData(stream.get(),
             out.data(),
             num_samples * sizeof(float));
     if (bytes_read == kBassError) {
@@ -33,7 +33,7 @@ bool ReadStream(const BassStreamHandle& stream, float const* samples, size_t num
         return false;
     }
     const auto frames = bytes_read / sizeof(float);
-    out.maybe_resize(frames);
+    out.maybeResize(frames);
     return true;
 }
 

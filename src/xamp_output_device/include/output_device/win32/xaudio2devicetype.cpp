@@ -50,7 +50,7 @@ void XAudio2DeviceType::XAudio2DeviceTypeImpl::scanNewDevice() {
 }
 
 ScopedPtr<IOutputDevice> XAudio2DeviceType::XAudio2DeviceTypeImpl::makeDevice(const std::shared_ptr<IThreadPool>& thread_pool, const std::string& device_id) {
-	return makeAlign<IOutputDevice, XAudio2OutputDevice>(thread_pool, String::ToStdWString(device_id));
+	return makeAlign<IOutputDevice, XAudio2OutputDevice>(thread_pool, String::toStdWString(device_id));
 }
 
 DeviceInfo XAudio2DeviceType::XAudio2DeviceTypeImpl::getDeviceInfo(uint32_t device) const {

@@ -239,7 +239,7 @@ public:
         if (!shouldLog(level)) {
             return;
         }
-        auto message = fmt::format(fmt::runtime(s), detail::FormatArgument(std::forward<Args>(args))...);
+        auto message = fmt::format(fmt::runtime(s), detail::formatArgument(std::forward<Args>(args))...);
         logMsg(level, source_location.file_name(), source_location.line(), source_location.function_name(), message);
     }
 
@@ -248,7 +248,7 @@ public:
         if (!shouldLog(level)) {
             return;
         }
-        auto message = fmt::format(fmt::runtime(s), detail::FormatArgument(std::forward<Args>(args))...);
+        auto message = fmt::format(fmt::runtime(s), detail::formatArgument(std::forward<Args>(args))...);
         logMsg(level, filename, line, func, message);
     }
 

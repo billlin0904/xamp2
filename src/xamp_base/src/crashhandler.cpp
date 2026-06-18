@@ -74,7 +74,7 @@ struct ExceptionPointer : EXCEPTION_POINTERS {
 };
 
 void CreateMinidump(_EXCEPTION_POINTERS* exception_pointers) {
-    auto file_name = String::ToStdWString(String::Format("{}-crashdump.dmp", GetSequentialUUID()));
+    auto file_name = String::toStdWString(String::format("{}-crashdump.dmp", getSequentialUuid()));
 
     auto file_ = CreateFileW(file_name.c_str(),
         GENERIC_WRITE,

@@ -12,8 +12,8 @@ XAMP_BASE_NAMESPACE_BEGIN
 namespace {
 	const auto kUTF8Encoding = std::string("UTF-8");
 
-	bool IsUtf8Encoding(std::string_view encoding) {
-		const auto lower_encoding = String::ToLower(std::string(encoding));
+	bool isUtf8Encoding(std::string_view encoding) {
+		const auto lower_encoding = String::toLower(std::string(encoding));
 		return lower_encoding == "utf-8"
 			|| lower_encoding == "utf8"
 			|| lower_encoding == "us-ascii"
@@ -21,7 +21,7 @@ namespace {
 	}
 
 #ifdef XAMP_OS_WIN
-	std::expected<uint32_t, TextEncodeingError> WindowsCodePageFromString(const std::string& encoding) {
+	std::expected<uint32_t, TextEncodeingError> windowsCodePageFromString(const std::string& encoding) {
 		// From source code uchardet/src/nsMBCSGroupProber.cpp
 		// Windows code page
 		// https://learn.microsoft.com/zh-tw/windows/win32/intl/code-page-identifiers
@@ -94,7 +94,7 @@ namespace {
 			{"iso-8859-15",  28605 },
 		};
 
-		const auto lower_enc = String::ToLower(encoding);
+		const auto lower_enc = String::toLower(encoding);
 		const auto itr = windows_code_page_lut.find(lower_enc);
 		if (itr != windows_code_page_lut.end()) {
 			return (*itr).second;
@@ -120,7 +120,7 @@ namespace {
 		return WC_NO_BEST_FIT_CHARS;
 	}
 
-	std::expected<std::wstring, TextEncodeingError> MultiByteToWide(const std::string& input, UINT code_page, bool ignore_error) {
+	std::expected<std::wstring, TextEncodeingError> multiByteToWide(const std::string& input, UINT code_page, bool ignore_error) {
 		if (input.empty()) {
 			return std::unexpected(TextEncodeingError::TEXT_ENCODING_INPUT_STRING_EMPTY);
 		}
@@ -159,7 +159,7 @@ namespace {
 		return output;
 	}
 
-	std::expected<std::string, TextEncodeingError> WideToMultiByte(const std::wstring& input, UINT code_page, bool ignore_error) {
+	std::expected<std::string, TextEncodeingError> wideToMultiByte(const std::wstring& input, UINT code_page, bool ignore_error) {
 		if (input.empty()) {
 			return std::unexpected(TextEncodeingError::TEXT_ENCODING_INPUT_STRING_EMPTY);
 		}
@@ -219,34 +219,34 @@ public:
 		size_t buf_size,
 		bool ignore_error) {
 #ifdef XAMP_OS_WIN
-		auto from_code_page = WindowsCodePageFromString(input_encoding);
+		auto from_code_page = windowsCodePageFromString(input_encoding);
 		if (!from_code_page) {
 			return std::unexpected(from_code_page.error());
 		}
 
-		auto wide = MultiByteToWide(input, from_code_page.value(), ignore_error);
+		auto wide = multiByteToWide(input, from_code_page.value(), ignore_error);
 		if (!wide) {
 			return std::unexpected(TextEncodeingError::TEXT_ENCODING_TO_WIDE_ERROR);
 		}
 
-		auto to_code_page = WindowsCodePageFromString(output_encoding);
+		auto to_code_page = windowsCodePageFromString(output_encoding);
 		if (!to_code_page) {
 			return std::unexpected(to_code_page.error());
 		}
 
-		return WideToMultiByte(wide.value(), to_code_page.value(), ignore_error);
+		return wideToMultiByte(wide.value(), to_code_page.value(), ignore_error);
 #else
 		(void)output_encoding;
 		(void)buf_size;
 		(void)ignore_error;
-		if (IsUtf8Encoding(input_encoding)) {
+		if (isUtf8Encoding(input_encoding)) {
 			return input;
 		}
 		return input;
 #endif
 	}
 
-	std::expected<std::string, TextEncodeingError> ConvertToUtf8String(const std::string& input_encoding,
+	std::expected<std::string, TextEncodeingError> convertToUtf8String(const std::string& input_encoding,
 		const std::string& input,
 		size_t buf_size,
 		bool ignore_error) {
@@ -258,7 +258,7 @@ public:
 		if (!encoding_name) {
 			return false;
 		}
-		return IsUtf8Encoding(encoding_name.value());
+		return isUtf8Encoding(encoding_name.value());
 	}
 
 	std::expected<std::string, TextEncodeingError> toUtf8String(const std::string& input,
@@ -274,9 +274,9 @@ public:
 			return std::unexpected(TextEncodeingError::TEXT_ENCODING_UNKNOWN_ENCDOING);
 		}
 
-		if (IsUtf8Encoding(detected_encoding)) {
+		if (isUtf8Encoding(detected_encoding)) {
 #ifdef XAMP_OS_WIN
-			if (!ignore_error && !MultiByteToWide(input, CP_UTF8, false)) {
+			if (!ignore_error && !multiByteToWide(input, CP_UTF8, false)) {
 				return std::unexpected(TextEncodeingError::TEXT_ENCODING_API_ERROR);
 			}
 #else
@@ -284,7 +284,7 @@ public:
 #endif
 			return input;
 		}
-		return ConvertToUtf8String(detected_encoding, input, buf_size, ignore_error);
+		return convertToUtf8String(detected_encoding, input, buf_size, ignore_error);
 	}
 
 	EncodingDetector detector_;
@@ -294,7 +294,7 @@ std::expected<std::string, TextEncodeingError> TextEncoding::toUtf8String(const 
 	const std::string& input,
 	size_t buf_size,
 	bool ignore_error) {
-	return impl_->ConvertToUtf8String(input_encoding,
+	return impl_->convertToUtf8String(input_encoding,
 		input, 
 		buf_size, 
 		ignore_error);

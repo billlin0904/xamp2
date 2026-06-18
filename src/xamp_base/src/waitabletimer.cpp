@@ -20,7 +20,7 @@ public:
 	
 	virtual void setTimeout(std::chrono::milliseconds timeout) = 0;
 
-	virtual void Wait() = 0;
+	virtual void wait() = 0;
 protected:
 	IWaitableTimer() = default;
 };
@@ -44,7 +44,7 @@ public:
 		}
 	}
 
-	bool IsSleepSranular() const {
+	bool isSleepSranular() const {
 		return sleep_is_granular_;
 	}
 private:
@@ -70,7 +70,7 @@ public:
 		reset();
 	}
 
-	void Wait() override {
+	void wait() override {
 		if (::WaitForSingleObject(timer_.get(), INFINITE) != WAIT_OBJECT_0) {
 			throw PlatformException();
 		}
@@ -102,7 +102,7 @@ public:
 		timeout_ = timeout;
 	}
 
-	void Wait() override {
+	void wait() override {
 		tp_ += timeout_;
 		std::this_thread::sleep_until(tp_);
 	}
@@ -115,7 +115,7 @@ class WaitableTimer::WaitableTimerImpl {
 public:
 	WaitableTimerImpl()
 #ifdef XAMP_OS_WIN
-		: impl_(time_period_.IsSleepSranular() 
+		: impl_(time_period_.isSleepSranular() 
 			? makeAlign<IWaitableTimer, StdWaitableTimerImpl>()
 			: makeAlign<IWaitableTimer, APCWaitableTimerImpl>()) {
 #else
@@ -127,8 +127,8 @@ public:
 		impl_->setTimeout(timeout);
 	}
 
-	void Wait() {
-		impl_->Wait();
+	void wait() {
+		impl_->wait();
 	}
 #ifdef XAMP_OS_WIN
 	static TimePeriod time_period_;
@@ -147,8 +147,8 @@ void WaitableTimer::setTimeout(std::chrono::milliseconds timeout) {
 	impl_->setTimeout(timeout);
 }
 
-void WaitableTimer::Wait() {
-	impl_->Wait();
+void WaitableTimer::wait() {
+	impl_->wait();
 }
 
 XAMP_BASE_NAMESPACE_END

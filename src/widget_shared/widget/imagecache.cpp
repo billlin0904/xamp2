@@ -179,7 +179,7 @@ QPixmap ImageCache::scanCoverFromDir(const QString& file_path) {
 }
 
 void ImageCache::clearCache() const {
-	thumbnail_cache_.Clear();
+	thumbnail_cache_.clear();
 }
 
 void ImageCache::clear() const {
@@ -191,7 +191,7 @@ void ImageCache::clear() const {
 			XAMP_LOG_D(logger_, "Failure to remove cache file: {}", path.toStdString());
 		}
 	}
-	thumbnail_cache_.Clear();
+	thumbnail_cache_.clear();
 }
 
 QPixmap ImageCache::findImageFromDir(const PlayListEntity& item) {
@@ -204,7 +204,7 @@ void ImageCache::removeImage(const QString& tag_id) const {
 	if (!file_.remove()) {
 		XAMP_LOG_D(logger_, "Failure to remove cache file: {}", path.toStdString());
 	}
-	thumbnail_cache_.Erase(tag_id);
+	thumbnail_cache_.erase(tag_id);
 }
 
 ImageCacheEntity ImageCache::getFromFile(const QString& tag_id) const {
@@ -247,7 +247,7 @@ QPixmap ImageCache::getOrAdd(const QString& tag_id, std::function<QPixmap()>&& v
 		return image;
 	}
 
-	const auto buffer = buffer_pool_->Acquire();
+	const auto buffer = buffer_pool_->acquire();
 	if (!prepareBuffer(*buffer)) {
 		XAMP_LOG_DEBUG("Failure to create buffer.");
 	}
@@ -269,13 +269,13 @@ QPixmap ImageCache::getOrAdd(const QString& tag_id, std::function<QPixmap()>&& v
 		XAMP_LOG_DEBUG("Success to save image cache. ({})", file_path.toStdString());
 	}
 
-	thumbnail_cache_.AddOrUpdate(tag_id, { buffer->size(), cache_cover });
+	thumbnail_cache_.addOrUpdate(tag_id, { buffer->size(), cache_cover });
 	resetBuffer(*buffer);
 	return getOrAddDefault(tag_id);
 }
 
 void ImageCache::addCache(const QString& cover_id, const QPixmap& cover) {
-	const auto buffer = buffer_pool_->Acquire();
+	const auto buffer = buffer_pool_->acquire();
 	const auto file_path = makeImageCachePath(cover_id);
 
 	if (!prepareBuffer(*buffer)) {
@@ -290,7 +290,7 @@ void ImageCache::addCache(const QString& cover_id, const QPixmap& cover) {
 		XAMP_LOG_DEBUG("Failure to save image cache.");
 	}
 
-	thumbnail_cache_.AddOrUpdate(cover_id, { buffer->size(), cover });
+	thumbnail_cache_.addOrUpdate(cover_id, { buffer->size(), cover });
 	resetBuffer(*buffer);
 }
 
@@ -299,7 +299,7 @@ QString ImageCache::addImage(const QPixmap& cover, bool save_only, bool resize) 
 	Stopwatch stage_elapsed;
 	const auto cover_size = qTheme.cacheCoverSize();
 
-	const auto buffer = buffer_pool_->Acquire();
+	const auto buffer = buffer_pool_->acquire();
 	if (!prepareBuffer(*buffer)) {
 		XAMP_LOG_DEBUG("Failure to create buffer.");
 	}
@@ -310,13 +310,13 @@ QString ImageCache::addImage(const QPixmap& cover, bool save_only, bool resize) 
 	} else {
 		resize_image = cover;
 	}
-	const auto resize_elapsed = stage_elapsed.ElapsedSeconds();
+	const auto resize_elapsed = stage_elapsed.elapsedSeconds();
 	
 	stage_elapsed.reset();
 	if (!resize_image.save(buffer.get(), kImageFileFormat)) {
 		XAMP_LOG_DEBUG("Failure to save buffer.");
 	}
-	const auto encode_elapsed = stage_elapsed.ElapsedSeconds();
+	const auto encode_elapsed = stage_elapsed.elapsedSeconds();
 
 	auto tag_id = qetag::getTagId(buffer->buffer());
 	const auto image_data = buffer->buffer();
@@ -331,7 +331,7 @@ QString ImageCache::addImage(const QPixmap& cover, bool save_only, bool resize) 
 	if (!writeCacheFile(file_path, image_data)) {
 		XAMP_LOG_DEBUG("Failure to save image cache. ({})", file_path.toStdString());
 	}
-	const auto write_elapsed = stage_elapsed.ElapsedSeconds();
+	const auto write_elapsed = stage_elapsed.elapsedSeconds();
 	const auto image_size_text = qFormat("%1x%2")
 		.arg(resize_image.width())
 		.arg(resize_image.height())
@@ -345,14 +345,14 @@ QString ImageCache::addImage(const QPixmap& cover, bool save_only, bool resize) 
 			resize_elapsed,
 			encode_elapsed,
 			write_elapsed,
-			total_elapsed.ElapsedSeconds());
+			total_elapsed.elapsedSeconds());
 		resetBuffer(*buffer);
 		return tag_id;
 	}
 	
 	stage_elapsed.reset();
-	thumbnail_cache_.AddOrUpdate(tag_id, { buffer->size(), resize_image });
-	const auto cache_update_elapsed = stage_elapsed.ElapsedSeconds();
+	thumbnail_cache_.addOrUpdate(tag_id, { buffer->size(), resize_image });
+	const auto cache_update_elapsed = stage_elapsed.elapsedSeconds();
 
 	if (!resize) {
 		XAMP_LOG_D(logger_, "Add image cache. cover:{} size:{} bytes:{} resize:{:.3f}s encode:{:.3f}s write:{:.3f}s cache_update:{:.3f}s total:{:.3f}s",
@@ -363,7 +363,7 @@ QString ImageCache::addImage(const QPixmap& cover, bool save_only, bool resize) 
 			encode_elapsed,
 			write_elapsed,
 			cache_update_elapsed,
-			total_elapsed.ElapsedSeconds());
+			total_elapsed.elapsedSeconds());
 		resetBuffer(*buffer);
 		return tag_id;
 	}
@@ -379,7 +379,7 @@ QString ImageCache::addImage(const QPixmap& cover, bool save_only, bool resize) 
 		encode_elapsed,
 		write_elapsed,
 		cache_update_elapsed,
-		total_elapsed.ElapsedSeconds());
+		total_elapsed.elapsedSeconds());
 	return tag_id;
 }
 
@@ -399,16 +399,16 @@ bool ImageCache::contains(const QString& tag_id) const {
 	if (tag_id.isEmpty()) {
 		return false;
 	}
-	return thumbnail_cache_.Contains(tag_id);
+	return thumbnail_cache_.contains(tag_id);
 }
 
 std::optional<QPixmap> ImageCache::tryGet(const QString& tag, const QString& cover_id) {
 	XAMP_LOG_T(logger_, "tag:{} cache-size: {}, cache: {}",
 		tag.toStdString(),
-		String::FormatBytes(thumbnail_cache_.GetSize()), thumbnail_cache_);
+		String::formatBytes(thumbnail_cache_.getSize()), thumbnail_cache_);
 
 	ImageCacheEntity entity;
-	if (thumbnail_cache_.TryGet(tag + cover_id, entity)) {
+	if (thumbnail_cache_.tryGet(tag + cover_id, entity)) {
 		return MakeOptional<QPixmap>(entity.image);
 	}
 	return std::nullopt;
@@ -428,7 +428,7 @@ void ImageCache::loadIfNotExists(const QString& tag, const QString& cover_id) {
 QPixmap ImageCache::getOrDefault(const QString& tag, const QString& cover_id) {
 	XAMP_LOG_T(logger_, "tag:{} cache-size: {}, cache: {}",
 		tag.toStdString(),
-		String::FormatBytes(thumbnail_cache_.GetSize()), thumbnail_cache_);
+		String::formatBytes(thumbnail_cache_.getSize()), thumbnail_cache_);
 
 	if (cover_id.isEmpty()) {
 		return qTheme.defaultSizeUnknownCover();
@@ -451,7 +451,7 @@ QPixmap ImageCache::getOrDefault(const QString& tag, const QString& cover_id) {
 }
 
 QPixmap ImageCache::getOrAddDefault(const QString& tag_id, bool not_found_use_default) const {
-	const auto [size, image] = thumbnail_cache_.GetOrAdd(tag_id, [tag_id, this]() {
+	const auto [size, image] = thumbnail_cache_.getOrAdd(tag_id, [tag_id, this]() {
 		XAMP_LOG_D(logger_, "load tag:{}", tag_id.toStdString());
 		return getFromFile(tag_id);
 	});
@@ -471,7 +471,7 @@ void ImageCache::setMaxSize(const size_t max_size) {
 }
 
 size_t ImageCache::size() const {
-	return thumbnail_cache_.GetSize();
+	return thumbnail_cache_.getSize();
 }
 
 QIcon ImageCache::uniformIcon(const QIcon& icon, QSize size) const {
@@ -485,20 +485,20 @@ QIcon ImageCache::uniformIcon(const QIcon& icon, QSize size) const {
 }
 
 QIcon ImageCache::getOrAddIcon(const QString& id) const {
-	return qIconCache.GetOrAdd(id, [id, this]() {
+	return qIconCache.getOrAdd(id, [id, this]() {
 		const QIcon icon(image_util::roundImage(qImageCache.getOrAddDefault(id), kCoverSize));
 		return uniformIcon(icon, kCoverSize);
 		});
 }
 
 void ImageCache::addOrUpdateIcon(const QString& id, const QIcon& value) const {
-	qIconCache.AddOrUpdate(id, value);
+	qIconCache.addOrUpdate(id, value);
 }
 
 void ImageCache::timerEvent(QTimerEvent* ) {
-	if (thumbnail_cache_.GetSize() > trim_target_size_) {
-		thumbnail_cache_.Evict(trim_target_size_);
+	if (thumbnail_cache_.getSize() > trim_target_size_) {
+		thumbnail_cache_.evict(trim_target_size_);
 	}
 	XAMP_LOG_T(logger_, "Trim target-cache-size: {}, cache: {}", 
-		String::FormatBytes(trim_target_size_), thumbnail_cache_);
+		String::formatBytes(trim_target_size_), thumbnail_cache_);
 }

@@ -139,14 +139,14 @@ public:
 
     void start(const Property& config, const std::shared_ptr<FastIOStream>& io_stream) {
         // 1) 從 config 解析關鍵參數
-        const auto input_file_path = config.AsPath(FileEncoderConfig::kInputFilePath);
-        const auto output_file_path = config.AsPath(FileEncoderConfig::kOutputFilePath);
-        codec_type_ = config.Get<std::string>(FileEncoderConfig::kCodecId);
-        aac_bit_rate_ = config.Get<uint32_t>(FileEncoderConfig::kBitRate);
+        const auto input_file_path = config.asPath(FileEncoderConfig::kInputFilePath);
+        const auto output_file_path = config.asPath(FileEncoderConfig::kOutputFilePath);
+        codec_type_ = config.get<std::string>(FileEncoderConfig::kCodecId);
+        aac_bit_rate_ = config.get<uint32_t>(FileEncoderConfig::kBitRate);
         file_name_ = String::toUtf8String(output_file_path.wstring());
 
         // 3) 建立輸入檔案讀取物件並打開
-        input_file_ = StreamFactory::MakeFileStream(input_file_path);
+        input_file_ = StreamFactory::makeFileStream(input_file_path);
 
         // 4) 若未指定 writer，則建立檔案寫入物件
         io_stream_ = io_stream;
@@ -192,12 +192,12 @@ public:
 
         if (io_stream_ != nullptr) {
             // 使用自訂 I/O
-            auto* avio_buffer = static_cast<uint8_t*>(LibAvDLL.Util->av_malloc(kFrameSize));
+            auto* avio_buffer = static_cast<uint8_t*>(LIB_AV_LIB.Util->av_malloc(kFrameSize));
             if (!avio_buffer) {
                 throw Exception("Failed to allocate AVIO buffer.");
             }
 
-            auto* custom_io_ctx = LibAvDLL.Format->avio_alloc_context(
+            auto* custom_io_ctx = LIB_AV_LIB.Format->avio_alloc_context(
                 avio_buffer,                // buffer
                 kFrameSize,                 // buffer size
                 1,                          // write_flag
@@ -207,14 +207,14 @@ public:
                 &CustomSeekPacket           // seek
             );
             if (!custom_io_ctx) {
-                LibAvDLL.Util->av_free(avio_buffer);
+                LIB_AV_LIB.Util->av_free(avio_buffer);
                 throw Exception("Failed to create custom AVIOContext.");
             }
 
             output_io_context_.reset(custom_io_ctx);
             close_output_io_context_ = false;
 
-            format_context_.reset(LibAvDLL.Format->avformat_alloc_context());
+            format_context_.reset(LIB_AV_LIB.Format->avformat_alloc_context());
             if (!format_context_) {
                 throw Exception();
             }
@@ -226,7 +226,7 @@ public:
         else {
             // 直接開檔案寫
             AVIOContext* output_io_context = nullptr;
-            AvIfFailedThrow(LibAvDLL.Format->avio_open(
+            AvIfFailedThrow(LIB_AV_LIB.Format->avio_open(
                 &output_io_context,
                 file_name,
                 AVIO_FLAG_WRITE
@@ -234,7 +234,7 @@ public:
             output_io_context_.reset(output_io_context);
             close_output_io_context_ = true;
 
-            format_context_.reset(LibAvDLL.Format->avformat_alloc_context());
+            format_context_.reset(LIB_AV_LIB.Format->avformat_alloc_context());
             if (!format_context_) {
                 throw Exception();
             }
@@ -243,7 +243,7 @@ public:
         }
 
         // 猜測輸出封裝格式
-        format_context_->oformat = LibAvDLL.Format->av_guess_format(
+        format_context_->oformat = LIB_AV_LIB.Format->av_guess_format(
             nullptr, file_name, nullptr
         );
 
@@ -251,17 +251,17 @@ public:
         // 依據 codec_id 建立 encoder，並分配 AVCodecContext
         //----------------------------------------------------------------------
 
-        auto* av_codec = LibAvDLL.Codec->avcodec_find_encoder(codec_id);
+        auto* av_codec = LIB_AV_LIB.Codec->avcodec_find_encoder(codec_id);
         if (!av_codec) {
             throw Exception("Encoder codec id not found.");
         }
 
-        impl_ = LibAvDLL.Format->avformat_new_stream(format_context_.get(), av_codec);
+        impl_ = LIB_AV_LIB.Format->avformat_new_stream(format_context_.get(), av_codec);
         if (!impl_) {
             throw Exception("Failed to create new stream.");
         }
 
-        codec_context_.reset(LibAvDLL.Codec->avcodec_alloc_context3(av_codec));
+        codec_context_.reset(LIB_AV_LIB.Codec->avcodec_alloc_context3(av_codec));
         codec_context_->channels = format.getChannels();
         codec_context_->channel_layout = kDefaultChannelLayout;
         codec_context_->sample_rate = format.getSampleRate();
@@ -313,7 +313,7 @@ public:
 
         if (codec_type_ == "alac") {
             codec_context_->extradata = static_cast<uint8_t*>(
-                LibAvDLL.Util->av_malloc(kAlacExtradataSize + AV_INPUT_BUFFER_PADDING_SIZE));
+                LIB_AV_LIB.Util->av_malloc(kAlacExtradataSize + AV_INPUT_BUFFER_PADDING_SIZE));
             codec_context_->extradata_size = kAlacExtradataSize;
             MemorySet(codec_context_->extradata, 0, kAlacExtradataSize);
 
@@ -342,44 +342,44 @@ public:
             // 避免使用 compression_level = 0
 
             // 開啟 ALAC 編碼器
-            AvIfFailedThrow(LibAvDLL.Codec->avcodec_open2(codec_context_.get(), av_codec, nullptr));
+            AvIfFailedThrow(LIB_AV_LIB.Codec->avcodec_open2(codec_context_.get(), av_codec, nullptr));
         }
         else if (codec_type_ == "aac") {
             // AAC 需要指定 profile
             AVDictionary* opts = nullptr;
-            LibAvDLL.Util->av_dict_set(&opts, "profile", "aac_low", 0);
+            LIB_AV_LIB.Util->av_dict_set(&opts, "profile", "aac_low", 0);
 
-            AvIfFailedThrow(LibAvDLL.Codec->avcodec_open2(codec_context_.get(), av_codec, &opts));
+            AvIfFailedThrow(LIB_AV_LIB.Codec->avcodec_open2(codec_context_.get(), av_codec, &opts));
         }
         else if (codec_type_ == "pcm") {
             // PCM 也要開啟編碼器流程
-            AvIfFailedThrow(LibAvDLL.Codec->avcodec_open2(codec_context_.get(), av_codec, nullptr));
+            AvIfFailedThrow(LIB_AV_LIB.Codec->avcodec_open2(codec_context_.get(), av_codec, nullptr));
         }
 
         // 將 codec_context 參數複製到 stream_->codecpar
-        AvIfFailedThrow(LibAvDLL.Codec->avcodec_parameters_from_context(
+        AvIfFailedThrow(LIB_AV_LIB.Codec->avcodec_parameters_from_context(
             impl_->codecpar, codec_context_.get()));
 
         // 寫入容器標頭
-        AvIfFailedThrow(LibAvDLL.Format->avformat_write_header(
+        AvIfFailedThrow(LIB_AV_LIB.Format->avformat_write_header(
             format_context_.get(), nullptr));
 
         // dump 格式資訊
-        LibAvDLL.Format->av_dump_format(format_context_.get(), 0, file_name, 1);
+        LIB_AV_LIB.Format->av_dump_format(format_context_.get(), 0, file_name, 1);
     }
 
     bool EncodeFrame(AVFrame* frame) {
         // 建立並初始化 AVPacket
         AvPtr<AVPacket> packet;
-        packet.reset(LibAvDLL.Codec->av_packet_alloc());
+        packet.reset(LIB_AV_LIB.Codec->av_packet_alloc());
         if (!packet) {
             throw Exception("Failed to allocate AVPacket.");
         }
-        LibAvDLL.Codec->av_init_packet(packet.get());
+        LIB_AV_LIB.Codec->av_init_packet(packet.get());
 
         // 設定 frame->pts
         if (frame != nullptr) {
-            frame->pts = LibAvDLL.Util->av_rescale_q(
+            frame->pts = LIB_AV_LIB.Util->av_rescale_q(
                 pts_,
                 AVRational{ 1, frame->sample_rate },
                 codec_context_->time_base
@@ -388,7 +388,7 @@ public:
         }
 
         // 送入 frame 給編碼器
-        auto ret = LibAvDLL.Codec->avcodec_send_frame(codec_context_.get(), frame);
+        auto ret = LIB_AV_LIB.Codec->avcodec_send_frame(codec_context_.get(), frame);
         if (ret == AVERROR_EOF) {
             XAMP_LOG_WARN("avcodec_send_frame: AVERROR_EOF");
             return false;
@@ -396,7 +396,7 @@ public:
         AvIfFailedThrow(ret);
 
         // 從編碼器讀取封包
-        ret = LibAvDLL.Codec->avcodec_receive_packet(codec_context_.get(), packet.get());
+        ret = LIB_AV_LIB.Codec->avcodec_receive_packet(codec_context_.get(), packet.get());
         if (ret == AVERROR_EOF) {
             return false;
         }
@@ -409,7 +409,7 @@ public:
         }
 
         // 寫入封裝容器
-        ret = LibAvDLL.Format->av_interleaved_write_frame(format_context_.get(), packet.get());
+        ret = LIB_AV_LIB.Format->av_interleaved_write_frame(format_context_.get(), packet.get());
         AvIfFailedThrow(ret);
         return true;
     }
@@ -418,7 +418,7 @@ public:
         const std::stop_token& stop_token) {
         // 分配並初始化輸出用的 AVFrame
         AvPtr<AVFrame> frame;
-        frame.reset(LibAvDLL.Util->av_frame_alloc());
+        frame.reset(LIB_AV_LIB.Util->av_frame_alloc());
         frame->format = codec_context_->sample_fmt;
         frame->channel_layout = codec_context_->channel_layout;
         frame->sample_rate = codec_context_->sample_rate;
@@ -443,7 +443,7 @@ public:
         uint64_t processed_samples = 0;
 
         // 要先為 frame 分配 buffer
-        auto ret = LibAvDLL.Util->av_frame_get_buffer(frame.get(), 0);
+        auto ret = LIB_AV_LIB.Util->av_frame_get_buffer(frame.get(), 0);
         if (ret < 0) {
             AvIfFailedThrow(ret);
         }
@@ -461,11 +461,11 @@ public:
 
         while (!stop_token.stop_requested() && input_file_->isActive()) {
             // 確保 frame 可寫
-            ret = LibAvDLL.Util->av_frame_make_writable(frame.get());
+            ret = LIB_AV_LIB.Util->av_frame_make_writable(frame.get());
             AvIfFailedThrow(ret);
 
             read_samples = 0;
-            buffer_.Fill(0.0f);
+            buffer_.fill(0.0f);
 
             // 讀取樣本，若一時讀不到就重試 (最多4次)，中間sleep 100ms
             if (bass_file_stream != nullptr) {
@@ -518,7 +518,7 @@ public:
         }
 
         // 寫入容器尾資訊
-        AvIfFailedThrow(LibAvDLL.Format->av_write_trailer(format_context_.get()));
+        AvIfFailedThrow(LIB_AV_LIB.Format->av_write_trailer(format_context_.get()));
     }
 
 private:
@@ -529,7 +529,7 @@ private:
 
         if (close_output_io_context_) {
             auto* context = output_io_context_.release();
-            LibAvDLL.Format->avio_closep(&context);
+            LIB_AV_LIB.Format->avio_closep(&context);
         }
         else {
             output_io_context_.reset();

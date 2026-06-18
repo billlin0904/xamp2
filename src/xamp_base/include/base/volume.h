@@ -9,10 +9,10 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-XAMP_BASE_API float VolumeLevelToDb(int32_t volume_level);
+XAMP_BASE_API float volumeLevelToDb(int32_t volume_level);
 
-XAMP_BASE_API float VolumeLevelToGain(int32_t volume_level);
+XAMP_BASE_API float volumeLevelToGain(int32_t volume_level);
 
-XAMP_BASE_API int32_t GainToVolumeLevel(float volume_db);
+XAMP_BASE_API int32_t gainToVolumeLevel(float volume_db);
 
 XAMP_BASE_NAMESPACE_END

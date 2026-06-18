@@ -16,7 +16,7 @@ public:
 	XAMP_DECLARE_SINGLETON_NAME()
 
 	AvrtLib()
-		: module_(OpenSharedLibrary("avrt"))
+		: module_(openSharedLibrary("avrt"))
 		, XAMP_LOAD_DLL_API(AvSetMmThreadCharacteristicsW)
 		, XAMP_LOAD_DLL_API(AvSetMmThreadPriority)
 		, XAMP_LOAD_DLL_API(AvRevertMmThreadCharacteristics) {

@@ -1,4 +1,4 @@
-﻿//=====================================================================================================================
+//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -46,7 +46,7 @@ public:
 
 		auto old_state = state_.load(std::memory_order_acquire);
 		lock.unlock();
-		auto ret = FastWait(state_, old_state, rel_time);
+		auto ret = fastWait(state_, old_state, rel_time);
 		lock.lock();
 		return ret;
 	}
@@ -74,12 +74,12 @@ public:
 	void notify_all() ;
 private:
 	template <typename Rep, typename Period>
-	std::cv_status FastWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, std::chrono::duration<Rep, Period> const& duration) {
+	std::cv_status fastWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, std::chrono::duration<Rep, Period> const& duration) {
 		using namespace std::chrono;		
 		timespec ts{};
 		ts.tv_sec = duration_cast<seconds>(duration).count();
 		ts.tv_nsec = duration_cast<nanoseconds>(duration).count() % 1000000000;		
-        return AtomicWait(to_wait_on, expected, &ts) == -1 // ABI
+        return atomicWait(to_wait_on, expected, &ts) == -1 // ABI
 			? std::cv_status::timeout : std::cv_status::no_timeout;
 	}
 

@@ -33,7 +33,7 @@ struct IsAtomic<std::atomic<t>> : std::true_type {
 };
 
 template <typename t>
-XAMP_ALWAYS_INLINE decltype(auto) FormatArgument(t&& value) {
+XAMP_ALWAYS_INLINE decltype(auto) formatArgument(t&& value) {
 	using ValueType = std::remove_cvref_t<t>;
 	if constexpr (IsAtomic<ValueType>::value) {
 		return value.load();
@@ -58,52 +58,52 @@ XAMP_ALWAYS_INLINE decltype(auto) FormatArgument(t&& value) {
 
 namespace String {
 
-XAMP_BASE_API std::wstring ToStdWString(std::string const& utf8);
+XAMP_BASE_API std::wstring toStdWString(std::string const& utf8);
 
 XAMP_BASE_API std::string toUtf8String(std::wstring const& utf16);
 
 XAMP_ALWAYS_INLINE std::wstring toString(std::string const& utf8) {
-	return ToStdWString(utf8);
+	return toStdWString(utf8);
 }
 
 XAMP_ALWAYS_INLINE std::string toString(std::wstring const& utf16) {
 	return toUtf8String(utf16);
 }
 
-XAMP_ALWAYS_INLINE std::string AsStdString(const std::string_view& s) {
+XAMP_ALWAYS_INLINE std::string asStdString(const std::string_view& s) {
     return { s.data(), s.size() };
 }
 
-XAMP_BASE_API std::string LocaleStringToUTF8(const std::string& str) noexcept;
+XAMP_BASE_API std::string localeStringToUTF8(const std::string& str) noexcept;
 
 template <typename CharType>
-std::basic_string<CharType> ToUpper(std::basic_string<CharType> s) {
+std::basic_string<CharType> toUpper(std::basic_string<CharType> s) {
 	std::transform(s.begin(), s.end(), s.begin(), ::toupper);
 	return s;
 }
 
 template <typename CharType>
-std::basic_string<CharType> ToLower(std::basic_string<CharType> s) {
+std::basic_string<CharType> toLower(std::basic_string<CharType> s) {
 	std::transform(s.begin(), s.end(), s.begin(), ::tolower);
 	return s;
 }
 
 template <typename CharType>
-void LTrim(std::basic_string<CharType> &s) {
+void ltrim(std::basic_string<CharType> &s) {
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](auto ch) {
                 return !std::isspace(ch);
             }));
 }
 
 template <typename CharType>
-void RTrim(std::basic_string<CharType> &s) {
+void rtrim(std::basic_string<CharType> &s) {
     s.erase(std::find_if(s.rbegin(), s.rend(), [](auto ch) {
                 return !std::isspace(ch);
             }).base(), s.end());
 }
 
 template <typename CharType>
-void Remove(std::basic_string<CharType>& s, const std::basic_string<CharType>& p) {
+void remove(std::basic_string<CharType>& s, const std::basic_string<CharType>& p) {
     auto n = p.length();
 
     for (auto i = s.find(p);
@@ -113,14 +113,14 @@ void Remove(std::basic_string<CharType>& s, const std::basic_string<CharType>& p
 }
 
 template <typename CharType>
-void Remove(std::basic_string<CharType>& s, const CharType* target) {
+void remove(std::basic_string<CharType>& s, const CharType* target) {
     std::basic_string<CharType> p(target);
-    Remove(s, p);
+    remove(s, p);
 }
 
-XAMP_BASE_API std::string FormatBytes(size_t bytes);
+XAMP_BASE_API std::string formatBytes(size_t bytes);
 
-XAMP_ALWAYS_INLINE std::string ToHex(const void* data,
+XAMP_ALWAYS_INLINE std::string toBeautyHex(const void* data,
     size_t size,
     size_t max_size = 256,
     std::string_view separator = " ") {
@@ -150,20 +150,20 @@ XAMP_ALWAYS_INLINE std::string ToHex(const void* data,
 }
 
 template <typename t>
-XAMP_ALWAYS_INLINE std::string ToHex(const t* data,
+XAMP_ALWAYS_INLINE std::string toBeautyHex(const t* data,
     size_t count,
     size_t max_bytes = 256,
     std::string_view separator = " ") {
-    return ToHex(static_cast<const void*>(data), sizeof(t) * count, max_bytes, separator);
+    return toBeautyHex(static_cast<const void*>(data), sizeof(t) * count, max_bytes, separator);
 }
 
 template <typename t>
-XAMP_ALWAYS_INLINE std::string FormatBytesBy(size_t bytes) {
-    return FormatBytes(sizeof(t) * bytes);
+XAMP_ALWAYS_INLINE std::string formatBytesBy(size_t bytes) {
+    return formatBytes(sizeof(t) * bytes);
 }
 
 template <typename  C>
-std::string Join(C const& pieces, std::string_view const separator = ",") {
+std::string join(C const& pieces, std::string_view const separator = ",") {
     std::string s;
     s.reserve(pieces.size() * 16);
     auto prev = std::prev(pieces.end());
@@ -178,7 +178,7 @@ std::string Join(C const& pieces, std::string_view const separator = ",") {
 }
 
 template <typename t>
-XAMP_ALWAYS_INLINE std::vector<std::basic_string_view<t>> Split(std::basic_string_view<t> s,
+XAMP_ALWAYS_INLINE std::vector<std::basic_string_view<t>> split(std::basic_string_view<t> s,
     const std::basic_string_view<t> delims = " ") {
     std::vector<std::basic_string_view<t>> output;
     size_t first = 0;
@@ -199,14 +199,14 @@ XAMP_ALWAYS_INLINE std::vector<std::basic_string_view<t>> Split(std::basic_strin
 }
 
 template <typename t>
-XAMP_ALWAYS_INLINE std::vector<std::basic_string_view<t>> Split(const t* s,
+XAMP_ALWAYS_INLINE std::vector<std::basic_string_view<t>> split(const t* s,
     const t* delims = " ") {
-    return Split(std::basic_string_view<t>(s), std::basic_string_view<t>(delims));
+    return split(std::basic_string_view<t>(s), std::basic_string_view<t>(delims));
 }
 
 template <typename... Args>
-XAMP_ALWAYS_INLINE std::string Format(std::string_view s, Args &&...args) {
-    return fmt::format(fmt::runtime(s), detail::FormatArgument(std::forward<Args>(args))...);
+XAMP_ALWAYS_INLINE std::string format(std::string_view s, Args &&...args) {
+    return fmt::format(fmt::runtime(s), detail::formatArgument(std::forward<Args>(args))...);
 }
 
 }

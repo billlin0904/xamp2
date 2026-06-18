@@ -23,7 +23,7 @@ namespace {
         XAMP_DECLARE_SINGLETON_NAME()
 
         FlacLib()
-            : module_(OpenSharedLibrary("FLAC"))
+            : module_(openSharedLibrary("FLAC"))
             , XAMP_LOAD_DLL_API(FLAC__stream_decoder_new)
             , XAMP_LOAD_DLL_API(FLAC__stream_decoder_delete)
             , XAMP_LOAD_DLL_API(FLAC__stream_decoder_finish)

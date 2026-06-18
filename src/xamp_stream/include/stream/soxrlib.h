@@ -38,7 +38,7 @@ public:
 };
 
 inline SoxrLib::SoxrLib() try
-    : module_(OpenSharedLibrary("soxr"))
+    : module_(openSharedLibrary("soxr"))
     , XAMP_LOAD_DLL_API(soxr_quality_spec)
     , XAMP_LOAD_DLL_API(soxr_create)
     , XAMP_LOAD_DLL_API(soxr_process)
@@ -51,6 +51,6 @@ catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.getErrorMessage());
 }
 
-#define LibSoxrDLL SharedSingleton<SoxrLib>::getInstance()
+#define LIB_SOXR SharedSingleton<SoxrLib>::getInstance()
 
 XAMP_STREAM_NAMESPACE_END

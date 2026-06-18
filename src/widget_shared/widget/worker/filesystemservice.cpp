@@ -52,7 +52,7 @@ void FileSystemService::onExtractFile(const QString& file_path,
 		emit readFileProgress(100);
 		emit readCompleted();
 		XAMP_LOG_D(logger_, "Finish to scan track info. ({} secs)", 
-			total_time_elapsed_.ElapsedSeconds());
+			total_time_elapsed_.elapsedSeconds());
 	);
 
 	playlist_id_ = playlist_id;
@@ -89,7 +89,7 @@ void FileSystemService::onExtractFile(const QString& file_path,
 				playlist_id,
 				tracks.size(),
 				track_count,
-				total_time_elapsed_.ElapsedSeconds());
+				total_time_elapsed_.elapsedSeconds());
 			emit batchInsertDatabase(tracks, playlist_id);
 			};
 		callbacks.on_tracks = [this, playlist_id](auto tracks) {
@@ -98,7 +98,7 @@ void FileSystemService::onExtractFile(const QString& file_path,
 				"Metadata scan tracks ready playlist:{} tracks:{} elapsed:{:.3f}s",
 				playlist_id,
 				track_count,
-				total_time_elapsed_.ElapsedSeconds());
+				total_time_elapsed_.elapsedSeconds());
 			emit insertDatabase(tracks, playlist_id);
 			};
 
@@ -115,7 +115,7 @@ void FileSystemService::onExtractFile(const QString& file_path,
 	catch (const std::exception& e) {
 		XAMP_LOG_DEBUG("Failed to scan file:{} ({})",
 			String::toString(file_path.toStdWString()),
-			String::LocaleStringToUTF8(e.what()));
+			String::localeStringToUTF8(e.what()));
 	}
 }
 
@@ -125,7 +125,7 @@ void FileSystemService::updateProgress() {
 	}
 
 	std::scoped_lock lock(progress_mutex_);
-	if (update_ui_elapsed_.ElapsedSeconds() < 1.0) {
+	if (update_ui_elapsed_.elapsedSeconds() < 1.0) {
 		return;
 	}
 
@@ -136,7 +136,7 @@ void FileSystemService::updateProgress() {
 	}
 
 	emit readFileProgress(static_cast<int32_t>((completed_work * 100) / total_work));
-	const auto elapsed_time = total_time_elapsed_.ElapsedSeconds();
+	const auto elapsed_time = total_time_elapsed_.elapsedSeconds();
 
 	size_t diff_work = completed_work - last_completed_work_;
 	if (elapsed_time > 0.0) {

@@ -338,7 +338,7 @@ void ExclusiveWasapiDevice::openStream(const AudioFormat& output_format) {
 
 	// create convert function.
     data_convert_ = makeConvert(buffer_frames_);
-	XAMP_LOG_D(logger_, "WASAPI internal buffer: {}.", String::FormatBytes(buffer_.getByteSize()));
+	XAMP_LOG_D(logger_, "WASAPI internal buffer: {}.", String::formatBytes(buffer_.getByteSize()));
 }
 
 void ExclusiveWasapiDevice::setSchedulerService(std::wstring const &mmcss_name, MmcssThreadPriority thread_priority) {
@@ -542,7 +542,7 @@ uint32_t ExclusiveWasapiDevice::getVolume() const {
 		return 100;
 	}
 	if (!isHardwareControlVolume()) {
-		return GainToVolumeLevel(data_convert_.volume_factor);
+		return gainToVolumeLevel(data_convert_.volume_factor);
 	}
 	auto volume_scalar = 0.0F;
 	hrIfFailThrow(endpoint_volume_->GetMasterVolumeLevelScalar(&volume_scalar));
@@ -562,7 +562,7 @@ void ExclusiveWasapiDevice::setVolume(uint32_t volume) const {
 	}
 
 	if (!isHardwareControlVolume()) {
-		data_convert_.volume_factor = VolumeLevelToGain(volume);
+		data_convert_.volume_factor = volumeLevelToGain(volume);
 		return;
 	}
 

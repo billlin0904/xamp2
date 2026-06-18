@@ -15,13 +15,13 @@ XAMP_BASE_NAMESPACE_BEGIN
 /*
 * AudioBuffer is a thread safe circular buffer.
 * 
-* @tparam t is the type of the buffer.
+* @tparam T is the type of the buffer.
 * @tparam U is the enable_if_t type.
 */
 template
 <
-	typename t,
-	typename U = std::enable_if_t<std::is_trivially_copyable_v<t>>>
+	typename T,
+	typename U = std::enable_if_t<std::is_trivially_copyable_v<T>>>
 class AudioBuffer final {
 public:
 	/*
@@ -46,7 +46,7 @@ public:
 	* 
 	* @return the buffer data.
 	*/
-	t* getData() const ;
+	T* data() const ;
 
 	/*
 	* Clear the buffer.
@@ -66,7 +66,7 @@ public:
 	* 
 	* @return the buffer size.
 	*/
-	size_t getSize() const ;
+	size_t size() const ;
 
 	/*
 	* Get the buffer byte size.
@@ -96,7 +96,7 @@ public:
 	* @param[in] count is the number of data to write.
 	* @return true if write success.
 	*/
-	bool tryWrite(const t* data, size_t count) ;
+	bool tryWrite(const T* data, size_t count) ;
 
 	/*
 	* read data from the buffer.
@@ -106,14 +106,14 @@ public:
 	* @param[out] num_filled_count is the number of data read.
 	* @return true if read success.
 	*/
-	bool tryRead(t* data, size_t count, size_t& num_filled_count) ;
+	bool tryRead(T* data, size_t count, size_t& num_filled_count) ;
 
 	/*
 	* Fill the buffer with value.
 	* 
 	* @param[in] value is the value to fill.
 	*/
-	void fill(t value) ;
+	void fill(T value) ;
 
 private:
 	/*
@@ -137,74 +137,74 @@ private:
 	XAMP_CACHE_ALIGNED(kCacheAlignSize) size_t size_;
 	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> head_;
 	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> tail_;
-	Buffer<t> buffer_;
+	Buffer<T> buffer_;
 };
 
-template <typename Type, typename U>
-AudioBuffer<Type, U>::AudioBuffer() : size_(0)
+template <typename T, typename U>
+AudioBuffer<T, U>::AudioBuffer() : size_(0)
 	, head_(0)
 	, tail_(0) {
 }
 
-template <typename Type, typename U>
-AudioBuffer<Type, U>::AudioBuffer(size_t size)
+template <typename T, typename U>
+AudioBuffer<T, U>::AudioBuffer(size_t size)
 	: AudioBuffer() {
 	resize(size);
 }
 
-template <typename Type, typename U>
-AudioBuffer<Type, U>::~AudioBuffer() = default;
+template <typename T, typename U>
+AudioBuffer<T, U>::~AudioBuffer() = default;
 
-template <typename Type, typename U>
-Type* AudioBuffer<Type, U>::getData() const {
+template <typename T, typename U>
+T* AudioBuffer<T, U>::data() const {
 	return buffer_.get();
 }
 
-template <typename Type, typename U>
-size_t AudioBuffer<Type, U>::getSize() const {
+template <typename T, typename U>
+size_t AudioBuffer<T, U>::size() const {
 	return size_;
 }
 
-template <typename Type, typename U>
-size_t AudioBuffer<Type, U>::getByteSize() const {
-	return getSize() * 8;
+template <typename T, typename U>
+size_t AudioBuffer<T, U>::getByteSize() const {
+	return size() * 8;
 }
 
-template <typename Type, typename U>
-void AudioBuffer<Type, U>::resize(size_t size) {
-	if (size > size_) {
-		auto new_buffer = makeBuffer<Type>(size);
-		if (getSize() > 0) {
-			MemoryCopy(new_buffer.get(), buffer_.get(), sizeof(Type) * getSize());
+template <typename T, typename U>
+void AudioBuffer<T, U>::resize(size_t new_size) {
+	if (new_size > size_) {
+		auto new_buffer = makeBuffer<T>(new_size);
+		if (size() > 0) {
+			MemoryCopy(new_buffer.get(), buffer_.get(), sizeof(T) * size());
 		}
 		buffer_ = std::move(new_buffer);
-		size_ = size;
+		size_ = new_size;
 	}
 }
 
-template <typename Type, typename U>
-void AudioBuffer<Type, U>::clear() {
+template <typename T, typename U>
+void AudioBuffer<T, U>::clear() {
 	head_ = 0;
 	tail_ = 0;
 }
 
-template <typename Type, typename U>
-void AudioBuffer<Type, U>::fill(Type value) {
-	MemorySet(buffer_.get(), value, sizeof(Type) * size_);
+template <typename T, typename U>
+void AudioBuffer<T, U>::fill(T value) {
+	MemorySet(buffer_.get(), value, sizeof(T) * size_);
 }
 
-template <typename Type, typename U>
-size_t AudioBuffer<Type, U>::getAvailableWrite() const {
+template <typename T, typename U>
+size_t AudioBuffer<T, U>::getAvailableWrite() const {
 	return getAvailableWrite(head_, tail_);
 }
 
-template <typename Type, typename U>
-size_t AudioBuffer<Type, U>::getAvailableRead() const {
+template <typename T, typename U>
+size_t AudioBuffer<T, U>::getAvailableRead() const {
 	return getAvailableRead(head_, tail_);
 }
 
-template <typename Type, typename U>
-XAMP_ALWAYS_INLINE size_t AudioBuffer<Type, U>::getAvailableWrite(size_t head, size_t tail) const {
+template <typename T, typename U>
+XAMP_ALWAYS_INLINE size_t AudioBuffer<T, U>::getAvailableWrite(size_t head, size_t tail) const {
 	auto result = tail - head - 1;
 	if (head >= tail) {
 		result += size_;
@@ -212,16 +212,16 @@ XAMP_ALWAYS_INLINE size_t AudioBuffer<Type, U>::getAvailableWrite(size_t head, s
 	return result;
 }
 
-template <typename Type, typename U>
-XAMP_ALWAYS_INLINE size_t AudioBuffer<Type, U>::getAvailableRead(size_t head, size_t tail) const {
+template <typename T, typename U>
+XAMP_ALWAYS_INLINE size_t AudioBuffer<T, U>::getAvailableRead(size_t head, size_t tail) const {
 	if (head >= tail) {
 		return head - tail;
 	}
 	return head + size_ - tail;
 }
 
-template <typename Type, typename U>
-bool AudioBuffer<Type, U>::tryWrite(const Type* data, size_t count) {
+template <typename T, typename U>
+bool AudioBuffer<T, U>::tryWrite(const T* data, size_t count) {
 	const auto head = head_.load(std::memory_order_relaxed);
 	const auto tail = tail_.load(std::memory_order_acquire);
 
@@ -234,12 +234,12 @@ bool AudioBuffer<Type, U>::tryWrite(const Type* data, size_t count) {
 	if (next_head > size_) {
 		const auto range1 = size_ - head;
 		const auto range2 = count - range1;
-		MemoryCopy(buffer_.get() + head, data, range1 * sizeof(Type));
-		MemoryCopy(buffer_.get(), data + range1, range2 * sizeof(Type));
+		MemoryCopy(buffer_.get() + head, data, range1 * sizeof(T));
+		MemoryCopy(buffer_.get(), data + range1, range2 * sizeof(T));
 		next_head -= size_;
 	}
 	else {
-		MemoryCopy(buffer_.get() + head, data, count * sizeof(Type));
+		MemoryCopy(buffer_.get() + head, data, count * sizeof(T));
 		if (next_head == size_) {
 			next_head = 0;
 		}
@@ -248,8 +248,8 @@ bool AudioBuffer<Type, U>::tryWrite(const Type* data, size_t count) {
 	return true;
 }
 
-template <typename Type, typename U>
-bool AudioBuffer<Type, U>::tryRead(Type* data, size_t count, size_t& num_filled_count) {
+template <typename T, typename U>
+bool AudioBuffer<T, U>::tryRead(T* data, size_t count, size_t& num_filled_count) {
 	const auto head = head_.load(std::memory_order_acquire);
 	const auto tail = tail_.load(std::memory_order_relaxed);
 
@@ -264,12 +264,12 @@ bool AudioBuffer<Type, U>::tryRead(Type* data, size_t count, size_t& num_filled_
 	if (next_tail > size_) {
 		const auto range1 = size_ - tail;
 		const auto range2 = count - range1;
-		MemoryCopy(data, buffer_.get() + tail, range1 * sizeof(Type));
-		MemoryCopy(data + range1, buffer_.get(), range2 * sizeof(Type));
+		MemoryCopy(data, buffer_.get() + tail, range1 * sizeof(T));
+		MemoryCopy(data + range1, buffer_.get(), range2 * sizeof(T));
 		next_tail -= size_;
 	}
 	else {
-		MemoryCopy(data, buffer_.get() + tail, count * sizeof(Type));
+		MemoryCopy(data, buffer_.get() + tail, count * sizeof(T));
 		if (next_tail == size_) {
 			next_tail = 0;
 		}

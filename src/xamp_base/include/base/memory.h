@@ -18,13 +18,13 @@ class MemoryMappedFile;
 
 inline constexpr size_t kMaxPreReadFileSize = 65536;
 
-XAMP_BASE_API size_t GetPageSize() ;
+XAMP_BASE_API size_t getPageSize() ;
 
-XAMP_BASE_API bool PrefetchFile(std::wstring const& file_path);
+XAMP_BASE_API bool prefetchFile(std::wstring const& file_path);
 
-XAMP_BASE_API bool PrefetchFile(MemoryMappedFile& file_, size_t prefech_size = kMaxPreReadFileSize);
+XAMP_BASE_API bool prefetchFile(MemoryMappedFile& file_, size_t prefech_size = kMaxPreReadFileSize);
 
-XAMP_BASE_API bool PrefetchMemory(void* adddr, size_t length) ;
+XAMP_BASE_API bool prefetchMemory(void* adddr, size_t length) ;
 
 #define MemorySet(dest, c, size) std::memset(dest, c, size)
 #define MemoryCopy(dest, src, size) std::memcpy(dest, src, size)

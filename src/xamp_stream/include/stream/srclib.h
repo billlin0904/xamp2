@@ -37,7 +37,7 @@ public:
 };
 
 inline SrcLib::SrcLib() try
-    : module_(OpenSharedLibrary("samplerate"))
+    : module_(openSharedLibrary("samplerate"))
     , XAMP_LOAD_DLL_API(src_new)
     , XAMP_LOAD_DLL_API(src_reset)
     , XAMP_LOAD_DLL_API(src_callback_new)
@@ -51,6 +51,6 @@ catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.getErrorMessage());
 }
 
-#define LibSrcDLL SharedSingleton<SrcLib>::getInstance()
+#define LIB_SRC SharedSingleton<SrcLib>::getInstance()
 
 XAMP_STREAM_NAMESPACE_END

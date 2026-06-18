@@ -206,7 +206,7 @@ public:
     LoggerPtr logger;
 };
 
-#define LibAvDLL SharedSingleton<AvLib>::getInstance()
+#define LIB_AV_LIB SharedSingleton<AvLib>::getInstance()
 
 template <typename t>
 struct AvResourceDeleter;
@@ -215,7 +215,7 @@ template <>
 struct AvResourceDeleter<AVFormatContext> {
     void operator()(AVFormatContext* p) const {
         XAMP_EXPECTS(p != nullptr);
-        LibAvDLL.Format->avformat_free_context(p);
+        LIB_AV_LIB.Format->avformat_free_context(p);
     }
 };
 
@@ -223,7 +223,7 @@ template <>
 struct AvResourceDeleter<AVIOContext> {
     void operator()(AVIOContext* p) const {
         XAMP_EXPECTS(p != nullptr);
-        LibAvDLL.Format->avio_context_free(&p);
+        LIB_AV_LIB.Format->avio_context_free(&p);
     }
 };
 
@@ -231,8 +231,8 @@ template <>
 struct AvResourceDeleter<AVCodecContext> {
     void operator()(AVCodecContext* p) const {
         XAMP_EXPECTS(p != nullptr);
-        LibAvDLL.Codec->avcodec_close(p);
-        LibAvDLL.Codec->avcodec_free_context(&p);
+        LIB_AV_LIB.Codec->avcodec_close(p);
+        LIB_AV_LIB.Codec->avcodec_free_context(&p);
     }
 };
 
@@ -240,7 +240,7 @@ template <>
 struct AvResourceDeleter<SwrContext> {
     void operator()(SwrContext* p) const {
         XAMP_EXPECTS(p != nullptr);
-        LibAvDLL.Swr->swr_free(&p);
+        LIB_AV_LIB.Swr->swr_free(&p);
     }
 };
 
@@ -248,7 +248,7 @@ template <>
 struct AvResourceDeleter<AVStream> {
     void operator()(AVStream* p) const {
         XAMP_EXPECTS(p != nullptr);
-        LibAvDLL.Util->av_free(p);
+        LIB_AV_LIB.Util->av_free(p);
     }
 };
 
@@ -256,7 +256,7 @@ template <>
 struct AvResourceDeleter<AVPacket> {
     void operator()(AVPacket* p) const {
         XAMP_EXPECTS(p != nullptr);
-        LibAvDLL.Codec->av_packet_free(&p);
+        LIB_AV_LIB.Codec->av_packet_free(&p);
     }
 };
 
@@ -264,7 +264,7 @@ template <>
 struct AvResourceDeleter<AVFrame> {
     void operator()(AVFrame* p) const {
         XAMP_EXPECTS(p != nullptr);
-        LibAvDLL.Util->av_frame_free(&p);
+        LIB_AV_LIB.Util->av_frame_free(&p);
     }
 };
 
@@ -272,7 +272,7 @@ template <>
 struct AvResourceDeleter<AVAudioFifo> {
     void operator()(AVAudioFifo* p) const {
         XAMP_EXPECTS(p != nullptr);
-        LibAvDLL.Util->av_audio_fifo_free(p);
+        LIB_AV_LIB.Util->av_audio_fifo_free(p);
     }
 };
 
@@ -280,7 +280,7 @@ template <>
 struct AvResourceDeleter<AVDictionary> {
     void operator()(AVDictionary* p) const {
         XAMP_EXPECTS(p != nullptr);
-        LibAvDLL.Util->av_dict_free(&p);
+        LIB_AV_LIB.Util->av_dict_free(&p);
     }
 };
 

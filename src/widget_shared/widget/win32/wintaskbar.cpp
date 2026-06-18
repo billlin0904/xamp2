@@ -69,7 +69,7 @@ namespace {
 		XAMP_DECLARE_SINGLETON_NAME()
 
 		DwmapiLib()
-			: module_(OpenSharedLibrary("dwmapi"))
+			: module_(openSharedLibrary("dwmapi"))
 			, XAMP_LOAD_DLL_API(DwmInvalidateIconicBitmaps)
 			, XAMP_LOAD_DLL_API(DwmSetWindowAttribute)
 			, XAMP_LOAD_DLL_API(DwmSetIconicThumbnail)

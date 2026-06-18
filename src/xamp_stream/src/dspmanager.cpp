@@ -98,7 +98,7 @@ bool DSPManager::canProcess() const {
         return false;
     }
 
-	const auto dsd_mode = config_.Get<DsdModes>(DspConfig::kDsdMode);
+	const auto dsd_mode = config_.get<DsdModes>(DspConfig::kDsdMode);
     if (dsd_mode == DsdModes::DSD_MODE_PCM
         || dsd_mode == DsdModes::DSD_MODE_DSD2PCM) {
         return true;
@@ -190,8 +190,8 @@ void DSPManager::initialize(const Property& config) {
     config_ = config;
 
     if (!sample_writer_) {
-        auto sample_size = config_.Get<uint32_t>(DspConfig::kSampleSize);
-        auto dsd_mode = config_.Get<DsdModes>(DspConfig::kDsdMode);
+        auto sample_size = config_.get<uint32_t>(DspConfig::kSampleSize);
+        auto dsd_mode = config_.get<DsdModes>(DspConfig::kDsdMode);
         sample_writer_ = makeAlign<ISampleWriter, DsdModeSampleWriter>(dsd_mode, sample_size);
     }
 

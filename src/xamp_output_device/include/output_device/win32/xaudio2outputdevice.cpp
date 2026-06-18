@@ -355,7 +355,9 @@ void XAudio2OutputDevice::startStream() {
 			voice_context_.get()));
 	}
 
-	render_task_ = Executor::spawn(thread_pool_, [this](const auto& stop_token) {
+	render_task_ = thread_pool_->spawn(SubmitPolicy::SUBMIT_POLICY_NORMAL,
+		ExecuteFlags::EXECUTE_LONG_RUNNING,
+		[this](const auto& stop_token) {
 		is_running_.store(true, std::memory_order_release);
 
 		const std::array<HANDLE, 2> objects{

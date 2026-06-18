@@ -16,13 +16,13 @@
 XAMP_BASE_NAMESPACE_BEGIN
 
 #ifdef XAMP_OS_WIN
-size_t GetPageSize() {
+size_t getPageSize() {
 	SYSTEM_INFO system_info;
 	::GetSystemInfo(&system_info);
 	return system_info.dwPageSize;
 }
 
-bool PrefetchMemory(void* addr, size_t length) {
+bool prefetchMemory(void* addr, size_t length) {
 	XAMP_EXPECTS(addr != nullptr);
 	XAMP_EXPECTS(length > 0);	
 
@@ -40,24 +40,24 @@ bool PrefetchMemory(void* addr, size_t length) {
 	return false;
 }
 #else
-size_t GetPageSize() {
+size_t getPageSize() {
     return static_cast<size_t>(::getpagesize());
 }
 
-bool PrefetchMemory(void* adddr, size_t length) {
+bool prefetchMemory(void* adddr, size_t length) {
     return ::madvise(adddr, length, MADV_SEQUENTIAL) == 0;
 }
 #endif
 
-bool PrefetchFile(MemoryMappedFile &file_, size_t prefech_size) {
-    const auto prefetch_file_size = (std::min)(prefech_size, file_.getLength());
-	if (PrefetchMemory(const_cast<void*>(file_.getData()), prefetch_file_size)) {		
+bool prefetchFile(MemoryMappedFile &file_, size_t prefech_size) {
+    const auto prefetch_file_size = (std::min)(prefech_size, file_.length());
+	if (prefetchMemory(const_cast<void*>(file_.data()), prefetch_file_size)) {		
 		return true;
 	}
 	return false;
 }
 
-bool PrefetchFile(std::wstring const & file_path) {
+bool prefetchFile(std::wstring const & file_path) {
 #if 0
 	FileHandle file(::CreateFileW(file_path.c_str(),
 		GENERIC_READ,
@@ -88,7 +88,7 @@ bool PrefetchFile(std::wstring const & file_path) {
 #else
 	MemoryMappedFile file_;
 	if (file_.open(file_path)) {
-		return PrefetchFile(file_);
+		return prefetchFile(file_);
 	}
 	return false;
 #endif
@@ -96,7 +96,7 @@ bool PrefetchFile(std::wstring const & file_path) {
 
 
 #ifndef XAMP_OS_WIN
-void* AlignedMalloc(size_t size, size_t aligned_size) {
+void* alignedMalloc(size_t size, size_t aligned_size) {
 	void* p = nullptr;
 	return ::posix_memalign(&p, aligned_size, size) == 0 ? p : nullptr;
 }
@@ -105,7 +105,7 @@ void alignedFree(void* p) {
 	return ::free(p);
 }
 
-void* StackAlloc(size_t size) {
+void* stackAlloc(size_t size) {
 	auto ptr = ::alloca(size);
 	return ptr;
 }
@@ -116,7 +116,7 @@ void stackFree(void* p) {
 
 #else
 void* alignedMalloc(size_t size, size_t aligned_size) {
-	XAMP_EXPECTS(IsPowerOfTwo(aligned_size));
+	XAMP_EXPECTS(isPowerOfTwo(aligned_size));
 	return ::_aligned_malloc(size, aligned_size);
 }
 

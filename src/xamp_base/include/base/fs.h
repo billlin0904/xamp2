@@ -38,7 +38,7 @@ inline constexpr auto kIteratorOptions{
 
 XAMP_BASE_API bool IsFilePath(const Path& file_path) ;
 
-XAMP_BASE_API std::string GetSharedLibraryName(const std::string_view &name);
+XAMP_BASE_API std::string getSharedLibraryName(const std::string_view &name);
 
 XAMP_BASE_API Path getTempFileNamePath();
 
@@ -54,7 +54,7 @@ XAMP_BASE_API bool IsFileOnSsd(const Path& path);
 
 XAMP_BASE_API std::expected<std::string, TextEncodeingError> ReadFileToUtf8String(const Path& path);
 
-XAMP_BASE_API std::expected<std::wstring, Errors> NormalizePathToWideString(const Path& path);
+XAMP_BASE_API std::expected<std::wstring, Errors> normalizePathToWideString(const Path& path);
 
 /*
 * Exception safe file.

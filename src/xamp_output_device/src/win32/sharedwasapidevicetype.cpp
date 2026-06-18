@@ -56,7 +56,7 @@ CComPtr<IMMDevice> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetDevice
 }
 
 ScopedPtr<IOutputDevice> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::makeDevice(const std::string & device_id) {
-	return makeAlign<IOutputDevice, SharedWasapiDevice>(false, GetDeviceById(String::ToStdWString(device_id)));
+	return makeAlign<IOutputDevice, SharedWasapiDevice>(false, GetDeviceById(String::toStdWString(device_id)));
 }
 
 DeviceInfo SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::getDeviceInfo(uint32_t device) const {

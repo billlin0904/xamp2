@@ -162,7 +162,7 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
         XAMP_LOG_D(logger_,
             "Skip album cover request because thumbnail fetch is disabled. music:{} elapsed:{:.3f}s",
             id.first,
-            total_elapsed.ElapsedSeconds());
+            total_elapsed.elapsedSeconds());
         return;
     }
 
@@ -170,7 +170,7 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
         XAMP_LOG_D(logger_,
             "Skip album cover request because album id is missing. music:{} elapsed:{:.3f}s",
             id.first,
-            total_elapsed.ElapsedSeconds());
+            total_elapsed.elapsedSeconds());
         return;
     }
 
@@ -180,7 +180,7 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
             "Skip completed album cover request. music:{} album:{} elapsed:{:.3f}s",
             id.first,
             album_id,
-            total_elapsed.ElapsedSeconds());
+            total_elapsed.elapsedSeconds());
         return;
     }
 
@@ -189,7 +189,7 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
             "Skip duplicated album cover request. music:{} album:{} elapsed:{:.3f}s",
             id.first,
             album_id,
-            total_elapsed.ElapsedSeconds());
+            total_elapsed.elapsedSeconds());
         return;
     }
     pending_album_cover_ids_.insert(album_id);
@@ -202,13 +202,13 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
         album_id);
 
     stage_elapsed.reset();
-    auto db = database_ptr_->Acquire();
-    const auto acquire_db_elapsed = stage_elapsed.ElapsedSeconds();
+    auto db = database_ptr_->acquire();
+    const auto acquire_db_elapsed = stage_elapsed.elapsedSeconds();
 
     stage_elapsed.reset();
     dao::AlbumDao album_dao(db->getDatabase());
     dao::MusicDao music_dao(db->getDatabase());
-    const auto dao_create_elapsed = stage_elapsed.ElapsedSeconds();
+    const auto dao_create_elapsed = stage_elapsed.elapsedSeconds();
 
     XAMP_LOG_D(logger_,
         "Album cover request database ready. music:{} album:{} acquire_db:{:.3f}s create_dao:{:.3f}s total:{:.3f}s",
@@ -216,12 +216,12 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
         album_id,
         acquire_db_elapsed,
         dao_create_elapsed,
-        total_elapsed.ElapsedSeconds());
+        total_elapsed.elapsedSeconds());
 
     try {
         stage_elapsed.reset();
 	    const auto cover_id = album_dao.getAlbumCoverId(album_id);
-        const auto get_cover_id_elapsed = stage_elapsed.ElapsedSeconds();
+        const auto get_cover_id_elapsed = stage_elapsed.elapsedSeconds();
 
         XAMP_LOG_D(logger_,
             "Album cover id lookup completed. music:{} album:{} cover:{} elapsed:{:.3f}s total:{:.3f}s",
@@ -229,12 +229,12 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
             album_id,
             cover_id.toStdString(),
             get_cover_id_elapsed,
-            total_elapsed.ElapsedSeconds());
+            total_elapsed.elapsedSeconds());
 
         if (!isNullOfEmpty(cover_id) && cover_id != "unknown_album"_str) {
             stage_elapsed.reset();
             if (qImageCache.isFileExists(QString{}, cover_id)) {
-                const auto cache_exists_elapsed = stage_elapsed.ElapsedSeconds();
+                const auto cache_exists_elapsed = stage_elapsed.elapsedSeconds();
                 completed_album_cover_ids_.insert(album_id);
                 XAMP_LOG_D(logger_,
                     "Album cover already exists in database. music:{} album:{} cover:{} cache_exists:{:.3f}s total:{:.3f}s",
@@ -242,10 +242,10 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
                     album_id,
                     cover_id.toStdString(),
                     cache_exists_elapsed,
-                    total_elapsed.ElapsedSeconds());
+                    total_elapsed.elapsedSeconds());
                 return;
             }
-            const auto cache_exists_elapsed = stage_elapsed.ElapsedSeconds();
+            const auto cache_exists_elapsed = stage_elapsed.elapsedSeconds();
 
             XAMP_LOG_D(logger_,
                 "Album cover id exists but cache file is missing. music:{} album:{} cover:{} cache_exists:{:.3f}s total:{:.3f}s",
@@ -253,13 +253,13 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
                 album_id,
                 cover_id.toStdString(),
                 cache_exists_elapsed,
-                total_elapsed.ElapsedSeconds());
+                total_elapsed.elapsedSeconds());
         }
 
         // 1. read embedded cover in music file.
         stage_elapsed.reset();
         auto music_file_path = music_dao.getMusicFilePath(id.first).toStdWString();
-        const auto music_path_lookup_elapsed = stage_elapsed.ElapsedSeconds();
+        const auto music_path_lookup_elapsed = stage_elapsed.elapsedSeconds();
 
         XAMP_LOG_D(logger_,
             "Album cover music path lookup completed. music:{} album:{} has_path:{} elapsed:{:.3f}s total:{:.3f}s",
@@ -267,7 +267,7 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
             album_id,
             !music_file_path.empty(),
             music_path_lookup_elapsed,
-            total_elapsed.ElapsedSeconds());
+            total_elapsed.elapsedSeconds());
 
         if (music_file_path.empty()) {
             // 2. read embedded cover in album first music file.
@@ -275,7 +275,7 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
             if (auto file_path = album_dao.getAlbumFirstMusicFilePath(album_id)) {
                 music_file_path = file_path->toStdWString();
             }
-            const auto album_first_path_elapsed = stage_elapsed.ElapsedSeconds();
+            const auto album_first_path_elapsed = stage_elapsed.elapsedSeconds();
 
             XAMP_LOG_D(logger_,
                 "Album cover first album music path lookup completed. music:{} album:{} has_path:{} elapsed:{:.3f}s total:{:.3f}s",
@@ -283,7 +283,7 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
                 album_id,
                 !music_file_path.empty(),
                 album_first_path_elapsed,
-                total_elapsed.ElapsedSeconds());
+                total_elapsed.elapsedSeconds());
         }
 
         // 3. read file embedded cover.
@@ -292,7 +292,7 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
                 "Skip album cover request because music file path is empty. music:{} album:{} total:{:.3f}s",
                 id.first,
                 album_id,
-                total_elapsed.ElapsedSeconds());
+                total_elapsed.elapsedSeconds());
             return;
         }
 
@@ -303,21 +303,21 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
                 id.first,
                 album_id,
                 music_file_path_string.toStdString(),
-                total_elapsed.ElapsedSeconds());
+                total_elapsed.elapsedSeconds());
             return;
         }
 
         stage_elapsed.reset();
         auto reader = makeMetadataReader();
-        const auto make_reader_elapsed = stage_elapsed.ElapsedSeconds();
+        const auto make_reader_elapsed = stage_elapsed.elapsedSeconds();
 
         stage_elapsed.reset();
 		reader->open(music_file_path);
-        const auto open_reader_elapsed = stage_elapsed.ElapsedSeconds();
+        const auto open_reader_elapsed = stage_elapsed.elapsedSeconds();
 
         stage_elapsed.reset();
         auto cover = readEmbeddedCoverImage(*reader);
-        const auto read_embedded_elapsed = stage_elapsed.ElapsedSeconds();
+        const auto read_embedded_elapsed = stage_elapsed.elapsedSeconds();
 
         XAMP_LOG_D(logger_,
             "Album cover embedded read completed. music:{} album:{} file:{} found:{} make_reader:{:.3f}s open:{:.3f}s read:{:.3f}s total:{:.3f}s",
@@ -328,7 +328,7 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
             make_reader_elapsed,
             open_reader_elapsed,
             read_embedded_elapsed,
-            total_elapsed.ElapsedSeconds());
+            total_elapsed.elapsedSeconds());
 
         if (cover && !cover->isNull()) {
             completed_album_cover_ids_.insert(album_id);
@@ -339,15 +339,15 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
                 music_file_path_string.toStdString(),
                 cover->width(),
                 cover->height(),
-                total_elapsed.ElapsedSeconds());
+                total_elapsed.elapsedSeconds());
             stage_elapsed.reset();
             emit albumCoverLoaded(album_id, cover.value(), false);
             XAMP_LOG_D(logger_,
                 "Embedded album cover emitted. music:{} album:{} emit:{:.3f}s total:{:.3f}s",
                 id.first,
                 album_id,
-                stage_elapsed.ElapsedSeconds(),
-                total_elapsed.ElapsedSeconds());
+                stage_elapsed.elapsedSeconds(),
+                total_elapsed.elapsedSeconds());
             return;
         }
 
@@ -356,12 +356,12 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
             id.first,
             album_id,
             music_file_path_string.toStdString(),
-            total_elapsed.ElapsedSeconds());
+            total_elapsed.elapsedSeconds());
 
         // 4. If not found embedded cover, try to find cover from album folder.
         stage_elapsed.reset();
         cover = scanCoverImageFromDir(music_file_path_string);
-        const auto scan_folder_elapsed = stage_elapsed.ElapsedSeconds();
+        const auto scan_folder_elapsed = stage_elapsed.elapsedSeconds();
 
         XAMP_LOG_D(logger_,
             "Album cover folder scan completed. music:{} album:{} file:{} found:{} elapsed:{:.3f}s total:{:.3f}s",
@@ -370,7 +370,7 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
             music_file_path_string.toStdString(),
             cover.has_value() && !cover->isNull(),
             scan_folder_elapsed,
-            total_elapsed.ElapsedSeconds());
+            total_elapsed.elapsedSeconds());
 
         if (cover && !cover->isNull()) {
             completed_album_cover_ids_.insert(album_id);
@@ -381,15 +381,15 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
                 music_file_path_string.toStdString(),
                 cover->width(),
                 cover->height(),
-                total_elapsed.ElapsedSeconds());
+                total_elapsed.elapsedSeconds());
             stage_elapsed.reset();
             emit albumCoverLoaded(album_id, cover.value(), true);
             XAMP_LOG_D(logger_,
                 "Folder album cover emitted. music:{} album:{} emit:{:.3f}s total:{:.3f}s",
                 id.first,
                 album_id,
-                stage_elapsed.ElapsedSeconds(),
-                total_elapsed.ElapsedSeconds());
+                stage_elapsed.elapsedSeconds(),
+                total_elapsed.elapsedSeconds());
             return;
         }
 
@@ -398,7 +398,7 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
             id.first,
             album_id,
             music_file_path_string.toStdString(),
-            total_elapsed.ElapsedSeconds());
+            total_elapsed.elapsedSeconds());
 	}
 	catch (const std::exception &e) {
         XAMP_LOG_D(logger_,
@@ -406,6 +406,6 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
             id.first,
             album_id,
             e.what(),
-            total_elapsed.ElapsedSeconds());
+            total_elapsed.elapsedSeconds());
 	}    
 }

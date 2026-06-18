@@ -78,7 +78,7 @@ CComPtr<IMMDevice> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::Get
 }
 
 ScopedPtr<IOutputDevice> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::makeDevice(const std::shared_ptr<IThreadPool>& /*thread_pool*/, const std::string & device_id) {
-	return makeAlign<IOutputDevice, ExclusiveWasapiDevice>(GetDeviceById(String::ToStdWString(device_id)));
+	return makeAlign<IOutputDevice, ExclusiveWasapiDevice>(GetDeviceById(String::toStdWString(device_id)));
 }
 
 size_t ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::getDeviceCount() const {

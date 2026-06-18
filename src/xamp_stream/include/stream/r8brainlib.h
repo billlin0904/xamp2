@@ -37,7 +37,7 @@ public:
 };
 
 inline R8brainLib::R8brainLib() try
-	: module_(OpenSharedLibrary("r8bsrc"))
+	: module_(openSharedLibrary("r8bsrc"))
 	, XAMP_LOAD_DLL_API(r8b_create)
 	, XAMP_LOAD_DLL_API(r8b_delete)
 	, XAMP_LOAD_DLL_API(r8b_clear)
@@ -78,6 +78,6 @@ public:
 };
 #endif
 
-#define LibR8brainDLL SharedSingleton<R8brainLib>::getInstance()
+#define LIB_R8_DLL SharedSingleton<R8brainLib>::getInstance()
 
 XAMP_STREAM_NAMESPACE_END

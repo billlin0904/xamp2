@@ -202,7 +202,7 @@ private:
     void loadPlugin(const  std::string & file_name);
 };
 
-#define BassLibDLL SharedSingleton<BassLib>::getInstance()
+#define LIB_BASS SharedSingleton<BassLib>::getInstance()
 
 XAMP_STREAM_NAMESPACE_END
 

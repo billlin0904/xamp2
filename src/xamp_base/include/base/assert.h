@@ -1,4 +1,4 @@
-﻿//=====================================================================================================================
+//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -12,7 +12,7 @@
 #if defined(_DEBUG) || !defined(NDEBUG)
 #define XAMP_ASSERT(expr) (void)(                              \
             (!!(expr)) ||                                      \
-            (xamp::base::Assert(#expr, __FILE__, (unsigned)(__LINE__)), 0) \
+            (xamp::base::assertFailed(#expr, __FILE__, (unsigned)(__LINE__)), 0) \
         )
 #else
 #define XAMP_ASSERT(expr) ((void)0)

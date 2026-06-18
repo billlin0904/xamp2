@@ -53,7 +53,7 @@ std::pair<std::string, MbDiscIdInfo> parseMbDiscIdXml(QString const& src) {
         std::string release_name(node->name(), node->name_size());
         std::string release_value(node->value(), node->value_size());
         if (release_name == "title") {
-            album = String::ToStdWString(release_value);
+            album = String::toStdWString(release_value);
         }
         else if (release_name == "artist-credit") {
             auto* name_credit = node->first_node("name-credit");
@@ -68,7 +68,7 @@ std::pair<std::string, MbDiscIdInfo> parseMbDiscIdXml(QString const& src) {
                 std::string artist_name(node->name(), node->name_size());
                 std::string artist_value(node->value(), node->value_size());
                 if (artist_name == "name") {
-                    artist = String::ToStdWString(artist_value);
+                    artist = String::toStdWString(artist_value);
                     break;
                 }
             }
@@ -106,7 +106,7 @@ std::pair<std::string, MbDiscIdInfo> parseMbDiscIdXml(QString const& src) {
                     std::string recording_name(node->name(), node->name_size());
                     std::string recording_value(node->value(), node->value_size());
                     if (recording_name == "title") {
-                        mb_disc_id_track.title = String::ToStdWString(recording_value);
+                        mb_disc_id_track.title = String::toStdWString(recording_value);
                         mb_disc_id_info.tracks.push_back(mb_disc_id_track);
                     }
                 }

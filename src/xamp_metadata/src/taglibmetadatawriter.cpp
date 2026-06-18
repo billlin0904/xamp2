@@ -25,7 +25,7 @@ namespace {
 			using namespace xamp::base;
 			static auto logger = XAMP_LOG_CREATE_LOGGER(TagLib);
 			std::string temp(msg.toCString());
-			String::Remove(temp, "\n");
+			String::remove(temp, "\n");
 			XAMP_LOG_D(logger, temp);
 		}
 	};
@@ -119,7 +119,7 @@ namespace {
 				// do not reuse the original stem. Long track names can push Windows
 				// paths past MAX_PATH once the transaction suffix is appended.
 				const auto file_name = L"xamp-"
-					+ String::ToStdWString(GetSequentialUUID())
+					+ String::toStdWString(getSequentialUuid())
 					+ ext;
 				auto temp_path = dir.empty()
 					? Path(file_name)
@@ -484,7 +484,7 @@ public:
 
 	~TaglibMetadataWriterImpl() {
 		try {
-			Save();
+			save();
 		}
 		catch (const std::exception& e) {
 			XAMP_LOG_DEBUG("write tag failure: {}", e.what());
@@ -492,25 +492,25 @@ public:
 	}
 
 	void open(const Path& path) {
-		Save();
-		Clear();
+		save();
+		clear();
 
 		transaction_.emplace(path);
 		io_stream_.open(transaction_->TempPath());
 		FileRef fileref(&io_stream_);
 		if (fileref.isNull()) {
 			XAMP_LOG_DEBUG("file was NULL!");
-			Clear();
+			clear();
 			return;
 		}
 		if (!fileref.tag()) {
 			XAMP_LOG_DEBUG("tag is NULL!");
-			Clear();
+			clear();
 			return;
 		}
 		fileref_opt_ = fileref;
 		path_ = path;
-		const auto ext = String::ToLower(path_.extension().string());
+		const auto ext = String::toLower(path_.extension().string());
 		tag_writer_ = MakeFileTagWriter(ext);
 	}
 
@@ -522,56 +522,56 @@ public:
 		tag->setArtist(track_info.artist);
 		tag->setTitle(track_info.title);
 		tag->setComment(track_info.comment);
-		MarkDirty();
+		markDirty();
     }
 
     void writeTitle(const std::wstring &title) {
 		CheckFileRef()
 		auto* tag = fileref_opt_->tag();
 		tag->setTitle(title.empty() ? TagLib::String() : title);
-		MarkDirty();
+		markDirty();
     }
 
     void writeArtist(const std::wstring &artist) {
 		CheckFileRef()
 		auto* tag = fileref_opt_->tag();
 		tag->setArtist(artist.empty() ? TagLib::String() : artist);
-		MarkDirty();
+		markDirty();
     }
 
     void writeAlbum(const std::wstring &album) {
 		CheckFileRef()
 		auto* tag = fileref_opt_->tag();
 		tag->setAlbum(album.empty() ? TagLib::String() : album);
-		MarkDirty();
+		markDirty();
     }
 
     void writeTrack(uint32_t track) {
 		CheckFileRef()
 		auto* tag = fileref_opt_->tag();
 		tag->setTrack(track);
-		MarkDirty();
+		markDirty();
     }
 
 	void writeComment(const std::wstring& comment) {
 		CheckFileRef()
 		auto* tag = fileref_opt_->tag();
 		tag->setComment(comment.empty() ? TagLib::String() : comment);
-		MarkDirty();
+		markDirty();
 	}
 
 	void writeGenre(const std::wstring& genre) {
 		CheckFileRef()
 		auto* tag = fileref_opt_->tag();
 		tag->setGenre(genre.empty() ? TagLib::String() : genre);
-		MarkDirty();
+		markDirty();
 	}
 
 	void writeYear(uint32_t year) {
 		CheckFileRef()
 		auto* tag = fileref_opt_->tag();
 		tag->setYear(year);
-		MarkDirty();
+		markDirty();
 	}
 
 	void writeReplayGain(const ReplayGain & replay_gain) {
@@ -580,7 +580,7 @@ public:
 		auto* file_ = fileref_opt_->file();
 		if (tag_writer_ != nullptr) {
 			tag_writer_->writeReplayGain(replay_gain, file_);
-			MarkDirty();
+			markDirty();
 		}
 	}
 
@@ -594,7 +594,7 @@ public:
 		auto* file_ = fileref_opt_->file();
 		if (tag_writer_ != nullptr) {
 			tag_writer_->writeEmbeddedCover(file_, image_data);
-			MarkDirty();
+			markDirty();
 		}
 	}
 
@@ -608,44 +608,44 @@ public:
 		auto* file_ = fileref_opt_->file();
 		if (tag_writer_ != nullptr) {
 			tag_writer_->removeEmbeddedCover(file_);
-			MarkDirty();
+			markDirty();
 		}
 	}
 
 	[[nodiscard]] bool canWriteEmbeddedCover() const {
-		const auto ext = String::ToLower(path_.extension().string());
+		const auto ext = String::toLower(path_.extension().string());
         return kFileTagWriterLut.find(ext) != kFileTagWriterLut.end();
 	}
 private:
-	void Save() {
+	void save() {
 		if (!fileref_opt_) {
 			return;
 		}
 
 		if (!dirty_) {
-			Clear();
+			clear();
 			return;
 		}
 			
 		if (!fileref_opt_->save()) {
 			XAMP_LOG_DEBUG("write tag failure!");
-			Clear();
+			clear();
 			return;
 		}
 
-		CloseWorkingFile();
+		closeWorkingFile();
 		if (transaction_) {
 			transaction_->Commit();
 		}
-		Clear();
+		clear();
     }
 
-	void CloseWorkingFile() {
+	void closeWorkingFile() {
 		fileref_opt_.reset();
 		io_stream_.close();
 	}
 
-	void Clear() {
+	void clear() {
 		fileref_opt_.reset();
 		io_stream_.close();
 		transaction_.reset();
@@ -653,7 +653,7 @@ private:
 		dirty_ = false;
 	}
 
-	void MarkDirty() const {
+	void markDirty() const {
 		dirty_ = true;
 	}
 

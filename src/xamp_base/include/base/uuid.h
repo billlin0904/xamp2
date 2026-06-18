@@ -62,7 +62,7 @@ public:
 
 	operator std::string() const;
 
-    const UuidBuffer & GetBytes() const {
+    const UuidBuffer & getBuffer() const {
         return bytes_;
     }
 
@@ -137,7 +137,7 @@ struct less<xamp::base::Uuid> {
     typedef xamp::base::Uuid argument_type;
 
     result_type operator()(argument_type const& other1, argument_type const& other2) const {
-        return std::memcmp(other1.GetBytes().data(), other2.GetBytes().data(), other2.GetBytes().size()) < 0;
+        return std::memcmp(other1.getBuffer().data(), other2.getBuffer().data(), other2.getBuffer().size()) < 0;
     }
 };
 

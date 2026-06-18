@@ -71,6 +71,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Label="XampOutput" Condition="'$(Platform)'=='x64'">
+    <OutDir>$(ProjectDir)..\xamp\$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
   <PropertyGroup />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -95,17 +98,6 @@
     <Bscmake>
       <PreserveSbr>false</PreserveSbr>
     </Bscmake>
-    <PostBuildEvent>
-      <Command>set "XAMP_BASE_DEST=$(ProjectDir)..\xamp\$(Platform)\$(Configuration)\"
-if not exist "%XAMP_BASE_DEST%" mkdir "%XAMP_BASE_DEST%"
-for %%I in ("$(TargetDir).") do set "XAMP_BASE_SRC_DIR=%%~fI"
-for %%I in ("%XAMP_BASE_DEST%.") do set "XAMP_BASE_DST_DIR=%%~fI"
-if /I not "%XAMP_BASE_SRC_DIR%"=="%XAMP_BASE_DST_DIR%" (
-copy /Y "$(TargetPath)" "%XAMP_BASE_DEST%"
-copy /Y "$(TargetDir)$(TargetName).lib" "%XAMP_BASE_DEST%"
-if exist "$(TargetDir)$(TargetName).pdb" copy /Y "$(TargetDir)$(TargetName).pdb" "%XAMP_BASE_DEST%"
-)</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -173,17 +165,6 @@ if exist "$(TargetDir)$(TargetName).pdb" copy /Y "$(TargetDir)$(TargetName).pdb"
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
-    <PostBuildEvent>
-      <Command>set "XAMP_BASE_DEST=$(ProjectDir)..\xamp\$(Platform)\$(Configuration)\"
-if not exist "%XAMP_BASE_DEST%" mkdir "%XAMP_BASE_DEST%"
-for %%I in ("$(TargetDir).") do set "XAMP_BASE_SRC_DIR=%%~fI"
-for %%I in ("%XAMP_BASE_DEST%.") do set "XAMP_BASE_DST_DIR=%%~fI"
-if /I not "%XAMP_BASE_SRC_DIR%"=="%XAMP_BASE_DST_DIR%" (
-copy /Y "$(TargetPath)" "%XAMP_BASE_DEST%"
-copy /Y "$(TargetDir)$(TargetName).lib" "%XAMP_BASE_DEST%"
-if exist "$(TargetDir)$(TargetName).pdb" copy /Y "$(TargetDir)$(TargetName).pdb" "%XAMP_BASE_DEST%"
-)</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\base\algorithm.h" />
@@ -207,10 +188,11 @@ if exist "$(TargetDir)$(TargetName).pdb" copy /Y "$(TargetDir)$(TargetName).pdb"
     <ClInclude Include="include\base\fftlib.h" />
     <ClInclude Include="include\base\fs.h" />
     <ClInclude Include="include\base\int24.h" />
-    <ClInclude Include="include\base\object_pool.h" />
-    <ClInclude Include="include\base\platfrom_handle.h" />
-    <ClInclude Include="include\base\threadpool.h" />
-    <ClInclude Include="include\base\math.h" />
+      <ClInclude Include="include\base\object_pool.h" />
+      <ClInclude Include="include\base\platfrom_handle.h" />
+      <ClInclude Include="include\base\threadpool.h" />
+      <ClInclude Include="include\base\threadpoolbuilder.h" />
+      <ClInclude Include="include\base\math.h" />
     <ClInclude Include="include\base\executor.h" />
     <ClInclude Include="include\base\port.h" />
     <ClInclude Include="include\base\sfc64.h" />
@@ -274,10 +256,11 @@ if exist "$(TargetDir)$(TargetName).pdb" copy /Y "$(TargetDir)$(TargetName).pdb"
     <ClCompile Include="src\trackinfo.cpp" />
     <ClCompile Include="src\platform.cpp" />
     <ClCompile Include="src\rng.cpp" />
-    <ClCompile Include="src\stacktrace.cpp" />
-    <ClCompile Include="src\stopwatch.cpp" />
-    <ClCompile Include="src\threadpool.cpp" />
-    <ClCompile Include="src\timer.cpp" />
+      <ClCompile Include="src\stacktrace.cpp" />
+      <ClCompile Include="src\stopwatch.cpp" />
+      <ClCompile Include="src\threadpool.cpp" />
+      <ClCompile Include="src\threadpoolbuilder.cpp" />
+      <ClCompile Include="src\timer.cpp" />
     <ClCompile Include="src\str_utilts.cpp" />
     <ClCompile Include="src\uuid_class.cpp" />
     <ClCompile Include="src\vmmemlock.cpp" />

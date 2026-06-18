@@ -20,9 +20,9 @@ public:
 
 	XAMP_DISABLE_COPY(VmMemLock)
 
-	void Lock(void* address, size_t size);
+	void lock(void* address, size_t size);
 
-	void UnLock() ;
+	void unlock() ;
 	
 	VmMemLock& operator=(VmMemLock&& other) ;
 private:

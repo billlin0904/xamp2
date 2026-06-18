@@ -11,7 +11,7 @@ AvException::AvException(int32_t error)
 	: Exception(Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR) 
 	, error_code_(error) {
 	char buf[256]{};
-	LibAvDLL.Util->av_strerror(error, buf, sizeof(buf) - 1);
+	LIB_AV_LIB.Util->av_strerror(error, buf, sizeof(buf) - 1);
 	message_.assign(buf);
 }
 
@@ -28,7 +28,7 @@ int32_t AvException::getErrorCode() const {
 XAMP_DECLARE_LOG_NAME(LibAv);
 
 AvFormatLib::AvFormatLib() try
-    : module_(OpenSharedLibrary("avformat-60"))
+    : module_(openSharedLibrary("avformat-60"))
 	, XAMP_LOAD_DLL_API(avformat_open_input)
 	, XAMP_LOAD_DLL_API(avformat_close_input)
 	, XAMP_LOAD_DLL_API(avformat_find_stream_info)
@@ -59,7 +59,7 @@ catch (const Exception& e) {
 }
 
 AvCodecLib::AvCodecLib() try
-    : module_(OpenSharedLibrary("avcodec-60"))
+    : module_(openSharedLibrary("avcodec-60"))
 	, XAMP_LOAD_DLL_API(avcodec_close)
 	, XAMP_LOAD_DLL_API(avcodec_open2)
 	, XAMP_LOAD_DLL_API(avcodec_alloc_context3)
@@ -90,7 +90,7 @@ catch (const Exception& e) {
 }
 
 AvUtilLib::AvUtilLib() try
-    : module_(OpenSharedLibrary("avutil-58"))
+    : module_(openSharedLibrary("avutil-58"))
 	, XAMP_LOAD_DLL_API(av_free)
 	, XAMP_LOAD_DLL_API(av_frame_free)
 	, XAMP_LOAD_DLL_API(av_frame_unref)
@@ -128,7 +128,7 @@ catch (const Exception& e) {
 }
 
 AvSwLib::AvSwLib() try
-    : module_(OpenSharedLibrary("swresample-4"))
+    : module_(openSharedLibrary("swresample-4"))
 	, XAMP_LOAD_DLL_API(swr_free)
 	, XAMP_LOAD_DLL_API(swr_alloc_set_opts)
 	, XAMP_LOAD_DLL_API(swr_convert)
@@ -148,7 +148,7 @@ static void LogPrintf(void* ptr, int level, const char* fmt, va_list vl) {
 
 	va_copy(valist, vl);
 	int print_prefix = 1;
-	LibAvDLL.Util->av_log_format_line(ptr, level, fmt, valist, message, message_size, &print_prefix);
+	LIB_AV_LIB.Util->av_log_format_line(ptr, level, fmt, valist, message, message_size, &print_prefix);
 	va_end(valist);
 
 	const auto message_length = strlen(message) - 1;
@@ -178,7 +178,7 @@ static void LogPrintf(void* ptr, int level, const char* fmt, va_list vl) {
 		return;
 	}
 
-	XAMP_LOG_LEVEL(LibAvDLL.logger, log_level, "{}", message);
+	XAMP_LOG_LEVEL(LIB_AV_LIB.logger, log_level, "{}", message);
 }
 
 AvLib::~AvLib() {
@@ -229,18 +229,18 @@ HashSet<std::string> AvLib::getSupportFileExtensions() const {
     void *opaque = nullptr;
     while ((output_format = Format->av_demuxer_iterate(&opaque)) != nullptr){
         if (output_format->extensions) {
-            auto result = String::Split(output_format->extensions, ",");
+            auto result = String::split(output_format->extensions, ",");
             if (!result.empty()) {
                 for (const auto& extension : result) {
-                    auto ext = String::AsStdString(extension);
-                    String::LTrim(ext);
-                    String::RTrim(ext);
+                    auto ext = String::asStdString(extension);
+                    String::ltrim(ext);
+                    String::rtrim(ext);
                     if (ordered_extension.find(ext) == ordered_extension.end()) {
                         ordered_extension.insert(ext);
                     }
                 }
             } else {
-                ordered_extension.insert(String::Format(".{}", output_format->extensions));
+                ordered_extension.insert(String::format(".{}", output_format->extensions));
             }
         }
     }
@@ -255,7 +255,7 @@ HashSet<std::string> AvLib::getSupportFileExtensions() const {
 	result.reserve(ordered_extension.size());
 
 	for (const auto& extension : ordered_extension) {
-		const auto file_extensions = String::Format(".{}", extension);
+		const auto file_extensions = String::format(".{}", extension);
 		XAMP_LOG_T(logger, "load Libav format extensions: {}", file_extensions);
 		result.insert(file_extensions);
 	}

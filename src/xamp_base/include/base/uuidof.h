@@ -9,7 +9,7 @@
 
 namespace details {
 
-constexpr uint8_t ParseHexDigital(const char c) {
+constexpr uint8_t parseHexDigital(const char c) {
 	using namespace std::string_literals;
 
 	/*return
@@ -35,28 +35,28 @@ constexpr uint8_t ParseHexDigital(const char c) {
 	}
 }
 
-constexpr uint8_t ParseHex(std::string_view ptr, const int index) {
-	return (ParseHexDigital(ptr[index]) << 4) + ParseHexDigital(ptr[index + 1]);
+constexpr uint8_t parseHex(std::string_view ptr, const int index) {
+	return (parseHexDigital(ptr[index]) << 4) + parseHexDigital(ptr[index + 1]);
 }
 
-constexpr xamp::base::UuidBuffer ParseUuid(std::string_view str) {
+constexpr xamp::base::UuidBuffer parseUuid(std::string_view str) {
 	return {
-		ParseHex(str, 0),
-		ParseHex(str, 2),
-		ParseHex(str, 4),
-		ParseHex(str, 6),
-		ParseHex(str, 9),
-		ParseHex(str, 11),
-		ParseHex(str, 14),
-		ParseHex(str, 16),
-		ParseHex(str, 19),
-		ParseHex(str, 21),
-		ParseHex(str, 24),
-		ParseHex(str, 26),
-		ParseHex(str, 28),
-		ParseHex(str, 30),
-		ParseHex(str, 32),
-		ParseHex(str, 34)
+		parseHex(str, 0),
+		parseHex(str, 2),
+		parseHex(str, 4),
+		parseHex(str, 6),
+		parseHex(str, 9),
+		parseHex(str, 11),
+		parseHex(str, 14),
+		parseHex(str, 16),
+		parseHex(str, 19),
+		parseHex(str, 21),
+		parseHex(str, 24),
+		parseHex(str, 26),
+		parseHex(str, 28),
+		parseHex(str, 30),
+		parseHex(str, 32),
+		parseHex(str, 34)
 	};
 }
 
@@ -76,7 +76,7 @@ namespace uuid_literals {
 		}
 
 		std::string_view sv(str, N);
-		return ParseUuid(sv);
+		return parseUuid(sv);
 	}
 }
 

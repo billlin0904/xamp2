@@ -10,7 +10,6 @@
 
 #include <base/base.h>
 #include <base/memory.h>
-#include <base/memory.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
 

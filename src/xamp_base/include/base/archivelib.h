@@ -44,7 +44,7 @@ public:
 };
 
 inline ArchiveLib::ArchiveLib() try
-	: module_(OpenSharedLibrary("archive"))
+	: module_(openSharedLibrary("archive"))
 	, XAMP_LOAD_DLL_API(archive_read_new)
 	, XAMP_LOAD_DLL_API(archive_read_free)
 	, XAMP_LOAD_DLL_API(archive_read_support_format_all)

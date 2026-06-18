@@ -116,5 +116,5 @@ XAMP_WIDGET_SHARED_API double parseDuration(const std::string& str);
 template <typename... Args>
 QString stringFormat(std::string_view s, Args &&...args) {
 	using namespace xamp::base::String;
-	return QString::fromStdString(Format(s, args...));
+	return QString::fromStdString(format(s, args...));
 }

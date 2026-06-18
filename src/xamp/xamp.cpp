@@ -28,6 +28,7 @@
 #include <QFileInfo>
 
 #include <base/threadpool.h>
+#include <base/threadpoolbuilder.h>
 #include <base/crashhandler.h>
 #include <base/scopeguard.h>
 #include <base/stopwatch.h>
@@ -531,7 +532,7 @@ void Xamp::playLocalFile(const QString& file_name,
     }
 
     try {
-        auto file_stream = StreamFactory::MakeFileStream(file_name.toStdWString(),
+        auto file_stream = StreamFactory::makeFileStream(file_name.toStdWString(),
             playback_plan.output_mode,
             playback_plan.use_mqa_decode);
 
@@ -619,7 +620,7 @@ void Xamp::playLocalFile(const QString& file_name,
     main_window_->setIconicThumbnail(display_cover);
 
     double duration = 0;
-    duration = Round(file_duration) * 1000;
+    duration = round(file_duration) * 1000;
     ui_.seekSlider->setRange(0, duration);
     ui_.seekSlider->setValue(0);
     ui_.seekSlider->loadFile(file_name);
@@ -915,7 +916,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
             Stopwatch stage_elapsed;
 
             const auto cover = QPixmap::fromImage(image);
-            const auto convert_elapsed = stage_elapsed.ElapsedSeconds();
+            const auto convert_elapsed = stage_elapsed.elapsedSeconds();
             if (cover.isNull()) {
                 XAMP_LOG_DEBUG("Album cover loaded but pixmap is null. album:{} save_only:{}",
                     album_id,
@@ -925,23 +926,23 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
 
             stage_elapsed.reset();
             const auto cover_id = qImageCache.addImage(cover, save_only);
-            const auto cache_elapsed = stage_elapsed.ElapsedSeconds();
+            const auto cache_elapsed = stage_elapsed.elapsedSeconds();
 
             stage_elapsed.reset();
             qDaoFacade.album_dao.setAlbumCover(album_id, cover_id);
-            const auto db_elapsed = stage_elapsed.ElapsedSeconds();
+            const auto db_elapsed = stage_elapsed.elapsedSeconds();
 
             stage_elapsed.reset();
             file_explorer_page_->playlistPage()->playlist()->setAlbumCoverId(album_id, cover_id);
-            const auto file_playlist_elapsed = stage_elapsed.ElapsedSeconds();
+            const auto file_playlist_elapsed = stage_elapsed.elapsedSeconds();
 
             stage_elapsed.reset();
             cd_page_->playlistPage()->playlist()->setAlbumCoverId(album_id, cover_id);
-            const auto cd_playlist_elapsed = stage_elapsed.ElapsedSeconds();
+            const auto cd_playlist_elapsed = stage_elapsed.elapsedSeconds();
 
             stage_elapsed.reset();
             rich_playlist_page_->onAlbumCoverLoaded(album_id);
-            const auto rich_reload_elapsed = stage_elapsed.ElapsedSeconds();
+            const auto rich_reload_elapsed = stage_elapsed.elapsedSeconds();
 
             XAMP_LOG_DEBUG("Album cover loaded. album:{} cover:{} save_only:{} size:{}x{} convert:{:.3f}s cache:{:.3f}s db:{:.3f}s file_playlist:{:.3f}s cd_playlist:{:.3f}s rich_reload:{:.3f}s total:{:.3f}s",
                 album_id,
@@ -955,7 +956,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
                 file_playlist_elapsed,
                 cd_playlist_elapsed,
                 rich_reload_elapsed,
-                total_elapsed.ElapsedSeconds());
+                total_elapsed.elapsedSeconds());
         },
         Qt::QueuedConnection);
 
@@ -1003,18 +1004,18 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
                 playlist_id,
                 QString(),
                 DatabaseFacade::kSkipFetchCover);
-            const auto insert_seconds = stage_elapsed.ElapsedSeconds();
+            const auto insert_seconds = stage_elapsed.elapsedSeconds();
             stage_elapsed.reset();
             request_album_covers(CollectAlbumIds(results));
             rich_playlist_page_->reload();
-            const auto reload_seconds = stage_elapsed.ElapsedSeconds();
+            const auto reload_seconds = stage_elapsed.elapsedSeconds();
             XAMP_LOG_DEBUG("Metadata DB batch write playlist:{} batches:{} tracks:{} insert:{:.3f}s reload:{:.3f}s total:{:.3f}s",
                 playlist_id,
                 results.size(),
                 track_count,
                 insert_seconds,
                 reload_seconds,
-                total_elapsed.ElapsedSeconds());
+                total_elapsed.elapsedSeconds());
         },
         Qt::QueuedConnection);
 
@@ -1029,19 +1030,19 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
                 playlist_id,
                 QString(),
                 DatabaseFacade::kSkipFetchCover);
-            const auto insert_seconds = stage_elapsed.ElapsedSeconds();
+            const auto insert_seconds = stage_elapsed.elapsedSeconds();
             stage_elapsed.reset();
             QSet<int32_t> album_ids;
             CollectAlbumIds(result, album_ids);
             request_album_covers(album_ids);
             rich_playlist_page_->reload();
-            const auto reload_seconds = stage_elapsed.ElapsedSeconds();
+            const auto reload_seconds = stage_elapsed.elapsedSeconds();
             XAMP_LOG_DEBUG("Metadata DB write playlist:{} tracks:{} insert:{:.3f}s reload:{:.3f}s total:{:.3f}s",
                 playlist_id,
                 track_count,
                 insert_seconds,
                 reload_seconds,
-                total_elapsed.ElapsedSeconds());
+                total_elapsed.elapsedSeconds());
         },
         Qt::QueuedConnection);
 

@@ -79,7 +79,7 @@ AudioPlayer::AudioPlayer(
     , dsp_manager_(StreamFactory::makeDSPManager())
     , device_manager_(MakeAudioDeviceManager())
     , logger_(XampLoggerFactory.getLogger(XAMP_LOG_NAME(AudioPlayer)))
-	, fifo_(alignUp(kPreallocateBufferSize, GetPageSize()))
+	, fifo_(alignUp(kPreallocateBufferSize, getPageSize()))
 	, playback_thread_pool_(playback_thread_pool)
 	, player_thread_pool_(player_thread_pool) {
     PreventSleep(true);
@@ -106,7 +106,7 @@ void AudioPlayer::destroy() {
 #endif
 
     PreventSleep(false);
-    FreeAvLib();
+    freeAvLib();
 
     device_.reset();
     device_manager_.reset();
@@ -173,7 +173,7 @@ void AudioPlayer::readStreamInfo(DsdModes dsd_mode,
         return;
     }
 
-    if (const auto* dsd_stream = AsDsdStream(stream)) {
+    if (const auto* dsd_stream = asDsdStream(stream)) {
         if (!dsd_stream->isDsdFile()) {
             return;
         }
@@ -186,7 +186,7 @@ void AudioPlayer::readStreamInfo(DsdModes dsd_mode,
 }
 
 void AudioPlayer::openStream(ArchiveEntry archive_entry, DsdModes dsd_mode) {
-    file_stream_ = StreamFactory::MakeFileStream(std::move(archive_entry), 
+    file_stream_ = StreamFactory::makeFileStream(std::move(archive_entry), 
         dsd_mode);
 
     readStreamInfo(dsd_mode, file_stream_);
@@ -383,22 +383,22 @@ void AudioPlayer::resizeReadBuffer(uint32_t allocate_size) {
     if (read_buffer_.getSize() == 0
         || read_buffer_.getSize() != allocate_size) {
         XAMP_LOG_D(logger_, "Allocate read buffer : {}.", 
-            String::FormatBytes(allocate_size));
+            String::formatBytes(allocate_size));
         read_buffer_ = makeBuffer<std::byte>(allocate_size);
     }
 }
 
 void AudioPlayer::resizeFIFO(uint32_t fifo_size) {
-    if (fifo_.getSize() == 0 || fifo_.getSize() < fifo_size) {
+    if (fifo_.size() == 0 || fifo_.size() < fifo_size) {
         XAMP_LOG_D(logger_, "Allocate fifo buffer : {}.",
-            String::FormatBytes(fifo_size));
+            String::formatBytes(fifo_size));
         fifo_.resize(fifo_size);
     }
 	fifo_.clear();
 }
 
 void AudioPlayer::createBuffer() {
-    const uint32_t page_size = static_cast<uint32_t>(GetPageSize());
+    const uint32_t page_size = static_cast<uint32_t>(getPageSize());
     const uint32_t device_buffer_samples = device_->getBufferSize();
     const uint32_t file_sample_size = file_stream_->getSampleSize();
     const uint32_t output_bytes_per_sec = output_format_.getAvgBytesPerSec();
@@ -474,12 +474,12 @@ void AudioPlayer::createBuffer() {
 
     XAMP_LOG_DEBUG(
         "Device output buffer:{} fifo write watermark:{} min fifo write:{} read samples:{} read buffer:{} fifo buffer:{}.",
-        String::FormatBytes(device_buffer_samples),
-        String::FormatBytes(num_write_buffer_size_),
-        String::FormatBytes(min_fifo_write_size_),
+        String::formatBytes(device_buffer_samples),
+        String::formatBytes(num_write_buffer_size_),
+        String::formatBytes(min_fifo_write_size_),
         num_read_buffer_size_,
-        String::FormatBytes(read_buffer_size),
-        String::FormatBytes(fifo_size));
+        String::formatBytes(read_buffer_size),
+        String::formatBytes(fifo_size));
 }
 
 void AudioPlayer::setDeviceFormat() {
@@ -563,7 +563,7 @@ void AudioPlayer::openDevice(double stream_time) {
         if (audio_config_.dsd_mode == DsdModes::DSD_MODE_AUTO
             || audio_config_.dsd_mode == DsdModes::DSD_MODE_PCM
             || audio_config_.dsd_mode == DsdModes::DSD_MODE_DOP) {
-            if (const auto* const dsd_stream = AsDsdStream(file_stream_)) {
+            if (const auto* const dsd_stream = asDsdStream(file_stream_)) {
                 if (audio_config_.dsd_mode == DsdModes::DSD_MODE_NATIVE) {
                     dsd_output->setIoFormat(DsdIoFormat::IO_FORMAT_DSD);
                 }
@@ -689,7 +689,7 @@ void AudioPlayer::setParametricEq(bool enabled, const EqSettings& settings) {
         config_.create(DspConfig::kEQSettings, settings);
     }
     else {
-        config_.Remove(DspConfig::kEQSettings);
+        config_.remove(DspConfig::kEQSettings);
     }
 
     std::lock_guard<FastMutex> stream_lock{ stream_mutex_ };
@@ -748,7 +748,7 @@ void AudioPlayer::doSeek(double stream_time) {
         sample_end_time_.load());
     auto seek_time = static_cast<uint32_t>(stream_time * 1000.0);
     if (seek_time >playback_state_.stream_time_sec_unit) {
-        seek_time = static_cast<uint32_t>(Round(stream_time, 2) * 1000.0);
+        seek_time = static_cast<uint32_t>(round(stream_time, 2) * 1000.0);
     }
     updatePlayerStreamTime(seek_time);
     fifo_.clear();
@@ -797,8 +797,8 @@ void AudioPlayer::setReadSampleSize(uint32_t num_samples) {
         "Output buffer:{} device format: {} num_read_sample: {} fifo buffer: {}.",
         device_->getBufferSize(),
         output_format_.toString(),
-        String::FormatBytes(num_read_buffer_size_),
-        String::FormatBytes(fifo_.getSize()));
+        String::formatBytes(num_read_buffer_size_),
+        String::formatBytes(fifo_.size()));
 }
 
 void AudioPlayer::waitForReadFinishAndSeekSignal(
@@ -843,7 +843,7 @@ uint32_t AudioPlayer::estimateDspOutputBytes(uint32_t input_samples) const {
 bool AudioPlayer::hasEnoughFifoWriteSpace(uint32_t input_samples) const {
     const auto estimated_write_size = (std::max)(estimateDspOutputBytes(input_samples),
         min_fifo_write_size_);
-    const auto max_available_write = fifo_.getSize() > 0 ? fifo_.getSize() - 1 : 0;
+    const auto max_available_write = fifo_.size() > 0 ? fifo_.size() - 1 : 0;
     const auto required_write_size = (std::min)(static_cast<size_t>(estimated_write_size),
         max_available_write);
     return fifo_.getAvailableWrite() >= required_write_size;
@@ -898,7 +898,7 @@ void AudioPlayer::readSampleLoop(std::byte* buffer,
 bool AudioPlayer::isAvailableWrite() const {
     const auto write_watermark = num_write_buffer_size_ * kMaxWriteRatio;
     const auto required_write_size = (std::max)(write_watermark, min_fifo_write_size_);
-    const auto max_available_write = fifo_.getSize() > 0 ? fifo_.getSize() - 1 : 0;
+    const auto max_available_write = fifo_.size() > 0 ? fifo_.size() - 1 : 0;
     return fifo_.getAvailableWrite() >= (std::min)(
         static_cast<size_t>(required_write_size),
         max_available_write);
@@ -936,7 +936,9 @@ void AudioPlayer::play() {
     auto stream_task_started = std::make_shared<std::promise<void>>();
     auto stream_task_started_future = stream_task_started->get_future();
 
-    stream_task_ = Executor::spawn(player_thread_pool_,
+    stream_task_ = player_thread_pool_->spawn(
+        SubmitPolicy::SUBMIT_POLICY_NORMAL,
+        ExecuteFlags::EXECUTE_LONG_RUNNING,
         [player = shared_from_this(), stream_task_started](const auto& stop_token) {
         XAMP_LOG_W(player->logger_, "Stream task is spawn done!");
         stream_task_started->set_value();
@@ -951,8 +953,8 @@ void AudioPlayer::play() {
         const auto num_write_buffer_size = p->num_write_buffer_size_ * kMaxWriteRatio;
 
         XAMP_LOG_DEBUG("num_read_buffer_size: {}, num_write_buffer_size: {}",
-            String::FormatBytes(num_read_buffer_size),
-            String::FormatBytes(num_write_buffer_size)
+            String::formatBytes(num_read_buffer_size),
+            String::formatBytes(num_write_buffer_size)
         );
 
         WaitableTimer wait_timer;
@@ -966,14 +968,14 @@ void AudioPlayer::play() {
                 }
 
                 if (p->playback_state_.is_seeking) {
-                    wait_timer.Wait();
+                    wait_timer.wait();
                     continue;
                 }
 
                 // Check stream is active.
                 if (!p->isAvailableWrite()) {
                     // Wait for next available write time.
-                    wait_timer.Wait();
+                    wait_timer.wait();
                     XAMP_LOG_T(p->logger_, "FIFO buffer: {} num_sample_write: {}",
                         p->fifo_.getAvailableWrite(),
                         num_write_buffer_size
@@ -996,7 +998,7 @@ void AudioPlayer::play() {
             std::lock_guard<FastMutex> stream_lock{ p->stream_mutex_ };
             p->file_stream_.reset();
         }
-    }, ExecuteFlags::EXECUTE_LONG_RUNNING);
+    });
 
     if (stream_task_started_future.wait_for(kReadSampleWaitTimeMs) == std::future_status::timeout) {
         XAMP_LOG_W(logger_, "Stream task start wait timeout.");
@@ -1022,7 +1024,7 @@ void AudioPlayer::copySamples(void* samples, size_t num_samples) const {
     watch.reset();    
     
     adapter->onSamplesChanged(static_cast<const float*>(samples), num_samples);
-    auto elapsed = watch.Elapsed<std::chrono::milliseconds>();
+    auto elapsed = watch.elapsed<std::chrono::milliseconds>();
     if (elapsed >= kMinimalCopySamplesTime) {
         XAMP_LOG_W(logger_, "copySamples too slow ({} ms)!", elapsed.count());
     }

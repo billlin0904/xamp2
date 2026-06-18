@@ -347,7 +347,7 @@ bool KrcParser::parse(const uint8_t* buffer, size_t size) {
         decompressed.length(),
         false);
     if (utf8_str) {
-        wtext = String::ToStdWString(utf8_str.value());
+        wtext = String::toStdWString(utf8_str.value());
         return parseKrcText(wtext);
     }
     return false;

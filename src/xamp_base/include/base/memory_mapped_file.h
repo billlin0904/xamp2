@@ -22,9 +22,9 @@ public:
 
     [[nodiscard]] bool open(std::wstring const &file_path, bool is_module = false);
 
-    [[nodiscard]] void const * getData() const ;
+    [[nodiscard]] void const * data() const ;
 
-    [[nodiscard]] size_t getLength() const;
+    [[nodiscard]] size_t length() const;
 
 	void close() ;
 

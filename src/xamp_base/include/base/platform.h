@@ -1,4 +1,4 @@
-﻿//====================================================================================================================
+//====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -41,59 +41,59 @@ inline constexpr uint32_t kInfinity =
         0; // 在 macOS 上，超時為 0 表示無限等待
     #endif
 
-XAMP_BASE_API void SetThreadPriority(std::jthread& thread,
+XAMP_BASE_API void setThreadPriority(std::jthread& thread,
     ThreadPriority priority);
 
-XAMP_BASE_API void SetThreadName(std::wstring const & name);
+XAMP_BASE_API void setThreadName(std::wstring const & name);
 
-XAMP_BASE_API std::string GetCurrentThreadId();
+XAMP_BASE_API std::string getCurrentThreadId();
 
-XAMP_BASE_API bool IsDebuging();
+XAMP_BASE_API bool isDebugging();
 
-XAMP_BASE_API void SetCurrentThreadPriority(ThreadPriority priority);
+XAMP_BASE_API void setCurrentThreadPriority(ThreadPriority priority);
 
-XAMP_BASE_API bool VirtualMemoryLock(void* address, size_t size);
+XAMP_BASE_API bool virtualMemoryLock(void* address, size_t size);
 
-XAMP_BASE_API bool VirtualMemoryUnLock(void* address, size_t size);
+XAMP_BASE_API bool virtualMemoryUnlock(void* address, size_t size);
 
-XAMP_BASE_API void MSleep(std::chrono::milliseconds timeout);
+XAMP_BASE_API void mSleep(std::chrono::milliseconds timeout);
 
-XAMP_BASE_API int32_t AtomicWait(std::atomic<uint32_t>& to_wait_on, 
+XAMP_BASE_API int32_t atomicWait(std::atomic<uint32_t>& to_wait_on, 
     uint32_t expected, 
     const timespec* to) ;
 
-XAMP_BASE_API bool AtomicWait(std::atomic<uint32_t>& to_wait_on,
+XAMP_BASE_API bool atomicWait(std::atomic<uint32_t>& to_wait_on,
     uint32_t expected, 
     uint32_t milliseconds) ;
 
-XAMP_BASE_API void AtomicWakeSingle(std::atomic<uint32_t>& to_wake) ;
+XAMP_BASE_API void atomicWakeSingle(std::atomic<uint32_t>& to_wake) ;
 
-XAMP_BASE_API void AtomicWakeAll(std::atomic<uint32_t>& to_wake) ;
+XAMP_BASE_API void atomicWakeAll(std::atomic<uint32_t>& to_wake) ;
 
-XAMP_BASE_API uint64_t GenRandomSeed() ;
+XAMP_BASE_API uint64_t genRandomSeed() ;
 
-XAMP_BASE_API uint64_t GetSystemEntropy() ;
+XAMP_BASE_API uint64_t getSystemEntropy() ;
 
-XAMP_BASE_API void CpuRelax() ;
+XAMP_BASE_API void cpuRelax() ;
 
-XAMP_BASE_API void Assert(const char* message, const char* file_, uint32_t line);
+XAMP_BASE_API void assertFailed(const char* message, const char* file_, uint32_t line);
 
-XAMP_BASE_API std::string GetSequentialUUID();
+XAMP_BASE_API std::string getSequentialUuid();
 
 #ifdef XAMP_OS_WIN
-XAMP_BASE_API void SetCurrentProcessPriority(ProcessPriority priority);
+XAMP_BASE_API void setCurrentProcessPriority(ProcessPriority priority);
 
-XAMP_BASE_API void SetProcessPriority(int32_t pid, ProcessPriority priority);
+XAMP_BASE_API void setProcessPriority(int32_t pid, ProcessPriority priority);
 
-XAMP_BASE_API bool EnablePrivilege(std::string_view privilege, bool enable);
+XAMP_BASE_API bool enablePrivilege(std::string_view privilege, bool enable);
 
-XAMP_BASE_API bool ExtendProcessWorkingSetSize(size_t size);
+XAMP_BASE_API bool extendProcessWorkingSetSize(size_t size);
 
-XAMP_BASE_API bool SetProcessWorkingSetSize(size_t working_set_size);
+XAMP_BASE_API bool setProcessWorkingSetSize(size_t working_set_size);
 
-XAMP_BASE_API void SetProcessMitigation();
+XAMP_BASE_API void setProcessMitigation();
 
-XAMP_BASE_API void SetCurrentThreadMitigation();
+XAMP_BASE_API void setCurrentThreadMitigation();
 #endif
 
 XAMP_BASE_NAMESPACE_END

@@ -191,11 +191,11 @@ MetadataScanProgress MetadataLibraryScanner::scan(const Path& root_path,
 
 	ScanFiles files;
 	collectFiles(root_path, files, options, stop_token);
-	const auto collect_seconds = stage_elapsed.ElapsedSeconds();
+	const auto collect_seconds = stage_elapsed.elapsedSeconds();
 
 	stage_elapsed.reset();
 	const auto total_work = countScanFiles(files, stop_token);
-	const auto count_seconds = stage_elapsed.ElapsedSeconds();
+	const auto count_seconds = stage_elapsed.elapsedSeconds();
 	invokeCallback(callbacks.on_found_file_count, total_work);
 
 	XAMP_LOG_DEBUG("Metadata scan prepare path:{} total:{} directories:{} cues:{} archives:{} collect:{:.3f}s count:{:.3f}s",
@@ -214,7 +214,7 @@ MetadataScanProgress MetadataLibraryScanner::scan(const Path& root_path,
 			pathToUtf8(root_path),
 			total_work,
 			progress.completed_work,
-			total_elapsed.ElapsedSeconds());
+			total_elapsed.elapsedSeconds());
 		return progress;
 	}
 
@@ -254,7 +254,7 @@ MetadataScanProgress MetadataLibraryScanner::scan(const Path& root_path,
 			pathToUtf8(path),
 			batch_size,
 			track_count,
-			total_elapsed.ElapsedSeconds());
+			total_elapsed.elapsedSeconds());
 
 		invokeCallback(callbacks.on_read_path, path, path_size);
 		invokeCallback(callbacks.on_batch_tracks, std::move(batch));
@@ -306,8 +306,8 @@ MetadataScanProgress MetadataLibraryScanner::scan(const Path& root_path,
 		stop_token);
 	XAMP_LOG_DEBUG("Metadata scan read directories count:{} elapsed:{:.3f}s total_elapsed:{:.3f}s",
 		files.directory_files.size(),
-		stage_elapsed.ElapsedSeconds(),
-		total_elapsed.ElapsedSeconds());
+		stage_elapsed.elapsedSeconds(),
+		total_elapsed.elapsedSeconds());
 
 	flush_batch(root_path, 0, true);
 
@@ -359,15 +359,15 @@ MetadataScanProgress MetadataLibraryScanner::scan(const Path& root_path,
 				XAMP_LOG_DEBUG("Metadata scan emit archive path:{} tracks:{} elapsed:{:.3f}s",
 					pathToUtf8(archive_path),
 					track_count,
-					total_elapsed.ElapsedSeconds());
+					total_elapsed.elapsedSeconds());
 				invokeCallback(callbacks.on_tracks, std::move(tracks));
 			}
 		},
 		stop_token);
 	XAMP_LOG_DEBUG("Metadata scan read archives count:{} elapsed:{:.3f}s total_elapsed:{:.3f}s",
 		files.archive_files.size(),
-		stage_elapsed.ElapsedSeconds(),
-		total_elapsed.ElapsedSeconds());
+		stage_elapsed.elapsedSeconds(),
+		total_elapsed.elapsedSeconds());
 
 	FastMutex cue_mutex;
 	stage_elapsed.reset();
@@ -403,22 +403,22 @@ MetadataScanProgress MetadataLibraryScanner::scan(const Path& root_path,
 				XAMP_LOG_DEBUG("Metadata scan emit cue path:{} tracks:{} elapsed:{:.3f}s",
 					pathToUtf8(cue_path),
 					track_count,
-					total_elapsed.ElapsedSeconds());
+					total_elapsed.elapsedSeconds());
 				invokeCallback(callbacks.on_tracks, std::move(tracks));
 			}
 		},
 		stop_token);
 	XAMP_LOG_DEBUG("Metadata scan read cues count:{} elapsed:{:.3f}s total_elapsed:{:.3f}s",
 		files.cue_files.size(),
-		stage_elapsed.ElapsedSeconds(),
-		total_elapsed.ElapsedSeconds());
+		stage_elapsed.elapsedSeconds(),
+		total_elapsed.elapsedSeconds());
 
 	progress.completed_work = completed_work.load();
 	XAMP_LOG_DEBUG("Metadata scan completed path:{} total:{} completed:{} elapsed:{:.3f}s",
 		pathToUtf8(root_path),
 		total_work,
 		progress.completed_work,
-		total_elapsed.ElapsedSeconds());
+		total_elapsed.elapsedSeconds());
 	return progress;
 }
 

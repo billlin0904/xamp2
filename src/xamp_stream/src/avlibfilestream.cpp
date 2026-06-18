@@ -104,7 +104,7 @@ public:
 		XAMP_LOG_D(logger_, "open AvLib file stream start: {}.", file_name);
 
 		AVFormatContext* raw_format_context = nullptr;
-		AvIfFailedThrow(LibAvDLL.Format->avformat_open_input(
+		AvIfFailedThrow(LIB_AV_LIB.Format->avformat_open_input(
 			&raw_format_context,
 			file_name.c_str(),
 			nullptr,
@@ -116,7 +116,7 @@ public:
 			format_context_->iformat != nullptr ? format_context_->iformat->name : "unknown",
 			format_context_->nb_streams);
 
-		AvIfFailedThrow(LibAvDLL.Format->avformat_find_stream_info(format_context_, nullptr));
+		AvIfFailedThrow(LIB_AV_LIB.Format->avformat_find_stream_info(format_context_, nullptr));
 		XAMP_LOG_D(logger_,
 			"AvLib stream info loaded: {} duration:{:.2f}s bit_rate:{}kbps.",
 			file_name,
@@ -127,7 +127,7 @@ public:
 				? static_cast<uint32_t>(format_context_->bit_rate / 1000)
 				: 0);
 
-		const auto stream_index = LibAvDLL.Format->av_find_best_stream(
+		const auto stream_index = LIB_AV_LIB.Format->av_find_best_stream(
 			format_context_,
 			AVMEDIA_TYPE_AUDIO,
 			-1,
@@ -140,7 +140,7 @@ public:
 		audio_stream_index_ = stream_index;
 		audio_stream_ = format_context_->streams[audio_stream_index_];
 		auto* codec_parameters = audio_stream_->codecpar;
-		auto* decoder = LibAvDLL.Codec->avcodec_find_decoder(codec_parameters->codec_id);
+		auto* decoder = LIB_AV_LIB.Codec->avcodec_find_decoder(codec_parameters->codec_id);
 		XAMP_LOG_D(logger_,
 			"AvLib selected audio stream:{} codec_id:{} sample_rate:{} channels:{} sample_fmt:{}.",
 			audio_stream_index_,
@@ -148,7 +148,7 @@ public:
 			codec_parameters->sample_rate,
 			codec_parameters->ch_layout.nb_channels,
 			codec_parameters->format >= 0
-				? LibAvDLL.Util->av_get_sample_fmt_name(static_cast<AVSampleFormat>(codec_parameters->format))
+				? LIB_AV_LIB.Util->av_get_sample_fmt_name(static_cast<AVSampleFormat>(codec_parameters->format))
 				: "unknown");
 		if (decoder == nullptr) {
 			Throw<NotSupportFormatException>(
@@ -158,20 +158,20 @@ public:
 		}
 		XAMP_LOG_D(logger_, "AvLib decoder selected: {}.", decoder->name != nullptr ? decoder->name : "unknown");
 
-		codec_context_.reset(LibAvDLL.Codec->avcodec_alloc_context3(decoder));
+		codec_context_.reset(LIB_AV_LIB.Codec->avcodec_alloc_context3(decoder));
 		if (!codec_context_) {
 			throw std::bad_alloc();
 		}
-		AvIfFailedThrow(LibAvDLL.Codec->avcodec_parameters_to_context(
+		AvIfFailedThrow(LIB_AV_LIB.Codec->avcodec_parameters_to_context(
 			codec_context_.get(),
 			codec_parameters));
-		AvIfFailedThrow(LibAvDLL.Codec->avcodec_open2(
+		AvIfFailedThrow(LIB_AV_LIB.Codec->avcodec_open2(
 			codec_context_.get(),
 			decoder,
 			nullptr));
 
-		packet_.reset(LibAvDLL.Codec->av_packet_alloc());
-		frame_.reset(LibAvDLL.Util->av_frame_alloc());
+		packet_.reset(LIB_AV_LIB.Codec->av_packet_alloc());
+		frame_.reset(LIB_AV_LIB.Util->av_frame_alloc());
 		if (!packet_ || !frame_) {
 			throw std::bad_alloc();
 		}
@@ -223,7 +223,7 @@ public:
 		packet_.reset();
 		codec_context_.reset();
 		if (format_context_ != nullptr) {
-			LibAvDLL.Format->avformat_close_input(&format_context_);
+			LIB_AV_LIB.Format->avformat_close_input(&format_context_);
 			format_context_ = nullptr;
 		}
 		audio_stream_ = nullptr;
@@ -261,19 +261,19 @@ public:
 			/ static_cast<double>(audio_stream_->time_base.num));
 
 		auto flags = AVSEEK_FLAG_BACKWARD;
-		AvIfFailedThrow(LibAvDLL.Format->av_seek_frame(
+		AvIfFailedThrow(LIB_AV_LIB.Format->av_seek_frame(
 			format_context_,
 			audio_stream_index_,
 			target,
 			flags));
-		LibAvDLL.Codec->avcodec_flush_buffers(codec_context_.get());
+		LIB_AV_LIB.Codec->avcodec_flush_buffers(codec_context_.get());
 		pending_samples_.clear();
 		pending_sample_offset_ = 0;
 		eof_ = false;
 		active_ = true;
 		if (swr_context_) {
-			LibAvDLL.Swr->swr_close(swr_context_.get());
-			AvIfFailedThrow(LibAvDLL.Swr->swr_init(swr_context_.get()));
+			LIB_AV_LIB.Swr->swr_close(swr_context_.get());
+			AvIfFailedThrow(LIB_AV_LIB.Swr->swr_init(swr_context_.get()));
 		}
 		XAMP_LOG_D(logger_,
 			"AvLib seek completed: target:{:.3f}s timestamp:{} stream:{}.",
@@ -341,7 +341,7 @@ private:
 			Throw<NotSupportFormatException>("Unsupported channel layout.");
 		}
 
-		swr_context_.reset(LibAvDLL.Swr->swr_alloc_set_opts(
+		swr_context_.reset(LIB_AV_LIB.Swr->swr_alloc_set_opts(
 			nullptr,
 			input_channel_layout,
 			kOutputSampleFormat,
@@ -354,15 +354,15 @@ private:
 		if (!swr_context_) {
 			throw std::bad_alloc();
 		}
-		AvIfFailedThrow(LibAvDLL.Swr->swr_init(swr_context_.get()));
+		AvIfFailedThrow(LIB_AV_LIB.Swr->swr_init(swr_context_.get()));
 		XAMP_LOG_D(logger_,
 			"AvLib resampler ready: input:{}Hz/{}ch/{} output:{}Hz/{}ch/{} layout:0x{:X}.",
 			codec_context_->sample_rate,
 			GetChannelCount(codec_context_.get()),
-			LibAvDLL.Util->av_get_sample_fmt_name(codec_context_->sample_fmt),
+			LIB_AV_LIB.Util->av_get_sample_fmt_name(codec_context_->sample_fmt),
 			output_sample_rate_,
 			output_channels_,
-			LibAvDLL.Util->av_get_sample_fmt_name(kOutputSampleFormat),
+			LIB_AV_LIB.Util->av_get_sample_fmt_name(kOutputSampleFormat),
 			input_channel_layout);
 	}
 
@@ -372,7 +372,7 @@ private:
 			bits = codec_parameters->bits_per_coded_sample;
 		}
 		if (bits <= 0) {
-			bits = LibAvDLL.Codec->av_get_bits_per_sample(codec_parameters->codec_id);
+			bits = LIB_AV_LIB.Codec->av_get_bits_per_sample(codec_parameters->codec_id);
 		}
 		return bits > 0 ? static_cast<uint32_t>(bits) : format_.getBitsPerSample();
 	}
@@ -413,12 +413,12 @@ private:
 
 	bool DecodeNextFrame() {
 		while (true) {
-			const auto receive_result = LibAvDLL.Codec->avcodec_receive_frame(
+			const auto receive_result = LIB_AV_LIB.Codec->avcodec_receive_frame(
 				codec_context_.get(),
 				frame_.get());
 			if (receive_result == 0) {
 				ConvertFrame(frame_.get());
-				LibAvDLL.Util->av_frame_unref(frame_.get());
+				LIB_AV_LIB.Util->av_frame_unref(frame_.get());
 				return true;
 			}
 			if (receive_result != AVERROR(EAGAIN)) {
@@ -429,10 +429,10 @@ private:
 			}
 
 			while (true) {
-				const auto read_result = LibAvDLL.Format->av_read_frame(format_context_, packet_.get());
+				const auto read_result = LIB_AV_LIB.Format->av_read_frame(format_context_, packet_.get());
 				if (read_result < 0) {
 					XAMP_LOG_D(logger_, "AvLib av_read_frame reached EOF/error:{}.", read_result);
-					const auto send_result = LibAvDLL.Codec->avcodec_send_packet(codec_context_.get(), nullptr);
+					const auto send_result = LIB_AV_LIB.Codec->avcodec_send_packet(codec_context_.get(), nullptr);
 					if (send_result != 0 && send_result != AVERROR_EOF) {
 						AvIfFailedThrow(send_result);
 					}
@@ -440,24 +440,24 @@ private:
 				}
 
 				if (packet_->stream_index == audio_stream_index_) {
-					const auto send_result = LibAvDLL.Codec->avcodec_send_packet(
+					const auto send_result = LIB_AV_LIB.Codec->avcodec_send_packet(
 						codec_context_.get(),
 						packet_.get());
-					LibAvDLL.Codec->av_packet_unref(packet_.get());
+					LIB_AV_LIB.Codec->av_packet_unref(packet_.get());
 					if (send_result == AVERROR(EAGAIN)) {
 						break;
 					}
 					AvIfFailedThrow(send_result);
 					break;
 				}
-				LibAvDLL.Codec->av_packet_unref(packet_.get());
+				LIB_AV_LIB.Codec->av_packet_unref(packet_.get());
 			}
 		}
 	}
 
 	void DrainDecoder() {
 		while (true) {
-			const auto receive_result = LibAvDLL.Codec->avcodec_receive_frame(
+			const auto receive_result = LIB_AV_LIB.Codec->avcodec_receive_frame(
 				codec_context_.get(),
 				frame_.get());
 			if (receive_result == AVERROR_EOF || receive_result == AVERROR(EAGAIN)) {
@@ -465,7 +465,7 @@ private:
 			}
 			AvIfFailedThrow(receive_result);
 			ConvertFrame(frame_.get());
-			LibAvDLL.Util->av_frame_unref(frame_.get());
+			LIB_AV_LIB.Util->av_frame_unref(frame_.get());
 		}
 	}
 
@@ -474,7 +474,7 @@ private:
 			return;
 		}
 
-		const auto max_output_samples = LibAvDLL.Swr->swr_get_out_samples(
+		const auto max_output_samples = LIB_AV_LIB.Swr->swr_get_out_samples(
 			swr_context_.get(),
 			frame->nb_samples);
 		if (max_output_samples <= 0) {
@@ -483,7 +483,7 @@ private:
 
 		output_samples_.resize(static_cast<size_t>(max_output_samples) * static_cast<size_t>(output_channels_));
 		auto* output_data = reinterpret_cast<uint8_t*>(output_samples_.data());
-		auto converted_samples = LibAvDLL.Swr->swr_convert(
+		auto converted_samples = LIB_AV_LIB.Swr->swr_convert(
 			swr_context_.get(),
 			&output_data,
 			max_output_samples,

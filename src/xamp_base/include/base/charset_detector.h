@@ -63,6 +63,6 @@ private:
 };
 
 
-XAMP_BASE_API void LoadUcharDectLib();
+XAMP_BASE_API void loadUcharDectLib();
 
 XAMP_BASE_NAMESPACE_END

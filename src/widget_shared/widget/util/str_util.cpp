@@ -121,7 +121,7 @@ QByteArray generateUuid() {
 }
 
 QString formatBytes(quint64 bytes) {
-    return QString::fromStdString(String::FormatBytes(bytes));
+    return QString::fromStdString(String::formatBytes(bytes));
 }
 
 QString formatTime(quint64 time) {

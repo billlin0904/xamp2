@@ -38,7 +38,7 @@ public:
 };
 
 inline DiscIdLib::DiscIdLib() try
-	: module_(OpenSharedLibrary("discid"))
+	: module_(openSharedLibrary("discid"))
 	, XAMP_LOAD_DLL_API(discid_new)
 	, XAMP_LOAD_DLL_API(discid_free)
 	, XAMP_LOAD_DLL_API(discid_read)

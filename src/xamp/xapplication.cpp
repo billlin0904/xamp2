@@ -53,7 +53,7 @@ XApplication::XApplication(int& argc, char* argv[])
 		}
 	}
 	
-	//SetCurrentProcessPriority(ProcessPriority::PRIORITY_BACKGROUND);
+	//setCurrentProcessPriority(ProcessPriority::PRIORITY_BACKGROUND);
 }
 
 XApplication::~XApplication() = default;

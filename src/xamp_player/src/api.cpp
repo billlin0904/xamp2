@@ -1,6 +1,7 @@
 #include <player/api.h>
 
 #include <base/threadpool.h>
+#include <base/threadpoolbuilder.h>
 #include <base/fftlib.h>
 #include <base/logger.h>
 #include <base/charset_detector.h>
@@ -25,7 +26,7 @@ struct RequiredComponentLoader {
     void (*load)();
 };
 
-void LoadRequiredComponent(const char* name, void (*loader)()) {
+void loadRequiredComponent(const char* name, void (*loader)()) {
     try {
         loader();
         XAMP_LOG_DEBUG("load {} lib success.", name);
@@ -37,34 +38,34 @@ void LoadRequiredComponent(const char* name, void (*loader)()) {
 }
 
 template <size_t Size>
-void LoadRequiredComponents(const RequiredComponentLoader (&loaders)[Size]) {
+void loadRequiredComponents(const RequiredComponentLoader (&loaders)[Size]) {
     for (const auto& loader : loaders) {
-        LoadRequiredComponent(loader.name, loader.load);
+        loadRequiredComponent(loader.name, loader.load);
     }
 }
 
 constexpr RequiredComponentLoader kComponentLoaders[] {
-    { "BASS", LoadBassLib },
-    { "MQA", LoadMqaLib },
-    { "Src", LoadSrcLib },
+    { "Bass", loadBassLib },
+    { "Mqa", loadMqaLib },
+    { "Src", loadSrcLib },
 #if defined(XAMP_OS_WIN) || defined(XAMP_OS_LINUX)
-    { "FFT", LoadFFTLib },
+    { "Fft", loadFftLib },
 #endif
-    { "avlib", LoadAvLib },
-    { "Soxr", LoadSoxrLib },
-    { "libcue", LoadCueLib },
-    { "uchardect", LoadUcharDectLib },
-    { "furigana", LoadFuriganaDll },
+    { "AvLib", loadAvLib },
+    { "Soxr", loadSoxrLib },
+    { "LibCue", loadCueLib },
+    { "UcharDect", loadUcharDectLib },
+    { "Furigana", loadFuriganaDll },
 #ifdef XAMP_OS_WIN
-    { "r8brain", LoadR8brainLib },
-    { "mbdiscid", LoadMBDiscIdLib },
+    { "R8Brain", loadR8BrainLib },
+    { "MBDiscId", loadMBDiscIdLib },
 #endif
 };
 
 } // namespace
 
-void LoadComponentSharedLibrary() {
-    LoadRequiredComponents(kComponentLoaders);
+void loadComponentSharedLibrary() {
+    loadRequiredComponents(kComponentLoaders);
 }
 
 #ifdef XAMP_OS_WIN

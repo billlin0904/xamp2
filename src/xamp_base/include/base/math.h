@@ -54,7 +54,7 @@ XAMP_ALWAYS_INLINE uint64_t rotl64(const uint64_t x, uint32_t shift) {
 * @param[in] v
 * @return int32_t
 */
-XAMP_ALWAYS_INLINE size_t IsPowerOfTwo(size_t v) {
+XAMP_ALWAYS_INLINE size_t isPowerOfTwo(size_t v) {
 	return v > 0 && !(v & (v - 1));
 }
 
@@ -65,7 +65,7 @@ XAMP_ALWAYS_INLINE size_t IsPowerOfTwo(size_t v) {
 * @return t
 */
 template <typename t>
-t Round(t a) {
+t round(t a) {
     static_assert(std::is_floating_point_v<t>, "Round<t>: t must be floating point");
     return (a > 0) ? ::floor(a + static_cast<t>(0.5)) : ::ceil(a - static_cast<t>(0.5));
 }
@@ -79,10 +79,10 @@ t Round(t a) {
 * @note places must be positive.
 */
 template <typename t>
-t Round(t a, int32_t places) {
+t round(t a, int32_t places) {
     static_assert(std::is_floating_point_v<t>, "Round<t>: t must be floating point");
     const t shift = pow(static_cast<t>(10.0), places);
-    return Round(a * shift) / shift;
+    return round(a * shift) / shift;
 }
 
 //log10f is exactly log2(x)/log2(10.0f)

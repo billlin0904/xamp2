@@ -297,7 +297,7 @@ void AsioDevice::createBuffers(AudioFormat const & output_format) {
 	the_driver_context.asio_callbacks.sampleRateDidChange = onSampleRateChangedCallback;
 	the_driver_context.asio_callbacks.asioMessage = onAsioMessagesCallback;
 	the_driver_context.asio_callbacks.bufferSwitchTimeInfo = onBufferSwitchTimeInfoCallback;
-	the_driver_context.data_context.volume_factor = VolumeLevelToGain(volume_level_);
+	the_driver_context.data_context.volume_factor = volumeLevelToGain(volume_level_);
 
 	const auto result = ::ASIOCreateBuffers(
 		the_driver_context.buffer_infos.data(),
@@ -443,7 +443,7 @@ void AsioDevice::createBuffers(AudioFormat const & output_format) {
 	is_hardware_control_volume_ = false;
 
 	XAMP_LOG_D(logger_, "IO format :{} ", io_format_);
-	XAMP_LOG_D(logger_, "Buffer size :{} ", String::FormatBytes(buffer_.getByteSize()));
+	XAMP_LOG_D(logger_, "Buffer size :{} ", String::formatBytes(buffer_.getByteSize()));
 	XAMP_LOG_D(logger_, "Driver support post output: {}", the_driver_context.post_output);
 
 	if (latency_ < 15) {
@@ -460,7 +460,7 @@ void AsioDevice::setVolume(uint32_t volume) const {
 		return;
 	}
 	volume_level_ = std::clamp(volume, static_cast<uint32_t>(0), static_cast<uint32_t>(100));
-	XAMP_LOG_D(logger_, "Current volume: {}({} db)", getVolume(), VolumeLevelToDb(volume_level_));
+	XAMP_LOG_D(logger_, "Current volume: {}({} db)", getVolume(), volumeLevelToDb(volume_level_));
 }
 
 void AsioDevice::setMute(bool mute) const {
@@ -483,7 +483,7 @@ void AsioDevice::fillSilentData() {
 bool AsioDevice::getPCMSamples(long index, double sample_time, size_t& num_filled_frame) {
 	const auto vol = volume_level_.load();
 	if (the_driver_context.data_context.cache_volume != vol) {
-		the_driver_context.data_context.volume_factor = VolumeLevelToGain(vol);
+		the_driver_context.data_context.volume_factor = volumeLevelToGain(vol);
 		the_driver_context.data_context.cache_volume = vol;
 	}
 
@@ -748,7 +748,7 @@ void AsioDevice::onBufferSwitchCallback(long index, ASIOBool processNow) {
 		/ the_driver_context.device->format_.getSampleRate();
 	}
 	
-	const auto elapsed = the_driver_context.buffer_switch_stopwatch.Elapsed<std::chrono::milliseconds>().count();
+	const auto elapsed = the_driver_context.buffer_switch_stopwatch.elapsed<std::chrono::milliseconds>().count();
 	if (the_driver_context.device->latency_ > kMinimalLatencyMs) {
 		if (elapsed > the_driver_context.device->latency_) {
 			XAMP_LOG_D(the_driver_context.device->logger_, "Wait event timeout! {}ms", elapsed);

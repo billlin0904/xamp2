@@ -48,11 +48,11 @@ public:
         file_.reset();
     }
 
-    [[nodiscard]] void const * getData() const {
+    [[nodiscard]] void const * data() const {
         return address_.get();
     }
 
-    [[nodiscard]] size_t getLength() const {
+    [[nodiscard]] size_t length() const {
         LARGE_INTEGER li{};
 		::GetFileSizeEx(file_.get(), &li);
         return li.QuadPart;
@@ -153,12 +153,12 @@ bool MemoryMappedFile::open(std::wstring const &file_path, bool is_module) {
     return impl_->open(file_path, is_module);
 }
 
-void const * MemoryMappedFile::getData() const {
-    return impl_->getData();
+void const * MemoryMappedFile::data() const {
+    return impl_->data();
 }
 
-size_t MemoryMappedFile::getLength() const {
-    return impl_->getLength();
+size_t MemoryMappedFile::length() const {
+    return impl_->length();
 }
 
 void MemoryMappedFile::close() {

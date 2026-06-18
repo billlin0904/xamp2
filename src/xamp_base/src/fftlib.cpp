@@ -14,15 +14,15 @@ XAMP_BASE_NAMESPACE_BEGIN
 #ifdef XAMP_OS_WIN
 
 MKLLib::MKLLib() try
-	: mkl_core_(OpenSharedLibrary("mkl_core.2"))
-	, libiomp_(OpenSharedLibrary("libiomp5md"))
-	, mkl_intel_thread_(OpenSharedLibrary("mkl_intel_thread.2"))
-	, mkl_cdft_core_(OpenSharedLibrary("mkl_cdft_core.2"))
-	, mkl_def_(OpenSharedLibrary("mkl_def.2"))
-	, mkl_mc3_(OpenSharedLibrary("mkl_mc3.2"))
-	, mkl_avx2_(OpenSharedLibrary("mkl_avx2.2"))
-	, mkl_avx512_(OpenSharedLibrary("mkl_avx512.2"))
-	, module_(OpenSharedLibrary("mkl_rt.2"))
+	: mkl_core_(openSharedLibrary("mkl_core.2"))
+	, libiomp_(openSharedLibrary("libiomp5md"))
+	, mkl_intel_thread_(openSharedLibrary("mkl_intel_thread.2"))
+	, mkl_cdft_core_(openSharedLibrary("mkl_cdft_core.2"))
+	, mkl_def_(openSharedLibrary("mkl_def.2"))
+	, mkl_mc3_(openSharedLibrary("mkl_mc3.2"))
+	, mkl_avx2_(openSharedLibrary("mkl_avx2.2"))
+	, mkl_avx512_(openSharedLibrary("mkl_avx512.2"))
+	, module_(openSharedLibrary("mkl_rt.2"))
 	, XAMP_LOAD_DLL_API(MKL_malloc)
 	, XAMP_LOAD_DLL_API(MKL_free)
 	, XAMP_LOAD_DLL_API(DftiErrorClass)
@@ -65,7 +65,7 @@ MKLLib::MKLLib()
 
 #endif
 
-void LoadFFTLib() {
+void loadFftLib() {
 	MklDLL;
 
 	std::array<char, 256> version{};

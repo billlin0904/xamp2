@@ -22,7 +22,7 @@ namespace {
 	class LogFlagFormatter final : public spdlog::custom_flag_formatter {
 	public:
 		void format(const spdlog::details::log_msg& message, const std::tm&, spdlog::memory_buf_t& dest) override {
-			const auto upper_logger_level = String::ToUpper(std::string(to_string_view(message.level).data()));
+			const auto upper_logger_level = String::toUpper(std::string(to_string_view(message.level).data()));
 			dest.append(upper_logger_level.data(), upper_logger_level.data() + upper_logger_level.size());
 		}
 
@@ -44,7 +44,7 @@ namespace {
 			spdlog::memory_buf_t formatted;
 			formatter_->format(msg, formatted);
 
-			const auto output_text = String::ToStdWString(fmt::to_string(formatted));
+			const auto output_text = String::toStdWString(fmt::to_string(formatted));
 			const auto count = output_text.size() / kMaxOutputLength;
 			if (!count) {
 				::OutputDebugStringW(output_text.c_str());
@@ -189,7 +189,7 @@ LoggerManager& LoggerManager::addDebugOutput() {
 	// OutputDebugString 會產生例外導致AddVectoredExceptionHandler註冊的
 	// Handler會遞迴的呼叫下去, 所以只有在除錯模式下才使用.
 	// https://stackoverflow.com/questions/25634376/why-does-addvectoredexceptionhandler-crash-my-dll
-	if (IsDebuging()) {
+	if (isDebugging()) {
 		std::lock_guard<FastMutex> guard{ lock_ };
 		sinks_.push_back(std::make_shared<DebugOutputSink>());
 	}

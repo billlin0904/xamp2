@@ -91,7 +91,7 @@ namespace {
         const auto samples_to_read = frames * channels;
         constexpr auto kMaxRetryCount = 4;
         while (true) {
-            buffer.Fill(0.0f);
+            buffer.fill(0.0f);
             const auto samples_read = file_stream->getSamples(buffer.data(), samples_to_read);
             if (samples_read > 0) {
                 return samples_read / channels;
@@ -205,7 +205,7 @@ namespace {
                 ArchiveFileStream afs;
 
                 if (request.entity.is_zip_file && request.entity.archive_entry_name.has_value()) {
-                    auto archive_result = StreamFactory::MakeArchiveFileStream(
+                    auto archive_result = StreamFactory::makeArchiveFileStream(
                         request.entity.file_path.toStdWString(),
                         request.entity.archive_entry_name.value().toStdWString());
                     if (!archive_result.has_value()) {

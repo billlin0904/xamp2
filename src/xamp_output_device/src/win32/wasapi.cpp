@@ -78,7 +78,7 @@ namespace {
 	* @param[in] name device name.
 	* @return DeviceConnectType
 	*/
-	DeviceConnectType GetDeviceConnectType(const std::wstring& name) {
+	DeviceConnectType getDeviceConnectType(const std::wstring& name) {
 		if (name.find(L"usb") != std::wstring::npos) {
 			return DeviceConnectType::USB;
 		}
@@ -97,7 +97,7 @@ namespace {
 	 * @param[in] device device.
 	 * @return DeviceConnectType
 	 */
-	DeviceConnectType GetDeviceConnectType(CComPtr<IMMDevice>& device) {
+	DeviceConnectType getDeviceConnectType(CComPtr<IMMDevice>& device) {
 #define IfFailedReturnUnknownType(hr) \
 		if (FAILED(hr)) {\
 			return DeviceConnectType::UNKNOWN;\
@@ -149,8 +149,8 @@ namespace {
 			IfFailedReturnUnknownType(otherside_topology->GetDeviceId(&device_name))
 				name = device_name;
 		}
-		name = String::ToLower(name);
-		auto device_connect_type = GetDeviceConnectType(name);
+		name = String::toLower(name);
+		auto device_connect_type = getDeviceConnectType(name);
 		XAMP_LOG_TRACE("EnumPartsIncoming: {} {}", device_connect_type, String::toString(name));
 		return device_connect_type;
 	}
@@ -163,7 +163,7 @@ namespace {
 	 * @param[in] device device.
 	 * @return std::wstring
 	*/
-	std::wstring GetDevicePropertyString(const PROPERTYKEY& key, VARTYPE type, CComPtr<IMMDevice>& device) {
+	std::wstring getDevicePropertyString(const PROPERTYKEY& key, VARTYPE type, CComPtr<IMMDevice>& device) {
 		std::wstring str;
 
 		CComPtr<IPropertyStore> property;
@@ -178,7 +178,7 @@ namespace {
 		case VT_UI4:
 		{
 			auto factor = static_cast<EndpointFactor>(prop_variant.ulVal);
-			return String::ToStdWString(enumToString(factor).data());
+			return String::toStdWString(enumToString(factor).data());
 		}
 		break;
 		case VT_BLOB:
@@ -213,13 +213,13 @@ CComPtr<IMMDeviceEnumerator> CreateDeviceEnumerator() {
 
 DeviceInfo getDeviceInfo(CComPtr<IMMDevice>& device, const Uuid& device_type_id, std::string_view desc) {
 	DeviceInfo info;
-	info.name = GetDevicePropertyString(PKEY_Device_FriendlyName, VT_LPWSTR, device);
+	info.name = getDevicePropertyString(PKEY_Device_FriendlyName, VT_LPWSTR, device);
 	
 	CComHeapPtr<WCHAR> id;
 	hrIfFailThrow(device->GetId(&id));
 	info.device_type_id = device_type_id;
 	info.device_id = String::toUtf8String(std::wstring(id));
-	info.connect_type = GetDeviceConnectType(device);
+	info.connect_type = getDeviceConnectType(device);
 	info.desc = desc;
 
 	return info;

@@ -43,52 +43,52 @@ public:
 
     explicit LruCache(int64_t capacity = kLruCacheSize) ;
 
-    void Resize(int64_t capacity);
+    void resize(int64_t capacity);
 
-    bool TryGet(Key const& key, Value &value);
+    bool tryGet(Key const& key, Value &value);
 
-    void AddOrUpdate(Key const& key, Value value);
+    void addOrUpdate(Key const& key, Value value);
 
-    Value GetOrAdd(Key const& key, std::move_only_function<Value()> &&value_factory);
+    Value getOrAdd(Key const& key, std::move_only_function<Value()> &&value_factory);
 
-    bool Add(Key const& key, Value value);
+    bool add(Key const& key, Value value);
 
-    int64_t GetMissCount() const ;
+    int64_t getMissCount() const ;
 
-    int64_t GetHitCount() const ;
+    int64_t getHitCount() const ;
 
-    void Erase(Key const& key);
+    void erase(Key const& key);
 
-    void Clear() ;
+    void clear() ;
 
-    int64_t GetSize() const ;
+    int64_t getSize() const ;
 
-    int64_t GetMaxSize() const ;
+    int64_t getMaxSize() const ;
 
-    void Evict(int64_t max_size);
+    void evict(int64_t max_size);
 
-    bool IsFull(int64_t new_entry_size) const {
+    bool isFull(int64_t new_entry_size) const {
         std::shared_lock<SharedMutex> read_lock{ mutex_ };
         return size_ + new_entry_size > capacity_;
     }
 
-    bool Contains(Key const& key) const {
+    bool contains(Key const& key) const {
         std::shared_lock<SharedMutex> read_lock{ mutex_ };
         return thumbnail_cache_.find(key) != thumbnail_cache_.end();
 	}
 private:
     friend std::ostream& operator<< (std::ostream& ostr, const LruCache& cache) {
-        auto hit_count = cache.GetHitCount();
-        auto max_size = cache.GetMaxSize();
-        auto size = cache.GetSize();
-        auto miss_count = cache.GetMissCount();
+        auto hit_count = cache.getHitCount();
+        auto max_size = cache.getMaxSize();
+        auto size = cache.getSize();
+        auto miss_count = cache.getMissCount();
         auto accesses = hit_count + miss_count;
         auto hit_percent = accesses != 0 ? (100 * hit_count / accesses) : 0;
         ostr << "[size=" << size << ",hits=" << hit_count << ",miss=" << miss_count << ",hit-rate=" << hit_percent << "%]";
         return ostr;
     }
 
-    void EvictLocked(int64_t max_size);
+    void evictLocked(int64_t max_size);
 
     int64_t size_;
     int64_t capacity_;
@@ -122,14 +122,14 @@ template
     typename KeyList,
     typename SharedMutex
 >
-void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::Resize(int64_t capacity) {
+void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::resize(int64_t capacity) {
     std::unique_lock<SharedMutex> write_lock(mutex_);
     capacity_ = capacity;
-    EvictLocked(capacity_);
+    evictLocked(capacity_);
 }
 
 template<typename Key, typename Value, typename SizeOfPolicy, typename KeyList, typename SharedMutex>
-bool LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::TryGet(Key const& key, Value& value) {
+bool LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::tryGet(Key const& key, Value& value) {
     std::unique_lock<SharedMutex> write_lock(mutex_);
     const auto check = thumbnail_cache_.find(key);
     if (check != thumbnail_cache_.end()) {
@@ -150,7 +150,7 @@ template
     typename KeyList,
     typename SharedMutex
 >
-bool LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::Add(Key const& key, Value value) {
+bool LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::add(Key const& key, Value value) {
     std::unique_lock<SharedMutex> write_lock(mutex_);
 
     if (thumbnail_cache_.contains(key)) {
@@ -160,7 +160,7 @@ bool LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::Add(Key const& ke
     size_ += policy_(key, value);
     keys_.emplace_front(key, std::move(value));
     thumbnail_cache_[key] = keys_.begin();
-    EvictLocked(capacity_);
+    evictLocked(capacity_);
     return true;
 }
 
@@ -172,7 +172,7 @@ template
     typename KeyList,
     typename SharedMutex
 >
-Value LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::GetOrAdd(Key const& key, std::move_only_function<Value()>&& value_factory) {
+Value LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::getOrAdd(Key const& key, std::move_only_function<Value()>&& value_factory) {
     {
         std::unique_lock<SharedMutex> write_lock(mutex_);
         const auto check = thumbnail_cache_.find(key);
@@ -200,7 +200,7 @@ Value LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::GetOrAdd(Key con
         keys_.emplace_front(key, value);
         thumbnail_cache_[key] = keys_.begin();
 
-        EvictLocked(capacity_);
+        evictLocked(capacity_);
     }    
 
     return value;
@@ -214,7 +214,7 @@ template
     typename KeyList,
     typename SharedMutex
 >
-void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::AddOrUpdate(Key const& key, Value value) {
+void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::addOrUpdate(Key const& key, Value value) {
     std::unique_lock<SharedMutex> write_lock(mutex_);
 
     auto itr = thumbnail_cache_.find(key);
@@ -230,7 +230,7 @@ void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::AddOrUpdate(Key c
         thumbnail_cache_[key] = keys_.begin();
     }
 
-    EvictLocked(capacity_);
+    evictLocked(capacity_);
 }
 
 template
@@ -241,9 +241,9 @@ template
     typename KeyList,
     typename SharedMutex
 >
-void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::Evict(int64_t max_size) {
+void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::evict(int64_t max_size) {
     std::unique_lock<SharedMutex> write_lock(mutex_);
-    EvictLocked(max_size);
+    evictLocked(max_size);
 }
 
 template
@@ -254,7 +254,7 @@ template
     typename KeyList,
     typename SharedMutex
 >
-void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::EvictLocked(int64_t max_size) {
+void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::evictLocked(int64_t max_size) {
     while (size_ > max_size && !keys_.empty()) {
         auto& eldest = keys_.back();
         size_ -= policy_(eldest.first, eldest.second);
@@ -271,7 +271,7 @@ template
     typename KeyList,
     typename SharedMutex
 >
-int64_t LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::GetMissCount() const {
+int64_t LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::getMissCount() const {
     std::shared_lock<SharedMutex> read_lock{ mutex_ };
     return miss_count_;
 }
@@ -284,7 +284,7 @@ template
     typename KeyList,
     typename SharedMutex
 >
-int64_t LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::GetHitCount() const {
+int64_t LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::getHitCount() const {
     std::shared_lock<SharedMutex> read_lock{ mutex_ };
     return hit_count_;
 }
@@ -297,7 +297,7 @@ template
     typename KeyList,
     typename SharedMutex
 >
-void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::Erase(Key const& key) {
+void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::erase(Key const& key) {
     std::unique_lock<SharedMutex> write_lock(mutex_);
 
     const auto check = thumbnail_cache_.find(key);
@@ -318,7 +318,7 @@ template
     typename KeyList,
     typename SharedMutex
 >
-void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::Clear() {
+void LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::clear() {
     std::unique_lock<SharedMutex> write_lock(mutex_);
     size_ = 0;
     keys_.clear();
@@ -333,7 +333,7 @@ template
     typename KeyList,
     typename SharedMutex
 >
-int64_t LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::GetMaxSize() const {
+int64_t LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::getMaxSize() const {
     std::shared_lock<SharedMutex> read_lock{ mutex_ };
     return capacity_;
 }
@@ -346,7 +346,7 @@ template
     typename KeyList,
     typename SharedMutex
 >
-int64_t LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::GetSize() const {
+int64_t LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::getSize() const {
     std::shared_lock<SharedMutex> read_lock{ mutex_ };
     return size_;
 }

@@ -151,7 +151,7 @@ public:
 
         if (mode == DsdModes::DSD_MODE_PCM) {
             io_stream_.open(file_path, FastIOStream::Mode::read);
-            impl_.reset(BassLibDLL.BASS_StreamCreateFileUser(
+            impl_.reset(LIB_BASS.BASS_StreamCreateFileUser(
                 STREAMFILE_NOBUFFER,
                 flags | BASS_STREAM_DECODE,
                 &file_process,
@@ -160,7 +160,7 @@ public:
         }
         else {
             io_stream_.open(file_path, FastIOStream::Mode::read);
-            impl_.reset(BassLibDLL.DSDLib->BASS_DSD_StreamCreateFileUser(
+            impl_.reset(LIB_BASS.DSDLib->BASS_DSD_StreamCreateFileUser(
                 STREAMFILE_NOBUFFER,
                 flags | BASS_STREAM_DECODE,
                 &file_process,
@@ -169,20 +169,20 @@ public:
             ));
             // BassLib DSD module default use 6dB gain.
             // 不設定的話會爆音!
-            BassLibDLL.BASS_ChannelSetAttribute(impl_.get(), BASS_ATTRIB_DSD_GAIN, 0.0f);
+            LIB_BASS.BASS_ChannelSetAttribute(impl_.get(), BASS_ATTRIB_DSD_GAIN, 0.0f);
         }
     }
 
     void CreateFileOrURL(std::wstring const& file_path, bool is_file_path, DsdModes mode, DWORD flags) {
         if (is_file_path) {
-            PrefetchFile(file_path);
+            prefetchFile(file_path);
 
 	        const auto is_cda_file = IsCDAFile(file_path);
 
             if (is_cda_file) {
                 flags |= BASS_ASYNCFILE;
                 // Only for windows.
-                impl_.reset(BassLibDLL.BASS_StreamCreateFile(FALSE,
+                impl_.reset(LIB_BASS.BASS_StreamCreateFile(FALSE,
                     file_path.c_str(),
                     0,
                     0,
@@ -202,7 +202,7 @@ public:
                 this));
 #else
             auto url = const_cast<wchar_t*>(file_path.c_str());
-            impl_.reset(BassLibDLL.BASS_StreamCreateURL(
+            impl_.reset(LIB_BASS.BASS_StreamCreateURL(
                 url,
                 0,
                 flags | BASS_STREAM_DECODE | BASS_UNICODE | BASS_STREAM_STATUS,
@@ -247,7 +247,7 @@ public:
         Stopwatch measure_stream_time;
 
         if (mode_ == DsdModes::DSD_MODE_PCM) {
-            impl_.reset(BassLibDLL.BASS_StreamCreateFileUser(
+            impl_.reset(LIB_BASS.BASS_StreamCreateFileUser(
                 STREAMFILE_BUFFER,
                 flags | BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
                 &file_process,
@@ -255,7 +255,7 @@ public:
             ));
         }
         else {
-            impl_.reset(BassLibDLL.DSDLib->BASS_DSD_StreamCreateFileUser(
+            impl_.reset(LIB_BASS.DSDLib->BASS_DSD_StreamCreateFileUser(
                 STREAMFILE_NOBUFFER,
                 flags | BASS_STREAM_DECODE,
                 &file_process,
@@ -264,7 +264,7 @@ public:
             ));
         }
 
-        XAMP_LOG_DEBUG("open track is a {} secs", measure_stream_time.ElapsedSeconds());
+        XAMP_LOG_DEBUG("open track is a {} secs", measure_stream_time.elapsedSeconds());
         LoadStream(rate_);
     }
 
@@ -305,14 +305,14 @@ public:
 			duration);
         if (duration < 1.0) {
             throw LibraryException(
-                String::Format("Duration too small {:.2f} secs",
+                String::format("Duration too small {:.2f} secs",
                     duration));
         }
     }
 
     void LoadStream(float rate) {
         info_ = BASS_CHANNELINFO{};        
-        BassIfFailedThrow(BassLibDLL.BASS_ChannelGetInfo(impl_.get(), &info_)); 
+        BassIfFailedThrow(LIB_BASS.BASS_ChannelGetInfo(impl_.get(), &info_)); 
 
         if (mode_ == DsdModes::DSD_MODE_DOP || mode_ == DsdModes::DSD_MODE_NATIVE) {
             CheckZeroDuration();
@@ -328,7 +328,7 @@ public:
 
         if (mode_ == DsdModes::DSD_MODE_PCM) {
             mix_stream_.reset(
-                BassLibDLL.MixLib->BASS_Mixer_StreamCreate(
+                LIB_BASS.MixLib->BASS_Mixer_StreamCreate(
                     getFormat().getSampleRate(),
                     AudioFormat::kMaxChannel,
                     BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE | BASS_MIXER_END));
@@ -337,7 +337,7 @@ public:
             }
 
             BassIfFailedThrow(
-                BassLibDLL.MixLib->BASS_Mixer_StreamAddChannel(mix_stream_.get(),
+                LIB_BASS.MixLib->BASS_Mixer_StreamAddChannel(mix_stream_.get(),
                     impl_.get(),
                     BASS_MIXER_BUFFER));
             XAMP_LOG_D(logger_,
@@ -367,17 +367,17 @@ public:
 
     [[nodiscard]] double GetReadProgress() const {
         auto file_len = 
-            BassLibDLL.BASS_StreamGetFilePosition(getHStream(),
+            LIB_BASS.BASS_StreamGetFilePosition(getHStream(),
                 BASS_FILEPOS_END);
         auto buffer =
-            BassLibDLL.BASS_StreamGetFilePosition(getHStream(), 
+            LIB_BASS.BASS_StreamGetFilePosition(getHStream(), 
                 BASS_FILEPOS_BUFFER);
         return 100.0 * static_cast<double>(buffer)
     	/ static_cast<double>(file_len);
     }
 
     [[nodiscard]] int32_t GetBufferingProgress() const {
-        return 100 - BassLibDLL.BASS_StreamGetFilePosition(getHStream(), 
+        return 100 - LIB_BASS.BASS_StreamGetFilePosition(getHStream(), 
             BASS_FILEPOS_BUFFERING);
     }
 
@@ -397,7 +397,7 @@ public:
                 XAMP_LOG_D(impl->logger_,
                     "Downloading {:.2f}% {}",
                     impl->GetReadProgress(),
-                    String::FormatBytes(impl->download_size_));
+                    String::formatBytes(impl->download_size_));
             }            
         }
     }
@@ -424,8 +424,8 @@ public:
     
     static double GetHStreamDuration(HSTREAM stream) {
         const auto len =
-            BassLibDLL.BASS_ChannelGetLength(stream, BASS_POS_BYTE);
-        return BassLibDLL.BASS_ChannelBytes2Seconds(stream, len);
+            LIB_BASS.BASS_ChannelGetLength(stream, BASS_POS_BYTE);
+        return LIB_BASS.BASS_ChannelBytes2Seconds(stream, len);
     }
 
     [[nodiscard]] double GetSourceDurationSeconds() const {
@@ -467,28 +467,28 @@ public:
         /*double playback_seconds = stream_time / playback_rate_;
 
         const auto pos_bytes =
-            BassLibDLL.BASS_ChannelSeconds2Bytes(getHStream(), playback_seconds);
-        BassIfFailedThrow(BassLibDLL.BASS_ChannelSetPosition(getHStream(),
+            LIB_BASS.BASS_ChannelSeconds2Bytes(getHStream(), playback_seconds);
+        BassIfFailedThrow(LIB_BASS.BASS_ChannelSetPosition(getHStream(),
             pos_bytes, BASS_POS_BYTE | GetSetPositionFlags()));*/
 
         auto h = getHStream();
         const double playback_seconds = stream_time / playback_rate_;
-        QWORD target_bytes = BassLibDLL.BASS_ChannelSeconds2Bytes(h, playback_seconds);
-        const QWORD len = BassLibDLL.BASS_ChannelGetLength(h, BASS_POS_BYTE);        
+        QWORD target_bytes = LIB_BASS.BASS_ChannelSeconds2Bytes(h, playback_seconds);
+        const QWORD len = LIB_BASS.BASS_ChannelGetLength(h, BASS_POS_BYTE);        
 
-        const QWORD cur_bytes = BassLibDLL.BASS_ChannelGetPosition(h, BASS_POS_BYTE);
+        const QWORD cur_bytes = LIB_BASS.BASS_ChannelGetPosition(h, BASS_POS_BYTE);
 
-        if (BassLibDLL.BASS_ChannelSetPosition(h, target_bytes, BASS_POS_BYTE)) {
+        if (LIB_BASS.BASS_ChannelSetPosition(h, target_bytes, BASS_POS_BYTE)) {
             return;
         }
 
         if (len && target_bytes >= len)
             target_bytes = (len > 0) ? (len - 1) : 0;
 
-        const int err = BassLibDLL.BASS_ErrorGetCode();
+        const int err = LIB_BASS.BASS_ErrorGetCode();
         if (tempo_stream_.is_valid() && target_bytes >= cur_bytes) {
             BassIfFailedThrow(
-                BassLibDLL.BASS_ChannelSetPosition(h, target_bytes, BASS_POS_BYTE | BASS_POS_DECODETO)
+                LIB_BASS.BASS_ChannelSetPosition(h, target_bytes, BASS_POS_BYTE | BASS_POS_DECODETO)
             );
             return;
         }
@@ -497,21 +497,21 @@ public:
     }
 
     double GetPosition() const {
-        double playback_seconds = BassLibDLL.BASS_ChannelBytes2Seconds(getHStream(),
-            BassLibDLL.BASS_ChannelGetPosition(getHStream(), BASS_POS_BYTE));
+        double playback_seconds = LIB_BASS.BASS_ChannelBytes2Seconds(getHStream(),
+            LIB_BASS.BASS_ChannelGetPosition(getHStream(), BASS_POS_BYTE));
         return playback_seconds * playback_rate_;
     }
 
     [[nodiscard]] uint32_t getDsdSampleRate() const {
         float rate = 0;
-        BassIfFailedThrow(BassLibDLL.BASS_ChannelGetAttribute(GetSourceStream(),
+        BassIfFailedThrow(LIB_BASS.BASS_ChannelGetAttribute(GetSourceStream(),
             BASS_ATTRIB_DSD_RATE, &rate));
         return static_cast<uint32_t>(rate);
     }
 
     [[nodiscard]] uint32_t getBitRate() const {
         float rate = 0;
-        BassIfFailedThrow(BassLibDLL.BASS_ChannelGetAttribute(GetSourceStream(),
+        BassIfFailedThrow(LIB_BASS.BASS_ChannelGetAttribute(GetSourceStream(),
             BASS_ATTRIB_BITRATE, &rate));
         return static_cast<uint32_t>(rate);
     }
@@ -546,7 +546,7 @@ public:
     }
 
     void setDsdToPcmSampleRate(uint32_t sample_rate) {
-        BassLibDLL.BASS_SetConfig(BASS_CONFIG_DSD_FREQ, sample_rate);
+        LIB_BASS.BASS_SetConfig(BASS_CONFIG_DSD_FREQ, sample_rate);
     }
 
     [[nodiscard]] uint32_t getDsdSpeed() const {
@@ -564,11 +564,11 @@ public:
     }
 
     [[nodiscard]] bool isActive() const {
-        return BassLibDLL.BASS_ChannelIsActive(GetSourceStream()) == BASS_ACTIVE_PLAYING;
+        return LIB_BASS.BASS_ChannelIsActive(GetSourceStream()) == BASS_ACTIVE_PLAYING;
     }
 	
     bool endOfStream() const {
-        auto last_error = BassLibDLL.BASS_ErrorGetCode();
+        auto last_error = LIB_BASS.BASS_ErrorGetCode();
         if (last_error == BASS_ERROR_ENDED) {
             return true;
         }
@@ -588,7 +588,7 @@ public:
             return;
         }
         const float tempo_percent = -percent;
-        BassIfFailedThrow(BassLibDLL.BASS_ChannelSetAttribute(
+        BassIfFailedThrow(LIB_BASS.BASS_ChannelSetAttribute(
             tempo_stream_.get(),
             BASS_ATTRIB_TEMPO, 
             tempo_percent));
@@ -597,7 +597,7 @@ public:
 private:
     uint32_t InternalGetSamples(void* buffer, uint32_t length) const {
         const auto bytes_read =
-            BassLibDLL.BASS_ChannelGetData(getHStream(), buffer, length);
+            LIB_BASS.BASS_ChannelGetData(getHStream(), buffer, length);
         if (bytes_read == kBassError) {            			
             return 0;
         }
@@ -624,11 +624,11 @@ private:
             return;
         }
 
-        tempo_stream_.reset(BassLibDLL.FxLib->BASS_FX_TempoCreate(base, BASS_STREAM_DECODE));
+        tempo_stream_.reset(LIB_BASS.FxLib->BASS_FX_TempoCreate(base, BASS_STREAM_DECODE));
         BassIfFailedThrow(tempo_stream_.get());
 
         const float tempo_percent = (playback_rate_ - 1.0f) * 100.0f;
-        BassIfFailedThrow(BassLibDLL.BASS_ChannelSetAttribute(
+        BassIfFailedThrow(LIB_BASS.BASS_ChannelSetAttribute(
             tempo_stream_.get(), BASS_ATTRIB_TEMPO, tempo_percent));
     }
 

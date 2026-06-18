@@ -15,7 +15,7 @@ XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 /*
 * load the shared library of the audio player component.
 */
-XAMP_PLAYER_API void LoadComponentSharedLibrary();
+XAMP_PLAYER_API void loadComponentSharedLibrary();
 
 /*
 * create an audio player instance.

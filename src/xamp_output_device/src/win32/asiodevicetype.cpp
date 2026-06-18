@@ -70,7 +70,7 @@ void AsioDeviceType::AsioDeviceTypeImpl::scanNewDevice() {
 			char driver_name[kMaxPathLen + 1]{};
 			drivers.asioGetDriverName(i, driver_name, kMaxPathLen);
 			if (!device_info_cache_.contains(driver_name)) {
-				device_info_cache_[driver_name] = getDeviceInfo(String::ToStdWString(driver_name), driver_name);
+				device_info_cache_[driver_name] = getDeviceInfo(String::toStdWString(driver_name), driver_name);
 			}			
 		}
 	}

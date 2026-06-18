@@ -7,7 +7,7 @@
 XAMP_BASE_NAMESPACE_BEGIN
 
 namespace {
-    bool TryParseHex(const char a, const char b, uint8_t& data) {
+    bool tryParseHex(const char a, const char b, uint8_t& data) {
         const char buffer[] = { a, b, '\0' };
         uint32_t result = 0;
         auto [_, ec] = std::from_chars(std::cbegin(buffer), std::cend(buffer), result, 16);
@@ -18,7 +18,7 @@ namespace {
         return true;
     }
 
-    bool TryParseUuid(std::string_view const& hex_string, UuidBuffer& result) {
+    bool tryParseUuid(std::string_view const& hex_string, UuidBuffer& result) {
         if (hex_string.length() != kMaxUuidHexStringLength) {
             return false;
         }
@@ -41,7 +41,7 @@ namespace {
             case 23:
                 continue;
             default:
-                if (!TryParseHex(hex_string[i], hex_string[i + 1], uuid[j])) {
+                if (!tryParseHex(hex_string[i], hex_string[i + 1], uuid[j])) {
                     return false;
                 }
                 ++j;
@@ -115,7 +115,7 @@ Uuid::Uuid(const uint8_t(&byte_array)[kMaxUuidSize]) {
 }
 
 Uuid::Uuid(const std::string_view &str) {
-    TryParseUuid(str, bytes_);
+    tryParseUuid(str, bytes_);
 }
 
 Uuid::operator std::string() const {
@@ -126,7 +126,7 @@ Uuid::operator std::string() const {
 
 Uuid Uuid::fromString(const std::string & hex_string) {
     UuidBuffer buffer{};
-    if (!TryParseUuid(hex_string, buffer)) {
+    if (!tryParseUuid(hex_string, buffer)) {
         throw std::invalid_argument("Invalid Uuid string.");
 	}
 	return Uuid(buffer);
@@ -134,7 +134,7 @@ Uuid Uuid::fromString(const std::string & hex_string) {
 
 bool Uuid::tryParseString(const std::string & hex_string, Uuid& uuid) {
     UuidBuffer buffer{};
-    if (!TryParseUuid(hex_string, buffer)) {
+    if (!tryParseUuid(hex_string, buffer)) {
         return false;
     }
 	const Uuid result(buffer);

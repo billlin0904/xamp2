@@ -13,30 +13,30 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-template <typename t>
+template <typename T>
 class DefaultFactory {
 public:
-    t *create() {
-        return new t();
+    T *create() {
+        return new T();
     }
 };
 
 template 
 <
-    typename t,
-    typename FactoryType = DefaultFactory<t>
+    typename T,
+    typename FactoryType = DefaultFactory<T>
 >
-class ObjectPool : public std::enable_shared_from_this<ObjectPool<t, FactoryType>> {
+class ObjectPool : public std::enable_shared_from_this<ObjectPool<T, FactoryType>> {
 private:
     class ReturnToPool;
 
     using factory_type = FactoryType;
-    using pool_type = ObjectPool<t, FactoryType>;
+    using pool_type = ObjectPool<T, FactoryType>;
     using deleter_type = typename pool_type::ReturnToPool;
-    using ptr_type = std::unique_ptr<t>;
+    using ptr_type = std::unique_ptr<T>;
 
 public:
-    using return_ptr_type = std::unique_ptr<t, deleter_type>;
+    using return_ptr_type = std::unique_ptr<T, deleter_type>;
 
     explicit ObjectPool(const size_t init_size)
         : current_size_(0)
@@ -62,13 +62,13 @@ public:
         Init();
     }
     
-    void Release(ptr_type &object) {
+    void release(ptr_type &object) {
         std::unique_lock<FastMutex> lck(object_mutex_);
         objects_.push_back(std::move(object));
         idle_cv_.notify_one();
     }
 
-    return_ptr_type Acquire() {
+    return_ptr_type acquire() {
         std::unique_lock<FastMutex> lck(object_mutex_);
 
         while (true) {
@@ -79,7 +79,7 @@ public:
                 objects_.pop_back();
                 return ptr;
             } else {
-                auto obj = this->CreateObject();
+                auto obj = this->createObject();
                 if (obj != nullptr)
                     return return_ptr_type(obj, deleter_type{this->shared_from_this()});
                 idle_cv_.wait(lck);
@@ -96,9 +96,9 @@ private:
     FastConditionVariable idle_cv_;
 
     factory_type factory_;
-    std::deque<std::unique_ptr<t>> objects_;
+    std::deque<std::unique_ptr<T>> objects_;
 
-    XAMP_CHECK_LIFETIME [[nodiscard]] t *CreateObject() {
+    XAMP_CHECK_LIFETIME [[nodiscard]] T *createObject() {
         if (current_size_ < max_size_) {
             current_size_++;
             return factory_.create();
@@ -110,7 +110,7 @@ private:
 
     void Init()  {
         for (int i = 0; i < init_size_; ++i) {
-            objects_.emplace_back(CreateObject());
+            objects_.emplace_back(createObject());
         }
     }
 
@@ -120,11 +120,11 @@ private:
             : pool_(ptr) {
         }
 
-        void operator()(t *object) {
+        void operator()(T *object) {
             ptr_type ptr(object);
             if (auto sp = pool_.lock()) {
                 try {
-                    sp->Release(ptr);
+                    sp->release(ptr);
                 } catch (...) {
                 }
             }
@@ -134,9 +134,9 @@ private:
     };
 };
 
-template <typename t>
-std::shared_ptr<ObjectPool<t>> MakeObjectPool(size_t size) {
-    return std::make_shared<ObjectPool<t>>(size);
+template <typename T>
+std::shared_ptr<ObjectPool<T>> makeObjectPool(size_t size) {
+    return std::make_shared<ObjectPool<T>>(size);
 }
 
 XAMP_BASE_NAMESPACE_END

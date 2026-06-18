@@ -1,4 +1,4 @@
-﻿//=====================================================================================================================
+//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -29,7 +29,7 @@ public:
 		while (flag_.exchange(true, std::memory_order_acquire)) {
 			while (flag_.load(std::memory_order_relaxed)) {
 				for (int32_t i = mask; i; --i)
-					CpuRelax();
+					cpuRelax();
 				mask = mask < kMaxSpinCount ? mask << 1 : kMaxSpinCount;
 			}
 		}

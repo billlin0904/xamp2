@@ -296,7 +296,7 @@ void DatabaseFacade::insertTrackInfo(const std::forward_list<TrackInfo>& result,
                 String::toString(file_path.toStdWString()),
                 String::toString(archive_file_name.toStdWString()),
                 has_archive_entry,
-                fetch_cover_elapsed.ElapsedSeconds());
+                fetch_cover_elapsed.elapsedSeconds());
         }
 	}
 }

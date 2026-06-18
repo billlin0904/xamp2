@@ -3,6 +3,7 @@
 #include <thememanager.h>
 
 #include <base/logger.h>
+#include <base/threadpoolbuilder.h>
 
 #include <widget/util/ui_util.h>
 #include <widget/appsettingnames.h>
@@ -39,7 +40,7 @@ XMainWindow::XMainWindow()
     setAttribute(Qt::WA_DontCreateNativeAncestors);
     setObjectName("XMainWindow"_str);
     setAcceptDrops(true);
-    scanner_thread_pool_ = ThreadPoolBuilder::MakeThreadPool(
+    scanner_thread_pool_ = ThreadPoolBuilder::makeThreadPool(
         "ScannerThreadPool",
         4,
         1,

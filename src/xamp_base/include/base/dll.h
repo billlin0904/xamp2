@@ -22,7 +22,7 @@ XAMP_BASE_NAMESPACE_BEGIN
 * @param[in] file_name Library file name.
 * @return Shared library handle.
 */
-XAMP_BASE_API SharedLibraryHandle LoadSharedLibrary(const std::string_view& file_name);
+XAMP_BASE_API SharedLibraryHandle loadSharedLibrary(const std::string_view& file_name);
 
 /*
 * OpenSharedLibrary
@@ -31,7 +31,7 @@ XAMP_BASE_API SharedLibraryHandle LoadSharedLibrary(const std::string_view& file
 * @param[in] file_name Library file name.
 * @return Shared library handle.
 */
-XAMP_BASE_API SharedLibraryHandle OpenSharedLibrary(const std::string_view& file_name);
+XAMP_BASE_API SharedLibraryHandle openSharedLibrary(const std::string_view& file_name);
 
 /*
 * GetSharedLibraryPath
@@ -40,7 +40,7 @@ XAMP_BASE_API SharedLibraryHandle OpenSharedLibrary(const std::string_view& file
 * @param[in] module Shared library handle.
 * @return Shared library path.
 */
-XAMP_BASE_API Path GetSharedLibraryPath(const SharedLibraryHandle &module);
+XAMP_BASE_API Path getSharedLibraryPath(const SharedLibraryHandle &module);
 
 /*
 * LoadSharedLibrarySymbol
@@ -49,7 +49,7 @@ XAMP_BASE_API Path GetSharedLibraryPath(const SharedLibraryHandle &module);
 * @param[in] dll Shared library handle.
 * @param[in] name Symbol name.
 */
-XAMP_BASE_API void* LoadSharedLibrarySymbol(const SharedLibraryHandle& dll, const std::string_view & name);
+XAMP_BASE_API void* loadSharedLibrarySymbol(const SharedLibraryHandle& dll, const std::string_view & name);
 
 /*
 * PrefetchSharedLibrary
@@ -58,7 +58,7 @@ XAMP_BASE_API void* LoadSharedLibrarySymbol(const SharedLibraryHandle& dll, cons
 * @param[in] module Shared library handle.
 * @return Prefetch success or not.
 */
-XAMP_BASE_API bool PrefetchSharedLibrary(SharedLibraryHandle const& module);
+XAMP_BASE_API bool prefetchSharedLibrary(SharedLibraryHandle const& module);
 
 /*
 * AddSharedLibrarySearchDirectory
@@ -67,7 +67,7 @@ XAMP_BASE_API bool PrefetchSharedLibrary(SharedLibraryHandle const& module);
 * @param[in] path Search directory path.
 * @TODO Repeat add search directory will cause crash.
 */
-XAMP_BASE_API bool AddSharedLibrarySearchDirectory(const Path &path);
+XAMP_BASE_API bool addSharedLibrarySearchDirectory(const Path &path);
 
 #ifdef XAMP_OS_WIN
 /*
@@ -79,7 +79,7 @@ XAMP_BASE_API bool AddSharedLibrarySearchDirectory(const Path &path);
 * @param[in] flags Symbol flags.
 * @return Symbol address.
 */
-XAMP_BASE_API void* LoadSharedLibrarySymbolEx(SharedLibraryHandle const& dll, const std::string_view name, uint32_t flags);
+XAMP_BASE_API void* loadSharedLibrarySymbolEx(SharedLibraryHandle const& dll, const std::string_view name, uint32_t flags);
 
 /*
 * PinSystemLibrary
@@ -88,7 +88,7 @@ XAMP_BASE_API void* LoadSharedLibrarySymbolEx(SharedLibraryHandle const& dll, co
 * @param[in] file_name Library file name.
 * @return Shared library handle.
 */
-XAMP_BASE_API SharedLibraryHandle PinSystemLibrary(const std::string_view& file_name);
+XAMP_BASE_API SharedLibraryHandle pinSystemLibrary(const std::string_view& file_name);
 #endif
 
 /*
@@ -116,7 +116,7 @@ public:
     * @param name Function name.    
     */
     SharedLibraryFunction(SharedLibraryHandle const& dll, const std::string_view name) {
-        func_ = reinterpret_cast<t*>(LoadSharedLibrarySymbol(dll, name));
+        func_ = reinterpret_cast<t*>(loadSharedLibrarySymbol(dll, name));
     }
 
 #ifdef XAMP_OS_WIN
@@ -128,7 +128,7 @@ public:
     * @param flags Function flags.
     */
     SharedLibraryFunction(SharedLibraryHandle const& dll, const std::string_view name, uint32_t flags) {
-        func_ = reinterpret_cast<t*>(LoadSharedLibrarySymbolEx(dll, name, flags));
+        func_ = reinterpret_cast<t*>(loadSharedLibrarySymbolEx(dll, name, flags));
     }
 #endif
     

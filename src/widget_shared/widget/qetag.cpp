@@ -1,4 +1,4 @@
-﻿#include <widget/qetag.h>
+#include <widget/qetag.h>
 #include <base/platform.h>
 #include <widget/widget_shared.h>
 #include <QCryptographicHash>
@@ -23,7 +23,7 @@ namespace {
 namespace qetag {
 
 QString getTagId(const QByteArray &buffer) {
-    //return QString::fromStdString(GetSequentialUUID());
+    //return QString::fromStdString(getSequentialUuid());
     // 七牛雲儲存etag演算法
 	// https://github.com/qiniu/qetag
 	// 如果你能夠確認文件 <= 4M，那麼 hash = UrlsafeBase64([0x16, sha1(FileContent)])
@@ -64,7 +64,7 @@ QString getTagId(const QByteArray &buffer) {
 }
 
 QString getTagId(const QString& file_name) {
-	//return QString::fromStdString(GetSequentialUUID());
+	//return QString::fromStdString(getSequentialUuid());
 	QString etag;
 	const QFileInfo fi(file_name);
 

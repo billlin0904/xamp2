@@ -84,17 +84,17 @@ public:
 			phase = SOXR_MINIMUM_PHASE;
 		}
 
-		auto soxr_quality = LibSoxrDLL.soxr_quality_spec(quality_spec | phase, flags);
+		auto soxr_quality = LIB_SOXR.soxr_quality_spec(quality_spec | phase, flags);
 
 		soxr_quality.passband_end = pass_band_ / 100.0;
 		soxr_quality.stopband_begin = stop_band_ / 100.0;
 
-		auto iospec = LibSoxrDLL.soxr_io_spec(SOXR_FLOAT32_I, SOXR_FLOAT32_I);
+		auto iospec = LIB_SOXR.soxr_io_spec(SOXR_FLOAT32_I, SOXR_FLOAT32_I);
 
-		auto runtimespec = LibSoxrDLL.soxr_runtime_spec(1);
+		auto runtimespec = LIB_SOXR.soxr_runtime_spec(1);
 
 		soxr_error_t error = nullptr;
-		handle_.reset(LibSoxrDLL.soxr_create(input_sample_rate,
+		handle_.reset(LIB_SOXR.soxr_create(input_sample_rate,
 			output_sample_rate_,
 			AudioFormat::kMaxChannel,
 			&error,
@@ -158,7 +158,7 @@ public:
 		if (!handle_) {
 			return;
 		}
-		LibSoxrDLL.soxr_clear(handle_.get());
+		LIB_SOXR.soxr_clear(handle_.get());
 	}
 
 	bool process(float const* samples, size_t num_samples, BufferRef<float>& output) {
@@ -166,7 +166,7 @@ public:
 		MaybeResizeBuffer(output, required_size);
 
 		size_t num_read_samples = 0;
-		LibSoxrDLL.soxr_process(handle_.get(),
+		LIB_SOXR.soxr_process(handle_.get(),
 			samples,
 			num_samples / num_channels_,
 			nullptr,
@@ -179,7 +179,7 @@ public:
 		}
 
 		if (num_read_samples * num_channels_ != output.size()) {
-			output.maybe_resize(num_read_samples * num_channels_);
+			output.maybeResize(num_read_samples * num_channels_);
 		}
 
 		MemoryCopy(output.data(), output.data(), num_read_samples * num_channels_ * sizeof(float));
@@ -192,7 +192,7 @@ public:
 		if (required_size > output.size()) {
 			XAMP_LOG_D(logger_, "Resize size: {} => {}", output.size(), required_size);
 		}
-		output.maybe_resize(required_size);
+		output.maybeResize(required_size);
 	}
 
 private:
@@ -202,7 +202,7 @@ private:
 		}
 
 		static void close(soxr_t value) {
-			LibSoxrDLL.soxr_delete(value);
+			LIB_SOXR.soxr_delete(value);
 		}
 	};
 
@@ -228,10 +228,10 @@ SoxrSampleRateConverter::SoxrSampleRateConverter()
 XAMP_PIMPL_IMPL(SoxrSampleRateConverter)
 
 void SoxrSampleRateConverter::initialize(const Property& config) {
-	const auto output_format = config.Get<AudioFormat>(DspConfig::kOutputFormat);
+	const auto output_format = config.get<AudioFormat>(DspConfig::kOutputFormat);
 	impl_->start(output_format.getSampleRate());
 
-	const auto input_format = config.Get<AudioFormat>(DspConfig::kInputFormat);
+	const auto input_format = config.get<AudioFormat>(DspConfig::kInputFormat);
     impl_->Init(input_format.getSampleRate());
 }
 

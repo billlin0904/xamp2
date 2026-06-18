@@ -20,7 +20,7 @@ public:
 
 	void setWindowType(WindowType type);
 
-	void Clear();
+	void clear();
 
 	const ComplexValarray& process(const float* in, size_t length);
 

@@ -23,10 +23,10 @@ void STFT::setWindowType(WindowType type) {
     window_.initialize(frame_size_, type);
 }
 
-void STFT::Clear() {
-    buf_.Fill(0);
-    out_.Fill(0);
-    in_.Fill(0);
+void STFT::clear() {
+    buf_.fill(0);
+    out_.fill(0);
+    in_.fill(0);
 }
 
 const ComplexValarray& STFT::process(const float* in, size_t length) {

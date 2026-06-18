@@ -64,7 +64,7 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 namespace {
 #ifdef XAMP_OS_WIN
-    SIZE_T SaturatingAdd(SIZE_T lhs, size_t rhs) {
+    SIZE_T saturatingAdd(SIZE_T lhs, size_t rhs) {
         const auto max_value = std::numeric_limits<SIZE_T>::max();
         if (rhs > max_value - lhs) {
             return max_value;
@@ -82,10 +82,10 @@ namespace {
             }
 
             std::lock_guard lock{ mutex_ };
-            active_locked_bytes_ = SaturatingAdd(active_locked_bytes_, size);
+            active_locked_bytes_ = saturatingAdd(active_locked_bytes_, size);
             XAMP_LOG_DEBUG("VirtualLock succeeded without working set resize. locked: {} active_locked: {}.",
-                String::FormatBytes(size),
-                String::FormatBytes(active_locked_bytes_));
+                String::formatBytes(size),
+                String::formatBytes(active_locked_bytes_));
         }
 
         bool reserveForLock(size_t size) {
@@ -98,30 +98,30 @@ namespace {
                 return false;
             }
 
-            const auto requested_locked_bytes = SaturatingAdd(active_locked_bytes_, size);
-            const auto target_minimum = SaturatingAdd(initial_minimum_, requested_locked_bytes);
+            const auto requested_locked_bytes = saturatingAdd(active_locked_bytes_, size);
+            const auto target_minimum = saturatingAdd(initial_minimum_, requested_locked_bytes);
             const auto target_maximum = std::max(initial_maximum_, target_minimum);
 
             if (requested_minimum_ < target_minimum || requested_maximum_ < target_maximum) {
                 const auto current_process = ::GetCurrentProcess();
                 if (!::SetProcessWorkingSetSize(current_process, target_minimum, target_maximum)) {
                     XAMP_LOG_DEBUG(
-                        "SetProcessWorkingSetSize failed. locked: {} active_locked: {} target_minimum: {} target_maximum: {} error:{}.",
-                        String::FormatBytes(size),
-                        String::FormatBytes(active_locked_bytes_),
-                        String::FormatBytes(target_minimum),
-                        String::FormatBytes(target_maximum),
+                        "setProcessWorkingSetSize failed. locked: {} active_locked: {} target_minimum: {} target_maximum: {} error:{}.",
+                        String::formatBytes(size),
+                        String::formatBytes(active_locked_bytes_),
+                        String::formatBytes(target_minimum),
+                        String::formatBytes(target_maximum),
                         GetLastErrorMessage());
                     return false;
                 }
                 requested_minimum_ = target_minimum;
                 requested_maximum_ = target_maximum;
                 XAMP_LOG_DEBUG(
-                    "SetProcessWorkingSetSize succeeded. locked: {} active_locked: {} minimum: {} maximum: {}.",
-                    String::FormatBytes(size),
-                    String::FormatBytes(requested_locked_bytes),
-                    String::FormatBytes(requested_minimum_),
-                    String::FormatBytes(requested_maximum_));
+                    "setProcessWorkingSetSize succeeded. locked: {} active_locked: {} minimum: {} maximum: {}.",
+                    String::formatBytes(size),
+                    String::formatBytes(requested_locked_bytes),
+                    String::formatBytes(requested_minimum_),
+                    String::formatBytes(requested_maximum_));
             }
 
             active_locked_bytes_ = requested_locked_bytes;
@@ -138,8 +138,8 @@ namespace {
                 ? 0
                 : active_locked_bytes_ - size;
             XAMP_LOG_DEBUG("VirtualUnlock released locked memory. unlocked: {} active_locked: {}.",
-                String::FormatBytes(size),
-                String::FormatBytes(active_locked_bytes_));
+                String::formatBytes(size),
+                String::formatBytes(active_locked_bytes_));
         }
 
     private:
@@ -158,8 +158,8 @@ namespace {
             requested_maximum_ = initial_maximum_;
             initialized_ = true;
             XAMP_LOG_TRACE("initial process working set. minimum: {} maximum: {}.",
-                String::FormatBytes(initial_minimum_),
-                String::FormatBytes(initial_maximum_));
+                String::formatBytes(initial_minimum_),
+                String::formatBytes(initial_maximum_));
             return true;
         }
 
@@ -172,7 +172,7 @@ namespace {
         SIZE_T active_locked_bytes_{ 0 };
     };
 
-    void SetProcessPriority(const WinHandle& handle, ProcessPriority priority) {
+    void setProcessPriority(const WinHandle& handle, ProcessPriority priority) {
         if (handle) {
             DWORD priority_class = NORMAL_PRIORITY_CLASS;
             if (priority == ProcessPriority::PRIORITY_BACKGROUND) {
@@ -202,7 +202,7 @@ namespace {
     }
 #endif
 
-    uint64_t ToMilliseconds(const timespec* ts) {
+    uint64_t toMilliseconds(const timespec* ts) {
         return static_cast<uint64_t>(ts->tv_sec) * 1000 + ts->tv_nsec / 1000000;
     }
 
@@ -215,7 +215,7 @@ namespace {
      * @return true if the atomic variable was woken up, false if the wait timed out.
      */
     template <typename t>
-    bool PlatformFutexWait(std::atomic<t>& to_wait_on, uint32_t& expected, uint32_t milliseconds) {
+    bool platformFutexWait(std::atomic<t>& to_wait_on, uint32_t& expected, uint32_t milliseconds) {
 #ifdef XAMP_OS_WIN
         // 在 Windows 上，INFINITE 通常定義為 0xFFFFFFFF，表示無限等待
         return ::WaitOnAddress(&to_wait_on, &expected, sizeof(expected), milliseconds) != 0;
@@ -246,7 +246,7 @@ namespace {
     * @param[out] to_wake The atomic variable to wake up.
     */
     template <typename t>
-    void PlatformFutexWakeSingle(std::atomic<t>& to_wake) {
+    void platformFutexWakeSingle(std::atomic<t>& to_wake) {
 #ifdef XAMP_OS_WIN
         ::WakeByAddressSingle(&to_wake);
 #elif defined (XAMP_OS_MAC)
@@ -262,7 +262,7 @@ namespace {
     * @param[out] to_wake The atomic variable to wake up.
     */
     template <typename t>
-	void PlatformFutexWakeAll(std::atomic<t>& to_wake) {
+	void platformFutexWakeAll(std::atomic<t>& to_wake) {
 #ifdef XAMP_OS_WIN
         ::WakeByAddressAll(&to_wake);
 #elif defined (XAMP_OS_MAC)
@@ -273,21 +273,21 @@ namespace {
     }
 }
 
-void AtomicWakeSingle(std::atomic<uint32_t>& to_wake) {
-    PlatformFutexWakeSingle(to_wake);
+void atomicWakeSingle(std::atomic<uint32_t>& to_wake) {
+    platformFutexWakeSingle(to_wake);
 }
 
-void AtomicWakeAll(std::atomic<uint32_t>& to_wake) {
-    PlatformFutexWakeAll(to_wake);
+void atomicWakeAll(std::atomic<uint32_t>& to_wake) {
+    platformFutexWakeAll(to_wake);
 }
 
-bool AtomicWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, uint32_t milliseconds) {
-    return PlatformFutexWait(to_wait_on, expected, milliseconds);
+bool atomicWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, uint32_t milliseconds) {
+    return platformFutexWait(to_wait_on, expected, milliseconds);
 }
 
-int32_t AtomicWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const timespec* to) {   
+int32_t atomicWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const timespec* to) {   
     if (to == nullptr) {
-        if (!AtomicWait(to_wait_on, expected, kInfinity)) {
+        if (!atomicWait(to_wait_on, expected, kInfinity)) {
             errno = EINTR;
             return -1;
         }
@@ -305,12 +305,12 @@ int32_t AtomicWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const t
 
     // Check for time-outs that are too large to be represented in milliseconds.
     if (to->tv_sec >= 2147) {
-        AtomicWait(to_wait_on, expected, 2147000000);
+        atomicWait(to_wait_on, expected, 2147000000);
         return 0; /* time-out out of range, claim spurious wake-up */
     }
 
     // Wait for the specified time-out.
-    if (!AtomicWait(to_wait_on, expected, static_cast<uint32_t>(ToMilliseconds(to)))) {
+    if (!atomicWait(to_wait_on, expected, static_cast<uint32_t>(toMilliseconds(to)))) {
         errno = ETIMEDOUT;
         return -1;
     }
@@ -318,7 +318,7 @@ int32_t AtomicWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const t
 }
 
 #if defined(XAMP_OS_MAC)
-static void SetThreadAffinity(pthread_t thread, int32_t cpu_set) {
+static void setThreadAffinity(pthread_t thread, int32_t cpu_set) {
     auto mach_thread = ::pthread_mach_thread_np(thread);
     thread_affinity_policy_data_t policy = { cpu_set };
     auto result = ::thread_policy_set(mach_thread,
@@ -330,7 +330,7 @@ static void SetThreadAffinity(pthread_t thread, int32_t cpu_set) {
     }
 }
 #elif defined(XAMP_OS_LINUX)
-static void SetThreadAffinity(pthread_t thread, int32_t cpu_set) {
+static void setThreadAffinity(pthread_t thread, int32_t cpu_set) {
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
     CPU_SET(cpu_set, &cpuset);
@@ -340,7 +340,7 @@ static void SetThreadAffinity(pthread_t thread, int32_t cpu_set) {
 }
 #endif
 
-void SetThreadName(std::wstring const& name) {
+void setThreadName(std::wstring const& name) {
 #ifdef XAMP_OS_WIN
 	const WinHandle thread(::GetCurrentThread());
     ::SetThreadDescription(thread.get(), name.c_str());
@@ -359,7 +359,7 @@ void SetThreadName(std::wstring const& name) {
 #endif
 }
 
-void SetThreadPriority(std::thread::native_handle_type handle, ThreadPriority priority) {
+void setThreadPriority(std::thread::native_handle_type handle, ThreadPriority priority) {
 #ifdef XAMP_OS_WIN
     auto thread_priority = THREAD_PRIORITY_NORMAL;
     switch (priority) {
@@ -435,26 +435,26 @@ void SetThreadPriority(std::thread::native_handle_type handle, ThreadPriority pr
 #endif
 }
 
-void SetCurrentThreadPriority(ThreadPriority priority) {
+void setCurrentThreadPriority(ThreadPriority priority) {
 #ifdef XAMP_OS_WIN
     std::thread::native_handle_type current_thread = ::GetCurrentThread();
 #else
     std::thread::native_handle_type current_thread = ::pthread_self();
 #endif
-    SetThreadPriority(current_thread, priority);
+    setThreadPriority(current_thread, priority);
 }
 
-void SetThreadPriority(std::jthread& thread, ThreadPriority priority) {
-	SetThreadPriority(thread.native_handle(), priority);
+void setThreadPriority(std::jthread& thread, ThreadPriority priority) {
+	setThreadPriority(thread.native_handle(), priority);
 }
 
-std::string GetCurrentThreadId() {
+std::string getCurrentThreadId() {
     std::ostringstream ostr;
     ostr << std::this_thread::get_id();
     return ostr.str();
 }
 
-bool IsDebuging() {
+bool isDebugging() {
 #ifdef _DEBUG
     return true;
 #else
@@ -468,17 +468,17 @@ bool IsDebuging() {
 
 #ifdef XAMP_OS_WIN
 
-void SetCurrentProcessPriority(ProcessPriority priority) {
+void setCurrentProcessPriority(ProcessPriority priority) {
     const WinHandle handle(::GetCurrentProcess());
-    SetProcessPriority(handle, priority);
+    setProcessPriority(handle, priority);
 }
 
-void SetProcessPriority(int32_t pid, ProcessPriority priority) {
+void setProcessPriority(int32_t pid, ProcessPriority priority) {
     const WinHandle handle(::OpenProcess(PROCESS_SET_INFORMATION, FALSE, pid));
-    SetProcessPriority(handle, priority);
+    setProcessPriority(handle, priority);
 }
 
-bool ExtendProcessWorkingSetSize(size_t size) {
+bool extendProcessWorkingSetSize(size_t size) {
     SIZE_T minimum = 0;
     SIZE_T maximum = 0;
 
@@ -489,12 +489,12 @@ bool ExtendProcessWorkingSetSize(size_t size) {
         return false;
     }   
 
-    minimum = SaturatingAdd(minimum, size);
+    minimum = saturatingAdd(minimum, size);
     maximum = std::max(maximum, minimum);
     return ::SetProcessWorkingSetSize(current_process, minimum, maximum);
 }
 
-bool EnablePrivilege(std::string_view privilege, bool enable) {
+bool enablePrivilege(std::string_view privilege, bool enable) {
     const WinHandle current_process(::GetCurrentProcess());
 
     WinHandle token;
@@ -532,19 +532,19 @@ bool EnablePrivilege(std::string_view privilege, bool enable) {
     return true;
 }
 
-bool SetProcessWorkingSetSize(size_t working_set_size) {
-    if (!EnablePrivilege("SeLockMemoryPrivilege", true)) {
+bool setProcessWorkingSetSize(size_t working_set_size) {
+    if (!enablePrivilege("SeLockMemoryPrivilege", true)) {
         return false;
     }
-    if (!ExtendProcessWorkingSetSize(working_set_size)) {
-        XAMP_LOG_DEBUG("ExtendProcessWorkingSetSize return failure! error:{}.", GetLastErrorMessage());
+    if (!extendProcessWorkingSetSize(working_set_size)) {
+        XAMP_LOG_DEBUG("extendProcessWorkingSetSize return failure! error:{}.", GetLastErrorMessage());
         return false;
     }
-    XAMP_LOG_TRACE("InitWorkingSetSize {} success.", String::FormatBytes(working_set_size));
+    XAMP_LOG_TRACE("InitWorkingSetSize {} success.", String::formatBytes(working_set_size));
     return true;
 }
 
-void SetCurrentThreadMitigation() {
+void setCurrentThreadMitigation() {
     PROCESS_MITIGATION_DYNAMIC_CODE_POLICY dynamic_code_policy{};
     dynamic_code_policy.ProhibitDynamicCode = true;
     dynamic_code_policy.AllowThreadOptOut = true;
@@ -568,7 +568,7 @@ void SetCurrentThreadMitigation() {
     }
 }
 
-void SetProcessMitigation() {
+void setProcessMitigation() {
     PROCESS_MITIGATION_BINARY_SIGNATURE_POLICY signature_policy{};
     signature_policy.MicrosoftSignedOnly = true;
     if (!::SetProcessMitigationPolicy(ProcessSignaturePolicy, &signature_policy,
@@ -613,7 +613,7 @@ void SetProcessMitigation() {
 
 #define WORKING_SET_LOCKER SharedSingleton<WorkingSetLocker>::getInstance()
 
-bool VirtualMemoryLock(void* address, size_t size) {
+bool virtualMemoryLock(void* address, size_t size) {
     if (size == 0) {
         return true;
     }
@@ -639,7 +639,7 @@ bool VirtualMemoryLock(void* address, size_t size) {
 #endif
 }
 
-bool VirtualMemoryUnLock(void* address, size_t size) {
+bool virtualMemoryUnlock(void* address, size_t size) {
     if (size == 0) {
         return true;
     }
@@ -663,7 +663,7 @@ bool VirtualMemoryUnLock(void* address, size_t size) {
 #endif
 }
 
-std::string GetSequentialUUID() {
+std::string getSequentialUuid() {
 #ifdef XAMP_OS_WIN
     UUID uuid{};
     std::string result;
@@ -673,7 +673,7 @@ std::string GetSequentialUUID() {
         ::UuidToStringA(&uuid, &uuid_string);
         result.assign(reinterpret_cast<const char*>(uuid_string));
         ::RpcStringFreeA(&uuid_string);
-        String::Remove(result, "-");
+        String::remove(result, "-");
     }
     return result;
 #else
@@ -687,19 +687,19 @@ std::string GetSequentialUUID() {
 #endif
 }
 
-void MSleep(std::chrono::milliseconds timeout) {
+void mSleep(std::chrono::milliseconds timeout) {
     WaitableTimer timer;
     timer.setTimeout(timeout);
-    timer.Wait();
+    timer.wait();
 }
 
-uint64_t GetSystemEntropy() {
-    const auto r0{ (GenRandomSeed()) };
-    const auto r1{ (GenRandomSeed()) };
+uint64_t getSystemEntropy() {
+    const auto r0{ (genRandomSeed()) };
+    const auto r1{ (genRandomSeed()) };
     return (r1 << 32) | (r0 & UINT64_C(0xffffffff));
 }
 
-uint64_t GenRandomSeed() {
+uint64_t genRandomSeed() {
     uint64_t seed = 0;
 #ifdef XAMP_OS_WIN
     struct BCryptContextTraits final {
@@ -732,7 +732,7 @@ uint64_t GenRandomSeed() {
     return seed;
 }
 
-void CpuRelax() {
+void cpuRelax() {
 #ifdef XAMP_OS_WIN
     YieldProcessor();
 #else
@@ -740,11 +740,11 @@ void CpuRelax() {
 #endif
 }
 
-void Assert(const char* message, const char* file_, uint32_t line) {
+void assertFailed(const char* message, const char* file_, uint32_t line) {
     XAMP_LOG_DEBUG("ASSERT failure: {} file: {}:{}", message, file_, line);
 #ifdef XAMP_OS_WIN
-    const auto utf16_message = String::ToStdWString(message);
-    const auto utf16_file_name = String::ToStdWString(file_);
+    const auto utf16_message = String::toStdWString(message);
+    const auto utf16_file_name = String::toStdWString(file_);
     _wassert(utf16_message.c_str(), utf16_file_name.c_str(), line);
 #endif
 }

@@ -224,7 +224,7 @@ void Throw(std::string_view s) {
 
 template <typename E, typename... Args>
 void Throw(std::string_view s, Args &&...args) {
-    throw E(String::Format(s, std::forward<Args>(args)...).c_str());
+    throw E(String::format(s, std::forward<Args>(args)...).c_str());
 }
 
 template <typename E, typename t = bool>

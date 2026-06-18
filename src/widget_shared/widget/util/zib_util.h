@@ -9,6 +9,7 @@
 #include <vector>
 #include <expected>
 
+#include <widget/widget_shared_global.h>
 #include <widget/widget_shared.h>
 
 XAMP_MAKE_ENUM(GzipDecompressError,
@@ -19,6 +20,8 @@ XAMP_MAKE_ENUM(GzipDecompressError,
 XAMP_MAKE_ENUM(CompressType,
 	COMPRESS_GZIP,
 	COMPRESS_DEFLATE)
+
+XAMP_WIDGET_SHARED_API void loadLibdeflate();
 
 std::expected<QByteArray, GzipDecompressError> gzipCompress(const QByteArray& data, CompressType compress_type = CompressType::COMPRESS_DEFLATE);
 

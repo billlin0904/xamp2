@@ -20,15 +20,6 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 namespace Executor {
 
-template <typename F, typename ... Args>
-decltype(auto) spawn(const std::shared_ptr<IThreadPool>& executor,
-    F&& f, 
-    Args&&... args,
-    ExecuteFlags flags = ExecuteFlags::EXECUTE_NORMAL) {
-    XAMP_ENSURES(executor != nullptr);
-    return executor->spawn(f, std::forward<Args>(args) ..., flags);
-}
-
 template <typename C, typename Func>
 void parallelFor(const std::shared_ptr<IThreadPool>& executor,
     C& items,
@@ -71,7 +62,10 @@ void parallelFor(const std::shared_ptr<IThreadPool>& executor,
     futures.reserve(worker_count);
 
     for (size_t i = 0; i < worker_count; ++i) {
-        futures.push_back(Executor::spawn(executor, worker).share());
+        futures.push_back(executor->spawn(
+            SubmitPolicy::SUBMIT_POLICY_NORMAL,
+			ExecuteFlags::EXECUTE_NORMAL,
+            worker).share());
     }
 
     for (auto& fut : futures) {
@@ -98,7 +92,9 @@ void parallelForEach(const std::shared_ptr<IThreadPool>& executor,
         size_t batch_size = (std::min)(batches, static_cast<size_t>(std::distance(itr, end)));
         std::vector<Future<void>> futures((std::min)(size - i, batches));
         for (auto& ff : futures) {
-            ff = Executor::spawn(executor,
+            ff = executor->spawn(
+                SubmitPolicy::SUBMIT_POLICY_NORMAL,
+                ExecuteFlags::EXECUTE_NORMAL,
                 [func = std::forward<Func>(f), itr](const auto& token) -> void {
                     if constexpr (can_call_with_stop) {
 						func(*itr, token);
@@ -127,7 +123,9 @@ void parallelForEach(const std::shared_ptr<IThreadPool>& executor, size_t begin,
     for (size_t i = 0; i < size;) {
         std::vector<Future<void>> futures((std::min)(size - i, batches));
         for (auto& ff : futures) {
-            ff = Executor::spawn(executor, 
+            ff = executor->spawn(
+                SubmitPolicy::SUBMIT_POLICY_NORMAL,
+                ExecuteFlags::EXECUTE_NORMAL,
                 [func = std::forward<Func>(f), begin, i](const auto& token) -> void {
                 if constexpr (can_call_with_stop) {
                     func(begin + i, token);
@@ -163,7 +161,10 @@ void ParallelForSimple(const std::shared_ptr<IThreadPool>& executor,
     futures.reserve(size);
 
     for (auto& item : items) {
-        futures.push_back(Executor::spawn(executor, [ff = std::forward<Func>(f), item_ptr = std::addressof(item)](const auto& stop_token) mutable -> void {
+        futures.push_back(executor->spawn(
+            SubmitPolicy::SUBMIT_POLICY_NORMAL,
+            ExecuteFlags::EXECUTE_NORMAL,
+            [ff = std::forward<Func>(f), item_ptr = std::addressof(item)](const auto& stop_token) mutable -> void {
             if constexpr (can_call_with_stop) {
                 ff(*item_ptr, stop_token);
             }

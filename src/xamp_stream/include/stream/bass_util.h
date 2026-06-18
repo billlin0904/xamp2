@@ -18,9 +18,9 @@ XAMP_STREAM_NAMESPACE_END
 
 XAMP_STREAM_UTIL_NAMESPACE_BEGIN 
 
-uint32_t ReadStream(const BassStreamHandle& stream, float const* samples, float* out, size_t num_samples);
+uint32_t readStream(const BassStreamHandle& stream, float const* samples, float* out, size_t num_samples);
 
-bool ReadStream(const BassStreamHandle& stream, float const* samples, size_t num_samples, BufferRef<float>& out);
+bool readStream(const BassStreamHandle& stream, float const* samples, size_t num_samples, BufferRef<float>& out);
 
 void encode(FileStream& stream, std::function<bool(uint32_t) > const& progress);
 

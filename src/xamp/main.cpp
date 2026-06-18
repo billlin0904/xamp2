@@ -27,6 +27,7 @@
 #include <widget/jsonsettings.h>
 #include <widget/imagecache.h>
 #include <widget/database.h>
+#include <widget/util/zib_util.h>
 
 #include <QSslSocket>
 #include <QProcess>
@@ -146,12 +147,13 @@ namespace {
 
 #ifdef Q_OS_WIN
         const auto components_path = GetComponentsFilePath();
-        if (!AddSharedLibrarySearchDirectory(components_path)) {
+        if (!addSharedLibrarySearchDirectory(components_path)) {
             XAMP_LOG_ERROR("AddSharedLibrarySearchDirectory return fail! ({})", GetLastErrorMessage());
             return -1;
         }
-
 #endif
+        loadLibdeflate();
+
         QApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 
         QLoggingCategory::setFilterRules("qt.gui.imageio.warning=false"_str);
@@ -187,7 +189,7 @@ namespace {
         QLoggingCategory::setFilterRules("*.info=false"_str);
 #endif        
         try {            
-            LoadComponentSharedLibrary();
+            loadComponentSharedLibrary();
         }
         catch (const Exception& e) {
             XMessageBox::showBug(e);
@@ -224,7 +226,7 @@ namespace {
 
         win.setupSystemMenu();
 
-        logMimallocOptions();
+        //logMimallocOptions();
 
         XAMP_LOG_DEBUG("<<<initial XAMP window done!>>>");
 
@@ -244,7 +246,7 @@ namespace {
 }
 
 int main() {
-    configureMimallocForPerformance();
+    //configureMimallocForPerformance();
 
     try {
         XampLoggerFactory
@@ -285,4 +287,3 @@ int main() {
 	}
     return exist_code;
 }
-

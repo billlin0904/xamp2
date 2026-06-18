@@ -27,7 +27,7 @@ ExceptionClassName::ExceptionClassName()\
 
 #ifdef XAMP_OS_WIN
 std::string GetPlatformErrorMessage(int32_t err) {
-    return String::LocaleStringToUTF8(std::system_category().message(err));
+    return String::localeStringToUTF8(std::system_category().message(err));
 }
 std::string GetLastErrorMessage() {
     return GetPlatformErrorMessage(::GetLastError());

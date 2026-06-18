@@ -20,6 +20,7 @@
 
 #include <stream/filestream.h>
 #include <base/logger.h>
+#include <base/threadpoolbuilder.h>
 
 #if defined(Q_OS_WIN)
 #include <stream/mbdiscid.h>
@@ -556,7 +557,7 @@ void BackgroundService::onBlurImage(const QString& cover_id,
         emit blurImage(QImage());
         return;
     }    
-    emit blurImage(blur_image_cache_.GetOrAdd(cover_id, [&]() {
+    emit blurImage(blur_image_cache_.getOrAdd(cover_id, [&]() {
         return image_util::blurImage(thread_pool_, image, size);
         }));
 }

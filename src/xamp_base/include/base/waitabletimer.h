@@ -20,7 +20,7 @@ public:
 
 	void setTimeout(std::chrono::milliseconds timeout) ;
 
-	void Wait();
+	void wait();
 private:
 	class WaitableTimerImpl;
 	ScopedPtr<WaitableTimerImpl> impl_;

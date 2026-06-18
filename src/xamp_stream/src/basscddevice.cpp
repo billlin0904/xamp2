@@ -14,7 +14,7 @@ namespace {
 	DWORD Drive2BassID(char driver_letter) {
 		for (DWORD i = 0; i < 25; i++) {
 			BASS_CD_INFO cdinfo{};
-			if (BassLibDLL.CDLib->BASS_CD_GetInfo(i, &cdinfo)) {
+			if (LIB_BASS.CDLib->BASS_CD_GetInfo(i, &cdinfo)) {
 				char letter = 'A' + cdinfo.letter;
 				if (letter == driver_letter) {
 					return i;
@@ -37,23 +37,23 @@ public:
 	}
 
 	void setAction(CDDeviceAction action) {
-		BassIfFailedThrow(BassLibDLL.CDLib->BASS_CD_Door(driver_, static_cast<DWORD>(action)));
+		BassIfFailedThrow(LIB_BASS.CDLib->BASS_CD_Door(driver_, static_cast<DWORD>(action)));
 	}
 
 	void setSpeed(uint32_t speed) {
-		BassIfFailedThrow(BassLibDLL.CDLib->BASS_CD_SetSpeed(driver_, speed));
+		BassIfFailedThrow(LIB_BASS.CDLib->BASS_CD_SetSpeed(driver_, speed));
 	}
 
 	[[nodiscard]] uint32_t getSpeed() const {
-		return static_cast<uint32_t>((BassLibDLL.CDLib->BASS_CD_GetSpeed(driver_) / kCDSpeedMultiplier));
+		return static_cast<uint32_t>((LIB_BASS.CDLib->BASS_CD_GetSpeed(driver_) / kCDSpeedMultiplier));
 	}
 
 	[[nodiscard]] bool doorIsOpen() const {
-		return BassLibDLL.CDLib->BASS_CD_DoorIsOpen(driver_);
+		return LIB_BASS.CDLib->BASS_CD_DoorIsOpen(driver_);
 	}
 
 	std::string getISRC(uint32_t track) const {
-		auto const* text = BassLibDLL.CDLib->BASS_CD_GetID(driver_, BASS_CDID_ISRC + track);
+		auto const* text = LIB_BASS.CDLib->BASS_CD_GetID(driver_, BASS_CDID_ISRC + track);
 		if (!text) {
 			return "";
 		}
@@ -62,14 +62,14 @@ public:
 
 	[[nodiscard]] CDText getCDText() const {
 		CDText cd_text;
-		auto const * text = BassLibDLL.CDLib->BASS_CD_GetID(driver_, BASS_CDID_TEXT);
+		auto const * text = LIB_BASS.CDLib->BASS_CD_GetID(driver_, BASS_CDID_TEXT);
 		if (!text) {
 			return cd_text;
 		}
 		while (*text) {
-			auto tag = String::Split(text, "=");
+			auto tag = String::split(text, "=");
 			if (tag[0] == "TITLE") {
-				cd_text.title = String::ToStdWString(tag[1].data());
+				cd_text.title = String::toStdWString(tag[1].data());
 			}
 			text += strlen(text) + 1;
 		}
@@ -78,7 +78,7 @@ public:
 
 	[[nodiscard]] std::vector<std::wstring> getTotalTracks() const {
 		std::vector<std::wstring> tracks;
-		const auto num_track = BassLibDLL.CDLib->BASS_CD_GetTracks(driver_);
+		const auto num_track = LIB_BASS.CDLib->BASS_CD_GetTracks(driver_);
 		if (num_track == kBassError) {
 			return tracks;
 		}
@@ -93,19 +93,19 @@ public:
 
 	[[nodiscard]] CDDeviceInfo getCDDeviceInfo() const {
 		BASS_CD_INFO info{};
-		BassIfFailedThrow(BassLibDLL.CDLib->BASS_CD_GetInfo(driver_, &info));
+		BassIfFailedThrow(LIB_BASS.CDLib->BASS_CD_GetInfo(driver_, &info));
 		CDDeviceInfo device_info;
 		device_info.can_lock = info.canlock;
 		device_info.can_open = info.canopen;
 		device_info.device_letter = std::to_wstring(info.letter);
 		if (info.product != nullptr) {
-			device_info.product = String::ToStdWString(info.product);
+			device_info.product = String::toStdWString(info.product);
 		}		
 		if (info.vendor != nullptr) {
-			device_info.vendor = String::ToStdWString(info.vendor);
+			device_info.vendor = String::toStdWString(info.vendor);
 		}		
 		if (info.rev != nullptr) {
-			device_info.rev = String::ToStdWString(info.rev);
+			device_info.rev = String::toStdWString(info.rev);
 		}		
 		device_info.cache_size = info.cache;
 		device_info.max_speed = info.maxspeed;
@@ -114,20 +114,20 @@ public:
 	}
 
 	uint32_t getTrackLength(uint32_t track) const {
-		return BassLibDLL.CDLib->BASS_CD_GetTrackLength(driver_, track);
+		return LIB_BASS.CDLib->BASS_CD_GetTrackLength(driver_, track);
 	}
 
 	void release() {
-		BassLibDLL.CDLib->BASS_CD_Release(driver_);
+		LIB_BASS.CDLib->BASS_CD_Release(driver_);
 	}
 
 	void setMaxSpeed() {
 		// -1 = optimal performace.
-		BassIfFailedThrow(BassLibDLL.CDLib->BASS_CD_SetSpeed(driver_, -1));
+		BassIfFailedThrow(LIB_BASS.CDLib->BASS_CD_SetSpeed(driver_, -1));
 	}
 
 	double getDuration(uint32_t track) const {		
-		return BassLibDLL.CDLib->BASS_CD_GetTrackLength(driver_, track) / kCDBytesPerSecond;
+		return LIB_BASS.CDLib->BASS_CD_GetTrackLength(driver_, track) / kCDBytesPerSecond;
 	}
 private:
 	char driver_letter_;

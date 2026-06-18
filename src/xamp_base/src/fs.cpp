@@ -52,7 +52,7 @@ std::tuple<std::fstream, Path> getTempFile() {
 	const auto temp_path = Fs::temp_directory_path();
 
 	for (auto i = 0; i < kMaxRetryCreateTempFile; ++i) {
-		auto path = temp_path / Fs::path(GetSequentialUUID() + ".tmp");
+		auto path = temp_path / Fs::path(getSequentialUuid() + ".tmp");
 		std::fstream file_(path.native(),
 			std::ios::in
 			| std::ios::out
@@ -72,7 +72,7 @@ Path getTempFileNamePath() {
 	const auto temp_path = Fs::temp_directory_path();
 
 	for (auto i = 0; i < kMaxRetryCreateTempFile; ++i) {
-		auto path = temp_path / Fs::path(GetSequentialUUID() + ".tmp");
+		auto path = temp_path / Fs::path(getSequentialUuid() + ".tmp");
 		std::ofstream file_(path.native());
 		if (file_.is_open()) {
 			file_.close();
@@ -110,7 +110,7 @@ Path GetApplicationFilePath() {
 #endif
 }
 
-std::string GetSharedLibraryName(const std::string_view& name) {
+std::string getSharedLibraryName(const std::string_view& name) {
 	std::string library_name(name);
 #ifdef XAMP_OS_WIN
 	return library_name + ".dll";
@@ -211,7 +211,7 @@ std::expected<std::string, TextEncodeingError> ReadFileToUtf8String(const Path& 
 	return encoding.toUtf8String(input_str, length, false);
 }
 
-std::expected<std::wstring, Errors> NormalizePathToWideString(const Path& path) {
+std::expected<std::wstring, Errors> normalizePathToWideString(const Path& path) {
 #ifdef XAMP_OS_WIN
 	const auto raw = path.wstring();
 

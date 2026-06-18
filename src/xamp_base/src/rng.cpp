@@ -1,4 +1,4 @@
-﻿#include <base/rng.h>
+#include <base/rng.h>
 #include <base/algorithm.h>
 #include <base/platform.h>
 
@@ -8,10 +8,10 @@ namespace {
     Sfc64Engine<> makeRandomEngine() {
         using Clock = std::chrono::high_resolution_clock;
         uint32_t random_address = 0;
-        // 利用系統級熵源 (GetSystemEntropy) 提供高品質初始亂數，再加上
+        // 利用系統級熵源 (getSystemEntropy) 提供高品質初始亂數，再加上
         // 當前高精度時間戳 (Clock::now()) 的 count 產生 seed1。
         // 這使得種子值受系統底層亂數及時間因素影響，提高不可預測性。
-        uint64_t seed1 = GetSystemEntropy()
+        uint64_t seed1 = getSystemEntropy()
             ^ static_cast<uint64_t>(Clock::now().time_since_epoch().count());
 
         // 使用 "黄金比例" 常數 0x9e3779b97f4a7c15ULL 與 seed1 相加，產生 seed2。

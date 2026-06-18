@@ -12,7 +12,7 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 namespace String {
 
-std::wstring ToStdWString(const std::string & utf8) {
+std::wstring toStdWString(const std::string & utf8) {
 	std::wstring utf16;
 	try {
 		utf16.reserve(utf8.length());
@@ -24,7 +24,7 @@ std::wstring ToStdWString(const std::string & utf8) {
 	return utf16;
 }
 
-std::string LocaleStringToUTF8(const std::string& str) noexcept {
+std::string localeStringToUTF8(const std::string& str) noexcept {
 #ifdef XAMP_OS_WIN
 	try {
 		auto utf8 = TextEncoding().toUtf8String("acp", str, str.size(), true);
@@ -52,14 +52,14 @@ std::string toUtf8String(std::wstring const & utf16) {
 	return utf8;
 }
 
-std::string FormatBytes(size_t bytes) {
+std::string formatBytes(size_t bytes) {
 	static constexpr std::array<std::string_view, 7> kFileSizeUnit {
 		" B", " KB", " MB", " GB", " TB", " PB", " EB"
 	};
 	auto uint = kFileSizeUnit.begin();	
 	auto num = static_cast<double>(bytes);
 	for (; num >= 1024 && uint != kFileSizeUnit.end(); num /= 1024.0, ++uint) {	}
-	return Format("{:.2f}{}", num, *uint);
+	return String::format("{:.2f}{}", num, *uint);
 }
 
 }

@@ -428,7 +428,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
             process_dialog->setValue(100);
             emit removeAll();
             qImageCache.clear();
-            qIconCache.Clear();
+            qIconCache.clear();
             update();
             });
 

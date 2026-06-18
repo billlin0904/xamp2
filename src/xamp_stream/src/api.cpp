@@ -57,7 +57,7 @@ namespace {
             return;
         }
 
-        auto* dsd_stream = AsDsdStream(file_stream);
+        auto* dsd_stream = asDsdStream(file_stream);
         if (dsd_stream == nullptr) {
             return;
         }
@@ -102,15 +102,15 @@ bool isDsdFile(const Path & path) {
     return IsDsdFileChunk(file_chunks);
 }
 
-ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& filePath, bool use_mqa_decode) {
+ScopedPtr<FileStream> StreamFactory::makeFileStream(const Path& filePath, bool use_mqa_decode) {
     auto dsd_mode = DsdModes::DSD_MODE_DSD2PCM;
     if (!isDsdFile(filePath)) {
         dsd_mode = DsdModes::DSD_MODE_PCM;
     }
-	return MakeFileStream(filePath, dsd_mode, use_mqa_decode);
+	return makeFileStream(filePath, dsd_mode, use_mqa_decode);
 }
 
-ScopedPtr<FileStream> StreamFactory::MakeFileStream(const Path& file_path,
+ScopedPtr<FileStream> StreamFactory::makeFileStream(const Path& file_path,
     DsdModes dsd_mode, 
     bool use_mqa_decode) {
     ScopedPtr<FileStream> file_stream;
@@ -178,19 +178,19 @@ ScopedPtr<ICDDevice> StreamFactory::makeCDDevice(int32_t driver_letter) {
 }
 #endif
 
-IDsdStream* AsDsdStream(ScopedPtr<FileStream> const& stream) {
+IDsdStream* asDsdStream(ScopedPtr<FileStream> const& stream) {
     return dynamic_cast<IDsdStream*>(stream.get());
 }
 
-FileStream* AsFileStream(ScopedPtr<IAudioStream> const& stream) {
+FileStream* asFileStream(ScopedPtr<IAudioStream> const& stream) {
     return dynamic_cast<FileStream*>(stream.get());
 }
 
-IDsdStream* AsDsdStream(FileStream* stream) {
+IDsdStream* asDsdStream(FileStream* stream) {
     return dynamic_cast<IDsdStream*>(stream);
 }
 
-std::expected<ArchiveFileStream, std::string> StreamFactory::MakeArchiveFileStream(const Path& archive_path,
+std::expected<ArchiveFileStream, std::string> StreamFactory::makeArchiveFileStream(const Path& archive_path,
     const std::wstring& archive_entry_name) {
     ArchiveFile file_;
     
@@ -210,7 +210,7 @@ std::expected<ArchiveFileStream, std::string> StreamFactory::MakeArchiveFileStre
     return std::unexpected(enitities.error());
 }
 
-ScopedPtr<FileStream> StreamFactory::MakeFileStream(ArchiveEntry archive_entry, 
+ScopedPtr<FileStream> StreamFactory::makeFileStream(ArchiveEntry archive_entry, 
     DsdModes dsd_mode) {
     auto file_stream = makeAlign<FileStream, BassFileStream>();
 
@@ -219,48 +219,48 @@ ScopedPtr<FileStream> StreamFactory::MakeFileStream(ArchiveEntry archive_entry,
     return file_stream;
 }
 
-void LoadBassLib() {
-    if (!BassLibDLL.IsLoaded()) {
+void loadBassLib() {
+    if (!LIB_BASS.IsLoaded()) {
         SharedSingleton<BassLib>::getInstance().load();
     }
-    BassLibDLL.MixLib = makeAlign<BassMixLib>();
-    BassLibDLL.DSDLib = makeAlign<BassDSDLib>();
-    BassLibDLL.FxLib = makeAlign<BassFxLib>();
+    LIB_BASS.MixLib = makeAlign<BassMixLib>();
+    LIB_BASS.DSDLib = makeAlign<BassDSDLib>();
+    LIB_BASS.FxLib = makeAlign<BassFxLib>();
 #ifdef XAMP_OS_WIN
-    BassLibDLL.CDLib = makeAlign<BassCDLib>();
+    LIB_BASS.CDLib = makeAlign<BassCDLib>();
 #endif
-    BassLibDLL.loadVersionInfo();
-    for (const auto& info : BassLibDLL.getVersions()) {
+    LIB_BASS.loadVersionInfo();
+    for (const auto& info : LIB_BASS.getVersions()) {
         XAMP_LOG_DEBUG("DLL {} version: {}", info.first, info.second);
     }
 }
 
-OrderedMap<std::string, std::string> GetBassDLLVersion() {
-    return BassLibDLL.getVersions();
+OrderedMap<std::string, std::string> getBassDLLVersion() {
+    return LIB_BASS.getVersions();
 }
 
 #ifdef XAMP_OS_WIN
-void LoadR8brainLib() {
+void loadR8BrainLib() {
     SharedSingleton<R8brainLib>::getInstance();
 }
-void LoadMBDiscIdLib() {
+void loadMBDiscIdLib() {
     SharedSingleton<DiscIdLib>::getInstance();
 }
 #endif
 
-void LoadAvLib() {
+void loadAvLib() {
     SharedSingleton<AvLib>::getInstance();
 }
 
-void FreeAvLib() {
+void freeAvLib() {
     SharedSingleton<AvLib>::getInstance().Free();
 }
 
-void LoadSoxrLib() {
+void loadSoxrLib() {
     SharedSingleton<SoxrLib>::getInstance();
 }
 
-void LoadSrcLib() {
+void loadSrcLib() {
     SharedSingleton<SrcLib>::getInstance();
 }
 
