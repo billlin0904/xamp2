@@ -1,6 +1,9 @@
 #include <widget/aboutpage.h>
 #include <ui_aboutdialog.h>
 #include <QFile>
+#include <QDesktopServices>
+#include <QPushButton>
+#include <QUrl>
 
 #include <widget/util/str_util.h>
 #include <widget/util/ui_util.h>
@@ -27,8 +30,27 @@ AboutPage::AboutPage(QWidget* parent)
     ui_->lblDescription->setFont(dp_font);
     ui_->lblDescription->setText(QString::fromStdWString(L"Cross-platform native DSD and low latency playback music player."));
 
-    QString domain_txt("<html><head/><body><a href=\"http://%1\">Github</a></body></html>"_str);
-    ui_->lblDomain->setText(domain_txt.arg("github.com/billlin0904/xamp2"_str));
+    ui_->lblDomain->setText(
+        "<html><head/><body>"
+        "<a href=\"https://github.com/billlin0904/xamp2\">Github</a>"
+        "</body></html>"_str);
+
+    auto* buy_me_coffee_button = new QPushButton(this);
+    buy_me_coffee_button->setObjectName("buyMeCoffeeButton"_str);
+    buy_me_coffee_button->setCursor(Qt::PointingHandCursor);
+    buy_me_coffee_button->setFocusPolicy(Qt::NoFocus);
+    buy_me_coffee_button->setFlat(true);
+    buy_me_coffee_button->setToolTip("Buy Me a Coffee"_str);
+    buy_me_coffee_button->setIcon(QIcon(":/xamp/Resource/White/buymeacoffee.png"_str));
+    buy_me_coffee_button->setIconSize(QSize(92, 26));
+    buy_me_coffee_button->setFixedSize(QSize(100, 30));
+    buy_me_coffee_button->setStyleSheet(
+        "QPushButton#buyMeCoffeeButton { border: none; background: transparent; padding: 0px; }"
+        "QPushButton#buyMeCoffeeButton:hover { background: rgba(255, 255, 255, 18); border-radius: 4px; }"_str);
+    ui_->horizontalLayout_2->insertWidget(3, buy_me_coffee_button, 0, Qt::AlignVCenter);
+    (void)QObject::connect(buy_me_coffee_button, &QPushButton::clicked, this, []() {
+        QDesktopServices::openUrl(QUrl("https://buymeacoffee.com/billlin0904"_str));
+    });
     ui_->lbIGithubIcon->setPixmap(qTheme.githubIcon());
     ui_->lblCopying->setText(QString::fromStdWString(L"Copyright \u00A9 2018-2026 XAMP2 Project."));
 
@@ -48,9 +70,23 @@ AboutPage::AboutPage(QWidget* parent)
         credits_ = QLatin1String(credits_file.readAll());
     }
 
-#ifdef Q_OS_WIN
+    auto f = font;
+    f.setPointSizeF(qTheme.fontSize(8));
+    ui_->lblAppBuild->setFont(f);
+#if defined(_MSC_VER)
     ui_->lblAppBuild->setText("Build MSVC: "_str + qFormat(__DATE__) + " "_str + qFormat(__TIME__));
+#elif defined(__clang__)
+    ui_->lblAppBuild->setText("Build Clang: "_str + qFormat(__DATE__) + " "_str + qFormat(__TIME__));
+#elif defined(__GNUC__)
+    ui_->lblAppBuild->setText("Build GCC: "_str + qFormat(__DATE__) + " "_str + qFormat(__TIME__));
+#else
+    ui_->lblAppBuild->setText("Build: "_str + qFormat(__DATE__) + " "_str + qFormat(__TIME__));
 #endif
+
+    ui_->lblCopying->setFont(f);
+    ui_->lblAppBuild->setMinimumWidth(220);
+    ui_->lblAppBuild->setMaximumWidth(QWIDGETSIZE_MAX);
+    ui_->lblAppBuild->setAlignment(Qt::AlignCenter);
 
     (void)QObject::connect(ui_->btnCredits,
         &QPushButton::clicked,

@@ -29,5 +29,6 @@
         <file>Resource/Theme/dark/darkstyle.qss</file>
         <file>Resource/Theme/light/lightstyle.qss</file>
         <file>xamp_startup.png</file>
+        <file>Resource/White/buymeacoffee.png</file>
     </qresource>
 </RCC>
