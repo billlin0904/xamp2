@@ -154,8 +154,6 @@ namespace {
         const auto work_size = static_cast<size_t>(state.range(1));
         auto bench_pool = makeBenchPool();
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
         for ([[maybe_unused]] auto _ : state) {
             std::atomic<uint64_t> prime_count{ 0 };
             std::vector<Future<void>> futures;
@@ -176,6 +174,7 @@ namespace {
 
             for (auto& future : futures) {
                 future.wait();
+                future.get();
             }
 
             benchmark::DoNotOptimize(prime_count.load(std::memory_order_relaxed));
@@ -300,6 +299,7 @@ namespace {
 
             for (auto& future : futures) {
                 future.wait();
+                future.get();
             }
 
             benchmark::DoNotOptimize(completed.load(std::memory_order_relaxed));
@@ -308,7 +308,7 @@ namespace {
         state.SetItemsProcessed(state.iterations() * task_count);
     }
 
-    static void BM_StdAsync_BurstCpuTasks(benchmark::State& state) {
+    static void BM_StdAsync_SpawnBurstCpuTasks(benchmark::State& state) {
         const auto task_count = static_cast<size_t>(state.range(0));
         const auto work_size = static_cast<size_t>(state.range(1));
 
@@ -329,6 +329,7 @@ namespace {
 
             for (auto& future : futures) {
                 future.wait();
+                future.get();
             }
 
             benchmark::DoNotOptimize(prime_count.load(std::memory_order_relaxed));
@@ -364,12 +365,14 @@ namespace {
 
                         for (auto& inner_future : inner_futures) {
                             inner_future.wait();
+                            inner_future.get();
                         }
                     }));
             }
 
             for (auto& outer_future : outer_futures) {
                 outer_future.wait();
+                outer_future.get();
             }
 
             benchmark::DoNotOptimize(prime_count.load(std::memory_order_relaxed));
@@ -418,6 +421,7 @@ namespace {
                 });
             done.wait();
             future.wait();
+            future.get();
 
             const auto elapsed = std::chrono::steady_clock::now() - begin;
             state.SetIterationTime(std::chrono::duration<double>(elapsed).count());
@@ -438,6 +442,7 @@ namespace {
                 });
             done.wait();
             future.wait();
+            future.get();
 
             const auto elapsed = std::chrono::steady_clock::now() - begin;
             state.SetIterationTime(std::chrono::duration<double>(elapsed).count());
@@ -467,47 +472,12 @@ namespace {
                 });
         }
     }
-
-    BENCHMARK(BM_ThreadPool_CreateDestroy);
-    BENCHMARK(BM_ThreadPool_PostBurstTinyTasks)
-        ->Apply(threadPoolTinyTaskArgs)
-        ->ArgName("tasks");
-    BENCHMARK(BM_ThreadPool_SpawnBurstTinyTasks)
-        ->Apply(threadPoolTinyTaskArgs)
-        ->ArgName("tasks");
-    BENCHMARK(BM_ThreadPool_PostBurstCpuTasks)
-        ->Apply(threadPoolCpuTaskArgs)
-        ->ArgNames({ "tasks", "work" });
     BENCHMARK(BM_ThreadPool_SpawnBurstCpuTasks)
         ->Apply(threadPoolCpuTaskArgs)
         ->ArgNames({ "tasks", "work" });
-    BENCHMARK(BM_ThreadPool_NestedPost)
-        ->Apply(threadPoolNestedTaskArgs)
-        ->ArgNames({ "outer", "inner" });
-    BENCHMARK(BM_ThreadPool_NestedSpawnWait)
-        ->Apply(threadPoolNestedTaskArgs)
-        ->ArgNames({ "outer", "inner" });
-    BENCHMARK(BM_ThreadPool_PostIdleWake)
-        ->Iterations(256)
-        ->UseManualTime();
-    BENCHMARK(BM_ThreadPool_SpawnIdleWake)
-        ->Iterations(256)
-        ->UseManualTime();
-    BENCHMARK(BM_StdAsync_BurstTinyTasks)
-        ->Arg(64)
-        ->Arg(256)
-        ->Arg(1024);
-    BENCHMARK(BM_StdAsync_BurstCpuTasks)
-        ->Args({ 64, 1024 })
-        ->Args({ 256, 1024 })
-        ->Args({ 1024, 1024 });
-    BENCHMARK(BM_StdAsync_NestedSpawnWait)
-        ->Args({ 4, 4 })
-        ->Args({ 8, 4 })
-        ->Args({ 8, 8 });
-    BENCHMARK(BM_StdAsync_Wake)
-        ->Iterations(256)
-        ->UseManualTime();
+    BENCHMARK(BM_StdAsync_SpawnBurstCpuTasks)
+        ->Apply(threadPoolCpuTaskArgs)
+        ->ArgNames({ "tasks", "work" });
 }
 
 int main(int argc, char** argv) {

@@ -13,18 +13,18 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 namespace {
 	constexpr size_t kMaxAttempts = 100;
-	constexpr auto kIdleWaitTimeout = std::chrono::milliseconds(100);
-	constexpr auto kSharedTaskQueueSize = 4096;
-	constexpr auto kMaxWorkQueueSize = 65536;
-	constexpr size_t kMinThreadPoolSize = 1;	
+	constexpr auto kIdleWaitTimeout = std::chrono::milliseconds(50);
+	constexpr auto kSharedTaskQueueSize = 512;
+	constexpr auto kMaxWorkQueueSize = 1024;
+	constexpr size_t kMinThreadPoolSize = 1;
 
 	thread_local struct CurrentTaskScheduler {
 		size_t thread_index{ static_cast<size_t>(-1) };
-		TaskScheduler* scheduler{ nullptr };		
+		TaskScheduler* scheduler{ nullptr };
 	} g_current_scheduler;
 
 	bool isCurrentThreadInScheduler(const TaskScheduler* scheduler, size_t thread_index) {
-		return g_current_scheduler.scheduler == scheduler 
+		return g_current_scheduler.scheduler == scheduler
 			&& g_current_scheduler.thread_index == thread_index;
 	}
 }
@@ -48,7 +48,7 @@ TaskScheduler::TaskScheduler(const std::string_view& name,
 	try {
 		task_pool_ = makeAlign<SharedTaskQueue>(kSharedTaskQueueSize);
 		task_work_queues_.resize(max_thread_);
-		
+
 		for (size_t i = 0; i < max_thread_; ++i) {
             addThread(i, priority);
 		}
@@ -113,7 +113,7 @@ void TaskScheduler::destroy() {
 }
 
 size_t TaskScheduler::tryDequeueSharedQueue(std::vector<Task>& tasks,
-	const std::stop_token& stop_token, 
+	const std::stop_token& stop_token,
 	std::chrono::milliseconds timeout) {
 	if (!stop_token.stop_requested()) {
 		if (task_pool_->dequeue(tasks[0], timeout)) {
@@ -161,13 +161,13 @@ size_t TaskScheduler::tryLocalPop(std::vector<Task>& tasks,
 		if (size > 0) {
 			return size;
 		}
-	}	
+	}
 	return 0;
 }
 
 size_t TaskScheduler::trySteal(std::vector<Task>& tasks,
 	const std::stop_token& stop_token,
-	size_t random_start, 
+	size_t random_start,
 	size_t current_thread_index) {
 
 	if (!stop_token.stop_requested()) {
@@ -226,7 +226,7 @@ void TaskScheduler::submitJob(Task task, ExecuteFlags flags, SubmitPolicy policy
 
 		if (is_current_worker && enqueue_to_worker(g_current_scheduler.thread_index)) {
 			return;
-		}		
+		}
 	}
 
 	// round-robin enqueue hint to reduce contention on the same thread's local queue.
@@ -241,7 +241,7 @@ void TaskScheduler::submitJob(Task task, ExecuteFlags flags, SubmitPolicy policy
 				continue;
 			}
 		}
-		
+
 		if (isLongRunning(random_index)) {
 			continue;
 		}
@@ -304,21 +304,30 @@ void TaskScheduler::addThread(size_t i, ThreadPriority priority) {
 	auto* local_work_queue = task_work_queues_[i].get();
 
     threads_.emplace_back([i, this, local_work_queue, priority](const auto& stop_token) mutable {
-		auto& prng = PRNG::getThreadLocal();
+		// Intel HT Technical User's Guide, p.23/p.27：
+		// 為各 worker 加上不同 private stack offset，避免 stack 區域變數剛好形成
+		// 64KB / 1MB aliasing pattern，降低 L1D 不必要的 cache-line eviction。
+		constexpr size_t kStackAliasOffsetStride = 128;
+		constexpr size_t kMaxStackAliasOffset = 16 * 1024;
+		const auto allocate_stack_size =
+			(std::min)(kStackAliasOffsetStride * (i + 1), kMaxStackAliasOffset);
+		auto stack_aliasing_offset =
+			makeStackBuffer<std::byte>(allocate_stack_size);
+		MemorySet(stack_aliasing_offset.get(), 0, allocate_stack_size);
+
+		const auto thread_id = getCurrentThreadId();
+		XAMP_LOG_D(logger_, "Worker Thread {} ({}) suspend.", thread_id, i);
+		work_done_.count_down();
+
 		XampCrashHandler.setThreadExceptionHandlers();
 		setWorkerThreadName(i);
 
 		g_current_scheduler = CurrentTaskScheduler{ i, this };
 
 		XAMP_LOG_D(logger_, "Worker Thread {} priority:{} g_current_thread_index:{}.",
-			i, 
+			i,
 			enumToString(priority),
 			g_current_scheduler.thread_index);
-
-		const auto thread_id = getCurrentThreadId();
-
-		XAMP_LOG_D(logger_, "Worker Thread {} ({}) suspend.", thread_id, i);
-		work_done_.count_down();
 
 		setCurrentThreadPriority(priority);
 #ifdef XAMP_OS_WIN
@@ -331,11 +340,12 @@ void TaskScheduler::addThread(size_t i, ThreadPriority priority) {
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) start.", thread_id, i);
 
 		std::vector<Task> tasks(bulk_size_);
-		auto try_get_task = [&tasks, &stop_token, local_work_queue, &prng, this, i] {
+		auto try_get_task = [&tasks, &stop_token, local_work_queue, this, i] {
 			auto task_size = tryLocalPop(tasks, stop_token, local_work_queue);
 			if (!task_size) {
 				task_size = tryDequeueSharedQueue(tasks, stop_token);
 				if (!task_size) {
+					auto& prng = PRNG::getThreadLocal();
 					task_size = trySteal(tasks, stop_token, prng() % max_thread_, i);
 				}
 			}
@@ -371,7 +381,7 @@ ThreadPool::ThreadPool(const std::string_view& name,
 	: IThreadPool(makeAlign<ITaskScheduler, TaskScheduler>(
 		name,
 		max_thread,
-		bulk_size, 
+		bulk_size,
 		priority)) {
 }
 

@@ -1,87 +1,63 @@
-project(bench)
+cmake_minimum_required(VERSION 3.24)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+project(bench
+    LANGUAGES CXX)
 
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")
+if(NOT TARGET benchmark::benchmark)
+    find_package(benchmark CONFIG QUIET)
+endif()
 
-include_directories("../thirdparty/benchmark/include/")
-include_directories("../thirdparty/spdlog/include/")
-include_directories("../thirdparty/utfcpp/source/")
-include_directories("../thirdparty/robin_hood/")
+if(NOT TARGET benchmark::benchmark)
+    set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+    set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
+    set(BENCHMARK_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+    set(BENCHMARK_ENABLE_WERROR OFF CACHE BOOL "" FORCE)
+    add_subdirectory(
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/benchmark"
+        "${CMAKE_BINARY_DIR}/thirdparty/benchmark")
+endif()
 
-include_directories("../xamp_base/include/")
-include_directories("../xamp_output_device/include/")
-include_directories("../xamp_stream/include/")
-include_directories("../xamp_player/include/")
+add_executable(bench
+    bench.cpp)
 
-set(CLANG_FLAGS_ENABLE_AVX2 "-mavx2")
-add_executable(bench bench.cpp)
+target_compile_features(bench
+    PRIVATE
+        cxx_std_23)
 
-if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
-    set(BUILD_PATH debug)
-    set_property(TARGET bench PROPERTY COMPILE_FLAGS "-mavx2")
+target_include_directories(bench
+    PRIVATE
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/spdlog/include"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/utfcpp/source"
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/robin_hood")
+
+target_link_libraries(bench
+    PRIVATE
+        xamp_base
+        benchmark::benchmark)
+
+if(MSVC)
+    target_compile_options(bench
+        PRIVATE
+            /utf-8)
 else()
-    set(BUILD_PATH release)
-    set_property(TARGET bench PROPERTY COMPILE_FLAGS "-DNDEBUG -O3 -ftree-vectorize -march=native -mtune=native -mavx2")
-endif(${CMAKE_BUILD_TYPE} STREQUAL Debug)
+    target_compile_options(bench
+        PRIVATE
+            -Wall
+            -Wextra
+            -Wpedantic)
 
-find_library (
-    LIB_XAMP_BASE
-    NAMES xamp_base libxamp_base
-    HINTS "${CMAKE_CURRENT_LIST_DIR}/../xamp_base/${BUILD_PATH}/"
-    NO_DEFAULT_PATH
-)
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64|amd64")
+        target_compile_options(bench
+            PRIVATE
+                -mavx2)
+    endif()
 
-message(STATUS "LIB_XAMP_BASE: [${LIB_XAMP_BASE}]")
-
-find_library (
-    LIB_XAMP_OUTPUT_DEVICE
-    NAMES xamp_output_device libxamp_output_device
-    HINTS "${CMAKE_CURRENT_LIST_DIR}/../xamp_output_device/${BUILD_PATH}/"
-    NO_DEFAULT_PATH
-)
-
-message(STATUS "LIB_XAMP_OUTPUT_DEVICE: [${LIB_XAMP_OUTPUT_DEVICE}]")
-
-find_library (
-    LIB_XAMP_STREAM
-    NAMES xamp_stream libxamp_stream
-    HINTS "${CMAKE_CURRENT_LIST_DIR}/../xamp_stream/${BUILD_PATH}/"
-    NO_DEFAULT_PATH
-)
-
-message(STATUS "LIB_XAMP_STREAM: [${LIB_XAMP_STREAM}]")
-
-
-find_library (
-    LIB_XAMP_PLAYER
-    NAMES xamp_player libxamp_player
-    HINTS "${CMAKE_CURRENT_LIST_DIR}/../xamp_player/${BUILD_PATH}/"
-    NO_DEFAULT_PATH
-)
-
-message(STATUS "LIB_XAMP_PLAYER: [${LIB_XAMP_PLAYER}]")
-
-find_library (
-    LIB_BENCHMARK
-    NAMES benchmark libbenchmark
-    HINTS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/benchmark/${BUILD_PATH}/"
-    NO_DEFAULT_PATH
-)
-
-message(STATUS "LIB_BENCHMARK: [${LIB_BENCHMARK}]")
-
-find_library (
-    LIB_BENCHMARK_MAIN
-    NAMES benchmark_main libbenchmark_main
-    HINTS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/benchmark/${BUILD_PATH}/"
-    NO_DEFAULT_PATH
-)
-
-message(STATUS "LIB_BENCHMARK_MAIN: [$LIB_BENCHMARK_MAIN]")
-
-file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_LIST_DIR}/*.cpp")
-target_link_libraries(bench ${LIB_XAMP_BASE} ${LIB_XAMP_PLAYER} ${LIB_XAMP_OUTPUT_DEVICE} ${LIB_XAMP_STREAM} ${LIB_BENCHMARK})
-
+    if(CMAKE_BUILD_TYPE STREQUAL "Release")
+        target_compile_options(bench
+            PRIVATE
+                -O3
+                -ftree-vectorize
+                -march=native
+                -mtune=native)
+    endif()
+endif()
