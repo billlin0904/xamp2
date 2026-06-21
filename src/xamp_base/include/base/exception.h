@@ -218,26 +218,26 @@ XAMP_DECLARE_EXCEPTION_CLASS(NotSupportExclusiveModeException)
 XAMP_DECLARE_EXCEPTION_CLASS(BufferOverflowException)
 
 template <typename E>
-void Throw(std::string_view s) {
+void throwException(std::string_view s) {
     throw E(std::string{ s });
 }
 
 template <typename E, typename... Args>
-void Throw(std::string_view s, Args &&...args) {
+void throwException(std::string_view s, Args &&...args) {
     throw E(String::format(s, std::forward<Args>(args)...).c_str());
 }
 
 template <typename E, typename t = bool>
-void ThrowIf(t&& value, std::string_view s) {
+void failWith(t&& value, std::string_view s) {
     if (!value) {
-        Throw<E>(s);
+        throwException<E>(s);
     }
 }
 
 template <typename E, typename t = bool, typename... Args>
-void ThrowIf(t &&value, std::string_view s, Args &&...args) {
+void failWith(t &&value, std::string_view s, Args &&...args) {
     if (!value) {
-        Throw<E>(s, std::forward<Args>(args)...);
+        throwException<E>(s, std::forward<Args>(args)...);
     }
 }
 

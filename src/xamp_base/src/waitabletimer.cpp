@@ -119,7 +119,7 @@ public:
 			? makeAlign<IWaitableTimer, StdWaitableTimerImpl>()
 			: makeAlign<IWaitableTimer, APCWaitableTimerImpl>()) {
 #else
-		: impl_(MakeAlign<IWaitableTimer, StdWaitableTimerImpl>()) {
+		: impl_(makeAlign<IWaitableTimer, StdWaitableTimerImpl>()) {
 #endif
 	}
 

@@ -30,7 +30,6 @@ struct XAMP_BASE_API TrackInfo final {
     TrackInfo() ;
 
     uint32_t is_cue_file;
-    uint32_t is_zip_file;
     uint32_t rating;
     uint32_t track;
     uint32_t bit_rate;
@@ -48,37 +47,32 @@ struct XAMP_BASE_API TrackInfo final {
     std::wstring album;
     std::wstring genre;
     std::wstring comment;
-    std::optional<std::wstring> archive_entry_name;
-    std::optional<ReplayGain> replay_gain;
 
     std::optional<std::wstring> file_name() const {
         if (!file_path.has_filename()) {
             return std::nullopt;
         }
-        return MakeOptional<std::wstring>(file_path.filename().wstring());
+        return makeOptional<std::wstring>(file_path.filename().wstring());
     }
 
     std::optional<std::wstring> parent_path() const {
         if (!file_path.has_parent_path()) {
             return std::nullopt;
         }
-        return MakeOptional<std::wstring>(file_path.parent_path().wstring());
+        return makeOptional<std::wstring>(file_path.parent_path().wstring());
     }
     std::optional<std::wstring> file_ext() const {
-        if (is_zip_file && archive_entry_name) {
-            return Path(archive_entry_name.value()).extension().wstring();
-		}
         if (!file_path.has_extension()) {
             return std::nullopt;
         }
-        return MakeOptional<std::wstring>(file_path.extension().wstring());
+        return makeOptional<std::wstring>(file_path.extension().wstring());
     }
 
     std::optional<std::wstring> file_name_no_ext() const {
         if (!file_path.has_stem()) {
             return std::nullopt;
         }
-        return MakeOptional<std::wstring>(file_path.stem().wstring());
+        return makeOptional<std::wstring>(file_path.stem().wstring());
     }
 };
 

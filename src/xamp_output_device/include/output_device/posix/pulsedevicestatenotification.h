@@ -29,7 +29,7 @@ public:
 private:
 	void stop() noexcept;
 
-	void Notify(DeviceState state, std::string device_id);
+	void notify(DeviceState state, std::string device_id);
 
 	void onContextStateChanged(pa_context* context);
 

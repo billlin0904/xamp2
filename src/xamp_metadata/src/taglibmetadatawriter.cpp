@@ -55,7 +55,7 @@ namespace {
 			std::error_code ec;
 			if (!Fs::copy_file(original_path_, temp_path_, Fs::copy_options::overwrite_existing, ec) || ec) {
 				XAMP_LOG_DEBUG("Copy metadata source file failure.");
-				Throw<PlatformException>("Copy metadata source file failure. ({})", ec.message());
+				throwException<PlatformException>("Copy metadata source file failure. ({})", ec.message());
 			}
 		}
 

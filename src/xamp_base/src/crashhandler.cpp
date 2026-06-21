@@ -73,7 +73,7 @@ struct ExceptionPointer : EXCEPTION_POINTERS {
     }
 };
 
-void CreateMinidump(_EXCEPTION_POINTERS* exception_pointers) {
+void createMinidump(_EXCEPTION_POINTERS* exception_pointers) {
     auto file_name = String::toStdWString(String::format("{}-crashdump.dmp", getSequentialUuid()));
 
     auto file_ = CreateFileW(file_name.c_str(),
@@ -140,71 +140,71 @@ public:
                 code, GetPlatformErrorMessage(code), stack_trace.captureStack());
         }
 
-        CreateMinidump(exception_pointers);
+        createMinidump(exception_pointers);
     }
 
-    static void DumpCurrentExceptionStack() {
+    static void dumpCurrentExceptionStack() {
         ExceptionPointer exception_pointers;
-        GetExceptionPointers(0, &exception_pointers);
+        getExceptionPointers(0, &exception_pointers);
         dumpStackInfo(&exception_pointers);
     }
 
-    static LONG VectoredHandler(PEXCEPTION_POINTERS exception_pointers) {
+    static LONG vectoredHandler(PEXCEPTION_POINTERS exception_pointers) {
         dumpStackInfo(exception_pointers);
         return EXCEPTION_EXECUTE_HANDLER;
     }
 
-    static void TerminateHandler() {
-        DumpCurrentExceptionStack();
+    static void terminateHandler() {
+        dumpCurrentExceptionStack();
     }
 
-    static void InvalidParameterHandler(const wchar_t* expression,
+    static void invalidParameterHandler(const wchar_t* expression,
         const wchar_t* function, const wchar_t* file_,
         unsigned int line, uintptr_t reserved) {
-        DumpCurrentExceptionStack();
+        dumpCurrentExceptionStack();
     }
 
     // CRT SIGABRT signal handler
-    static void SigabrtHandler(int32_t) {
+    static void sigabrtHandler(int32_t) {
         // Caught SIGABRT C++ signal
-        DumpCurrentExceptionStack();
+        dumpCurrentExceptionStack();
     }
 
     // CRT sigint signal handler
-    static void SigintHandler(int32_t) {
+    static void sigintHandler(int32_t) {
         // Interruption (SIGINT)
-        DumpCurrentExceptionStack();
+        dumpCurrentExceptionStack();
     }
 
-    static void SigillHandler(int32_t) {
-        DumpCurrentExceptionStack();
+    static void sigillHandler(int32_t) {
+        dumpCurrentExceptionStack();
     }
 
     // CRT SIGTERM signal handler
-    static void SigtermHandler(int32_t) {
+    static void sigtermHandler(int32_t) {
         // Termination request (SIGTERM)
-        DumpCurrentExceptionStack();
+        dumpCurrentExceptionStack();
     }
 
     // CRT SIGFPE signal handler
-    static void SigfpeHandler(int32_t) {
+    static void sigfpeHandler(int32_t) {
         // Floating point exception (SIGFPE)
         auto* exception_pointers = static_cast<PEXCEPTION_POINTERS>(_pxcptinfoptrs);
         dumpStackInfo(exception_pointers);
     }
 
     // CRT SIGSEGV signal handler
-    static void SigsegvHandler(int32_t) {
+    static void sigsegvHandler(int32_t) {
         auto* exception_pointers = static_cast<PEXCEPTION_POINTERS>(_pxcptinfoptrs);
         dumpStackInfo(exception_pointers);
     }
 
-    static int NewHandler(size_t) {
-        DumpCurrentExceptionStack();
+    static int newHandler(size_t) {
+        dumpCurrentExceptionStack();
         return 0;
     }
 
-    static void GetExceptionPointers(const DWORD exception_code, const ExceptionPointer* exception_pointers) {
+    static void getExceptionPointers(const DWORD exception_code, const ExceptionPointer* exception_pointers) {
         CONTEXT context_record{};
         ::RtlCaptureContext(&context_record);
 
@@ -219,24 +219,24 @@ public:
         //XAMP_LOG_DEBUG("Install process exception handler.");
 
         // Vectored Exception Handling (VEH) is an extension to structured exception handling.
-        ::AddVectoredExceptionHandler(0, VectoredHandler);
+        ::AddVectoredExceptionHandler(0, vectoredHandler);
 
         // Catch new operator memory allocation exceptions
-        ::_set_new_handler(NewHandler);
+        ::_set_new_handler(newHandler);
 
         // Catch invalid parameter exceptions.
-        ::_set_invalid_parameter_handler(InvalidParameterHandler);
+        ::_set_invalid_parameter_handler(invalidParameterHandler);
 
         // Set up C++ signal handlers
         _set_abort_behavior(0, _CALL_REPORTFAULT | _WRITE_ABORT_MSG);
 
         // Catch an abnormal program termination
-        (void)::signal(SIGABRT, SigabrtHandler);
+        (void)::signal(SIGABRT, sigabrtHandler);
 
         // Catch illegal instruction handler
-        (void)::signal(SIGILL, SigillHandler);
+        (void)::signal(SIGILL, sigillHandler);
 
-        (void)::signal(SIGSEGV, SigsegvHandler);
+        (void)::signal(SIGSEGV, sigsegvHandler);
     }
 
     void setThreadExceptionHandlers() {
@@ -244,7 +244,7 @@ public:
 
         // C++ terminate handler 是「每個 thread 各自一份」，
         // 所以新 thread 建立後，要呼叫一次這個函式。
-        ::set_terminate(TerminateHandler);
+        ::set_terminate(terminateHandler);
     }
 
 #else
@@ -252,14 +252,14 @@ public:
     }
 
     void setProcessExceptionHandlers() {
-        InstallSignalHandler();
+        installSignalHandler();
     }
 
     void setThreadExceptionHandlers() {
-        InstallSignalHandler();
+        installSignalHandler();
     }
 
-    static bool HaveSiginfo(int signum) {
+    static bool haveSiginfo(int signum) {
         struct sigaction old_action, new_action;
         MemorySet(&new_action, 0, sizeof(new_action));
 
@@ -279,7 +279,7 @@ public:
         return result;
     }
 
-    static void LogCrashSignal(int signum, const siginfo_t* info) {
+    static void logCrashSignal(int signum, const siginfo_t* info) {
         const char* signal_name = "???";
         bool has_address = false;
 
@@ -317,12 +317,12 @@ public:
         XAMP_LOG_ERROR("{}", trace.captureStack());
     }
 
-    static void CrashSignalHandler(int signal_number, siginfo_t* info, void*) {
-        if (!HaveSiginfo(signal_number)) {
+    static void crashSignalHandler(int signal_number, siginfo_t* info, void*) {
+        if (!haveSiginfo(signal_number)) {
             info = nullptr;
         }
 
-        LogCrashSignal(signal_number, info);
+        logCrashSignal(signal_number, info);
 
         // reset signal to SIG_DFL
         ::signal(signal_number, SIG_DFL);
@@ -330,12 +330,12 @@ public:
         std::exit(0);
     }
 
-    void InstallSignalHandler() {
+    void installSignalHandler() {
         struct sigaction action;
         MemorySet(&action, 0, sizeof(action));
 
         sigemptyset(&action.sa_mask);
-        action.sa_sigaction = CrashSignalHandler;
+        action.sa_sigaction = crashSignalHandler;
         action.sa_flags = SA_RESTART | SA_SIGINFO;
         action.sa_flags |= SA_ONSTACK;
 

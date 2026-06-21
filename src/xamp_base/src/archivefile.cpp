@@ -16,7 +16,7 @@
 XAMP_BASE_NAMESPACE_BEGIN
 
 namespace {
-	std::string GetLinArchiveErrorMessage(const ArchivePtrHandle& archive_ptr) {
+	std::string getLinArchiveErrorMessage(const ArchivePtrHandle& archive_ptr) {
 		auto *msg = LIBARCHIVE_LIB.archive_error_string(archive_ptr.get());
 		if (!msg) {
 			return "";
@@ -24,11 +24,11 @@ namespace {
 		return msg;
 	}
 
-	bool IsRegularFile(archive_entry* e) {
+	bool isRegularFile(archive_entry* e) {
 		return (LIBARCHIVE_LIB.archive_entry_filetype(e) == AE_IFREG);
 	}
 
-	ArchivePtrHandle MakeArchivePtr() {
+	ArchivePtrHandle makeArchivePtr() {
 		ArchivePtrHandle archive_ptr;
 		archive_ptr.reset(LIBARCHIVE_LIB.archive_read_new());
 		if (!archive_ptr) {
@@ -53,7 +53,7 @@ void ArchivePtrDeleter::close(archive* value) {
 std::expected<ptrdiff_t, std::string> ArchiveEntry::read(char* buffer, size_t length) {
 	auto ret = LIBARCHIVE_LIB.archive_read_data(archive_ptr.get(), buffer, length);
 	if (ret < 0) {
-		return std::unexpected(GetLinArchiveErrorMessage(archive_ptr));
+		return std::unexpected(getLinArchiveErrorMessage(archive_ptr));
 	}
 	return ret;
 }
@@ -64,12 +64,12 @@ public:
 
 	std::expected<std::vector<std::wstring>, std::string> open(const Path& archive_path) {
 		try {
-			auto archive_ptr = MakeArchivePtr();			
+			auto archive_ptr = makeArchivePtr();
 			prefetchFile(archive_path.wstring());
 
 			if (LIBARCHIVE_LIB.archive_read_open_filename_w(archive_ptr.get(),
 				archive_path.wstring().c_str(), kArchiveBlockSize) != ARCHIVE_OK) {
-				return std::unexpected(GetLinArchiveErrorMessage(archive_ptr));
+				return std::unexpected(getLinArchiveErrorMessage(archive_ptr));
 			}
 
 			entries_.clear();
@@ -77,7 +77,7 @@ public:
 			archive_entry* entry = nullptr;
 			while (LIBARCHIVE_LIB.archive_read_next_header(archive_ptr.get(), &entry) == ARCHIVE_OK) {
 				const wchar_t* name = LIBARCHIVE_LIB.archive_entry_pathname_w(entry);
-				if (name && IsRegularFile(entry))
+				if (name && isRegularFile(entry))
 					entries_.push_back(name);
 				LIBARCHIVE_LIB.archive_read_data_skip(archive_ptr.get());
 			}
@@ -85,7 +85,7 @@ public:
 		catch (...) {
 			return std::unexpected("Failed to open archive file");
 		}
-		
+
 		archive_path_ = archive_path;
 		return entries_;
 	}
@@ -104,11 +104,11 @@ public:
 
 	std::expected<ArchiveEntry, std::string> FindEntry(const std::wstring& entry_name) {
 		try {
-			auto archive_ptr = MakeArchivePtr();
+			auto archive_ptr = makeArchivePtr();
 			if (LIBARCHIVE_LIB.archive_read_open_filename_w(archive_ptr.get(),
 				archive_path_.wstring().c_str(),
 				kArchiveBlockSize) != ARCHIVE_OK) {
-				return std::unexpected(GetLinArchiveErrorMessage(archive_ptr));
+				return std::unexpected(getLinArchiveErrorMessage(archive_ptr));
 			}
 
 			archive_entry* entry = nullptr;
@@ -118,7 +118,7 @@ public:
 					continue;
 				}
 				auto length = LIBARCHIVE_LIB.archive_entry_size(entry);
-				if (name == entry_name && IsRegularFile(entry)) {
+				if (name == entry_name && isRegularFile(entry)) {
 					ArchiveEntry result(entry_name, archive_path_, length, entry, std::move(archive_ptr));
 					return result;
 				}

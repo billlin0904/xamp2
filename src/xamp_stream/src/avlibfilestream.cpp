@@ -135,7 +135,7 @@ public:
 			nullptr,
 			0);
 		if (stream_index < 0) {
-			Throw<NotSupportFormatException>("No audio stream found in {}.", file_name);
+			throwException<NotSupportFormatException>("No audio stream found in {}.", file_name);
 		}
 		audio_stream_index_ = stream_index;
 		audio_stream_ = format_context_->streams[audio_stream_index_];
@@ -151,7 +151,7 @@ public:
 				? LIB_AV_LIB.Util->av_get_sample_fmt_name(static_cast<AVSampleFormat>(codec_parameters->format))
 				: "unknown");
 		if (decoder == nullptr) {
-			Throw<NotSupportFormatException>(
+			throwException<NotSupportFormatException>(
 				"No FFmpeg decoder found. codec id:{} file:{}.",
 				static_cast<int>(codec_parameters->codec_id),
 				file_name);
@@ -178,11 +178,11 @@ public:
 
 		output_channels_ = GetChannelCount(codec_context_.get());
 		if (output_channels_ <= 0) {
-			Throw<NotSupportFormatException>("Invalid audio channel count. file:{}.", file_name);
+			throwException<NotSupportFormatException>("Invalid audio channel count. file:{}.", file_name);
 		}
 		output_sample_rate_ = codec_context_->sample_rate;
 		if (output_sample_rate_ <= 0) {
-			Throw<NotSupportFormatException>("Invalid audio sample rate. file:{}.", file_name);
+			throwException<NotSupportFormatException>("Invalid audio sample rate. file:{}.", file_name);
 		}
 
 		format_ = AudioFormat(DataFormat::FORMAT_PCM,
@@ -209,7 +209,7 @@ public:
 	}
 
 	void open(ArchiveEntry) {
-		Throw<NotSupportFormatException>("AvLibFileStream does not support archive entry yet.");
+		throwException<NotSupportFormatException>("AvLibFileStream does not support archive entry yet.");
 	}
 
 	void close() {
@@ -338,7 +338,7 @@ private:
 	void InitializeResampler() {
 		const auto input_channel_layout = GetChannelLayout(codec_context_.get());
 		if (input_channel_layout == 0) {
-			Throw<NotSupportFormatException>("Unsupported channel layout.");
+			throwException<NotSupportFormatException>("Unsupported channel layout.");
 		}
 
 		swr_context_.reset(LIB_AV_LIB.Swr->swr_alloc_set_opts(

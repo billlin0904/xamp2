@@ -29,21 +29,21 @@ void PipeWireDeviceStateNotification::run() {
 	}
 
 	try {
-		EnsurePipeWireInitialized();
+		ensurePipeWireInitialized();
 
 		loop_.reset(pw_thread_loop_new("xamp-pipewire-device-notification", nullptr));
 		if (loop_ == nullptr) {
-			Throw<PlatformException>("PipeWire notification thread loop create failed.");
+			throwException<PlatformException>("PipeWire notification thread loop create failed.");
 		}
 
 		context_.reset(pw_context_new(pw_thread_loop_get_loop(loop_.get()), nullptr, 0));
 		if (context_ == nullptr) {
-			Throw<PlatformException>("PipeWire notification context create failed.");
+			throwException<PlatformException>("PipeWire notification context create failed.");
 		}
 
 		core_.reset(pw_context_connect(context_.get(), nullptr, 0));
 		if (core_ == nullptr) {
-			Throw<PlatformException>("PipeWire notification core connect failed.");
+			throwException<PlatformException>("PipeWire notification core connect failed.");
 		}
 
 		static constexpr pw_core_events core_events{
@@ -52,9 +52,9 @@ void PipeWireDeviceStateNotification::run() {
 		};
 		pw_core_add_listener(core_.get(), &core_listener_, &core_events, this);
 
-		registry_.reset(pw_core_get_registry(core_.get(), PW_VERSION_REGISTRY, 0));
+		registry_.reset(::pw_core_get_registry(core_.get(), PW_VERSION_REGISTRY, 0));
 		if (registry_ == nullptr) {
-			Throw<PlatformException>("PipeWire notification registry create failed.");
+			throwException<PlatformException>("PipeWire notification registry create failed.");
 		}
 
 		static constexpr pw_registry_events registry_events{
@@ -66,14 +66,14 @@ void PipeWireDeviceStateNotification::run() {
 
 		core_sync_seq_ = pw_core_sync(core_.get(), PW_ID_CORE, 0);
 
-		if (pw_thread_loop_start(loop_.get()) != 0) {
-			Throw<PlatformException>("PipeWire notification thread loop start failed.");
+		if (::pw_thread_loop_start(loop_.get()) != 0) {
+			throwException<PlatformException>("PipeWire notification thread loop start failed.");
 		}
 
 		{
 			const PipeWireThreadLoopLock lock(loop_.get());
 			while (!core_ready_) {
-				pw_thread_loop_wait(loop_.get());
+				::pw_thread_loop_wait(loop_.get());
 			}
 		}
 
@@ -92,21 +92,21 @@ void PipeWireDeviceStateNotification::stop() noexcept {
 		{
 			const PipeWireThreadLoopLock lock(loop_.get());
 			if (registry_ != nullptr) {
-				spa_hook_remove(&registry_listener_);
+				::spa_hook_remove(&registry_listener_);
 				registry_.reset();
 			}
 			if (core_ != nullptr) {
-				spa_hook_remove(&core_listener_);
+				::spa_hook_remove(&core_listener_);
 			}
 			core_.reset();
 			context_.reset();
 		}
-		pw_thread_loop_stop(loop_.get());
+		::pw_thread_loop_stop(loop_.get());
 		loop_.reset();
 	}
 }
 
-void PipeWireDeviceStateNotification::Notify(DeviceState state, std::string device_id) {
+void PipeWireDeviceStateNotification::notify(DeviceState state, std::string device_id) {
 	if (auto callback = callback_.lock()) {
 		callback->onDeviceStateChange(state, device_id);
 	}
@@ -166,7 +166,7 @@ void PipeWireDeviceStateNotification::RegistryGlobalCallback(void* userdata,
 		return;
 	}
 
-	self->Notify(DeviceState::DEVICE_STATE_ADDED, self->sinks_.at(id));
+	self->notify(DeviceState::DEVICE_STATE_ADDED, self->sinks_.at(id));
 }
 
 void PipeWireDeviceStateNotification::registryGlobalRemoveCallback(void* userdata, uint32_t id) {
@@ -182,7 +182,7 @@ void PipeWireDeviceStateNotification::registryGlobalRemoveCallback(void* userdat
 
 	const auto device_id = sink->second;
 	self->sinks_.erase(sink);
-	self->Notify(DeviceState::DEVICE_STATE_REMOVED, device_id);
+	self->notify(DeviceState::DEVICE_STATE_REMOVED, device_id);
 }
 
 XAMP_OUTPUT_DEVICE_POSIX_NAMESPACE_END

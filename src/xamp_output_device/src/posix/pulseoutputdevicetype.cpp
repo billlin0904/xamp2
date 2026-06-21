@@ -23,7 +23,7 @@ constexpr std::wstring_view kDefaultDeviceName = L"PulseAudio Default Sink";
 constexpr std::string_view kDefaultDeviceId = "default";
 constexpr uint32_t kFallbackSampleRate = 48000;
 
-DeviceInfo MakeFallbackDeviceInfo() {
+DeviceInfo makeFallbackDeviceInfo() {
 	DeviceInfo info;
 	info.is_default_device = true;
 	info.is_hardware_control_volume = false;
@@ -40,20 +40,20 @@ DeviceInfo MakeFallbackDeviceInfo() {
 	return info;
 }
 
-std::wstring ToDeviceName(const char* value, const char* fallback) {
+std::wstring toDeviceName(const char* value, const char* fallback) {
 	if (value != nullptr && value[0] != '\0') {
-		return String::ToStdWString(value);
+		return String::toStdWString(value);
 	}
 	if (fallback != nullptr && fallback[0] != '\0') {
-		return String::ToStdWString(fallback);
+		return String::toStdWString(fallback);
 	}
 	return std::wstring(kDefaultDeviceName);
 }
 
-void IterateMainloop(pa_mainloop* mainloop) {
+void iterateMainloop(pa_mainloop* mainloop) {
 	int result = 0;
 	if (::pa_mainloop_iterate(mainloop, 1, &result) < 0 || result < 0) {
-		Throw<PlatformException>("PulseAudio mainloop iterate failed.");
+		throwException<PlatformException>("PulseAudio mainloop iterate failed.");
 	}
 }
 
@@ -64,10 +64,10 @@ void waitForContextReady(pa_mainloop* mainloop, pa_context* context) {
 			return;
 		case PA_CONTEXT_FAILED:
 		case PA_CONTEXT_TERMINATED:
-			Throw<PlatformException>("PulseAudio context failed: {}",
+			throwException<PlatformException>("PulseAudio context failed: {}",
 				::pa_strerror(::pa_context_errno(context)));
 		default:
-			IterateMainloop(mainloop);
+			iterateMainloop(mainloop);
 			break;
 		}
 	}
@@ -75,10 +75,10 @@ void waitForContextReady(pa_mainloop* mainloop, pa_context* context) {
 
 void waitForOperation(pa_mainloop* mainloop, pa_operation* operation) {
 	if (operation == nullptr) {
-		Throw<PlatformException>("PulseAudio operation create failed.");
+		throwException<PlatformException>("PulseAudio operation create failed.");
 	}
 	while (::pa_operation_get_state(operation) == PA_OPERATION_RUNNING) {
-		IterateMainloop(mainloop);
+		iterateMainloop(mainloop);
 	}
 }
 
@@ -116,7 +116,7 @@ void sinkInfoCallback(pa_context*, const pa_sink_info* info, int eol, void* user
 	device_info.is_hardware_control_volume = false;
 	device_info.is_normalized_volume = true;
 	device_info.connect_type = DeviceConnectType::UNKNOWN;
-	device_info.name = ToDeviceName(info->description, info->name);
+	device_info.name = toDeviceName(info->description, info->name);
 	device_info.device_id = info->name != nullptr ? info->name : std::string(kDefaultDeviceId);
 	device_info.device_type_id = XAMP_UUID_OF(PulseOutputDeviceType);
 	device_info.desc = PulseOutputDeviceType::Description;
@@ -128,20 +128,20 @@ void sinkInfoCallback(pa_context*, const pa_sink_info* info, int eol, void* user
 	state->devices.push_back(std::move(device_info));
 }
 
-std::vector<DeviceInfo> EnumeratePulseSinks() {
+std::vector<DeviceInfo> enumeratePulseSinks() {
 	PulseMainloopPtr mainloop(::pa_mainloop_new());
 	if (!mainloop) {
-		Throw<PlatformException>("PulseAudio mainloop create failed.");
+		throwException<PlatformException>("PulseAudio mainloop create failed.");
 	}
 
 	auto* api = ::pa_mainloop_get_api(mainloop.get());
 	PulseContextPtr context(::pa_context_new(api, "XAMP device scan"));
 	if (!context) {
-		Throw<PlatformException>("PulseAudio context create failed.");
+		throwException<PlatformException>("PulseAudio context create failed.");
 	}
 
 	if (::pa_context_connect(context.get(), nullptr, PA_CONTEXT_NOFLAGS, nullptr) < 0) {
-		Throw<PlatformException>("PulseAudio connect failed: {}",
+		throwException<PlatformException>("PulseAudio connect failed: {}",
 			::pa_strerror(::pa_context_errno(context.get())));
 	}
 
@@ -187,7 +187,7 @@ public:
 
 	void scanNewDevice() {
 		try {
-			devices_ = EnumeratePulseSinks();
+			devices_ = enumeratePulseSinks();
 		}
 		catch (const std::exception& e) {
 			XAMP_LOG_D(logger_, "PulseAudio scan failed: {}. Use default sink fallback.", e.what());
@@ -195,7 +195,7 @@ public:
 		}
 
 		if (devices_.empty()) {
-			devices_.push_back(MakeFallbackDeviceInfo());
+			devices_.push_back(makeFallbackDeviceInfo());
 		}
 	}
 
@@ -220,7 +220,7 @@ public:
 
 	ScopedPtr<IOutputDevice> makeDevice(const std::shared_ptr<xamp::base::IThreadPool>& thread_pool,
 		const std::string& device_id) {
-		return MakeAlign<IOutputDevice, PulseOutputDevice>(thread_pool, device_id);
+		return makeAlign<IOutputDevice, PulseOutputDevice>(thread_pool, device_id);
 	}
 
 private:
@@ -229,7 +229,7 @@ private:
 };
 
 PulseOutputDeviceType::PulseOutputDeviceType()
-	: impl_(MakeAlign<PulseOutputDeviceTypeImpl>()) {
+	: impl_(makeAlign<PulseOutputDeviceTypeImpl>()) {
 }
 
 void PulseOutputDeviceType::scanNewDevice() {

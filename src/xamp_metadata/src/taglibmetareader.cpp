@@ -36,7 +36,7 @@ namespace {
         std::vector<std::byte> buffer;
         buffer.resize(data.size());
         MemoryCopy(buffer.data(), data.data(), static_cast<int32_t>(data.size()));
-        return MakeOptional<std::vector<std::byte>>(std::move(buffer));
+        return makeOptional<std::vector<std::byte>>(std::move(buffer));
     }
 
     std::optional<std::vector<std::byte>> readDefaultEmbeddedCover(
@@ -701,15 +701,13 @@ public:
 
         if (is_archive_file_) {
             track_info.file_size = io_stream_->length();
-            track_info.archive_entry_name = entry_name_;
             track_info.file_path = path_;
-            track_info.is_zip_file = true;
             if (tag != nullptr) {
                 extractTag(path_, tag, file_ref.audioProperties(), track_info);
             }
             setAudioProperties(file_ref.audioProperties(), track_info);
 			if (track_info.title.empty()) {
-				track_info.title = Path(track_info.archive_entry_name.value()).stem().wstring();
+				track_info.title = Path(entry_name_).stem().wstring();
             }
         }
         else {
@@ -725,10 +723,6 @@ public:
             if (track_info.title.empty()) {
                 extractTitleFromFileName(track_info);
             }
-        }
-        auto replay_gain = readReplayGain(file_ref.file());
-        if (replay_gain) {
-            track_info.replay_gain = replay_gain.value();
         }
         return track_info;
     }

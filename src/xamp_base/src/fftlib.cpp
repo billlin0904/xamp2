@@ -60,7 +60,7 @@ MKLLib::MKLLib()
 	, DftiCommitDescriptor(&::DftiCommitDescriptor)
 	, DftiComputeBackward(&::DftiComputeBackward)
 	, DftiErrorMessage(&::DftiErrorMessage)
-	, mkl_get_version_string(&::mkl_get_version_str) {
+	, mkl_get_version_string(&::MKL_Get_Version_String) {
 }
 
 #endif

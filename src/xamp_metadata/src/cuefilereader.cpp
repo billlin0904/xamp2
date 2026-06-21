@@ -15,7 +15,7 @@ extern "C" {
 XAMP_METADATA_NAMESPACE_BEGIN
 
 namespace {
-	bool IsYear(const char* s) {
+	bool isYear(const char* s) {
 		auto is_digit = [](char c)
 			{ return c >= '0' && c <= '9'; };
 
@@ -23,8 +23,8 @@ namespace {
 			is_digit(s[2]) && is_digit(s[3]) && !s[4];
 	}
 
-	double FrameToSecond(long frame) {
-		int m = 0; 
+	double frameToSecond(long frame) {
+		int m = 0;
 		int s = 0;
 		int f = 0;
 		f = frame % 75;
@@ -36,7 +36,7 @@ namespace {
 		return total;
 	}
 
-	long SecondToFrame(double second) {
+	long secondToFrame(double second) {
 		return static_cast<long>(std::lround(second * 75.0));
 	}
 }
@@ -52,7 +52,7 @@ public:
 	std::expected<std::vector<TrackInfo>, ParseCueError> load(const Path& path) {
 		std::vector<TrackInfo> track_infos;
 
-		auto utf8_text = ReadFileToUtf8String(path);
+		auto utf8_text = readFileToUtf8String(path);
 		if (!utf8_text) {
 			return std::unexpected(ParseCueError::PARSE_ERROR_UNKNOWN_ENCODING);
 		}
@@ -74,7 +74,7 @@ public:
 			if ((s = LIBCUE_LIB.cdtext_get(PTI_TITLE, cd_text)))
 				album = String::toString(s);
 		}
-				
+
 		auto tracks = LIBCUE_LIB.cd_get_ntrack(cd.get());
 		auto* cur = LIBCUE_LIB.cd_get_track(cd.get(), 1);
 		const char* cur_name = cur ? LIBCUE_LIB.track_get_filename(cur) : nullptr;
@@ -83,7 +83,7 @@ public:
 		}
 
 		track_info.is_cue_file = true;
-		
+
 		bool same_file = false;
 		double file_duration = 0;
 		for (int track = 1; track <= tracks; track++) {
@@ -118,11 +118,10 @@ public:
 				auto* rem = LIBCUE_LIB.cd_get_rem(cd.get());
 				if (rem != nullptr) {
 					getYear(rem, track_info);
-					getReplayGain(rem, track_info);
 				}
 				opt_track_info = track_info;
 			}
-			
+
 			auto* next = (track + 1 <= tracks) ? LIBCUE_LIB.cd_get_track(cd.get(), track + 1) : nullptr;
 			const char* next_name = next ? LIBCUE_LIB.track_get_filename(next) : nullptr;
 			same_file = (next_name && !strcmp(next_name, cur_name));
@@ -133,24 +132,19 @@ public:
 				track_info.value().file_path = file_path;
 
 				auto begin = LIBCUE_LIB.track_get_start(cur);
-				track_info.value().offset = FrameToSecond(begin);
+				track_info.value().offset = frameToSecond(begin);
 
 				if (same_file) {
 					auto length = LIBCUE_LIB.track_get_length(cur);
-					track_info.value().duration = FrameToSecond(length);
-				} else { 
-					auto length = SecondToFrame(file_duration);
-					track_info.value().duration = FrameToSecond(length - begin);
+					track_info.value().duration = frameToSecond(length);
+				} else {
+					auto length = secondToFrame(file_duration);
+					track_info.value().duration = frameToSecond(length - begin);
 				}
 
 				auto* cd_text = LIBCUE_LIB.track_get_cdtext(cur);
 				if (cd_text != nullptr) {
 					getCdText(cd_text, track_info.value());
-				}
-
-				auto* rem = LIBCUE_LIB.track_get_rem(cur);
-				if (rem) {
-					getReplayGain(rem, track_info.value());
 				}
 				track_info.value().track = track;
 				track_infos.push_back(track_info.value());
@@ -169,26 +163,13 @@ public:
 	void getYear(Rem* rem, TrackInfo& info) {
 		const char* s;
 		if ((s = LIBCUE_LIB.rem_get(REM_DATE, rem))) {
-			if (IsYear(s))
+			if (isYear(s))
 				info.year = std::atoi(s);
 			else
 				info.year = 0;
 		}
 	}
 
-	void getReplayGain(Rem* rem, TrackInfo& info) {
-		const char* s = nullptr;		
-		ReplayGain replay_gain;
-		if ((s = LIBCUE_LIB.rem_get(REM_REPLAYGAIN_ALBUM_GAIN, rem)))
-			replay_gain.album_gain = std::atof(s);
-		if ((s = LIBCUE_LIB.rem_get(REM_REPLAYGAIN_ALBUM_PEAK, rem)))
-			replay_gain.album_peak = std::atof(s);
-		if ((s = LIBCUE_LIB.rem_get(REM_REPLAYGAIN_TRACK_GAIN, rem)))
-			replay_gain.track_gain = std::atof(s);
-		if ((s = LIBCUE_LIB.rem_get(REM_REPLAYGAIN_TRACK_PEAK, rem)))
-			replay_gain.track_peak = std::atof(s);
-		info.replay_gain = replay_gain;
-	}
 
 	void getCdText(Cdtext* cd_text, TrackInfo& track_info) {
 		const char* s = nullptr;

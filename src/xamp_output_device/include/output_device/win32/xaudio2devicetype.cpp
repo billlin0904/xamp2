@@ -39,7 +39,7 @@ private:
 };
 
 XAudio2DeviceType::XAudio2DeviceTypeImpl::XAudio2DeviceTypeImpl() {
-	logger_ = XampLoggerFactory.getLogger(XAMP_LOG_NAME(XAudio2DeviceType));	
+	logger_ = XampLoggerFactory.getLogger(XAMP_LOG_NAME(XAudio2DeviceType));
 }
 
 XAudio2DeviceType::XAudio2DeviceTypeImpl::~XAudio2DeviceTypeImpl() = default;
@@ -78,7 +78,7 @@ std::optional<DeviceInfo> XAudio2DeviceType::XAudio2DeviceTypeImpl::getDefaultDe
 	if (hr == kNotFoundHr) {
 		return std::nullopt;
 	}
-	return MakeOptional<DeviceInfo>(helper::getDeviceInfo(default_output_device, 
+	return makeOptional<DeviceInfo>(helper::getDeviceInfo(default_output_device,
 		XAMP_UUID_OF(XAudio2DeviceType),
 		XAudio2DeviceType::Description));
 }
@@ -119,7 +119,7 @@ std::vector<DeviceInfo> XAudio2DeviceType::XAudio2DeviceTypeImpl::GetDeviceInfoL
 			if (default_device_name == info.name) {
 				info.is_default_device = true;
 			}
-			
+
 			CComPtr<IAudioClient> client;
 			auto hr = device->Activate(__uuidof(IAudioClient),
 				CLSCTX_ALL,

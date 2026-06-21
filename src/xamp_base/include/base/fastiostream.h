@@ -10,7 +10,7 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-using CFilePtr = std::unique_ptr<FILE, decltype(&fclose)>;
+using CFilePtr = std::unique_ptr<FILE, decltype(&std::fclose)>;
 
 class XAMP_BASE_API CTemporaryFile {
 public:

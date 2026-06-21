@@ -88,7 +88,7 @@ public:
 	void notify_all() ;
 private:
 	template <typename Rep, typename Period>
-	std::cv_status fastWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, std::chrono::duration<Rep, Period> const& duration) {
+	std::cv_status fastWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const std::chrono::duration<Rep, Period> & duration) {
 		using namespace std::chrono;		
 		timespec ts{};
 		ts.tv_sec = duration_cast<seconds>(duration).count();

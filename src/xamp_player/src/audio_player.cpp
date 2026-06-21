@@ -197,7 +197,7 @@ void AudioPlayer::openStream(ArchiveEntry archive_entry, DsdModes dsd_mode) {
 }
 
 void AudioPlayer::openStream(ScopedPtr<FileStream> file_stream, DsdModes dsd_mode) {
-    ThrowIf<Exception>(file_stream != nullptr, "File stream is null.");
+    failWith<Exception>(file_stream != nullptr, "File stream is null.");
 
     file_stream_ = std::move(file_stream);
 

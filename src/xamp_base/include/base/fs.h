@@ -27,7 +27,7 @@ inline constexpr auto kIteratorOptions{
 	std::filesystem::directory_options::skip_permission_denied
 };
 
-[[nodiscard]] XAMP_BASE_API inline bool IsFileReadOnly(const Path& path) {
+[[nodiscard]] XAMP_BASE_API inline bool isFileReadOnly(const Path& path) {
     std::error_code ec;
     const auto permissions = Fs::status(path, ec).permissions();
     if (ec) {
@@ -36,7 +36,7 @@ inline constexpr auto kIteratorOptions{
     return (permissions & Fs::perms::owner_write) == Fs::perms::none;
 }
 
-XAMP_BASE_API bool IsFilePath(const Path& file_path) ;
+XAMP_BASE_API bool isFilePath(const Path& file_path) ;
 
 XAMP_BASE_API std::string getSharedLibraryName(const std::string_view &name);
 
@@ -44,15 +44,13 @@ XAMP_BASE_API Path getTempFileNamePath();
 
 XAMP_BASE_API std::tuple<std::fstream, Path> getTempFile();
 
-XAMP_BASE_API Path GetApplicationFilePath();
+XAMP_BASE_API Path getApplicationFilePath();
 
-XAMP_BASE_API Path GetComponentsFilePath();
+XAMP_BASE_API Path getComponentsFilePath();
 
 XAMP_BASE_API bool IsCDAFile(const Path& path);
 
-XAMP_BASE_API bool IsFileOnSsd(const Path& path);
-
-XAMP_BASE_API std::expected<std::string, TextEncodeingError> ReadFileToUtf8String(const Path& path);
+XAMP_BASE_API std::expected<std::string, TextEncodeingError> readFileToUtf8String(const Path& path);
 
 XAMP_BASE_API std::expected<std::wstring, Errors> normalizePathToWideString(const Path& path);
 

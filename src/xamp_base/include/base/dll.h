@@ -147,8 +147,8 @@ private:
     FuncPtr func_{nullptr};
 };
 
-#define XAMP_DECLARE_DLL(Func) SharedLibraryFunction<decltype(Func)>
-#define XAMP_DECLARE_DLL_NAME(Func) SharedLibraryFunction<decltype(Func)> Func
+#define XAMP_DECLARE_DLL(Func) SharedLibraryFunction<decltype(::Func)>
+#define XAMP_DECLARE_DLL_NAME(Func) SharedLibraryFunction<decltype(::Func)> Func
 #define XAMP_LOAD_DLL_API(Func) Func(module_, #Func)
 #define XAMP_LOAD_DLL_API_EX(MemberName, Func) MemberName(module_, #Func)
 

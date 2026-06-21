@@ -142,8 +142,8 @@ bool DSPManager::processDSP(const float* samples, uint32_t num_samples, AudioBuf
 }
 
 bool DSPManager::defaultProcess(const float* samples, uint32_t num_samples, AudioBuffer<std::byte>& fifo) {
-    ThrowIf<BufferOverflowException>(sample_writer_->process(samples, num_samples, fifo), 
-        "Failed to write buffer, read:{} write:{}", 
+    failWith<BufferOverflowException>(sample_writer_->process(samples, num_samples, fifo),
+        "Failed to write buffer, read:{} write:{}",
         fifo.getAvailableRead(),
         fifo.getAvailableWrite());
     return false;
@@ -172,13 +172,13 @@ bool DSPManager::process(const float* samples, uint32_t num_samples, AudioBuffer
     }
 
     if (post_dsp_.empty()) {
-        ThrowIf<BufferOverflowException>(sample_writer_->process(pre_dsp_buffer, fifo),
+        failWith<BufferOverflowException>(sample_writer_->process(pre_dsp_buffer, fifo),
             "Failed to write pre buffer, read:{} write:{}",
             fifo.getAvailableRead(),
             fifo.getAvailableWrite());
     }
     else {
-        ThrowIf<BufferOverflowException>(sample_writer_->process(post_dsp_buffer, fifo),
+        failWith<BufferOverflowException>(sample_writer_->process(post_dsp_buffer, fifo),
             "Failed to write post buffer, read:{} write:{}",
             fifo.getAvailableRead(),
             fifo.getAvailableWrite());
@@ -199,7 +199,7 @@ void DSPManager::initialize(const Property& config) {
         dispatch_ = bind_front(&DSPManager::defaultProcess, this);
         return;
     }
-    else {        
+    else {
         dispatch_ = bind_front(&DSPManager::process, this);
     }
 

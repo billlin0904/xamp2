@@ -84,7 +84,7 @@ std::optional<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::ge
 	if (hr == kNotFoundHr) {
 		return std::nullopt;
 	}
-	return MakeOptional<DeviceInfo>(helper::getDeviceInfo(default_output_device,
+	return makeOptional<DeviceInfo>(helper::getDeviceInfo(default_output_device,
 		XAMP_UUID_OF(SharedWasapiDeviceType),
 		SharedWasapiDeviceType::Description));
 }

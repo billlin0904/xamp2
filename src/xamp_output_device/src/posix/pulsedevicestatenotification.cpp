@@ -25,23 +25,23 @@ void PulseDeviceStateNotification::run() {
 	try {
 		mainloop_.reset(::pa_threaded_mainloop_new());
 		if (!mainloop_) {
-			Throw<PlatformException>("PulseAudio threaded mainloop create failed.");
+			throwException<PlatformException>("PulseAudio threaded mainloop create failed.");
 		}
 
 		auto* api = ::pa_threaded_mainloop_get_api(mainloop_.get());
 		context_.reset(::pa_context_new(api, "XAMP device notification"));
 		if (!context_) {
-			Throw<PlatformException>("PulseAudio notification context create failed.");
+			throwException<PlatformException>("PulseAudio notification context create failed.");
 		}
 
 		::pa_context_set_state_callback(context_.get(), &PulseDeviceStateNotification::contextStateCallback, this);
 		if (::pa_context_connect(context_.get(), nullptr, PA_CONTEXT_NOFLAGS, nullptr) < 0) {
-			Throw<PlatformException>("PulseAudio notification connect failed: {}",
+			throwException<PlatformException>("PulseAudio notification connect failed: {}",
 				::pa_strerror(::pa_context_errno(context_.get())));
 		}
 
 		if (::pa_threaded_mainloop_start(mainloop_.get()) < 0) {
-			Throw<PlatformException>("PulseAudio notification mainloop start failed.");
+			throwException<PlatformException>("PulseAudio notification mainloop start failed.");
 		}
 		is_mainloop_started_ = true;
 
@@ -55,7 +55,7 @@ void PulseDeviceStateNotification::run() {
 				}
 				if (state == PA_CONTEXT_FAILED || state == PA_CONTEXT_TERMINATED) {
 					const auto* error = ::pa_strerror(::pa_context_errno(context_.get()));
-					Throw<PlatformException>("PulseAudio notification context failed: {}", error);
+					throwException<PlatformException>("PulseAudio notification context failed: {}", error);
 				}
 				::pa_threaded_mainloop_wait(mainloop_.get());
 			}
@@ -94,7 +94,7 @@ void PulseDeviceStateNotification::stop() noexcept {
 	}
 }
 
-void PulseDeviceStateNotification::Notify(DeviceState state, std::string device_id) {
+void PulseDeviceStateNotification::notify(DeviceState state, std::string device_id) {
 	if (auto callback = callback_.lock()) {
 		callback->onDeviceStateChange(state, device_id);
 	}
@@ -138,7 +138,7 @@ void PulseDeviceStateNotification::onSubscriptionEvent(pa_context* context,
 		break;
 	}
 	case PA_SUBSCRIPTION_EVENT_REMOVE:
-		Notify(DeviceState::DEVICE_STATE_REMOVED, std::to_string(index));
+		notify(DeviceState::DEVICE_STATE_REMOVED, std::to_string(index));
 		break;
 	default:
 		break;
@@ -147,18 +147,18 @@ void PulseDeviceStateNotification::onSubscriptionEvent(pa_context* context,
 
 void PulseDeviceStateNotification::onServerInfo(const pa_server_info* info) {
 	if (info == nullptr || info->default_sink_name == nullptr || info->default_sink_name[0] == '\0') {
-		Notify(DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE, {});
+		notify(DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE, {});
 		return;
 	}
-	Notify(DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE, info->default_sink_name);
+	notify(DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE, info->default_sink_name);
 }
 
 void PulseDeviceStateNotification::onSinkInfo(const pa_sink_info* info, DeviceState state, uint32_t index) {
 	if (info == nullptr) {
-		Notify(state, std::to_string(index));
+		notify(state, std::to_string(index));
 		return;
 	}
-	Notify(state, info->name != nullptr ? info->name : std::to_string(index));
+	notify(state, info->name != nullptr ? info->name : std::to_string(index));
 }
 
 void PulseDeviceStateNotification::contextStateCallback(pa_context* context, void* userdata) {

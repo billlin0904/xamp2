@@ -10,7 +10,7 @@ include("${CMAKE_SOURCE_DIR}/cmake/XampDependencyHelpers.cmake")
 file(GLOB_RECURSE XAMP_BASE_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
 
-if(NOT WIN32 AND NOT APPLE)
+if(NOT WIN32 AND NOT APPLE AND NOT (CMAKE_SYSTEM_NAME STREQUAL "Linux"))
     list(FILTER XAMP_BASE_SOURCES EXCLUDE REGEX ".*/src/fastconditionvariable\\.cpp$")
 endif()
 
@@ -58,7 +58,7 @@ if(UNIX AND NOT APPLE)
         PATHS "${XAMP_MKL_VCPKG_ROOT}"
         NO_DEFAULT_PATH)
 
-    find_package(ICU REQUIRED COMPONENTS uc i18n)
+    find_package(ICU REQUIRED COMPONENTS i18n uc data)
     xamp_find_imported_library(XAMP_UCHARDET_TARGET XampUchardet
         REQUIRED
         HEADER uchardet.h
@@ -83,8 +83,9 @@ if(UNIX AND NOT APPLE)
             ${XAMP_UCHARDET_TARGET}
             ${XAMP_OPENCC_TARGET}
             ${XAMP_MECAB_TARGET}
-            ICU::uc
             ICU::i18n
+            ICU::uc
+            ICU::data
             dl
             uuid)
 endif()

@@ -79,7 +79,7 @@ namespace {
             "-Ochasen"
         };
 
-        const auto mecab_dir = GetApplicationFilePath() / "mecab";
+        const auto mecab_dir = getApplicationFilePath() / "mecab";
         const auto mecabrc_path = mecab_dir / "mecabrc";
         if (Fs::exists(mecabrc_path)) {
             args.emplace_back("-r");

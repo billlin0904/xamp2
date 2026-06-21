@@ -13,7 +13,7 @@
 
 XAMP_OUTPUT_DEVICE_POSIX_NAMESPACE_BEGIN
 
-void EnsurePipeWireInitialized();
+void ensurePipeWireInitialized();
 
 struct PipeWireThreadLoopDeleter {
 	void operator()(pw_thread_loop* loop) const noexcept {

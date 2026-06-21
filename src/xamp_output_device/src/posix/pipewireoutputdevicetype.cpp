@@ -29,7 +29,7 @@ constexpr uint32_t kFallbackSampleRate = 48000;
 constexpr std::string_view kAudioSink = "Audio/Sink";
 constexpr std::string_view kDummyOutput = "Dummy Output";
 
-bool IsUsablePipeWireSink(const char* name, const char* description) noexcept {
+bool isUsablePipeWireSink(const char* name, const char* description) noexcept {
 	if (name == nullptr || name[0] == '\0') {
 		return false;
 	}
@@ -46,7 +46,7 @@ bool IsUsablePipeWireSink(const char* name, const char* description) noexcept {
 	return true;
 }
 
-DeviceInfo MakeDeviceInfo(std::string device_id,
+DeviceInfo makeDeviceInfo(std::string device_id,
 	std::wstring device_name,
 	bool is_default_device,
 	uint16_t channels,
@@ -67,42 +67,42 @@ DeviceInfo MakeDeviceInfo(std::string device_id,
 	return info;
 }
 
-DeviceInfo MakeFallbackDeviceInfo() {
-	return MakeDeviceInfo(std::string(kDefaultDeviceId),
+DeviceInfo makeFallbackDeviceInfo() {
+	return makeDeviceInfo(std::string(kDefaultDeviceId),
 		std::wstring(kDefaultDeviceName),
 		true,
 		AudioFormat::kMaxChannel,
 		kFallbackSampleRate);
 }
 
-std::wstring ToDeviceName(const char* description, const char* name) {
+std::wstring toDeviceName(const char* description, const char* name) {
 	if (description != nullptr && description[0] != '\0') {
-		return String::ToStdWString(description);
+		return String::toStdWString(description);
 	}
 	if (name != nullptr && name[0] != '\0') {
-		return String::ToStdWString(name);
+		return String::toStdWString(name);
 	}
 	return std::wstring(kDefaultDeviceName);
 }
 
 class PipeWireDeviceScanner final {
 public:
-	std::vector<DeviceInfo> Scan() {
-		EnsurePipeWireInitialized();
+	std::vector<DeviceInfo> scan() {
+		ensurePipeWireInitialized();
 
 		loop_.reset(::pw_thread_loop_new("xamp-pipewire-scan", nullptr));
 		if (loop_ == nullptr) {
-			Throw<PlatformException>("PipeWire scan thread loop create failed.");
+			throwException<PlatformException>("PipeWire scan thread loop create failed.");
 		}
 
 		context_.reset(::pw_context_new(::pw_thread_loop_get_loop(loop_.get()), nullptr, 0));
 		if (context_ == nullptr) {
-			Throw<PlatformException>("PipeWire scan context create failed.");
+			throwException<PlatformException>("PipeWire scan context create failed.");
 		}
 
 		core_.reset(::pw_context_connect(context_.get(), nullptr, 0));
 		if (core_ == nullptr) {
-			Throw<PlatformException>("PipeWire scan core connect failed.");
+			throwException<PlatformException>("PipeWire scan core connect failed.");
 		}
 
 		static constexpr pw_core_events core_events{
@@ -113,19 +113,19 @@ public:
 
 		registry_.reset(::pw_core_get_registry(core_.get(), PW_VERSION_REGISTRY, 0));
 		if (registry_ == nullptr) {
-			Throw<PlatformException>("PipeWire registry create failed.");
+			throwException<PlatformException>("PipeWire registry create failed.");
 		}
 
 		static constexpr pw_registry_events registry_events{
 			.version = PW_VERSION_REGISTRY_EVENTS,
-			.global = &PipeWireDeviceScanner::RegistryGlobalCallback,
+			.global = &PipeWireDeviceScanner::registryGlobalCallback,
 		};
 		pw_registry_add_listener(registry_.get(), &registry_listener_, &registry_events, this);
 
 		core_sync_seq_ = pw_core_sync(core_.get(), PW_ID_CORE, 0);
 
 		if (::pw_thread_loop_start(loop_.get()) != 0) {
-			Throw<PlatformException>("PipeWire scan thread loop start failed.");
+			throwException<PlatformException>("PipeWire scan thread loop start failed.");
 		}
 
 		{
@@ -140,7 +140,7 @@ public:
 		std::ranges::sort(devices_, [](const auto& lhs, const auto& rhs) {
 			return lhs.name < rhs.name;
 		});
-		devices_.insert(devices_.begin(), MakeFallbackDeviceInfo());
+		devices_.insert(devices_.begin(), makeFallbackDeviceInfo());
 		return devices_;
 	}
 
@@ -160,7 +160,7 @@ private:
 		}
 	}
 
-	static void RegistryGlobalCallback(void* userdata,
+	static void registryGlobalCallback(void* userdata,
 		uint32_t,
 		uint32_t,
 		const char* type,
@@ -182,12 +182,17 @@ private:
 
 		const auto* name = ::spa_dict_lookup(props, PW_KEY_NODE_NAME);
 		const auto* description = ::spa_dict_lookup(props, PW_KEY_NODE_DESCRIPTION);
-		if (!IsUsablePipeWireSink(name, description)) {
+
+		if (name != nullptr && description != nullptr) {
+			XAMP_LOG_DEBUG("Found PipeWire sink: name='{}', description='{}'.", name, description);
+		}
+
+		if (!isUsablePipeWireSink(name, description)) {
 			return;
 		}
 
-		self->devices_.push_back(MakeDeviceInfo(name,
-			ToDeviceName(description, name),
+		self->devices_.push_back(makeDeviceInfo(name,
+			toDeviceName(description, name),
 			false,
 			AudioFormat::kMaxChannel,
 			kFallbackSampleRate));
@@ -223,9 +228,9 @@ private:
 	std::vector<DeviceInfo> devices_;
 };
 
-std::vector<DeviceInfo> EnumeratePipeWireSinks() {
+std::vector<DeviceInfo> enumeratePipeWireSinks() {
 	PipeWireDeviceScanner scanner;
-	return scanner.Scan();
+	return scanner.scan();
 }
 }
 
@@ -238,7 +243,7 @@ public:
 
 	void scanNewDevice() {
 		try {
-			devices_ = EnumeratePipeWireSinks();
+			devices_ = enumeratePipeWireSinks();
 		}
 		catch (const std::exception& e) {
 			XAMP_LOG_D(logger_, "PipeWire scan failed: {}.", e.what());
@@ -246,7 +251,7 @@ public:
 		}
 
 		if (devices_.empty()) {
-			devices_.push_back(MakeFallbackDeviceInfo());
+			devices_.push_back(makeFallbackDeviceInfo());
 		}
 	}
 
@@ -271,7 +276,7 @@ public:
 
 	ScopedPtr<IOutputDevice> makeDevice(const std::shared_ptr<xamp::base::IThreadPool>& thread_pool,
 		const std::string& device_id) {
-		return MakeAlign<IOutputDevice, PipeWireOutputDevice>(thread_pool, device_id);
+		return makeAlign<IOutputDevice, PipeWireOutputDevice>(thread_pool, device_id);
 	}
 
 private:
@@ -280,7 +285,7 @@ private:
 };
 
 PipeWireOutputDeviceType::PipeWireOutputDeviceType()
-	: impl_(MakeAlign<PipeWireOutputDeviceTypeImpl>()) {
+	: impl_(makeAlign<PipeWireOutputDeviceTypeImpl>()) {
 }
 
 void PipeWireOutputDeviceType::scanNewDevice() {

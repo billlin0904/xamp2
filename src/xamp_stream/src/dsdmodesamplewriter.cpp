@@ -26,7 +26,7 @@ bool DsdModeSampleWriter::process(const BufferRef<float>& input, AudioBuffer<std
 }
 
 bool DsdModeSampleWriter::processNativeDsd(const std::byte* sample_buffer, size_t num_samples, AudioBuffer<std::byte>& fifo) {
-    ThrowIf<BufferOverflowException>(fifo.tryWrite(sample_buffer, num_samples),
+    failWith<BufferOverflowException>(fifo.tryWrite(sample_buffer, num_samples),
         "Failed to write buffer, read:{} write:{}",
         fifo.getAvailableRead(),
         fifo.getAvailableWrite());
@@ -34,7 +34,7 @@ bool DsdModeSampleWriter::processNativeDsd(const std::byte* sample_buffer, size_
 }
 
 bool DsdModeSampleWriter::processPcm(const std::byte* sample_buffer, size_t num_samples, AudioBuffer<std::byte>& fifo) {
-    ThrowIf<BufferOverflowException>(fifo.tryWrite(sample_buffer, num_samples * sample_size_),
+    failWith<BufferOverflowException>(fifo.tryWrite(sample_buffer, num_samples * sample_size_),
         "Failed to write buffer, read:{} write:{}",
         fifo.getAvailableRead(),
         fifo.getAvailableWrite());

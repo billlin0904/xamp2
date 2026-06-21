@@ -25,12 +25,12 @@ namespace {
 constexpr uint32_t kDefaultCallbackMilliseconds = 50;
 constexpr auto kPipeWireDefaultDeviceId = "default";
 
-uint32_t FramesFromMilliseconds(uint32_t sample_rate, uint32_t milliseconds) {
+uint32_t framesFromMilliseconds(uint32_t sample_rate, uint32_t milliseconds) {
 	return (std::max<uint32_t>)(1,
 		static_cast<uint32_t>((static_cast<uint64_t>(sample_rate) * milliseconds + 999) / 1000));
 }
 
-spa_audio_format ToSpaAudioFormat(const AudioFormat& format) {
+spa_audio_format toSpaAudioFormat(const AudioFormat& format) {
 	if (format.getFormat() != DataFormat::FORMAT_PCM
 		|| format.getPackedFormat() != PackedFormat::INTERLEAVED) {
 		throw DeviceUnSupportedFormatException(format);
@@ -44,16 +44,16 @@ spa_audio_format ToSpaAudioFormat(const AudioFormat& format) {
 	}
 }
 
-std::string PipeWireErrorToString(int error) {
+std::string pipeWireErrorToString(int error) {
 	const char* error_str = spa_strerror(error);
-	return error_str != nullptr ? String::Format("{} ((})", error, error_str): "unknown";
+	return error_str != nullptr ? String::format("{} ((})", error, error_str): "unknown";
 }
 
 #define PipeWireLogIfError(expr) \
 	do { \
 		auto error = (expr); \
 		if (error < 0) { \
-			XAMP_LOG_D(logger_, "PipeWire error: {} {}", #expr, PipeWireErrorToString(error)); \
+			XAMP_LOG_D(logger_, "PipeWire error: {} {}", #expr, pipeWireErrorToString(error)); \
 		} \
 	} while (0)
 
@@ -127,7 +127,7 @@ void PipeWireOutputDevice::waitForStreamReady() {
 	while (!stream_ready_) {
 		const auto state = pw_stream_get_state(stream_.get(), nullptr);
 		if (state == PW_STREAM_STATE_ERROR || state == PW_STREAM_STATE_UNCONNECTED) {
-			Throw<PlatformException>("PipeWire stream connect failed.");
+			throwException<PlatformException>("PipeWire stream connect failed.");
 		}
 		::pw_thread_loop_wait(loop_.get());
 	}
@@ -142,26 +142,26 @@ void PipeWireOutputDevice::openStream(const AudioFormat& output_format) {
 
 	XAMP_LOG_D(logger_, "PipeWireOutputDevice open stream: {}.", output_format.toString());
 
-	const auto spa_format = ToSpaAudioFormat(output_format);
-	buffer_frames_ = FramesFromMilliseconds(output_format.getSampleRate(), kDefaultCallbackMilliseconds);
+	const auto spa_format = toSpaAudioFormat(output_format);
+	buffer_frames_ = framesFromMilliseconds(output_format.getSampleRate(), kDefaultCallbackMilliseconds);
 	core_ready_ = false;
 	stream_ready_ = false;
 
-	EnsurePipeWireInitialized();
+	ensurePipeWireInitialized();
 
 	loop_.reset(::pw_thread_loop_new("xamp-pipewire-output", nullptr));
 	if (loop_ == nullptr) {
-		Throw<PlatformException>("PipeWire thread loop create failed.");
+		throwException<PlatformException>("PipeWire thread loop create failed.");
 	}
 
 	context_.reset(::pw_context_new(::pw_thread_loop_get_loop(loop_.get()), nullptr, 0));
 	if (context_ == nullptr) {
-		Throw<PlatformException>("PipeWire context create failed.");
+		throwException<PlatformException>("PipeWire context create failed.");
 	}
 
 	core_.reset(::pw_context_connect(context_.get(), nullptr, 0));
 	if (core_ == nullptr) {
-		Throw<PlatformException>("PipeWire core connect failed.");
+		throwException<PlatformException>("PipeWire core connect failed.");
 	}
 
 	static constexpr pw_core_events core_events{
@@ -172,7 +172,7 @@ void PipeWireOutputDevice::openStream(const AudioFormat& output_format) {
 	core_sync_seq_ = pw_core_sync(core_.get(), PW_ID_CORE, 0);
 
 	if (::pw_thread_loop_start(loop_.get()) != 0) {
-		Throw<PlatformException>("PipeWire thread loop start failed.");
+		throwException<PlatformException>("PipeWire thread loop start failed.");
 	}
 
 	{
@@ -186,7 +186,7 @@ void PipeWireOutputDevice::openStream(const AudioFormat& output_format) {
 			PW_KEY_APP_NAME, "XAMP",
 			nullptr);
 		if (props == nullptr) {
-			Throw<PlatformException>("PipeWire stream properties create failed.");
+			throwException<PlatformException>("PipeWire stream properties create failed.");
 		}
 
 		::pw_properties_setf(props, PW_KEY_NODE_RATE, "1/%u", output_format.getSampleRate());
@@ -197,7 +197,7 @@ void PipeWireOutputDevice::openStream(const AudioFormat& output_format) {
 
 		stream_.reset(::pw_stream_new(core_.get(), "Playback", props));
 		if (stream_ == nullptr) {
-			Throw<PlatformException>("PipeWire stream create failed.");
+			throwException<PlatformException>("PipeWire stream create failed.");
 		}
 
 		static constexpr pw_stream_events stream_events{
@@ -232,7 +232,7 @@ void PipeWireOutputDevice::openStream(const AudioFormat& output_format) {
 			stream_flags,
 			params,
 			std::size(params)) < 0) {
-			Throw<PlatformException>("PipeWire stream connect failed.");
+			throwException<PlatformException>("PipeWire stream connect failed.");
 		}
 
 		waitForStreamReady();
@@ -306,7 +306,7 @@ void PipeWireOutputDevice::startStream() {
 		return;
 	}
 	if (callback_ == nullptr) {
-		Throw<PlatformException>("PipeWire callback is not set.");
+		throwException<PlatformException>("PipeWire callback is not set.");
 	}
 
 	is_stopped_ = false;
@@ -385,7 +385,7 @@ void PipeWireOutputDevice::applySoftwareVolume(float* samples, size_t sample_cou
 		return;
 	}
 
-	const auto scale = VolumeLevelToGain(static_cast<int32_t>(volume));
+	const auto scale = volumeLevelToGain(static_cast<int32_t>(volume));
 	for (size_t i = 0; i < sample_count; ++i) {
 		samples[i] *= scale;
 	}
@@ -397,7 +397,7 @@ void PipeWireOutputDevice::configureRealtimeThreadPriority() {
 		return;
 	}
 
-	SetRealtimeThreadPriority("PipeWire process thread");
+	setRealtimeThreadPriority("PipeWire process thread");
 }
 
 double PipeWireOutputDevice::getCallbackStreamTime(int64_t next_frame) const {

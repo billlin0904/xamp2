@@ -49,7 +49,7 @@ inline LibCueLib::LibCueLib() try
 #ifdef XAMP_OS_WIN
 	: module_(openSharedLibrary("libcue"))
 #else
-	: module_(OpenSharedLibrary("cue"))
+	: module_(openSharedLibrary("cue"))
 #endif
 	, XAMP_LOAD_DLL_API(cd_delete)
 	, XAMP_LOAD_DLL_API(cue_parse_string)

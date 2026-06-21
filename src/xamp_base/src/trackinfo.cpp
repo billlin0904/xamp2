@@ -5,7 +5,6 @@
 XAMP_BASE_NAMESPACE_BEGIN
 
 TrackInfo::TrackInfo() : is_cue_file(0)
-	, is_zip_file(0)
 	, rating(false)
 	, track(0)
 	, bit_rate(0)

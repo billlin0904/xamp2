@@ -25,7 +25,6 @@ struct MetadataScanProgress final {
 
 struct MetadataScanOptions final {
 	size_t batch_size{ 250 };
-	bool include_archive_files{ true };
 	bool recursive{ true };
 };
 

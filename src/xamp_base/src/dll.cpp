@@ -106,7 +106,7 @@ Path getSharedLibraryPath(const SharedLibraryHandle& module) {
 }
 
 SharedLibraryHandle loadSharedLibrary(const std::string_view& name) {
-    auto path = GetComponentsFilePath() / name;
+    auto path = getComponentsFilePath() / name;
     auto path_string = path.native();
     auto module = ::dlopen(path_string.c_str(), RTLD_NOW);
     if (!module) {

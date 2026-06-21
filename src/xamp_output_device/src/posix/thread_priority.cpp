@@ -15,7 +15,7 @@
 
 XAMP_OUTPUT_DEVICE_POSIX_NAMESPACE_BEGIN
 
-bool SetRealtimeThreadPriority(std::string_view thread_name, int priority_boost) {
+bool setRealtimeThreadPriority(std::string_view thread_name, int priority_boost) {
 #ifdef SCHED_RR
 	errno = 0;
 	const auto min_priority = ::sched_get_priority_min(SCHED_RR);

@@ -146,7 +146,7 @@ namespace {
         XampCrashHandler.setThreadExceptionHandlers();
 
 #ifdef Q_OS_WIN
-        const auto components_path = GetComponentsFilePath();
+        const auto components_path = getComponentsFilePath();
         if (!addSharedLibrarySearchDirectory(components_path)) {
             XAMP_LOG_ERROR("AddSharedLibrarySearchDirectory return fail! ({})", GetLastErrorMessage());
             return -1;

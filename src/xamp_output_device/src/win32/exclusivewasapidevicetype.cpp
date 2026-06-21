@@ -62,7 +62,7 @@ std::optional<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeIm
 	if (hr == kNotFoundHr) {
 		return std::nullopt;
 	}
-	return MakeOptional<DeviceInfo>(helper::getDeviceInfo(default_output_device,
+	return makeOptional<DeviceInfo>(helper::getDeviceInfo(default_output_device,
 		XAMP_UUID_OF(ExclusiveWasapiDeviceType), 
 		ExclusiveWasapiDeviceType::Description));
 }

@@ -62,7 +62,7 @@ std::optional<DeviceInfo> NullOutputDeviceType::NullOutputDeviceTypeImpl::getDef
 	info.is_support_dsd = true;
 	info.device_type_id = XAMP_UUID_OF(NullOutputDeviceType);
 	info.desc = NullOutputDeviceType::Description;
-	return MakeOptional<DeviceInfo>(std::move(info));
+	return makeOptional<DeviceInfo>(std::move(info));
 }
 
 NullOutputDeviceType::NullOutputDeviceType()

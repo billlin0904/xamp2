@@ -31,7 +31,7 @@ constexpr int kPollTimeoutMilliseconds = 100;
 constexpr auto kAlsaDefaultDeviceId = "default";
 constexpr auto kSuspendResumeRetryDelay = std::chrono::milliseconds(100);
 
-snd_pcm_uframes_t GetPeriodFrames(uint32_t sample_rate) {
+snd_pcm_uframes_t getPeriodFrames(uint32_t sample_rate) {
 	const auto frames = static_cast<snd_pcm_uframes_t>(sample_rate) * kDefaultPeriodMilliseconds / 1000;
 	return std::max<snd_pcm_uframes_t>(frames, 1);
 }
@@ -43,7 +43,7 @@ double FramesToMilliseconds(snd_pcm_uframes_t frames, uint32_t sample_rate) {
 	return static_cast<double>(frames) * 1000.0 / static_cast<double>(sample_rate);
 }
 
-snd_pcm_format_t ToAlsaSampleFormat(const AudioFormat& format) {
+snd_pcm_format_t toAlsaSampleFormat(const AudioFormat& format) {
 	if (format.getFormat() != DataFormat::FORMAT_PCM) {
 		throw DeviceUnSupportedFormatException(format);
 	}
@@ -60,8 +60,8 @@ snd_pcm_format_t ToAlsaSampleFormat(const AudioFormat& format) {
 	}
 }
 
-void ThrowAlsaError(std::string_view operation, int error) {
-	Throw<PlatformException>("ALSA {} failed: {}", operation, ::snd_strerror(error));
+void throwAlsaError(std::string_view operation, int error) {
+	throwException<PlatformException>("ALSA {} failed: {}", operation, ::snd_strerror(error));
 }
 }
 
@@ -94,14 +94,14 @@ void AlsaOutputDevice::openStream(const AudioFormat& output_format) {
 
 	XAMP_LOG_D(logger_, "AlsaOutputDevice open stream: {}.", output_format.toString());
 
-	const auto sample_format = ToAlsaSampleFormat(output_format);
+	const auto sample_format = toAlsaSampleFormat(output_format);
 	snd_pcm_t* pcm = nullptr;
 	auto error = ::snd_pcm_open(&pcm,
 		device_id_.c_str(),
 		SND_PCM_STREAM_PLAYBACK,
 		SND_PCM_NONBLOCK);
 	if (error < 0) {
-		ThrowAlsaError("open", error);
+		throwAlsaError("open", error);
 	}
 	pcm_.reset(pcm);
 
@@ -110,16 +110,16 @@ void AlsaOutputDevice::openStream(const AudioFormat& output_format) {
 		snd_pcm_hw_params_alloca(&hw_params);
 
 		if ((error = ::snd_pcm_hw_params_any(pcm_.get(), hw_params)) < 0) {
-			ThrowAlsaError("hw params any", error);
+			throwAlsaError("hw params any", error);
 		}
 		if ((error = ::snd_pcm_hw_params_set_access(pcm_.get(), hw_params, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0) {
-			ThrowAlsaError("set access", error);
+			throwAlsaError("set access", error);
 		}
 		if ((error = ::snd_pcm_hw_params_set_format(pcm_.get(), hw_params, sample_format)) < 0) {
-			ThrowAlsaError("set format", error);
+			throwAlsaError("set format", error);
 		}
 		if ((error = ::snd_pcm_hw_params_set_channels(pcm_.get(), hw_params, output_format.getChannels())) < 0) {
-			ThrowAlsaError("set channels", error);
+			throwAlsaError("set channels", error);
 		}
 
 		error = ::snd_pcm_hw_params_set_rate_resample(pcm_.get(), hw_params, 0);
@@ -129,10 +129,10 @@ void AlsaOutputDevice::openStream(const AudioFormat& output_format) {
 
 		auto sample_rate = output_format.getSampleRate();
 		if ((error = ::snd_pcm_hw_params_set_rate_near(pcm_.get(), hw_params, &sample_rate, nullptr)) < 0) {
-			ThrowAlsaError("set rate", error);
+			throwAlsaError("set rate", error);
 		}
 		if (sample_rate != output_format.getSampleRate()) {
-			Throw<PlatformException>("ALSA sample rate mismatch: requested:{} actual:{}.",
+			throwException<PlatformException>("ALSA sample rate mismatch: requested:{} actual:{}.",
 				output_format.getSampleRate(),
 				sample_rate);
 		}
@@ -151,7 +151,7 @@ void AlsaOutputDevice::openStream(const AudioFormat& output_format) {
 			XAMP_LOG_D(logger_, "ALSA set period time unavailable: {}.", ::snd_strerror(error));
 		}
 
-		const auto requested_period_frames = GetPeriodFrames(sample_rate);
+		const auto requested_period_frames = getPeriodFrames(sample_rate);
 		snd_pcm_uframes_t period_frames = requested_period_frames;
 		if (error < 0) {
 			(void)::snd_pcm_hw_params_set_period_size_near(pcm_.get(), hw_params, &period_frames, nullptr);
@@ -163,7 +163,7 @@ void AlsaOutputDevice::openStream(const AudioFormat& output_format) {
 		}
 
 		if ((error = ::snd_pcm_hw_params(pcm_.get(), hw_params)) < 0) {
-			ThrowAlsaError("apply hw params", error);
+			throwAlsaError("apply hw params", error);
 		}
 
 		(void)::snd_pcm_hw_params_get_period_size(hw_params, &period_frames, nullptr);
@@ -176,32 +176,32 @@ void AlsaOutputDevice::openStream(const AudioFormat& output_format) {
 		snd_pcm_sw_params_t* sw_params = nullptr;
 		snd_pcm_sw_params_alloca(&sw_params);
 		if ((error = ::snd_pcm_sw_params_current(pcm_.get(), sw_params)) < 0) {
-			ThrowAlsaError("sw params current", error);
+			throwAlsaError("sw params current", error);
 		}
 		if ((error = ::snd_pcm_sw_params_set_avail_min(pcm_.get(), sw_params, safe_period_frames)) < 0) {
-			ThrowAlsaError("set avail min", error);
+			throwAlsaError("set avail min", error);
 		}
 
 		const auto start_threshold = (safe_buffer_frames / safe_period_frames) * safe_period_frames;
 		if ((error = ::snd_pcm_sw_params_set_start_threshold(pcm_.get(), sw_params, start_threshold)) < 0) {
-			ThrowAlsaError("set start threshold", error);
+			throwAlsaError("set start threshold", error);
 		}
 		if ((error = ::snd_pcm_sw_params(pcm_.get(), sw_params)) < 0) {
-			ThrowAlsaError("apply sw params", error);
+			throwAlsaError("apply sw params", error);
 		}
 
 		if ((error = ::snd_pcm_prepare(pcm_.get())) < 0) {
-			ThrowAlsaError("prepare", error);
+			throwAlsaError("prepare", error);
 		}
 
 		const auto poll_count = ::snd_pcm_poll_descriptors_count(pcm_.get());
 		if (poll_count <= 0) {
-			ThrowAlsaError("poll descriptors count", poll_count);
+			throwAlsaError("poll descriptors count", poll_count);
 		}
 
 		output_format_ = output_format;
-		render_buffer_ = MakeBuffer<float>(static_cast<size_t>(buffer_frames_) * output_format_.getChannels());
-		render_buffer_.Fill(0.0f);
+		render_buffer_ = makeBuffer<float>(static_cast<size_t>(buffer_frames_) * output_format_.getChannels());
+		render_buffer_.fill(0.0f);
 		poll_descriptors_.resize(static_cast<size_t>(poll_count));
 		stop_requested_ = true;
 		is_running_ = false;
@@ -275,11 +275,11 @@ void AlsaOutputDevice::startStream() {
 	}
 
 	if (callback_ == nullptr) {
-		Throw<PlatformException>("ALSA callback is not set.");
+		throwException<PlatformException>("ALSA callback is not set.");
 	}
 
 	if (thread_pool_ == nullptr) {
-		Throw<PlatformException>("ALSA thread pool is not set.");
+		throwException<PlatformException>("ALSA thread pool is not set.");
 	}
 
 	if (render_future_.valid()) {
@@ -294,14 +294,15 @@ void AlsaOutputDevice::startStream() {
 	if (error < 0) {
 		is_running_ = false;
 		stop_requested_ = true;
-		ThrowAlsaError("prepare", error);
+		throwAlsaError("prepare", error);
 	}
 
-	render_future_ = thread_pool_->Spawn([this](const std::stop_token& stop_token) {
+	render_future_ = thread_pool_->spawn(SubmitPolicy::SUBMIT_POLICY_NORMAL,
+		ExecuteFlags::EXECUTE_LONG_RUNNING, [this](const std::stop_token& stop_token) {
 		XAMP_LOG_D(logger_, "Render loop start");
 		renderLoop(stop_token);
 		XAMP_LOG_D(logger_, "Render loop stop");
-	}, ExecuteFlags::EXECUTE_LONG_RUNNING);
+	});
 }
 
 void AlsaOutputDevice::setStreamTime(double stream_time) {
@@ -367,7 +368,7 @@ void AlsaOutputDevice::applySoftwareVolume(float* samples, size_t sample_count) 
 		return;
 	}
 
-	const auto scale = VolumeLevelToGain(static_cast<int32_t>(volume));
+	const auto scale = volumeLevelToGain(static_cast<int32_t>(volume));
 	for (size_t i = 0; i < sample_count; ++i) {
 		samples[i] *= scale;
 	}
@@ -379,7 +380,7 @@ void AlsaOutputDevice::configureRealtimeThreadPriority() {
 		return;
 	}
 
-	SetRealtimeThreadPriority("ALSA render thread");
+	setRealtimeThreadPriority("ALSA render thread");
 }
 
 void AlsaOutputDevice::handleRecoverableError(int error) {
@@ -388,7 +389,7 @@ void AlsaOutputDevice::handleRecoverableError(int error) {
 		XAMP_LOG_D(logger_, "ALSA xrun recovery state:{} error:{}.", ::snd_pcm_state_name(state), error);
 		const auto prepare_result = ::snd_pcm_prepare(pcm_.get());
 		if (prepare_result < 0) {
-			ThrowAlsaError("recover prepare", prepare_result);
+			throwAlsaError("recover prepare", prepare_result);
 		}
 		return;
 	}
@@ -406,7 +407,7 @@ void AlsaOutputDevice::handleRecoverableError(int error) {
 		if (resume_result < 0) {
 			const auto prepare_result = ::snd_pcm_prepare(pcm_.get());
 			if (prepare_result < 0) {
-				ThrowAlsaError("recover prepare", prepare_result);
+				throwAlsaError("recover prepare", prepare_result);
 			}
 		}
 		return;
@@ -414,7 +415,7 @@ void AlsaOutputDevice::handleRecoverableError(int error) {
 
 	const auto recover_result = ::snd_pcm_recover(pcm_.get(), error, 1);
 	if (recover_result < 0) {
-		ThrowAlsaError("recover", recover_result);
+		throwAlsaError("recover", recover_result);
 	}
 }
 
@@ -433,7 +434,7 @@ bool AlsaOutputDevice::waitUntilWritable(const std::stop_token& stop_token) {
 			poll_descriptors_.data(),
 			static_cast<unsigned int>(poll_descriptors_.size()));
 		if (descriptor_count < 0) {
-			ThrowAlsaError("poll descriptors", descriptor_count);
+			throwAlsaError("poll descriptors", descriptor_count);
 		}
 
 		const auto poll_result = ::poll(poll_descriptors_.data(),
@@ -446,7 +447,7 @@ bool AlsaOutputDevice::waitUntilWritable(const std::stop_token& stop_token) {
 			if (errno == EINTR) {
 				continue;
 			}
-			Throw<PlatformException>("ALSA poll failed: {}", std::strerror(errno));
+			throwException<PlatformException>("ALSA poll failed: {}", std::strerror(errno));
 		}
 
 		unsigned short revents = 0;
@@ -455,7 +456,7 @@ bool AlsaOutputDevice::waitUntilWritable(const std::stop_token& stop_token) {
 			static_cast<unsigned int>(descriptor_count),
 			&revents);
 		if (revents_result < 0) {
-			ThrowAlsaError("poll descriptors revents", revents_result);
+			throwAlsaError("poll descriptors revents", revents_result);
 		}
 
 		if ((revents & POLLERR) != 0) {
@@ -464,7 +465,7 @@ bool AlsaOutputDevice::waitUntilWritable(const std::stop_token& stop_token) {
 				handleRecoverableError(state == SND_PCM_STATE_XRUN ? -EPIPE : -ESTRPIPE);
 				continue;
 			}
-			Throw<PlatformException>("ALSA poll reported POLLERR state:{}.", ::snd_pcm_state_name(::snd_pcm_state(pcm_.get())));
+			throwException<PlatformException>("ALSA poll reported POLLERR state:{}.", ::snd_pcm_state_name(::snd_pcm_state(pcm_.get())));
 		}
 
 		if ((revents & (POLLHUP | POLLNVAL)) != 0) {
@@ -507,7 +508,7 @@ void AlsaOutputDevice::renderLoop(const std::stop_token& stop_token) {
 			const auto frames_to_write = static_cast<snd_pcm_uframes_t>(buffer_frames_);
 			const auto channels = output_format_.getChannels();
 			auto* const samples = render_buffer_.data();
-			render_buffer_.Fill(0.0f);
+			render_buffer_.fill(0.0f);
 
 			size_t num_filled_frames = 0;
 			const auto current_frame = stream_frame_.load();

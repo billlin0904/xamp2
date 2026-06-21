@@ -29,19 +29,19 @@ constexpr auto kPulsePlaybackStreamFlags = static_cast<pa_stream_flags_t>(
 	| PA_STREAM_NOT_MONOTONIC
 	| PA_STREAM_START_CORKED);
 
-uint32_t FramesFromMilliseconds(uint32_t sample_rate, uint32_t milliseconds) {
+uint32_t framesFromMilliseconds(uint32_t sample_rate, uint32_t milliseconds) {
 	return (std::max<uint32_t>)(1,
 		static_cast<uint32_t>((static_cast<uint64_t>(sample_rate) * milliseconds + 999) / 1000));
 }
 
-double FramesToMilliseconds(uint32_t frames, uint32_t sample_rate) {
+double framesToMilliseconds(uint32_t frames, uint32_t sample_rate) {
 	if (sample_rate == 0) {
 		return 0.0;
 	}
 	return static_cast<double>(frames) * 1000.0 / static_cast<double>(sample_rate);
 }
 
-pa_sample_format_t ToPulseSampleFormat(const AudioFormat& format) {
+pa_sample_format_t toPulseSampleFormat(const AudioFormat& format) {
 	if (format.getFormat() != DataFormat::FORMAT_PCM) {
 		throw DeviceUnSupportedFormatException(format);
 	}
@@ -58,15 +58,15 @@ pa_sample_format_t ToPulseSampleFormat(const AudioFormat& format) {
 	}
 }
 
-void ThrowPulseError(std::string_view operation, pa_context* context) {
+void throwPulseError(std::string_view operation, pa_context* context) {
 	const auto error = context != nullptr ? ::pa_context_errno(context) : PA_ERR_UNKNOWN;
-	Throw<PlatformException>("PulseAudio {} failed: {}", operation, ::pa_strerror(error));
+	throwException<PlatformException>("PulseAudio {} failed: {}", operation, ::pa_strerror(error));
 }
 
-void ThrowPulseStreamError(std::string_view operation, pa_stream* stream) {
+void throwPulseStreamError(std::string_view operation, pa_stream* stream) {
 	const auto* context = stream != nullptr ? ::pa_stream_get_context(stream) : nullptr;
 	const auto error = context != nullptr ? ::pa_context_errno(context) : PA_ERR_UNKNOWN;
-	Throw<PlatformException>("PulseAudio {} failed: {}", operation, ::pa_strerror(error));
+	throwException<PlatformException>("PulseAudio {} failed: {}", operation, ::pa_strerror(error));
 }
 }
 
@@ -126,7 +126,7 @@ void PulseOutputDevice::waitForContextReady() const {
 			return;
 		case PA_CONTEXT_FAILED:
 		case PA_CONTEXT_TERMINATED:
-			ThrowPulseError("connect", context_.get());
+			throwPulseError("connect", context_.get());
 		default:
 			::pa_threaded_mainloop_wait(mainloop_.get());
 			break;
@@ -141,7 +141,7 @@ void PulseOutputDevice::waitForStreamReady() const {
 			return;
 		case PA_STREAM_FAILED:
 		case PA_STREAM_TERMINATED:
-			ThrowPulseStreamError("stream connect", stream_.get());
+			throwPulseStreamError("stream connect", stream_.get());
 		default:
 			::pa_threaded_mainloop_wait(mainloop_.get());
 			break;
@@ -152,7 +152,7 @@ void PulseOutputDevice::waitForStreamReady() const {
 void PulseOutputDevice::waitForOperation(pa_operation* operation) const {
 	PulseOperationPtr operation_ptr(operation);
 	if (operation_ptr == nullptr) {
-		Throw<PlatformException>("PulseAudio operation create failed.");
+		throwException<PlatformException>("PulseAudio operation create failed.");
 	}
 
 	while (::pa_operation_get_state(operation_ptr.get()) == PA_OPERATION_RUNNING) {
@@ -166,7 +166,7 @@ void PulseOutputDevice::openStream(const AudioFormat& output_format) {
 	XAMP_LOG_D(logger_, "PulseOutputDevice open stream: {}.", output_format.toString());
 
 	const pa_sample_spec sample_spec{
-		.format = ToPulseSampleFormat(output_format),
+		.format = toPulseSampleFormat(output_format),
 		.rate = output_format.getSampleRate(),
 		.channels = static_cast<uint8_t>(output_format.getChannels()),
 	};
@@ -175,7 +175,7 @@ void PulseOutputDevice::openStream(const AudioFormat& output_format) {
 		throw DeviceUnSupportedFormatException(output_format);
 	}
 
-	buffer_frames_ = FramesFromMilliseconds(output_format.getSampleRate(), kDefaultCallbackMilliseconds);
+	buffer_frames_ = framesFromMilliseconds(output_format.getSampleRate(), kDefaultCallbackMilliseconds);
 	const auto buffer_bytes = buffer_frames_ * output_format.getBlockAlign();
 	const auto target_buffer_bytes = buffer_bytes * kBufferPeriodCount;
 	const pa_buffer_attr buffer_attr{
@@ -189,29 +189,29 @@ void PulseOutputDevice::openStream(const AudioFormat& output_format) {
 	try {
 		mainloop_.reset(::pa_threaded_mainloop_new());
 		if (mainloop_ == nullptr) {
-			Throw<PlatformException>("PulseAudio mainloop create failed.");
+			throwException<PlatformException>("PulseAudio mainloop create failed.");
 		}
 
 		context_.reset(::pa_context_new(::pa_threaded_mainloop_get_api(mainloop_.get()), "XAMP"));
 		if (context_ == nullptr) {
-			Throw<PlatformException>("PulseAudio context create failed.");
+			throwException<PlatformException>("PulseAudio context create failed.");
 		}
 		::pa_context_set_state_callback(context_.get(), contextStateCallback, this);
 
 		if (::pa_threaded_mainloop_start(mainloop_.get()) < 0) {
-			Throw<PlatformException>("PulseAudio mainloop start failed.");
+			throwException<PlatformException>("PulseAudio mainloop start failed.");
 		}
 
 		const PulseThreadedMainloopLock lock(mainloop_.get());
 
 		if (::pa_context_connect(context_.get(), nullptr, PA_CONTEXT_NOFLAGS, nullptr) < 0) {
-			ThrowPulseError("connect", context_.get());
+			throwPulseError("connect", context_.get());
 		}
 		waitForContextReady();
 
 		stream_.reset(::pa_stream_new(context_.get(), "Playback", &sample_spec, nullptr));
 		if (stream_ == nullptr) {
-			ThrowPulseError("stream create", context_.get());
+			throwPulseError("stream create", context_.get());
 		}
 
 		::pa_stream_set_state_callback(stream_.get(), streamStateCallback, this);
@@ -223,7 +223,7 @@ void PulseOutputDevice::openStream(const AudioFormat& output_format) {
 			kPulsePlaybackStreamFlags,
 			nullptr,
 			nullptr) < 0) {
-			ThrowPulseStreamError("stream connect", stream_.get());
+			throwPulseStreamError("stream connect", stream_.get());
 		}
 		waitForStreamReady();
 
@@ -234,7 +234,7 @@ void PulseOutputDevice::openStream(const AudioFormat& output_format) {
 				"PulseAudio stream ready device:{} callback_frames:{}({:.2f}ms) tlength:{} maxlength:{} minreq:{} prebuf:{}.",
 				device_name,
 				buffer_frames_,
-				FramesToMilliseconds(buffer_frames_, output_format.getSampleRate()),
+				framesToMilliseconds(buffer_frames_, output_format.getSampleRate()),
 				actual_attr->tlength,
 				actual_attr->maxlength,
 				actual_attr->minreq,
@@ -326,7 +326,7 @@ void PulseOutputDevice::startStream() {
 	}
 
 	if (callback_ == nullptr) {
-		Throw<PlatformException>("PulseAudio callback is not set.");
+		throwException<PlatformException>("PulseAudio callback is not set.");
 	}
 
 	is_stopped_ = false;
@@ -344,7 +344,7 @@ void PulseOutputDevice::startStream() {
 
 		const auto writable_size = ::pa_stream_writable_size(stream_.get());
 		if (writable_size == static_cast<size_t>(-1)) {
-			ThrowPulseStreamError("get writable size", stream_.get());
+			throwPulseStreamError("get writable size", stream_.get());
 		}
 		if (writable_size > 0) {
 			XAMP_LOG_D(logger_, "PulseAudio prime writable bytes:{}.", writable_size);
@@ -442,7 +442,7 @@ void PulseOutputDevice::configureRealtimeThreadPriority() {
 		return;
 	}
 
-	SetRealtimeThreadPriority("PulseAudio callback thread");
+	setRealtimeThreadPriority("PulseAudio callback thread");
 }
 
 void PulseOutputDevice::abortStream() {
@@ -478,7 +478,7 @@ void PulseOutputDevice::applySoftwareVolume(float* samples, size_t sample_count)
 		return;
 	}
 
-	const auto scale = VolumeLevelToGain(static_cast<int32_t>(volume));
+	const auto scale = volumeLevelToGain(static_cast<int32_t>(volume));
 	for (size_t i = 0; i < sample_count; ++i) {
 		samples[i] *= scale;
 	}
@@ -504,7 +504,7 @@ void PulseOutputDevice::onStreamWrite(pa_stream* stream, size_t bytes) {
 		void* data = nullptr;
 		auto bytes_to_write = frames_to_write * block_align;
 		if (::pa_stream_begin_write(stream, &data, &bytes_to_write) < 0 || data == nullptr) {
-			ThrowPulseStreamError("begin write", stream);
+			throwPulseStreamError("begin write", stream);
 		}
 		write_pending = true;
 
@@ -554,7 +554,7 @@ void PulseOutputDevice::onStreamWrite(pa_stream* stream, size_t bytes) {
 
 		bytes_to_write = frames_to_write * block_align;
 		if (::pa_stream_write(stream, data, bytes_to_write, nullptr, 0, PA_SEEK_RELATIVE) < 0) {
-			ThrowPulseStreamError("write", stream);
+			throwPulseStreamError("write", stream);
 		}
 		write_pending = false;
 

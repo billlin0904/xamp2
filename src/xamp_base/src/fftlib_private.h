@@ -42,21 +42,21 @@ private:
 	SharedLibraryHandle module_;
 
 public:
-	XAMP_DECLARE_DLL(::MKL_malloc) MKL_malloc;
-	XAMP_DECLARE_DLL(::MKL_free) MKL_free;
-	XAMP_DECLARE_DLL(::DftiErrorClass) DftiErrorClass;
-	XAMP_DECLARE_DLL(::DftiFreeDescriptor) DftiFreeDescriptor;
-	XAMP_DECLARE_DLL(::DftiCreateDescriptor_s_1d) DftiCreateDescriptor_s_1d;
-	XAMP_DECLARE_DLL(::DftiCreateDescriptor_s_md) DftiCreateDescriptor_s_md;
-	XAMP_DECLARE_DLL(::DftiCreateDescriptor_d_1d) DftiCreateDescriptor_d_1d;
-	XAMP_DECLARE_DLL(::DftiCreateDescriptor_d_md) DftiCreateDescriptor_d_md;
-	XAMP_DECLARE_DLL(::DftiComputeForward) DftiComputeForward;
-	XAMP_DECLARE_DLL(::DftiCreateDescriptor) DftiCreateDescriptor_;
-	XAMP_DECLARE_DLL(::DftiSetValue) DftiSetValue;
-	XAMP_DECLARE_DLL(::DftiCommitDescriptor) DftiCommitDescriptor;
-	XAMP_DECLARE_DLL(::DftiComputeBackward) DftiComputeBackward;
-	XAMP_DECLARE_DLL(::DftiErrorMessage) DftiErrorMessage;
-	XAMP_DECLARE_DLL(::mkl_get_version_string) mkl_get_version_string;
+	XAMP_DECLARE_DLL(MKL_malloc) MKL_malloc;
+	XAMP_DECLARE_DLL(MKL_free) MKL_free;
+	XAMP_DECLARE_DLL(DftiErrorClass) DftiErrorClass;
+	XAMP_DECLARE_DLL(DftiFreeDescriptor) DftiFreeDescriptor;
+	XAMP_DECLARE_DLL(DftiCreateDescriptor_s_1d) DftiCreateDescriptor_s_1d;
+	XAMP_DECLARE_DLL(DftiCreateDescriptor_s_md) DftiCreateDescriptor_s_md;
+	XAMP_DECLARE_DLL(DftiCreateDescriptor_d_1d) DftiCreateDescriptor_d_1d;
+	XAMP_DECLARE_DLL(DftiCreateDescriptor_d_md) DftiCreateDescriptor_d_md;
+	XAMP_DECLARE_DLL(DftiComputeForward) DftiComputeForward;
+	XAMP_DECLARE_DLL(DftiCreateDescriptor) DftiCreateDescriptor_;
+	XAMP_DECLARE_DLL(DftiSetValue) DftiSetValue;
+	XAMP_DECLARE_DLL(DftiCommitDescriptor) DftiCommitDescriptor;
+	XAMP_DECLARE_DLL(DftiComputeBackward) DftiComputeBackward;
+	XAMP_DECLARE_DLL(DftiErrorMessage) DftiErrorMessage;
+	XAMP_DECLARE_DLL(mkl_get_version_string) mkl_get_version_string;
 #else
 	decltype(::MKL_malloc)* MKL_malloc{ nullptr };
 	decltype(::MKL_free)* MKL_free{ nullptr };

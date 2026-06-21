@@ -64,17 +64,17 @@ namespace {
 
         switch (dsd_mode) {
         case DsdModes::DSD_MODE_DOP:
-            ThrowIf<NotSupportFormatException>(
+            failWith<NotSupportFormatException>(
                 dsd_stream->supportDOP(),
                 "Stream not support mode: {}", dsd_mode);
             break;
         case DsdModes::DSD_MODE_DOP_AA:
-            ThrowIf<NotSupportFormatException>(
+            failWith<NotSupportFormatException>(
                 dsd_stream->supportDOP_AA(),
                 "Stream not support mode: {}", dsd_mode);
             break;
         case DsdModes::DSD_MODE_NATIVE:
-            ThrowIf<NotSupportFormatException>(
+            failWith<NotSupportFormatException>(
                 dsd_stream->supportNativeSD(),
                 "Stream not support mode: {}", dsd_mode);
             break;
@@ -83,7 +83,7 @@ namespace {
         case DsdModes::DSD_MODE_PCM:
             break;
         default:
-            Throw<NotSupportFormatException>(
+            throwException<NotSupportFormatException>(
                 "Not support dsd-mode: {}.", dsd_mode);
             break;
         }

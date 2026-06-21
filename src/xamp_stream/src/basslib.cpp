@@ -211,8 +211,8 @@ void BassLib::load() {
     loadPlugin("bassopus.dll");
     loadPlugin("basswebm.dll");
 #else
-    loadPlugin(GetSharedLibraryName("bassflac"));
-    loadPlugin(GetSharedLibraryName("bassdsd"));
+    loadPlugin(getSharedLibraryName("bassflac"));
+    loadPlugin(getSharedLibraryName("bassdsd"));
 #endif
 
     LIB_BASS.BASS_SetConfig(BASS_CONFIG_DSD_FREQ, 88200);
@@ -239,7 +239,7 @@ void BassLib::Free() {
 }
 
 void BassLib::loadPlugin(const std::string & file_name) {
-    const auto plugin_fully_path = GetComponentsFilePath() / Path(file_name);
+    const auto plugin_fully_path = getComponentsFilePath() / Path(file_name);
     BassPluginHandle plugin(LIB_BASS.BASS_PluginLoad(plugin_fully_path.string().c_str(), 0));
     if (!plugin) {
         XAMP_LOG_D(logger, "load {} failure. error:{}",

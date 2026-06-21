@@ -98,7 +98,7 @@ public:
             return false;
         }
 
-        length_ = getLength();
+        length_ = length();
         if (length_ == 0) {
             file_.reset();
             return false;
@@ -126,11 +126,11 @@ public:
         file_.reset();
     }
 
-    void const * getData() const {
+    void const * data() const {
         return mem_ == MAP_FAILED ? nullptr : mem_;
     }
 
-    size_t getLength() const {
+    size_t length() const {
         struct stat file_info;
         file_info.st_size = 0;
         ::fstat(file_.get(), &file_info);

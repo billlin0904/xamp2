@@ -526,14 +526,10 @@ HRESULT ExclusiveWasapiDevice::onInvoke(IMFAsyncResult*) {
 	return S_OK;
 }
 void ExclusiveWasapiDevice::setStreamTime(const double stream_time) {
-	ThrowIf<std::invalid_argument>(mix_format_->nSamplesPerSec != 0,
-		"Output sample rate can not set zero.");
 	stream_time_ = static_cast<int64_t>(stream_time * static_cast<double>(mix_format_->nSamplesPerSec));
 }
 
 double ExclusiveWasapiDevice::getStreamTime() const {
-	ThrowIf<std::invalid_argument>(mix_format_->nSamplesPerSec != 0,
-		"Output sample rate can not set zero.");
     return stream_time_ / static_cast<double>(mix_format_->nSamplesPerSec);
 }
 

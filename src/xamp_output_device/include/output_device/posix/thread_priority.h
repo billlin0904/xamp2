@@ -13,7 +13,7 @@ XAMP_OUTPUT_DEVICE_POSIX_NAMESPACE_BEGIN
 
 inline constexpr int kDefaultRealtimePriorityBoost = 10;
 
-XAMP_OUTPUT_DEVICE_API bool SetRealtimeThreadPriority(std::string_view thread_name,
+XAMP_OUTPUT_DEVICE_API bool setRealtimeThreadPriority(std::string_view thread_name,
 	int priority_boost = kDefaultRealtimePriorityBoost);
 
 XAMP_OUTPUT_DEVICE_POSIX_NAMESPACE_END

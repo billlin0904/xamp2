@@ -21,7 +21,7 @@ uint32_t GetDOPSampleRate(uint32_t dsd_speed) {
     default:
         break;
     }
-    Throw<NotSupportFormatException>("Not support DOP DSD speed: {}.", dsd_speed);
+    throwException<NotSupportFormatException>("Not support DOP DSD speed: {}.", dsd_speed);
     return 0;
 }
 

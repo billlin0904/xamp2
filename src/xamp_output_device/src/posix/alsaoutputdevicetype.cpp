@@ -83,7 +83,7 @@ struct AlsaPlaybackProbe final {
 	uint32_t sample_rate{ kFallbackSampleRate };
 };
 
-DeviceInfo MakeDeviceInfo(std::string device_id,
+DeviceInfo makeDeviceInfo(std::string device_id,
 	std::wstring device_name,
 	bool is_default_device,
 	uint16_t channels,
@@ -104,20 +104,20 @@ DeviceInfo MakeDeviceInfo(std::string device_id,
 	return info;
 }
 
-DeviceInfo MakeFallbackDeviceInfo() {
-	return MakeDeviceInfo(std::string(kDefaultDeviceId),
+DeviceInfo makeFallbackDeviceInfo() {
+	return makeDeviceInfo(std::string(kDefaultDeviceId),
 		std::wstring(kDefaultDeviceName),
 		true,
 		AudioFormat::kMaxChannel,
 		kFallbackSampleRate);
 }
 
-[[nodiscard]] bool IsFloatPlaybackSupported(snd_pcm_t* handle, snd_pcm_hw_params_t* params) {
+[[nodiscard]] bool isFloatPlaybackSupported(snd_pcm_t* handle, snd_pcm_hw_params_t* params) {
 	return ::snd_pcm_hw_params_test_format(handle, params, SND_PCM_FORMAT_FLOAT_LE) == 0
 		|| ::snd_pcm_hw_params_test_format(handle, params, SND_PCM_FORMAT_FLOAT) == 0;
 }
 
-[[nodiscard]] uint32_t ProbePreferredSampleRate(snd_pcm_t* handle, snd_pcm_hw_params_t* params) {
+[[nodiscard]] uint32_t probePreferredSampleRate(snd_pcm_t* handle, snd_pcm_hw_params_t* params) {
 	uint32_t preferred_sample_rate{ 0 };
 	uint32_t fallback_sample_rate{ 0 };
 
@@ -146,7 +146,7 @@ DeviceInfo MakeFallbackDeviceInfo() {
 	return kFallbackSampleRate;
 }
 
-[[nodiscard]] std::optional<AlsaPlaybackProbe> ProbeAlsaPlaybackDevice(const std::string& device_id) {
+[[nodiscard]] std::optional<AlsaPlaybackProbe> probeAlsaPlaybackDevice(const std::string& device_id) {
 	snd_pcm_t* pcm_handle{ nullptr };
 	const auto open_error = ::snd_pcm_open(&pcm_handle,
 		device_id.c_str(),
@@ -170,28 +170,28 @@ DeviceInfo MakeFallbackDeviceInfo() {
 		return std::nullopt;
 	}
 
-	if (!IsFloatPlaybackSupported(pcm.get(), params)) {
+	if (!isFloatPlaybackSupported(pcm.get(), params)) {
 		return std::nullopt;
 	}
 
 	AlsaPlaybackProbe probe;
 	probe.channels = static_cast<uint16_t>((std::min)(static_cast<uint32_t>(max_channels), AudioFormat::kMaxChannel));
-	probe.sample_rate = ProbePreferredSampleRate(pcm.get(), params);
+	probe.sample_rate = probePreferredSampleRate(pcm.get(), params);
 	return probe;
 }
 
-[[nodiscard]] std::string FormatAlsaDeviceId(const std::string & card_id, int device) {
-	return String::Format("plughw:{},{}", card_id, device);
+[[nodiscard]] std::string formatAlsaDeviceId(const std::string & card_id, int device) {
+	return String::format("plughw:{},{}", card_id, device);
 }
 
-[[nodiscard]] std::wstring FormatAlsaDeviceName(const std::string& card_name, const char* pcm_id) {
-	auto name = String::Format("{} ({})", card_name, pcm_id);
-	return String::ToStdWString(name);
+[[nodiscard]] std::wstring formatAlsaDeviceName(const std::string& card_name, const char* pcm_id) {
+	auto name = String::format("{} ({})", card_name, pcm_id);
+	return String::toStdWString(name);
 }
 
-std::vector<DeviceInfo> EnumerateAlsaPlaybackDevices() {
+std::vector<DeviceInfo> enumerateAlsaPlaybackDevices() {
 	std::vector<DeviceInfo> devices;
-	devices.push_back(MakeFallbackDeviceInfo());
+	devices.push_back(makeFallbackDeviceInfo());
 
 	std::unordered_set<std::string> device_ids;
 	std::unordered_set<std::wstring> device_names;
@@ -209,7 +209,7 @@ std::vector<DeviceInfo> EnumerateAlsaPlaybackDevices() {
 	}
 
 	while (card >= 0) {
-		auto control_name = String::Format("hw:{}", card);
+		auto control_name = String::format("hw:{}", card);
 
 		snd_ctl_t* control_handle{ nullptr };
 		if (::snd_ctl_open(&control_handle, control_name.c_str(), 0) < 0) {
@@ -233,14 +233,14 @@ std::vector<DeviceInfo> EnumerateAlsaPlaybackDevices() {
 				continue;
 			}
 
-			auto device_id = FormatAlsaDeviceId(::snd_ctl_card_info_get_id(control_info), device);
+			auto device_id = formatAlsaDeviceId(::snd_ctl_card_info_get_id(control_info), device);
 			if (!device_ids.emplace(device_id).second) {
 				continue;
 			}
 
-			auto display_name = FormatAlsaDeviceName(::snd_ctl_card_info_get_name(control_info),
+			auto display_name = formatAlsaDeviceName(::snd_ctl_card_info_get_name(control_info),
 				::snd_pcm_info_get_id(pcm_info));
-			auto probe = ProbeAlsaPlaybackDevice(device_id);
+			auto probe = probeAlsaPlaybackDevice(device_id);
 			if (!probe) {
 				continue;
 			}
@@ -249,7 +249,7 @@ std::vector<DeviceInfo> EnumerateAlsaPlaybackDevices() {
 				continue;
 			}
 
-			devices.push_back(MakeDeviceInfo(std::move(device_id),
+			devices.push_back(makeDeviceInfo(std::move(device_id),
 				std::move(display_name),
 				false,
 				probe->channels,
@@ -272,7 +272,7 @@ public:
 
 	void scanNewDevice() {
 		try {
-			devices_ = EnumerateAlsaPlaybackDevices();
+			devices_ = enumerateAlsaPlaybackDevices();
 		}
 		catch (const std::exception& e) {
 			XAMP_LOG_D(logger_, "ALSA scan failed: {}. Use default PCM fallback.", e.what());
@@ -280,7 +280,7 @@ public:
 		}
 
 		if (devices_.empty()) {
-			devices_.push_back(MakeFallbackDeviceInfo());
+			devices_.push_back(makeFallbackDeviceInfo());
 		}
 	}
 
@@ -305,7 +305,7 @@ public:
 
 	ScopedPtr<IOutputDevice> makeDevice(const std::shared_ptr<xamp::base::IThreadPool>& thread_pool,
 		const std::string& device_id) {
-		return MakeAlign<IOutputDevice, AlsaOutputDevice>(thread_pool, device_id);
+		return makeAlign<IOutputDevice, AlsaOutputDevice>(thread_pool, device_id);
 	}
 
 private:
@@ -314,7 +314,7 @@ private:
 };
 
 AlsaOutputDeviceType::AlsaOutputDeviceType()
-	: impl_(MakeAlign<AlsaOutputDeviceTypeImpl>()) {
+	: impl_(makeAlign<AlsaOutputDeviceTypeImpl>()) {
 }
 
 void AlsaOutputDeviceType::scanNewDevice() {

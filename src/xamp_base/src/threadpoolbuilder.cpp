@@ -9,7 +9,7 @@ XAMP_BASE_NAMESPACE_BEGIN
 namespace {
     constexpr auto kMaxPlaybackThreadPoolSize{ 4 };
     constexpr auto kMaxPlayerThreadPoolSize{ 4 };
-    constexpr auto kMaxBackgroundThreadPoolSize{ 12 };
+    constexpr auto kMaxBackgroundThreadPoolSize{ 4 };
 
     XAMP_DECLARE_LOG_NAME(BackgroundThreadPool);
     XAMP_DECLARE_LOG_NAME(PlaybackThreadPool);
@@ -29,7 +29,7 @@ std::shared_ptr<IThreadPool> ThreadPoolBuilder::makeThreadPool(const std::string
 std::shared_ptr<IThreadPool> ThreadPoolBuilder::makeBackgroundThreadPool() {
     return makeThreadPool(XAMP_LOG_NAME(BackgroundThreadPool),
         kMaxBackgroundThreadPoolSize,
-        kMaxBackgroundThreadPoolSize / 2,
+        2,
         ThreadPriority::PRIORITY_BACKGROUND);
 }
 
