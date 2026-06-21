@@ -20,7 +20,7 @@ namespace llfio = LLFIO_V2_NAMESPACE;
 
 
 CTemporaryFile::CTemporaryFile()
-	: file_(nullptr, fclose) {
+	: file_(nullptr) {
 	auto [file_ptr, path] = getTempFile();
 	file_ = std::move(file_ptr);
 	path_ = std::move(path);
@@ -65,9 +65,9 @@ std::tuple<CFilePtr, Path> CTemporaryFile::getTempFile() {
 	for (auto i = 0; i < kMaxRetryCreateTempFile; ++i) {
 		auto path = temp_path / Fs::path(getSequentialUuid() + ".tmp");
 #ifdef XAMP_OS_WIN
-		CFilePtr file_(::_wfopen(path.wstring().c_str(), L"wb+"), fclose);
+		CFilePtr file_(::_wfopen(path.wstring().c_str(), L"wb+"));
 #else
-		CFilePtr file_(::fopen(path.string().c_str(), "wb+"), fclose);
+		CFilePtr file_(::fopen(path.string().c_str(), "wb+"));
 #endif
 		if (file_) {
 			return std::make_tuple(std::move(file_), path);

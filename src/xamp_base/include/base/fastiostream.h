@@ -10,7 +10,15 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-using CFilePtr = std::unique_ptr<FILE, decltype(&std::fclose)>;
+struct CFileDeleter final {
+    void operator()(FILE* file) const noexcept {
+        if (file != nullptr) {
+            std::fclose(file);
+        }
+    }
+};
+
+using CFilePtr = std::unique_ptr<FILE, CFileDeleter>;
 
 class XAMP_BASE_API CTemporaryFile {
 public:
@@ -102,4 +110,3 @@ private:
 };
 
 XAMP_BASE_NAMESPACE_END
-
