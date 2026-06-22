@@ -30,5 +30,6 @@
         <file>Resource/Theme/light/lightstyle.qss</file>
         <file>xamp_startup.png</file>
         <file>Resource/White/buymeacoffee.png</file>
+        <file alias="appimage-update.sh">../../setup/linux/appimage-update.sh</file>
     </qresource>
 </RCC>

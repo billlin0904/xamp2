@@ -53,6 +53,7 @@ public:
    QString changelog() const;
    QString moduleName() const;
    QString downloadUrl() const;
+   QString sha256() const;
    QString platformKey() const;
    QString moduleVersion() const;
    QString latestVersion() const;
@@ -104,6 +105,7 @@ private:
    QString m_changelog;
    QString m_moduleName;
    QString m_downloadUrl;
+   QString m_sha256;
    QString m_moduleVersion;
    QString m_latestVersion;
 

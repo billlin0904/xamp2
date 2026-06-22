@@ -13,6 +13,8 @@ ui_*.h
 /xamp.db
 /xamp.ini
 
+/setup/win32/inno/xamp2-setup.exe
+
 /src/xamp/build/
 /src/xamp/.vscode/
 /src/xamp/.vs/

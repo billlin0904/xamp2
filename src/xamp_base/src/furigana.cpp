@@ -7,12 +7,9 @@
 #include <sstream>
 #include <limits>
 
-#ifdef XAMP_OS_LINUX
 #include <unicode/utrans.h>
 #include <unicode/ustring.h>
-#else
-#include <icu.h>
-#endif
+#include <unicode/uvernum.h>
 #ifdef XAMP_OS_LINUX
 #include <mecab.h>
 #else
@@ -21,6 +18,83 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 namespace {
+    constexpr std::string_view getICUCommonLibraryName() noexcept {
+#if defined(XAMP_OS_WIN) && defined(_DEBUG)
+        return "icuucd" U_ICU_VERSION_SHORT;
+#elif defined(XAMP_OS_WIN)
+        return "icuuc" U_ICU_VERSION_SHORT;
+#elif defined(XAMP_OS_LINUX)
+        return "icuuc-" U_ICU_VERSION_SHORT;
+#else
+        return "icuuc";
+#endif
+    }
+
+    constexpr std::string_view getICUTransLibraryName() noexcept {
+#if defined(XAMP_OS_WIN) && defined(_DEBUG)
+        return "icuind" U_ICU_VERSION_SHORT;
+#elif defined(XAMP_OS_WIN)
+        return "icuin" U_ICU_VERSION_SHORT;
+#elif defined(XAMP_OS_LINUX)
+        return "icuin-" U_ICU_VERSION_SHORT;
+#else
+        return "icuin";
+#endif
+    }
+
+#define XAMP_ICU_STRINGIZE_IMPL(Func) #Func
+#define XAMP_ICU_STRINGIZE(Func) XAMP_ICU_STRINGIZE_IMPL(Func)
+
+    class ICUCommonLib final {
+    public:
+        XAMP_DECLARE_SINGLETON_NAME()
+
+        ICUCommonLib()
+            : module_(openSharedLibrary(getICUCommonLibraryName()))
+            , u_strFromWCS(module_, XAMP_ICU_STRINGIZE(u_strFromWCS))
+            , u_memcpy(module_, XAMP_ICU_STRINGIZE(u_memcpy))
+            , u_strToUTF8(module_, XAMP_ICU_STRINGIZE(u_strToUTF8)) {
+        }
+
+        XAMP_DISABLE_COPY(ICUCommonLib)
+
+    private:
+        SharedLibraryHandle module_;
+
+    public:
+        XAMP_DECLARE_DLL_NAME(u_strFromWCS);
+        XAMP_DECLARE_DLL_NAME(u_memcpy);
+        XAMP_DECLARE_DLL_NAME(u_strToUTF8);
+    };
+
+    class ICUTransLib final {
+    public:
+        XAMP_DECLARE_SINGLETON_NAME()
+
+        ICUTransLib()
+            : module_(openSharedLibrary(getICUTransLibraryName()))
+            , utrans_openU(module_, XAMP_ICU_STRINGIZE(utrans_openU))
+            , utrans_close(module_, XAMP_ICU_STRINGIZE(utrans_close))
+            , utrans_transUChars(module_, XAMP_ICU_STRINGIZE(utrans_transUChars)) {
+        }
+
+        XAMP_DISABLE_COPY(ICUTransLib)
+
+    private:
+        SharedLibraryHandle module_;
+
+    public:
+        XAMP_DECLARE_DLL_NAME(utrans_openU);
+        XAMP_DECLARE_DLL_NAME(utrans_close);
+        XAMP_DECLARE_DLL_NAME(utrans_transUChars);
+    };
+
+#undef XAMP_ICU_STRINGIZE
+#undef XAMP_ICU_STRINGIZE_IMPL
+
+#define ICU_COMMON_LIB SharedSingleton<ICUCommonLib>::getInstance()
+#define ICU_TRANS_LIB SharedSingleton<ICUTransLib>::getInstance()
+
     class MeCabLib final {
     public:
         XAMP_DECLARE_SINGLETON_NAME()
@@ -112,7 +186,7 @@ namespace {
 
         static void close(UTransliterator* value) {
             if (value != nullptr) {
-                ::utrans_close(value);
+                ICU_TRANS_LIB.utrans_close(value);
             }
         }
     };
@@ -123,7 +197,7 @@ namespace {
     public:
         Kata2HiraConverter() {
             UErrorCode status = U_ZERO_ERROR;
-            UTransliterator* trans = ::utrans_openU(
+            UTransliterator* trans = ICU_TRANS_LIB.utrans_openU(
                 u"Katakana-Hiragana",
                 -1,
                 UTRANS_FORWARD,
@@ -148,7 +222,7 @@ namespace {
             const auto source_length = static_cast<int32_t>(name.length());
             std::vector<UChar> buffer(source_length + 1);
             int32_t dest_len = 0;
-            ::u_strFromWCS(buffer.data(), static_cast<int32_t>(buffer.size()), &dest_len, name.data(), source_length, &status);
+            ICU_COMMON_LIB.u_strFromWCS(buffer.data(), static_cast<int32_t>(buffer.size()), &dest_len, name.data(), source_length, &status);
             if (U_FAILURE(status)) {
                 throw std::runtime_error("Failed to convert name to UChar*");
             }
@@ -160,24 +234,24 @@ namespace {
             const int32_t capacity = dest_len * 4 + 10;
             std::vector<UChar> result(capacity);
             int32_t result_length = dest_len;
-            ::u_memcpy(result.data(), buffer.data(), result_length);
+            ICU_COMMON_LIB.u_memcpy(result.data(), buffer.data(), result_length);
 
             int32_t limit = result_length;
-            ::utrans_transUChars(trans_.get(), result.data(), &result_length, capacity, 0, &limit, &status);
+            ICU_TRANS_LIB.utrans_transUChars(trans_.get(), result.data(), &result_length, capacity, 0, &limit, &status);
             if (U_FAILURE(status)) {
                 throw std::runtime_error("Failed to transliterate name");
             }
 
             // convert the result to UTF-8
             int32_t utf8_length = 0;
-            ::u_strToUTF8(nullptr, 0, &utf8_length, result.data(), result_length, &status);
+            ICU_COMMON_LIB.u_strToUTF8(nullptr, 0, &utf8_length, result.data(), result_length, &status);
             if (status != U_BUFFER_OVERFLOW_ERROR && U_FAILURE(status)) {
                 throw std::runtime_error("Failed to get UTF-8 length");
             }
 
             status = U_ZERO_ERROR;
             std::string utf8_result(utf8_length, '\0');
-            ::u_strToUTF8(utf8_result.data(), utf8_length, nullptr, result.data(), result_length, &status);
+            ICU_COMMON_LIB.u_strToUTF8(utf8_result.data(), utf8_length, nullptr, result.data(), result_length, &status);
             if (U_FAILURE(status)) {
                 throw std::runtime_error("Failed to convert result to UTF-8");
             }
@@ -190,7 +264,7 @@ namespace {
     };
 
     // Function to trim overlapping suffix between text and furigana
-    void TrimOverlappingSuffix(std::wstring& text, std::wstring& furigana) {
+    void trimOverlappingSuffix(std::wstring& text, std::wstring& furigana) {
         size_t text_len = text.length();
         size_t furigana_len = furigana.length();
         size_t min_len = (std::min)(text_len, furigana_len);
@@ -285,9 +359,8 @@ public:
 
             auto furigana = converter_.convert(features[7]);
             if (surface != furigana) {
-                // 在這裡應用 TrimOverlappingSuffix
                 if (trim_overlapping) {
-					TrimOverlappingSuffix(surface, furigana);
+					trimOverlappingSuffix(surface, furigana);
                 }
                 result.emplace_back(surface, furigana);
             }
@@ -337,6 +410,8 @@ std::vector<FuriganaEntity> Furigana::convert(const std::wstring& text) {
 }
 
 void loadFuriganaDll() {
+    ICU_COMMON_LIB;
+    ICU_TRANS_LIB;
     MECAB_LIB;
 }
 

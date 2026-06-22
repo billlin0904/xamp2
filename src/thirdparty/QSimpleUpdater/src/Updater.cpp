@@ -36,6 +36,7 @@ Updater::Updater()
    m_openUrl = "";
    m_changelog = "";
    m_downloadUrl = "";
+   m_sha256 = "";
    m_latestVersion = "";
    m_customAppcast = false;
    m_notifyOnUpdate = true;
@@ -130,6 +131,15 @@ QString Updater::platformKey() const
 QString Updater::downloadUrl() const
 {
    return m_downloadUrl;
+}
+
+/**
+ * Returns the expected SHA256 of the downloaded update file.
+ * \warning You should call \c checkForUpdates() before using this function
+ */
+QString Updater::sha256() const
+{
+   return m_sha256;
 }
 
 /**
@@ -408,6 +418,7 @@ void Updater::onReply(QNetworkReply *reply)
    m_openUrl = platform.value("open-url").toString();
    m_changelog = platform.value("changelog").toString();
    m_downloadUrl = platform.value("download-url").toString();
+   m_sha256 = platform.value("sha256").toString();
    m_latestVersion = platform.value("latest-version").toString();
    if (platform.contains("mandatory-update"))
       m_mandatoryUpdate = platform.value("mandatory-update").toBool();

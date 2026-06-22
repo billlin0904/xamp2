@@ -158,6 +158,9 @@ copy /Y "$(ProjectDir)..\thirdparty\libcue\bin\libcue.dll" "$(OutDir)\components
 copy /Y "$(ProjectDir)..\thirdparty\libsamplerate\bin\samplerate.dll" "$(OutDir)\components\"
 copy /Y "F:\vcpkg\vcpkg\installed\x64-windows\debug\bin\soxr.dll" "$(OutDir)\components\"
 copy /Y "F:\vcpkg\vcpkg\installed\x64-windows\debug\bin\mecab.dll" "$(OutDir)\components\"
+copy /Y "F:\vcpkg\vcpkg\packages\icu_x64-windows\debug\bin\icudtd74.dll" "$(OutDir)\components\"
+copy /Y "F:\vcpkg\vcpkg\packages\icu_x64-windows\debug\bin\icuind74.dll" "$(OutDir)\components\"
+copy /Y "F:\vcpkg\vcpkg\packages\icu_x64-windows\debug\bin\icuucd74.dll" "$(OutDir)\components\"
 copy /Y "$(ProjectDir)..\thirdparty\r8brain-free-src\DLL\Win64\r8bsrc.dll" "$(OutDir)\components\"
 copy /Y "$(ProjectDir)..\thirdparty\uchardet\msvc\src\Debug\uchardet.dll" "$(OutDir)\components\"</Command>
     </PostBuildEvent>
@@ -254,6 +257,9 @@ copy /Y "$(ProjectDir)..\thirdparty\libcue\bin\libcue.dll" "$(OutDir)\components
 copy /Y "$(ProjectDir)..\thirdparty\libsamplerate\bin\samplerate.dll" "$(OutDir)\components\"
 copy /Y "F:\vcpkg\vcpkg\installed\x64-windows\bin\soxr.dll" "$(OutDir)\components\"
 copy /Y "F:\vcpkg\vcpkg\installed\x64-windows\bin\mecab.dll" "$(OutDir)\components\"
+copy /Y "F:\vcpkg\vcpkg\packages\icu_x64-windows\bin\icudt74.dll" "$(OutDir)\components\"
+copy /Y "F:\vcpkg\vcpkg\packages\icu_x64-windows\bin\icuin74.dll" "$(OutDir)\components\"
+copy /Y "F:\vcpkg\vcpkg\packages\icu_x64-windows\bin\icuuc74.dll" "$(OutDir)\components\"
 copy /Y "$(ProjectDir)..\thirdparty\r8brain-free-src\DLL\Win64\r8bsrc.dll" "$(OutDir)\components\"
 copy /Y "$(ProjectDir)..\thirdparty\uchardet\msvc\src\Release\uchardet.dll" "$(OutDir)\components\"</Command>
     </PostBuildEvent>

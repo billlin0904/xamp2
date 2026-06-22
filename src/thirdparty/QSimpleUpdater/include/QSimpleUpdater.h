@@ -79,6 +79,7 @@ public:
    QString getChangelog(const QString &url) const;
    QString getModuleName(const QString &url) const;
    QString getDownloadUrl(const QString &url) const;
+   QString getSha256(const QString &url) const;
    QString getPlatformKey(const QString &url) const;
    QString getLatestVersion(const QString &url) const;
    QString getModuleVersion(const QString &url) const;

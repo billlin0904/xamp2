@@ -18,6 +18,46 @@ find_package(Qt6 6.4 REQUIRED COMPONENTS
 
 qt6_wrap_ui(XAMP_UI_HEADERS xamp.ui)
 
+if(UNIX AND NOT APPLE)
+    set(QSIMPLEUPDATER_DIR "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/QSimpleUpdater")
+    qt6_wrap_ui(QSIMPLEUPDATER_UI_HEADERS "${QSIMPLEUPDATER_DIR}/src/Downloader.ui")
+
+    add_library(qsimpleupdater STATIC
+        "${QSIMPLEUPDATER_DIR}/src/Updater.cpp"
+        "${QSIMPLEUPDATER_DIR}/src/Updater.h"
+        "${QSIMPLEUPDATER_DIR}/src/Downloader.cpp"
+        "${QSIMPLEUPDATER_DIR}/src/Downloader.h"
+        "${QSIMPLEUPDATER_DIR}/src/QSimpleUpdater.cpp"
+        "${QSIMPLEUPDATER_DIR}/include/QSimpleUpdater.h"
+        "${QSIMPLEUPDATER_DIR}/etc/resources/qsimpleupdater.qrc"
+        ${QSIMPLEUPDATER_UI_HEADERS}
+    )
+
+    set_target_properties(qsimpleupdater PROPERTIES
+        AUTOMOC ON
+        AUTORCC ON
+    )
+
+    target_compile_definitions(qsimpleupdater PRIVATE QSU_INCLUDE_MOC=0)
+
+    target_include_directories(qsimpleupdater
+        PUBLIC
+            "${QSIMPLEUPDATER_DIR}/include"
+        PRIVATE
+            "${QSIMPLEUPDATER_DIR}"
+            "${QSIMPLEUPDATER_DIR}/src"
+            "${CMAKE_CURRENT_BINARY_DIR}"
+    )
+
+    target_link_libraries(qsimpleupdater
+        PUBLIC
+            Qt6::Core
+            Qt6::Gui
+            Qt6::Network
+            Qt6::Widgets
+    )
+endif()
+
 add_executable(xamp
     deviceselectormenu.cpp
     deviceselectormenu.h
@@ -242,7 +282,7 @@ target_link_libraries(xamp
 )
 
 if(UNIX AND NOT APPLE)
-    target_link_libraries(xamp PRIVATE dl pthread)
+    target_link_libraries(xamp PRIVATE dl pthread qsimpleupdater)
 endif()
 
 if(UNIX AND NOT APPLE AND CMAKE_BUILD_TYPE STREQUAL "Release")

@@ -4,7 +4,8 @@
 #include <deviceselectormenu.h>
 #include <sharedmodeplayback.h>
 
-#ifdef Q_OS_WIN
+#if defined(Q_OS_WIN) || defined(Q_OS_LINUX)
+#define XAMP_ENABLE_UPDATER 1
 #include <QSimpleUpdater.h>
 #endif
 
@@ -13,9 +14,12 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QCryptographicHash>
 #include <QColor>
 #include <QCoreApplication>
+#include <QDir>
 #include <QEvent>
+#include <QFile>
 #include <QGuiApplication>
 #include <QImage>
 #include <QMap>
@@ -73,6 +77,75 @@
 
 namespace {
     const auto kUpdateDefinitionsUrl = "https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json"_str;
+    constexpr auto kUpdateDefinitionsUrlEnvironmentName = "XAMP_UPDATE_DEFINITIONS_URL";
+
+#ifdef XAMP_ENABLE_UPDATER
+    QString updateDefinitionsUrl() {
+        const auto override_url = qEnvironmentVariable(kUpdateDefinitionsUrlEnvironmentName).trimmed();
+        return override_url.isEmpty() ? kUpdateDefinitionsUrl : override_url;
+    }
+
+    QString updatePlatformKey() {
+#ifdef Q_OS_WIN
+        return "windows"_str;
+#elif defined(Q_OS_LINUX)
+        return "linux"_str;
+#else
+        return {};
+#endif
+    }
+
+    QString fileSha256(const QString& filepath) {
+        QFile file(filepath);
+        if (!file.open(QIODevice::ReadOnly)) {
+            return {};
+        }
+
+        QCryptographicHash hash(QCryptographicHash::Sha256);
+        while (!file.atEnd()) {
+            hash.addData(file.read(1024 * 1024));
+        }
+        return QString::fromLatin1(hash.result().toHex());
+    }
+
+    bool equalsSha256(const QString& actual, const QString& expected) {
+        return !actual.isEmpty()
+            && !expected.isEmpty()
+            && actual.compare(expected.trimmed(), Qt::CaseInsensitive) == 0;
+    }
+
+#ifdef Q_OS_LINUX
+    QString appImagePath() {
+        return qEnvironmentVariable("APPIMAGE").trimmed();
+    }
+
+    bool writeLinuxAppImageUpdateScript(const QString& script_path) {
+        QFile source(":/xamp/appimage-update.sh"_str);
+        if (!source.open(QIODevice::ReadOnly)) {
+            return false;
+        }
+
+        QFile script(script_path);
+        if (!script.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {
+            return false;
+        }
+
+        if (script.write(source.readAll()) < 0) {
+            return false;
+        }
+
+        script.close();
+        return QFile::setPermissions(script_path,
+            QFileDevice::ReadOwner
+            | QFileDevice::WriteOwner
+            | QFileDevice::ExeOwner
+            | QFileDevice::ReadGroup
+            | QFileDevice::ExeGroup
+            | QFileDevice::ReadOther
+            | QFileDevice::ExeOther);
+    }
+#endif
+#endif
 
     size_t CountTracks(const std::forward_list<TrackInfo>& tracks) {
         return static_cast<size_t>(std::distance(tracks.begin(), tracks.end()));
@@ -1134,10 +1207,10 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
         this,
         &Xamp::OnReadMusicBrainzAlbums);
 
-#ifdef Q_OS_WIN
+#ifdef XAMP_ENABLE_UPDATER
     configureUpdater(false);
     QTimer::singleShot(std::chrono::seconds(5), this, [this]() {
-        QSimpleUpdater::getInstance()->checkForUpdates(kUpdateDefinitionsUrl);
+        QSimpleUpdater::getInstance()->checkForUpdates(updateDefinitionsUrl());
         });
 #endif
 }
@@ -1176,7 +1249,7 @@ void Xamp::setupSystemMenu() {
     (void)QObject::connect(preference_action_, &QAction::triggered, this, &Xamp::showPreference);
     main_window_->addSystemMenuAction(preference_action_);
 
-#ifdef Q_OS_WIN
+#ifdef XAMP_ENABLE_UPDATER
     auto* check_for_update_action = new QAction(tr("Check for update"), this);
     (void)QObject::connect(check_for_update_action, &QAction::triggered, this, &Xamp::onCheckForUpdate);
     main_window_->addSystemMenuAction(check_for_update_action);
@@ -1274,20 +1347,25 @@ void Xamp::showEncodeJobs(int32_t encode_type, const QList<PlayListEntity>& enti
 }
 
 void Xamp::configureUpdater(bool notify_on_finish) {
-#ifdef Q_OS_WIN
+#ifdef XAMP_ENABLE_UPDATER
+    const auto update_url = updateDefinitionsUrl();
+    XAMP_LOG_INFO("Configure updater. url:{} notify_on_finish:{}",
+        update_url.toStdString(),
+        notify_on_finish);
+
     auto* updater = QSimpleUpdater::getInstance();
-    updater->setModuleName(kUpdateDefinitionsUrl, kApplicationTitle);
-    updater->setModuleVersion(kUpdateDefinitionsUrl, kApplicationVersion);
-    updater->setPlatformKey(kUpdateDefinitionsUrl, "windows"_str);
-    updater->setNotifyOnUpdate(kUpdateDefinitionsUrl, true);
-    updater->setNotifyOnFinish(kUpdateDefinitionsUrl, notify_on_finish);
-    updater->setDownloaderEnabled(kUpdateDefinitionsUrl, true);
-    updater->setUseCustomInstallProcedures(kUpdateDefinitionsUrl, true);
-    updater->setUserAgentString(kUpdateDefinitionsUrl, kDefaultUserAgent);
+    updater->setModuleName(update_url, kApplicationTitle);
+    updater->setModuleVersion(update_url, kApplicationVersion);
+    updater->setPlatformKey(update_url, updatePlatformKey());
+    updater->setNotifyOnUpdate(update_url, true);
+    updater->setNotifyOnFinish(update_url, notify_on_finish);
+    updater->setDownloaderEnabled(update_url, true);
+    updater->setUseCustomInstallProcedures(update_url, true);
+    updater->setUserAgentString(update_url, kDefaultUserAgent);
 
     const auto download_dir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
     if (!download_dir.isEmpty()) {
-        updater->setDownloadDir(kUpdateDefinitionsUrl, download_dir);
+        updater->setDownloadDir(update_url, download_dir);
     }
 
     (void)QObject::connect(updater,
@@ -1301,24 +1379,112 @@ void Xamp::configureUpdater(bool notify_on_finish) {
 }
 
 void Xamp::installDownloadedUpdate(const QString& url, const QString& filepath) {
-#ifdef Q_OS_WIN
-    if (url != kUpdateDefinitionsUrl || filepath.isEmpty()) {
+#ifdef XAMP_ENABLE_UPDATER
+    const auto update_url = updateDefinitionsUrl();
+    if (url != update_url || filepath.isEmpty()) {
+        XAMP_LOG_WARN("Ignore downloaded update. signal_url:{} expected_url:{} filepath:{}",
+            url.toStdString(),
+            update_url.toStdString(),
+            filepath.toStdString());
         return;
     }
 
+    auto* updater = QSimpleUpdater::getInstance();
+    const auto expected_sha256 = updater->getSha256(update_url);
+    const auto actual_sha256 = fileSha256(filepath);
+    XAMP_LOG_INFO("Downloaded update. filepath:{} expected_sha256:{} actual_sha256:{}",
+        filepath.toStdString(),
+        expected_sha256.toStdString(),
+        actual_sha256.toStdString());
+
+    if (!equalsSha256(actual_sha256, expected_sha256)) {
+        QFile::remove(filepath);
+        XAMP_LOG_ERROR("Update package SHA256 verification failed. filepath:{}",
+            filepath.toStdString());
+        XMessageBox::showError(tr("The update package failed SHA256 verification."));
+        return;
+    }
+
+#ifdef Q_OS_WIN
+    const auto installer_log = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation))
+        .filePath("xamp2-update-install.log"_str);
     const QStringList args{
         "/SILENT"_str,
         "/SUPPRESSMSGBOXES"_str,
         "/NORESTART"_str,
         "/CLOSEAPPLICATIONS"_str,
+        "/LOG="_str + installer_log,
     };
 
-    if (QProcess::startDetached(filepath, args)) {
+    qint64 installer_pid = 0;
+    if (QProcess::startDetached(filepath, args, QFileInfo(filepath).absolutePath(), &installer_pid)) {
+        XAMP_LOG_INFO("Started update installer. filepath:{} pid:{} log:{}",
+            filepath.toStdString(),
+            installer_pid,
+            installer_log.toStdString());
         qApp->quit();
     }
     else {
+        XAMP_LOG_ERROR("Failed to start update installer. filepath:{}",
+            filepath.toStdString());
         XMessageBox::showError(tr("Failed to start the update installer."));
     }
+#elif defined(Q_OS_LINUX)
+    const auto target_appimage = appImagePath();
+    if (target_appimage.isEmpty()) {
+        XAMP_LOG_ERROR("Cannot install AppImage update because APPIMAGE is not set.");
+        XMessageBox::showError(tr("Automatic Linux updates are only supported when running from an AppImage."));
+        return;
+    }
+
+    const auto temp_dir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+    const auto script_path = QDir(temp_dir).filePath("xamp2-appimage-update.sh"_str);
+    const auto update_log = QDir(temp_dir).filePath("xamp2-appimage-update.log"_str);
+
+    if (!QFile::setPermissions(filepath,
+        QFileDevice::ReadOwner
+        | QFileDevice::WriteOwner
+        | QFileDevice::ExeOwner
+        | QFileDevice::ReadGroup
+        | QFileDevice::ExeGroup
+        | QFileDevice::ReadOther
+        | QFileDevice::ExeOther)) {
+        XAMP_LOG_ERROR("Failed to mark downloaded AppImage executable. filepath:{}",
+            filepath.toStdString());
+        XMessageBox::showError(tr("Failed to prepare the downloaded AppImage."));
+        return;
+    }
+
+    if (!writeLinuxAppImageUpdateScript(script_path)) {
+        XAMP_LOG_ERROR("Failed to write AppImage update helper. script:{}",
+            script_path.toStdString());
+        XMessageBox::showError(tr("Failed to prepare the AppImage update helper."));
+        return;
+    }
+
+    const QStringList args{
+        script_path,
+        QString::number(QCoreApplication::applicationPid()),
+        filepath,
+        target_appimage,
+        update_log,
+    };
+
+    qint64 updater_pid = 0;
+    if (QProcess::startDetached("/bin/sh"_str, args, temp_dir, &updater_pid)) {
+        XAMP_LOG_INFO("Started AppImage update helper. script:{} pid:{} target:{} log:{}",
+            script_path.toStdString(),
+            updater_pid,
+            target_appimage.toStdString(),
+            update_log.toStdString());
+        qApp->quit();
+    }
+    else {
+        XAMP_LOG_ERROR("Failed to start AppImage update helper. script:{}",
+            script_path.toStdString());
+        XMessageBox::showError(tr("Failed to start the AppImage update helper."));
+    }
+#endif
 #else
     (void)url;
     (void)filepath;
@@ -1326,9 +1492,9 @@ void Xamp::installDownloadedUpdate(const QString& url, const QString& filepath) 
 }
 
 void Xamp::onCheckForUpdate() {
-#ifdef Q_OS_WIN
+#ifdef XAMP_ENABLE_UPDATER
     configureUpdater(true);
-    QSimpleUpdater::getInstance()->checkForUpdates(kUpdateDefinitionsUrl);
+    QSimpleUpdater::getInstance()->checkForUpdates(updateDefinitionsUrl());
 #endif
 }
 

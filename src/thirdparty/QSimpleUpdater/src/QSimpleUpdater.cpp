@@ -178,6 +178,19 @@ QString QSimpleUpdater::getDownloadUrl(const QString &url) const
 }
 
 /**
+ * Returns the SHA256 checksum of the update file for the \c Updater instance
+ * registered with the given \a url.
+ *
+ * \warning You should call \c checkForUpdates() before using this function
+ * \note If an \c Updater instance registered with the given \a url is not
+ *       found, that \c Updater instance will be initialized automatically
+ */
+QString QSimpleUpdater::getSha256(const QString &url) const
+{
+   return getUpdater(url)->sha256();
+}
+
+/**
  * Returns the platform key of the \c Updater registered with the given \a url.
  * If you do not define a platform key, the system will assign the following
  * platform key:
