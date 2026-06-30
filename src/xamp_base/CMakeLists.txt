@@ -39,11 +39,13 @@ target_include_directories(xamp_base
 
 find_package(Threads REQUIRED)
 find_package(LibArchive REQUIRED)
+find_package(simdutf CONFIG REQUIRED)
 
 target_link_libraries(xamp_base
     PRIVATE
         Threads::Threads
-        LibArchive::LibArchive)
+        LibArchive::LibArchive
+        simdutf::simdutf)
 
 if(UNIX AND NOT APPLE)
     if(DEFINED VCPKG_TARGET_TRIPLET)
@@ -58,7 +60,6 @@ if(UNIX AND NOT APPLE)
         PATHS "${XAMP_MKL_VCPKG_ROOT}"
         NO_DEFAULT_PATH)
 
-    find_package(ICU REQUIRED COMPONENTS i18n uc data)
     xamp_find_imported_library(XAMP_UCHARDET_TARGET XampUchardet
         REQUIRED
         HEADER uchardet.h
@@ -83,9 +84,6 @@ if(UNIX AND NOT APPLE)
             ${XAMP_UCHARDET_TARGET}
             ${XAMP_OPENCC_TARGET}
             ${XAMP_MECAB_TARGET}
-            ICU::i18n
-            ICU::uc
-            ICU::data
             dl
             uuid)
 endif()

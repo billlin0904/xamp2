@@ -4,9 +4,10 @@
 #include <base/text_encoding.h>
 #include <base/logger.h>
 
-#include <utf8.h>
+#include <simdutf.h>
 
 #include <array>
+#include <limits>
 
 XAMP_BASE_NAMESPACE_BEGIN
 
@@ -15,8 +16,38 @@ namespace String {
 std::wstring toStdWString(const std::string & utf8) {
 	std::wstring utf16;
 	try {
-		utf16.reserve(utf8.length());
-		utf8::utf8to16(utf8.begin(), utf8.end(), std::back_inserter(utf16));
+		if constexpr (sizeof(wchar_t) == sizeof(char16_t)) {
+			utf16.resize(utf8.size());
+			const auto result = simdutf::convert_utf8_to_utf16_with_errors(
+				utf8.data(),
+				utf8.size(),
+				reinterpret_cast<char16_t*>(utf16.data()));
+			if (result.error != simdutf::SUCCESS) {
+				XAMP_LOG_DEBUG("simdutf convert_utf8_to_utf16 failed: {}, {}",
+					static_cast<int>(result.error),
+					result.count);
+				return {};
+			}
+			utf16.resize(result.count);
+		}
+		else if constexpr (sizeof(wchar_t) == sizeof(char32_t)) {
+			utf16.resize(utf8.size());
+			const auto result = simdutf::convert_utf8_to_utf32_with_errors(
+				utf8.data(),
+				utf8.size(),
+				reinterpret_cast<char32_t*>(utf16.data()));
+			if (result.error != simdutf::SUCCESS) {
+				XAMP_LOG_DEBUG("simdutf convert_utf8_to_utf32 failed: {}, {}",
+					static_cast<int>(result.error),
+					result.count);
+				return {};
+			}
+			utf16.resize(result.count);
+		}
+		else {
+			static_assert(sizeof(wchar_t) == sizeof(char16_t) || sizeof(wchar_t) == sizeof(char32_t),
+				"Unsupported wchar_t size");
+		}
 	}
 	catch (const std::exception & e) {
         XAMP_LOG_DEBUG("{}", e.what());
@@ -43,8 +74,44 @@ std::string localeStringToUTF8(const std::string& str) noexcept {
 std::string toUtf8String(std::wstring const & utf16) {
 	std::string utf8;
 	try {
-		utf8.reserve(utf16.length());
-		utf8::utf16to8(utf16.begin(), utf16.end(), std::back_inserter(utf8));
+		if constexpr (sizeof(wchar_t) == sizeof(char16_t)) {
+			if (utf16.size() > std::numeric_limits<size_t>::max() / 3) {
+				return {};
+			}
+			utf8.resize(utf16.size() * 3);
+			const auto result = simdutf::convert_utf16_to_utf8_with_errors(
+				reinterpret_cast<const char16_t*>(utf16.data()),
+				utf16.size(),
+				utf8.data());
+			if (result.error != simdutf::SUCCESS) {
+				XAMP_LOG_DEBUG("simdutf convert_utf16_to_utf8 failed: {}, {}",
+					static_cast<int>(result.error),
+					result.count);
+				return {};
+			}
+			utf8.resize(result.count);
+		}
+		else if constexpr (sizeof(wchar_t) == sizeof(char32_t)) {
+			if (utf16.size() > std::numeric_limits<size_t>::max() / 4) {
+				return {};
+			}
+			utf8.resize(utf16.size() * 4);
+			const auto result = simdutf::convert_utf32_to_utf8_with_errors(
+				reinterpret_cast<const char32_t*>(utf16.data()),
+				utf16.size(),
+				utf8.data());
+			if (result.error != simdutf::SUCCESS) {
+				XAMP_LOG_DEBUG("simdutf convert_utf32_to_utf8 failed: {}, {}",
+					static_cast<int>(result.error),
+					result.count);
+				return {};
+			}
+			utf8.resize(result.count);
+		}
+		else {
+			static_assert(sizeof(wchar_t) == sizeof(char16_t) || sizeof(wchar_t) == sizeof(char32_t),
+				"Unsupported wchar_t size");
+		}
 	}
 	catch (const std::exception & e) {
         XAMP_LOG_DEBUG("{}", e.what());

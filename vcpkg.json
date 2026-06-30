@@ -12,6 +12,7 @@
     "libsamplerate",
     "mecab",
     "opencc",
+    "simdutf",
     "soxr",
     "uchardet"
   ]

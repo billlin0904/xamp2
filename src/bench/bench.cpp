@@ -1,15 +1,30 @@
 #include <benchmark/benchmark.h>
 
+#include <base/fastiostream.h>
+#include <base/fastconditionvariable.h>
+#include <base/fastmutex.h>
+#include <base/str_utilts.h>
 #include <base/threadpool.h>
 #include <base/threadpoolbuilder.h>
 #include <base/logger.h>
 
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <Windows.h>
+#endif
+
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
+#include <fstream>
 #include <future>
 #include <latch>
 #include <memory>
+#include <mutex>
 #include <array>
+#include <string>
 #include <thread>
 #include <vector>
 
@@ -22,6 +37,12 @@ namespace {
     constexpr std::array<size_t, 3> kCpuTaskCounts{ 64, 256, 1024 };
     constexpr std::array<size_t, 3> kNestedTaskCounts{ 4, 8, 8 };
     constexpr std::array<size_t, 3> kNestedInnerTaskCounts{ 4, 4, 8 };
+    constexpr std::array<size_t, 4> kConditionVariablePingPongCounts{ 1, 16, 256, 4096 };
+    constexpr std::array<size_t, 4> kWideUtf8CodeUnitCounts{ 16, 256, 4096, 65536 };
+    constexpr std::array<size_t, 2> kFastIOBenchFileSizes{ 4 * 1024 * 1024, 64 * 1024 * 1024 };
+    constexpr std::array<size_t, 2> kFastIOSequentialChunkSizes{ 4 * 1024, 64 * 1024 };
+    constexpr std::array<size_t, 2> kFastIOSeekCounts{ 1024, 4096 };
+    constexpr size_t kFastIOSeekReadSize = 4 * 1024;
 
     bool isPrime(uint32_t n) {
         if (n <= 1) return false;
@@ -52,6 +73,100 @@ namespace {
     bool waitFuture(Future<void>& future, std::chrono::seconds timeout) {
         return future.wait_for(timeout) == std::future_status::ready;
     }
+
+    std::wstring makeWideUtf8BenchInput(size_t code_unit_count) {
+        const auto pattern =
+            L"ASCII-1234567890 "
+            L"\u3042\u306A\u305F\u306B\u51FA\u4F1A\u308F\u306A\u3051\u308C\u3070 "
+            L"\u8A18\u61B6\u306A\u3069\u3044\u3089\u306A\u3044 "
+            L"\u6C38\u9060\u306B\u7720\u308A\u305F\u3044 ";
+
+        std::wstring input;
+        input.reserve(code_unit_count);
+        while (input.size() < code_unit_count) {
+            input.append(pattern);
+        }
+        input.resize(code_unit_count);
+        return input;
+    }
+
+    Path makeFastIOBenchFile(size_t file_size) {
+        auto path = Fs::temp_directory_path()
+            / String::format("xamp_fastiostream_bench_{}.bin", file_size);
+
+        if (Fs::exists(path) && Fs::file_size(path) == file_size) {
+            return path;
+        }
+
+        std::ofstream file(path, std::ios::binary | std::ios::trunc);
+        if (!file.is_open()) {
+            throw std::runtime_error("Can't create FastIOStream benchmark file.");
+        }
+
+        std::array<char, 64 * 1024> buffer{};
+        for (size_t i = 0; i < buffer.size(); ++i) {
+            buffer[i] = static_cast<char>((i * 131 + 17) & 0xFF);
+        }
+
+        size_t written = 0;
+        while (written < file_size) {
+            const auto write_size = std::min(buffer.size(), file_size - written);
+            file.write(buffer.data(), static_cast<std::streamsize>(write_size));
+            written += write_size;
+        }
+
+        return path;
+    }
+
+    std::vector<uint64_t> makeFastIOSeekOffsets(size_t file_size, size_t seek_count, size_t read_size) {
+        std::vector<uint64_t> offsets;
+        offsets.reserve(seek_count);
+
+        const auto max_offset = file_size > read_size ? file_size - read_size : 0;
+        for (size_t i = 0; i < seek_count; ++i) {
+            const auto mixed = static_cast<uint64_t>(i) * 11400714819323198485ull + 0x9E3779B97F4A7C15ull;
+            offsets.push_back(max_offset == 0 ? 0 : mixed % (max_offset + 1));
+        }
+        return offsets;
+    }
+
+#ifdef _WIN32
+    std::string wideCharToUtf8String(const std::wstring& input) {
+        if (input.empty()) {
+            return {};
+        }
+
+        const auto input_size = static_cast<int>(input.size());
+        const auto output_size = ::WideCharToMultiByte(
+            CP_UTF8,
+            WC_ERR_INVALID_CHARS,
+            input.data(),
+            input_size,
+            nullptr,
+            0,
+            nullptr,
+            nullptr);
+        if (output_size <= 0) {
+            return {};
+        }
+
+        std::string output;
+        output.resize(output_size);
+        const auto converted_size = ::WideCharToMultiByte(
+            CP_UTF8,
+            WC_ERR_INVALID_CHARS,
+            input.data(),
+            input_size,
+            output.data(),
+            output_size,
+            nullptr,
+            nullptr);
+        if (converted_size <= 0) {
+            return {};
+        }
+        return output;
+    }
+#endif
 
     static void BM_ThreadPool_CreateDestroy(benchmark::State& state) {
         for ([[maybe_unused]] auto _ : state) {
@@ -91,8 +206,6 @@ namespace {
         const auto task_count = static_cast<size_t>(state.range(0));
         auto bench_pool = makeBenchPool();
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
         for ([[maybe_unused]] auto _ : state) {
             std::atomic<size_t> completed{ 0 };
             std::vector<Future<void>> futures;
@@ -109,6 +222,7 @@ namespace {
 
             for (auto& future : futures) {
                 future.wait();
+                future.get();
             }
 
             benchmark::DoNotOptimize(completed.load(std::memory_order_relaxed));
@@ -449,6 +563,200 @@ namespace {
         }
     }
 
+    template <typename ConditionVariable, typename Mutex>
+    void conditionVariablePingPong(benchmark::State& state) {
+        const auto handoff_count = static_cast<size_t>(state.range(0));
+
+        Mutex mutex;
+        ConditionVariable cv;
+        auto ready = false;
+        auto acknowledged = false;
+        auto stop = false;
+
+        std::thread waiter([&]() {
+            std::unique_lock<Mutex> lock(mutex);
+            for (;;) {
+                cv.wait(lock, [&]() {
+                    return ready || stop;
+                    });
+                if (stop) {
+                    break;
+                }
+
+                ready = false;
+                acknowledged = true;
+                cv.notify_one();
+            }
+            });
+
+        for ([[maybe_unused]] auto _ : state) {
+            for (size_t i = 0; i < handoff_count; ++i) {
+                std::unique_lock<Mutex> lock(mutex);
+                ready = true;
+                acknowledged = false;
+                cv.notify_one();
+                cv.wait(lock, [&]() {
+                    return acknowledged;
+                    });
+            }
+
+            benchmark::DoNotOptimize(acknowledged);
+        }
+
+        state.PauseTiming();
+        {
+            std::unique_lock<Mutex> lock(mutex);
+            stop = true;
+            cv.notify_one();
+        }
+        waiter.join();
+        state.ResumeTiming();
+
+        state.SetItemsProcessed(state.iterations() * handoff_count);
+    }
+
+    static void BM_StdConditionVariable_PingPong(benchmark::State& state) {
+        conditionVariablePingPong<std::condition_variable, std::mutex>(state);
+    }
+
+    static void BM_FastConditionVariable_PingPong(benchmark::State& state) {
+        conditionVariablePingPong<FastConditionVariable, FastMutex>(state);
+    }
+
+    static void BM_String_ToUtf8String(benchmark::State& state) {
+        const auto input = makeWideUtf8BenchInput(static_cast<size_t>(state.range(0)));
+
+        for ([[maybe_unused]] auto _ : state) {
+            auto output = String::toUtf8String(input);
+            benchmark::DoNotOptimize(output.data());
+            benchmark::DoNotOptimize(output.size());
+        }
+
+        state.SetBytesProcessed(state.iterations() * static_cast<int64_t>(input.size() * sizeof(wchar_t)));
+        state.SetItemsProcessed(state.iterations() * static_cast<int64_t>(input.size()));
+    }
+
+    static void BM_Win32_WideCharToMultiByte(benchmark::State& state) {
+#ifdef _WIN32
+        const auto input = makeWideUtf8BenchInput(static_cast<size_t>(state.range(0)));
+
+        for ([[maybe_unused]] auto _ : state) {
+            auto output = wideCharToUtf8String(input);
+            benchmark::DoNotOptimize(output.data());
+            benchmark::DoNotOptimize(output.size());
+        }
+
+        state.SetBytesProcessed(state.iterations() * static_cast<int64_t>(input.size() * sizeof(wchar_t)));
+        state.SetItemsProcessed(state.iterations() * static_cast<int64_t>(input.size()));
+#else
+        state.SkipWithError("WideCharToMultiByte is only available on Windows.");
+#endif
+    }
+
+    static void BM_FastIOStream_SequentialRead(benchmark::State& state) {
+        const auto file_size = static_cast<size_t>(state.range(0));
+        const auto chunk_size = static_cast<size_t>(state.range(1));
+        const auto path = makeFastIOBenchFile(file_size);
+        std::vector<char> buffer(chunk_size);
+        FastIOStream stream(path);
+
+        for ([[maybe_unused]] auto _ : state) {
+            stream.seek(0, SEEK_SET);
+
+            size_t total_read = 0;
+            while (total_read < file_size) {
+                const auto read_size = std::min(chunk_size, file_size - total_read);
+                const auto bytes_read = stream.read(buffer.data(), read_size);
+                if (bytes_read == 0) {
+                    break;
+                }
+                total_read += bytes_read;
+                benchmark::DoNotOptimize(buffer.data());
+            }
+
+            benchmark::DoNotOptimize(total_read);
+        }
+
+        state.SetBytesProcessed(state.iterations() * static_cast<int64_t>(file_size));
+    }
+
+    static void BM_StdIfstream_SequentialRead(benchmark::State& state) {
+        const auto file_size = static_cast<size_t>(state.range(0));
+        const auto chunk_size = static_cast<size_t>(state.range(1));
+        const auto path = makeFastIOBenchFile(file_size);
+        std::vector<char> buffer(chunk_size);
+        std::ifstream stream(path, std::ios::binary);
+
+        for ([[maybe_unused]] auto _ : state) {
+            stream.clear();
+            stream.seekg(0, std::ios::beg);
+
+            size_t total_read = 0;
+            while (total_read < file_size) {
+                const auto read_size = std::min(chunk_size, file_size - total_read);
+                stream.read(buffer.data(), static_cast<std::streamsize>(read_size));
+                const auto bytes_read = static_cast<size_t>(stream.gcount());
+                if (bytes_read == 0) {
+                    break;
+                }
+                total_read += bytes_read;
+                benchmark::DoNotOptimize(buffer.data());
+            }
+
+            benchmark::DoNotOptimize(total_read);
+        }
+
+        state.SetBytesProcessed(state.iterations() * static_cast<int64_t>(file_size));
+    }
+
+    static void BM_FastIOStream_RandomSeekRead(benchmark::State& state) {
+        const auto file_size = static_cast<size_t>(state.range(0));
+        const auto seek_count = static_cast<size_t>(state.range(1));
+        const auto read_size = static_cast<size_t>(state.range(2));
+        const auto path = makeFastIOBenchFile(file_size);
+        const auto offsets = makeFastIOSeekOffsets(file_size, seek_count, read_size);
+        std::vector<char> buffer(read_size);
+        FastIOStream stream(path);
+
+        for ([[maybe_unused]] auto _ : state) {
+            size_t total_read = 0;
+            for (const auto offset : offsets) {
+                stream.seek(static_cast<int64_t>(offset), SEEK_SET);
+                total_read += stream.read(buffer.data(), read_size);
+                benchmark::DoNotOptimize(buffer.data());
+            }
+            benchmark::DoNotOptimize(total_read);
+        }
+
+        state.SetBytesProcessed(state.iterations() * static_cast<int64_t>(seek_count * read_size));
+        state.SetItemsProcessed(state.iterations() * static_cast<int64_t>(seek_count));
+    }
+
+    static void BM_StdIfstream_RandomSeekRead(benchmark::State& state) {
+        const auto file_size = static_cast<size_t>(state.range(0));
+        const auto seek_count = static_cast<size_t>(state.range(1));
+        const auto read_size = static_cast<size_t>(state.range(2));
+        const auto path = makeFastIOBenchFile(file_size);
+        const auto offsets = makeFastIOSeekOffsets(file_size, seek_count, read_size);
+        std::vector<char> buffer(read_size);
+        std::ifstream stream(path, std::ios::binary);
+
+        for ([[maybe_unused]] auto _ : state) {
+            size_t total_read = 0;
+            for (const auto offset : offsets) {
+                stream.clear();
+                stream.seekg(static_cast<std::streamoff>(offset), std::ios::beg);
+                stream.read(buffer.data(), static_cast<std::streamsize>(read_size));
+                total_read += static_cast<size_t>(stream.gcount());
+                benchmark::DoNotOptimize(buffer.data());
+            }
+            benchmark::DoNotOptimize(total_read);
+        }
+
+        state.SetBytesProcessed(state.iterations() * static_cast<int64_t>(seek_count * read_size));
+        state.SetItemsProcessed(state.iterations() * static_cast<int64_t>(seek_count));
+    }
+
     void threadPoolTinyTaskArgs(benchmark::internal::Benchmark* benchmark) {
         for (const auto task_count : kTinyTaskCounts) {
             benchmark->Arg(static_cast<int64_t>(task_count));
@@ -472,12 +780,85 @@ namespace {
                 });
         }
     }
+
+    void conditionVariablePingPongArgs(benchmark::internal::Benchmark* benchmark) {
+        for (const auto handoff_count : kConditionVariablePingPongCounts) {
+            benchmark->Arg(static_cast<int64_t>(handoff_count));
+        }
+    }
+
+    void wideUtf8Args(benchmark::internal::Benchmark* benchmark) {
+        for (const auto code_unit_count : kWideUtf8CodeUnitCounts) {
+            benchmark->Arg(static_cast<int64_t>(code_unit_count));
+        }
+    }
+
+    void fastIOSequentialArgs(benchmark::internal::Benchmark* benchmark) {
+        for (const auto file_size : kFastIOBenchFileSizes) {
+            for (const auto chunk_size : kFastIOSequentialChunkSizes) {
+                benchmark->Args({
+                    static_cast<int64_t>(file_size),
+                    static_cast<int64_t>(chunk_size),
+                    });
+            }
+        }
+    }
+
+    void fastIOSeekArgs(benchmark::internal::Benchmark* benchmark) {
+        for (const auto file_size : kFastIOBenchFileSizes) {
+            for (const auto seek_count : kFastIOSeekCounts) {
+                benchmark->Args({
+                    static_cast<int64_t>(file_size),
+                    static_cast<int64_t>(seek_count),
+                    static_cast<int64_t>(kFastIOSeekReadSize),
+                    });
+            }
+        }
+    }
+
+    BENCHMARK(BM_ThreadPool_SpawnBurstTinyTasks)
+        ->Apply(threadPoolCpuTaskArgs)
+        ->ArgNames({ "tasks", "work" });
+    BENCHMARK(BM_StdAsync_BurstTinyTasks)
+        ->Apply(threadPoolCpuTaskArgs)
+        ->ArgNames({ "tasks", "work" });
+
     BENCHMARK(BM_ThreadPool_SpawnBurstCpuTasks)
         ->Apply(threadPoolCpuTaskArgs)
         ->ArgNames({ "tasks", "work" });
     BENCHMARK(BM_StdAsync_SpawnBurstCpuTasks)
         ->Apply(threadPoolCpuTaskArgs)
         ->ArgNames({ "tasks", "work" });
+
+    BENCHMARK(BM_StdConditionVariable_PingPong)
+        ->Apply(conditionVariablePingPongArgs)
+        ->ArgName("handoffs")
+        ->UseRealTime();
+    BENCHMARK(BM_FastConditionVariable_PingPong)
+        ->Apply(conditionVariablePingPongArgs)
+        ->ArgName("handoffs")
+        ->UseRealTime();
+
+    BENCHMARK(BM_String_ToUtf8String)
+        ->Apply(wideUtf8Args)
+        ->ArgName("wchars");
+    BENCHMARK(BM_Win32_WideCharToMultiByte)
+        ->Apply(wideUtf8Args)
+        ->ArgName("wchars");
+
+    BENCHMARK(BM_FastIOStream_SequentialRead)
+        ->Apply(fastIOSequentialArgs)
+        ->ArgNames({ "file_bytes", "chunk_bytes" });
+    BENCHMARK(BM_StdIfstream_SequentialRead)
+        ->Apply(fastIOSequentialArgs)
+        ->ArgNames({ "file_bytes", "chunk_bytes" });
+
+    BENCHMARK(BM_FastIOStream_RandomSeekRead)
+        ->Apply(fastIOSeekArgs)
+        ->ArgNames({ "file_bytes", "seeks", "read_bytes" });
+    BENCHMARK(BM_StdIfstream_RandomSeekRead)
+        ->Apply(fastIOSeekArgs)
+        ->ArgNames({ "file_bytes", "seeks", "read_bytes" });
 }
 
 int main(int argc, char** argv) {
