@@ -13,6 +13,15 @@
 #include <stream/avlibfilestream.h>
 #include <stream/bassfilestream.h>
 #include <player/api.h>
+#include <widget/musicbrainzparser.h>
+
+#include <QByteArray>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QString>
+
+#include <simdjson.h>
 
 #ifdef _WIN32
 #ifndef NOMINMAX
@@ -47,6 +56,7 @@ namespace {
     constexpr std::array<size_t, 3> kNestedInnerTaskCounts{ 4, 4, 8 };
     constexpr std::array<size_t, 4> kConditionVariablePingPongCounts{ 1, 16, 256, 4096 };
     constexpr std::array<size_t, 4> kWideUtf8CodeUnitCounts{ 16, 256, 4096, 65536 };
+    constexpr std::array<size_t, 3> kMusicBrainzTrackCounts{ 16, 128, 512 };
     constexpr std::array<size_t, 2> kFastIOBenchFileSizes{ 4 * 1024 * 1024, 64 * 1024 * 1024 };
     constexpr std::array<size_t, 2> kFastIOSequentialChunkSizes{ 4 * 1024, 64 * 1024 };
     constexpr std::array<size_t, 2> kFastIOSeekCounts{ 1024, 4096 };
@@ -267,6 +277,163 @@ namespace {
         return output;
     }
 #endif
+
+    QByteArray makeMusicBrainzReleaseTracklistJson(size_t track_count) {
+        QByteArray json;
+        json.reserve(static_cast<qsizetype>(4096 + track_count * 512));
+        json += R"({"id":"release-bench","title":"Benchmark Album","status":"Official","country":"JP","date":"2026-01-01","track-count":)";
+        json += QByteArray::number(static_cast<qulonglong>(track_count));
+        json += R"(,"artist-credit":[{"name":"Benchmark Artist","artist":{"id":"artist-bench","name":"Benchmark Artist","sort-name":"Artist, Benchmark","type":"Person","country":"JP"}}])";
+        json += R"(,"release-group":{"id":"group-bench","title":"Benchmark Album","primary-type":"Album","first-release-date":"2026-01-01"})";
+        json += R"(,"media":[{"position":1,"format":"CD","track-count":)";
+        json += QByteArray::number(static_cast<qulonglong>(track_count));
+        json += R"(,"tracks":[)";
+
+        for (size_t i = 0; i < track_count; ++i) {
+            if (i != 0) {
+                json += ',';
+            }
+            const auto track_number = static_cast<qulonglong>(i + 1);
+            json += R"({"id":"track-)";
+            json += QByteArray::number(track_number);
+            json += R"(","position":)";
+            json += QByteArray::number(track_number);
+            json += R"(,"title":"Benchmark Song )";
+            json += QByteArray::number(track_number);
+            json += R"(","length":)";
+            json += QByteArray::number(static_cast<qulonglong>(180000 + i * 173));
+            json += R"(,"artist-credit":[{"name":"Benchmark Artist","artist":{"id":"artist-bench","name":"Benchmark Artist"}}])";
+            json += R"(,"recording":{"id":"recording-)";
+            json += QByteArray::number(track_number);
+            json += R"(","title":"Benchmark Song )";
+            json += QByteArray::number(track_number);
+            json += R"(","length":)";
+            json += QByteArray::number(static_cast<qulonglong>(180000 + i * 173));
+            json += R"(,"artist-credit":[{"name":"Benchmark Artist","artist":{"id":"artist-bench","name":"Benchmark Artist"}}]}})";
+        }
+
+        json += R"(]}]})";
+        return json;
+    }
+
+    size_t countMusicBrainzTracklistWithQJson(const QByteArray& json) {
+        QJsonParseError error{};
+        const auto doc = QJsonDocument::fromJson(json, &error);
+        if (error.error != QJsonParseError::NoError || !doc.isObject()) {
+            throw std::runtime_error("QJsonDocument failed to parse MusicBrainz benchmark JSON.");
+        }
+
+        size_t checksum = 0;
+        const auto root = doc.object();
+        checksum += static_cast<size_t>(root.value(QStringLiteral("id")).toString().size());
+        checksum += static_cast<size_t>(root.value(QStringLiteral("title")).toString().size());
+
+        const auto media = root.value(QStringLiteral("media")).toArray();
+        for (const auto& mediumValue : media) {
+            const auto medium = mediumValue.toObject();
+            checksum += static_cast<size_t>(medium.value(QStringLiteral("position")).toInt());
+            const auto tracks = medium.value(QStringLiteral("tracks")).toArray();
+            for (const auto& trackValue : tracks) {
+                const auto track = trackValue.toObject();
+                checksum += static_cast<size_t>(track.value(QStringLiteral("id")).toString().size());
+                checksum += static_cast<size_t>(track.value(QStringLiteral("position")).toInt());
+                checksum += static_cast<size_t>(track.value(QStringLiteral("title")).toString().size());
+                checksum += static_cast<size_t>(track.value(QStringLiteral("length")).toInt());
+
+                for (const auto& creditValue : track.value(QStringLiteral("artist-credit")).toArray()) {
+                    checksum += static_cast<size_t>(creditValue.toObject().value(QStringLiteral("name")).toString().size());
+                }
+
+                const auto recording = track.value(QStringLiteral("recording")).toObject();
+                checksum += static_cast<size_t>(recording.value(QStringLiteral("id")).toString().size());
+                for (const auto& creditValue : recording.value(QStringLiteral("artist-credit")).toArray()) {
+                    checksum += static_cast<size_t>(creditValue.toObject().value(QStringLiteral("name")).toString().size());
+                }
+            }
+        }
+
+        return checksum;
+    }
+
+    size_t countMusicBrainzTracklistWithSimdjson(const QByteArray& json) {
+        simdjson::dom::parser parser;
+        simdjson::padded_string padded(json.constData(), static_cast<size_t>(json.size()));
+        simdjson::dom::element root;
+        if (parser.parse(padded).get(root)) {
+            throw std::runtime_error("simdjson failed to parse MusicBrainz benchmark JSON.");
+        }
+
+        auto stringSize = [](simdjson::dom::object object, std::string_view name) -> size_t {
+            std::string_view value;
+            const auto result = object[name];
+            return result.error() || result.value_unsafe().get(value) ? 0 : value.size();
+            };
+        auto intValue = [](simdjson::dom::object object, std::string_view name) -> size_t {
+            int64_t value = 0;
+            const auto result = object[name];
+            return result.error() || result.value_unsafe().get(value) ? 0 : static_cast<size_t>(value);
+            };
+
+        simdjson::dom::object rootObject;
+        if (root.get(rootObject)) {
+            throw std::runtime_error("simdjson MusicBrainz benchmark JSON root is not an object.");
+        }
+
+        size_t checksum = stringSize(rootObject, "id") + stringSize(rootObject, "title");
+        simdjson::dom::array media;
+        if (rootObject["media"].get(media)) {
+            return checksum;
+        }
+
+        for (const auto mediumValue : media) {
+            simdjson::dom::object medium;
+            if (mediumValue.get(medium)) {
+                continue;
+            }
+            checksum += intValue(medium, "position");
+
+            simdjson::dom::array tracks;
+            if (medium["tracks"].get(tracks)) {
+                continue;
+            }
+            for (const auto trackValue : tracks) {
+                simdjson::dom::object track;
+                if (trackValue.get(track)) {
+                    continue;
+                }
+                checksum += stringSize(track, "id");
+                checksum += intValue(track, "position");
+                checksum += stringSize(track, "title");
+                checksum += intValue(track, "length");
+
+                simdjson::dom::array credits;
+                if (!track["artist-credit"].get(credits)) {
+                    for (const auto creditValue : credits) {
+                        simdjson::dom::object credit;
+                        if (!creditValue.get(credit)) {
+                            checksum += stringSize(credit, "name");
+                        }
+                    }
+                }
+
+                simdjson::dom::object recording;
+                if (!track["recording"].get(recording)) {
+                    checksum += stringSize(recording, "id");
+                    simdjson::dom::array recordingCredits;
+                    if (!recording["artist-credit"].get(recordingCredits)) {
+                        for (const auto creditValue : recordingCredits) {
+                            simdjson::dom::object credit;
+                            if (!creditValue.get(credit)) {
+                                checksum += stringSize(credit, "name");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return checksum;
+    }
 
     static void BM_ThreadPool_CreateDestroy(benchmark::State& state) {
         for ([[maybe_unused]] auto _ : state) {
@@ -753,6 +920,47 @@ namespace {
 #endif
     }
 
+    static void BM_QJsonDocument_MusicBrainzTracklist(benchmark::State& state) {
+        const auto json = makeMusicBrainzReleaseTracklistJson(static_cast<size_t>(state.range(0)));
+
+        for ([[maybe_unused]] auto _ : state) {
+            const auto checksum = countMusicBrainzTracklistWithQJson(json);
+            benchmark::DoNotOptimize(checksum);
+        }
+
+        state.SetBytesProcessed(state.iterations() * static_cast<int64_t>(json.size()));
+        state.SetItemsProcessed(state.iterations() * state.range(0));
+    }
+
+    static void BM_SimdjsonDOM_MusicBrainzTracklist(benchmark::State& state) {
+        const auto json = makeMusicBrainzReleaseTracklistJson(static_cast<size_t>(state.range(0)));
+
+        for ([[maybe_unused]] auto _ : state) {
+            const auto checksum = countMusicBrainzTracklistWithSimdjson(json);
+            benchmark::DoNotOptimize(checksum);
+        }
+
+        state.SetBytesProcessed(state.iterations() * static_cast<int64_t>(json.size()));
+        state.SetItemsProcessed(state.iterations() * state.range(0));
+    }
+
+    static void BM_MusicBrainzParser_ReleaseTracklist(benchmark::State& state) {
+        const auto json = makeMusicBrainzReleaseTracklistJson(static_cast<size_t>(state.range(0)));
+        const QList<musicbrain::Release> releases;
+
+        for ([[maybe_unused]] auto _ : state) {
+            auto tracks = musicbrain::parseReleaseTracklist(json, releases);
+            if (!tracks) {
+                state.SkipWithError("musicbrain::parseReleaseTracklist failed.");
+                return;
+            }
+            benchmark::DoNotOptimize(tracks->size());
+        }
+
+        state.SetBytesProcessed(state.iterations() * static_cast<int64_t>(json.size()));
+        state.SetItemsProcessed(state.iterations() * state.range(0));
+    }
+
     static void BM_FastIOStream_SequentialRead(benchmark::State& state) {
         const auto file_size = static_cast<size_t>(state.range(0));
         const auto chunk_size = static_cast<size_t>(state.range(1));
@@ -1020,6 +1228,12 @@ namespace {
         }
     }
 
+    void musicBrainzTracklistArgs(benchmark::internal::Benchmark* benchmark) {
+        for (const auto track_count : kMusicBrainzTrackCounts) {
+            benchmark->Arg(static_cast<int64_t>(track_count));
+        }
+    }
+
     void fastIOSequentialArgs(benchmark::internal::Benchmark* benchmark) {
         for (const auto file_size : kFastIOBenchFileSizes) {
             for (const auto chunk_size : kFastIOSequentialChunkSizes) {
@@ -1089,6 +1303,16 @@ namespace {
     //BENCHMARK(BM_Win32_WideCharToMultiByte)
     //    ->Apply(wideUtf8Args)
     //    ->ArgName("wchars");
+
+    BENCHMARK(BM_QJsonDocument_MusicBrainzTracklist)
+        ->Apply(musicBrainzTracklistArgs)
+        ->ArgName("tracks");
+    BENCHMARK(BM_SimdjsonDOM_MusicBrainzTracklist)
+        ->Apply(musicBrainzTracklistArgs)
+        ->ArgName("tracks");
+    BENCHMARK(BM_MusicBrainzParser_ReleaseTracklist)
+        ->Apply(musicBrainzTracklistArgs)
+        ->ArgName("tracks");
 
     //BENCHMARK(BM_FastIOStream_SequentialRead)
     //    ->Apply(fastIOSequentialArgs)

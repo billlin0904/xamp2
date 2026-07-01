@@ -154,13 +154,13 @@ namespace musicbrain {
         int trackIndex = -1;
     };
 
-    std::expected<RootRecording, ParserError> parseRootRecording(const QString& jsonText);
+    XAMP_WIDGET_SHARED_API std::expected<RootRecording, ParserError> parseRootRecording(const QString& jsonText);
 
-    std::expected<QList<RootRecording>, ParserError> parseRootRecordingList(const QString& jsonText);
+    XAMP_WIDGET_SHARED_API std::expected<QList<RootRecording>, ParserError> parseRootRecordingList(const QString& jsonText);
 
-    std::expected<QList<Release>, ParserError> parseReleaseList(const QString& jsonText);
+    XAMP_WIDGET_SHARED_API std::expected<QList<Release>, ParserError> parseReleaseList(const QString& jsonText);
 
-    std::optional<QList<TrackInfo>> parseReleaseTracklist(const QByteArray& json, const QList<Release> &releases);
+    XAMP_WIDGET_SHARED_API std::optional<QList<TrackInfo>> parseReleaseTracklist(const QByteArray& json, const QList<Release> &releases);
 
     XAMP_WIDGET_SHARED_API double lengthScore(int a, int b);
 

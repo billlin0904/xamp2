@@ -91,24 +91,35 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;XAMP_USE_BENCHMAKR;BENCHMARK_STATIC_DEFINE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../thirdparty/benchmark/include/;../thirdparty/unordered_dense/include/;../xamp_base/include/;../xamp_output_device/include/;../xamp_player/include/;../xamp_stream/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;../thirdparty/thread-pool/include/;../thirdparty/xsimd/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../vcpkg_installed/x64-windows/include/;C:\Qt\6.8.3\msvc2022_64\include;C:\Qt\6.8.3\msvc2022_64\include\QtCore;C:\Qt\6.8.3\msvc2022_64\include\QtGui;C:\Qt\6.8.3\msvc2022_64\include\QtWidgets;../thirdparty/benchmark/include/;../thirdparty/unordered_dense/include/;../xamp_base/include/;../widget_shared/;../xamp_output_device/include/;../xamp_player/include/;../xamp_stream/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;../thirdparty/thread-pool/include/;../thirdparty/xsimd/include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <Optimization>Full</Optimization>
       <OmitFramePointers>true</OmitFramePointers>
       <BrowseInformation>false</BrowseInformation>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Precise</FloatingPointModel>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/utf-8 /Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>../xamp/x64/Release/;../thirdparty/benchmark/msvc/src/Release/</AdditionalLibraryDirectories>
-      <AdditionalDependencies>xamp_base.lib;xamp_stream.lib;xamp_player.lib;Shlwapi.lib;benchmark.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../../vcpkg_installed/x64-windows/lib/;C:\Qt\6.8.3\msvc2022_64\lib;../xamp/x64/Release/;../thirdparty/benchmark/msvc/src/Release/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>xamp_base.lib;xamp_stream.lib;xamp_player.lib;widget_shared.lib;simdjson.lib;Qt6Core.lib;Qt6Gui.lib;Qt6Widgets.lib;Shlwapi.lib;benchmark.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
+    <PostBuildEvent>
+      <Command>if exist "$(ProjectDir)..\..\vcpkg_installed\x64-windows\bin\simdjson.dll" copy /Y "$(ProjectDir)..\..\vcpkg_installed\x64-windows\bin\simdjson.dll" "$(OutDir)"
+if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Core.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Core.dll" "$(OutDir)"
+if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Gui.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Gui.dll" "$(OutDir)"
+if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Widgets.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Widgets.dll" "$(OutDir)"
+if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Network.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Network.dll" "$(OutDir)"
+if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Sql.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Sql.dll" "$(OutDir)"
+if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Concurrent.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Concurrent.dll" "$(OutDir)"
+if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Core5Compat.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Core5Compat.dll" "$(OutDir)"
+if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Multimedia.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Multimedia.dll" "$(OutDir)"</Command>
+    </PostBuildEvent>
     <Bscmake>
       <PreserveSbr>false</PreserveSbr>
     </Bscmake>
@@ -119,7 +130,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/utf-8 /Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -132,17 +143,28 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;XAMP_USE_BENCHMAKR;_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING;BENCHMARK_STATIC_DEFINE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../thirdparty/benchmark/include/;../thirdparty/unordered_dense/include/;../xamp_base/include/;../xamp_player/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;../thirdparty/thread-pool/include/;../thirdparty/xsimd/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../vcpkg_installed/x64-windows/include/;C:\Qt\6.8.3\msvc2022_64\include;C:\Qt\6.8.3\msvc2022_64\include\QtCore;C:\Qt\6.8.3\msvc2022_64\include\QtGui;C:\Qt\6.8.3\msvc2022_64\include\QtWidgets;../thirdparty/benchmark/include/;../thirdparty/unordered_dense/include/;../xamp_base/include/;../widget_shared/;../xamp_player/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;../thirdparty/thread-pool/include/;../thirdparty/xsimd/include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard_C>Default</LanguageStandard_C>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/utf-8 /Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/benchmark/msvc/src/Debug/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>xamp_base.lib;xamp_stream.lib;xamp_player.lib;Shlwapi.lib;benchmark.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../../vcpkg_installed/x64-windows/debug/lib/;C:\Qt\6.8.3\msvc2022_64\lib;../xamp/x64/Debug/;../thirdparty/benchmark/msvc/src/Debug/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>xamp_base.lib;xamp_stream.lib;xamp_player.lib;widget_shared.lib;simdjson.lib;Qt6Core.lib;Qt6Gui.lib;Qt6Widgets.lib;Shlwapi.lib;benchmark.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>if exist "$(ProjectDir)..\..\vcpkg_installed\x64-windows\debug\bin\simdjson.dll" copy /Y "$(ProjectDir)..\..\vcpkg_installed\x64-windows\debug\bin\simdjson.dll" "$(OutDir)"
+if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Cored.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Cored.dll" "$(OutDir)"
+if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Guid.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Guid.dll" "$(OutDir)"
+if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Widgetsd.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Widgetsd.dll" "$(OutDir)"
+if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Networkd.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Networkd.dll" "$(OutDir)"
+if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Sqld.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Sqld.dll" "$(OutDir)"
+if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Concurrentd.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Concurrentd.dll" "$(OutDir)"
+if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Core5Compatd.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Core5Compatd.dll" "$(OutDir)"
+if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Multimediad.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Multimediad.dll" "$(OutDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>

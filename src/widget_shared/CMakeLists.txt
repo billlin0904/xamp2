@@ -20,6 +20,7 @@ find_package(Qt6 6.4 REQUIRED COMPONENTS
 include("${CMAKE_SOURCE_DIR}/cmake/XampDependencyHelpers.cmake")
 
 find_package(libdeflate CONFIG QUIET)
+find_package(simdjson CONFIG REQUIRED)
 if(TARGET libdeflate::libdeflate)
     set(XAMP_LIBDEFLATE_TARGET libdeflate::libdeflate)
 elseif(TARGET libdeflate::libdeflate_shared)
@@ -134,6 +135,7 @@ target_link_libraries(widget_shared
         Qt6::Core5Compat
         xamp_base
         ${XAMP_LIBDEFLATE_TARGET}
+        simdjson::simdjson
         QCoro6::Core
         QCoro6::Network
         QWKWidgets

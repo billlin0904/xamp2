@@ -1,16 +1,18 @@
 ﻿#include <widget/musicbrainzparser.h>
 #include <widget/util/str_util.h>
 
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
 #include <QString>
 #include <QDebug>
 #include <QRegularExpression>
 #include <QVector>
 
+#include <simdjson.h>
+
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
+#include <optional>
+#include <string_view>
 
 namespace musicbrain {
     namespace {
@@ -20,6 +22,144 @@ namespace musicbrain {
             double value = 0;
             double weight = 0;
         };
+
+        using JsonArray = simdjson::dom::array;
+        using JsonElement = simdjson::dom::element;
+        using JsonObject = simdjson::dom::object;
+
+        QString toQString(std::string_view value) {
+            return QString::fromUtf8(value.data(), static_cast<qsizetype>(value.size()));
+        }
+
+        std::optional<JsonObject> asObject(const JsonElement& element) {
+            JsonObject object;
+            if (element.get(object)) {
+                return std::nullopt;
+            }
+            return object;
+        }
+
+        std::optional<JsonArray> asArray(const JsonElement& element) {
+            JsonArray array;
+            if (element.get(array)) {
+                return std::nullopt;
+            }
+            return array;
+        }
+
+        std::optional<JsonElement> field(const JsonObject& object, std::string_view name) {
+            auto result = object[name];
+            if (result.error()) {
+                return std::nullopt;
+            }
+            return result.value_unsafe();
+        }
+
+        std::optional<JsonObject> objectField(const JsonObject& object, std::string_view name) {
+            const auto value = field(object, name);
+            return value ? asObject(*value) : std::nullopt;
+        }
+
+        std::optional<JsonArray> arrayField(const JsonObject& object, std::string_view name) {
+            const auto value = field(object, name);
+            return value ? asArray(*value) : std::nullopt;
+        }
+
+        QString stringField(const JsonObject& object, std::string_view name) {
+            const auto value = field(object, name);
+            if (!value) {
+                return {};
+            }
+
+            std::string_view text;
+            if (value->get(text)) {
+                return {};
+            }
+            return toQString(text);
+        }
+
+        int intField(const JsonObject& object, std::string_view name, int fallback = 0) {
+            const auto value = field(object, name);
+            if (!value) {
+                return fallback;
+            }
+
+            int64_t signedValue = 0;
+            if (!value->get(signedValue)) {
+                return static_cast<int>(signedValue);
+            }
+
+            uint64_t unsignedValue = 0;
+            if (!value->get(unsignedValue)) {
+                return static_cast<int>(unsignedValue);
+            }
+
+            double doubleValue = 0;
+            if (!value->get(doubleValue)) {
+                return static_cast<int>(doubleValue);
+            }
+
+            return fallback;
+        }
+
+        double doubleField(const JsonObject& object, std::string_view name, double fallback = 0) {
+            const auto value = field(object, name);
+            if (!value) {
+                return fallback;
+            }
+
+            double doubleValue = 0;
+            if (!value->get(doubleValue)) {
+                return doubleValue;
+            }
+
+            int64_t signedValue = 0;
+            if (!value->get(signedValue)) {
+                return static_cast<double>(signedValue);
+            }
+
+            uint64_t unsignedValue = 0;
+            if (!value->get(unsignedValue)) {
+                return static_cast<double>(unsignedValue);
+            }
+
+            return fallback;
+        }
+
+        bool boolField(const JsonObject& object, std::string_view name, bool fallback = false) {
+            const auto value = field(object, name);
+            if (!value) {
+                return fallback;
+            }
+
+            bool boolValue = false;
+            return value->get(boolValue) ? fallback : boolValue;
+        }
+
+        QStringList stringArrayField(const JsonObject& object, std::string_view name) {
+            QStringList values;
+            const auto array = arrayField(object, name);
+            if (!array) {
+                return values;
+            }
+
+            for (const auto value : *array) {
+                std::string_view text;
+                if (!value.get(text)) {
+                    values.append(toQString(text));
+                }
+            }
+            return values;
+        }
+
+        std::optional<JsonObject> parseJsonObject(const QByteArray& json, simdjson::dom::parser& parser) {
+            simdjson::padded_string padded(json.constData(), static_cast<size_t>(json.size()));
+            JsonElement root;
+            if (parser.parse(padded).get(root)) {
+                return std::nullopt;
+            }
+            return asObject(root);
+        }
 
         QString normalizedText(const QString& text) {
             static const QRegularExpression nonAlnum(QStringLiteral("[^\\p{L}\\p{N}]"));
@@ -202,111 +342,97 @@ namespace musicbrain {
         }
     }
 
-    TextRepresentation parseTextRep(const QJsonObject& obj) {
+    TextRepresentation parseTextRep(const JsonObject& obj) {
         TextRepresentation tr;
-        tr.language = obj.value("language"_str).toString();
-        tr.script = obj.value("script"_str).toString();
+        tr.language = stringField(obj, "language");
+        tr.script = stringField(obj, "script");
         return tr;
     }
 
-    Area parseArea(const QJsonObject& obj) {
+    Area parseArea(const JsonObject& obj) {
         Area a;
-        a.id = obj.value("id"_str).toString();
-        a.name = obj.value("name"_str).toString();
-        a.sortName = obj.value("sort-name"_str).toString();
-        a.type = obj.value("type"_str).toString();
-        a.typeId = obj.value("type-id"_str).toString();
-        a.disambiguation = obj.value("disambiguation"_str).toString();
-        // iso-3166-1-codes -> array of strings
-        if (obj.contains("iso-3166-1-codes"_str) && obj["iso-3166-1-codes"_str].isArray()) {
-            for (const auto& v : obj["iso-3166-1-codes"_str].toArray()) {
-                a.iso3166_1.append(v.toString());
-            }
-        }
+        a.id = stringField(obj, "id");
+        a.name = stringField(obj, "name");
+        a.sortName = stringField(obj, "sort-name");
+        a.type = stringField(obj, "type");
+        a.typeId = stringField(obj, "type-id");
+        a.disambiguation = stringField(obj, "disambiguation");
+        a.iso3166_1 = stringArrayField(obj, "iso-3166-1-codes");
         return a;
     }
 
-    ReleaseEvent parseReleaseEvent(const QJsonObject& obj) {
+    ReleaseEvent parseReleaseEvent(const JsonObject& obj) {
         ReleaseEvent e;
-        e.date = obj.value("date"_str).toString();
-        if (obj.contains("area"_str) && obj["area"_str].isObject()) {
-            e.area = parseArea(obj["area"_str].toObject());
+        e.date = stringField(obj, "date");
+        if (const auto area = objectField(obj, "area")) {
+            e.area = parseArea(*area);
         }
         return e;
     }
 
-    ReleaseGroup parseReleaseGroup(const QJsonObject& obj) {
+    ReleaseGroup parseReleaseGroup(const JsonObject& obj) {
         ReleaseGroup g;
-        g.id = obj.value("id"_str).toString();
-        g.title = obj.value("title"_str).toString();
-        g.primaryType = obj.value("primary-type"_str).toString();
-        g.primaryTypeId = obj.value("primary-type-id"_str).toString();
-        g.firstReleaseDate = obj.value("first-release-date"_str).toString();
-        g.disambiguation = obj.value("disambiguation"_str).toString();
-
-        // "secondary-types": [ "Live", "Compilation", ... ]
-        if (obj.contains("secondary-types"_str) && obj["secondary-types"_str].isArray()) {
-            const auto arr = obj["secondary-types"_str].toArray();
-            for (const auto& v : arr) g.secondaryTypes.append(v.toString());
-        }
-
-        // "secondary-type-ids": [ "...", "..." ]
-        if (obj.contains("secondary-type-ids"_str) && obj["secondary-type-ids"_str].isArray()) {
-            const auto arr = obj["secondary-type-ids"_str].toArray();
-            for (const auto& v : arr) g.secondaryTypeIds.append(v.toString());
-        }
-
+        g.id = stringField(obj, "id");
+        g.title = stringField(obj, "title");
+        g.primaryType = stringField(obj, "primary-type");
+        g.primaryTypeId = stringField(obj, "primary-type-id");
+        g.firstReleaseDate = stringField(obj, "first-release-date");
+        g.disambiguation = stringField(obj, "disambiguation");
+        g.secondaryTypes = stringArrayField(obj, "secondary-types");
+        g.secondaryTypeIds = stringArrayField(obj, "secondary-type-ids");
         return g;
     }
 
-    ArtistCredit parseArtistCredit(const QJsonObject& obj);
+    ArtistCredit parseArtistCredit(const JsonObject& obj);
 
-    Release parseRelease(const QJsonObject& obj) {
+    Release parseRelease(const JsonObject& obj) {
         Release r;
-        r.id = obj.value("id"_str).toString();
-        r.title = obj.value("title"_str).toString();
-        r.status = obj.value("status"_str).toString();
-        r.statusId = obj.value("status-id"_str).toString();
-        r.country = obj.value("country"_str).toString();
-        r.barcode = obj.value("barcode"_str).toString();
-        r.packaging = obj.value("packaging"_str).toString();
-        r.packagingId = obj.value("packaging-id"_str).toString();
-        r.disambiguation = obj.value("disambiguation"_str).toString();
-        r.quality = obj.value("quality"_str).toString();
-        r.date = obj.value("date"_str).toString();
-        r.mbSearchScore = obj.value("score"_str).toDouble(0);
-        r.trackCount = obj.value("track-count"_str).toInt(0);
+        r.id = stringField(obj, "id");
+        r.title = stringField(obj, "title");
+        r.status = stringField(obj, "status");
+        r.statusId = stringField(obj, "status-id");
+        r.country = stringField(obj, "country");
+        r.barcode = stringField(obj, "barcode");
+        r.packaging = stringField(obj, "packaging");
+        r.packagingId = stringField(obj, "packaging-id");
+        r.disambiguation = stringField(obj, "disambiguation");
+        r.quality = stringField(obj, "quality");
+        r.date = stringField(obj, "date");
+        r.mbSearchScore = doubleField(obj, "score");
+        r.trackCount = intField(obj, "track-count");
 
-        if (obj.contains("text-representation"_str) && obj["text-representation"_str].isObject()) {
-            r.textRep = parseTextRep(obj["text-representation"_str].toObject());
+        if (const auto textRep = objectField(obj, "text-representation")) {
+            r.textRep = parseTextRep(*textRep);
         }
-        if (obj.contains("release-events"_str) && obj["release-events"_str].isArray()) {
-            for (const auto& v : obj["release-events"_str].toArray()) {
-                if (v.isObject()) r.events.append(parseReleaseEvent(v.toObject()));
-            }
-        }
-        if (obj.contains("release-group"_str) && obj["release-group"_str].isObject()) {
-            r.releaseGroup = parseReleaseGroup(obj["release-group"_str].toObject());
-        }
-        if (obj.contains("artist-credit"_str) && obj["artist-credit"_str].isArray()) {
-            for (const auto& v : obj["artist-credit"_str].toArray()) {
-                if (v.isObject()) {
-                    r.artistCredits.append(parseArtistCredit(v.toObject()));
+        if (const auto events = arrayField(obj, "release-events")) {
+            for (const auto value : *events) {
+                if (const auto event = asObject(value)) {
+                    r.events.append(parseReleaseEvent(*event));
                 }
             }
         }
-        if (obj.contains("media"_str) && obj["media"_str].isArray()) {
+        if (const auto releaseGroup = objectField(obj, "release-group")) {
+            r.releaseGroup = parseReleaseGroup(*releaseGroup);
+        }
+        if (const auto credits = arrayField(obj, "artist-credit")) {
+            for (const auto value : *credits) {
+                if (const auto credit = asObject(value)) {
+                    r.artistCredits.append(parseArtistCredit(*credit));
+                }
+            }
+        }
+        if (const auto mediaArray = arrayField(obj, "media")) {
             int mediaTrackCount = 0;
-            for (const auto& v : obj["media"_str].toArray()) {
-                if (!v.isObject()) {
+            for (const auto value : *mediaArray) {
+                const auto media = asObject(value);
+                if (!media) {
                     continue;
                 }
-                const auto media = v.toObject();
-                const auto format = media.value("format"_str).toString();
+                const auto format = stringField(*media, "format");
                 if (!format.isEmpty()) {
                     r.mediaFormats.append(format);
                 }
-                mediaTrackCount += media.value("track-count"_str).toInt(0);
+                mediaTrackCount += intField(*media, "track-count");
             }
             if (r.trackCount <= 0) {
                 r.trackCount = mediaTrackCount;
@@ -315,41 +441,37 @@ namespace musicbrain {
         return r;
     }
 
-    TagInfo parseTagInfo(const QJsonObject& obj) {
+    TagInfo parseTagInfo(const JsonObject& obj) {
         TagInfo tag;
-        tag.name = obj.value("name"_str).toString();
-        tag.count = obj.value("count"_str).toInt(0);
-        tag.id = obj.value("id"_str).toString();
-        tag.disambiguation = obj.value("disambiguation"_str).toString();
+        tag.name = stringField(obj, "name");
+        tag.count = intField(obj, "count");
+        tag.id = stringField(obj, "id");
+        tag.disambiguation = stringField(obj, "disambiguation");
         return tag;
     }
 
-    Artist parseArtist(const QJsonObject& obj) {
+    Artist parseArtist(const JsonObject& obj) {
         Artist a;
-        a.id = obj.value("id"_str).toString();
-        a.name = obj.value("name"_str).toString();
-        a.sortName = obj.value("sort-name"_str).toString();
-        a.disambiguation = obj.value("disambiguation"_str).toString();
-        a.country = obj.value("country"_str).toString();
-        a.type = obj.value("type"_str).toString();
-        a.typeId = obj.value("type-id"_str).toString();
+        a.id = stringField(obj, "id");
+        a.name = stringField(obj, "name");
+        a.sortName = stringField(obj, "sort-name");
+        a.disambiguation = stringField(obj, "disambiguation");
+        a.country = stringField(obj, "country");
+        a.type = stringField(obj, "type");
+        a.typeId = stringField(obj, "type-id");
 
-        // 解析 "tags"
-        if (obj.contains("tags"_str) && obj["tags"_str].isArray()) {
-            QJsonArray tagsArray = obj["tags"_str].toArray();
-            for (auto v : tagsArray) {
-                if (v.isObject()) {
-                    a.tags.append(parseTagInfo(v.toObject()));
+        if (const auto tags = arrayField(obj, "tags")) {
+            for (const auto value : *tags) {
+                if (const auto tag = asObject(value)) {
+                    a.tags.append(parseTagInfo(*tag));
                 }
             }
         }
 
-        // 解析 "genres"
-        if (obj.contains("genres"_str) && obj["genres"_str].isArray()) {
-            QJsonArray genresArray = obj["genres"_str].toArray();
-            for (auto v : genresArray) {
-                if (v.isObject()) {
-                    a.genres.append(parseTagInfo(v.toObject()));
+        if (const auto genres = arrayField(obj, "genres")) {
+            for (const auto value : *genres) {
+                if (const auto genre = asObject(value)) {
+                    a.genres.append(parseTagInfo(*genre));
                 }
             }
         }
@@ -357,66 +479,57 @@ namespace musicbrain {
         return a;
     }
 
-    ArtistCredit parseArtistCredit(const QJsonObject& obj) {
+    ArtistCredit parseArtistCredit(const JsonObject& obj) {
         ArtistCredit ac;
-        ac.joinPhrase = obj.value("joinphrase"_str).toString();
-        ac.name = obj.value("name"_str).toString();
+        ac.joinPhrase = stringField(obj, "joinphrase");
+        ac.name = stringField(obj, "name");
 
-        // 解析 artist 子物件
-        if (obj.contains("artist"_str) && obj["artist"_str].isObject()) {
-            ac.artist = parseArtist(obj["artist"_str].toObject());
+        if (const auto artist = objectField(obj, "artist")) {
+            ac.artist = parseArtist(*artist);
         }
 
         return ac;
     }    
 
-    RootRecording parseRootRecordingObject(const QJsonObject& rootObj) {
+    RootRecording parseRootRecordingObject(const JsonObject& rootObj) {
         RootRecording rec;
 
-        // 1) 基本欄位
-        rec.id = rootObj.value("id"_str).toString();
-        rec.title = rootObj.value("title"_str).toString();
-        rec.video = rootObj.value("video"_str).toBool(false);
-        rec.disambiguation = rootObj.value("disambiguation"_str).toString();
-        rec.lengthMs = rootObj.value("length"_str).toInt(0);
-        rec.mbSearchScore = rootObj.value("score"_str).toDouble(0);
-        rec.firstReleaseDate = rootObj.value("first-release-date"_str).toString();
+        rec.id = stringField(rootObj, "id");
+        rec.title = stringField(rootObj, "title");
+        rec.video = boolField(rootObj, "video");
+        rec.disambiguation = stringField(rootObj, "disambiguation");
+        rec.lengthMs = intField(rootObj, "length");
+        rec.mbSearchScore = doubleField(rootObj, "score");
+        rec.firstReleaseDate = stringField(rootObj, "first-release-date");
 
-        // 2) "artist-credit" -> array
-        if (rootObj.contains("artist-credit"_str) && rootObj["artist-credit"_str].isArray()) {
-            QJsonArray acArray = rootObj["artist-credit"_str].toArray();
-            for (auto v : acArray) {
-                if (v.isObject()) {
-                    rec.artistCredits.append(parseArtistCredit(v.toObject()));
+        if (const auto credits = arrayField(rootObj, "artist-credit")) {
+            for (const auto value : *credits) {
+                if (const auto credit = asObject(value)) {
+                    rec.artistCredits.append(parseArtistCredit(*credit));
                 }
             }
         }
 
-        // 3) "tags" -> array
-        if (rootObj.contains("tags"_str) && rootObj["tags"_str].isArray()) {
-            QJsonArray tagsArr = rootObj["tags"_str].toArray();
-            for (auto v : tagsArr) {
-                if (v.isObject()) {
-                    rec.tags.append(parseTagInfo(v.toObject()));
+        if (const auto tags = arrayField(rootObj, "tags")) {
+            for (const auto value : *tags) {
+                if (const auto tag = asObject(value)) {
+                    rec.tags.append(parseTagInfo(*tag));
                 }
             }
         }
 
-        // 4) "genres" -> array
-        if (rootObj.contains("genres"_str) && rootObj["genres"_str].isArray()) {
-            QJsonArray genresArr = rootObj["genres"_str].toArray();
-            for (auto v : genresArr) {
-                if (v.isObject()) {
-                    rec.genres.append(parseTagInfo(v.toObject()));
+        if (const auto genres = arrayField(rootObj, "genres")) {
+            for (const auto value : *genres) {
+                if (const auto genre = asObject(value)) {
+                    rec.genres.append(parseTagInfo(*genre));
                 }
             }
         }
 
-        if (rootObj.contains("releases"_str) && rootObj["releases"_str].isArray()) {
-            QJsonArray rels = rootObj["releases"_str].toArray();
-            for (const auto& v : rels) {
-                if (v.isObject()) {
-                    rec.releases.append(parseRelease(v.toObject()));
+        if (const auto releases = arrayField(rootObj, "releases")) {
+            for (const auto value : *releases) {
+                if (const auto release = asObject(value)) {
+                    rec.releases.append(parseRelease(*release));
                 }
             }
         }
@@ -425,66 +538,66 @@ namespace musicbrain {
     }
 
     std::expected<RootRecording, ParserError> parseRootRecording(const QString& jsonText) {
-        // 將 JSON 字串轉成 QJsonDocument
-        QJsonDocument doc = QJsonDocument::fromJson(jsonText.toUtf8());
-        if (doc.isNull() || !doc.isObject()) {
+        simdjson::dom::parser parser;
+        const auto rootObj = parseJsonObject(jsonText.toUtf8(), parser);
+        if (!rootObj) {
             return std::unexpected(ParserError::PARSE_ERROR_JSON_ERROR);
         }
 
-        return parseRootRecordingObject(doc.object());
+        return parseRootRecordingObject(*rootObj);
     }
 
     std::expected<QList<RootRecording>, ParserError> parseRootRecordingList(const QString& jsonText) {
-        QJsonDocument doc = QJsonDocument::fromJson(jsonText.toUtf8());
-        if (doc.isNull() || !doc.isObject()) {
+        simdjson::dom::parser parser;
+        const auto rootObj = parseJsonObject(jsonText.toUtf8(), parser);
+        if (!rootObj) {
             return std::unexpected(ParserError::PARSE_ERROR_JSON_ERROR);
         }
 
         QList<RootRecording> recordings;
-        const auto rootObj = doc.object();
-        const auto recordingsValue = rootObj.value("recordings"_str);
-        if (!recordingsValue.isArray()) {
+        const auto recordingsValue = arrayField(*rootObj, "recordings");
+        if (!recordingsValue) {
             return std::unexpected(ParserError::PARSE_ERROR_JSON_ERROR);
         }
 
-        for (const auto& value : recordingsValue.toArray()) {
-            if (value.isObject()) {
-                recordings.append(parseRootRecordingObject(value.toObject()));
+        for (const auto value : *recordingsValue) {
+            if (const auto recording = asObject(value)) {
+                recordings.append(parseRootRecordingObject(*recording));
             }
         }
         return recordings;
     }
 
     std::expected<QList<Release>, ParserError> parseReleaseList(const QString& jsonText) {
-        QJsonDocument doc = QJsonDocument::fromJson(jsonText.toUtf8());
-        if (doc.isNull() || !doc.isObject()) {
+        simdjson::dom::parser parser;
+        const auto rootObj = parseJsonObject(jsonText.toUtf8(), parser);
+        if (!rootObj) {
             return std::unexpected(ParserError::PARSE_ERROR_JSON_ERROR);
         }
 
         QList<Release> releases;
-        const auto rootObj = doc.object();
-        const auto releasesValue = rootObj.value("releases"_str);
-        if (!releasesValue.isArray()) {
+        const auto releasesValue = arrayField(*rootObj, "releases");
+        if (!releasesValue) {
             return std::unexpected(ParserError::PARSE_ERROR_JSON_ERROR);
         }
 
-        for (const auto& value : releasesValue.toArray()) {
-            if (value.isObject()) {
-                releases.append(parseRelease(value.toObject()));
+        for (const auto value : *releasesValue) {
+            if (const auto release = asObject(value)) {
+                releases.append(parseRelease(*release));
             }
         }
         return releases;
     }
 
     std::optional<QList<TrackInfo>> parseReleaseTracklist(const QByteArray& json, const QList<Release> &releases) {
-        QJsonParseError err{};
-        const auto doc = QJsonDocument::fromJson(json, &err);
-        if (err.error != QJsonParseError::NoError || !doc.isObject()) 
+        simdjson::dom::parser parser;
+        const auto obj = parseJsonObject(json, parser);
+        if (!obj) {
             return std::nullopt;
+        }
 
-        const auto obj = doc.object();
         auto trackReleases = releases;
-        auto release = parseRelease(obj);
+        auto release = parseRelease(*obj);
         if (!release.id.isEmpty()) {
             if (!releases.isEmpty() && releases.front().id == release.id) {
                 if (release.mbSearchScore <= 0) {
@@ -497,41 +610,67 @@ namespace musicbrain {
             trackReleases = { release };
         }
 
-        const auto mediaArr = obj.value("media"_str).toArray();
+        const auto mediaArr = arrayField(*obj, "media");
         QList<TrackInfo> out;
+        if (!mediaArr) {
+            return std::nullopt;
+        }
 
-        for (const auto& m : mediaArr) {
-            const auto mediaObj = m.toObject();
-            const int disc = mediaObj.value("position"_str).toInt(1);
-            const auto tracks = mediaObj.value("tracks"_str).toArray();
-            for (const auto& t : tracks) {
-                const auto tr = t.toObject();
+        for (const auto mediaValue : *mediaArr) {
+            const auto mediaObj = asObject(mediaValue);
+            if (!mediaObj) {
+                continue;
+            }
+            const int disc = intField(*mediaObj, "position", 1);
+            const auto tracks = arrayField(*mediaObj, "tracks");
+            if (!tracks) {
+                continue;
+            }
+            for (const auto trackValue : *tracks) {
+                const auto tr = asObject(trackValue);
+                if (!tr) {
+                    continue;
+                }
                 TrackInfo ti;
-                ti.id = tr.value("id"_str).toString();
+                ti.id = stringField(*tr, "id");
                 ti.disc = disc;
-                ti.trackNo = tr.value("position"_str).toInt(0);
-                ti.title = tr.value("title"_str).toString();
-                ti.lengthMs = tr.contains("length"_str) ? tr.value("length"_str).toInt(-1) : -1;
+                ti.trackNo = intField(*tr, "position");
+                ti.title = stringField(*tr, "title");
+                ti.lengthMs = field(*tr, "length") ? intField(*tr, "length", -1) : -1;
                 ti.releases = trackReleases;
 
-                const auto recObj = tr.value("recording"_str).toObject();
-                ti.recordingId = recObj.value("id"_str).toString();
+                const auto recObj = objectField(*tr, "recording");
+                if (recObj) {
+                    ti.recordingId = stringField(*recObj, "id");
+                }
 
                 // artist-credits 可能在 track 或 recording 上，這裡先取 track 上的
-                const auto acArr = tr.value("artist-credit"_str).toArray();
-                for (const auto& ac : acArr) {
-                    const auto acObj = ac.toObject();
-                    const auto name = acObj.value("name"_str).toString();
-                    if (!name.isEmpty()) ti.artistCredits.append(name);
+                if (const auto acArr = arrayField(*tr, "artist-credit")) {
+                    for (const auto acValue : *acArr) {
+                        const auto acObj = asObject(acValue);
+                        if (!acObj) {
+                            continue;
+                        }
+                        const auto name = stringField(*acObj, "name");
+                        if (!name.isEmpty()) {
+                            ti.artistCredits.append(name);
+                        }
+                    }
                 }
                 if (ti.artistCredits.isEmpty()) {
                     // 備援：從 recording 內取
-                    const auto racArr = recObj.value("artist-credit"_str).toArray();
-                    for (const auto& ac : racArr) {
-                        const auto acObj = ac.toObject();
-                        const auto name = acObj.value("name"_str).toString();
-                        if (!name.isEmpty()) 
-                            ti.artistCredits.append(name);
+                    const auto racArr = recObj ? arrayField(*recObj, "artist-credit") : std::nullopt;
+                    if (racArr) {
+                        for (const auto acValue : *racArr) {
+                            const auto acObj = asObject(acValue);
+                            if (!acObj) {
+                                continue;
+                            }
+                            const auto name = stringField(*acObj, "name");
+                            if (!name.isEmpty()) {
+                                ti.artistCredits.append(name);
+                            }
+                        }
                     }
                 }
 

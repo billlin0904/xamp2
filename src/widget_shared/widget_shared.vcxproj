@@ -69,7 +69,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>./;../xamp_base/include/;../xamp_metadata/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/;../thirdparty/zlib/;../thirdparty/rapidxml/;./xamp/;../thirdparty/qcoro/msvc/qcoro/core/;../thirdparty/qcoro/msvc/qcoro/network/;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/msvc/qcoro/network/QCoro;../thirdparty/qcoro/msvc/qcoro/QCoro;../thirdparty/qcoro/qcoro/network/;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;../thirdparty/qwindowkit/msvc/include/;../thirdparty/libdeflate/;../thirdparty/glaze/include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../vcpkg_installed/x64-windows/include/;./;../xamp_base/include/;../xamp_metadata/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/;../thirdparty/zlib/;../thirdparty/rapidxml/;./xamp/;../thirdparty/qcoro/msvc/qcoro/core/;../thirdparty/qcoro/msvc/qcoro/network/;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/msvc/qcoro/network/QCoro;../thirdparty/qcoro/msvc/qcoro/QCoro;../thirdparty/qcoro/qcoro/network/;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;../thirdparty/qwindowkit/msvc/include/;../thirdparty/libdeflate/;../thirdparty/glaze/include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4828;4996;</DisableSpecificWarnings>
       <WarningVersion>
@@ -77,23 +77,29 @@
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Debug/;../thirdparty/zlib/contrib/vstudio/vc14/x64/ZlibStatDebug/;../thirdparty/qcoro/msvc/qcoro/core/Debug/;../thirdparty/qcoro/msvc/qcoro/network/Debug/;../thirdparty/qwindowkit/msvc/out-amd64-Debug/lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;zlibstat.lib;QWKCored.lib;QWKWidgetsd.lib;QCoro6Networkd.lib;QCoro6Cored.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../../vcpkg_installed/x64-windows/debug/lib/;../xamp/x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Debug/;../thirdparty/zlib/contrib/vstudio/vc14/x64/ZlibStatDebug/;../thirdparty/qcoro/msvc/qcoro/core/Debug/;../thirdparty/qcoro/msvc/qcoro/network/Debug/;../thirdparty/qwindowkit/msvc/out-amd64-Debug/lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;zlibstat.lib;simdjson.lib;QWKCored.lib;QWKWidgetsd.lib;QCoro6Networkd.lib;QCoro6Cored.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>if exist "$(ProjectDir)..\..\vcpkg_installed\x64-windows\debug\bin\simdjson.dll" copy /Y "$(ProjectDir)..\..\vcpkg_installed\x64-windows\debug\bin\simdjson.dll" "$(OutDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
-      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;zlibstat.lib;QWKCore.lib;QWKWidgets.lib;QCoro6Network.lib;QCoro6Core.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>../xamp/x64/Release/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/qtautoupdater/msvc2019_64/lib/;../thirdparty/framelesshelper/msvc/lib/Release/;../thirdparty/zlib/contrib/vstudio/vc14/x64/ZlibStatRelease/;../thirdparty/qcoro/msvc/qcoro/core/Release/;../thirdparty/qcoro/msvc/qcoro/network/Release/;../thirdparty/qwindowkit/msvc/out-amd64-Release/lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;zlibstat.lib;simdjson.lib;QWKCore.lib;QWKWidgets.lib;QCoro6Network.lib;QCoro6Core.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../../vcpkg_installed/x64-windows/lib/;../xamp/x64/Release/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/qtautoupdater/msvc2019_64/lib/;../thirdparty/framelesshelper/msvc/lib/Release/;../thirdparty/zlib/contrib/vstudio/vc14/x64/ZlibStatRelease/;../thirdparty/qcoro/msvc/qcoro/core/Release/;../thirdparty/qcoro/msvc/qcoro/network/Release/;../thirdparty/qwindowkit/msvc/out-amd64-Release/lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(Qt_INCLUDEPATH_);./;../xamp_base/include/;../xamp_metadata/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/;../thirdparty/zlib/;../thirdparty/rapidxml/;./xamp/;../thirdparty/qcoro/msvc/qcoro/core/;../thirdparty/qcoro/msvc/qcoro/network/;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/msvc/qcoro/network/QCoro;../thirdparty/qcoro/msvc/qcoro/QCoro;../thirdparty/qcoro/qcoro/network/;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;../thirdparty/qwindowkit/msvc/include/;../thirdparty/libdeflate/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../vcpkg_installed/x64-windows/include/;$(Qt_INCLUDEPATH_);./;../xamp_base/include/;../xamp_metadata/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/;../thirdparty/zlib/;../thirdparty/rapidxml/;./xamp/;../thirdparty/qcoro/msvc/qcoro/core/;../thirdparty/qcoro/msvc/qcoro/network/;../thirdparty/qcoro/msvc/qcoro/core/QCoro;../thirdparty/qcoro/msvc/qcoro/network/QCoro;../thirdparty/qcoro/msvc/qcoro/QCoro;../thirdparty/qcoro/qcoro/network/;../thirdparty/qcoro/qcoro/core/;../thirdparty/qcoro/qcoro/;../thirdparty/qwindowkit/msvc/include/;../thirdparty/libdeflate/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Precise</FloatingPointModel>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
+    <PostBuildEvent>
+      <Command>if exist "$(ProjectDir)..\..\vcpkg_installed\x64-windows\bin\simdjson.dll" copy /Y "$(ProjectDir)..\..\vcpkg_installed\x64-windows\bin\simdjson.dll" "$(OutDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
     <ClCompile>

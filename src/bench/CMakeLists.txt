@@ -7,6 +7,9 @@ if(NOT TARGET benchmark::benchmark)
     find_package(benchmark CONFIG QUIET)
 endif()
 
+find_package(Qt6 6.4 REQUIRED COMPONENTS Core Gui Widgets)
+find_package(simdjson CONFIG REQUIRED)
+
 if(NOT TARGET benchmark::benchmark)
     set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
     set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
@@ -15,6 +18,10 @@ if(NOT TARGET benchmark::benchmark)
     add_subdirectory(
         "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/benchmark"
         "${CMAKE_BINARY_DIR}/thirdparty/benchmark")
+endif()
+
+if(NOT TARGET widget_shared)
+    add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../widget_shared" "${CMAKE_BINARY_DIR}/widget_shared")
 endif()
 
 add_executable(bench
@@ -28,11 +35,17 @@ target_include_directories(bench
     PRIVATE
         "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/spdlog/include"
         "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/utfcpp/source"
-        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/robin_hood")
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/robin_hood"
+        "${CMAKE_CURRENT_LIST_DIR}/../widget_shared")
 
 target_link_libraries(bench
     PRIVATE
         xamp_base
+        widget_shared
+        Qt6::Core
+        Qt6::Gui
+        Qt6::Widgets
+        simdjson::simdjson
         benchmark::benchmark)
 
 if(MSVC)
