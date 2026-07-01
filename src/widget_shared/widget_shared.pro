@@ -93,6 +93,7 @@ SOURCES += \
 ./widget/filesystemviewpage.cpp \
 ./widget/worker/albumcoverservice.cpp \
 ./widget/worker/backgroundservice.cpp \
+./widget/worker/lyrics_source.cpp \
 ./widget/worker/filesystemservice.cpp \
 ./widget/playlistpage.cpp \
 ./widget/richplaylistpage.cpp \
@@ -191,6 +192,7 @@ HEADERS += \
 ./widget/doubleslider.h \
 ./widget/filesystemwatcher.h \
 ./widget/worker/backgroundservice.h \
+./widget/worker/lyrics_source.h \
 ./widget/worker/filesystemservice.h \
 ./widget/worker/albumcoverservice.h \
 ./widget/win32/wintaskbar.h \

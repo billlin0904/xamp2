@@ -190,6 +190,7 @@
     <ClInclude Include="widget\webvttparser.h" />
     <ClInclude Include="widget\widget_shared_global.h" />
     <QtMoc Include="widget\worker\backgroundservice.h" />
+    <ClInclude Include="widget\worker\lyrics_source.h" />
     <QtMoc Include="widget\worker\albumcoverservice.h" />
     <ClInclude Include="widget\win32\wintaskbar.h" />
     <QtMoc Include="widget\worker\filesystemservice.h" />
@@ -345,6 +346,7 @@
     <ClCompile Include="widget\widget_shared_global.cpp" />
     <ClCompile Include="widget\win32\wintaskbar.cpp" />
     <ClCompile Include="widget\worker\backgroundservice.cpp" />
+    <ClCompile Include="widget\worker\lyrics_source.cpp" />
     <ClCompile Include="widget\worker\filesystemservice.cpp" />
     <ClCompile Include="widget\worker\albumcoverservice.cpp" />
     <ClCompile Include="widget\xdialog.cpp" />

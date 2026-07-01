@@ -179,6 +179,7 @@
     <ClInclude Include="include\base\blocking_queue.h" />
     <ClInclude Include="include\base\buffer.h" />
     <ClInclude Include="include\base\charset_detector.h" />
+    <ClInclude Include="include\base\coroutine_task.h" />
     <ClInclude Include="include\base\fastiostream.h" />
     <ClInclude Include="include\base\furigana.h" />
     <ClInclude Include="include\base\memory.h" />
@@ -196,6 +197,7 @@
     <ClInclude Include="include\base\object_pool.h" />
     <ClInclude Include="include\base\platfrom_handle.h" />
     <ClInclude Include="include\base\threadpool.h" />
+    <ClInclude Include="include\base\threadpool_coroutine.h" />
     <ClInclude Include="include\base\threadpoolbuilder.h" />
     <ClInclude Include="include\base\math.h" />
     <ClInclude Include="include\base\executor.h" />

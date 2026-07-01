@@ -9,6 +9,8 @@
 #include <base/logger.h>
 #include <base/scopeguard.h>
 #include <base/dll.h>
+#include <base/coroutine_task.h>
+#include <base/threadpool_coroutine.h>
 
 #include <stream/avlibfilestream.h>
 #include <stream/bassfilestream.h>
@@ -719,6 +721,54 @@ namespace {
         state.SetItemsProcessed(state.iterations() * task_count);
     }
 
+    AsyncTask<uint64_t> coroutinePrimeCountTask(std::shared_ptr<IThreadPool> pool,
+                                                size_t task_index,
+                                                size_t work_size) {
+        co_await scheduleOn(std::move(pool),
+            SubmitPolicy::SUBMIT_POLICY_NORMAL,
+            ExecuteFlags::EXECUTE_NORMAL);
+
+        uint64_t local_prime_count = 0;
+        for (size_t i = 0; i < work_size; ++i) {
+            local_prime_count += isPrime(makePrimeCandidate(task_index, i)) ? 1U : 0U;
+        }
+        co_return local_prime_count;
+    }
+
+    AsyncTask<uint64_t> coroutineBurstCpuTasks(std::shared_ptr<IThreadPool> pool,
+                                               size_t task_count,
+                                               size_t work_size) {
+        std::vector<AsyncTask<uint64_t>> tasks;
+        tasks.reserve(task_count);
+
+        for (size_t task_index = 0; task_index < task_count; ++task_index) {
+            auto task = coroutinePrimeCountTask(pool, task_index, work_size);
+            task.start();
+            tasks.push_back(std::move(task));
+        }
+
+        uint64_t prime_count = 0;
+        for (auto& task : tasks) {
+            prime_count += co_await task;
+        }
+        co_return prime_count;
+    }
+
+    static void BM_ThreadPool_CoroutineBurstCpuTasks(benchmark::State& state) {
+        const auto task_count = static_cast<size_t>(state.range(0));
+        const auto work_size = static_cast<size_t>(state.range(1));
+        auto bench_pool = makeBenchPool();
+
+        for ([[maybe_unused]] auto _ : state) {
+            auto task = coroutineBurstCpuTasks(bench_pool, task_count, work_size);
+            const auto prime_count = syncWait(std::move(task));
+            benchmark::DoNotOptimize(prime_count);
+        }
+
+        bench_pool->stop();
+        state.SetItemsProcessed(state.iterations() * task_count);
+    }
+
     static void BM_StdAsync_NestedSpawnWait(benchmark::State& state) {
         const auto outer_task_count = static_cast<size_t>(state.range(0));
         const auto inner_task_count = static_cast<size_t>(state.range(1));
@@ -1287,6 +1337,14 @@ namespace {
     //BENCHMARK(BM_StdAsync_SpawnBurstCpuTasks)
     //    ->Apply(threadPoolCpuTaskArgs)
     //    ->ArgNames({ "tasks", "work" });
+    BENCHMARK(BM_ThreadPool_SpawnBurstCpuTasks)
+        ->Apply(threadPoolCpuTaskArgs)
+        ->ArgNames({ "tasks", "work" })
+        ->UseRealTime();
+    BENCHMARK(BM_ThreadPool_CoroutineBurstCpuTasks)
+        ->Apply(threadPoolCpuTaskArgs)
+        ->ArgNames({ "tasks", "work" })
+        ->UseRealTime();
 
     //BENCHMARK(BM_StdConditionVariable_PingPong)
     //    ->Apply(conditionVariablePingPongArgs)

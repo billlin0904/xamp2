@@ -6,6 +6,7 @@
 #pragma once
 
 #include <atomic>
+#include <coroutine>
 #include <future>
 #include <latch>
 #include <memory>
@@ -86,6 +87,10 @@ public:
     void post(ExecuteFlags flags,
         F&& f,
         Args&&... args);
+
+    void resumeCoroutine(SubmitPolicy policy,
+        ExecuteFlags flags,
+        std::coroutine_handle<> handle);
 
 protected:
     explicit IThreadPool(ScopedPtr<ITaskScheduler> scheduler)

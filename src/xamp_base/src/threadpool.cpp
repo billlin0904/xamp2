@@ -71,6 +71,17 @@ TaskScheduler::~TaskScheduler() {
 	destroy();
 }
 
+void IThreadPool::resumeCoroutine(SubmitPolicy policy,
+	ExecuteFlags flags,
+	std::coroutine_handle<> handle) {
+	scheduler_->submitJob(
+		[handle](const std::stop_token&) mutable {
+			handle.resume();
+		},
+		flags,
+		policy);
+}
+
 size_t TaskScheduler::getThreadSize() const {
 	return max_thread_;
 }
