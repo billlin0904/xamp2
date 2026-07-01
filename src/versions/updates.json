@@ -4,7 +4,7 @@
       "open-url": "",
       "latest-version": "0.1.0",
       "download-url": "https://github.com/billlin0904/xamp2/releases/latest/download/xamp2-setup.exe",
-      "sha256": "90F0FF97C316B9D859A7B42A7873B16B34DD8407B2B74D36AFD0F0E664E4E8D4",
+      "sha256": "263A7B7157E746E39C2512627929031D30BEA4A8C48573FAD006C0B00999E111",
       "changelog": "<h3>XAMP 2 0.1.0</h3><ul><li>測試發行版本。</li><li>提供 Windows 安裝檔下載。</li></ul>",
       "mandatory-update": false
     },

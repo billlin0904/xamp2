@@ -21,6 +21,8 @@ public:
 
 	bool endOfStream() const override;
 
+	void useCustomIOContext(bool enable);
+
 	void openFile(const Path& file_path) override;
 
 	void open(ArchiveEntry archive_entry) override;

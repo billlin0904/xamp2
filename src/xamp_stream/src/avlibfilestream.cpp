@@ -13,6 +13,7 @@
 #include <base/archivefile.h>
 #include <base/buffer.h>
 #include <base/exception.h>
+#include <base/fastiostream.h>
 #include <base/logger.h>
 #include <base/memory.h>
 #include <base/str_utilts.h>
@@ -26,12 +27,13 @@ namespace {
 XAMP_DECLARE_LOG_NAME(AvLibFileStream);
 
 constexpr auto kOutputSampleFormat = AV_SAMPLE_FMT_FLT;
+constexpr auto kAvIOBufferSize = 256 * 1024;
 
-std::string ToAvFileName(const Path& file_path) {
+std::string toAvFileName(const Path& file_path) {
 	return String::toUtf8String(file_path.wstring());
 }
 
-int64_t DefaultChannelLayout(int channels) {
+int64_t defaultChannelLayout(int channels) {
 	switch (channels) {
 	case 1:
 		return AV_CH_LAYOUT_MONO;
@@ -54,7 +56,7 @@ int64_t DefaultChannelLayout(int channels) {
 	}
 }
 
-int GetChannelCount(const AVCodecContext* codec_context) {
+int getChannelCount(const AVCodecContext* codec_context) {
 	if (codec_context->ch_layout.nb_channels > 0) {
 		return codec_context->ch_layout.nb_channels;
 	}
@@ -64,7 +66,7 @@ int GetChannelCount(const AVCodecContext* codec_context) {
 	return 0;
 }
 
-int64_t GetChannelLayout(const AVCodecContext* codec_context) {
+int64_t getChannelLayout(const AVCodecContext* codec_context) {
 	if (codec_context->ch_layout.order == AV_CHANNEL_ORDER_NATIVE
 		&& codec_context->ch_layout.u.mask != 0) {
 		return static_cast<int64_t>(codec_context->ch_layout.u.mask);
@@ -72,10 +74,52 @@ int64_t GetChannelLayout(const AVCodecContext* codec_context) {
 	if (codec_context->channel_layout != 0) {
 		return static_cast<int64_t>(codec_context->channel_layout);
 	}
-	return DefaultChannelLayout(GetChannelCount(codec_context));
+	return defaultChannelLayout(getChannelCount(codec_context));
 }
 
-double RationalToSeconds(int64_t value, AVRational time_base) {
+struct AvFastIOContext {
+	explicit AvFastIOContext(const Path& file_path)
+		: stream(file_path) {
+	}
+
+	static int readPacket(void* opaque, uint8_t* buffer, int buffer_size) noexcept {
+		try {
+			auto* context = static_cast<AvFastIOContext*>(opaque);
+			const auto bytes_read = context->stream.read(buffer, static_cast<size_t>(buffer_size));
+			if (bytes_read == 0) {
+				return AVERROR_EOF;
+			}
+			return static_cast<int>(bytes_read);
+		}
+		catch (...) {
+			return AVERROR(EIO);
+		}
+	}
+
+	static int64_t seek(void* opaque, int64_t offset, int whence) noexcept {
+		try {
+			auto* context = static_cast<AvFastIOContext*>(opaque);
+			if (whence == AVSEEK_SIZE) {
+				return static_cast<int64_t>(context->stream.size());
+			}
+
+			const auto seek_whence = whence & ~AVSEEK_FORCE;
+			if (seek_whence != SEEK_SET && seek_whence != SEEK_CUR && seek_whence != SEEK_END) {
+				return AVERROR(EINVAL);
+			}
+
+			context->stream.seek(offset, seek_whence);
+			return static_cast<int64_t>(context->stream.tell());
+		}
+		catch (...) {
+			return AVERROR(EIO);
+		}
+	}
+
+	FastIOStream stream;
+};
+
+double rationalToSeconds(int64_t value, AVRational time_base) {
 	if (value <= 0 || time_base.den == 0) {
 		return 0.0;
 	}
@@ -96,20 +140,23 @@ public:
 		close();
 	}
 
+	void useCustomIOContext(bool enable) {
+		use_custom_io_context_ = enable;
+	}
+
 	void openFile(const Path& file_path) {
 		close();
 
 		file_path_ = file_path;
-		auto file_name = ToAvFileName(file_path);
+		auto file_name = toAvFileName(file_path);
 		XAMP_LOG_D(logger_, "open AvLib file stream start: {}.", file_name);
 
-		AVFormatContext* raw_format_context = nullptr;
-		AvIfFailedThrow(LIB_AV_LIB.Format->avformat_open_input(
-			&raw_format_context,
-			file_name.c_str(),
-			nullptr,
-			nullptr));
-		format_context_ = raw_format_context;
+		if (use_custom_io_context_) {
+			openWithCustomIO(file_path);
+		}
+		else {
+			openWithNativeIO(file_name);
+		}
 		XAMP_LOG_D(logger_,
 			"AvLib input opened: {} format:{} streams:{}.",
 			file_name,
@@ -176,7 +223,7 @@ public:
 			throw std::bad_alloc();
 		}
 
-		output_channels_ = GetChannelCount(codec_context_.get());
+		output_channels_ = getChannelCount(codec_context_.get());
 		if (output_channels_ <= 0) {
 			throwException<NotSupportFormatException>("Invalid audio channel count. file:{}.", file_name);
 		}
@@ -189,12 +236,12 @@ public:
 			static_cast<uint16_t>(output_channels_),
 			ByteFormat::FLOAT32,
 			static_cast<uint32_t>(output_sample_rate_));
-		bit_depth_ = ResolveBitDepth(codec_parameters);
+		bit_depth_ = resolveBitDepth(codec_parameters);
 		bit_rate_ = codec_parameters->bit_rate > 0
 			? static_cast<uint32_t>(codec_parameters->bit_rate / 1000)
 			: 0;
-		duration_ = ResolveDuration();
-		InitializeResampler();
+		duration_ = resolveDuration();
+		initializeResampler();
 
 		active_ = true;
 		eof_ = false;
@@ -214,7 +261,7 @@ public:
 
 	void close() {
 		if (format_context_ != nullptr) {
-			XAMP_LOG_D(logger_, "close AvLib file stream: {}.", ToAvFileName(file_path_));
+			XAMP_LOG_D(logger_, "close AvLib file stream: {}.", toAvFileName(file_path_));
 		}
 		pending_samples_.clear();
 		pending_sample_offset_ = 0;
@@ -226,6 +273,8 @@ public:
 			LIB_AV_LIB.Format->avformat_close_input(&format_context_);
 			format_context_ = nullptr;
 		}
+		input_io_context_.reset();
+		custom_io_context_.reset();
 		audio_stream_ = nullptr;
 		audio_stream_index_ = -1;
 		output_channels_ = 0;
@@ -291,7 +340,7 @@ public:
 		uint32_t copied_samples = 0;
 
 		while (copied_samples < length) {
-			const auto copied_from_pending = CopyPendingSamples(
+			const auto copied_from_pending = copyPendingSamples(
 				output + copied_samples,
 				length - copied_samples);
 			copied_samples += copied_from_pending;
@@ -300,15 +349,15 @@ public:
 			}
 
 			if (eof_) {
-				active_ = HasPendingSamples();
+				active_ = hasPendingSamples();
 				break;
 			}
 
-			if (!DecodeNextFrame()) {
+			if (!decodeNextFrame()) {
 				eof_ = true;
 				XAMP_LOG_D(logger_, "AvLib reached input EOF, draining decoder.");
-				DrainDecoder();
-				if (!HasPendingSamples()) {
+				drainDecoder();
+				if (!hasPendingSamples()) {
 					active_ = false;
 					XAMP_LOG_D(logger_, "AvLib stream drained.");
 				}
@@ -323,7 +372,7 @@ public:
 	}
 
 	[[nodiscard]] bool isActive() const {
-		return active_ || HasPendingSamples();
+		return active_ || hasPendingSamples();
 	}
 
 	[[nodiscard]] uint32_t getBitDepth() const {
@@ -335,8 +384,56 @@ public:
 	}
 
 private:
-	void InitializeResampler() {
-		const auto input_channel_layout = GetChannelLayout(codec_context_.get());
+	void openWithNativeIO(const std::string& file_name) {
+		AVFormatContext* raw_format_context = nullptr;
+		AvIfFailedThrow(LIB_AV_LIB.Format->avformat_open_input(
+			&raw_format_context,
+			file_name.c_str(),
+			nullptr,
+			nullptr));
+		format_context_ = raw_format_context;
+	}
+
+	void openWithCustomIO(const Path& file_path) {
+		custom_io_context_ = makeAlign<AvFastIOContext>(file_path);
+
+		auto* avio_buffer = static_cast<uint8_t*>(LIB_AV_LIB.Util->av_malloc(kAvIOBufferSize));
+		if (avio_buffer == nullptr) {
+			throw std::bad_alloc();
+		}
+
+		auto* raw_io_context = LIB_AV_LIB.Format->avio_alloc_context(
+			avio_buffer,
+			kAvIOBufferSize,
+			0,
+			custom_io_context_.get(),
+			&AvFastIOContext::readPacket,
+			nullptr,
+			&AvFastIOContext::seek);
+		if (raw_io_context == nullptr) {
+			LIB_AV_LIB.Util->av_free(avio_buffer);
+			throw std::bad_alloc();
+		}
+		input_io_context_.reset(raw_io_context);
+
+		format_context_ = LIB_AV_LIB.Format->avformat_alloc_context();
+		if (format_context_ == nullptr) {
+			throw std::bad_alloc();
+		}
+		format_context_->pb = input_io_context_.get();
+		format_context_->flags |= AVFMT_FLAG_CUSTOM_IO;
+
+		auto* raw_format_context = format_context_;
+		AvIfFailedThrow(LIB_AV_LIB.Format->avformat_open_input(
+			&raw_format_context,
+			nullptr,
+			nullptr,
+			nullptr));
+		format_context_ = raw_format_context;
+	}
+
+	void initializeResampler() {
+		const auto input_channel_layout = getChannelLayout(codec_context_.get());
 		if (input_channel_layout == 0) {
 			throwException<NotSupportFormatException>("Unsupported channel layout.");
 		}
@@ -358,7 +455,7 @@ private:
 		XAMP_LOG_D(logger_,
 			"AvLib resampler ready: input:{}Hz/{}ch/{} output:{}Hz/{}ch/{} layout:0x{:X}.",
 			codec_context_->sample_rate,
-			GetChannelCount(codec_context_.get()),
+			getChannelCount(codec_context_.get()),
 			LIB_AV_LIB.Util->av_get_sample_fmt_name(codec_context_->sample_fmt),
 			output_sample_rate_,
 			output_channels_,
@@ -366,7 +463,7 @@ private:
 			input_channel_layout);
 	}
 
-	[[nodiscard]] uint32_t ResolveBitDepth(const AVCodecParameters* codec_parameters) const {
+	[[nodiscard]] uint32_t resolveBitDepth(const AVCodecParameters* codec_parameters) const {
 		auto bits = codec_parameters->bits_per_raw_sample;
 		if (bits <= 0) {
 			bits = codec_parameters->bits_per_coded_sample;
@@ -377,9 +474,9 @@ private:
 		return bits > 0 ? static_cast<uint32_t>(bits) : format_.getBitsPerSample();
 	}
 
-	[[nodiscard]] double ResolveDuration() const {
+	[[nodiscard]] double resolveDuration() const {
 		if (audio_stream_ != nullptr && audio_stream_->duration > 0) {
-			return RationalToSeconds(audio_stream_->duration, audio_stream_->time_base);
+			return rationalToSeconds(audio_stream_->duration, audio_stream_->time_base);
 		}
 		if (format_context_ != nullptr && format_context_->duration > 0) {
 			return static_cast<double>(format_context_->duration) / static_cast<double>(AV_TIME_BASE);
@@ -387,12 +484,12 @@ private:
 		return 0.0;
 	}
 
-	[[nodiscard]] bool HasPendingSamples() const {
+	[[nodiscard]] bool hasPendingSamples() const {
 		return pending_sample_offset_ < pending_samples_.size();
 	}
 
-	uint32_t CopyPendingSamples(float* output, uint32_t available_samples) {
-		if (!HasPendingSamples()) {
+	uint32_t copyPendingSamples(float* output, uint32_t available_samples) {
+		if (!hasPendingSamples()) {
 			pending_samples_.clear();
 			pending_sample_offset_ = 0;
 			return 0;
@@ -404,20 +501,20 @@ private:
 			pending_samples_.data() + pending_sample_offset_,
 			copy_count * sizeof(float));
 		pending_sample_offset_ += copy_count;
-		if (!HasPendingSamples()) {
+		if (!hasPendingSamples()) {
 			pending_samples_.clear();
 			pending_sample_offset_ = 0;
 		}
 		return static_cast<uint32_t>(copy_count);
 	}
 
-	bool DecodeNextFrame() {
+	bool decodeNextFrame() {
 		while (true) {
 			const auto receive_result = LIB_AV_LIB.Codec->avcodec_receive_frame(
 				codec_context_.get(),
 				frame_.get());
 			if (receive_result == 0) {
-				ConvertFrame(frame_.get());
+				convertFrame(frame_.get());
 				LIB_AV_LIB.Util->av_frame_unref(frame_.get());
 				return true;
 			}
@@ -455,7 +552,7 @@ private:
 		}
 	}
 
-	void DrainDecoder() {
+	void drainDecoder() {
 		while (true) {
 			const auto receive_result = LIB_AV_LIB.Codec->avcodec_receive_frame(
 				codec_context_.get(),
@@ -464,12 +561,12 @@ private:
 				return;
 			}
 			AvIfFailedThrow(receive_result);
-			ConvertFrame(frame_.get());
+			convertFrame(frame_.get());
 			LIB_AV_LIB.Util->av_frame_unref(frame_.get());
 		}
 	}
 
-	void ConvertFrame(AVFrame* frame) {
+	void convertFrame(AVFrame* frame) {
 		if (frame == nullptr || frame->nb_samples <= 0) {
 			return;
 		}
@@ -510,7 +607,9 @@ private:
 	Buffer<float> output_samples_;
 	std::vector<float> pending_samples_;
 	LoggerPtr logger_;
+	ScopedPtr<AvFastIOContext> custom_io_context_;
 	AvPtr<AVCodecContext> codec_context_;
+	AvPtr<AVIOContext> input_io_context_;
 	AvPtr<AVPacket> packet_;
 	AvPtr<AVFrame> frame_;
 	AvPtr<SwrContext> swr_context_;
@@ -524,6 +623,7 @@ private:
 	int audio_stream_index_{ -1 };
 	int output_channels_{ 0 };
 	int output_sample_rate_{ 0 };
+	bool use_custom_io_context_{ false };
 	bool active_{ false };
 	bool eof_{ true };
 };
@@ -536,6 +636,10 @@ XAMP_PIMPL_IMPL(AvLibFileStream)
 
 void AvLibFileStream::openFile(const Path& file_path) {
 	impl_->openFile(file_path);
+}
+
+void AvLibFileStream::useCustomIOContext(bool enable) {
+	impl_->useCustomIOContext(enable);
 }
 
 void AvLibFileStream::open(ArchiveEntry archive_entry) {

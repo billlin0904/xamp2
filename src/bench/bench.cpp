@@ -7,6 +7,12 @@
 #include <base/threadpool.h>
 #include <base/threadpoolbuilder.h>
 #include <base/logger.h>
+#include <base/scopeguard.h>
+#include <base/dll.h>
+
+#include <stream/avlibfilestream.h>
+#include <stream/bassfilestream.h>
+#include <player/api.h>
 
 #ifdef _WIN32
 #ifndef NOMINMAX
@@ -24,7 +30,9 @@
 #include <memory>
 #include <mutex>
 #include <array>
+#include <stdexcept>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <vector>
 
@@ -43,6 +51,12 @@ namespace {
     constexpr std::array<size_t, 2> kFastIOSequentialChunkSizes{ 4 * 1024, 64 * 1024 };
     constexpr std::array<size_t, 2> kFastIOSeekCounts{ 1024, 4096 };
     constexpr size_t kFastIOSeekReadSize = 4 * 1024;
+    constexpr std::array<std::string_view, 1> kAudioBenchFlacFiles{
+        "bench_flac.flac",
+    };
+    constexpr size_t kAudioBenchReadSamples = 64 * 1024;
+    constexpr size_t kAudioBenchSeekReadSamples = 4096;
+    constexpr std::array<size_t, 2> kAudioBenchSeekCounts{ 16, 64 };
 
     bool isPrime(uint32_t n) {
         if (n <= 1) return false;
@@ -128,6 +142,92 @@ namespace {
             offsets.push_back(max_offset == 0 ? 0 : mixed % (max_offset + 1));
         }
         return offsets;
+    }
+
+    Path findRepositoryRoot() {
+        auto path = Fs::current_path();
+        for (;;) {
+            if (Fs::exists(path / "src" / "thirdparty" / "taglib2" / "tests" / "data" / "sinewave.flac")) {
+                return path;
+            }
+            if (!path.has_parent_path() || path == path.parent_path()) {
+                break;
+            }
+            path = path.parent_path();
+        }
+        throw std::runtime_error("Can't find xamp2 repository root.");
+    }
+
+    Path getAudioBenchFlacFile(size_t file_index) {
+        if (file_index >= kAudioBenchFlacFiles.size()) {
+            throw std::out_of_range("Invalid FLAC benchmark file index.");
+        }
+        const auto file_name = std::string(kAudioBenchFlacFiles[file_index]);
+        const auto current_dir_file = Fs::current_path() / file_name;
+        if (Fs::exists(current_dir_file)) {
+            return current_dir_file;
+        }
+        return findRepositoryRoot()
+            / "src"
+            / "thirdparty"
+            / "taglib2"
+            / "tests"
+            / "data"
+            / file_name;
+    }
+
+    uint64_t decodeAvLibBenchFile(const Path& path, bool use_custom_io_context) {
+        xamp::stream::AvLibFileStream stream;
+        stream.useCustomIOContext(use_custom_io_context);
+        stream.openFile(path);
+
+        std::vector<float> buffer(kAudioBenchReadSamples);
+        uint64_t total_samples = 0;
+        for (;;) {
+            const auto samples = stream.getSamples(buffer.data(), static_cast<uint32_t>(buffer.size()));
+            if (samples == 0) {
+                break;
+            }
+            total_samples += samples;
+            benchmark::DoNotOptimize(buffer.data());
+        }
+
+        stream.close();
+        return total_samples;
+    }
+
+    uint64_t decodeBassBenchFile(const Path& path) {
+        xamp::stream::BassFileStream stream;
+        stream.openFile(path);
+
+        std::vector<float> buffer(kAudioBenchReadSamples);
+        uint64_t total_samples = 0;
+        for (;;) {
+            const auto samples = stream.getSamples(buffer.data(), static_cast<uint32_t>(buffer.size()));
+            if (samples == 0) {
+                break;
+            }
+            total_samples += samples;
+            benchmark::DoNotOptimize(buffer.data());
+        }
+
+        stream.close();
+        return total_samples;
+    }
+
+    std::vector<double> makeAudioSeekTargets(double duration, size_t seek_count) {
+        std::vector<double> targets;
+        targets.reserve(seek_count);
+        if (duration <= 0.0) {
+            return targets;
+        }
+
+        for (size_t i = 0; i < seek_count; ++i) {
+            const auto mixed = (i * 37 + 23) % 997;
+            const auto fraction = 0.05 + 0.90 * (static_cast<double>(mixed) / 996.0);
+            targets.push_back(duration * fraction);
+        }
+        return targets;
     }
 
 #ifdef _WIN32
@@ -757,6 +857,133 @@ namespace {
         state.SetItemsProcessed(state.iterations() * static_cast<int64_t>(seek_count));
     }
 
+    void avLibFileStreamDecodeFlac(benchmark::State& state, bool use_custom_io_context) {
+        const auto path = getAudioBenchFlacFile(static_cast<size_t>(state.range(0)));
+        state.SetLabel(path.filename().string());
+
+        uint64_t total_samples = 0;
+        try {
+            for ([[maybe_unused]] auto _ : state) {
+                total_samples = decodeAvLibBenchFile(path, use_custom_io_context);
+                benchmark::DoNotOptimize(total_samples);
+            }
+        }
+        catch (const std::exception& e) {
+            state.SkipWithError(e.what());
+            return;
+        }
+
+        state.SetItemsProcessed(state.iterations() * static_cast<int64_t>(total_samples));
+        state.SetBytesProcessed(state.iterations() * static_cast<int64_t>(Fs::file_size(path)));
+    }
+
+    static void BM_AvLibFileStream_NativeIO_FLAC(benchmark::State& state) {
+        avLibFileStreamDecodeFlac(state, false);
+    }
+
+    static void BM_AvLibFileStream_CustomIO_FLAC(benchmark::State& state) {
+        avLibFileStreamDecodeFlac(state, true);
+    }
+
+    static void BM_BassFileStream_FLAC(benchmark::State& state) {
+        const auto path = getAudioBenchFlacFile(static_cast<size_t>(state.range(0)));
+        state.SetLabel(path.filename().string());
+
+        uint64_t total_samples = 0;
+        try {
+            for ([[maybe_unused]] auto _ : state) {
+                total_samples = decodeBassBenchFile(path);
+                benchmark::DoNotOptimize(total_samples);
+            }
+        }
+        catch (const std::exception& e) {
+            state.SkipWithError(e.what());
+            return;
+        }
+
+        state.SetItemsProcessed(state.iterations() * static_cast<int64_t>(total_samples));
+        state.SetBytesProcessed(state.iterations() * static_cast<int64_t>(Fs::file_size(path)));
+    }
+
+    void avLibFileStreamSeekReadFlac(benchmark::State& state, bool use_custom_io_context) {
+        const auto path = getAudioBenchFlacFile(static_cast<size_t>(state.range(0)));
+        const auto seek_count = static_cast<size_t>(state.range(1));
+        state.SetLabel(path.filename().string());
+
+        uint64_t total_samples = 0;
+        try {
+            xamp::stream::AvLibFileStream stream;
+            stream.useCustomIOContext(use_custom_io_context);
+            stream.openFile(path);
+            const auto targets = makeAudioSeekTargets(stream.getDuration(), seek_count);
+            std::vector<float> buffer(kAudioBenchSeekReadSamples);
+            if (targets.empty()) {
+                state.SkipWithError("FLAC duration is unavailable.");
+                return;
+            }
+
+            for ([[maybe_unused]] auto _ : state) {
+                for (const auto target : targets) {
+                    stream.seek(target);
+                    total_samples += stream.getSamples(buffer.data(), static_cast<uint32_t>(buffer.size()));
+                    benchmark::DoNotOptimize(buffer.data());
+                }
+            }
+
+            stream.close();
+        }
+        catch (const std::exception& e) {
+            state.SkipWithError(e.what());
+            return;
+        }
+
+        state.SetItemsProcessed(state.iterations() * static_cast<int64_t>(seek_count));
+        state.SetBytesProcessed(static_cast<int64_t>(total_samples * sizeof(float)));
+    }
+
+    static void BM_AvLibFileStream_NativeIO_SeekRead_FLAC(benchmark::State& state) {
+        avLibFileStreamSeekReadFlac(state, false);
+    }
+
+    static void BM_AvLibFileStream_CustomIO_SeekRead_FLAC(benchmark::State& state) {
+        avLibFileStreamSeekReadFlac(state, true);
+    }
+
+    static void BM_BassFileStream_SeekRead_FLAC(benchmark::State& state) {
+        const auto path = getAudioBenchFlacFile(static_cast<size_t>(state.range(0)));
+        const auto seek_count = static_cast<size_t>(state.range(1));
+        state.SetLabel(path.filename().string());
+
+        uint64_t total_samples = 0;
+        try {
+            xamp::stream::BassFileStream stream;
+            stream.openFile(path);
+            const auto targets = makeAudioSeekTargets(stream.getDuration(), seek_count);
+            std::vector<float> buffer(kAudioBenchSeekReadSamples);
+            if (targets.empty()) {
+                state.SkipWithError("FLAC duration is unavailable.");
+                return;
+            }
+
+            for ([[maybe_unused]] auto _ : state) {
+                for (const auto target : targets) {
+                    stream.seek(target);
+                    total_samples += stream.getSamples(buffer.data(), static_cast<uint32_t>(buffer.size()));
+                    benchmark::DoNotOptimize(buffer.data());
+                }
+            }
+
+            stream.close();
+        }
+        catch (const std::exception& e) {
+            state.SkipWithError(e.what());
+            return;
+        }
+
+        state.SetItemsProcessed(state.iterations() * static_cast<int64_t>(seek_count));
+        state.SetBytesProcessed(static_cast<int64_t>(total_samples * sizeof(float)));
+    }
+
     void threadPoolTinyTaskArgs(benchmark::internal::Benchmark* benchmark) {
         for (const auto task_count : kTinyTaskCounts) {
             benchmark->Arg(static_cast<int64_t>(task_count));
@@ -816,59 +1043,118 @@ namespace {
         }
     }
 
-    BENCHMARK(BM_ThreadPool_SpawnBurstTinyTasks)
-        ->Apply(threadPoolCpuTaskArgs)
-        ->ArgNames({ "tasks", "work" });
-    BENCHMARK(BM_StdAsync_BurstTinyTasks)
-        ->Apply(threadPoolCpuTaskArgs)
-        ->ArgNames({ "tasks", "work" });
+    void audioBenchFlacArgs(benchmark::internal::Benchmark* benchmark) {
+        for (size_t i = 0; i < kAudioBenchFlacFiles.size(); ++i) {
+            benchmark->Arg(static_cast<int64_t>(i));
+        }
+    }
 
-    BENCHMARK(BM_ThreadPool_SpawnBurstCpuTasks)
-        ->Apply(threadPoolCpuTaskArgs)
-        ->ArgNames({ "tasks", "work" });
-    BENCHMARK(BM_StdAsync_SpawnBurstCpuTasks)
-        ->Apply(threadPoolCpuTaskArgs)
-        ->ArgNames({ "tasks", "work" });
+    void audioBenchFlacSeekArgs(benchmark::internal::Benchmark* benchmark) {
+        for (size_t i = 0; i < kAudioBenchFlacFiles.size(); ++i) {
+            for (const auto seek_count : kAudioBenchSeekCounts) {
+                benchmark->Args({
+                    static_cast<int64_t>(i),
+                    static_cast<int64_t>(seek_count),
+                    });
+            }
+        }
+    }
 
-    BENCHMARK(BM_StdConditionVariable_PingPong)
-        ->Apply(conditionVariablePingPongArgs)
-        ->ArgName("handoffs")
-        ->UseRealTime();
-    BENCHMARK(BM_FastConditionVariable_PingPong)
-        ->Apply(conditionVariablePingPongArgs)
-        ->ArgName("handoffs")
-        ->UseRealTime();
+    //BENCHMARK(BM_ThreadPool_SpawnBurstTinyTasks)
+    //    ->Apply(threadPoolCpuTaskArgs)
+    //    ->ArgNames({ "tasks", "work" });
+    //BENCHMARK(BM_StdAsync_BurstTinyTasks)
+    //    ->Apply(threadPoolCpuTaskArgs)
+    //    ->ArgNames({ "tasks", "work" });
 
-    BENCHMARK(BM_String_ToUtf8String)
-        ->Apply(wideUtf8Args)
-        ->ArgName("wchars");
-    BENCHMARK(BM_Win32_WideCharToMultiByte)
-        ->Apply(wideUtf8Args)
-        ->ArgName("wchars");
+    //BENCHMARK(BM_ThreadPool_SpawnBurstCpuTasks)
+    //    ->Apply(threadPoolCpuTaskArgs)
+    //    ->ArgNames({ "tasks", "work" });
+    //BENCHMARK(BM_StdAsync_SpawnBurstCpuTasks)
+    //    ->Apply(threadPoolCpuTaskArgs)
+    //    ->ArgNames({ "tasks", "work" });
 
-    BENCHMARK(BM_FastIOStream_SequentialRead)
-        ->Apply(fastIOSequentialArgs)
-        ->ArgNames({ "file_bytes", "chunk_bytes" });
-    BENCHMARK(BM_StdIfstream_SequentialRead)
-        ->Apply(fastIOSequentialArgs)
-        ->ArgNames({ "file_bytes", "chunk_bytes" });
+    //BENCHMARK(BM_StdConditionVariable_PingPong)
+    //    ->Apply(conditionVariablePingPongArgs)
+    //    ->ArgName("handoffs")
+    //    ->UseRealTime();
+    //BENCHMARK(BM_FastConditionVariable_PingPong)
+    //    ->Apply(conditionVariablePingPongArgs)
+    //    ->ArgName("handoffs")
+    //    ->UseRealTime();
 
-    BENCHMARK(BM_FastIOStream_RandomSeekRead)
-        ->Apply(fastIOSeekArgs)
-        ->ArgNames({ "file_bytes", "seeks", "read_bytes" });
-    BENCHMARK(BM_StdIfstream_RandomSeekRead)
-        ->Apply(fastIOSeekArgs)
-        ->ArgNames({ "file_bytes", "seeks", "read_bytes" });
+    //BENCHMARK(BM_String_ToUtf8String)
+    //    ->Apply(wideUtf8Args)
+    //    ->ArgName("wchars");
+    //BENCHMARK(BM_Win32_WideCharToMultiByte)
+    //    ->Apply(wideUtf8Args)
+    //    ->ArgName("wchars");
+
+    //BENCHMARK(BM_FastIOStream_SequentialRead)
+    //    ->Apply(fastIOSequentialArgs)
+    //    ->ArgNames({ "file_bytes", "chunk_bytes" });
+    //BENCHMARK(BM_StdIfstream_SequentialRead)
+    //    ->Apply(fastIOSequentialArgs)
+    //    ->ArgNames({ "file_bytes", "chunk_bytes" });
+
+    //BENCHMARK(BM_FastIOStream_RandomSeekRead)
+    //    ->Apply(fastIOSeekArgs)
+    //    ->ArgNames({ "file_bytes", "seeks", "read_bytes" });
+    //BENCHMARK(BM_StdIfstream_RandomSeekRead)
+    //    ->Apply(fastIOSeekArgs)
+    //    ->ArgNames({ "file_bytes", "seeks", "read_bytes" });
+
+    BENCHMARK(BM_AvLibFileStream_NativeIO_FLAC)
+        ->Apply(audioBenchFlacArgs)
+        ->ArgName("flac_file");
+    BENCHMARK(BM_AvLibFileStream_CustomIO_FLAC)
+        ->Apply(audioBenchFlacArgs)
+        ->ArgName("flac_file");
+    BENCHMARK(BM_BassFileStream_FLAC)
+        ->Apply(audioBenchFlacArgs)
+        ->ArgName("flac_file");
+
+    BENCHMARK(BM_AvLibFileStream_NativeIO_SeekRead_FLAC)
+        ->Apply(audioBenchFlacSeekArgs)
+        ->ArgNames({ "flac_file", "seeks" });
+    BENCHMARK(BM_AvLibFileStream_CustomIO_SeekRead_FLAC)
+        ->Apply(audioBenchFlacSeekArgs)
+        ->ArgNames({ "flac_file", "seeks" });
+    BENCHMARK(BM_BassFileStream_SeekRead_FLAC)
+        ->Apply(audioBenchFlacSeekArgs)
+        ->ArgNames({ "flac_file", "seeks" });
 }
 
 int main(int argc, char** argv) {
     std::ios::sync_with_stdio(false);
+
+#ifdef _WIN32
+    const auto component_dir = Fs::current_path() / L"components";
+    if (Fs::exists(component_dir)) {
+        ::SetDllDirectoryW(component_dir.wstring().c_str());
+    }
+#endif
 
     XampLoggerFactory
         .addDebugOutput()
         .startup();
 
     XAMP_LOG_DEBUG("Logger init success.");
+
+    const auto components_path = getComponentsFilePath();
+    if (!xamp::base::addSharedLibrarySearchDirectory(components_path)) {
+        XAMP_LOG_ERROR("addSharedLibrarySearchDirectory return fail! ({})", getLastErrorMessage());
+        return -1;
+    }
+
+    try {
+        xamp::player::loadComponentSharedLibrary();        
+    }
+    catch (const std::exception&) {
+        return -1;
+    }
+
+    XAMP_ON_SCOPE_EXIT(xamp::player::unloadComponentSharedLibrary());
 
     ::benchmark::Initialize(&argc, argv);
     if (::benchmark::ReportUnrecognizedArguments(argc, argv)) {
