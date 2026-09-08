@@ -2,10 +2,10 @@
   "updates": {
     "windows": {
       "open-url": "",
-      "latest-version": "0.1.0",
-      "download-url": "https://github.com/billlin0904/xamp2/releases/latest/download/xamp2-setup.exe",
-      "sha256": "90F0FF97C316B9D859A7B42A7873B16B34DD8407B2B74D36AFD0F0E664E4E8D4",
-      "changelog": "<h3>XAMP 2 0.1.0</h3><ul><li>測試發行版本。</li><li>提供 Windows 安裝檔下載。</li></ul>",
+      "latest-version": "1.0.1",
+      "download-url": "https://github.com/billlin0904/xamp2/releases/download/v1.0.1/xamp2-setup.exe",
+      "sha256": "0CD2098D284EA66BA327966385CD080D540BA1E7E8639985491FA9C0BE4B6F4F",
+      "changelog": "<h3>XAMP 1.0.1 Windows 測試版</h3><ul><li>新增軟體更新分頁、背景下載與手動重新啟動更新。</li><li>修正更新頁分隔符號亂碼。</li><li>ReplayGain 尚未接上播放處理；本版安裝包尚未簽署。</li></ul>",
       "mandatory-update": false
     },
     "linux": {
