@@ -17,6 +17,7 @@
 #include <widget/util/str_util.h>
 
 class QDropEvent;
+class QMenu;
 
 class XAMP_WIDGET_SHARED_API LyricsShowWidget : public WheelableWidget {
 	Q_OBJECT
@@ -50,6 +51,8 @@ public:
 
 	QString parsedLyrics() const;
 
+	QString parsedSrtLyrics() const;
+
 	QColor normalColor() const {
 		return lrc_color_;
 	}
@@ -57,6 +60,9 @@ public:
 	QColor highlightColor() const {
 		return lrc_highlight_color_;
 	}
+
+	int unsungAlpha() const { return unsung_alpha_; }
+	void setUnsungAlpha(int alpha);
 
 	QColor karaokeHighlightColor() const {
 		return karaoke_highlight_color_;
@@ -78,6 +84,9 @@ public slots:
 	void setKaraokeHighlightColor(const QColor& color);
 
 	void setFullLrc(const QString& lrc, double duration);
+
+signals:
+	void populateContextMenu(QMenu* menu);
 
 private:
 	void dragEnterEvent(QDragEnterEvent* event) override;
@@ -118,6 +127,7 @@ private:
 	QColor lrc_color_;
 	QColor lrc_highlight_color_;
 	QColor karaoke_highlight_color_;
+	int unsung_alpha_{255};
 	QColor background_color_;
 	QString lrc_;
 	QString orilyrc_;

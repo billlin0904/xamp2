@@ -724,15 +724,16 @@ namespace {
     AsyncTask<uint64_t> coroutinePrimeCountTask(std::shared_ptr<IThreadPool> pool,
                                                 size_t task_index,
                                                 size_t work_size) {
-        co_await scheduleOn(std::move(pool),
+        co_return co_await submitOn(std::move(pool),
+            [task_index, work_size] {
+                uint64_t local_prime_count = 0;
+                for (size_t i = 0; i < work_size; ++i) {
+                    local_prime_count += isPrime(makePrimeCandidate(task_index, i)) ? 1U : 0U;
+                }
+                return local_prime_count;
+            },
             SubmitPolicy::SUBMIT_POLICY_NORMAL,
             ExecuteFlags::EXECUTE_NORMAL);
-
-        uint64_t local_prime_count = 0;
-        for (size_t i = 0; i < work_size; ++i) {
-            local_prime_count += isPrime(makePrimeCandidate(task_index, i)) ? 1U : 0U;
-        }
-        co_return local_prime_count;
     }
 
     AsyncTask<uint64_t> coroutineBurstCpuTasks(std::shared_ptr<IThreadPool> pool,
@@ -1362,7 +1363,7 @@ namespace {
     //    ->Apply(wideUtf8Args)
     //    ->ArgName("wchars");
 
-    BENCHMARK(BM_QJsonDocument_MusicBrainzTracklist)
+    /*BENCHMARK(BM_QJsonDocument_MusicBrainzTracklist)
         ->Apply(musicBrainzTracklistArgs)
         ->ArgName("tracks");
     BENCHMARK(BM_SimdjsonDOM_MusicBrainzTracklist)
@@ -1370,7 +1371,7 @@ namespace {
         ->ArgName("tracks");
     BENCHMARK(BM_MusicBrainzParser_ReleaseTracklist)
         ->Apply(musicBrainzTracklistArgs)
-        ->ArgName("tracks");
+        ->ArgName("tracks");*/
 
     //BENCHMARK(BM_FastIOStream_SequentialRead)
     //    ->Apply(fastIOSequentialArgs)
@@ -1386,7 +1387,7 @@ namespace {
     //    ->Apply(fastIOSeekArgs)
     //    ->ArgNames({ "file_bytes", "seeks", "read_bytes" });
 
-    BENCHMARK(BM_AvLibFileStream_NativeIO_FLAC)
+    /*BENCHMARK(BM_AvLibFileStream_NativeIO_FLAC)
         ->Apply(audioBenchFlacArgs)
         ->ArgName("flac_file");
     BENCHMARK(BM_AvLibFileStream_CustomIO_FLAC)
@@ -1404,7 +1405,7 @@ namespace {
         ->ArgNames({ "flac_file", "seeks" });
     BENCHMARK(BM_BassFileStream_SeekRead_FLAC)
         ->Apply(audioBenchFlacSeekArgs)
-        ->ArgNames({ "flac_file", "seeks" });
+        ->ArgNames({ "flac_file", "seeks" });*/
 }
 
 int main(int argc, char** argv) {

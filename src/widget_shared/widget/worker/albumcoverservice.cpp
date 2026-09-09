@@ -13,6 +13,7 @@
 #include <widget/dao/albumdao.h>
 #include <widget/dao/musicdao.h>
 #include <widget/imagecache.h>
+#include <widget/util/tag_util.h>
 
 XAMP_DECLARE_LOG_NAME(AlbumCoverService);
 
@@ -23,23 +24,6 @@ namespace {
 		"*.png"_str,
 	};
 
-	std::optional<QImage> readEmbeddedCoverImage(xamp::metadata::IMetadataReader& reader) {
-		const auto buffer = reader.readEmbeddedCover();
-		if (!buffer) {
-			return std::nullopt;
-		}
-
-		const auto& data = buffer.value();
-		if (data.size() > static_cast<size_t>((std::numeric_limits<int>::max)())) {
-			return std::nullopt;
-		}
-
-		QImage image;
-		if (!image.loadFromData(reinterpret_cast<const uchar*>(data.data()), static_cast<int>(data.size()))) {
-			return std::nullopt;
-		}
-		return image;
-	}
 
 	std::optional<QImage> readCoverFileImage(const QString& file_path) {
 		QImageReader reader(file_path);
@@ -153,6 +137,19 @@ void AlbumCoverService::cancelRequested() {
     pending_album_cover_ids_.clear();
 }
 
+void AlbumCoverService::removeAlbumCoverId(int32_t album_id) {
+    if (album_id <= 0) {
+        return;
+    }
+    pending_album_cover_ids_.erase(album_id);
+    completed_album_cover_ids_.erase(album_id);
+}
+
+void AlbumCoverService::clearAlbumCoverIds() {
+    pending_album_cover_ids_.clear();
+    completed_album_cover_ids_.clear();
+}
+
 void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
     is_stop_ = false;
     Stopwatch total_elapsed;
@@ -233,7 +230,7 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
 
         if (!isNullOfEmpty(cover_id) && cover_id != "unknown_album"_str) {
             stage_elapsed.reset();
-            if (qImageCache.isFileExists(QString{}, cover_id)) {
+            if (qImageCache.isFileExists(cover_id)) {
                 const auto cache_exists_elapsed = stage_elapsed.elapsedSeconds();
                 completed_album_cover_ids_.insert(album_id);
                 XAMP_LOG_D(logger_,
@@ -297,7 +294,7 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
         }
 
         const auto music_file_path_string = QString::fromStdWString(music_file_path);
-        if (!IsFilePath(music_file_path)) {
+        if (!isFilePath(music_file_path)) {
             XAMP_LOG_D(logger_,
                 "Skip album cover request because path is not a file. music:{} album:{} file:{} total:{:.3f}s",
                 id.first,
@@ -316,7 +313,7 @@ void AlbumCoverService::onFindAlbumCover(const DatabaseCoverId& id) {
         const auto open_reader_elapsed = stage_elapsed.elapsedSeconds();
 
         stage_elapsed.reset();
-        auto cover = readEmbeddedCoverImage(*reader);
+        auto cover = tag_util::readEmbeddedCoverImage(*reader);
         const auto read_embedded_elapsed = stage_elapsed.elapsedSeconds();
 
         XAMP_LOG_D(logger_,

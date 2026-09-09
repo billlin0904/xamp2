@@ -5,39 +5,23 @@
 
 #pragma once
 
+#include <memory>
 #include <stop_token>
+#include <vector>
 
 #include <QObject>
 #include <base/threadpool.h>
 #include <base/lrucache.h>
 
 #include <widget/widget_shared.h>
-#include <widget/playlistentity.h>
 #include <widget/driveinfo.h>
 #include <widget/widget_shared_global.h>
 #include <widget/util/mbdiscid_util.h>
 #include <widget/httpx.h>
 #include <widget/encodejobwidget.h>
-#include <widget/krcparser.h>
-#include <widget/neteaseparser.h>
+#include <widget/worker/lyrics_source.h>
 
 Q_DECLARE_METATYPE(ReplayGain);
-
-struct LyricsParser {
-	Candidate candidate;
-	QSharedPointer<ILrcParser> parser;
-	QByteArray content;
-};
-
-struct SearchLyricsResult {
-	InfoItem info;	
-	QList<LyricsParser> parsers;
-	QString request_title;
-	QString request_artist;
-};
-
-Q_DECLARE_METATYPE(LyricsParser)
-Q_DECLARE_METATYPE(SearchLyricsResult)
 
 class XAMP_WIDGET_SHARED_API BackgroundService final : public QObject {
 	Q_OBJECT
@@ -78,14 +62,6 @@ public Q_SLOT:
 
 	void onSearchLyrics(const PlayListEntity& keyword);
 
-	QCoro::Task<SearchLyricsResult> downloadSingleKlrc(InfoItem info);
-
-	QCoro::Task<QList<SearchLyricsResult>> downloadKLrc(QList<InfoItem> infos);	
-
-	QCoro::Task<SearchLyricsResult> downloadSingleNeteaseLrc(NeteaseSong info);
-
-	QCoro::Task<QList<SearchLyricsResult>> downloadNeteaseLrc(QList<NeteaseSong> infos);
-
 	void parallelEncode(const QString& dir_name, QList<EncodeJob> jobs);
 
 	void sequenceEncode(const QString& dir_name, QList<EncodeJob> jobs);
@@ -95,10 +71,6 @@ public Q_SLOT:
 	QCoro::Task<std::optional<QByteArray>> fetchCoverArtByUrl(const QString& tag, const QString& release_id, size_t prefer_size = 1200);
 private:
 	std::tuple<std::shared_ptr<FastIOStream>, Path> makeUniqueFile(const EncodeJob& job, const QString& dir_name);
-
-	QCoro::Task<> searchKugou(const PlayListEntity& keyword);
-
-	QCoro::Task<> searchNetease(const PlayListEntity& keyword);
 
 	QCoro::Task<> searchLyrics(const PlayListEntity& keyword);
 
@@ -110,6 +82,6 @@ private:
 	std::stop_source stop_source_;
 	QNetworkAccessManager nam_;
 	http::HttpClient http_client_;
-	LruCache<QString, SearchLyricsResult> lyrics_cache_;
 	std::shared_ptr<IThreadPool> thread_pool_;
+	std::vector<std::unique_ptr<ILyricsSource>> lyrics_sources_;
 };

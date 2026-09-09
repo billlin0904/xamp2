@@ -31,7 +31,7 @@ static struct IopmAssertion {
         reset();
     }
 
-    void PreventSleep() {
+    void preventSleep() {
         if (assertion_id != 0) {
             reset();
         }
@@ -58,13 +58,13 @@ static struct IopmAssertion {
 } iopmAssertion;
 #endif
 
-ScopedPtr<IAudioDeviceManager> MakeAudioDeviceManager() {
+ScopedPtr<IAudioDeviceManager> makeAudioDeviceManager() {
 	auto manager = makeAlign<IAudioDeviceManager, AudioDeviceManager>();
 	manager->initial();
 	return manager;
 }
 
-bool IsExclusiveDevice(const DeviceInfo& info) {
+bool isExclusiveDevice(const DeviceInfo& info) {
 #ifdef XAMP_OS_WIN
     const Uuid device_type_id(info.device_type_id);
     return device_type_id == XAMP_UUID_OF(win32::ExclusiveWasapiDeviceType)
@@ -76,7 +76,7 @@ bool IsExclusiveDevice(const DeviceInfo& info) {
 #endif
 }
 
-bool IsAsioDevice(const Uuid& id) {
+bool isAsioDevice(const Uuid& id) {
 #if defined(XAMP_OS_WIN)
     return id == XAMP_UUID_OF(win32::AsioDeviceType);
 #else
@@ -85,13 +85,13 @@ bool IsAsioDevice(const Uuid& id) {
 #endif
 }
 
-void ResetAsioDriver() {
+void resetAsioDriver() {
 #if defined(XAMP_OS_WIN)
     win32::AsioDevice::resetCurrentDriver();
 #endif
 }
 
-void PreventSleep(bool allow) {
+void preventSleep(bool allow) {
 #ifdef XAMP_OS_WIN
     if (allow) {
         ::SetThreadExecutionState(ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED | ES_CONTINUOUS);
@@ -101,7 +101,7 @@ void PreventSleep(bool allow) {
     }
 #elif defined(XAMP_OS_MAC)
     if (allow) {
-        iopmAssertion.PreventSleep();
+        iopmAssertion.preventSleep();
     }
     else {
         iopmAssertion.reset();

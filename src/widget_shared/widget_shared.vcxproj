@@ -78,15 +78,12 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>../../vcpkg_installed/x64-windows/debug/lib/;../xamp/x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Debug/;../thirdparty/zlib/contrib/vstudio/vc14/x64/ZlibStatDebug/;../thirdparty/qcoro/msvc/qcoro/core/Debug/;../thirdparty/qcoro/msvc/qcoro/network/Debug/;../thirdparty/qwindowkit/msvc/out-amd64-Debug/lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;zlibstat.lib;simdjson.lib;QWKCored.lib;QWKWidgetsd.lib;QCoro6Networkd.lib;QCoro6Cored.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;zlibstat.lib;QWKCored.lib;QWKWidgetsd.lib;QCoro6Networkd.lib;QCoro6Cored.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>if exist "$(ProjectDir)..\..\vcpkg_installed\x64-windows\debug\bin\simdjson.dll" copy /Y "$(ProjectDir)..\..\vcpkg_installed\x64-windows\debug\bin\simdjson.dll" "$(OutDir)"</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
-      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;zlibstat.lib;simdjson.lib;QWKCore.lib;QWKWidgets.lib;QCoro6Network.lib;QCoro6Core.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;opengl32.lib;zlibstat.lib;QWKCore.lib;QWKWidgets.lib;QCoro6Network.lib;QCoro6Core.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>../../vcpkg_installed/x64-windows/lib/;../xamp/x64/Release/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/qtautoupdater/msvc2019_64/lib/;../thirdparty/framelesshelper/msvc/lib/Release/;../thirdparty/zlib/contrib/vstudio/vc14/x64/ZlibStatRelease/;../thirdparty/qcoro/msvc/qcoro/core/Release/;../thirdparty/qcoro/msvc/qcoro/network/Release/;../thirdparty/qwindowkit/msvc/out-amd64-Release/lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
@@ -97,9 +94,6 @@
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
-    <PostBuildEvent>
-      <Command>if exist "$(ProjectDir)..\..\vcpkg_installed\x64-windows\bin\simdjson.dll" copy /Y "$(ProjectDir)..\..\vcpkg_installed\x64-windows\bin\simdjson.dll" "$(OutDir)"</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
     <ClCompile>
@@ -142,13 +136,10 @@
     <QtMoc Include="widget\aboutpage.h" />
     <QtMoc Include="widget\cdpage.h" />
     <QtMoc Include="widget\preferencepage.h" />
-    <QtMoc Include="widget\artistview.h" />
-    <QtMoc Include="widget\genre_view_page.h" />
     <QtMoc Include="widgetframe\windowbar.h" />
     <ClInclude Include="widgetframe\windowbar_p.h" />
     <QtMoc Include="widgetframe\windowbutton.h" />
     <ClInclude Include="widgetframe\windowbutton_p.h" />
-    <QtMoc Include="widget\albumviewstyleddelegate.h" />
     <QtMoc Include="widget\chatgpt\spectrogramwidget.h" />
     <ClInclude Include="widget\dao\albumdao.h" />
     <ClInclude Include="widget\dao\artistdao.h" />
@@ -158,15 +149,10 @@
     <ClInclude Include="widget\databasecoverid.h" />
     <QtMoc Include="widget\encodejobwidget.h" />
     <QtMoc Include="widget\filesystemviewpage.h" />
-    <ClInclude Include="widget\genre_view.h" />
-    <QtMoc Include="widget\taglistview.h" />
     <ClInclude Include="widget\httpx.h" />
     <ClInclude Include="widget\krcparser.h" />
     <QtMoc Include="widget\logview.h" />
-    <ClInclude Include="widget\m3uparser.h" />
     <ClInclude Include="widget\maskwidget.h" />
-    <QtMoc Include="widget\playlisttabwidget.h" />
-    <QtMoc Include="widget\playlisttabbar.h" />
     <QtMoc Include="widget\musicbrainzeditpage.h" />
     <ClInclude Include="widget\musicbrainzparser.h" />
     <ClInclude Include="widget\neteaseparser.h" />
@@ -186,7 +172,6 @@
     <ClInclude Include="widget\util\str_util.h" />
     <ClInclude Include="widget\util\tag_util.h" />
     <ClInclude Include="widget\util\ui_util.h" />
-    <ClInclude Include="widget\util\zib_util.h" />
     <ClInclude Include="widget\webvttparser.h" />
     <ClInclude Include="widget\widget_shared_global.h" />
     <QtMoc Include="widget\worker\backgroundservice.h" />
@@ -195,26 +180,19 @@
     <ClInclude Include="widget\win32\wintaskbar.h" />
     <QtMoc Include="widget\worker\filesystemservice.h" />
     <ClInclude Include="widget\xmessagebox.h" />
-    <QtMoc Include="widget\xtooltip.h" />
     <ClInclude Include="xampplayer.h" />
-    <QtMoc Include="widget\actionmap.h" />
-    <QtMoc Include="widget\albumartistpage.h" />
+    <ClInclude Include="widget\actionmap.h" />
     <QtMoc Include="thememanager.h" />
     <ClInclude Include="version.h" />
-    <QtMoc Include="widget\albumview.h" />
     <ClInclude Include="widget\appsettingnames.h" />
     <ClInclude Include="widget\appsettings.h" />
-    <QtMoc Include="widget\artistinfopage.h" />
     <QtMoc Include="widget\clickablelabel.h" />
     <ClInclude Include="widget\database.h" />
     <ClInclude Include="widget\databasefacade.h" />
-    <QtMoc Include="widget\doubleslider.h" />
     <ClInclude Include="widget\driveinfo.h" />
     <QtMoc Include="widget\equalizerview.h" />
     <ClInclude Include="widget\filesystemmodel.h" />
     <ClInclude Include="widget\fonticon.h" />
-    <ClInclude Include="widget\globalshortcut.h" />
-    <QtMoc Include="widget\iconsizestyle.h" />
     <ClInclude Include="widget\imagecache.h" />
     <ClInclude Include="widget\jsonsettings.h" />
     <ClInclude Include="widget\localelanguage.h" />
@@ -238,7 +216,6 @@
     <ClInclude Include="widget\themecolor.h" />
     <QtMoc Include="widget\uiplayerstateadapter.h" />
     <QtMoc Include="widget\volumebutton.h" />
-    <QtMoc Include="widget\volumecontroldialog.h" />
     <QtMoc Include="widget\wheelablewidget.h" />
     <ClInclude Include="widget\widget_shared.h" />
     <QtMoc Include="widget\xdialog.h" />
@@ -255,23 +232,8 @@
     <ClCompile Include="widgetframe\windowbar.cpp" />
     <ClCompile Include="widgetframe\windowbutton.cpp" />
     <ClCompile Include="widget\aboutpage.cpp" />
-    <ClCompile Include="widget\albumartistpage.cpp">
-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
-      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>
-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
-      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).moc</QtMocFileName>
-    </ClCompile>
-    <ClCompile Include="widget\albumview.cpp" />
-    <ClCompile Include="widget\albumviewstyleddelegate.cpp" />
     <ClCompile Include="widget\appsettingnames.cpp" />
     <ClCompile Include="widget\appsettings.cpp" />
-    <ClCompile Include="widget\artistinfopage.cpp">
-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
-      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>
-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
-      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).moc</QtMocFileName>
-    </ClCompile>
-    <ClCompile Include="widget\artistview.cpp" />
     <ClCompile Include="widget\cdpage.cpp" />
     <ClCompile Include="widget\chatgpt\spectrogramwidget.cpp" />
     <ClCompile Include="widget\clickablelabel.cpp" />
@@ -281,7 +243,6 @@
     <ClCompile Include="widget\dao\playlistdao.cpp" />
     <ClCompile Include="widget\database.cpp" />
     <ClCompile Include="widget\databasefacade.cpp" />
-    <ClCompile Include="widget\doubleslider.cpp" />
     <ClCompile Include="widget\encodejobwidget.cpp">
       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
       <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>
@@ -292,9 +253,6 @@
     <ClCompile Include="widget\filesystemmodel.cpp" />
     <ClCompile Include="widget\filesystemviewpage.cpp" />
     <ClCompile Include="widget\fonticon.cpp" />
-    <ClCompile Include="widget\genre_view.cpp" />
-    <ClCompile Include="widget\genre_view_page.cpp" />
-    <ClCompile Include="widget\globalshortcut.cpp" />
     <ClCompile Include="widget\httpx.cpp" />
     <ClCompile Include="widget\imagecache.cpp" />
     <ClCompile Include="widget\jsonsettings.cpp" />
@@ -304,7 +262,6 @@
     <ClCompile Include="widget\lrcpage.cpp" />
     <ClCompile Include="widget\lrcparser.cpp" />
     <ClCompile Include="widget\lyricsshowwidget.cpp" />
-    <ClCompile Include="widget\m3uparser.cpp" />
     <ClCompile Include="widget\maskwidget.cpp" />
     <ClCompile Include="widget\musicbrainzeditpage.cpp" />
     <ClCompile Include="widget\musicbrainzparser.cpp" />
@@ -314,10 +271,8 @@
     <ClCompile Include="widget\playlistpage.cpp" />
     <ClCompile Include="widget\playlistsqlquerytablemodel.cpp" />
     <ClCompile Include="widget\playliststyleditemdelegate.cpp" />
-    <ClCompile Include="widget\playlisttabbar.cpp" />
     <ClCompile Include="widget\playlisttableproxymodel.cpp" />
     <ClCompile Include="widget\playlisttableview.cpp" />
-    <ClCompile Include="widget\playlisttabwidget.cpp" />
     <ClCompile Include="widget\preferencepage.cpp" />
     <ClCompile Include="widget\processindicator.cpp" />
     <ClCompile Include="widget\qetag.cpp" />
@@ -328,7 +283,6 @@
     <ClCompile Include="widget\waveformslider.cpp" />
     <ClCompile Include="widget\slidingstackedwidget.cpp" />
     <ClCompile Include="widget\navbarlistview.cpp" />
-    <ClCompile Include="widget\taglistview.cpp" />
     <ClCompile Include="widget\uiplayerstateadapter.cpp" />
     <ClCompile Include="widget\util\colortable.cpp" />
     <ClCompile Include="widget\util\image_util.cpp" />
@@ -338,9 +292,7 @@
     <ClCompile Include="widget\util\str_util.cpp" />
     <ClCompile Include="widget\util\tag_util.cpp" />
     <ClCompile Include="widget\util\ui_util.cpp" />
-    <ClCompile Include="widget\util\zib_util.cpp" />
     <ClCompile Include="widget\volumebutton.cpp" />
-    <ClCompile Include="widget\volumecontroldialog.cpp" />
     <ClCompile Include="widget\webvttparser.cpp" />
     <ClCompile Include="widget\wheelablewidget.cpp" />
     <ClCompile Include="widget\widget_shared_global.cpp" />
@@ -353,7 +305,6 @@
     <ClCompile Include="widget\xmainwindow.cpp" />
     <ClCompile Include="widget\xmessagebox.cpp" />
     <ClCompile Include="widget\xprogressdialog.cpp" />
-    <ClCompile Include="widget\xtooltip.cpp" />
     <ClCompile Include="xampplayer.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -364,10 +315,11 @@
     <QtUic Include="logview.ui" />
     <QtUic Include="musicbrainzeditpage.ui" />
     <QtUic Include="preferencedialog.ui" />
-    <QtUic Include="volumecontroldialog.ui" />
   </ItemGroup>
   <ItemGroup>
     <QtTranslation Include="widget_shared_zh_TW.ts" />
+    <QtTranslation Include="widget_shared_ja_JP.ts" />
+    <QtTranslation Include="widget_shared_ko_KR.ts" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
@@ -375,4 +327,11 @@
   </ImportGroup>
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <ItemGroup>
+    <ClInclude Include="widget\globalshortcut.h" />
+    <ClCompile Include="widget\globalshortcut.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="widget\windowbackdrop.h" />
+  </ItemGroup>
 </Project>

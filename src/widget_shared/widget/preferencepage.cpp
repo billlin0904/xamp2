@@ -1,8 +1,9 @@
+#include <widget/windowbackdrop.h>
 #include <QCheckBox>
+#include <QTabBar>
 #include <widget/preferencepage.h>
 #include <ui_preferencedialog.h>
 #include <QInputDialog>
-#include <QStandardItemModel>
 
 #include <widget/util/str_util.h>
 #include <widget/util/ui_util.h>
@@ -155,6 +156,10 @@ void PreferencePage::initialLanguage() {
 	}
 
     ui_->langCombo->setCurrentIndex(current_index);
+    if (ui_->langCombo->count() == 0) {
+        ui_->langCombo->addItem(current_lang.nativeNameLang());
+        ui_->langCombo->setEnabled(false);
+    }
 
 	(void)QObject::connect(ui_->langCombo, static_cast<void (QComboBox::*)(int32_t)>(&QComboBox::activated), 
 		[this](auto const& index) {
@@ -180,6 +185,39 @@ PreferencePage::PreferencePage(QWidget *parent)
     : QFrame(parent) {
 	ui_ = new Ui::PreferenceDialog();
     ui_->setupUi(this);
+    auto* bitperfect = new QCheckBox(tr("BitPerfect PCM (WASAPI Exclusive / ASIO)"), this);
+    bitperfect->setObjectName(QStringLiteral("bitPerfectCheckBox"));
+    bitperfect->setChecked(qAppSettings.valueAsBool(QStringLiteral("bitPerfectEnabled")));
+    auto* bitperfect_hint = new QLabel(tr("Next playback: stereo 16/24/32-bit integer WAV or FLAC at the original sample rate. Requires an integer WASAPI Exclusive or ASIO output with enough valid bits. Bypasses DSP and software volume; use your DAC volume control."), this);
+    bitperfect_hint->setWordWrap(true);
+    auto* bitperfect_row = new QFrame(this);
+    bitperfect_row->setProperty("settingRow", true);
+    auto* bitperfect_layout = new QVBoxLayout(bitperfect_row);
+    bitperfect_layout->setContentsMargins(18, 14, 18, 14);
+    bitperfect_layout->addWidget(bitperfect);
+    bitperfect_layout->addWidget(bitperfect_hint);
+    auto* output_page = new QWidget(this);
+    output_page->setObjectName(QStringLiteral("outputSettingsPage"));
+    auto* output_layout = new QVBoxLayout(output_page);
+    output_layout->setContentsMargins(0, 0, 0, 0);
+    output_layout->setSpacing(12);
+    output_layout->addWidget(bitperfect_row);
+    output_layout->addStretch();
+    ui_->stackedWidget->addWidget(output_page);
+    connect(this, &PreferencePage::retranslateUi, this, [bitperfect, bitperfect_hint] {
+        bitperfect->setText(tr("BitPerfect PCM (WASAPI Exclusive / ASIO)"));
+        bitperfect_hint->setText(tr("Next playback: stereo 16/24/32-bit integer WAV or FLAC at the original sample rate. Requires an integer WASAPI Exclusive or ASIO output with enough valid bits. Bypasses DSP and software volume; use your DAC volume control."));
+    });
+    connect(bitperfect, &QCheckBox::toggled, this, [](bool enabled) {
+        qAppSettings.setValue(QStringLiteral("bitPerfectEnabled"), enabled);
+    });
+    ui_->backdropCombo->setCurrentIndex(WindowBackdrop::mode());
+    ui_->backdropCombo->setEnabled(WindowBackdrop::supported());
+    if (!WindowBackdrop::supported()) {
+        ui_->backdropHint->setText(tr("Requires Windows 11 22H2 or later. Uses a solid background here."));
+    }
+    connect(ui_->backdropCombo, &QComboBox::currentIndexChanged,
+        this, [](int index) { WindowBackdrop::setMode(index); });
 
 	initSoxResampler();
 	initR8BrainResampler();
@@ -205,34 +243,6 @@ PreferencePage::PreferencePage(QWidget *parent)
 		qTheme.setThemeColor(ThemeColor::DARK_THEME);
 		emit qTheme.themeChangedFinished(ThemeColor::DARK_THEME);		
 		});
-
-    ui_->preferenceTreeWidget->header()->hide();
-    
-    auto* settings_item = new QTreeWidgetItem(QStringList() << tr("Playback"));
-    settings_item->setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
-
-    auto* dsp_manager_item = new QTreeWidgetItem(QStringList() << tr("Resampler"));
-    settings_item->addChild(dsp_manager_item);
-
-    ui_->preferenceTreeWidget->addTopLevelItem(settings_item);
-    ui_->preferenceTreeWidget->expandAll();
-	ui_->preferenceTreeWidget->setCurrentItem(settings_item);
-
-    (void)QObject::connect(ui_->preferenceTreeWidget, &QTreeWidget::itemClicked, [this](auto item, auto column) {
-        const OrderedMap<QString, int32_t> stack_page_map{
-            { tr("Playback"), 0 },
-            { tr("Resampler"), 1 },
-        };
-
-	    const auto select_type = item->text(column);
-		const auto itr = stack_page_map.find(select_type);
-
-        if (itr != stack_page_map.end()) {
-            ui_->stackedWidget->setCurrentIndex((*itr).second);
-        } else {
-            ui_->stackedWidget->setCurrentIndex(0);
-        }
-    });
 
 	(void)QObject::connect(ui_->selectResamplerComboBox, static_cast<void (QComboBox::*)(int32_t)>(&QComboBox::activated), [this](auto const& index) {
 		ui_->resamplerStackedWidget->setCurrentIndex(index);
@@ -286,7 +296,6 @@ PreferencePage::PreferencePage(QWidget *parent)
 
 	(void)QObject::connect(ui_->clearCoverCacheButton, &QPushButton::clicked, [this](auto) {
 		qImageCache.clearCache();
-		qImageCache.clear();
 		qDaoFacade.music_dao.removeCoverId();
 		});
 
@@ -365,7 +374,16 @@ PreferencePage::PreferencePage(QWidget *parent)
 	qTheme.setSliderTheme(ui_->soxrPassbandSlider, true);
 
 	ui_->stackedWidget->setCurrentIndex(0);
-	setFixedSize(950, 700);		
+    ui_->settingsTabs->setExpanding(false);
+    ui_->settingsTabs->addTab(tr("Playback"));
+    ui_->settingsTabs->addTab(tr("Resampler"));
+    ui_->settingsTabs->addTab(tr("Output"));
+    connect(ui_->settingsTabs, &QTabBar::currentChanged, ui_->stackedWidget, &QStackedWidget::setCurrentIndex);
+    connect(this, &PreferencePage::retranslateUi, this, [this] {
+        ui_->settingsTabs->setTabText(0, tr("Playback"));
+        ui_->settingsTabs->setTabText(1, tr("Resampler"));
+        ui_->settingsTabs->setTabText(2, tr("Output"));
+    });
 }
 
 PreferencePage::~PreferencePage() {
@@ -405,4 +423,17 @@ void PreferencePage::saveAll() {
 
 	qJsonSettings.save();
 	qAppSettings.save();
+}
+
+void PreferencePage::addUpdatesPage(QWidget* page) {
+    const int index = ui_->stackedWidget->addWidget(page);
+    updates_page_index_ = index;
+    ui_->settingsTabs->addTab(QCoreApplication::translate("ApplicationUpdater", "Software updates"));
+    connect(this, &PreferencePage::retranslateUi, this, [this, index] {
+        ui_->settingsTabs->setTabText(index, QCoreApplication::translate("ApplicationUpdater", "Software updates"));
+    });
+}
+
+void PreferencePage::showUpdatesPage() {
+    if (updates_page_index_ >= 0) ui_->settingsTabs->setCurrentIndex(updates_page_index_);
 }

@@ -33,9 +33,9 @@ public:
 	ScopedPtr<IOutputDevice> makeDevice(const std::shared_ptr<IThreadPool>& thread_pool, const std::string& device_id);
 
 private:
-	[[nodiscard]] CComPtr<IMMDevice> GetDeviceById(const std::wstring& device_id) const;
+	[[nodiscard]] CComPtr<IMMDevice> getDeviceById(const std::wstring& device_id) const;
 
-	[[nodiscard]] std::vector<DeviceInfo> GetDeviceInfoList() const;
+	[[nodiscard]] std::vector<DeviceInfo> getDeviceInfoList() const;
 
 	// Device enumerator
 	CComPtr<IMMDeviceEnumerator> enumerator_;
@@ -50,15 +50,15 @@ ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::ExclusiveWasapiDeviceT
 }
 
 void ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::scanNewDevice() {
-	enumerator_ = helper::CreateDeviceEnumerator();
-	device_list_ = GetDeviceInfoList();	
+	enumerator_ = helper::createDeviceEnumerator();
+	device_list_ = getDeviceInfoList();	
 }
 
 std::optional<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::getDefaultDeviceInfo() const {
 	CComPtr<IMMDevice> default_output_device;
 	const auto hr = enumerator_->GetDefaultAudioEndpoint(eRender, eConsole, &default_output_device);
 	constexpr auto kNotFoundHr = HRESULT_FROM_WIN32(ERROR_NOT_FOUND);
-	HrIfNotEqualThrow(hr, kNotFoundHr);
+	hIfNotEqualThrow(hr, kNotFoundHr);
 	if (hr == kNotFoundHr) {
 		return std::nullopt;
 	}
@@ -71,14 +71,14 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl
 	return device_list_;
 }
 
-CComPtr<IMMDevice> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::GetDeviceById(const std::wstring & device_id) const {
+CComPtr<IMMDevice> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::getDeviceById(const std::wstring & device_id) const {
 	CComPtr<IMMDevice> device;
 	hrIfFailThrow(enumerator_->GetDevice(device_id.c_str(), &device));
 	return device;
 }
 
 ScopedPtr<IOutputDevice> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::makeDevice(const std::shared_ptr<IThreadPool>& /*thread_pool*/, const std::string & device_id) {
-	return makeAlign<IOutputDevice, ExclusiveWasapiDevice>(GetDeviceById(String::toStdWString(device_id)));
+	return makeAlign<IOutputDevice, ExclusiveWasapiDevice>(getDeviceById(String::toStdWString(device_id)));
 }
 
 size_t ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::getDeviceCount() const {
@@ -94,7 +94,7 @@ DeviceInfo ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::getDeviceIn
 	return (*itr);
 }
 
-std::vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::GetDeviceInfoList() const {
+std::vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl::getDeviceInfoList() const {
 	CComPtr<IMMDeviceCollection> devices;
 	std::vector<DeviceInfo> device_list;
 	std::wstring default_device_name;
@@ -128,7 +128,7 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceTypeImpl
 			auto info = helper::getDeviceInfo(device, XAMP_UUID_OF(ExclusiveWasapiDeviceType), ExclusiveWasapiDeviceType::Description);
 
 			AudioFormat default_format;
-			if (!helper::IsDeviceSupportExclusiveMode(device, default_format)) {
+			if (!helper::isDeviceSupportExclusiveMode(device, default_format)) {
 				continue;
 			}			
 

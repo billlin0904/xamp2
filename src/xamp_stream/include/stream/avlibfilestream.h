@@ -21,6 +21,8 @@ public:
 
 	bool endOfStream() const override;
 
+    void setIntegerPcm(bool enabled);
+    std::optional<xamp::pcm::Format> integerPcmFormat() const override;
 	void useCustomIOContext(bool enable);
 
 	void openFile(const Path& file_path) override;

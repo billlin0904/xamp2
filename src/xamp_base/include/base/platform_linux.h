@@ -54,15 +54,11 @@ XAMP_BASE_API void setThreadName(std::wstring const& name);
 
 XAMP_BASE_API std::string getCurrentThreadId();
 
-XAMP_BASE_API bool isDebugging();
-
 XAMP_BASE_API void setCurrentThreadPriority(ThreadPriority priority);
 
 XAMP_BASE_API bool virtualMemoryLock(void* address, size_t size);
 
 XAMP_BASE_API bool virtualMemoryUnlock(void* address, size_t size);
-
-XAMP_BASE_API void mSleep(std::chrono::milliseconds timeout);
 
 XAMP_BASE_API int32_t atomicWait(std::atomic<uint32_t>& to_wait_on,
     uint32_t expected,

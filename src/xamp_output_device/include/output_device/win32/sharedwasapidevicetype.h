@@ -18,62 +18,26 @@
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
-/*
- * SharedWasapiDeviceType is the device type for shared mode wasapi.
- */
 class XAMP_OUTPUT_DEVICE_API SharedWasapiDeviceType final : public IDeviceType {
 	XAMP_DECLARE_MAKE_CLASS_UUID(SharedWasapiDeviceType, "07885EDF-7CCB-4FA6-962D-B66A759978B1")
 
 public:
 	XAMP_DECLARE_UUID_CLASS_DESC(SharedWasapiDeviceType, "Shared WASAPI")
 
-	/*
-	 * Constructor
-	 */
 	SharedWasapiDeviceType();
 
 	XAMP_PIMPL(SharedWasapiDeviceType)
 
-	/*
-	* Scan new device
-	*/
 	void scanNewDevice() override;
 
-	/*
-	* Get device count
-	*
-	* @return size_t
-	*/
 	[[nodiscard]] size_t getDeviceCount() const override;
 
-	/*
-	* Get device info
-	*
-	* @param device: device index
-	* @return DeviceInfo
-	*/
 	[[nodiscard]] DeviceInfo getDeviceInfo(uint32_t device) const override;
 
-	/*
-	* Get default device info
-	*
-	* @return std::optional<DeviceInfo>
-	*/
 	[[nodiscard]] std::optional<DeviceInfo> getDefaultDeviceInfo() const override;
 
-	/*
-	* Get device info
-	*
-	* @return std::vector<DeviceInfo>
-	*/
 	[[nodiscard]] std::vector<DeviceInfo> getDeviceInfo() const override;
 
-	/*
-	* Make device
-	*
-	* @param device_id: device id
-	* @return ScopedPtr<IOutputDevice>
-	*/
 	ScopedPtr<IOutputDevice> makeDevice(const std::shared_ptr<IThreadPool>& thread_pool, const std::string& device_id) override;
 	
 private:

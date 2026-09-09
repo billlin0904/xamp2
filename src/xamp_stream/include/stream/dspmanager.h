@@ -25,7 +25,12 @@ public:
 
     XAMP_DISABLE_COPY(DSPManager)
 
-	void initialize(const Property& config) override;
+	void setBitPerfect(bool enabled) override { bitperfect_ = enabled; }
+    bool isBitPerfect() const override { return bitperfect_; }
+
+    void processPcm(const xamp::pcm::Block& block, AudioBuffer<std::byte>& fifo) override;
+
+    void initialize(const Property& config) override;
 
     bool processDSP(const float* samples, uint32_t num_samples, AudioBuffer<std::byte>& fifo) override;
 
@@ -127,6 +132,7 @@ private:
     Buffer<float> pre_dsp_buffer_;
     Buffer<float> post_dsp_buffer_;
     std::shared_ptr<Logger> logger_;
+    bool bitperfect_{false};
     Property config_;
     std::move_only_function<bool(float const*, uint32_t, AudioBuffer<std::byte>&)> dispatch_;
 };

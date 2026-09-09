@@ -6,6 +6,9 @@
 #pragma once
 
 #include <stream/stream.h>
+#include <base/pcm.h>
+#include <optional>
+#include <stdexcept>
 #include <base/uuid_class.h>
 #include <base/audioformat.h>
 #include <base/uuid.h>
@@ -21,6 +24,19 @@ XAMP_STREAM_NAMESPACE_BEGIN
 class XAMP_STREAM_API XAMP_NO_VTABLE IAudioStream : public IUUIDClass {
 public:
     XAMP_BASE_CLASS(IAudioStream)
+    [[nodiscard]] virtual std::optional<xamp::pcm::Format> integerPcmFormat() const { return std::nullopt; }
+    xamp::pcm::Block readPcm(std::span<std::byte> storage) const {
+        const auto format = integerPcmFormat();
+        if (!format || !xamp::pcm::valid(*format) || format->layout != xamp::pcm::Layout::Interleaved)
+            throw std::runtime_error("Stream does not expose interleaved integer PCM");
+        const auto frames = storage.size()/format->frameBytes();
+        if (frames > UINT32_MAX/format->channels) throw std::length_error("PCM block too large");
+        const auto samples = getSamples(storage.data(),static_cast<uint32_t>(frames*format->channels));
+        if (samples > frames*format->channels || samples%format->channels)
+            throw std::runtime_error("Decoder returned an incomplete PCM frame");
+        return {storage.first(samples*format->sampleBytes()), samples/format->channels, *format};
+    }
+
 
     /*
     * Check if the stream is a file.

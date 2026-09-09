@@ -14,26 +14,12 @@
 
 XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN
 
-/*
-* DeviceConnectType is the enum for device connect type.
-* 
-* <remarks>
-* UNKNOWN: Unknown.
-* USB: USB.
-* BUILT_IN: Built in.
-* BLUE_TOOTH: Blue tooth.
-* </remarks>
-*/
 XAMP_MAKE_ENUM(DeviceConnectType,
 	UNKNOWN,
 	USB,
 	BUILT_IN_SPEAKER,
 	BLUE_TOOTH)
 
-/*
-* DeviceInfo is the device info.
-* 
-*/
 struct XAMP_OUTPUT_DEVICE_API DeviceInfo final {
 	bool is_default_device{ false };
 	bool is_support_dsd{ false };

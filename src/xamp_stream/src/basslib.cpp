@@ -148,14 +148,9 @@ catch (const Exception& e) {
     XAMP_LOG_E(logger, "{}", e.getErrorMessage());
 }
 
-BassLib::~BassLib() {
-    XAMP_LOG_E(logger, "destroy BASS library.");
-
-	if (!module_.is_valid()) {
-        return;
-	}
-    Free();
-}
+// Please use freeAllPlugin to free the plugin before destructing BassLib,
+// otherwise it may cause memory leak.
+BassLib::~BassLib() = default;
 
 std::string BassLib::getName() const {
     return getSharedLibraryName("bass");
@@ -177,8 +172,8 @@ void BassStreamDeleter::close(HSTREAM value) {
     LIB_BASS.BASS_StreamFree(value);
 }
 
-void BassLib::load() {
-    if (IsLoaded()) {
+void BassLib::loadAllPlugin() {
+    if (isPluginLoaded()) {
         return;
     }
 
@@ -227,7 +222,7 @@ void BassLib::load() {
     LIB_BASS.BASS_SetConfigPtr(BASS_CONFIG_NET_AGENT, String::toStdWString(XAMP_HTTP_USER_AGENT).c_str());
 }
 
-void BassLib::Free() {
+void BassLib::freeAllPlugin() {
     plugins_.clear();
     if (module_.is_valid()) {
         try {

@@ -14,33 +14,33 @@ XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN
 /*
 * Make audio device manager.
 */
-XAMP_OUTPUT_DEVICE_API ScopedPtr<IAudioDeviceManager> MakeAudioDeviceManager();
+XAMP_OUTPUT_DEVICE_API ScopedPtr<IAudioDeviceManager> makeAudioDeviceManager();
 
 /*
 * Is exclusive device.
 * 
 * @param[in] info: device info.
 */
-XAMP_OUTPUT_DEVICE_API [[nodiscard]] bool IsExclusiveDevice(const DeviceInfo& info) ;
+XAMP_OUTPUT_DEVICE_API [[nodiscard]] bool isExclusiveDevice(const DeviceInfo& info) ;
 
 /*
 * Is asio device.
 * 
 * @param[in] id: device id.
 */
-XAMP_OUTPUT_DEVICE_API [[nodiscard]] bool IsAsioDevice(const Uuid& id) ;
+XAMP_OUTPUT_DEVICE_API [[nodiscard]] bool isAsioDevice(const Uuid& id) ;
 
 /*
 * reset asio driver.
 * 
 */
-XAMP_OUTPUT_DEVICE_API void ResetAsioDriver();
+XAMP_OUTPUT_DEVICE_API void resetAsioDriver();
 
 /*
 * Prevent sleep.
 * 
 * @param[in] allow: allow sleep.
 */
-XAMP_OUTPUT_DEVICE_API void PreventSleep(bool allow);
+XAMP_OUTPUT_DEVICE_API void preventSleep(bool allow);
 
 XAMP_OUTPUT_DEVICE_NAMESPACE_END

@@ -176,14 +176,9 @@ QFont ThemeManager::loadFonts() {
     QList<QString> en_fonts;
     QList<QString> debug_fonts;
 
-    installFileFonts("FiraCode-Regular"_str, debug_fonts);
+    installFileFonts("IBMPlexMono-Regular"_str, debug_fonts);
     installFileFonts("Aldrich-Regular"_str, format_font);
     installFileFonts("NotoSans"_str, mono_fonts);
-
-    // UI first font.
-    QList<QString> default_fonts;
-    installFileFonts("Inter"_str, default_fonts);
-    sortFontWeight(default_fonts.begin(), default_fonts.end());
 
     installFileFonts("SourceHanSans"_str, source_han_fonts);
     source_han_fonts.push_back("Source Han Sans TC"_str);
@@ -191,7 +186,6 @@ QFont ThemeManager::loadFonts() {
     source_han_fonts.push_back("Source Han Sans SC"_str);
     sortFontWeight(source_han_fonts.begin(), source_han_fonts.end());
 
-    ui_fonts.append(default_fonts);
     ui_fonts.append(source_han_fonts);
 
     if (format_font.isEmpty()) {
@@ -211,9 +205,12 @@ QFont ThemeManager::loadFonts() {
     QFont::insertSubstitutions("UIFont"_str, ui_fonts);
 
     auto ui_font = uiFont();
+#ifdef Q_OS_WIN
+    ui_font.setFamilies({QStringLiteral("Segoe UI"), QStringLiteral("Microsoft JhengHei UI"), QStringLiteral("Yu Gothic UI")});
+#endif
     ui_font.setStyleStrategy(QFont::PreferAntialias);
     ui_font.setWeight(QFont::Weight::Normal);
-    ui_font.setKerning(false);
+    ui_font.setKerning(true);
 
     return ui_font;
 }

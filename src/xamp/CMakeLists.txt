@@ -59,6 +59,15 @@ if(UNIX AND NOT APPLE)
 endif()
 
 add_executable(xamp
+    playbackcontroller.cpp
+    playbackcontroller.h
+    playbackpresenter.cpp
+    playbackpresenter.h
+    playbackqueue.h
+    applicationupdater.cpp
+    applicationupdater.h
+    applicationservices.cpp
+    applicationservices.h
     deviceselectormenu.cpp
     deviceselectormenu.h
     main.cpp
@@ -295,4 +304,53 @@ if(UNIX AND NOT APPLE AND CMAKE_BUILD_TYPE STREQUAL "Release")
         COMMENT "Deploying Linux Release zip package"
         VERBATIM
     )
+endif()
+
+find_package(Qt6 REQUIRED COMPONENTS LinguistTools)
+add_custom_command(TARGET xamp POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:xamp>/langs"
+    COMMAND Qt6::lrelease "${CMAKE_CURRENT_SOURCE_DIR}/zh_TW.ts" -qm "$<TARGET_FILE_DIR:xamp>/langs/zh_TW.qm"
+    COMMAND Qt6::lrelease "${CMAKE_CURRENT_SOURCE_DIR}/../widget_shared/widget_shared_zh_TW.ts" -qm "$<TARGET_FILE_DIR:xamp>/langs/widget_shared_zh_TW.qm"
+    COMMAND Qt6::lrelease "${CMAKE_CURRENT_SOURCE_DIR}/qt_zh_TW.ts" -qm "$<TARGET_FILE_DIR:xamp>/langs/qt_zh_TW.qm"
+    VERBATIM)
+
+# Qt's standard widget/dialog translations accompany the application catalogs.
+get_target_property(XAMP_QMAKE_EXECUTABLE Qt6::qmake IMPORTED_LOCATION)
+execute_process(COMMAND "${XAMP_QMAKE_EXECUTABLE}" -query QT_INSTALL_TRANSLATIONS
+    OUTPUT_VARIABLE XAMP_QT_TRANSLATIONS_DIR OUTPUT_STRIP_TRAILING_WHITESPACE
+    COMMAND_ERROR_IS_FATAL ANY)
+foreach(locale IN ITEMS ja_JP ko_KR)
+    string(SUBSTRING "${locale}" 0 2 qt_language)
+    add_custom_command(TARGET xamp POST_BUILD
+        COMMAND Qt6::lrelease "${CMAKE_CURRENT_SOURCE_DIR}/${locale}.ts" -qm "$<TARGET_FILE_DIR:xamp>/langs/${locale}.qm"
+        COMMAND Qt6::lrelease "${CMAKE_CURRENT_SOURCE_DIR}/../widget_shared/widget_shared_${locale}.ts" -qm "$<TARGET_FILE_DIR:xamp>/langs/widget_shared_${locale}.qm"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${XAMP_QT_TRANSLATIONS_DIR}/qtbase_${qt_language}.qm" "$<TARGET_FILE_DIR:xamp>/langs/qt_${locale}.qm"
+        VERBATIM)
+endforeach()
+
+option(XAMP_BUILD_ARCHITECTURE_TESTS "Build playback queue/state regression tests" OFF)
+if(XAMP_BUILD_ARCHITECTURE_TESTS)
+    enable_testing()
+    add_executable(playbackarchitecture_test tests/playbackarchitecture_test.cpp)
+    target_compile_features(playbackarchitecture_test PRIVATE cxx_std_23)
+    target_include_directories(playbackarchitecture_test PRIVATE $<TARGET_PROPERTY:xamp,INCLUDE_DIRECTORIES>)
+    target_link_libraries(playbackarchitecture_test PRIVATE widget_shared Qt6::Widgets)
+    add_test(NAME playbackarchitecture COMMAND playbackarchitecture_test -platform offscreen)
+endif()
+
+if(XAMP_BUILD_ARCHITECTURE_TESTS)
+    add_executable(applicationupdater_test tests/applicationupdater_test.cpp applicationupdater.cpp applicationupdater.h)
+    set_target_properties(applicationupdater_test PROPERTIES AUTOMOC ON)
+    target_compile_features(applicationupdater_test PRIVATE cxx_std_23)
+    target_include_directories(applicationupdater_test PRIVATE $<TARGET_PROPERTY:xamp,INCLUDE_DIRECTORIES>)
+    target_link_libraries(applicationupdater_test PRIVATE widget_shared xamp_base Qt6::Widgets Qt6::Network)
+    add_test(NAME applicationupdater COMMAND applicationupdater_test -platform offscreen)
+endif()
+
+if(XAMP_BUILD_ARCHITECTURE_TESTS)
+    add_executable(playlistdeletion_test tests/playlistdeletion_test.cpp)
+    target_compile_features(playlistdeletion_test PRIVATE cxx_std_23)
+    target_include_directories(playlistdeletion_test PRIVATE $<TARGET_PROPERTY:xamp,INCLUDE_DIRECTORIES>)
+    target_link_libraries(playlistdeletion_test PRIVATE widget_shared Qt6::Sql)
+    add_test(NAME playlistdeletion COMMAND playlistdeletion_test)
 endif()

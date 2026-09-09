@@ -51,27 +51,15 @@ public:
     DeviceStateNotificationImpl() = default;
 
     void setCallback(const std::weak_ptr<IDeviceStateListener> & callback) {
-#ifdef XAMP_OS_WIN
         notification_ = new DeviceStateNotification(callback);
-#elif defined(XAMP_OS_MAC)
-        notification_.reset(new DeviceStateNotification(callback));
-#elif defined(XAMP_OS_LINUX)
-        notification_.reset(new DeviceStateNotification(callback));
-#else
-        (void)callback;
-#endif
     }
 
     void run() const {
-#if defined(XAMP_OS_WIN) || defined(XAMP_OS_MAC) || defined(XAMP_OS_LINUX)
         notification_->run();
-#endif
     }
 
 private:
-#if defined(XAMP_OS_WIN) || defined(XAMP_OS_MAC) || defined(XAMP_OS_LINUX)
     DeviceStateNotificationPtr notification_;
-#endif
 };
 
 #define XAMP_REGISTER_DEVICE_TYPE(DeviceTypeClass) \
@@ -228,10 +216,10 @@ void AudioDeviceManager::shutdown() {
 #ifdef XAMP_OS_WIN	
     auto hr = ::MFShutdown();
     if (FAILED(hr)) {
-		XAMP_LOG_ERROR("MFShutdown failed: {}", com_to_system_error(hr).code().message());
+		XAMP_LOG_ERROR("MFShutdown failed: {}", translatedHrError(hr));
 	}	
 #else
-    PreventSleep(false);
+    preventSleep(false);
 #endif
     clear();
 }

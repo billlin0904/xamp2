@@ -767,7 +767,7 @@ EqualizerView::EqualizerView(QWidget* parent)
         qAppSettings.loadEqPreset();
         auto settings = qAppSettings.eqPreset().value(name);
         if (settings.bands.empty()) {
-            settings.SetDefault();
+            settings.setDefault();
         }
         applySetting(name, settings);
         saveCurrentSetting();
@@ -798,7 +798,7 @@ EqualizerView::EqualizerView(QWidget* parent)
         settings = qAppSettings.eqPreset().value(name);
     }
     if (settings.bands.empty()) {
-        settings.SetDefault();
+        settings.setDefault();
     }
 
     applySetting(name, settings);
@@ -996,7 +996,7 @@ void EqualizerView::applySetting(const QString& name, const EqSettings& settings
     current_settings_ = settings;
 
     if (current_settings_.bands.empty()) {
-        current_settings_.SetDefault();
+        current_settings_.setDefault();
     }
 
     for (auto& band : current_settings_.bands) {

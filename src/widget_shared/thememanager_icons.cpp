@@ -29,7 +29,9 @@ QString ThemeManager::countryFlagFilePath(const QString& country_iso_code) {
 }
 
 QIcon ThemeManager::fontRawIcon(const Glyphs code) {
-    return qFontIcon.getIcon(static_cast<int32_t>(code), font_icon_opts_);
+    auto options = font_icon_opts_;
+    options.insert(QStringLiteral("followPalette"), true);
+    return qFontIcon.getIcon(static_cast<int32_t>(code), options);
 }
 
 QIcon ThemeManager::fontRawIconOption(const Glyphs code, const QVariantMap& options) {
@@ -104,11 +106,16 @@ QIcon ThemeManager::fontIcon(const Glyphs code, std::optional<ThemeColor> theme_
 		}
     }
 
-    if (font_icon_opts_.isEmpty()) {
-        XAMP_LOG_DEBUG("font_icon_opts_ is empty.");
+    auto options = font_icon_opts_;
+    if (theme_color) {
+        const QColor foreground = color == ThemeColor::DARK_THEME
+            ? QColor(QStringLiteral("#EEF1EF")) : QColor(QStringLiteral("#202623"));
+        options.insert(FontIconOption::kColorAttr, foreground);
+        options.insert(FontIconOption::kSelectedColorAttr, foreground);
+    } else {
+        options.insert(QStringLiteral("followPalette"), true);
     }
-
-    return qFontIcon.getIcon(static_cast<int32_t>(code), font_icon_opts_);
+    return qFontIcon.getIcon(static_cast<int32_t>(code), options);
 }
 
 QIcon ThemeManager::applicationIcon() const {
@@ -126,8 +133,8 @@ QIcon ThemeManager::playCircleIcon() const {
 QIcon ThemeManager::playlistPauseIcon(QSize icon_size, double scale_factor) const {
     QVariantMap font_options;
     font_options.insert(FontIconOption::kScaleFactorAttr, QVariant::fromValue(scale_factor));
-    font_options.insert(FontIconOption::kColorAttr, QColor(250, 88, 106));
-    font_options.insert(FontIconOption::kSelectedColorAttr, QColor(250, 88, 106));
+    font_options.insert(FontIconOption::kColorAttr, indicatorColor());
+    font_options.insert(FontIconOption::kSelectedColorAttr, indicatorColor());
 
     auto icon = qFontIcon.getIcon(static_cast<int32_t>(Glyphs::ICON_PLAY_LIST_PAUSE), font_options);
     icon.addPixmap(icon.pixmap(icon_size, QIcon::Normal, QIcon::Off),
@@ -140,8 +147,8 @@ QIcon ThemeManager::playlistPauseIcon(QSize icon_size, double scale_factor) cons
 QIcon ThemeManager::playlistPlayingIcon(QSize icon_size, double scale_factor) const {
     QVariantMap font_options;
     font_options.insert(FontIconOption::kScaleFactorAttr, QVariant::fromValue(scale_factor));
-    font_options.insert(FontIconOption::kColorAttr, QColor(250, 88, 106));
-    font_options.insert(FontIconOption::kSelectedColorAttr, QColor(250, 88, 106));
+    font_options.insert(FontIconOption::kColorAttr, indicatorColor());
+    font_options.insert(FontIconOption::kSelectedColorAttr, indicatorColor());
     auto icon = qFontIcon.getIcon(static_cast<int32_t>(Glyphs::ICON_PLAY_LIST_PLAY), font_options);
 
     icon.addPixmap(icon.pixmap(icon_size, QIcon::Normal, QIcon::Off),
@@ -199,12 +206,11 @@ void ThemeManager::setHeartButton(QToolButton* heartButton, bool press) {
 }
 
 void ThemeManager::setPlayOrPauseButton(QToolButton *playButton, bool is_playing) {
-    if (is_playing) {
-        playButton->setIcon(fontIcon(Glyphs::ICON_PAUSE));
-    }
-    else {
-        playButton->setIcon(fontIcon(Glyphs::ICON_PLAY));
-    }
+    QVariantMap options;
+    options.insert(FontIconOption::kColorAttr,
+        isDarkTheme() ? QColor("#10231C"_str) : textColor());
+    playButton->setIcon(fontRawIconOption(
+        is_playing ? Glyphs::ICON_PAUSE : Glyphs::ICON_PLAY, options));
 }
 
 QSize ThemeManager::titleButtonIconSize() {

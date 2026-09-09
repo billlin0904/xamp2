@@ -110,15 +110,7 @@
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <PostBuildEvent>
-      <Command>if exist "$(ProjectDir)..\..\vcpkg_installed\x64-windows\bin\simdjson.dll" copy /Y "$(ProjectDir)..\..\vcpkg_installed\x64-windows\bin\simdjson.dll" "$(OutDir)"
-if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Core.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Core.dll" "$(OutDir)"
-if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Gui.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Gui.dll" "$(OutDir)"
-if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Widgets.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Widgets.dll" "$(OutDir)"
-if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Network.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Network.dll" "$(OutDir)"
-if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Sql.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Sql.dll" "$(OutDir)"
-if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Concurrent.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Concurrent.dll" "$(OutDir)"
-if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Core5Compat.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Core5Compat.dll" "$(OutDir)"
-if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Multimedia.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Multimedia.dll" "$(OutDir)"</Command>
+      <Command>if exist "$(ProjectDir)..\..\vcpkg_installed\x64-windows\bin\simdjson.dll" copy /Y "$(ProjectDir)..\..\vcpkg_installed\x64-windows\bin\simdjson.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
     <Bscmake>
       <PreserveSbr>false</PreserveSbr>

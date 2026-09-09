@@ -14,17 +14,17 @@
 
 #include <output_device/output_device.h>
 
-#define HrIfNotEqualThrow(hresult, otherHr) \
+#define hIfNotEqualThrow(hresult, otherHr) \
 	do { \
 		if (FAILED((hresult)) && ((otherHr) != (hresult))) { \
-			throw_translated_com_error(hresult); \
+			throw PlatformException(translatedHrError(hresult)); \
 		} \
 	} while (false)
 
 #define hrIfFailThrow(hresult) \
 	do { \
 		if (FAILED((hresult))) { \
-			throw_translated_com_error(hresult); \
+			throw PlatformException(translatedHrError(hresult)); \
 		} \
 	} while (false)
 

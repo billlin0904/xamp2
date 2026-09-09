@@ -42,13 +42,15 @@ XAMP_BASE_API std::string getSharedLibraryName(const std::string_view &name);
 
 XAMP_BASE_API Path getTempFileNamePath();
 
+XAMP_BASE_API Path makeTempPath(const Path& original_path);
+
 XAMP_BASE_API std::tuple<std::fstream, Path> getTempFile();
 
 XAMP_BASE_API Path getApplicationFilePath();
 
 XAMP_BASE_API Path getComponentsFilePath();
 
-XAMP_BASE_API bool IsCDAFile(const Path& path);
+XAMP_BASE_API bool isCDAFile(const Path& path);
 
 XAMP_BASE_API std::expected<std::string, TextEncodeingError> readFileToUtf8String(const Path& path);
 

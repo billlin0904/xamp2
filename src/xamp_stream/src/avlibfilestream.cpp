@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <cerrno>
+#include <cmath>
 #include <cstring>
 #include <vector>
 
@@ -133,7 +134,7 @@ class AvLibFileStream::AvLibFileStreamImpl {
 public:
 	AvLibFileStreamImpl()
 		: logger_(XAMP_LOG_CREATE_LOGGER(AvLibFileStream)) {
-		logger_->setLevel(LogLevel::LOG_LEVEL_DEBUG);
+		//logger_->setLevel(LogLevel::LOG_LEVEL_DEBUG);
 	}
 
 	~AvLibFileStreamImpl() {
@@ -241,7 +242,27 @@ public:
 			? static_cast<uint32_t>(codec_parameters->bit_rate / 1000)
 			: 0;
 		duration_ = resolveDuration();
-		initializeResampler();
+        if (integer_pcm_) {
+            const auto codec = codec_parameters->codec_id;
+            const bool integer_codec = codec == AV_CODEC_ID_FLAC || codec == AV_CODEC_ID_PCM_S16LE ||
+                codec == AV_CODEC_ID_PCM_S16BE || codec == AV_CODEC_ID_PCM_S24LE ||
+                codec == AV_CODEC_ID_PCM_S24BE || codec == AV_CODEC_ID_PCM_S32LE || codec == AV_CODEC_ID_PCM_S32BE;
+            if (codec == AV_CODEC_ID_FLAC) {
+                const int original_bits = codec_parameters->bits_per_raw_sample > 0
+                    ? codec_parameters->bits_per_raw_sample : codec_context_->bits_per_raw_sample;
+                if (original_bits <= 0) throw std::runtime_error("Unknown FLAC integer precision");
+                bit_depth_ = static_cast<uint32_t>(original_bits);
+            }
+            const auto sf = codec_context_->sample_fmt;
+            if (!integer_codec || output_channels_ != 2 ||
+                (bit_depth_ != 16 && bit_depth_ != 24 && bit_depth_ != 32) ||
+                (sf != AV_SAMPLE_FMT_S16 && sf != AV_SAMPLE_FMT_S16P &&
+                 sf != AV_SAMPLE_FMT_S32 && sf != AV_SAMPLE_FMT_S32P))
+                throw std::runtime_error("BitPerfect requires stereo 16/24/32-bit integer PCM WAV or FLAC");
+            format_.setByteFormat(ByteFormat::SINT32);
+        } else {
+            initializeResampler();
+        }
 
 		active_ = true;
 		eof_ = false;
@@ -260,11 +281,14 @@ public:
 	}
 
 	void close() {
+        seek_frame_.reset();
 		if (format_context_ != nullptr) {
 			XAMP_LOG_D(logger_, "close AvLib file stream: {}.", toAvFileName(file_path_));
 		}
 		pending_samples_.clear();
 		pending_sample_offset_ = 0;
+        integer_pending_.clear();
+        integer_offset_ = 0;
 		swr_context_.reset();
 		frame_.reset();
 		packet_.reset();
@@ -291,6 +315,15 @@ public:
 		return duration_;
 	}
 
+    void setIntegerPcm(bool enabled) {
+        if (format_context_) throw std::logic_error("Set PCM mode before opening the stream");
+        integer_pcm_ = enabled;
+    }
+    std::optional<xamp::pcm::Format> integerPcmFormat() const {
+        if (!integer_pcm_ || !codec_context_) return std::nullopt;
+        return xamp::pcm::canonical(bit_depth_, output_channels_, output_sample_rate_);
+    }
+
 	[[nodiscard]] AudioFormat getFormat() const {
 		return format_;
 	}
@@ -305,10 +338,14 @@ public:
 			return;
 		}
 
-		const auto target = static_cast<int64_t>(
+		auto target = static_cast<int64_t>(
 			stream_time * static_cast<double>(audio_stream_->time_base.den)
 			/ static_cast<double>(audio_stream_->time_base.num));
 
+        if (integer_pcm_) {
+            seek_frame_ = static_cast<int64_t>(std::llround(stream_time * output_sample_rate_));
+            if (audio_stream_->start_time != AV_NOPTS_VALUE) target += audio_stream_->start_time;
+        }
 		auto flags = AVSEEK_FLAG_BACKWARD;
 		AvIfFailedThrow(LIB_AV_LIB.Format->av_seek_frame(
 			format_context_,
@@ -318,6 +355,8 @@ public:
 		LIB_AV_LIB.Codec->avcodec_flush_buffers(codec_context_.get());
 		pending_samples_.clear();
 		pending_sample_offset_ = 0;
+        integer_pending_.clear();
+        integer_offset_ = 0;
 		eof_ = false;
 		active_ = true;
 		if (swr_context_) {
@@ -336,6 +375,7 @@ public:
 			return 0;
 		}
 
+        if (integer_pcm_) return readInteger(static_cast<std::byte*>(buffer), length);
 		auto* output = static_cast<float*>(buffer);
 		uint32_t copied_samples = 0;
 
@@ -368,7 +408,7 @@ public:
 	}
 
 	[[nodiscard]] uint32_t getSampleSize() const {
-		return sizeof(float);
+		return integer_pcm_ ? sizeof(int32_t) : sizeof(float);
 	}
 
 	[[nodiscard]] bool isActive() const {
@@ -485,7 +525,8 @@ private:
 	}
 
 	[[nodiscard]] bool hasPendingSamples() const {
-		return pending_sample_offset_ < pending_samples_.size();
+        return integer_pcm_ ? integer_offset_ < integer_pending_.size()
+            : pending_sample_offset_ < pending_samples_.size();
 	}
 
 	uint32_t copyPendingSamples(float* output, uint32_t available_samples) {
@@ -566,11 +607,77 @@ private:
 		}
 	}
 
+    uint32_t readInteger(std::byte* output, uint32_t length) {
+        size_t copied = 0;
+        const size_t capacity = static_cast<size_t>(length) * 4;
+        while (copied < capacity) {
+            const auto count = (std::min)(capacity-copied, integer_pending_.size()-integer_offset_);
+            if (count) {
+                std::memcpy(output+copied, integer_pending_.data()+integer_offset_, count);
+                copied += count; integer_offset_ += count;
+            }
+            if (copied == capacity) break;
+            integer_pending_.clear(); integer_offset_ = 0;
+            if (eof_) { active_ = false; break; }
+            if (!decodeNextFrame()) {
+                eof_ = true;
+                drainDecoder();
+            }
+        }
+        return static_cast<uint32_t>(copied/4);
+    }
+    void appendInteger(AVFrame* frame) {
+        const bool planar = frame->format == AV_SAMPLE_FMT_S16P || frame->format == AV_SAMPLE_FMT_S32P;
+        const bool short_samples = frame->format == AV_SAMPLE_FMT_S16 || frame->format == AV_SAMPLE_FMT_S16P;
+        if (frame->format != AV_SAMPLE_FMT_S16 && frame->format != AV_SAMPLE_FMT_S16P &&
+            frame->format != AV_SAMPLE_FMT_S32 && frame->format != AV_SAMPLE_FMT_S32P)
+            throw std::runtime_error("BitPerfect decoder changed to non-integer samples");
+        if (frame->sample_rate != output_sample_rate_ || frame->ch_layout.nb_channels != output_channels_)
+            throw std::runtime_error("BitPerfect decoder changed stream format");
+        if (short_samples && bit_depth_ > 16) throw std::runtime_error("Decoder integer precision too low");
+        size_t skip = 0;
+        if (seek_frame_) {
+            const auto pts = frame->best_effort_timestamp;
+            if (pts == AV_NOPTS_VALUE) {
+                if (*seek_frame_ != 0) throw std::runtime_error("Exact PCM seek requires timestamps");
+            } else {
+                const auto origin = audio_stream_->start_time == AV_NOPTS_VALUE ? 0 : audio_stream_->start_time;
+                const auto start = static_cast<int64_t>(std::llround(
+                    static_cast<long double>(pts-origin) * audio_stream_->time_base.num * output_sample_rate_
+                    / audio_stream_->time_base.den));
+                if (*seek_frame_ < start) throw std::runtime_error("Decoder seek skipped required samples");
+                if (*seek_frame_ >= start+frame->nb_samples) return;
+                skip = static_cast<size_t>(*seek_frame_-start);
+            }
+            seek_frame_.reset();
+        }
+        const auto old = integer_pending_.size();
+        integer_pending_.resize(old+(frame->nb_samples-skip)*output_channels_*4);
+        auto* out = integer_pending_.data()+old;
+        const size_t width = short_samples ? 2 : 4;
+        for (size_t f=skip; f<static_cast<size_t>(frame->nb_samples); ++f) {
+            for (int ch=0; ch<output_channels_; ++ch) {
+                const auto* in = frame->extended_data[planar ? ch : 0]+(planar ? f : f*output_channels_+ch)*width;
+                uint32_t word;
+                if (short_samples) {
+                    int16_t sample; std::memcpy(&sample,in,2);
+                    word = static_cast<uint32_t>(static_cast<int32_t>(sample)) << 16;
+                } else {
+                    std::memcpy(&word,in,4);
+                }
+                if (bit_depth_ < 32 && (word & (UINT32_MAX >> bit_depth_)))
+                    throw std::runtime_error("Integer decoder returned unexpected padding bits");
+                for (unsigned b=0; b<4; ++b) *out++ = static_cast<std::byte>((word>>(8*b))&255);
+            }
+        }
+    }
+
 	void convertFrame(AVFrame* frame) {
 		if (frame == nullptr || frame->nb_samples <= 0) {
 			return;
 		}
 
+        if (integer_pcm_) { appendInteger(frame); return; }
 		const auto max_output_samples = LIB_AV_LIB.Swr->swr_get_out_samples(
 			swr_context_.get(),
 			frame->nb_samples);
@@ -603,6 +710,10 @@ private:
 			total_samples * sizeof(float));
 	}
 	
+    bool integer_pcm_{false};
+    std::vector<std::byte> integer_pending_;
+    size_t integer_offset_{0};
+    std::optional<int64_t> seek_frame_;
 	Path file_path_;
 	Buffer<float> output_samples_;
 	std::vector<float> pending_samples_;
@@ -633,6 +744,9 @@ AvLibFileStream::AvLibFileStream()
 }
 
 XAMP_PIMPL_IMPL(AvLibFileStream)
+
+void AvLibFileStream::setIntegerPcm(bool enabled) { impl_->setIntegerPcm(enabled); }
+std::optional<xamp::pcm::Format> AvLibFileStream::integerPcmFormat() const { return impl_->integerPcmFormat(); }
 
 void AvLibFileStream::openFile(const Path& file_path) {
 	impl_->openFile(file_path);

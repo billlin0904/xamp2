@@ -8,7 +8,7 @@ param(
     [string]$ReleaseDir = ".\src\xamp\x64\Release",
     [string]$DeployDir = ".\src\xamp\deploy",
     [string]$InnoScriptPath = ".\setup\win32\inno\inno.iss",
-    [string]$InstallerPath = ".\setup\win32\inno\xamp2-setup.exe",
+    [string]$InstallerPath = ".\setup\win32\inno\output\xamp2-setup.exe",
     [string]$UpdatesPath = ".\src\versions\updates.json",
     [switch]$SkipBuild,
     [switch]$SkipSmokeTest,
@@ -53,6 +53,7 @@ function Invoke-CheckedProcess([string]$FilePath, [string[]]$Arguments, [string]
         ArgumentList = $Arguments
         Wait = $true
         PassThru = $true
+        WindowStyle = "Hidden"
     }
     if ($WorkingDirectory -ne "") {
         $startInfo.WorkingDirectory = $WorkingDirectory
@@ -81,11 +82,11 @@ function Copy-ReleaseToDeploy([string]$SourceDir, [string]$TargetDir, [switch]$K
         $TargetDir,
         "/MIR",
         "/XD", "Cache", "logs",
-        "/XF", "*.pdb", "*.lib", "*.exp", "bench.exe", "bench.pdb", "xamp.db",
+        "/XF", "*.pdb", "*.lib", "*.exp", "bench.exe", "bench.pdb", "*_test.exe", "bench_*.flac", "xamp.ini", "config.json", "xamp.db",
         "/NFL", "/NDL", "/NJH", "/NJS", "/NP"
     )
 
-    $robocopy = Start-Process -FilePath "robocopy.exe" -ArgumentList $robocopyArgs -Wait -PassThru
+    $robocopy = Start-Process -FilePath "robocopy.exe" -ArgumentList $robocopyArgs -Wait -PassThru -WindowStyle Hidden
     if ($robocopy.ExitCode -gt 7) {
         throw "robocopy failed with exit code $($robocopy.ExitCode)."
     }
@@ -177,7 +178,8 @@ if (-not $SkipBuild) {
         $project,
         "/p:Configuration=$Configuration",
         "/p:Platform=$Platform",
-        "/m"
+        "/m:1",
+        "/nr:false"
     ) $repoRoot | Out-Null
 }
 

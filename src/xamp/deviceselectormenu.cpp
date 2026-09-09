@@ -153,7 +153,7 @@ std::optional<DeviceInfo> DeviceSelectorMenu::rebuild(
 
             if (!default_device_info.has_value()
                 && device_info.is_default_device
-                && !IsExclusiveDevice(device_info)) {
+                && !isExclusiveDevice(device_info)) {
                 default_device_info = device_info;
             }
         }
@@ -199,16 +199,15 @@ QWidgetAction* DeviceSelectorMenu::createHeaderAction(const QString& desc) {
     f.setPointSize(qTheme.fontSize(9));
     f.setBold(true);
     desc_label->setFont(f);
-    desc_label->setAlignment(Qt::AlignCenter);
+    desc_label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
     auto* device_type_frame = new QFrame();
     device_type_frame->setObjectName("deviceTypeFrame"_str);
-    qTheme.setFrameBackgroundColor(device_type_frame);
 
     auto* default_layout = new QHBoxLayout(device_type_frame);
     default_layout->addWidget(desc_label);
     default_layout->setSpacing(0);
-    default_layout->setContentsMargins(0, 0, 0, 0);
+    default_layout->setContentsMargins(12, 7, 12, 5);
     device_type_frame->setLayout(default_layout);
 
     auto* separator = new QWidgetAction(ensureMenu());
@@ -223,9 +222,9 @@ void DeviceSelectorMenu::applySelectedDevice(const DeviceInfo& device_info, int 
     const QFontMetrics metrics(device_desc_label_->font());
     const auto device_name = QString::fromStdWString(device_info.name);
     const auto capped_width = std::min(label_width + 60, kMaxDeviceLabelWidth);
-    device_desc_label_->setMinimumWidth(capped_width);
-    device_desc_label_->setMaximumWidth(kMaxDeviceLabelWidth);
-    device_desc_label_->setText(elideDeviceName(metrics, device_name, capped_width));
+    device_desc_label_->setMinimumWidth(0);
+    device_desc_label_->setMaximumWidth(260);
+    device_desc_label_->setText(elideDeviceName(metrics, device_name, std::min(capped_width, 260)));
     device_desc_label_->setToolTip(device_name);
 }
 

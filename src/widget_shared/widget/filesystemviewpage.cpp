@@ -133,7 +133,10 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     ui_->dirTree->setModel(dir_first_sort_filter_);
     ui_->dirTree->setItemDelegate(
         new DisableToolTipStyledItemDelegate(this));
-    ui_->dirTree->setStyleSheet("background-color: transparent"_str);
+    ui_->dirTree->setObjectName("libraryFolderTree"_str);
+    ui_->dirTree->setAlternatingRowColors(false);
+    ui_->dirTree->setIndentation(20);
+    ui_->dirTree->setUniformRowHeights(true);
     ui_->dirTree->setSortingEnabled(true);
     ui_->dirTree->setFixedWidth(300);
 
@@ -153,6 +156,17 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     ui_->page->playlist()->setPlaylistId(kFileSystemPlaylistId,
         kAppSettingPlaylistColumnName);
     ui_->page->playlist()->setHeaderViewHidden(false);
+    auto* tracks = ui_->page->playlist();
+    tracks->setProperty("playlistStyle", QStringLiteral("modern"));
+    tracks->setStyleSheet(QString());
+    tracks->horizontalHeader()->setStyleSheet(QString());
+    tracks->horizontalHeader()->setFixedHeight(40);
+    tracks->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    tracks->setAlternatingRowColors(false);
+    tracks->setFrameShape(QFrame::NoFrame);
+    tracks->setSelectionBehavior(QAbstractItemView::SelectRows);
+    tracks->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
     (void)QObject::connect(ui_->page->playlist(),
         &PlaylistTableView::playMusic,
         this,
@@ -286,7 +300,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
                         static_cast<int32_t>((progress.completed_work * 100) / progress.total_work));
                     }, Qt::QueuedConnection);
                 };
-            callbacks.on_batch_tracks = [receiver, scan_generation](auto tracks) {
+            callbacks.on_track_batches = [receiver, scan_generation](auto tracks) {
                 if (receiver.isNull()) {
                     return;
                 }
@@ -296,25 +310,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
                         return;
                     }
                     qDatabaseFacade.insertMultipleTrackInfo(tracks,
-                        kFileSystemPlaylistId,
-                        QString(),
-                        DatabaseFacade::kSkipFetchCover);
-                    receiver->ui_->page->playlist()->reload();
-                    }, Qt::QueuedConnection);
-                };
-            callbacks.on_tracks = [receiver, scan_generation](auto tracks) {
-                if (receiver.isNull()) {
-                    return;
-                }
-                QMetaObject::invokeMethod(receiver.data(), [receiver, scan_generation, tracks = std::move(tracks)]() mutable {
-                    if (receiver.isNull()
-                        || scan_generation != receiver->scanner_generation_) {
-                        return;
-                    }
-                    qDatabaseFacade.insertTrackInfo(tracks,
-                        kFileSystemPlaylistId,
-                        QString(),
-                        DatabaseFacade::kSkipFetchCover);
+                        kFileSystemPlaylistId);
                     receiver->ui_->page->playlist()->reload();
                     }, Qt::QueuedConnection);
                 };
@@ -388,7 +384,8 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
 
         action_map.exec(pt, pt);
         });
-    setStyleSheet("background-color: transparent; border: none;"_str);
+    setObjectName("libraryPage"_str);
+    setStyleSheet("QFrame#libraryPage { background: transparent; border: none; }"_str);
 
     ui_->dirTree->verticalScrollBar()->setStyleSheet(
         "QScrollBar:vertical { width: 6px; }"_str);

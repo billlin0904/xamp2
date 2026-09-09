@@ -15,6 +15,7 @@
 #include <base/dll.h>
 #include <base/crashhandler.h>
 #include <base/platfrom_handle.h>
+#include <base/zib_util.h>
 
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
@@ -27,45 +28,12 @@
 #include <widget/jsonsettings.h>
 #include <widget/imagecache.h>
 #include <widget/database.h>
-#include <widget/util/zib_util.h>
 
 #include <QSslSocket>
 #include <QProcess>
 #include <fcntl.h>
 
 namespace {
-#ifdef Q_OS_WIN
-    void configureMimallocForPerformance() noexcept {
-        // Favor allocation throughput over returning memory to the OS quickly.
-        ::mi_option_set_default(mi_option_eager_commit, 1);
-        // Eagerly commit even the first per-thread segment to avoid first-use stalls.
-        ::mi_option_set_default(mi_option_eager_commit_delay, 0);
-        // Keep freed pages around a bit longer so bursty UI/audio workloads can reuse them.
-        ::mi_option_set_default(mi_option_purge_delay, 500);
-        // Apply an even longer purge delay for arena memory, trading RSS for steadier latency.
-        ::mi_option_set_default(mi_option_arena_purge_mult, 20);
-        // reset pages instead of decommitting them; this is usually faster on Windows.
-        ::mi_option_set_enabled_default(mi_option_purge_decommits, false);
-        // Let active threads reclaim memory from finished threads during later frees.
-        ::mi_option_set_enabled_default(mi_option_abandoned_reclaim_on_free, true);
-    }
-
-    void logMimallocOptions() {
-        XAMP_LOG_DEBUG(
-            "mimalloc performance options: eager_commit={}, eager_commit_delay={}, purge_delay={}ms, purge_decommits={}, arena_purge_mult={}.",
-            ::mi_option_get(mi_option_eager_commit),
-            ::mi_option_get(mi_option_eager_commit_delay),
-            ::mi_option_get(mi_option_purge_delay),
-            ::mi_option_get(mi_option_purge_decommits),
-            ::mi_option_get(mi_option_arena_purge_mult));
-    }
-#else
-    void configureMimallocForPerformance() noexcept {
-    }
-
-    void logMimallocOptions() {
-    }
-#endif
 
 #ifndef Q_OS_WIN
     class QDebugSink : public spdlog::sinks::base_sink<LoggerMutex> {
@@ -83,7 +51,6 @@ namespace {
     };
 #endif
 
-#ifdef _DEBUG
     XAMP_DECLARE_LOG_NAME(Qt);
 
     void logMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg) {
@@ -106,7 +73,7 @@ namespace {
             return str;
             };
 
-        stream << QString::fromStdString(get_file_name()) << ":" << context.line << " (" << QString::fromStdString(GetLastErrorMessage()) << ") \r\n"
+        stream << QString::fromStdString(get_file_name()) << ":" << context.line << " (" << QString::fromStdString(getLastErrorMessage()) << ") \r\n"
             << context.function << ": " << msg;
         if (!disable_stack_trace) {
             stream << QString::fromStdString(StackTrace{}.captureStack());
@@ -140,20 +107,15 @@ namespace {
             break;
         }
     }
-#endif
 
     int execute(int argc, char* argv[], QStringList &args) {
-        XampCrashHandler.setThreadExceptionHandlers();
-
-#ifdef Q_OS_WIN
+#ifdef Q_OS_WIN       
         const auto components_path = getComponentsFilePath();
         if (!addSharedLibrarySearchDirectory(components_path)) {
-            XAMP_LOG_ERROR("AddSharedLibrarySearchDirectory return fail! ({})", GetLastErrorMessage());
+            XAMP_LOG_ERROR("addSharedLibrarySearchDirectory return fail! ({})", getLastErrorMessage());
             return -1;
         }
 #endif
-        loadLibdeflate();
-
         QApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 
         QLoggingCategory::setFilterRules("qt.gui.imageio.warning=false"_str);
@@ -181,13 +143,11 @@ namespace {
 		
         app.loadLang();
         app.loadSampleRateConverterConfig();        
-        
         qTheme.setThemeQssFile();
         
-#ifdef _DEBUG
         qInstallMessageHandler(logMessageHandler);
         QLoggingCategory::setFilterRules("*.info=false"_str);
-#endif        
+
         try {            
             loadComponentSharedLibrary();
         }
@@ -200,7 +160,6 @@ namespace {
         }
 
         XAMP_LOG_DEBUG("load component shared library success.");
-
         XAMP_LOG_DEBUG("Database start initial...");
 
         try {			
@@ -212,12 +171,11 @@ namespace {
         }
 
         XAMP_LOG_DEBUG("Database init success.");
-
         XAMP_LOG_DEBUG("start XAMP window...");
 
         XMainWindow main_window;
         //main_window.setContentWidget(nullptr);
-        Xamp win(&main_window, MakeAudioPlayer());
+        Xamp win(&main_window, makeAudioPlayer());
         win.setMainWindow(&main_window);
         main_window.setContentWidget(&win);
         win.adjustSize();
@@ -225,8 +183,6 @@ namespace {
         main_window.showWindow();
 
         win.setupSystemMenu();
-
-        //logMimallocOptions();
 
         XAMP_LOG_DEBUG("<<<initial XAMP window done!>>>");
 
@@ -241,13 +197,15 @@ namespace {
             main_window.setShortcut(QKeySequence(Qt::Key_F10));
             main_window.setShortcut(QKeySequence(Qt::Key_F1));
         }
+
+#ifdef Q_OS_WIN 
+        setProcessMitigation();
+#endif
         return app.exec();
     }
 }
 
 int main() {
-    //configureMimallocForPerformance();
-
     try {
         XampLoggerFactory
             .addDebugOutput()
@@ -261,7 +219,11 @@ int main() {
         return -1;
     }
 
+    XampCrashHandler.setProcessExceptionHandlers();
+    XampCrashHandler.setThreadExceptionHandlers();
+
     std::atexit([]() {
+        unloadComponentSharedLibrary();
         XAMP_LOG_DEBUG("<<<shutdown XAMP logger>>>");
         XampLoggerFactory.shutdown();
         });

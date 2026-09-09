@@ -16,30 +16,6 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-/*
-* Error code enum
-* 
-* <remarks>
-* XAMP_ERROR_SUCCESS: Success
-* XAMP_ERROR_PLATFORM_SPEC_ERROR: Platform specific error
-* XAMP_ERROR_LIBRARY_SPEC_ERROR: Library specific error
-* XAMP_ERROR_DEVICE_CREATE_FAILURE: Device create failure
-* XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT: Device unsupported format
-* XAMP_ERROR_DEVICE_IN_USE: Device in use
-* XAMP_ERROR_DEVICE_NOT_FOUND: Device not found
-* XAMP_ERROR_FILE_NOT_FOUND: File not found
-* XAMP_ERROR_NOT_SUPPORT_SAMPLE_RATE: Not support sample rate
-* XAMP_ERROR_NOT_SUPPORT_FORMAT: Not support format
-* XAMP_ERROR_LOAD_DLL_FAILURE: load dll failure
-* XAMP_ERROR_STOP_STREAM_TIMEOUT: stop stream timeout
-* XAMP_ERROR_SAMPLE_RATE_CHANGED: Sample rate changed
-* XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLE_RATE: Not support resample sample rate
-* XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC: Not found dll export function
-* XAMP_ERROR_NOT_SUPPORT_EXCLUSIVE_MODE: Not support exclusive mode
-* XAMP_ERROR_NOT_BUFFER_OVERFLOW: Not buffer overflow
-* XAMP_ERROR_UNKNOWN: Unknown error
-* </remarks>
-*/
 XAMP_MAKE_ENUM(Errors,
     XAMP_ERROR_SUCCESS,
     XAMP_ERROR_PLATFORM_SPEC_ERROR,
@@ -61,64 +37,26 @@ XAMP_MAKE_ENUM(Errors,
     XAMP_ERROR_NOT_BUFFER_OVERFLOW,
     XAMP_ERROR_UNKNOWN)
 
- /*
- * Exception class
- *
- */
 class XAMP_BASE_API Exception : public std::exception {
  public:
-     /*
-     * Constructor.
-     *
-     * @param message: Message.
-     * @param what: What.
-     */
      explicit Exception(std::string const& message, std::string_view what = "");
 
-     /*
-     * Constructor.
-     *
-     * @param error: Error code.
-     * @param message: Message.
-     * @param what: What.
-     */
      explicit Exception(Errors error = Errors::XAMP_ERROR_SUCCESS,
          std::string const& message = "",
          std::string_view what = "");
 
-     /*
-     * Destructor.
-     */
      virtual ~Exception() override = default;
 
-     /*
-     * what function.
-     */
      [[nodiscard]] char const* what() const noexcept override;
 
-     /*
-     * Get error code.
-     */
      [[nodiscard]] virtual Errors getError() const ;
 
-     /*
-     * Get error message.
-     */
      [[nodiscard]] char const* getErrorMessage() const ;
 
-     /*
-     * Get expression.
-     */
      [[nodiscard]] virtual const char* getExpression() const ;
 
-     /*
-     * Get stack trace.
-     */
      [[nodiscard]] char const* getStackTrace() const ;
 
-     /*
-     * Get error code string.
-     */
      static std::string_view errorToString(Errors error);
  private:
      Errors error_;
@@ -129,11 +67,11 @@ class XAMP_BASE_API Exception : public std::exception {
      std::string stacktrace_;
 };
 
-XAMP_BASE_API std::string GetPlatformErrorMessage(int32_t err);
+XAMP_BASE_API std::string getPlatformErrorMessage(int32_t err);
 
-XAMP_BASE_API std::string GetLastErrorMessage();
+XAMP_BASE_API std::string getLastErrorMessage();
 
-XAMP_BASE_API std::string GetPlatformErrorMessage(int32_t error, const std::string_view& file_name);
+XAMP_BASE_API std::string getPlatformErrorMessage(int32_t error, const std::string_view& file_name);
 
 class XAMP_BASE_API LibraryException : public Exception {
 public:

@@ -1,5 +1,6 @@
 #include <base/crashhandler.h>
 #include <base/dll.h>
+#include <base/fs.h>
 #include <base/memory.h>
 #include <base/logger.h>
 #include <base/stacktrace.h>
@@ -10,11 +11,13 @@
 #ifdef XAMP_OS_WIN
 #include <new.h>
 #include <dbghelp.h>
+#include <cstdlib>
 #else
 #include <signal.h>
 #include <execinfo.h>
 #endif
 
+#include <atomic>
 #include <csignal>
 #include <mutex>
 
@@ -73,10 +76,39 @@ struct ExceptionPointer : EXCEPTION_POINTERS {
     }
 };
 
-void createMinidump(_EXCEPTION_POINTERS* exception_pointers) {
-    auto file_name = String::toStdWString(String::format("{}-crashdump.dmp", getSequentialUuid()));
+XAMP_MAKE_ENUM(CrashSource,
+    kSeh,
+    kVectored,
+    kTerminate,
+    kInvalidParameter,
+    kNewHandler,
+    kSignalAbort,
+    kSignalFloatingPoint,
+    kSignalIllegalInstruction,
+    kSignalSegv,
+    kSignalTerm)
 
-    auto file_ = CreateFileW(file_name.c_str(),
+struct CrashReportInfo {
+    CrashSource source;
+    DWORD code{ 0 };
+    PEXCEPTION_POINTERS exception_pointers{ nullptr };
+    const wchar_t* expression{ nullptr };
+    const wchar_t* function{ nullptr };
+    const wchar_t* file{ nullptr };
+    unsigned int line{ 0 };
+};
+
+Path makeCrashDumpPath() {
+    const Path crash_dump_dir = Path("logs") / Path("crashdump");
+    std::error_code ec;
+    Fs::create_directories(crash_dump_dir, ec);
+    return crash_dump_dir / String::toStdWString(String::format("{}-crashdump.dmp", getSequentialUuid()));
+}
+
+void createMinidump(_EXCEPTION_POINTERS* exception_pointers) {
+    auto file_name = makeCrashDumpPath().wstring();
+
+    auto file_ = ::CreateFileW(file_name.c_str(),
         GENERIC_WRITE,
         0, 
         nullptr,
@@ -112,99 +144,89 @@ public:
     ~CrashHandlerImpl() = default;
 
 #ifdef XAMP_OS_WIN    
-    static void dumpStackInfo(void* info) {
-        std::lock_guard<std::recursive_mutex> guard{ mutex_ };
+    static bool isIgnoredException(DWORD code) {
+        return kIgnoreExceptionCode.find(code) != kIgnoreExceptionCode.end();
+    }
 
-        StackTrace stack_trace;
-        auto* exception_pointers = static_cast<PEXCEPTION_POINTERS>(info);        
-
-        const auto code = exception_pointers->ExceptionRecord->ExceptionCode;
-        if (code == EXCEPTION_STACK_OVERFLOW) {
-            return;
+    static DWORD getCrashCode(const CrashReportInfo& info) {
+        if (info.exception_pointers != nullptr && info.exception_pointers->ExceptionRecord != nullptr) {
+            return info.exception_pointers->ExceptionRecord->ExceptionCode;
         }
+        return info.code;
+    }
 
-        const auto itr = kIgnoreExceptionCode.find(exception_pointers->ExceptionRecord->ExceptionCode);
+    static void logCrashReport(const CrashReportInfo& info) {
+        StackTrace stack_trace;
+        const auto code = getCrashCode(info);
+
+        const auto itr = kIgnoreExceptionCode.find(code);
         if (itr != kIgnoreExceptionCode.end()) {
-            XAMP_LOG_TRACE("Ignore exception code: {}({:#010X}) {}",
-                itr->second, itr->first, stack_trace.captureStack());
+            XAMP_LOG_TRACE("Ignore exception source:{} code:{}({:#010X}) {}",
+                enumToString(info.source),
+                itr->second,
+                itr->first,
+                stack_trace.captureStack());
             return;
         }
 
         const auto itr2 = kWellKnownExceptionCode.find(code);
         if (itr2 != kWellKnownExceptionCode.end()) {
-            XAMP_LOG_DEBUG("Uncaught exception: {} {}\r\n",
-                (*itr2).second, stack_trace.captureStack());
+            XAMP_LOG_DEBUG("Uncaught exception source:{} code:{} {}\r\n",
+                enumToString(info.source),
+                (*itr2).second,
+                stack_trace.captureStack());
         }
         else {
-            XAMP_LOG_DEBUG("Uncaught exception: {:#010X} ({}) {}\r\n",
-                code, GetPlatformErrorMessage(code), stack_trace.captureStack());
+            XAMP_LOG_DEBUG("Uncaught exception source:{} code:{:#010X} ({}) {}\r\n",
+                enumToString(info.source),
+                code,
+                getPlatformErrorMessage(code),
+                stack_trace.captureStack());
         }
 
-        createMinidump(exception_pointers);
+        if (info.expression != nullptr || info.function != nullptr || info.file != nullptr) {
+            XAMP_LOG_DEBUG("Invalid parameter expression:{} function:{} file:{} line:{}",
+                info.expression != nullptr ? String::toUtf8String(info.expression) : std::string{},
+                info.function != nullptr ? String::toUtf8String(info.function) : std::string{},
+                info.file != nullptr ? String::toUtf8String(info.file) : std::string{},
+                info.line);
+        }
     }
 
-    static void dumpCurrentExceptionStack() {
-        ExceptionPointer exception_pointers;
-        getExceptionPointers(0, &exception_pointers);
-        dumpStackInfo(&exception_pointers);
+    static void writeCrashReport(const CrashReportInfo& info, bool write_minidump) {
+        const auto code = getCrashCode(info);
+        if (isIgnoredException(code)) {
+            logCrashReport(info);
+            return;
+        }
+
+        static std::atomic_flag report_in_progress = ATOMIC_FLAG_INIT;
+        if (write_minidump && report_in_progress.test_and_set(std::memory_order_acq_rel)) {
+            return;
+        }
+
+        std::lock_guard<std::recursive_mutex> guard{ mutex_ };
+        logCrashReport(info);
+
+        if (write_minidump) {
+            createMinidump(info.exception_pointers);
+        }
     }
 
-    static LONG vectoredHandler(PEXCEPTION_POINTERS exception_pointers) {
-        dumpStackInfo(exception_pointers);
-        return EXCEPTION_EXECUTE_HANDLER;
+    static void dumpStackInfo(void* info) {
+        auto* exception_pointers = static_cast<PEXCEPTION_POINTERS>(info);
+        const auto code = exception_pointers && exception_pointers->ExceptionRecord
+            ? exception_pointers->ExceptionRecord->ExceptionCode
+            : 0;
+        CrashReportInfo report_info{
+            .source = CrashSource::kSeh,
+            .code = code,
+            .exception_pointers = exception_pointers,
+        };
+        writeCrashReport(report_info, true);
     }
 
-    static void terminateHandler() {
-        dumpCurrentExceptionStack();
-    }
-
-    static void invalidParameterHandler(const wchar_t* expression,
-        const wchar_t* function, const wchar_t* file_,
-        unsigned int line, uintptr_t reserved) {
-        dumpCurrentExceptionStack();
-    }
-
-    // CRT SIGABRT signal handler
-    static void sigabrtHandler(int32_t) {
-        // Caught SIGABRT C++ signal
-        dumpCurrentExceptionStack();
-    }
-
-    // CRT sigint signal handler
-    static void sigintHandler(int32_t) {
-        // Interruption (SIGINT)
-        dumpCurrentExceptionStack();
-    }
-
-    static void sigillHandler(int32_t) {
-        dumpCurrentExceptionStack();
-    }
-
-    // CRT SIGTERM signal handler
-    static void sigtermHandler(int32_t) {
-        // Termination request (SIGTERM)
-        dumpCurrentExceptionStack();
-    }
-
-    // CRT SIGFPE signal handler
-    static void sigfpeHandler(int32_t) {
-        // Floating point exception (SIGFPE)
-        auto* exception_pointers = static_cast<PEXCEPTION_POINTERS>(_pxcptinfoptrs);
-        dumpStackInfo(exception_pointers);
-    }
-
-    // CRT SIGSEGV signal handler
-    static void sigsegvHandler(int32_t) {
-        auto* exception_pointers = static_cast<PEXCEPTION_POINTERS>(_pxcptinfoptrs);
-        dumpStackInfo(exception_pointers);
-    }
-
-    static int newHandler(size_t) {
-        dumpCurrentExceptionStack();
-        return 0;
-    }
-
-    static void getExceptionPointers(const DWORD exception_code, const ExceptionPointer* exception_pointers) {
+    static void getExceptionPointers(const DWORD exception_code, ExceptionPointer* exception_pointers) {
         CONTEXT context_record{};
         ::RtlCaptureContext(&context_record);
 
@@ -215,14 +237,151 @@ public:
         exception_pointers->ExceptionRecord->ExceptionAddress = ::_ReturnAddress();
     }
 
-    void setProcessExceptionHandlers() {
-        //XAMP_LOG_DEBUG("Install process exception handler.");
+    static void dumpCurrentExceptionStack(CrashSource source, DWORD exception_code = 0) {
+        ExceptionPointer exception_pointers;
+        getExceptionPointers(exception_code, &exception_pointers);
+        CrashReportInfo info{
+            .source = source,
+            .code = exception_code,
+            .exception_pointers = &exception_pointers,
+        };
+        writeCrashReport(info, true);
+    }
 
-        // Vectored Exception Handling (VEH) is an extension to structured exception handling.
+    static DWORD WINAPI stackOverflowDumpThread(void* parameter) {
+        auto* exception_pointers = static_cast<PEXCEPTION_POINTERS>(parameter);
+        CrashReportInfo info{
+            .source = CrashSource::kSeh,
+            .code = EXCEPTION_STACK_OVERFLOW,
+            .exception_pointers = exception_pointers,
+        };
+        writeCrashReport(info, true);
+        return 0;
+    }
+
+    static void writeStackOverflowCrashReportOnNewThread(PEXCEPTION_POINTERS exception_pointers) {
+        auto thread = ::CreateThread(nullptr,
+            0,
+            stackOverflowDumpThread,
+            exception_pointers,
+            0,
+            nullptr);
+        if (thread == nullptr) {
+            CrashReportInfo info{
+                .source = CrashSource::kSeh,
+                .code = EXCEPTION_STACK_OVERFLOW,
+                .exception_pointers = exception_pointers,
+            };
+            writeCrashReport(info, true);
+            return;
+        }
+
+        ::WaitForSingleObject(thread, INFINITE);
+        ::CloseHandle(thread);
+    }
+
+    static LONG WINAPI sehHandler(PEXCEPTION_POINTERS exception_pointers) {
+        const auto code = exception_pointers && exception_pointers->ExceptionRecord
+            ? exception_pointers->ExceptionRecord->ExceptionCode
+            : 0;
+
+        if (code == EXCEPTION_STACK_OVERFLOW) {
+            writeStackOverflowCrashReportOnNewThread(exception_pointers);
+            return EXCEPTION_EXECUTE_HANDLER;
+        }
+
+        CrashReportInfo info{
+            .source = CrashSource::kSeh,
+            .code = code,
+            .exception_pointers = exception_pointers,
+        };
+        writeCrashReport(info, true);
+        return EXCEPTION_EXECUTE_HANDLER;
+    }
+
+    static LONG WINAPI vectoredHandler(PEXCEPTION_POINTERS exception_pointers) {
+        CrashReportInfo info{
+            .source = CrashSource::kVectored,
+            .exception_pointers = exception_pointers,
+        };
+        writeCrashReport(info, false);
+        return EXCEPTION_CONTINUE_SEARCH;
+    }
+
+    static void terminateHandler() {
+        dumpCurrentExceptionStack(CrashSource::kTerminate);
+    }
+
+    static void invalidParameterHandler(const wchar_t* expression,
+        const wchar_t* function, const wchar_t* file_,
+        unsigned int line, uintptr_t reserved) {
+        (void)reserved;
+        ExceptionPointer exception_pointers;
+        getExceptionPointers(0, &exception_pointers);
+        CrashReportInfo info{
+            .source = CrashSource::kInvalidParameter,
+            .exception_pointers = &exception_pointers,
+            .expression = expression,
+            .function = function,
+            .file = file_,
+            .line = line,
+        };
+        writeCrashReport(info, true);
+    }
+
+    static void pureCallHandler() {
+        dumpCurrentExceptionStack(CrashSource::kTerminate);
+    }
+
+    // CRT SIGABRT signal handler
+    static void sigabrtHandler(int32_t) {
+        dumpCurrentExceptionStack(CrashSource::kSignalAbort);
+    }
+
+    static void sigillHandler(int32_t) {
+        dumpCurrentExceptionStack(CrashSource::kSignalIllegalInstruction);
+    }
+
+    // CRT SIGTERM signal handler
+    static void sigtermHandler(int32_t) {
+        dumpCurrentExceptionStack(CrashSource::kSignalTerm);
+    }
+
+    // CRT SIGFPE signal handler
+    static void sigfpeHandler(int32_t) {
+        auto* exception_pointers = static_cast<PEXCEPTION_POINTERS>(_pxcptinfoptrs);
+        CrashReportInfo info{
+            .source = CrashSource::kSignalFloatingPoint,
+            .exception_pointers = exception_pointers,
+        };
+        writeCrashReport(info, true);
+    }
+
+    // CRT SIGSEGV signal handler
+    static void sigsegvHandler(int32_t) {
+        auto* exception_pointers = static_cast<PEXCEPTION_POINTERS>(_pxcptinfoptrs);
+        CrashReportInfo info{
+            .source = CrashSource::kSignalSegv,
+            .exception_pointers = exception_pointers,
+        };
+        writeCrashReport(info, true);
+    }
+
+    static int newHandler(size_t) {
+        dumpCurrentExceptionStack(CrashSource::kNewHandler);
+        return 0;
+    }
+
+    void setProcessExceptionHandlers() {
+        // Vectored handler records first-chance context only; SEH/CRT handlers own the minidump path.
         ::AddVectoredExceptionHandler(0, vectoredHandler);
+        ::SetUnhandledExceptionFilter(sehHandler);
 
         // Catch new operator memory allocation exceptions
         ::_set_new_handler(newHandler);
+
+        // Catch pure virtual calls.
+        ::_set_purecall_handler(pureCallHandler);
 
         // Catch invalid parameter exceptions.
         ::_set_invalid_parameter_handler(invalidParameterHandler);
@@ -236,12 +395,12 @@ public:
         // Catch illegal instruction handler
         (void)::signal(SIGILL, sigillHandler);
 
+        (void)::signal(SIGFPE, sigfpeHandler);
         (void)::signal(SIGSEGV, sigsegvHandler);
+        (void)::signal(SIGTERM, sigtermHandler);
     }
 
     void setThreadExceptionHandlers() {
-        //XAMP_LOG_INFO("Install thread exception handler.");
-
         // C++ terminate handler 是「每個 thread 各自一份」，
         // 所以新 thread 建立後，要呼叫一次這個函式。
         ::set_terminate(terminateHandler);

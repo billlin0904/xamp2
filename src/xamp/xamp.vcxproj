@@ -274,6 +274,11 @@ copy /Y "$(ProjectDir)..\thirdparty\uchardet\msvc\src\Release\uchardet.dll" "$(O
     <ClCompile Include="xapplication.cpp" />
     <ClCompile Include="style_util.cpp" />
     <ClCompile Include="xamp.cpp" />
+    <ClCompile Include="playbackcontroller.cpp" />
+    <ClCompile Include="playbackpresenter.cpp" />
+    <ClCompile Include="applicationupdater.cpp" />
+    <ClCompile Include="applicationservices.cpp" />
+
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="xamp.ui" />
@@ -292,6 +297,12 @@ copy /Y "$(ProjectDir)..\thirdparty\uchardet\msvc\src\Release\uchardet.dll" "$(O
     <ClInclude Include="xapplication.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="sharedmodeplayback.h" />
+    <ClInclude Include="playbackpresenter.h" />
+    <ClInclude Include="applicationservices.h" />
+    <ClInclude Include="playbackqueue.h" />
+    <QtMoc Include="playbackcontroller.h" />
+    <QtMoc Include="applicationupdater.h" />
+
     <ClInclude Include="style_util.h" />
     <QtMoc Include="xamp.h">
     </QtMoc>
@@ -311,6 +322,8 @@ copy /Y "$(ProjectDir)..\thirdparty\uchardet\msvc\src\Release\uchardet.dll" "$(O
   </ItemGroup>
   <ItemGroup>
     <QtTranslation Include="zh_TW.ts" />
+    <QtTranslation Include="ja_JP.ts" />
+    <QtTranslation Include="ko_KR.ts" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\widget_shared\widget_shared.vcxproj">
@@ -329,4 +342,16 @@ copy /Y "$(ProjectDir)..\thirdparty\uchardet\msvc\src\Release\uchardet.dll" "$(O
       <UserProperties />
     </VisualStudio>
   </ProjectExtensions>
+<Target Name="DeployTranslations" AfterTargets="Build">
+    <MakeDir Directories="$(OutDir)langs" />
+    <Exec Command="&quot;$(QtToolsPath)/lrelease.exe&quot; &quot;$(ProjectDir)zh_TW.ts&quot; -qm &quot;$(OutDir)langs\zh_TW.qm&quot;" />
+    <Exec Command="&quot;$(QtToolsPath)/lrelease.exe&quot; &quot;$(ProjectDir)..\widget_shared\widget_shared_zh_TW.ts&quot; -qm &quot;$(OutDir)langs\widget_shared_zh_TW.qm&quot;" />
+    <Exec Command="&quot;$(QtToolsPath)/lrelease.exe&quot; &quot;$(ProjectDir)qt_zh_TW.ts&quot; -qm &quot;$(OutDir)langs\qt_zh_TW.qm&quot;" />
+    <Exec Command="&quot;$(QtToolsPath)/lrelease.exe&quot; &quot;$(ProjectDir)ja_JP.ts&quot; -qm &quot;$(OutDir)langs\ja_JP.qm&quot;" />
+    <Exec Command="&quot;$(QtToolsPath)/lrelease.exe&quot; &quot;$(ProjectDir)..\widget_shared\widget_shared_ja_JP.ts&quot; -qm &quot;$(OutDir)langs\widget_shared_ja_JP.qm&quot;" />
+    <Copy SourceFiles="$(QTDIR)\translations\qtbase_ja.qm" DestinationFiles="$(OutDir)langs\qt_ja_JP.qm" />
+    <Exec Command="&quot;$(QtToolsPath)/lrelease.exe&quot; &quot;$(ProjectDir)ko_KR.ts&quot; -qm &quot;$(OutDir)langs\ko_KR.qm&quot;" />
+    <Exec Command="&quot;$(QtToolsPath)/lrelease.exe&quot; &quot;$(ProjectDir)..\widget_shared\widget_shared_ko_KR.ts&quot; -qm &quot;$(OutDir)langs\widget_shared_ko_KR.qm&quot;" />
+    <Copy SourceFiles="$(QTDIR)\translations\qtbase_ko.qm" DestinationFiles="$(OutDir)langs\qt_ko_KR.qm" />
+  </Target>
 </Project>

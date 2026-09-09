@@ -54,14 +54,6 @@ void setCurrentThreadPriority(ThreadPriority priority) {
     (void)priority;
 }
 
-bool isDebugging() {
-#ifdef _DEBUG
-    return true;
-#else
-    return true;
-#endif
-}
-
 bool virtualMemoryLock(void* address, size_t size) {
     if (size == 0) {
         return true;

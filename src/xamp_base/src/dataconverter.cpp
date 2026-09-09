@@ -13,13 +13,18 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
+namespace {
+	inline constexpr float kFloat16Scale{ 32767.f };
+	inline constexpr float kFloat24Scale{ 8388607.f };
+	// note: 必須要加上.f否則是round to 2147483648.
+	inline constexpr float kFloat32Scale{ 2147483647.f };
+	inline constexpr float kMaxFloatSample{ 1.0F };
+	inline constexpr float kMinFloatSample{ -1.0F };
+}
+
 #if XAMP_DATACONVERTER_HAS_X86_SIMD
 
 void convertInt8ToInt8SSE(const int8_t* input, int8_t* left_ptr, int8_t* right_ptr, size_t frames) {
-	XAMP_ASSUME(input != nullptr);
-	XAMP_ASSUME(left_ptr != nullptr);
-	XAMP_ASSUME(right_ptr != nullptr);
-
 	// Deinterleave 8 stereo int8 frames: even bytes are left, odd bytes are right.
 	alignas(16) static constexpr int8_t mask_even[16] = {
 		0,2,4,6, 8,10,12,14,
@@ -59,10 +64,6 @@ void convertInt8ToInt8SSE(const int8_t* input, int8_t* left_ptr, int8_t* right_p
 }
 
 void convertFloatToFloatSSE(const float* input, float* left_ptr, float* right_ptr, size_t frames) {
-	XAMP_ASSUME(input != nullptr);
-	XAMP_ASSUME(left_ptr != nullptr);
-	XAMP_ASSUME(right_ptr != nullptr);
-
 	size_t i = 0;
 
 	for (; i + 4 <= frames; i += 4) {
@@ -94,10 +95,6 @@ void convertFloatToFloatSSE(const float* input, float* left_ptr, float* right_pt
 }
 
 void convertFloatToInt16SSE(const float* input, int16_t* left_ptr, int16_t* right_ptr, size_t frames) {
-	XAMP_ASSUME(input != nullptr);
-	XAMP_ASSUME(left_ptr != nullptr);
-	XAMP_ASSUME(right_ptr != nullptr);
-
 	size_t i = 0;
 	__m128 scale = _mm_set1_ps(kFloat16Scale);
 
@@ -141,10 +138,6 @@ void convertFloatToInt16SSE(const float* input, int16_t* left_ptr, int16_t* righ
 }
 
 void convertFloatToInt24(const float* input, int32_t* left_ptr, int32_t* right_ptr, size_t frames) {
-	XAMP_ASSUME(input != nullptr);
-	XAMP_ASSUME(left_ptr != nullptr);
-	XAMP_ASSUME(right_ptr != nullptr);
-
 	for (size_t i = 0; i < frames; i++) {
 		float L = input[2 * i + 0] * kFloat24Scale;
 		float R = input[2 * i + 1] * kFloat24Scale;
@@ -159,10 +152,6 @@ void convertFloatToInt24(const float* input, int32_t* left_ptr, int32_t* right_p
 }
 
 void convertFloatToInt16(const float* input, int16_t* left_ptr, int16_t* right_ptr, size_t frames) {
-	XAMP_ASSUME(input != nullptr);
-	XAMP_ASSUME(left_ptr != nullptr);
-	XAMP_ASSUME(right_ptr != nullptr);
-
 	for (size_t i = 0; i < frames; i++) {
 		float L = input[2 * i + 0] * kFloat16Scale;
 		float R = input[2 * i + 1] * kFloat16Scale;
@@ -176,10 +165,6 @@ void convertFloatToInt16(const float* input, int16_t* left_ptr, int16_t* right_p
 }
 
 void convertFloatToInt32SSE(const float* input, int32_t* left_ptr, int32_t* right_ptr, size_t frames, float volume) {
-	XAMP_ASSUME(input != nullptr);
-	XAMP_ASSUME(left_ptr != nullptr);
-	XAMP_ASSUME(right_ptr != nullptr);
-
 	size_t i = 0;
 	__m128 scale = _mm_set1_ps(kFloat32Scale);
 	__m128 volume_scale = _mm_set1_ps(volume);
@@ -223,10 +208,6 @@ void convertFloatToInt32SSE(const float* input, int32_t* left_ptr, int32_t* righ
 }
 
 void convertFloatToInt24SSE(const float* input, int32_t* left_ptr, int32_t* right_ptr, size_t frames) {
-	XAMP_ASSUME(input != nullptr);
-	XAMP_ASSUME(left_ptr != nullptr);
-	XAMP_ASSUME(right_ptr != nullptr);
-
 	size_t i = 0;
 	__m128 scale = _mm_set1_ps(kFloat24Scale);
 
@@ -267,9 +248,6 @@ void convertFloatToInt24SSE(const float* input, int32_t* left_ptr, int32_t* righ
 
 template <typename t, typename TStoreType = t>
 void AVX2Convert(TStoreType* output, const float* input, float float_scale, const AudioConvertContext& context) {
-	XAMP_ASSUME(input != nullptr);
-	XAMP_ASSUME(output != nullptr);
-
 	auto input_samples = std::span{ input, context.convert_size * AudioFormat::kMaxChannel };
 	const auto* end_input = input_samples.data() + input_samples.size();
 
@@ -336,9 +314,6 @@ void AVX2Convert(TStoreType* output, const float* input, float float_scale, cons
 }
 
 void DataConverter<PackedFormat::INTERLEAVED, PackedFormat::PLANAR>::convert(int8_t* output, const int8_t* input, const AudioConvertContext& context) {
-		XAMP_ASSUME(input != nullptr);
-		XAMP_ASSUME(output != nullptr);
-
 		auto output_samples = std::span{ output, context.convert_size * AudioFormat::kMaxChannel };
 		auto left_channel_output = output_samples.data();
 		auto right_channel_output = output_samples.data() + context.convert_size;
@@ -415,10 +390,6 @@ void DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::conver
 // 未啟用 AVX2 的目標使用純量 fallback，例如 arm64 macOS 或未開 -mavx2 的 Linux。
 
 void convertInt8ToInt8SSE(const int8_t* input, int8_t* left_ptr, int8_t* right_ptr, size_t frames) {
-	XAMP_ASSUME(input != nullptr);
-	XAMP_ASSUME(left_ptr != nullptr);
-	XAMP_ASSUME(right_ptr != nullptr);
-
 	for (size_t i = 0; i < frames; ++i) {
 		*left_ptr++ = *input++;
 		*right_ptr++ = *input++;
@@ -426,10 +397,6 @@ void convertInt8ToInt8SSE(const int8_t* input, int8_t* left_ptr, int8_t* right_p
 }
 
 void convertFloatToFloatSSE(const float* input, float* left_ptr, float* right_ptr, size_t frames) {
-	XAMP_ASSUME(input != nullptr);
-	XAMP_ASSUME(left_ptr != nullptr);
-	XAMP_ASSUME(right_ptr != nullptr);
-
 	for (size_t i = 0; i < frames; ++i) {
 		*left_ptr++ = *input++;
 		*right_ptr++ = *input++;
@@ -437,10 +404,6 @@ void convertFloatToFloatSSE(const float* input, float* left_ptr, float* right_pt
 }
 
 void convertFloatToInt16SSE(const float* input, int16_t* left_ptr, int16_t* right_ptr, size_t frames) {
-	XAMP_ASSUME(input != nullptr);
-	XAMP_ASSUME(left_ptr != nullptr);
-	XAMP_ASSUME(right_ptr != nullptr);
-
 	for (size_t i = 0; i < frames; ++i) {
 		*left_ptr++ = static_cast<int16_t>(*input++ * kFloat16Scale);
 		*right_ptr++ = static_cast<int16_t>(*input++ * kFloat16Scale);
@@ -448,10 +411,6 @@ void convertFloatToInt16SSE(const float* input, int16_t* left_ptr, int16_t* righ
 }
 
 void convertFloatToInt32SSE(const float* input, int32_t* left_ptr, int32_t* right_ptr, size_t frames, float volume) {
-	XAMP_ASSUME(input != nullptr);
-	XAMP_ASSUME(left_ptr != nullptr);
-	XAMP_ASSUME(right_ptr != nullptr);
-
 	for (size_t i = 0; i < frames; ++i) {
 		*left_ptr++ = static_cast<int32_t>(*input++ * kFloat32Scale * volume);
 		*right_ptr++ = static_cast<int32_t>(*input++ * kFloat32Scale * volume);
@@ -459,10 +418,6 @@ void convertFloatToInt32SSE(const float* input, int32_t* left_ptr, int32_t* righ
 }
 
 void convertFloatToInt24SSE(const float* input, int32_t* left_ptr, int32_t* right_ptr, size_t frames) {
-	XAMP_ASSUME(input != nullptr);
-	XAMP_ASSUME(left_ptr != nullptr);
-	XAMP_ASSUME(right_ptr != nullptr);
-
 	for (size_t i = 0; i < frames; ++i) {
 		*left_ptr++ = static_cast<int32_t>(*input++ * kFloat24Scale) << 8;
 		*right_ptr++ = static_cast<int32_t>(*input++ * kFloat24Scale) << 8;
@@ -470,9 +425,6 @@ void convertFloatToInt24SSE(const float* input, int32_t* left_ptr, int32_t* righ
 }
 
 void DataConverter<PackedFormat::INTERLEAVED, PackedFormat::PLANAR>::convert(int8_t* output, const int8_t* input, const AudioConvertContext& context) {
-	XAMP_ASSUME(input != nullptr);
-	XAMP_ASSUME(output != nullptr);
-
 	auto output_samples = std::span{ output, context.convert_size * AudioFormat::kMaxChannel };
 	auto* left_channel = output_samples.data();
 	auto* right_channel = output_samples.data() + context.convert_size;
@@ -483,9 +435,6 @@ void DataConverter<PackedFormat::INTERLEAVED, PackedFormat::PLANAR>::convert(int
 }
 
 void DataConverter<PackedFormat::INTERLEAVED, PackedFormat::PLANAR>::convert(int32_t* output, const float* input, const AudioConvertContext& context) {
-	XAMP_ASSUME(input != nullptr);
-	XAMP_ASSUME(output != nullptr);
-
 	auto input_samples = std::span{ input, context.convert_size * AudioFormat::kMaxChannel };
 	auto output_samples = std::span{ output, context.convert_size * AudioFormat::kMaxChannel };
 	auto* left_channel = output_samples.data();
@@ -497,9 +446,6 @@ void DataConverter<PackedFormat::INTERLEAVED, PackedFormat::PLANAR>::convert(int
 }
 
 void DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::convert(int16_t* output, const float* input, const AudioConvertContext& context) {
-	XAMP_ASSUME(input != nullptr);
-	XAMP_ASSUME(output != nullptr);
-
 	auto input_samples = std::span{ input, context.convert_size * AudioFormat::kMaxChannel };
 	auto output_samples = std::span{ output, input_samples.size() };
 	for (size_t i = 0; i < input_samples.size(); ++i) {
@@ -508,9 +454,6 @@ void DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::conver
 }
 
 void DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::convertToInt24(int24_t* output, const int32_t* input, const AudioConvertContext& context) {
-	XAMP_ASSUME(input != nullptr);
-	XAMP_ASSUME(output != nullptr);
-
 	auto input_samples = std::span{ input, context.convert_size * AudioFormat::kMaxChannel };
 	auto output_samples = std::span{ output, input_samples.size() };
 	for (size_t i = 0; i < input_samples.size(); ++i) {
@@ -519,9 +462,6 @@ void DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::conver
 }
 
 void DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::convertToInt32(int32_t* output, const float* input, const AudioConvertContext& context) {
-	XAMP_ASSUME(input != nullptr);
-	XAMP_ASSUME(output != nullptr);
-
 	auto input_samples = std::span{ input, context.convert_size * AudioFormat::kMaxChannel };
 	auto output_samples = std::span{ output, input_samples.size() };
 	for (size_t i = 0; i < input_samples.size(); ++i) {
@@ -530,9 +470,6 @@ void DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::conver
 }
 
 void DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::convertToInt2432(int32_t* output, const float* input, const AudioConvertContext& context) {
-	XAMP_ASSUME(input != nullptr);
-	XAMP_ASSUME(output != nullptr);
-
 	auto input_samples = std::span{ input, context.convert_size * AudioFormat::kMaxChannel };
 	auto output_samples = std::span{ output, input_samples.size() };
 	for (size_t i = 0; i < input_samples.size(); ++i) {

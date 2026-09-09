@@ -29,8 +29,6 @@ public:
     void setScannerThreadPool(std::shared_ptr<IThreadPool> scanner_thread_pool);
 
 signals:
-    void insertDatabase(const std::forward_list<TrackInfo>& result, int32_t playlist_id);
-
     void batchInsertDatabase(const std::vector<std::forward_list<TrackInfo>>& results, int32_t playlist_id);
 
     void readFileStart();

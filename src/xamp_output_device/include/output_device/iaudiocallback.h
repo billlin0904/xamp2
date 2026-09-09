@@ -26,6 +26,9 @@ public:
 		double stream_time, 
 		double sample_time) = 0;
 
+    // Called by the backend only after submitted strict PCM buffers have drained.
+    virtual void onPlaybackEnd() {}
+
     virtual void onError(const std::exception& exception) = 0;
 
 	virtual void onVolumeChange(int32_t vol) = 0;

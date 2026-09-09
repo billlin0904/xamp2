@@ -3,11 +3,12 @@
 #include <filesystem>
 #include <regex>
 
+#include <base/stl.h>
+#include <base/str_utilts.h>
 #include <base/text_encoding.h>
-#include <base/algorithm.h>
+#include <base/zib_util.h>
 
 #include <widget/util/json_util.h>
-#include <widget/util/zib_util.h>
 #include <widget/krcparser.h>
 
 namespace {
@@ -335,19 +336,19 @@ bool KrcParser::parse(const uint8_t* buffer, size_t size) {
     }
 
     std::string decompressed;
-    auto result = gzipDecompress(encoded_data.data(), encoded_data.size());
+    auto result = xamp::base::gzipDecompress(encoded_data.data(), encoded_data.size());
     if (!result) {
         return false;
     }
     decompressed = result.value();
 
-    TextEncoding encoding;
+    xamp::base::TextEncoding encoding;
     std::wstring wtext;
     auto utf8_str = encoding.toUtf8String(decompressed,
         decompressed.length(),
         false);
     if (utf8_str) {
-        wtext = String::toStdWString(utf8_str.value());
+        wtext = xamp::base::String::toStdWString(utf8_str.value());
         return parseKrcText(wtext);
     }
     return false;
@@ -550,5 +551,5 @@ std::optional<KrcContent> parseKrcContent(const QString& jsonString) {
     QJsonObject root_obj = doc.object();
     result.base64Content = root_obj.value("content"_str).toString();
     result.decodedContent = QByteArray::fromBase64(result.base64Content.toUtf8());
-	return MakeOptional<KrcContent>(result);
+	return xamp::base::makeOptional<KrcContent>(result);
 }

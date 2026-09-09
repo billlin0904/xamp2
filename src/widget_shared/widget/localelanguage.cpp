@@ -53,7 +53,7 @@ void LocaleLanguage::setLanguageByLocale(const QLocale& locale) {
 LocaleLanguageManager::LocaleLanguageManager() = default;
 
 QList<LocaleLanguage> LocaleLanguageManager::languageNames() {
-	QList<LocaleLanguage> languages_list;
+	QList<LocaleLanguage> languages_list { LocaleLanguage("en_US"_str) };
 
 	auto path = QApplication::applicationDirPath();
 	path.append("/langs"_str);
@@ -65,7 +65,7 @@ QList<LocaleLanguage> LocaleLanguageManager::languageNames() {
 			continue;
 		}
 		locale.truncate(locale.lastIndexOf("."_str));
-		languages_list.append(LocaleLanguage(locale));
+		if (locale != "en_US"_str) languages_list.append(LocaleLanguage(locale));
 	}
 
 	return languages_list;

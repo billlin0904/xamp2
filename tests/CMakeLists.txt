@@ -1,0 +1,50 @@
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+if(MSVC)
+    add_compile_options(/Zc:__cplusplus)
+endif()
+include(FetchContent)
+find_package(Catch2 3 CONFIG QUIET)
+if(NOT Catch2_FOUND)
+    FetchContent_Declare(Catch2
+        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+        GIT_TAG v3.8.1 GIT_SHALLOW TRUE)
+    FetchContent_MakeAvailable(Catch2)
+    list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
+endif()
+include(Catch)
+add_executable(pcm_conversion_test ../src/xamp_stream/tests/pcm_conversion_test.cpp)
+target_compile_features(pcm_conversion_test PRIVATE cxx_std_20)
+target_include_directories(pcm_conversion_test PRIVATE ../src/xamp_base/include)
+target_link_libraries(pcm_conversion_test PRIVATE Catch2::Catch2WithMain)
+catch_discover_tests(pcm_conversion_test)
+
+# Windows production libraries are built by the existing MSBuild solution.
+set(XAMP_TEST_RUNTIME_DIR "" CACHE PATH "Directory containing Release XAMP DLLs and components")
+if(WIN32 AND XAMP_TEST_RUNTIME_DIR)
+    add_executable(bitperfect_pipeline_test ../src/xamp_stream/tests/bitperfect_pipeline_test.cpp
+        ../src/xamp_stream/tests/equalizer_test.cpp)
+    target_compile_features(bitperfect_pipeline_test PRIVATE cxx_std_23)
+    target_compile_options(bitperfect_pipeline_test PRIVATE /utf-8 /Zc:__cplusplus)
+    target_compile_definitions(bitperfect_pipeline_test PRIVATE UNICODE _UNICODE _ENABLE_EXTENDED_ALIGNED_STORAGE
+        XAMP_TEST_FIXTURES="${CMAKE_CURRENT_SOURCE_DIR}/fixtures")
+    foreach(module xamp_base xamp_stream)
+        target_include_directories(bitperfect_pipeline_test PRIVATE ../src/${module}/include)
+        target_link_libraries(bitperfect_pipeline_test PRIVATE "${XAMP_TEST_RUNTIME_DIR}/${module}.lib")
+    endforeach()
+    foreach(dep spdlog mimalloc unordered_dense)
+        target_include_directories(bitperfect_pipeline_test PRIVATE ../src/thirdparty/${dep}/include)
+    endforeach()
+    target_link_libraries(bitperfect_pipeline_test PRIVATE Catch2::Catch2WithMain)
+    set_target_properties(bitperfect_pipeline_test PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY_RELEASE "${XAMP_TEST_RUNTIME_DIR}")
+    catch_discover_tests(bitperfect_pipeline_test WORKING_DIRECTORY "${XAMP_TEST_RUNTIME_DIR}" DISCOVERY_MODE PRE_TEST)
+endif()
+
+if(WIN32)
+    add_executable(output_format_test ../src/xamp_output_device/tests/output_format_test.cpp)
+    target_include_directories(output_format_test PRIVATE ../src/xamp_base/include
+        ../src/xamp_output_device/include ../src/thirdparty/asiosdk/common)
+    target_link_libraries(output_format_test PRIVATE Catch2::Catch2WithMain)
+    catch_discover_tests(output_format_test)
+endif()

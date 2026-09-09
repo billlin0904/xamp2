@@ -105,11 +105,6 @@ void alignedFree(void* p) {
 	return ::free(p);
 }
 
-void* stackAlloc(size_t size) {
-	auto ptr = ::alloca(size);
-	return ptr;
-}
-
 void stackFree(void* p) {
 	(void)p;
 }
@@ -123,11 +118,6 @@ void* alignedMalloc(size_t size, size_t aligned_size) {
 void alignedFree(void* p) {
 	XAMP_EXPECTS(p != nullptr);
 	::_aligned_free(p);
-}
-
-void* stackAlloc(size_t size) {
-	auto ptr = _malloca(size);
-	return ptr;
 }
 
 void stackFree(void* p) {

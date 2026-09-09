@@ -1,12 +1,12 @@
 ﻿#include <widget/musicbrainzparser.h>
 #include <widget/util/str_util.h>
 
+#include <base/json.h>
+
 #include <QString>
 #include <QDebug>
 #include <QRegularExpression>
 #include <QVector>
-
-#include <simdjson.h>
 
 #include <algorithm>
 #include <cmath>
@@ -23,142 +23,62 @@ namespace musicbrain {
             double weight = 0;
         };
 
-        using JsonArray = simdjson::dom::array;
-        using JsonElement = simdjson::dom::element;
-        using JsonObject = simdjson::dom::object;
+        using JsonArray = xamp::base::JsonArray;
+        using JsonElement = xamp::base::JsonElement;
+        using JsonObject = xamp::base::JsonObject;
 
         QString toQString(std::string_view value) {
             return QString::fromUtf8(value.data(), static_cast<qsizetype>(value.size()));
         }
 
         std::optional<JsonObject> asObject(const JsonElement& element) {
-            JsonObject object;
-            if (element.get(object)) {
-                return std::nullopt;
-            }
-            return object;
+            return element.asObject();
         }
 
         std::optional<JsonArray> asArray(const JsonElement& element) {
-            JsonArray array;
-            if (element.get(array)) {
-                return std::nullopt;
-            }
-            return array;
+            return element.asArray();
         }
 
         std::optional<JsonElement> field(const JsonObject& object, std::string_view name) {
-            auto result = object[name];
-            if (result.error()) {
-                return std::nullopt;
-            }
-            return result.value_unsafe();
+            return object.field(name);
         }
 
         std::optional<JsonObject> objectField(const JsonObject& object, std::string_view name) {
-            const auto value = field(object, name);
-            return value ? asObject(*value) : std::nullopt;
+            return object.objectField(name);
         }
 
         std::optional<JsonArray> arrayField(const JsonObject& object, std::string_view name) {
-            const auto value = field(object, name);
-            return value ? asArray(*value) : std::nullopt;
+            return object.arrayField(name);
         }
 
         QString stringField(const JsonObject& object, std::string_view name) {
-            const auto value = field(object, name);
-            if (!value) {
-                return {};
-            }
-
-            std::string_view text;
-            if (value->get(text)) {
-                return {};
-            }
-            return toQString(text);
+            return toQString(object.stringField(name));
         }
 
         int intField(const JsonObject& object, std::string_view name, int fallback = 0) {
-            const auto value = field(object, name);
-            if (!value) {
-                return fallback;
-            }
-
-            int64_t signedValue = 0;
-            if (!value->get(signedValue)) {
-                return static_cast<int>(signedValue);
-            }
-
-            uint64_t unsignedValue = 0;
-            if (!value->get(unsignedValue)) {
-                return static_cast<int>(unsignedValue);
-            }
-
-            double doubleValue = 0;
-            if (!value->get(doubleValue)) {
-                return static_cast<int>(doubleValue);
-            }
-
-            return fallback;
+            return object.intField(name, fallback);
         }
 
         double doubleField(const JsonObject& object, std::string_view name, double fallback = 0) {
-            const auto value = field(object, name);
-            if (!value) {
-                return fallback;
-            }
-
-            double doubleValue = 0;
-            if (!value->get(doubleValue)) {
-                return doubleValue;
-            }
-
-            int64_t signedValue = 0;
-            if (!value->get(signedValue)) {
-                return static_cast<double>(signedValue);
-            }
-
-            uint64_t unsignedValue = 0;
-            if (!value->get(unsignedValue)) {
-                return static_cast<double>(unsignedValue);
-            }
-
-            return fallback;
+            return object.doubleField(name, fallback);
         }
 
         bool boolField(const JsonObject& object, std::string_view name, bool fallback = false) {
-            const auto value = field(object, name);
-            if (!value) {
-                return fallback;
-            }
-
-            bool boolValue = false;
-            return value->get(boolValue) ? fallback : boolValue;
+            return object.boolField(name, fallback);
         }
 
         QStringList stringArrayField(const JsonObject& object, std::string_view name) {
             QStringList values;
-            const auto array = arrayField(object, name);
-            if (!array) {
-                return values;
-            }
-
-            for (const auto value : *array) {
-                std::string_view text;
-                if (!value.get(text)) {
-                    values.append(toQString(text));
-                }
+            for (const auto& value : object.stringArrayField(name)) {
+                values.append(toQString(value));
             }
             return values;
         }
 
-        std::optional<JsonObject> parseJsonObject(const QByteArray& json, simdjson::dom::parser& parser) {
-            simdjson::padded_string padded(json.constData(), static_cast<size_t>(json.size()));
-            JsonElement root;
-            if (parser.parse(padded).get(root)) {
-                return std::nullopt;
-            }
-            return asObject(root);
+        std::optional<JsonObject> parseJsonObject(const QByteArray& json) {
+            return xamp::base::parseJsonObject(std::string_view(
+                json.constData(),
+                static_cast<size_t>(json.size())));
         }
 
         QString normalizedText(const QString& text) {
@@ -538,8 +458,7 @@ namespace musicbrain {
     }
 
     std::expected<RootRecording, ParserError> parseRootRecording(const QString& jsonText) {
-        simdjson::dom::parser parser;
-        const auto rootObj = parseJsonObject(jsonText.toUtf8(), parser);
+        const auto rootObj = parseJsonObject(jsonText.toUtf8());
         if (!rootObj) {
             return std::unexpected(ParserError::PARSE_ERROR_JSON_ERROR);
         }
@@ -548,8 +467,7 @@ namespace musicbrain {
     }
 
     std::expected<QList<RootRecording>, ParserError> parseRootRecordingList(const QString& jsonText) {
-        simdjson::dom::parser parser;
-        const auto rootObj = parseJsonObject(jsonText.toUtf8(), parser);
+        const auto rootObj = parseJsonObject(jsonText.toUtf8());
         if (!rootObj) {
             return std::unexpected(ParserError::PARSE_ERROR_JSON_ERROR);
         }
@@ -569,8 +487,7 @@ namespace musicbrain {
     }
 
     std::expected<QList<Release>, ParserError> parseReleaseList(const QString& jsonText) {
-        simdjson::dom::parser parser;
-        const auto rootObj = parseJsonObject(jsonText.toUtf8(), parser);
+        const auto rootObj = parseJsonObject(jsonText.toUtf8());
         if (!rootObj) {
             return std::unexpected(ParserError::PARSE_ERROR_JSON_ERROR);
         }
@@ -590,8 +507,7 @@ namespace musicbrain {
     }
 
     std::optional<QList<TrackInfo>> parseReleaseTracklist(const QByteArray& json, const QList<Release> &releases) {
-        simdjson::dom::parser parser;
-        const auto obj = parseJsonObject(json, parser);
+        const auto obj = parseJsonObject(json);
         if (!obj) {
             return std::nullopt;
         }

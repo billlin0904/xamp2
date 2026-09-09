@@ -55,7 +55,7 @@ private:
     TemporaryFile file_;
     ArchiveEntry entry;
 
-    static bool WriteCache(ArchiveContext* ctx, uint64_t want_end) {
+    static bool writeCache(ArchiveContext* ctx, uint64_t want_end) {
         while (ctx->write_pos_ < want_end) {
             auto result = ctx->entry.read(ctx->buffer_.data(), static_cast<long>(kReadSize));
             if (!result) {
@@ -79,16 +79,16 @@ public:
 
     ~ArchiveContext() = default;    
 
-    static QWORD CALLBACK ArchiveLengthCallback(void* user) {
+    static QWORD CALLBACK archiveLengthCallback(void* user) {
         auto* context = static_cast<ArchiveContext*>(user);
         return context->entry.Length();
     }
 
-    static DWORD CALLBACK ArchiveReadCallback(void* buf, DWORD len, void* user) {
+    static DWORD CALLBACK archiveReadCallback(void* buf, DWORD len, void* user) {
         auto* ctx = static_cast<ArchiveContext*>(user);
         const uint64_t want_end = ctx->read_pos_ + len;
 
-        WriteCache(ctx, want_end);
+        writeCache(ctx, want_end);
 
         const uint64_t avail = ctx->write_pos_ - ctx->read_pos_;
         const DWORD to_read = static_cast<DWORD>(std::min<uint64_t>(len, avail));
@@ -106,14 +106,14 @@ public:
         return static_cast<DWORD>(n);
     }
 
-    static BOOL CALLBACK ArchiveSeekCallback(QWORD offset, void* user) {
+    static BOOL CALLBACK archiveSeekCallback(QWORD offset, void* user) {
         auto* ctx = static_cast<ArchiveContext*>(user);
 
         if (offset > ctx->total_len_ && ctx->total_len_ != 0) {
             return FALSE;
         }
 
-        if (!WriteCache(ctx, offset)) {
+        if (!writeCache(ctx, offset)) {
             return FALSE;
         }
 
@@ -121,7 +121,7 @@ public:
         return TRUE;
     }
 
-    static void CALLBACK ArchiveCloseCallback(void* user) {
+    static void CALLBACK archiveCloseCallback(void* user) {
         auto* ctx = static_cast<ArchiveContext*>(user);
         ctx->file_.close();
     }    
@@ -141,7 +141,7 @@ public:
         close();
     }
 
-    void CreateBassStream(const std::wstring & file_path, DsdModes mode, DWORD flags) {
+    void createBassStream(const std::wstring & file_path, DsdModes mode, DWORD flags) {
         static constexpr BASS_FILEPROCS file_process = {
                &FastIOStreamContext::BassCloseProc,
                &FastIOStreamContext::BassLenProc,
@@ -173,11 +173,11 @@ public:
         }
     }
 
-    void CreateFileOrURL(std::wstring const& file_path, bool is_file_path, DsdModes mode, DWORD flags) {
+    void createFileOrURL(std::wstring const& file_path, bool is_file_path, DsdModes mode, DWORD flags) {
         if (is_file_path) {
             prefetchFile(file_path);
 
-	        const auto is_cda_file = IsCDAFile(file_path);
+	        const auto is_cda_file = isCDAFile(file_path);
 
             if (is_cda_file) {
                 flags |= BASS_ASYNCFILE;
@@ -190,7 +190,7 @@ public:
                 return;
             }
 
-            CreateBassStream(file_path, mode, flags);
+            createBassStream(file_path, mode, flags);
         } else {
 #ifdef XAMP_OS_MAC
             auto utf8 = String::toString(file_path);
@@ -206,7 +206,7 @@ public:
                 url,
                 0,
                 flags | BASS_STREAM_DECODE | BASS_UNICODE | BASS_STREAM_STATUS,
-                &BassFileStreamImpl::DownloadProc,
+                &BassFileStreamImpl::downloadProc,
                 this));
 #endif
         }
@@ -218,10 +218,10 @@ public:
 
     void open(ArchiveEntry archive_entry) {
         static constexpr BASS_FILEPROCS file_process = {
-            &ArchiveContext::ArchiveCloseCallback,
-            & ArchiveContext::ArchiveLengthCallback,
-            & ArchiveContext::ArchiveReadCallback,
-            & ArchiveContext::ArchiveSeekCallback
+            &ArchiveContext::archiveCloseCallback,
+            & ArchiveContext::archiveLengthCallback,
+            & ArchiveContext::archiveReadCallback,
+            & ArchiveContext::archiveSeekCallback
         };
 
         DWORD flags = 0;
@@ -265,7 +265,7 @@ public:
         }
 
         XAMP_LOG_DEBUG("open track is a {} secs", measure_stream_time.elapsedSeconds());
-        LoadStream(rate_);
+        loadStream(rate_);
     }
 
     void open(Path const& file_path) {
@@ -293,12 +293,12 @@ public:
     		|| file_path.wstring().find(L"https") != std::string::npos;
         XAMP_LOG_D(logger_, "start open file");
 
-        CreateFileOrURL(file_path.wstring(), !is_http, mode_, flags);        
-        LoadStream(rate_);
+        createFileOrURL(file_path.wstring(), !is_http, mode_, flags);        
+        loadStream(rate_);
     }
 
-    void CheckZeroDuration() {
-        const auto source_duration = GetSourceDurationSeconds();
+    void checkZeroDuration() {
+        const auto source_duration = getSourceDurationSeconds();
         const auto duration = getDuration();
         XAMP_LOG_DEBUG("Source duration: {:.2f} secs, Processed duration: {:.2f} secs",
             source_duration,
@@ -310,19 +310,19 @@ public:
         }
     }
 
-    void LoadStream(float rate) {
+    void loadStream(float rate) {
         info_ = BASS_CHANNELINFO{};        
         BassIfFailedThrow(LIB_BASS.BASS_ChannelGetInfo(impl_.get(), &info_)); 
 
         if (mode_ == DsdModes::DSD_MODE_DOP || mode_ == DsdModes::DSD_MODE_NATIVE) {
-            CheckZeroDuration();
+            checkZeroDuration();
             return;
         }
 
         if (getFormat().getChannels() == AudioFormat::kMaxChannel) {
-            CreateTempoStream();
-            SetRate(rate);
-            CheckZeroDuration();
+            createTempoStream();
+            setRate(rate);
+            checkZeroDuration();
             return;
         }
 
@@ -347,9 +347,9 @@ public:
         else {
             throw NotSupportFormatException();
         }        
-        CreateTempoStream();
-        SetRate(rate);
-        CheckZeroDuration();
+        createTempoStream();
+        setRate(rate);
+        checkZeroDuration();
     }
 
     [[nodiscard]] uint32_t getBitDepth() const {
@@ -365,7 +365,7 @@ public:
         return info_.origres;
     }
 
-    [[nodiscard]] double GetReadProgress() const {
+    [[nodiscard]] double getReadProgress() const {
         auto file_len = 
             LIB_BASS.BASS_StreamGetFilePosition(getHStream(),
                 BASS_FILEPOS_END);
@@ -376,12 +376,12 @@ public:
     	/ static_cast<double>(file_len);
     }
 
-    [[nodiscard]] int32_t GetBufferingProgress() const {
+    [[nodiscard]] int32_t getBufferingProgress() const {
         return 100 - LIB_BASS.BASS_StreamGetFilePosition(getHStream(), 
             BASS_FILEPOS_BUFFERING);
     }
 
-	static void DownloadProc(const void* buffer, DWORD length, void* user) {
+	static void downloadProc(const void* buffer, DWORD length, void* user) {
         auto* impl = static_cast<BassFileStreamImpl*>(user);
     	if (!buffer) {
             XAMP_LOG_D(impl->logger_, "Downloading 100% completed!");
@@ -396,7 +396,7 @@ public:
                 impl->download_size_ += length;
                 XAMP_LOG_D(impl->logger_,
                     "Downloading {:.2f}% {}",
-                    impl->GetReadProgress(),
+                    impl->getReadProgress(),
                     String::formatBytes(impl->download_size_));
             }            
         }
@@ -418,22 +418,22 @@ public:
     }
 
     uint32_t getSamples(void *buffer, uint32_t length) const {
-        return InternalGetSamples(buffer,
+        return internalGetSamples(buffer,
             length * getSampleSize()) / getSampleSize();
     }
     
-    static double GetHStreamDuration(HSTREAM stream) {
+    static double getHStreamDuration(HSTREAM stream) {
         const auto len =
             LIB_BASS.BASS_ChannelGetLength(stream, BASS_POS_BYTE);
         return LIB_BASS.BASS_ChannelBytes2Seconds(stream, len);
     }
 
-    [[nodiscard]] double GetSourceDurationSeconds() const {
-        return GetHStreamDuration(impl_.get());
+    [[nodiscard]] double getSourceDurationSeconds() const {
+        return getHStreamDuration(impl_.get());
     }
 
     [[nodiscard]] double getDuration() const {
-        const double src = GetSourceDurationSeconds();
+        const double src = getSourceDurationSeconds();
         if (!tempo_stream_.is_valid()) return src;
         return src / playback_rate_;
     }
@@ -448,7 +448,7 @@ public:
             return AudioFormat(DataFormat::FORMAT_PCM,
                 static_cast<uint16_t>(info_.chans),
                 ByteFormat::FLOAT32,
-                GetDOPSampleRate(getDsdSpeed()));
+                getDOPSampleRate(getDsdSpeed()));
         }
         return AudioFormat(DataFormat::FORMAT_PCM,
 				static_cast<uint16_t>(info_.chans),
@@ -456,7 +456,7 @@ public:
 				info_.freq);
     }
 
-    DWORD GetSetPositionFlags() const {
+    DWORD getSetPositionFlags() const {
         if (tempo_stream_.is_valid()) {
             return BASS_POS_DECODETO;
         }
@@ -496,7 +496,7 @@ public:
         BassIfFailedThrow(false);
     }
 
-    double GetPosition() const {
+    double getPosition() const {
         double playback_seconds = LIB_BASS.BASS_ChannelBytes2Seconds(getHStream(),
             LIB_BASS.BASS_ChannelGetPosition(getHStream(), BASS_POS_BYTE));
         return playback_seconds * playback_rate_;
@@ -504,14 +504,14 @@ public:
 
     [[nodiscard]] uint32_t getDsdSampleRate() const {
         float rate = 0;
-        BassIfFailedThrow(LIB_BASS.BASS_ChannelGetAttribute(GetSourceStream(),
+        BassIfFailedThrow(LIB_BASS.BASS_ChannelGetAttribute(getSourceStream(),
             BASS_ATTRIB_DSD_RATE, &rate));
         return static_cast<uint32_t>(rate);
     }
 
     [[nodiscard]] uint32_t getBitRate() const {
         float rate = 0;
-        BassIfFailedThrow(LIB_BASS.BASS_ChannelGetAttribute(GetSourceStream(),
+        BassIfFailedThrow(LIB_BASS.BASS_ChannelGetAttribute(getSourceStream(),
             BASS_ATTRIB_BITRATE, &rate));
         return static_cast<uint32_t>(rate);
     }
@@ -532,7 +532,7 @@ public:
         mode_ = mode;
     }
 
-    [[nodiscard]] DsdModes GetDSDMode() const {
+    [[nodiscard]] DsdModes getDSDMode() const {
         return mode_;       
     }
 
@@ -564,7 +564,7 @@ public:
     }
 
     [[nodiscard]] bool isActive() const {
-        return LIB_BASS.BASS_ChannelIsActive(GetSourceStream()) == BASS_ACTIVE_PLAYING;
+        return LIB_BASS.BASS_ChannelIsActive(getSourceStream()) == BASS_ACTIVE_PLAYING;
     }
 	
     bool endOfStream() const {
@@ -575,13 +575,13 @@ public:
         return false;
     }    
 
-    void SetRate(float percent) {
+    void setRate(float percent) {
         percent = std::clamp(percent, 0.0f, 95.0f);
         playback_rate_ = 1.0f - percent / 100.0f;
         if (!tempo_enabled_) {
             return;
         }
-        if (!CanUseTempo()) {
+        if (!canUseTempo()) {
             throw NotSupportFormatException();
         }
         if (!tempo_stream_.is_valid()) {
@@ -595,7 +595,7 @@ public:
     }
 
 private:
-    uint32_t InternalGetSamples(void* buffer, uint32_t length) const {
+    uint32_t internalGetSamples(void* buffer, uint32_t length) const {
         const auto bytes_read =
             LIB_BASS.BASS_ChannelGetData(getHStream(), buffer, length);
         if (bytes_read == kBassError) {            			
@@ -604,18 +604,18 @@ private:
         return static_cast<uint32_t>(bytes_read);
     }
 
-    bool CanUseTempo() const {
+    bool canUseTempo() const {
         return mode_ != DsdModes::DSD_MODE_NATIVE;
     }
 
-    HSTREAM GetSourceStream() const {
+    HSTREAM getSourceStream() const {
         return impl_.get();
     }
 
-    void CreateTempoStream() {
+    void createTempoStream() {
         tempo_stream_.reset();
 
-        if (!tempo_enabled_ || !CanUseTempo()) {
+        if (!tempo_enabled_ || !canUseTempo()) {
             return;
         }
 
@@ -689,7 +689,7 @@ void BassFileStream::setDSDMode(DsdModes mode) {
 }
 
 DsdModes BassFileStream::getDsdMode() const {
-    return impl_->GetDSDMode();
+    return impl_->getDSDMode();
 }
 
 bool BassFileStream::isDsdFile() const {

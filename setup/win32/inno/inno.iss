@@ -4,10 +4,15 @@
 #include "CodeDependencies.iss"
 
 #define MyAppName "XAMP2"
-#define MyAppVersion "0.1.0"
+#ifndef MyAppVersion
+#define MyAppVersion "1.0.2"
+#endif
 #define MyAppPublisher "XAMP2 Project"
 #define MyAppURL "https://github.com/billlin0904/xamp2"
 #define MyAppExeName "xamp.exe"
+#ifndef DeployDir
+#define DeployDir "..\..\..\src\xamp\deploy"
+#endif
 #define MyAppAssocName MyAppName + " File"
 #define MyAppAssocExt ".myp"
 #define MyAppAssocKey StringChange(MyAppAssocName, " ", "") + MyAppAssocExt
@@ -36,7 +41,7 @@ ChangesAssociations=yes
 DisableProgramGroupPage=yes
 ; Remove the following line to run in administrative install mode (install for all users.)
 PrivilegesRequired=lowest
-OutputDir=F:\Source\xamp2\setup\win32\inno
+OutputDir=output
 OutputBaseFilename=xamp2-setup
 Compression=lzma
 SolidCompression=yes
@@ -58,8 +63,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 
 [Files]
-Source: "F:\Source\xamp2\src\xamp\deploy\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "F:\Source\xamp2\src\xamp\deploy\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "Cache\*,logs\*,*.pdb,*.lib,*.exp,bench.exe,bench.pdb,xamp.db"
+Source: "{#DeployDir}\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#DeployDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "Cache\*,logs\*,*.pdb,*.lib,*.exp,bench.exe,bench.pdb,*_test.exe,xamp.db,xamp.ini,config.json"
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]
@@ -74,9 +79,21 @@ Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; Flags: nowait runasoriginaluser; Check: IsUpdate
+
+Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent; Check: not IsUpdate
 
 [Code]
+function IsUpdate: Boolean;
+var
+  I: Integer;
+begin
+  Result := False;
+  for I := 1 to ParamCount do
+    if CompareText(ParamStr(I), '/UPDATE') = 0 then
+      Result := True;
+end;
+
 function InitializeSetup: Boolean;
 begin
   Dependency_AddVC2015To2022;

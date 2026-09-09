@@ -20,6 +20,7 @@
 #include <base/stopwatch.h>
 #include <base/threadpoolbuilder.h>
 #include <base/scopeguard.h>
+#include <base/stl.h>
 
 #include <metadata/api.h>
 #include <metadata/cuefilereader.h>
@@ -141,13 +142,6 @@ namespace {
 		}
 		return track_count;
 	}
-
-	template <typename Callback, typename... Args>
-	void invokeCallback(const Callback& callback, Args&&... args) {
-		if (callback) {
-			std::invoke(callback, std::forward<Args>(args)...);
-		}
-	}
 }
 
 MetadataLibraryScanner::MetadataLibraryScanner(std::shared_ptr<IThreadPool> thread_pool)
@@ -169,7 +163,7 @@ MetadataScanProgress MetadataLibraryScanner::scan(const Path& root_path,
 	stage_elapsed.reset();
 	const auto total_work = countScanFiles(files);
 	const auto count_seconds = stage_elapsed.elapsedSeconds();
-	invokeCallback(callbacks.on_found_file_count, total_work);
+	safeInvoke(callbacks.on_found_file_count, total_work);
 
 	XAMP_LOG_DEBUG("Metadata scan prepare path:{} total:{} directories:{} cues:{} collect:{:.3f}s count:{:.3f}s",
 		pathToUtf8(root_path),
@@ -196,7 +190,7 @@ MetadataScanProgress MetadataLibraryScanner::scan(const Path& root_path,
 		MetadataScanProgress progress;
 		progress.total_work = total_work;
 		progress.completed_work = completed;
-		invokeCallback(callbacks.on_progress, progress);
+		safeInvoke(callbacks.on_progress, progress);
 		};
 
 	FastMutex batch_mutex;
@@ -228,8 +222,8 @@ MetadataScanProgress MetadataLibraryScanner::scan(const Path& root_path,
 			track_count,
 			total_elapsed.elapsedSeconds());
 
-		invokeCallback(callbacks.on_read_path, path, path_size);
-		invokeCallback(callbacks.on_batch_tracks, std::move(batch));
+		safeInvoke(callbacks.on_read_path, path, path_size);
+		safeInvoke(callbacks.on_track_batches, std::move(batch));
 		};
 
 	constexpr auto kIOThreadCount = 8;
@@ -333,11 +327,13 @@ MetadataScanProgress MetadataLibraryScanner::scan(const Path& root_path,
 			sortTracks(tracks);
 			if (!tracks.empty()) {
 				const auto track_count = countTracks(tracks);
+				std::vector<std::forward_list<TrackInfo>> batch;
+				batch.emplace_back(std::move(tracks));
 				XAMP_LOG_DEBUG("Metadata scan emit cue path:{} tracks:{} elapsed:{:.3f}s",
 					pathToUtf8(cue_path),
 					track_count,
 					total_elapsed.elapsedSeconds());
-				invokeCallback(callbacks.on_tracks, std::move(tracks));
+				safeInvoke(callbacks.on_track_batches, std::move(batch));
 			}
 		},
 		stop_token);

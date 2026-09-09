@@ -36,14 +36,14 @@ struct ImageCacheSizeOfPolicy {
 class QTimerEvent;
 
 inline constexpr ConstexprQString kAlbumCacheTag("album_thumbnail_"_str);
-inline constexpr ConstexprQString kArtistCacheTag("artist_thumbnail_"_str);
+
+inline constexpr auto kCoverSize = QSize(38, 38);
 
 class XAMP_WIDGET_SHARED_API ImageCache final : public QObject {
 public:
 	static constexpr char kImageFileFormat[] = "PNG";
 	static constexpr int kTrimImageSizeSeconds = 10 * 1000;
 	static constexpr QImage::Format kImageFormat = QImage::Format_RGB888;
-	static constexpr auto kCoverSize = QSize(38, 38);
 
 	XAMP_DECLARE_SINGLETON_NAME()
 
@@ -53,17 +53,7 @@ public:
 
 	bool contains(const QString& tag_id) const;
 
-	bool isFileExists(const QString& tag, const QString& cover_id) const;
-
-	QPixmap scanCoverFromDir(const QString& file_path);
-
-	QPixmap findImageFromDir(const PlayListEntity& item);
-
-    QPixmap getOrAddDefault(const QString& tag_id, bool not_found_use_default = true) const;
-
-	ImageCacheEntity getFromFile(const QString& tag_id) const;
-
-	void removeImage(const QString& tag_id) const;
+	bool isFileExists(const QString& cover_id) const;    
 
 	size_t size() const;
 
@@ -73,31 +63,19 @@ public:
 		return unknown_cover_id_;
 	}
 
-	void clear() const;
-
 	void clearCache() const;
 
-	void addCache(const QString& cover_id, const QPixmap& cover);
+	void removeCoverId(const QString& cover_id) const;
 
-	QString addImage(const QPixmap& cover, bool save_only = false, bool resize = true);
+	ImageCacheEntity getFromFile(const QString& cover_id) const;
 
-	QPixmap getOrAdd(const QString& tag_id, std::function<QPixmap()>&& value_factory);
+	QString addImage(const QPixmap& cover, bool save_only = false);
 
-	std::optional<QPixmap> tryGet(const QString& tag, const QString& cover_id);
+	QPixmap getOrAddDefault(const QString& cover_id, bool not_found_use_default = true) const;
 
-	void loadIfNotExists(const QString& tag, const QString& cover_id);
+	std::optional<QPixmap> tryGet(const QString& cover_id) const;
 
-	QPixmap getOrDefault(const QString& tag, const QString& cover_id);
-
-	void remove(const QString& cover_id);
-
-	void addOrUpdateCover(const QString& tag, const QString& cover_id, const QPixmap& cover);
-
-	QIcon getOrAddIcon(const QString& id) const;
-
-	void addOrUpdateIcon(const QString& id, const QIcon &value) const;
-
-	QIcon uniformIcon(const QIcon &icon, QSize size) const;
+	QPixmap getOrDefault(const QString& cover_id);	
 
 public slots:
 
@@ -106,16 +84,28 @@ private:
 
 	void loadCache() const;	
 
-	QFileInfo getImageFileInfo(const QString& tag_id) const;
+	bool saveCacheImage(const QString& cover_id, const QPixmap& image, bool update_memory, qint64* encoded_size = nullptr) const;
 
-	QStringList cover_ext_;
-	QStringList cache_ext_;
+	void addOrUpdateCover(const QString& cover_id, const QPixmap& cover) const;
 
 	int64_t trim_target_size_;
+	QStringList cover_ext_;
+	QStringList cache_ext_;	
 	QString unknown_cover_id_;
 	LoggerPtr logger_;
-	mutable LruCache<QString, ImageCacheEntity, ImageCacheSizeOfPolicy> thumbnail_cache_;
+	mutable LruCache<QString, ImageCacheEntity, ImageCacheSizeOfPolicy> cache_;
 	mutable std::shared_ptr<ObjectPool<QBuffer>> buffer_pool_;
 };
 
 #define qImageCache SharedSingleton<ImageCache>::getInstance()
+
+XAMP_WIDGET_SHARED_API QIcon uniformIcon(const QIcon& icon, QSize size);
+
+class IconCache {
+public:
+	IconCache();
+
+	QIcon getOrAddIcon(const QString& id) const;	
+};
+
+#define qIconCache SharedSingleton<IconCache>::getInstance()

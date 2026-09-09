@@ -103,14 +103,14 @@ namespace {
 		return std::unexpected(TextEncodeingError::TEXT_ENCODING_UNKNOWN_ENCDOING);
 	}
 
-	DWORD MultiByteToWideFlags(UINT code_page, bool ignore_error) {
+	DWORD multiByteToWideFlags(UINT code_page, bool ignore_error) {
 		if (ignore_error) {
 			return 0;
 		}
 		return MB_ERR_INVALID_CHARS;
 	}
 
-	DWORD WideToMultiByteFlags(UINT code_page, bool ignore_error) {
+	DWORD wideToMultiByteFlags(UINT code_page, bool ignore_error) {
 		if (ignore_error) {
 			return 0;
 		}
@@ -125,7 +125,7 @@ namespace {
 			return std::unexpected(TextEncodeingError::TEXT_ENCODING_INPUT_STRING_EMPTY);
 		}
 
-		const auto flags = MultiByteToWideFlags(code_page, ignore_error);
+		const auto flags = multiByteToWideFlags(code_page, ignore_error);
 
 		int wide_size = ::MultiByteToWideChar(
 			code_page,
@@ -164,7 +164,7 @@ namespace {
 			return std::unexpected(TextEncodeingError::TEXT_ENCODING_INPUT_STRING_EMPTY);
 		}
 
-		const auto flags = WideToMultiByteFlags(code_page, ignore_error);
+		const auto flags = wideToMultiByteFlags(code_page, ignore_error);
 		BOOL used_default_char = FALSE;
 		const auto can_use_default_char = code_page != CP_UTF8 && code_page != 54936;
 		auto* used_default_char_ptr = !ignore_error && can_use_default_char ? &used_default_char : nullptr;
@@ -212,7 +212,7 @@ class TextEncoding::TextEncodingImpl {
 public:
 	TextEncodingImpl() = default;
 
-	std::expected<std::string, TextEncodeingError> ConvertTo8String(
+	std::expected<std::string, TextEncodeingError> convertTo8String(
 		const std::string& input_encoding,
 		const std::string& input,
 		const std::string& output_encoding,
@@ -250,7 +250,7 @@ public:
 		const std::string& input,
 		size_t buf_size,
 		bool ignore_error) {
-		return ConvertTo8String(input_encoding, input, kUTF8Encoding, buf_size, ignore_error);
+		return convertTo8String(input_encoding, input, kUTF8Encoding, buf_size, ignore_error);
 	}
 
 	bool isUtf8(const std::string& input) {		

@@ -32,8 +32,18 @@ auto kCacheFileExtension = "."_str + qFormat(ImageCache::kImageFileFormat).toLow
 XAMP_DECLARE_LOG_NAME(ImageCache);
 
 namespace {
+	QPixmap makeDisplayCover(const QPixmap& cover) {
+		return image_util::roundImage(
+			image_util::resizeImage(cover, qTheme.defaultCoverSize(), true),
+			image_util::kSmallImageRadius);
+	}
+
 	QString makeImageCachePath(const QString& tag_id) {
 		return qAppSettings.getOrCreateImageCachePath() + tag_id + kCacheFileExtension;
+	}
+
+	QFileInfo getImageFileInfo(const QString& tag_id) {
+		return QFileInfo(makeImageCachePath(tag_id));
 	}
 
 	bool prepareBuffer(QBuffer& buffer) {
@@ -53,12 +63,12 @@ namespace {
 			return false;
 		}
 		return file.write(image_data) == image_data.size();
-	}
+	}	
 }
 
 ImageCache::ImageCache()
 	: logger_(XAMP_LOG_CREATE_LOGGER(ImageCache))
-	, thumbnail_cache_(kMaxCacheImageSize) {
+	, cache_(kMaxCacheImageSize) {
 	unknown_cover_id_ = "unknown_album"_str;
 	cache_ext_ =
 		QStringList() << "*"_str + kCacheFileExtension;
@@ -73,116 +83,16 @@ ImageCache::ImageCache()
 
 void ImageCache::loadUnknownCover() {
 	auto unknown_cover = qTheme.unknownCover();	
-	const auto file_path = makeImageCachePath(kAlbumCacheTag + unknown_cover_id_);
-	QFileInfo file_info(file_path);
-	if (file_info.exists()) {
-		return;
+	for (const auto& tag_id : { unknown_cover_id_, kAlbumCacheTag + unknown_cover_id_ }) {
+		const auto file_path = makeImageCachePath(tag_id);
+		QFileInfo file_info(file_path);
+		if (!file_info.exists()) {
+			unknown_cover.save(file_path);
+		}
 	}
-	unknown_cover.save(file_path);
-}
-
-QPixmap ImageCache::scanCoverFromDir(const QString& file_path) {
-    const std::array<QString, 3> kTargetFolders = { "scans"_str, "artwork"_str, "booklet"_str };
-	constexpr auto kMaxDirCdUp = 4;
-
-	// 1...
-	// 2..
-	// 3.Disc1
-	// 4.Disc2
-	// 5.Disc3
-	// 6.Disc4
-	// 7.Disc5
-	// 8.Disc6
-	// 9.Disc7
-	// 10.Scans
-	constexpr auto kMaxUnexceptedDirSize = 10;
-
-	const QFileInfo input_info(file_path);
-	const QDir dir = input_info.isDir()
-		? QDir(input_info.absoluteFilePath())
-		: input_info.absoluteDir();
-	QDir scan_dir(dir);
-
-	auto find_dir_image = [this](const QDir &scan_dir, QDirIterator::IteratorFlags dir_iter_flag) -> std::optional<QPixmap> {
-		const QString kFrontCoverName = "Front"_str;
-
-		QStringList image_file_list;
-		for (QDirIterator itr(scan_dir.path(), cover_ext_, QDir::Files | QDir::NoDotAndDotDot, dir_iter_flag);
-			itr.hasNext();) {
-			const auto image_file_path = itr.next();
-			image_file_list.append(image_file_path);
-		}
-
-		if (image_file_list.isEmpty()) {
-			return std::nullopt;
-		}
-
-		std::sort(image_file_list.begin(), image_file_list.end(), [](const auto& a, const auto& b) {
-			auto file_index_a = QFileInfo(a).baseName().toStdWString();
-			auto file_index_b = QFileInfo(b).baseName().toStdWString();
-			auto index_a = 0;
-			port_swscanf(file_index_a.c_str(), L"%d", &index_a);
-			auto index_b = 0;
-			port_swscanf(file_index_b.c_str(), L"%d", &index_b);
-			return index_a < index_b;
-			});
-
-		auto find_cover_path = image_file_list[0];
-
-		for (const auto& image_file_path : image_file_list) {
-			if (image_file_path.contains(kFrontCoverName, Qt::CaseInsensitive)) {
-				find_cover_path = image_file_path;
-				break;
-			}			
-		}
-
-		return MakeOptional<QPixmap>(
-				image_util::readFileImage(find_cover_path,
-					qTheme.cacheCoverSize(),
-					kImageFormat));
-	};
-
-	// 1. Scan image file in the same level.
-	if (auto image = find_dir_image(QDir(dir.absolutePath()), QDirIterator::NoIteratorFlags)) {
-		return image.value();
-	}
-
-	// 2. Find 'Scans' folder in the same level or in parent folders.
-	auto cd_up_count = 0;
-	while (!scan_dir.isRoot() && cd_up_count < kMaxDirCdUp) {
-		bool found = false;
-		auto dirs = scan_dir.entryList(QDir::Dirs);
-		if (dirs.count() > kMaxUnexceptedDirSize) {
-			return {};
-		}
-		for (const auto& folder : kTargetFolders) {			
-			for (const auto& dir : dirs) {
-				if (dir.contains(folder, Qt::CaseInsensitive)) {
-					scan_dir.cd(dir);
-					found = true;
-					break;
-				}
-			}
-			if (found) {
-				break;
-			}
-		}
-		// Parent path maybe contains image file.
-		if (auto image = find_dir_image(scan_dir, QDirIterator::Subdirectories)) {
-			return image.value();
-		}
-		scan_dir.cdUp();
-		++cd_up_count;
-	}
-
-	return {};
 }
 
 void ImageCache::clearCache() const {
-	thumbnail_cache_.clear();
-}
-
-void ImageCache::clear() const {
 	for (QDirIterator itr(qAppSettings.getOrCreateImageCachePath(), cache_ext_, QDir::Files | QDir::NoDotAndDotDot);
 		itr.hasNext();) {
 		const auto path = itr.next();
@@ -191,110 +101,81 @@ void ImageCache::clear() const {
 			XAMP_LOG_D(logger_, "Failure to remove cache file: {}", path.toStdString());
 		}
 	}
-	thumbnail_cache_.clear();
+	cache_.clear();
 }
 
-QPixmap ImageCache::findImageFromDir(const PlayListEntity& item) {
-	return scanCoverFromDir(item.file_path);
-}
-
-void ImageCache::removeImage(const QString& tag_id) const {
-	auto path = makeImageCachePath(tag_id);
-	QFile file_(path);
-	if (!file_.remove()) {
-		XAMP_LOG_D(logger_, "Failure to remove cache file: {}", path.toStdString());
+void ImageCache::removeCoverId(const QString& cover_id) const {
+	if (cover_id.isEmpty() || cover_id == unknownCoverId()) {
+		return;
 	}
-	thumbnail_cache_.erase(tag_id);
+
+	cache_.erase(cover_id);
+
+	const auto file_path = makeImageCachePath(cover_id);
+	QFile file(file_path);
+	if (file.exists() && !file.remove()) {
+		XAMP_LOG_D(logger_, "Failure to remove image cache file: {}", file_path.toStdString());
+	}
 }
 
-ImageCacheEntity ImageCache::getFromFile(const QString& tag_id) const {
-	if (tag_id.isEmpty()) {
+ImageCacheEntity ImageCache::getFromFile(const QString& cover_id) const {
+	if (cover_id.isEmpty()) {
 		return {};
 	}
 	QImage image(qTheme.cacheCoverSize(), kImageFormat);
-	QImageReader reader(makeImageCachePath(tag_id));
+	QImageReader reader(makeImageCachePath(cover_id));
 	if (reader.read(&image)) {
-		const auto file_info = getImageFileInfo(tag_id);
+		const auto file_info = getImageFileInfo(cover_id);
 		return { file_info.size(), QPixmap::fromImage(image) };
 	}
 	return {};
 }
 
-QFileInfo ImageCache::getImageFileInfo(const QString& tag_id) const {
-	return QFileInfo(makeImageCachePath(tag_id));
-}
-
-void ImageCache::remove(const QString& cover_id) {	
-	removeImage(cover_id);
-}
-
-void ImageCache::addOrUpdateCover(const QString& tag, const QString& cover_id, const QPixmap& cover) {
-	getOrAdd(tag + cover_id, [&cover, cover_id, this]() {
-		auto is_aspect_ratio = true;
-		if (cover_id == unknownCoverId()) {
-			is_aspect_ratio = false;
-			loadUnknownCover();
-		}
-		return image_util::roundImage(
-			image_util::resizeImage(cover, qTheme.defaultCoverSize(), is_aspect_ratio),
-			image_util::kSmallImageRadius);
-		});
-}
-
-QPixmap ImageCache::getOrAdd(const QString& tag_id, std::function<QPixmap()>&& value_factory) {
-	auto image = getOrAddDefault(tag_id, false);
-	if (!image.isNull()) {
-		return image;
+bool ImageCache::saveCacheImage(const QString& cover_id, const QPixmap& image, bool update_memory, qint64* encoded_size) const {
+	if (cover_id.isEmpty() || image.isNull()) {
+		return false;
 	}
-
 	const auto buffer = buffer_pool_->acquire();
 	if (!prepareBuffer(*buffer)) {
 		XAMP_LOG_DEBUG("Failure to create buffer.");
+		return false;
 	}
+	XAMP_ON_SCOPE_EXIT(resetBuffer(*buffer););
 
-	const auto cache_cover = value_factory();
-    if (cache_cover.isNull()) {
-		resetBuffer(*buffer);
-        return getOrAddDefault(tag_id);
-    }
-
-    const auto file_path = makeImageCachePath(tag_id);
-	if (!cache_cover.save(buffer.get(), kImageFileFormat)) {
+	if (!image.save(buffer.get(), kImageFileFormat)) {
 		XAMP_LOG_DEBUG("Failure to save buffer.");
+		return false;
+	}
+	const auto image_data = buffer->buffer();
+	if (encoded_size != nullptr) {
+		*encoded_size = image_data.size();
 	}
 
-	if (!cache_cover.save(file_path, kImageFileFormat)) {
-        XAMP_LOG_DEBUG("Failure to save image cache. ({})", file_path.toStdString());
-	} else {
-		XAMP_LOG_DEBUG("Success to save image cache. ({})", file_path.toStdString());
-	}
-
-	thumbnail_cache_.addOrUpdate(tag_id, { buffer->size(), cache_cover });
-	resetBuffer(*buffer);
-	return getOrAddDefault(tag_id);
-}
-
-void ImageCache::addCache(const QString& cover_id, const QPixmap& cover) {
-	const auto buffer = buffer_pool_->acquire();
 	const auto file_path = makeImageCachePath(cover_id);
-
-	if (!prepareBuffer(*buffer)) {
-		XAMP_LOG_DEBUG("Failure to create buffer.");
+	if (!writeCacheFile(file_path, image_data)) {
+        XAMP_LOG_DEBUG("Failure to save image cache. ({})", file_path.toStdString());
+		return false;
 	}
 
-	if (!cover.save(buffer.get(), kImageFileFormat)) {
-		XAMP_LOG_DEBUG("Failure to save buffer.");
+	if (update_memory) {
+		cache_.addOrUpdate(cover_id, { image_data.size(), image });
 	}
-
-	if (!cover.save(file_path, kImageFileFormat)) {
-		XAMP_LOG_DEBUG("Failure to save image cache.");
-	}
-
-	thumbnail_cache_.addOrUpdate(cover_id, { buffer->size(), cover });
-	resetBuffer(*buffer);
+	return true;
 }
 
-QString ImageCache::addImage(const QPixmap& cover, bool save_only, bool resize) {
+void ImageCache::addOrUpdateCover(const QString& cover_id, const QPixmap& cover) const {
+	if (cover_id.isEmpty() || cover.isNull()) {
+		return;
+	}
+	const auto cache_key = cover_id;
+	ImageCacheEntity entity;
+	if (cache_.tryGet(cache_key, entity) && !entity.image.isNull()) {
+		return;
+	}
+	(void) saveCacheImage(cache_key, makeDisplayCover(cover), true);
+}
+
+QString ImageCache::addImage(const QPixmap& cover, bool save_only) {
 	Stopwatch total_elapsed;
 	Stopwatch stage_elapsed;
 	const auto cover_size = qTheme.cacheCoverSize();
@@ -305,7 +186,7 @@ QString ImageCache::addImage(const QPixmap& cover, bool save_only, bool resize) 
 	}
 
 	QPixmap resize_image;
-	if (resize) {
+	if (cover.size().width() > cover_size.width() || cover.size().height() > cover_size.height()) {
 		resize_image = image_util::resizeImage(cover, cover_size, true);
 	} else {
 		resize_image = cover;
@@ -322,16 +203,11 @@ QString ImageCache::addImage(const QPixmap& cover, bool save_only, bool resize) 
 	const auto image_data = buffer->buffer();
 
 	stage_elapsed.reset();
-	auto file_path = makeImageCachePath(kAlbumCacheTag + tag_id);
-	if (!writeCacheFile(file_path, image_data)) {
-		XAMP_LOG_DEBUG("Failure to save image cache. ({})", file_path.toStdString());
-	}
-
-	file_path = makeImageCachePath(tag_id);
-	if (!writeCacheFile(file_path, image_data)) {
-		XAMP_LOG_DEBUG("Failure to save image cache. ({})", file_path.toStdString());
-	}
+	const auto write_success = writeCacheFile(makeImageCachePath(tag_id), image_data);
 	const auto write_elapsed = stage_elapsed.elapsedSeconds();
+	if (!write_success) {
+		XAMP_LOG_DEBUG("Failure to save image cache. ({})", makeImageCachePath(tag_id).toStdString());
+	}
 	const auto image_size_text = qFormat("%1x%2")
 		.arg(resize_image.width())
 		.arg(resize_image.height())
@@ -351,26 +227,11 @@ QString ImageCache::addImage(const QPixmap& cover, bool save_only, bool resize) 
 	}
 	
 	stage_elapsed.reset();
-	thumbnail_cache_.addOrUpdate(tag_id, { buffer->size(), resize_image });
+	cache_.addOrUpdate(tag_id, { buffer->size(), resize_image });
 	const auto cache_update_elapsed = stage_elapsed.elapsedSeconds();
-
-	if (!resize) {
-		XAMP_LOG_D(logger_, "Add image cache. cover:{} size:{} bytes:{} resize:{:.3f}s encode:{:.3f}s write:{:.3f}s cache_update:{:.3f}s total:{:.3f}s",
-			tag_id.toStdString(),
-			image_size_text,
-			image_data.size(),
-			resize_elapsed,
-			encode_elapsed,
-			write_elapsed,
-			cache_update_elapsed,
-			total_elapsed.elapsedSeconds());
-		resetBuffer(*buffer);
-		return tag_id;
-	}
 
 	resetBuffer(*buffer);
 
-	addOrUpdateCover(kAlbumCacheTag, tag_id, resize_image);
 	XAMP_LOG_D(logger_, "Add image cache. cover:{} size:{} bytes:{} resize:{:.3f}s encode:{:.3f}s write:{:.3f}s cache_update:{:.3f}s total:{:.3f}s",
 		tag_id.toStdString(),
 		image_size_text,
@@ -390,8 +251,8 @@ void ImageCache::loadCache() const {
 }
 
 
-bool ImageCache::isFileExists(const QString& tag, const QString& cover_id) const {
-	QFileInfo file_info = getImageFileInfo(tag + cover_id);
+bool ImageCache::isFileExists(const QString& cover_id) const {
+	QFileInfo file_info = getImageFileInfo(cover_id);
 	return file_info.exists();
 }
 
@@ -399,42 +260,38 @@ bool ImageCache::contains(const QString& tag_id) const {
 	if (tag_id.isEmpty()) {
 		return false;
 	}
-	return thumbnail_cache_.contains(tag_id);
+	return cache_.contains(tag_id);
 }
 
-std::optional<QPixmap> ImageCache::tryGet(const QString& tag, const QString& cover_id) {
-	XAMP_LOG_T(logger_, "tag:{} cache-size: {}, cache: {}",
-		tag.toStdString(),
-		String::formatBytes(thumbnail_cache_.getSize()), thumbnail_cache_);
+std::optional<QPixmap> ImageCache::tryGet(const QString& cover_id) const {
+	XAMP_LOG_T(logger_, "cover:{} cache-size: {}, cache: {}",
+		cover_id.toStdString(),
+		String::formatBytes(cache_.getSize()), cache_);
+
+	if (cover_id.isEmpty()) {
+		return std::nullopt;
+	}
 
 	ImageCacheEntity entity;
-	if (thumbnail_cache_.tryGet(tag + cover_id, entity)) {
-		return MakeOptional<QPixmap>(entity.image);
+	if (cache_.tryGet(cover_id, entity)) {
+		return makeOptional<QPixmap>(entity.image);
 	}
 	return std::nullopt;
 }
 
-void ImageCache::loadIfNotExists(const QString& tag, const QString& cover_id) {
-	if (isFileExists(tag, cover_id)) {
-		return;
-	}
-	auto entity = getFromFile(cover_id);
-	if (entity.image.isNull()) {
-		return;
-	}
-	addOrUpdateCover(tag, cover_id, entity.image);
-}
-
-QPixmap ImageCache::getOrDefault(const QString& tag, const QString& cover_id) {
-	XAMP_LOG_T(logger_, "tag:{} cache-size: {}, cache: {}",
-		tag.toStdString(),
-		String::formatBytes(thumbnail_cache_.getSize()), thumbnail_cache_);
+QPixmap ImageCache::getOrDefault(const QString& cover_id) {
+	XAMP_LOG_T(logger_, "tag:{} cache: {}",
+		String::formatBytes(cache_.getSize()), cache_);
 
 	if (cover_id.isEmpty()) {
 		return qTheme.defaultSizeUnknownCover();
 	}
 
-	if (auto cache_cover = tryGet(tag, cover_id)) {
+	if (cover_id == unknownCoverId()) {
+		return getOrAddDefault(cover_id);
+	}
+
+	if (auto cache_cover = tryGet(cover_id)) {
 		return cache_cover.value();
 	}
 
@@ -443,21 +300,21 @@ QPixmap ImageCache::getOrDefault(const QString& tag, const QString& cover_id) {
 		return qTheme.defaultSizeUnknownCover();
 	}
 
-	addOrUpdateCover(tag, cover_id, entity.image);
-	if (auto cache_cover = tryGet(tag, cover_id)) {
+	addOrUpdateCover(cover_id, entity.image);
+	if (auto cache_cover = tryGet(cover_id)) {
 		return cache_cover.value();
 	}
 	return entity.image;
 }
 
-QPixmap ImageCache::getOrAddDefault(const QString& tag_id, bool not_found_use_default) const {
-	const auto [size, image] = thumbnail_cache_.getOrAdd(tag_id, [tag_id, this]() {
-		XAMP_LOG_D(logger_, "load tag:{}", tag_id.toStdString());
-		return getFromFile(tag_id);
+QPixmap ImageCache::getOrAddDefault(const QString& cover_id, bool not_found_use_default) const {
+	const auto [size, image] = cache_.getOrAdd(cover_id, [cover_id, this]() {
+		XAMP_LOG_D(logger_, "Load cover:{}", cover_id.toStdString());
+		return getFromFile(cover_id);
 	});
 
-	if (!tag_id.isEmpty()) {
-		XAMP_LOG_D(logger_, "Find tag:{} {}", tag_id.toStdString(), thumbnail_cache_);
+	if (!cover_id.isEmpty()) {
+		XAMP_LOG_D(logger_, "Find cover:{} {}", cover_id.toStdString(), cache_);
 	}
 
 	if (image.isNull() && not_found_use_default) {
@@ -471,10 +328,18 @@ void ImageCache::setMaxSize(const size_t max_size) {
 }
 
 size_t ImageCache::size() const {
-	return thumbnail_cache_.getSize();
+	return cache_.getSize();
 }
 
-QIcon ImageCache::uniformIcon(const QIcon& icon, QSize size) const {
+void ImageCache::timerEvent(QTimerEvent* ) {
+	if (cache_.getSize() > trim_target_size_) {
+		cache_.evict(trim_target_size_);
+	}
+	XAMP_LOG_T(logger_, "Trim target-cache-size: {}, cache: {}", 
+		String::formatBytes(trim_target_size_), cache_);
+}
+
+QIcon uniformIcon(const QIcon& icon, QSize size) {
 	QIcon result;
 	const auto base_pixmap = icon.pixmap(size);
 	for (const auto state : { QIcon::Off, QIcon::On }) {
@@ -484,21 +349,10 @@ QIcon ImageCache::uniformIcon(const QIcon& icon, QSize size) const {
 	return result;
 }
 
-QIcon ImageCache::getOrAddIcon(const QString& id) const {
-	return qIconCache.getOrAdd(id, [id, this]() {
-		const QIcon icon(image_util::roundImage(qImageCache.getOrAddDefault(id), kCoverSize));
-		return uniformIcon(icon, kCoverSize);
-		});
+IconCache::IconCache() {
 }
 
-void ImageCache::addOrUpdateIcon(const QString& id, const QIcon& value) const {
-	qIconCache.addOrUpdate(id, value);
-}
-
-void ImageCache::timerEvent(QTimerEvent* ) {
-	if (thumbnail_cache_.getSize() > trim_target_size_) {
-		thumbnail_cache_.evict(trim_target_size_);
-	}
-	XAMP_LOG_T(logger_, "Trim target-cache-size: {}, cache: {}", 
-		String::formatBytes(trim_target_size_), thumbnail_cache_);
+QIcon IconCache::getOrAddIcon(const QString& id) const {
+	const QIcon icon(image_util::roundImage(qImageCache.getOrAddDefault(id), kCoverSize));
+	return uniformIcon(icon, kCoverSize);
 }

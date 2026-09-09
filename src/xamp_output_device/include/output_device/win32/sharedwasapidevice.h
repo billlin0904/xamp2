@@ -28,156 +28,50 @@ XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(SharedWasapiDevice);
 
-/*
- * SharedWasapiDevice is a shared mode output device.
- */
 class SharedWasapiDevice final : public IOutputDevice, public IDsdDevice {
 public:
-	/*
-	* Constructor.
-	* 
-	* @param device IMMDevice
-	*/
 	SharedWasapiDevice(bool is_low_latency, const CComPtr<IMMDevice> & device);
 
-	/*
-	 * Destructor.
-	 */
 	virtual ~SharedWasapiDevice() override;
 
-	/*
-	* open stream.
-	* 
-	* @param output_format AudioFormat
-	*/
 	void openStream(const AudioFormat & output_format) override;
 
-	/*
-	* Set audio callback.
-	*
-	* @param callback: audio callback
-	* @return void
-	*/
 	void setAudioCallback(IAudioCallback* callback) override;
 
-	/*
-	* Is stream open.
-	*
-	* @return bool
-	*/
 	bool isStreamOpen() const override;
 
-	/*
-	* Is stream running.
-	*
-	* @return bool
-	*/
 	bool isStreamRunning() const override;
 
-	/*
-	* stop stream.
-	*
-	* @param wait_for_stop_stream: wait for stop stream
-	*/
 	void stopStream(bool wait_for_stop_stream = true) override;
 
-	/*
-	* close stream.
-	*/
 	void closeStream() override;
 
-	/*
-	* start stream.
-	*/
 	void startStream() override;
 
-	/*
-	* Set stream time.
-	*
-	* @param stream_time: stream time
-	*/
 	void setStreamTime(double stream_time) override;
 
-	/*
-	* Get stream time.
-	*
-	* @return double
-	*/
 	double getStreamTime() const override;
 
-	/*
-	* Get volume.
-	*
-	* @return uint32_t
-	*/
 	uint32_t getVolume() const override;
 
-	/*
-	* Is muted.
-	*
-	* @return bool
-	*/
 	bool isMuted() const override;
 
-	/*
-	* Set volume
-	* @param volume: volume (1~100)
-	*/
 	void setVolume(uint32_t volume) const override;
 
-	/*
-	* Set mute.
-	*
-	* @param mute: mute (true/false)
-	*/
 	void setMute(bool mute) const override;
 
-	/*
-	* Set DSD IO format.
-	*
-	* @param[in] format: DSD IO format
-	*/
 	void setIoFormat(DsdIoFormat format) override;
 
-	/*
-	* Get DSD IO format.
-	*
-	* @return DsdIoFormat
-	*/
 	[[nodiscard]] DsdIoFormat getIoFormat() const override;
 
-	/*
-	* Get packed format.
-	*
-	* @return PackedFormat
-	*/
 	PackedFormat getPackedFormat() const override;
 
-	/*
-	* Set scheduler service
-	*
-	* @param[in] mmcss_name: mmcss name
-	* @param[in] thread_priority: thread priority
-	*/
 	void setSchedulerService(const std::wstring & mmcss_name, MmcssThreadPriority thread_priority);
 
-	/*
-	* Get device buffer size.
-	*
-	* @return uint32_t
-	*/
 	uint32_t getBufferSize() const override;
 
-	/*
-	* Is hardware control volume.
-	*
-	* @return bool
-	*/
 	bool isHardwareControlVolume() const override;
 
-	/*
-	* Abort stream.
-	*/
 	void abortStream() override;
 
 private:

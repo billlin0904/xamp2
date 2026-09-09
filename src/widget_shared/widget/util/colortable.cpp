@@ -32,17 +32,6 @@ void ColorTable::setSpectrogramColor(SpectrogramColor color) {
         : kSoxrLut.data();
 }
 
-QRgb ColorTable::operator[](double dB_val) const {
-    dB_val = std::clamp(dB_val, kMinDb, kMaxDb);
-    const double ratio = (dB_val - kMinDb) / kDbRange;    
-    /*if (color_ == SpectrogramColor::SPECTROGRAM_COLOR_DEFAULT) {
-        return danBrutonColor(ratio);
-    }
-    return soxrColor(ratio);*/
-    const size_t idx = static_cast<size_t>(ratio * (kLutSize - 1));
-    return color_lut_ptr_[idx];
-}
-
 QRgb ColorTable::danBrutonColor(double level) {
     level *= 0.6625;
     double r = 0.0, g = 0.0, b = 0.0;

@@ -45,7 +45,7 @@ XAudio2DeviceType::XAudio2DeviceTypeImpl::XAudio2DeviceTypeImpl() {
 XAudio2DeviceType::XAudio2DeviceTypeImpl::~XAudio2DeviceTypeImpl() = default;
 
 void XAudio2DeviceType::XAudio2DeviceTypeImpl::scanNewDevice() {
-	enumerator_ = helper::CreateDeviceEnumerator();
+	enumerator_ = helper::createDeviceEnumerator();
 	device_list_ = GetDeviceInfoList();
 }
 
@@ -74,7 +74,7 @@ std::optional<DeviceInfo> XAudio2DeviceType::XAudio2DeviceTypeImpl::getDefaultDe
 	CComPtr<IMMDevice> default_output_device;
 	auto hr = enumerator_->GetDefaultAudioEndpoint(eRender, eConsole, &default_output_device);
 	constexpr auto kNotFoundHr = HRESULT_FROM_WIN32(ERROR_NOT_FOUND);
-	HrIfNotEqualThrow(hr, kNotFoundHr);
+	hIfNotEqualThrow(hr, kNotFoundHr);
 	if (hr == kNotFoundHr) {
 		return std::nullopt;
 	}
@@ -132,7 +132,7 @@ std::vector<DeviceInfo> XAudio2DeviceType::XAudio2DeviceTypeImpl::GetDeviceInfoL
 					continue;
 				}
 				CComHeapPtr<WAVEFORMATEX> mix_format(format);
-				info.default_format = helper::ToAudioFormat(format);
+				info.default_format = helper::toAudioFormat(format);
 			}
 
 			// Shared mode device always support hardware volume control

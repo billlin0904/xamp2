@@ -132,7 +132,7 @@ namespace {
 	bool updateLiveThumbnail(HWND hwnd, const QPixmap& thumbnail) {
 		RECT rect{};
 		if (!::GetClientRect(hwnd, &rect)) {
-			XAMP_LOG_ERROR("GetClientRect return failure! {}", GetLastErrorMessage());
+			XAMP_LOG_ERROR("GetClientRect return failure! {}", getLastErrorMessage());
 			return false;
 		}
 
@@ -150,14 +150,14 @@ namespace {
 
 		const GdiHandle bitmap = createDwmCompatibleHBitmap(resize_image.toImage());
 		if (!bitmap) {
-			XAMP_LOG_ERROR("Failure to convert QPixmap to HBITMAP! ({})", GetLastErrorMessage());
+			XAMP_LOG_ERROR("Failure to convert QPixmap to HBITMAP! ({})", getLastErrorMessage());
 			return false;
 		}
 
 		const auto hr = DwmDll.DwmSetIconicLivePreviewBitmap(hwnd, bitmap.get(), &offset, 0);
 		if (FAILED(hr)) {
 			XAMP_LOG_ERROR("DwmSetIconicLivePreviewBitmap return failure! ({})",
-				GetPlatformErrorMessage(hr));
+				getPlatformErrorMessage(hr));
 			return false;
 		}		
 		return true;
@@ -207,7 +207,7 @@ namespace {
 		const auto hr = DwmDll.DwmSetIconicThumbnail(hwnd, bitmap.get(), 0);
 		if (FAILED(hr)) {
 			XAMP_LOG_ERROR("DwmSetIconicThumbnail return failure! {}",
-				GetPlatformErrorMessage(hr));
+				getPlatformErrorMessage(hr));
 			return false;
 		}
 		return true;
@@ -244,14 +244,14 @@ WinTaskbar::WinTaskbar(XMainWindow* window, IXFrame* frame)
 		reinterpret_cast<void**>(&taskbar_list_));
 
 	if (FAILED(hr)) {
-		XAMP_LOG_ERROR("Failure to create IID_ITaskbarList4 ({}).", GetPlatformErrorMessage(hr));
+		XAMP_LOG_ERROR("Failure to create IID_ITaskbarList4 ({}).", getPlatformErrorMessage(hr));
 		return;
 	}
 
 	hr = taskbar_list_->HrInit();
 	if (FAILED(hr)) {
 		taskbar_list_.Release();
-		XAMP_LOG_ERROR("Failure to init ITaskbarList4 ({}).", GetPlatformErrorMessage(hr));
+		XAMP_LOG_ERROR("Failure to init ITaskbarList4 ({}).", getPlatformErrorMessage(hr));
 		return;
 	}
 
@@ -260,7 +260,7 @@ WinTaskbar::WinTaskbar(XMainWindow* window, IXFrame* frame)
 	}
 	if (MSG_TaskbarButtonCreated == WM_NULL) {
 		taskbar_list_.Release();
-		XAMP_LOG_ERROR("Failure to RegisterWindowMessageW ({}).", GetLastErrorMessage());
+		XAMP_LOG_ERROR("Failure to RegisterWindowMessageW ({}).", getLastErrorMessage());
 		return;
 	}
 
@@ -341,7 +341,7 @@ void WinTaskbar::updateProgressIndicator() {
 	hr = taskbar_list_->SetProgressState(hwnd, convertToProgressState(state_));
 
 	if (FAILED(hr)) {
-		XAMP_LOG_ERROR("UpdateProgressIndicator return failure! {}", GetPlatformErrorMessage(hr));
+		XAMP_LOG_ERROR("UpdateProgressIndicator return failure! {}", getPlatformErrorMessage(hr));
 	}
 }
 
@@ -356,7 +356,7 @@ void WinTaskbar::setIconicThumbnail(const QPixmap& image) {
 	const auto hwnd = reinterpret_cast<HWND>(window_->winId());
 	auto hr = DwmDll.DwmInvalidateIconicBitmaps(hwnd);
 	if (FAILED(hr)) {
-		XAMP_LOG_ERROR("DwmInvalidateIconicBitmaps return failure! {}", GetPlatformErrorMessage(hr));
+		XAMP_LOG_ERROR("DwmInvalidateIconicBitmaps return failure! {}", getPlatformErrorMessage(hr));
 	}
 }
 
@@ -395,7 +395,7 @@ void WinTaskbar::updateOverlay() {
 	if (icon_handle) {
 		auto hr = taskbar_list_->SetOverlayIcon(hwnd, icon_handle.get(), description.c_str());
 		if (FAILED(hr)) {
-			XAMP_LOG_ERROR("UpdateOverlay return failure! {}", GetPlatformErrorMessage(hr));
+			XAMP_LOG_ERROR("UpdateOverlay return failure! {}", getPlatformErrorMessage(hr));
 		}
 	}
 }
@@ -441,7 +441,7 @@ void WinTaskbar::addThumbnailButtons() {
 	HRESULT hr = taskbar_list_->ThumbBarAddButtons(hwnd, buttons.size(),
 	                                               buttons.data());
 	if (FAILED(hr)) {
-		XAMP_LOG_ERROR("ThumbBarAddButtons failed: {}", GetPlatformErrorMessage(hr));
+		XAMP_LOG_ERROR("ThumbBarAddButtons failed: {}", getPlatformErrorMessage(hr));
 		return;
 	}
 	thumbnail_buttons_added_ = true;
@@ -555,7 +555,7 @@ void WinTaskbar::updateThumbnailButton(UINT iId, HICON hIcon, LPCWSTR tooltip) {
 	HWND hwnd = reinterpret_cast<HWND>(window_->winId());
 	HRESULT hr = taskbar_list_->ThumbBarUpdateButtons(hwnd, 1, &btn);
 	if (FAILED(hr)) {
-		XAMP_LOG_ERROR("ThumbBarUpdateButtons failed: {}", GetPlatformErrorMessage(hr));
+		XAMP_LOG_ERROR("ThumbBarUpdateButtons failed: {}", getPlatformErrorMessage(hr));
 	}
 }
 

@@ -53,7 +53,7 @@ std::optional<QList<NeteaseSong>> parseNeteaseSong(const QString& jsonString) {
 
         songs.push_back(song);
     }
-    return MakeOptional<QList<NeteaseSong>>(std::move(songs));
+    return makeOptional<QList<NeteaseSong>>(std::move(songs));
 }
 
 std::optional<NeteaseLyricData> parseNeteaseLyric(const QString& jsonString) {
@@ -100,5 +100,5 @@ std::optional<NeteaseLyricData> parseNeteaseLyric(const QString& jsonString) {
     result.tlyric.version = tlyricObj.value("version"_str).toInt();
     result.tlyric.lyric = tlyricObj.value("lyric"_str).toString();
 
-    return MakeOptional<NeteaseLyricData>(std::move(result));
+    return makeOptional<NeteaseLyricData>(std::move(result));
 }

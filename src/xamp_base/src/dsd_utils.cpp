@@ -4,7 +4,7 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-uint32_t GetDOPSampleRate(uint32_t dsd_speed) {
+uint32_t getDOPSampleRate(uint32_t dsd_speed) {
     switch (dsd_speed) {
         // 32x CD
     case 32:

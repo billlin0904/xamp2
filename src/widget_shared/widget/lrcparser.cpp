@@ -2,7 +2,6 @@
 #include <fstream>
 
 #include <base/fs.h>
-#include <base/algorithm.h>
 #include <base/str_utilts.h>
 #include <base/logger.h>
 
@@ -10,6 +9,12 @@
 #include <widget/widget_shared.h>
 
 namespace {
+    template <typename ForwardIt, typename t, typename Compare = std::less<>>
+    ForwardIt binarySearch(ForwardIt first, ForwardIt last, const t& value, Compare comp = {}) {
+        first = std::lower_bound(first, last, value, comp);
+        return first != last && !comp(*first, value) ? first : last;
+    }
+
     std::chrono::milliseconds parseTime(const std::wstring& str) {
         auto hours = 0;
         auto minutes = 0;
@@ -26,12 +31,12 @@ namespace {
                 + std::chrono::milliseconds(milliseconds);
         }
 
-        res = port_swscanf(str.c_str(), L"%u:%u:%u",
+        res = port_swscanf(str.c_str(), L"%u:%u",
             &hours,
             &minutes,
             &seconds);
-        if (res == 3) {
-            return std::chrono::hours(hours)
+        if (res == 2) {
+            return std::chrono::hours(0)
                 + std::chrono::minutes(minutes)
                 + std::chrono::seconds(seconds);
         }
@@ -82,7 +87,7 @@ void LrcParser::clear() {
 
 bool LrcParser::parseFile(const std::wstring &file_path) {
     try {
-        auto utf8_text = ReadFileToUtf8String(file_path);
+        auto utf8_text = readFileToUtf8String(file_path);
         if (utf8_text) {
             auto wide_str = String::toStdWString(utf8_text.value());
             std::wstringstream file_(wide_str);
@@ -291,7 +296,7 @@ void LrcParser::addLrc(const LyricEntry &lrc) {
 }
 
 const LyricEntry& LrcParser::getLyrics(const std::chrono::milliseconds &time) const {
-    auto itr = BinarySearch(lyrics_.cbegin(),
+    auto itr = binarySearch(lyrics_.cbegin(),
         lyrics_.cend(), time, [](const LyricEntry &l, auto time) {
         return l.timestamp < time;
     });

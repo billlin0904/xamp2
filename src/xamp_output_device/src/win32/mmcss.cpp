@@ -49,13 +49,13 @@ public:
 		if (avrt_handle_ != nullptr) {
 			if (!AvrtLibDLL.AvSetMmThreadPriority(avrt_handle_, static_cast<AVRT_PRIORITY>(priority))) {
 				XAMP_LOG_ERROR("AvSetMmThreadPriority return failure! Error:{}",
-					GetLastErrorMessage());
+					getLastErrorMessage());
 			}
 			return;
 		}
 		
 		XAMP_LOG_ERROR("AvSetMmThreadCharacteristicsW return failure! Error:{}",
-			GetLastErrorMessage());
+			getLastErrorMessage());
 	}
 
 	void revertPriority() {
@@ -65,7 +65,7 @@ public:
 		
 		if (!AvrtLibDLL.AvRevertMmThreadCharacteristics(avrt_handle_)) {
 			XAMP_LOG_ERROR("AvSetMmThreadCharacteristicsW return failure! Error:{}",
-				GetLastErrorMessage());
+				getLastErrorMessage());
 		}
 
 		avrt_handle_ = nullptr;

@@ -19,6 +19,7 @@ public:
     explicit AlbumDao(QSqlDatabase& db);
 
     void setAlbumCover(int32_t album_id, const QString& cover_id);
+    void clearAlbumCover(int32_t album_id);
     std::optional<AlbumStats> getAlbumStats(int32_t album_id) const;
     int32_t addOrUpdateAlbum(const QString& album,
         int32_t artist_id, 

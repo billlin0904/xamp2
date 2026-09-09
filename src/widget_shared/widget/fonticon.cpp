@@ -55,18 +55,18 @@ QColor FontIconOption::activeOnColor(QColor::Invalid);
 double FontIconOption::opacity = 1.0;
 
 namespace {
-    template <typename t>
-    t GetOrDefault(QVariantMap const& opt, const QString& s, t defaultValue) {
+    template <typename T>
+    T getOrDefault(QVariantMap const& opt, const QString& s, T defaultValue) {
         const auto var = opt.value(s);
         if (!var.isValid()) {
             return defaultValue;
         }
         else {
-            return var.value<t>();
+            return var.value<T>();
         }
     }
 
-    QColor GetPaletteButtonText(QIcon::Mode mode) {
+    QColor getPaletteButtonText(QIcon::Mode mode) {
         if (!QApplication::instance()) {
             return Qt::black;
         }
@@ -127,36 +127,43 @@ void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mod
     case QIcon::Normal:
         switch (state) {
         case QIcon::On:
-            pen_color = GetOrDefault<QColor>(options_, FontIconOption::kOnColorAttr, FontIconOption::onColor);
+            pen_color = getOrDefault<QColor>(options_, FontIconOption::kOnColorAttr, FontIconOption::onColor);
             break;
         }
         break;
     case QIcon::Active:
         switch (state) {
 		case QIcon::Off:
-            pen_color = GetOrDefault<QColor>(options_, FontIconOption::kActiveColorAttr, FontIconOption::activeColor);
+            pen_color = getOrDefault<QColor>(options_, FontIconOption::kActiveColorAttr, FontIconOption::activeColor);
 			break;
 		case QIcon::On:
-            pen_color = GetOrDefault<QColor>(options_, FontIconOption::kActiveOnColorAttr, FontIconOption::activeOnColor);
+            pen_color = getOrDefault<QColor>(options_, FontIconOption::kActiveOnColorAttr, FontIconOption::activeOnColor);
             if (!pen_color.isValid()) {
-                pen_color = GetOrDefault<QColor>(options_, FontIconOption::kOnColorAttr, FontIconOption::onColor);
+                pen_color = getOrDefault<QColor>(options_, FontIconOption::kOnColorAttr, FontIconOption::onColor);
             }
             break;
         }
         break;
     case QIcon::Disabled:
-        pen_color = GetOrDefault<QColor>(options_, FontIconOption::kDisabledColorAttr, FontIconOption::disabledColor);
+        pen_color = getOrDefault<QColor>(options_, FontIconOption::kDisabledColorAttr, FontIconOption::disabledColor);
         break;
     case QIcon::Selected:
-        pen_color = GetOrDefault<QColor>(options_, FontIconOption::kSelectedColorAttr, FontIconOption::selectedColor);
+        pen_color = getOrDefault<QColor>(options_, FontIconOption::kSelectedColorAttr, FontIconOption::selectedColor);
         break;
     }
 
     if (!pen_color.isValid()) {
-        pen_color = GetOrDefault<QColor>(options_, FontIconOption::kColorAttr, FontIconOption::color);
+        pen_color = getOrDefault<QColor>(options_, FontIconOption::kColorAttr, FontIconOption::color);
     }
     if (!pen_color.isValid()) {
-        pen_color = GetPaletteButtonText(mode);
+        pen_color = getPaletteButtonText(mode);
+    }
+
+    // Standard UI icons follow the active palette even if created before a theme switch.
+    // Explicit colors (play button, status and favorite icons) retain their own styling.
+    if (options_.value(QStringLiteral("followPalette")).toBool()) {
+        pen_color = getPaletteButtonText(mode);
+        if (mode == QIcon::Disabled) pen_color.setAlphaF(0.45);
     }
 
     painter->save();

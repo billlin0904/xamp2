@@ -12,21 +12,14 @@
 
 XAMP_AUDIO_PLAYER_NAMESPACE_BEGIN
 
-/*
-* load the shared library of the audio player component.
-*/
 XAMP_PLAYER_API void loadComponentSharedLibrary();
 
-/*
-* create an audio player instance.
-*/
-XAMP_PLAYER_API std::shared_ptr<IAudioPlayer> MakeAudioPlayer();
+XAMP_PLAYER_API void unloadComponentSharedLibrary();
+
+XAMP_PLAYER_API std::shared_ptr<IAudioPlayer> makeAudioPlayer();
 
 #ifdef XAMP_OS_WIN
-/*
-* create cd device instance.
-*/
-XAMP_PLAYER_API ScopedPtr<ICDDevice> OpenCD(int32_t driver_letter);
+XAMP_PLAYER_API ScopedPtr<ICDDevice> openCD(int32_t driver_letter);
 #endif
 
 XAMP_AUDIO_PLAYER_NAMESPACE_END

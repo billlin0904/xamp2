@@ -91,15 +91,15 @@ AboutPage::AboutPage(QWidget* parent)
     (void)QObject::connect(ui_->btnCredits,
         &QPushButton::clicked,
         this, 
-        &AboutPage::OnCreditsOrLicenseChecked);
+        &AboutPage::onCreditsOrLicenseChecked);
     (void)QObject::connect(ui_->btnLicense,
         &QPushButton::clicked,
         this,
-        &AboutPage::OnCreditsOrLicenseChecked);
+        &AboutPage::onCreditsOrLicenseChecked);
 
     (void)QObject::connect(ui_->restartAppButton,
         &QPushButton::clicked, [this]() {
-            emit RestartApp();
+            emit restartApp();
         });
 
     ui_->restartAppButton->hide();
@@ -121,7 +121,7 @@ void AboutPage::onThemeChangedFinished(ThemeColor theme_color) {
     ui_->lbIGithubIcon->setPixmap(qTheme.githubIcon());
 }
 
-void AboutPage::OnCreditsOrLicenseChecked(bool checked) {
+void AboutPage::onCreditsOrLicenseChecked(bool checked) {
 	const auto* sender_ptr = sender();
     if (sender_ptr->objectName() == "btnLicense"_str) {
         ui_->txtBws->setText(license_);
@@ -135,7 +135,7 @@ void AboutPage::OnCreditsOrLicenseChecked(bool checked) {
     ui_->wdtContent->setVisible(!checked);
 }
 
-void AboutPage::OnUpdateNewVersion(const QVersionNumber& version) {
+void AboutPage::onUpdateNewVersion(const QVersionNumber& version) {
     //ui_->lblAppBuild->setText(tr("Ver. ")
     //    + formatVersion(version));
     //ui_->waitForUpdateProcessIndicator->stopAnimation();

@@ -27,7 +27,9 @@
         <file>migrations/2026-05-22-110000_scan_insert_indexes/up.sql</file>
         <file>migrations/2026-06-15-120000_playlist_album_states/up.sql</file>
         <file>Resource/Theme/dark/darkstyle.qss</file>
+        <file>Resource/Theme/dark/modern.qss</file>
         <file>Resource/Theme/light/lightstyle.qss</file>
+        <file>Resource/Theme/light/modern.qss</file>
         <file>xamp_startup.png</file>
         <file>Resource/White/buymeacoffee.png</file>
         <file alias="appimage-update.sh">../../setup/linux/appimage-update.sh</file>

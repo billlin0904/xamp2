@@ -54,7 +54,7 @@ struct XAMP_STREAM_API EqBandSetting final {
 struct XAMP_STREAM_API EqSettings final {
     EqSettings() = default;
 
-    void SetDefault() {
+    void setDefault() {
         bands.resize(kEqDefaultFrequencies.size());
         for (auto i = 0; i < kEqDefaultFrequencies.size(); ++i) {
             bands[i].type = EQFilterTypes::FT_ALL_PEAKING_EQ;

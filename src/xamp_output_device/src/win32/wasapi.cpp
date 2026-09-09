@@ -35,32 +35,17 @@ namespace {
 		DigitalAudioDisplayDevice,
 		UnknownFormFactor);
 
-	/*
-	* PropVariant wrapper class.
-	*
-	*/
 	struct PropVariant final : PROPVARIANT {
-		/*
-		* Constructor.
-		*/
 		PropVariant() {
 			::PropVariantInit(this);
 		}
 
 		XAMP_DISABLE_COPY(PropVariant)
 
-		/*
-		* Destructor.
-		*/
 		~PropVariant() {
 			::PropVariantClear(this);
 		}
 
-		/*
-		* To string.
-		*
-		* @return std::wstring
-		*/
 		[[nodiscard]] std::wstring toString() const {
 			std::wstring result;
 			PWSTR psz = nullptr;
@@ -72,12 +57,6 @@ namespace {
 		}
 	};
 
-	/*
-	* Get device connect type.
-	*
-	* @param[in] name device name.
-	* @return DeviceConnectType
-	*/
 	DeviceConnectType getDeviceConnectType(const std::wstring& name) {
 		if (name.find(L"usb") != std::wstring::npos) {
 			return DeviceConnectType::USB;
@@ -91,12 +70,6 @@ namespace {
 		return DeviceConnectType::UNKNOWN;
 	}
 
-	/*
-	 * Get device connect type.
-	 *
-	 * @param[in] device device.
-	 * @return DeviceConnectType
-	 */
 	DeviceConnectType getDeviceConnectType(CComPtr<IMMDevice>& device) {
 #define IfFailedReturnUnknownType(hr) \
 		if (FAILED(hr)) {\
@@ -155,14 +128,6 @@ namespace {
 		return device_connect_type;
 	}
 
-	/*
-	 * Get device property string.
-	 *
-	 * @param[in] key property key.
-	 * @param[in] type property type.
-	 * @param[in] device device.
-	 * @return std::wstring
-	*/
 	std::wstring getDevicePropertyString(const PROPERTYKEY& key, VARTYPE type, CComPtr<IMMDevice>& device) {
 		std::wstring str;
 
@@ -196,12 +161,7 @@ namespace {
 	}
 }
 
-/*
-* create device enumerator.
-* 
-* @return CComPtr<IMMDeviceEnumerator>
-*/
-CComPtr<IMMDeviceEnumerator> CreateDeviceEnumerator() {
+CComPtr<IMMDeviceEnumerator> createDeviceEnumerator() {
 	CComPtr<IMMDeviceEnumerator> enumerator;
 	hrIfFailThrow(::CoCreateInstance(__uuidof(MMDeviceEnumerator),
 		nullptr,
@@ -225,7 +185,7 @@ DeviceInfo getDeviceInfo(CComPtr<IMMDevice>& device, const Uuid& device_type_id,
 	return info;
 }
 
-double GetStreamPosInMilliseconds(CComPtr<IAudioClock>& clock) {
+double getStreamPosInMilliseconds(CComPtr<IAudioClock>& clock) {
 	UINT64 device_frequency = 0, position = 0;
 	if (FAILED(clock->GetFrequency(&device_frequency)) ||
 		FAILED(clock->GetPosition(&position, nullptr))) {
@@ -234,11 +194,11 @@ double GetStreamPosInMilliseconds(CComPtr<IAudioClock>& clock) {
 	return 1000.0 * (static_cast<double>(position) / device_frequency);
 }
 
-AudioFormat ToAudioFormat(const WAVEFORMATEX* format) {
+AudioFormat toAudioFormat(const WAVEFORMATEX* format) {
 	return AudioFormat(DataFormat::FORMAT_PCM, format->nChannels, format->wBitsPerSample, format->nSamplesPerSec);
 }
 
-bool IsDeviceSupportExclusiveMode(const CComPtr<IMMDevice>& device, AudioFormat& default_format) {
+bool isDeviceSupportExclusiveMode(const CComPtr<IMMDevice>& device, AudioFormat& default_format) {
 	CComPtr<IPropertyStore> property;
 	if (FAILED(device->OpenPropertyStore(STGM_READ, &property))) {
 		return false;
@@ -274,7 +234,7 @@ bool IsDeviceSupportExclusiveMode(const CComPtr<IMMDevice>& device, AudioFormat&
 			nullptr
 		);
 		if (SUCCEEDED(hr)) {
-			default_format = ToAudioFormat(reinterpret_cast<WAVEFORMATEX*>(prop_variant.blob.pBlobData));
+			default_format = toAudioFormat(reinterpret_cast<WAVEFORMATEX*>(prop_variant.blob.pBlobData));
 			return true;
 		}
 	}

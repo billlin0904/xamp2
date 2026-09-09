@@ -6,6 +6,7 @@
 #include <base/logger.h>
 #include <base/charset_detector.h>
 #include <base/furigana.h>
+#include <base/zib_util.h>
 
 #include <stream/api.h>
 #include <stream/icddevice.h>
@@ -48,6 +49,7 @@ constexpr RequiredComponentLoader kComponentLoaders[] {
     { "Bass", loadBassLib },
     { "Mqa", loadMqaLib },
     { "Src", loadSrcLib },
+    { "Deflate", loadLibdeflate },
 #if defined(XAMP_OS_WIN) || defined(XAMP_OS_LINUX)
     { "Fft", loadFftLib },
 #endif
@@ -68,13 +70,17 @@ void loadComponentSharedLibrary() {
     loadRequiredComponents(kComponentLoaders);
 }
 
+void unloadComponentSharedLibrary() {
+    unloadBassLib();
+}
+
 #ifdef XAMP_OS_WIN
-ScopedPtr<ICDDevice> OpenCD(int32_t driver_letter) {
+ScopedPtr<ICDDevice> openCD(int32_t driver_letter) {
     return StreamFactory::makeCDDevice(driver_letter);
 }
 #endif
 
-std::shared_ptr<IAudioPlayer> MakeAudioPlayer() {
+std::shared_ptr<IAudioPlayer> makeAudioPlayer() {
 	return std::make_shared<AudioPlayer>(
         ThreadPoolBuilder::makePlaybackThreadPool(),
         ThreadPoolBuilder::makePlayerThreadPool());

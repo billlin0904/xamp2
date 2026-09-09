@@ -45,7 +45,7 @@ SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::SharedWasapiDeviceTypeImpl()
 }
 
 void SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::scanNewDevice() {
-	enumerator_ = helper::CreateDeviceEnumerator();
+	enumerator_ = helper::createDeviceEnumerator();
 	device_list_ = GetDeviceInfoList();
 }
 
@@ -80,7 +80,7 @@ std::optional<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::ge
 	CComPtr<IMMDevice> default_output_device;
 	auto hr = enumerator_->GetDefaultAudioEndpoint(eRender, eConsole, &default_output_device);
 	constexpr auto kNotFoundHr = HRESULT_FROM_WIN32(ERROR_NOT_FOUND);
-	HrIfNotEqualThrow(hr, kNotFoundHr);
+	hIfNotEqualThrow(hr, kNotFoundHr);
 	if (hr == kNotFoundHr) {
 		return std::nullopt;
 	}
@@ -138,7 +138,7 @@ std::vector<DeviceInfo> SharedWasapiDeviceType::SharedWasapiDeviceTypeImpl::GetD
 					continue;
 				}
 				CComHeapPtr<WAVEFORMATEX> mix_format(format);
-				info.default_format = helper::ToAudioFormat(format);
+				info.default_format = helper::toAudioFormat(format);
 			}
 
 			// Shared mode device always support hardware volume control

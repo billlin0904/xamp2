@@ -11,9 +11,14 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
+// Intel HT Technical User's Guide, p.23/p.27：
+// 為各 worker 加上不同 private stack offset，避免 stack 區域變數剛好形成
+// 64KB / 1MB aliasing pattern，降低 L1D 不必要的 cache-line eviction。
+#define ENABLE_INTEL_CPU_AVOID_64KB_ALIASING 0
+
 namespace {
 	constexpr size_t kMaxAttempts = 100;
-	constexpr auto kIdleWaitTimeout = std::chrono::milliseconds(50);
+	constexpr auto kIdleWaitTimeout = std::chrono::milliseconds(1000);
 	constexpr auto kSharedTaskQueueSize = 512;
 	constexpr auto kMaxWorkQueueSize = 1024;
 	constexpr size_t kMinThreadPoolSize = 1;
@@ -46,7 +51,7 @@ TaskScheduler::TaskScheduler(const std::string_view& name,
 	//logger_->setLevel(LogLevel::LOG_LEVEL_DEBUG);
 
 	try {
-		task_pool_ = makeAlign<SharedTaskQueue>(kSharedTaskQueueSize);
+		shared_queue_ = makeAlign<SharedTaskQueue>(kSharedTaskQueueSize);
 		task_work_queues_.resize(max_thread_);
 
 		for (size_t i = 0; i < max_thread_; ++i) {
@@ -74,7 +79,7 @@ TaskScheduler::~TaskScheduler() {
 void IThreadPool::resumeCoroutine(SubmitPolicy policy,
 	ExecuteFlags flags,
 	std::coroutine_handle<> handle) {
-	scheduler_->submitJob(
+	scheduler_->submit(
 		[handle](const std::stop_token&) mutable {
 			handle.resume();
 		},
@@ -82,12 +87,18 @@ void IThreadPool::resumeCoroutine(SubmitPolicy policy,
 		policy);
 }
 
+void IThreadPool::submitCoroutine(SubmitPolicy policy,
+	ExecuteFlags flags,
+	Task task) {
+	scheduler_->submit(std::move(task), flags, policy);
+}
+
 size_t TaskScheduler::getThreadSize() const {
 	return max_thread_;
 }
 
 void TaskScheduler::destroy() {
-	if (!task_pool_ || threads_.empty()) {
+	if (!shared_queue_ || threads_.empty()) {
 		return;
 	}
 
@@ -101,7 +112,7 @@ void TaskScheduler::destroy() {
 
 	// Wake up all threads
 	notifyAllWorkers();
-	task_pool_->wakeup_for_shutdown();
+	shared_queue_->wakeup_for_shutdown();
 
 	// Wait for all threads to finish
 	for (size_t i = 0; i < max_thread_; ++i) {
@@ -115,7 +126,7 @@ void TaskScheduler::destroy() {
 		XAMP_LOG_D(logger_, "Worker Thread {} joined.", i);
 	}
 
-	task_pool_.reset();
+	shared_queue_.reset();
 	threads_.clear();
 	task_work_queues_.clear();
 	task_execute_flags_.clear();
@@ -127,12 +138,12 @@ size_t TaskScheduler::tryDequeueSharedQueue(std::vector<Task>& tasks,
 	const std::stop_token& stop_token,
 	std::chrono::milliseconds timeout) {
 	if (!stop_token.stop_requested()) {
-		if (task_pool_->dequeue(tasks[0], timeout)) {
+		if (shared_queue_->dequeue(tasks[0], timeout)) {
 #ifdef _DEBUG
 			XAMP_EXPECTS(tasks[0]);
 #endif
 			size_t task_size = 1;
-			while (task_size < tasks.size() && task_pool_->try_dequeue(tasks[task_size])) {
+			while (task_size < tasks.size() && shared_queue_->try_dequeue(tasks[task_size])) {
 				++task_size;
 			}
 			return task_size;
@@ -144,12 +155,12 @@ size_t TaskScheduler::tryDequeueSharedQueue(std::vector<Task>& tasks,
 size_t TaskScheduler::tryDequeueSharedQueue(std::vector<Task>& tasks,
 	const std::stop_token& stop_token) {
 	if (!stop_token.stop_requested()) {
-		if (task_pool_->try_dequeue(tasks[0])) {
+		if (shared_queue_->try_dequeue(tasks[0])) {
 #ifdef _DEBUG
 			XAMP_EXPECTS(tasks[0]);
 #endif
 			size_t task_size = 1;
-			while (task_size < tasks.size() && task_pool_->try_dequeue(tasks[task_size])) {
+			while (task_size < tasks.size() && shared_queue_->try_dequeue(tasks[task_size])) {
 				++task_size;
 			}
 			return task_size;
@@ -207,7 +218,7 @@ size_t TaskScheduler::trySteal(std::vector<Task>& tasks,
 	return 0;
 }
 
-void TaskScheduler::submitJob(Task task, ExecuteFlags flags, SubmitPolicy policy) {
+void TaskScheduler::submit(Task task, ExecuteFlags flags, SubmitPolicy policy) {
 	// Enqueue policy:
 	// - LOCAL keeps worker-originated fire-and-forget tasks on the current
 	//   worker queue for cache locality and lower submit overhead.
@@ -225,7 +236,7 @@ void TaskScheduler::submitJob(Task task, ExecuteFlags flags, SubmitPolicy policy
 		}
 
 		task_execute_flags_[index].value.store(flags, std::memory_order_release);
-		XAMP_LOG_D(logger_, "TaskScheduler::submitJob() enqueue task to local queue.");
+		XAMP_LOG_D(logger_, "TaskScheduler::submit() enqueue task to local queue.");
 		notifyWorkAvailable();
 		return true;
 	};
@@ -262,8 +273,8 @@ void TaskScheduler::submitJob(Task task, ExecuteFlags flags, SubmitPolicy policy
 		}
 	}
 
-	XAMP_LOG_D(logger_, "TaskScheduler::submitJob() failed to enqueue task. Enqueue to shared queue.");
-	task_pool_->enqueue(std::move(task));
+	XAMP_LOG_D(logger_, "TaskScheduler::submit() failed to enqueue task. Enqueue to shared queue.");
+	shared_queue_->enqueue(std::move(task));
 	notifyWorkAvailable();
 }
 
@@ -289,6 +300,8 @@ void TaskScheduler::execute(std::vector<Task>& tasks,
 void TaskScheduler::notifyWorkAvailable() {
 	work_epoch_.value.fetch_add(1, std::memory_order_release);
 	idle_cv_.notify_one();
+	// Notify the shared queue to wake up one waiting thread if any.	 
+	shared_queue_->wakeup();
 }
 
 void TaskScheduler::notifyAllWorkers() {
@@ -311,21 +324,21 @@ void TaskScheduler::waitForWork(uint32_t observed_epoch,
 }
 
 void TaskScheduler::addThread(size_t i, ThreadPriority priority) {
-	task_work_queues_[i] = makeAlign<WorkStealingTaskQueue>(kMaxWorkQueueSize);
+	constexpr size_t kExternalProducerReserve = 4;
+	task_work_queues_[i] = makeAlign<WorkStealingTaskQueue>(
+		kMaxWorkQueueSize,
+		1,
+		max_thread_ + kExternalProducerReserve);
 	auto* local_work_queue = task_work_queues_[i].get();
 
     threads_.emplace_back([i, this, local_work_queue, priority](const auto& stop_token) mutable {
-		// Intel HT Technical User's Guide, p.23/p.27：
-		// 為各 worker 加上不同 private stack offset，避免 stack 區域變數剛好形成
-		// 64KB / 1MB aliasing pattern，降低 L1D 不必要的 cache-line eviction。
-		constexpr size_t kStackAliasOffsetStride = 128;
-		constexpr size_t kMaxStackAliasOffset = 16 * 1024;
+#if ENABLE_INTEL_CPU_AVOID_64KB_ALIASING		
+		constexpr size_t kStackAliasOffsetStride = 128UL;
+		constexpr size_t kMaxStackAliasOffset = 64 * 1024UL;
 		const auto allocate_stack_size =
 			(std::min)(kStackAliasOffsetStride * (i + 1), kMaxStackAliasOffset);
-		auto stack_aliasing_offset =
-			makeStackBuffer<std::byte>(allocate_stack_size);
-		MemorySet(stack_aliasing_offset.get(), 0, allocate_stack_size);
-
+		StackBuffer<std::byte> stack_aliasing_offset(stackAlloc(allocate_stack_size));
+#endif
 		const auto thread_id = getCurrentThreadId();
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) suspend.", thread_id, i);
 		work_done_.count_down();
@@ -334,11 +347,6 @@ void TaskScheduler::addThread(size_t i, ThreadPriority priority) {
 		setWorkerThreadName(i);
 
 		g_current_scheduler = CurrentTaskScheduler{ i, this };
-
-		XAMP_LOG_D(logger_, "Worker Thread {} priority:{} g_current_thread_index:{}.",
-			i,
-			enumToString(priority),
-			g_current_scheduler.thread_index);
 
 		setCurrentThreadPriority(priority);
 #ifdef XAMP_OS_WIN
@@ -351,6 +359,7 @@ void TaskScheduler::addThread(size_t i, ThreadPriority priority) {
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) start.", thread_id, i);
 
 		std::vector<Task> tasks(bulk_size_);
+
 		auto try_get_task = [&tasks, &stop_token, local_work_queue, this, i] {
 			auto task_size = tryLocalPop(tasks, stop_token, local_work_queue);
 			if (!task_size) {
@@ -363,6 +372,8 @@ void TaskScheduler::addThread(size_t i, ThreadPriority priority) {
 			return task_size;
 		};
 
+		constexpr auto kMaxSpinCount = 64;
+		size_t spin_count = 0;
 		while (!is_stopped_ && !stop_token.stop_requested()) {
 			auto task_size = try_get_task();
 
@@ -378,7 +389,14 @@ void TaskScheduler::addThread(size_t i, ThreadPriority priority) {
 				continue;
 			}
 
-			waitForWork(observed_epoch, stop_token);
+			++spin_count;
+			if (spin_count >= kMaxSpinCount) {
+				waitForWork(observed_epoch, stop_token);
+				spin_count = 0;
+			}
+			else {
+				cpuRelax();
+			}
 		}
 
 		XAMP_LOG_D(logger_, "Worker Thread {} is exited.", i);

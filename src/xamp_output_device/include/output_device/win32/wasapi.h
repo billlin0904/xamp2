@@ -19,25 +19,12 @@
 
 XAMP_OUTPUT_DEVICE_WIN32_HELPER_NAMESPACE_BEGIN
 
-/*
-* convert reference time to milliseconds.
-* 
-* @param[in] ref: reference time
-* @return milliseconds
-*/
-XAMP_ALWAYS_INLINE constexpr double Nano100ToMillis(REFERENCE_TIME ref) {
+XAMP_ALWAYS_INLINE constexpr double nano100ToMillis(REFERENCE_TIME ref) {
 	constexpr double ratio = 0.0001;
 	return (static_cast<double>(ref) * ratio);
 }
 
-/*
-* convert reference time to frames
-* 
-* @param period: period
-* @param samplerate: samplerate
-* @return frames
-*/
-XAMP_ALWAYS_INLINE constexpr UINT32 ReferenceTimeToFrames(REFERENCE_TIME period, UINT32 samplerate) {
+XAMP_ALWAYS_INLINE constexpr UINT32 referenceTimeToFrames(REFERENCE_TIME period, UINT32 samplerate) {
 	return static_cast<UINT32>(
 		1.0 * period * // hns *
 		samplerate / // (frames / s) /
@@ -47,53 +34,19 @@ XAMP_ALWAYS_INLINE constexpr UINT32 ReferenceTimeToFrames(REFERENCE_TIME period,
 		);
 }
 
-/*
-* convert frames to reference time.
-* 
-* @param[in] frames: frames
-* @param[in] samplerate: samplerate
-* @return reference time
-*/
-XAMP_ALWAYS_INLINE constexpr REFERENCE_TIME MakeHnsPeriod(UINT32 frames, UINT32 samplerate) {
+XAMP_ALWAYS_INLINE constexpr REFERENCE_TIME makeHnsPeriod(UINT32 frames, UINT32 samplerate) {
 	return static_cast<REFERENCE_TIME>(10000.0 * 1000.0 / static_cast<double>(samplerate) * static_cast<double>(frames) + 0.5);
 }
 
-/*
-* convert milliseconds to reference time.
-* 
-* @param[in] ms: milliseconds
-* @return reference time
-*/
-XAMP_ALWAYS_INLINE constexpr REFERENCE_TIME MsToPeriod(uint32_t ms) {
-	return ms * 10000;
-}
-
-/*
-* Get device info.
-* 
-* @param[in] device: IMMDevice
-* @param[in] device_type_id: device type id
-* @return DeviceInfo
-*/
 DeviceInfo getDeviceInfo(CComPtr<IMMDevice>& device, const Uuid& device_type_id, std::string_view desc);
 
-/*
-* create device enumerator.
-* 
-* @return IMMDeviceEnumerator
-*/
-CComPtr<IMMDeviceEnumerator> CreateDeviceEnumerator();
+CComPtr<IMMDeviceEnumerator> createDeviceEnumerator();
 
-/*
-* Get stream position in milliseconds.
-* 
-* @param[in] clock: IAudioClock
-*/
-double GetStreamPosInMilliseconds(CComPtr<IAudioClock>& clock);
+double getStreamPosInMilliseconds(CComPtr<IAudioClock>& clock);
 
-AudioFormat ToAudioFormat(const WAVEFORMATEX* format);
+AudioFormat toAudioFormat(const WAVEFORMATEX* format);
 
-bool IsDeviceSupportExclusiveMode(const CComPtr<IMMDevice>& device, AudioFormat& default_format);
+bool isDeviceSupportExclusiveMode(const CComPtr<IMMDevice>& device, AudioFormat& default_format);
 
 XAMP_OUTPUT_DEVICE_WIN32_HELPER_NAMESPACE_END
 

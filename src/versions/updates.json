@@ -2,10 +2,10 @@
   "updates": {
     "windows": {
       "open-url": "",
-      "latest-version": "0.1.0",
-      "download-url": "https://github.com/billlin0904/xamp2/releases/latest/download/xamp2-setup.exe",
-      "sha256": "263A7B7157E746E39C2512627929031D30BEA4A8C48573FAD006C0B00999E111",
-      "changelog": "<h3>XAMP 2 0.1.0</h3><ul><li>測試發行版本。</li><li>提供 Windows 安裝檔下載。</li></ul>",
+      "latest-version": "1.0.2",
+      "download-url": "https://github.com/billlin0904/xamp2/releases/download/v1.0.2/xamp2-setup.exe",
+      "sha256": "5570721C5A490DB436D8DB062130C607153783158A7EB14A5E3B05A966DD6E1E",
+      "changelog": "<h3>XAMP 1.0.2 Windows 測試版</h3><ul><li>新增 WASAPI 獨佔與 ASIO 的 16/24/32-bit 整數 PCM BitPerfect 輸出。</li><li>修正 EQ 參數、DSP 串接及緩衝補資料時機。</li><li>統一音樂庫與播放清單樣式，改善設定及多語系介面。</li><li>通過 17 項自動測試；硬體 BitPerfect 輸出尚未完成迴路驗證。</li></ul>",
       "mandatory-update": false
     },
     "linux": {

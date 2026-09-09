@@ -16,38 +16,16 @@
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
-/*
- * Win32DeviceStateNotification is win32 device state notification.
- */
 class Win32DeviceStateNotification
 	: public UnknownImpl<IMMNotificationClient>
 	, public IDeviceStateNotification {
 public:
-	/*
-	 * Constructor.
-	 * 
-	 * @param callback: device state listener.
-	 */
 	explicit Win32DeviceStateNotification(const std::weak_ptr<IDeviceStateListener>& callback);
 
-	/*
-	* Destructor.
-	*/
 	virtual ~Win32DeviceStateNotification() override;
 
-	/*
-	* run.
-	*/
 	void run() override;
 
-	/*
-	* QueryInterface.
-	* 
-	* @param[in] iid: interface id.
-	* @param[in] object: object.
-	* 
-	* @return HRESULT
-	*/
 	STDMETHOD(QueryInterface)(REFIID iid, void** object) override;
 
 private:

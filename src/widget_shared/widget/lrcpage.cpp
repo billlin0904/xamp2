@@ -1,16 +1,17 @@
 ﻿#include <widget/lrcpage.h>
 
 #include <QHBoxLayout>
-#include <QGraphicsDropShadowEffect>
 #include <QPainter>
 #include <QHeaderView>
 #include <QSaveFile>
 #include <QStandardItemModel>
 #include <QColorDialog>
+#include <QInputDialog>
 #include <QDir>
 #include <QFileInfo>
 #include <QSortFilterProxyModel>
 #include <QLineEdit>
+#include <QMenu>
 
 #include <thememanager.h>
 
@@ -22,6 +23,8 @@
 #include <widget/seekslider.h>
 #include <widget/util/ui_util.h>
 #include <xampplayer.h>
+
+#include <utility>
 
 namespace {
 	QString normalizedLyricsKey(QString text) {
@@ -60,6 +63,39 @@ namespace {
 			}
 		}
 		return fallback;
+	}
+
+	QString lyricsSourceName(const SearchLyricsResult& result) {
+		if (!result.source_name.isEmpty()) {
+			return result.source_name;
+		}
+		return "Unknown"_str;
+	}
+
+	QString lyricsParserType(const LyricsParser& parser) {
+		if (!parser.parser) {
+			return "None"_str;
+		}
+		if (parser.parser->isKaraoke()) {
+			return "Karaoke"_str;
+		}
+		if (parser.parser->hasTranslation()) {
+			return "Translation"_str;
+		}
+		return "Lrc"_str;
+	}
+
+	QString lyricsMenuText(const SearchLyricsResult& result, const LyricsParser& parser) {
+		QStringList parts;
+		parts << QString("[%1]"_str).arg(lyricsSourceName(result));
+		parts << lyricsParserType(parser);
+		if (!parser.candidate.song.isEmpty()) {
+			parts << parser.candidate.song;
+		}
+		if (!parser.candidate.singer.isEmpty()) {
+			parts << "-"_str << parser.candidate.singer;
+		}
+		return parts.join(" "_str);
 	}
 }
 
@@ -216,22 +252,9 @@ QLabel* LrcPage::cover() {
     return cover_label_;
 }
 
-void LrcPage::addCoverShadow(bool found_cover) {
-	cover_label_->setGraphicsEffect(nullptr);
-
-	if (found_cover) {
-		auto* effect = new QGraphicsDropShadowEffect(this);
-		effect->setOffset(5, 10);
-		effect->setColor(QColor("#080808"_str));
-		effect->setBlurRadius(80);
-		cover_label_->setGraphicsEffect(effect);
-	}
-}
-
 void LrcPage::setCover(const QPixmap& src) {
     cover_ = src.copy();
 	setFullScreen();
-	addCoverShadow(true);
 }
 
 void LrcPage::setPlayListEntity(const PlayListEntity& entity) {
@@ -266,6 +289,54 @@ void LrcPage::applyLyrics(const LyricsParser& parser) {
 	lyrics_widget_->loadFromParser(parser.parser);
 }
 
+void LrcPage::populateLyricsContextMenu(QMenu* menu) {
+	if (menu == nullptr) {
+		return;
+	}
+
+	auto* unsung_action = menu->addAction(tr("Unsung text opacity"));
+	connect(unsung_action, &QAction::triggered, this, [this]() {
+		const auto original_alpha = lyrics_widget_->unsungAlpha();
+		QInputDialog dialog(this);
+		dialog.setWindowTitle(tr("Unsung text opacity"));
+		dialog.setLabelText(tr("Alpha (0 = transparent, 255 = opaque)"));
+		dialog.setInputMode(QInputDialog::IntInput);
+		dialog.setIntRange(0, 255);
+		dialog.setIntValue(original_alpha);
+		connect(&dialog, &QInputDialog::intValueChanged, lyrics_widget_, &LyricsShowWidget::setUnsungAlpha);
+		if (dialog.exec() == QDialog::Accepted) {
+			qAppSettings.setValue("lyricsUnsungAlpha"_str, dialog.intValue());
+		} else {
+			lyrics_widget_->setUnsungAlpha(original_alpha);
+		}
+	});
+	auto* color_action = menu->addAction(tr("Karaoke highlight text color"));
+	connect(color_action, &QAction::triggered, karaoke_highlight_button_, &QToolButton::click);
+	if (lyrics_results_.isEmpty()) {
+		return;
+	}
+
+	auto* lyrics_menu = menu->addMenu(tr("Select lyrics"));
+
+	auto has_action = false;
+	for (const auto& result : std::as_const(lyrics_results_)) {
+		for (const auto& parser : result.parsers) {
+			if (!parser.parser || parser.parser->size() == 0) {
+				continue;
+			}
+
+			has_action = true;
+			auto* action = lyrics_menu->addAction(lyricsMenuText(result, parser));
+			(void)QObject::connect(action, &QAction::triggered, this, [this, parser]() {
+				applyLyrics(parser);
+				applied_lyrics_is_karaoke_ = isKaraokeLyrics(parser);
+				});
+		}
+	}
+
+	lyrics_menu->setEnabled(has_action);
+}
+
 QSize LrcPage::coverSize() const {
 	return coverSizeHint();
 }
@@ -294,25 +365,78 @@ void LrcPage::clearBackground() {
 }
 
 void LrcPage::onFetchLyricsCompleted(const QList<SearchLyricsResult>& results) {
+	if (entity_.file_path.isEmpty()) return;
 	if (results.isEmpty()) {
+		XAMP_LOG_DEBUG("Lyrics select skipped because result list is empty.");
 		return;
 	}
 
 	auto applied = !lyrics_results_.isEmpty();
+	XAMP_LOG_DEBUG("Lyrics select begin received:{} existing:{} current_title:'{}' current_artist:'{}'.",
+		results.size(),
+		lyrics_results_.size(),
+		entity_.cleanup().title.toStdString(),
+		entity_.cleanup().artist.toStdString());
 
+	auto rank = 0;
 	for (const auto& result : results) {
+		++rank;
 		if (!isCurrentLyricsRequest(entity_, result)) {
+			XAMP_LOG_DEBUG(
+				"Lyrics candidate skip rank:{} source:{} reason:request_mismatch request_title:'{}' current_title:'{}' song:'{}' artist:'{}'.",
+				rank,
+				lyricsSourceName(result).toStdString(),
+				result.request_title.toStdString(),
+				entity_.cleanup().title.toStdString(),
+				result.info.songname.toStdString(),
+				result.info.singername.toStdString());
 			continue;
 		}
 		if (result.parsers.isEmpty()) {
+			XAMP_LOG_DEBUG(
+				"Lyrics candidate skip rank:{} source:{} reason:no_parser song:'{}' artist:'{}'.",
+				rank,
+				lyricsSourceName(result).toStdString(),
+				result.info.songname.toStdString(),
+				result.info.singername.toStdString());
 			continue;
 		}
 		const auto* parser = preferredLyricsParser(result.parsers);
 		if (parser == nullptr) {
+			XAMP_LOG_DEBUG(
+				"Lyrics candidate skip rank:{} source:{} reason:no_preferred_parser parsers:{} song:'{}' artist:'{}'.",
+				rank,
+				lyricsSourceName(result).toStdString(),
+				result.parsers.size(),
+				result.info.songname.toStdString(),
+				result.info.singername.toStdString());
 			continue;
-		}
+		}		
 		const auto parser_is_karaoke = isKaraokeLyrics(*parser);
-		if (!applied || (!applied_lyrics_is_karaoke_ && parser_is_karaoke)) {
+		const auto parser_lines = parser->parser ? parser->parser->size() : 0;
+		const auto will_apply = !applied;
+		XAMP_LOG_DEBUG(
+			"Lyrics candidate accept rank:{} source:{} apply:{} type:{} karaoke:{} translation:{} lines:{} parsers:{} song:'{}' artist:'{}' album:'{}' duration:{}.",
+			rank,
+			lyricsSourceName(result).toStdString(),
+			will_apply,
+			lyricsParserType(*parser).toStdString(),
+			parser_is_karaoke,
+			parser->parser && parser->parser->hasTranslation(),
+			parser_lines,
+			result.parsers.size(),
+			result.info.songname.toStdString(),
+			result.info.singername.toStdString(),
+			result.info.albumName.toStdString(),
+			result.info.duration);
+		if (!applied) {
+			XAMP_LOG_DEBUG(
+				"Lyrics selected rank:{} source:{} reason:first_ranked_accepted_result type:{} song:'{}' artist:'{}'.",
+				rank,
+				lyricsSourceName(result).toStdString(),
+				lyricsParserType(*parser).toStdString(),
+				result.info.songname.toStdString(),
+				result.info.singername.toStdString());
 			applyLyrics(*parser);
 			applied_lyrics_is_karaoke_ = parser_is_karaoke;
 			applied = true;
@@ -321,33 +445,14 @@ void LrcPage::onFetchLyricsCompleted(const QList<SearchLyricsResult>& results) {
 	}	
 
 	if (lyrics_results_.isEmpty()) {
+		XAMP_LOG_DEBUG("Lyrics select completed with no accepted candidates.");
 		return;
 	}
 
 	change_lrc_button_->setEnabled(true);
-
-	const auto hasTranslation = [](const SearchLyricsResult& res) ->bool {
-		for (auto& lyricsParser : res.parsers) {
-			if (lyricsParser.parser && lyricsParser.parser->hasTranslation()) {
-				return true;
-			}
-		}
-		return false;
-		};
-
-	std::sort(lyrics_results_.begin(), lyrics_results_.end(),
-		[hasTranslation](auto& lhs, auto& rhs) {
-		const auto* lhsParser = preferredLyricsParser(lhs.parsers);
-		const auto* rhsParser = preferredLyricsParser(rhs.parsers);
-		bool lhsKaraoke = lhsParser && isKaraokeLyrics(*lhsParser);
-		bool rhsKaraoke = rhsParser && isKaraokeLyrics(*rhsParser);
-		if (lhsKaraoke != rhsKaraoke) {
-			return lhsKaraoke > rhsKaraoke;
-		}
-		bool lhsHas = hasTranslation(lhs);
-		bool rhsHas = hasTranslation(rhs);
-		return (lhsHas > rhsHas);
-		});
+	XAMP_LOG_DEBUG("Lyrics select completed accepted_total:{} applied:{}.",
+		lyrics_results_.size(),
+		applied);
 }
 
 void LrcPage::setFullScreen() {
@@ -508,16 +613,6 @@ int LrcPage::getDisappearBgProgress() const {
 }
 
 void LrcPage::onThemeChangedFinished(ThemeColor theme_color) {
-	cover_label_->setGraphicsEffect(nullptr);
-
-	if (theme_color == ThemeColor::LIGHT_THEME) {
-		auto* effect = new QGraphicsDropShadowEffect(this);
-		effect->setOffset(10, 20);
-		effect->setColor(qTheme.coverShadowColor());
-		effect->setBlurRadius(50);
-		cover_label_->setGraphicsEffect(effect);
-	}
-
 	switch (theme_color) {
 	case ThemeColor::DARK_THEME:
 		//lyrics_widget_->setNormalColor(Qt::lightGray);
@@ -528,7 +623,8 @@ void LrcPage::onThemeChangedFinished(ThemeColor theme_color) {
 	case ThemeColor::LIGHT_THEME:
 		lyrics_widget_->setNormalColor(Qt::darkGray);
 		lyrics_widget_->setHighLightColor(Qt::black);
-		lyrics_widget_->setKaraokeHighlightColor(qTheme.highlightColor());
+		lyrics_widget_->setKaraokeHighlightColor(qAppSettings.valueAsColor(
+			"lyricsKaraokeColor"_str, qTheme.highlightColor()));
 		break;
 	}
 	//setStyleSheet(qFormat("background-color: %1; border: none;").arg(
@@ -571,7 +667,8 @@ void LrcPage::initial() {
 	cover_label_->setMinimumSize(QSize(250, 250));
     cover_label_->setMaximumSize(QSize(250, 250));
 	cover_label_->setStyleSheet("background-color: transparent"_str);
-	cover_label_->setAttribute(Qt::WA_StaticContents);
+	// Paint the cover directly; offscreen graphics effects can disappear on the translucent shell.
+	cover_label_->setAlignment(Qt::AlignCenter);
 
     vertical_layout_3->addWidget(cover_label_);
 
@@ -693,7 +790,11 @@ void LrcPage::initial() {
 
 	lyrics_widget_ = new LyricsShowWidget(this);
 	lyrics_widget_->setObjectName(QString::fromUtf8("lyrics"));
+	lyrics_widget_->setKaraokeHighlightColor(qAppSettings.valueAsColor(
+		"lyricsKaraokeColor"_str, lyrics_widget_->karaokeHighlightColor()));
 	lyrics_widget_->setMinimumSize(QSize(180, 60));
+	(void)QObject::connect(lyrics_widget_, &LyricsShowWidget::populateContextMenu,
+		this, &LrcPage::populateLyricsContextMenu);
 	vertical_layout_2->addWidget(lyrics_widget_);
 
 	auto horizontal_layout_11 = new QHBoxLayout();
@@ -756,12 +857,18 @@ void LrcPage::initial() {
 	karaoke_highlight_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_SETTINGS));
 	karaoke_highlight_button_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	(void)QObject::connect(karaoke_highlight_button_, &QToolButton::clicked, [this]() {
-		QColorDialog color_dialog;
-		color_dialog.setCurrentColor(lyrics_widget_->karaokeHighlightColor());
-		(void)QObject::connect(&color_dialog, &QColorDialog::currentColorChanged, [this](auto color) {
-			lyrics_widget_->setKaraokeHighlightColor(color);
-			});
-		color_dialog.exec();
+		const auto original_color = lyrics_widget_->karaokeHighlightColor();
+		QColorDialog color_dialog(original_color, this);
+		color_dialog.setWindowTitle(tr("Karaoke highlight text color"));
+		color_dialog.setOption(QColorDialog::ShowAlphaChannel);
+		connect(&color_dialog, &QColorDialog::currentColorChanged,
+			lyrics_widget_, &LyricsShowWidget::setKaraokeHighlightColor);
+		if (color_dialog.exec() == QDialog::Accepted) {
+			qAppSettings.setValue("lyricsKaraokeColor"_str,
+				color_dialog.selectedColor().name(QColor::HexArgb));
+		} else {
+			lyrics_widget_->setKaraokeHighlightColor(original_color);
+		}
 		});
 	karaoke_highlight_button_->hide();
 

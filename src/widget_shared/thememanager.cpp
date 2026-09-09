@@ -12,7 +12,7 @@ void ThemeManager::load() {
 
 ThemeManager::ThemeManager() {
     cover_size_ = QSize(185, 185);
-    cache_cover_size_ = QSize(544, 544);
+    cache_cover_size_ = QSize(1200, 1200);
     album_cover_size_ = QSize(206, 206);
     save_cover_art_size_ = QSize(350, 350);
     ui_font_ = loadFonts();

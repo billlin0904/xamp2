@@ -29,6 +29,10 @@ public slots:
 
 	void onFindAlbumCover(const DatabaseCoverId& id);
 
+	void removeAlbumCoverId(int32_t album_id);
+
+	void clearAlbumCoverIds();
+
 	void cancelRequested();
 
 private:

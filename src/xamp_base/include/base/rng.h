@@ -18,39 +18,39 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 class XAMP_BASE_API PRNG final {
 public:
-    PRNG() ;
+    PRNG();
 
-    template <typename t, std::enable_if_t<std::is_same_v<t, float>>* = nullptr>
-    t operator()(t min, t max) {
-        return std::uniform_real_distribution<t>(min, max)(engine_);
+    template <typename T, std::enable_if_t<std::is_same_v<T, float>>* = nullptr>
+    T operator()(T min, T max) {
+        return std::uniform_real_distribution<T>(min, max)(engine_);
     }
 
-    template <typename t, std::enable_if_t<std::is_integral_v<t>>* = nullptr>
-    t operator()(t min, t max) {
-        return std::uniform_int_distribution<t>(min, max)(engine_);
+    template <typename T, std::enable_if_t<std::is_integral_v<T>>* = nullptr>
+    T operator()(T min, T max) {
+        return std::uniform_int_distribution<T>(min, max)(engine_);
     }
 
     uint64_t operator()() {
         return engine_();
     }
 
-    size_t Next(size_t max = (std::numeric_limits<size_t>::max)()) {
+    size_t next(size_t max = (std::numeric_limits<size_t>::max)()) {
         return (*this)(size_t{0}, max);
     }
 
-    uint32_t NextUInt32(
+    uint32_t nextUInt32(
         const uint32_t min = (std::numeric_limits<uint32_t>::min)(),
         const uint32_t max = (std::numeric_limits<uint32_t>::max)())  {
         return (*this)(min, max);
     }
 
-    int32_t NextInt32(
+    int32_t nextInt32(
         const int32_t min = (std::numeric_limits<int32_t>::min)(),
         const int32_t max = (std::numeric_limits<int32_t>::max)())  {
         return (*this)(min, max);
     }
 
-    int64_t NextInt64(
+    int64_t nextInt64(
         const int64_t min = (std::numeric_limits<int64_t>::min)(),
         const int64_t max = (std::numeric_limits<int64_t>::max)())  {
         return (*this)(min, max);
@@ -62,19 +62,19 @@ public:
         return (*this)(min, max);
     }
 
-    std::vector<int8_t> NextBytes(size_t size,
+    std::vector<int8_t> nextBytes(size_t size,
         const int32_t min = (std::numeric_limits<int8_t>::min)(),
         const int32_t max = (std::numeric_limits<int8_t>::max)()) {
         std::vector<int8_t> output(size);
         const auto gen = [this, min, max]() {
-            return static_cast<int8_t>(NextInt32(min, max));
+            return static_cast<int8_t>(nextInt32(min, max));
         };
         std::generate_n(output.begin(), size, gen);
         return output;
     }
 
     template <typename t>
-	std::vector<t> NextBytes(size_t size,
+	std::vector<t> nextBytes(size_t size,
 		const t min = (std::numeric_limits<t>::min)(),
 		const t max = (std::numeric_limits<t>::max)()) {        
         std::vector<t> output(size);
@@ -85,7 +85,7 @@ public:
 		return output;
 	}
 
-    std::vector<float> NextSingles(size_t size, 
+    std::vector<float> nextSingles(size_t size, 
         const float min = 0.0f,
         const float max = 1.0f) {
         std::vector<float> output(size);
