@@ -12,12 +12,12 @@
   <meta property="og:title" content="XAMP 2 · 讓音樂，回到主角">
   <meta property="og:description" content="你的音樂收藏，值得好好播放。下載 Windows 桌面播放器 XAMP 2。">
   <meta property="og:url" content="https://billlin0904.github.io/xamp2/">
-  <meta property="og:image" content="https://billlin0904.github.io/xamp2/assets/site/player-playlist.png">
+  <meta property="og:image" content="https://billlin0904.github.io/xamp2/assets/site/player-playlist.png?v=2">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="assets/site/xamp-logo.png" type="image/png">
   <link rel="preload" href="assets/site/fonts/XampDisplay-TC.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/site/site.css">
-  <script src="assets/site/site.js" defer></script>
+  <link rel="stylesheet" href="assets/site/site.css?v=2">
+  <script src="assets/site/site.js?v=2" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">跳至主要內容</a>
@@ -49,16 +49,22 @@
     <section class="showcase wrap" aria-label="播放器實際畫面">
       <div class="showcase-bar">
         <span class="showcase-label">熟悉的收藏，新的聆聽日常。</span>
-        <div class="view-switch" role="group" aria-label="選擇播放器畫面" hidden>
-          <button type="button" data-view="playlist" aria-pressed="true">播放清單</button>
-          <button type="button" data-view="library" aria-pressed="false">音樂庫</button>
+        <div class="screenshot-controls" hidden>
+          <div class="view-switch" role="group" aria-label="選擇播放器畫面">
+            <button type="button" data-view="playlist" aria-pressed="true">播放清單</button>
+            <button type="button" data-view="library" aria-pressed="false">音樂庫</button>
+          </div>
+          <div class="view-switch" role="group" aria-label="選擇播放器背景">
+            <button type="button" data-background="solid" aria-pressed="true">實色背景</button>
+            <button type="button" data-background="transparent" aria-pressed="false">透明背景</button>
+          </div>
         </div>
       </div>
       <figure class="player-figure">
-        <a id="screenshot-link" href="assets/site/player-playlist.png" target="_blank" rel="noopener" aria-label="在新分頁開啟播放器原始截圖">
-          <img id="player-screenshot" class="player-screenshot" src="assets/site/player-playlist.png" width="1811" height="992" fetchpriority="high" alt="XAMP 2 播放清單：左側導覽、專輯封面、歌曲列表與底部播放控制，搭配 Windows 透明背景。">
+        <a id="screenshot-link" href="assets/site/player-playlist.png?v=2" target="_blank" rel="noopener" aria-label="在新分頁開啟播放器原始截圖">
+          <img id="player-screenshot" class="player-screenshot" src="assets/site/player-playlist.png?v=2" width="1811" height="993" fetchpriority="high" alt="XAMP 2 實色背景播放清單：專輯封面、歌曲資訊與底部播放控制。">
         </a>
-        <figcaption id="screenshot-caption">播放清單實機畫面。介面與背景效果會依版本、系統及設定而異。</figcaption>
+        <figcaption id="screenshot-caption">播放清單 · 實色背景。專輯封面、曲目資訊與播放控制集中在同一個畫面。</figcaption>
       </figure>
     </section>
 

@@ -4,9 +4,9 @@
 
 [下載 Windows 1.0.3 測試版](https://github.com/billlin0904/xamp2/releases/tag/v1.0.3) · [所有版本](https://github.com/billlin0904/xamp2/releases) · [回報問題](https://github.com/billlin0904/xamp2/issues)
 
-![XAMP 播放清單、專輯封面與底部播放控制](docs/images/player-playlist.png)
+![XAMP 播放清單、專輯封面與底部播放控制](docs/images/player-playlist.png?v=2)
 
-*使用者提供的開發版本實機截圖。介面、曲目與配色可能與安裝版本略有差異。*
+*播放清單實色背景實機截圖，使用者提供的展示畫面。介面與配色可能隨版本或設定而異。*
 
 ## 主要功能
 
@@ -32,9 +32,9 @@
 
 透明效果不是把整個視窗連同文字一起變淡；文字、封面與控制項保持可讀性，背景透出系統材質。實際觀感會隨桌布、視窗後方內容與深淺色主題改變；單色背景下通常較不明顯。
 
-![XAMP 音樂庫、資料夾瀏覽與背景材質實機畫面](docs/images/player-library.png)
+![XAMP 音樂庫、資料夾瀏覽與背景材質實機畫面](assets/site/player-library-transparent.png)
 
-*背景材質開發畫面，取自使用者提供的截圖；其中歌曲列表是統一樣式前的版本。靜態圖片僅展示當時觀感，不代表所有區塊皆完全透明。*
+*音樂庫透明背景實機截圖，展示資料夾瀏覽、曲目列表與頻譜區。實際透明效果依系統與設定而異。*
 
 ## 下載與安裝
 

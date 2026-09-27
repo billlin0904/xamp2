@@ -270,6 +270,12 @@ code {
   border:1px solid var(--line);
   border-radius:7px;
 }
+.screenshot-controls {
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:10px;
+}
 .view-switch button {
   border:0;
   background:transparent;
@@ -297,7 +303,7 @@ code {
 .player-screenshot {
   width:100%;
   height:auto;
-  aspect-ratio:1811/992;
+  aspect-ratio:1811/993;
   object-fit:contain;
 }
 .player-figure figcaption {
@@ -711,6 +717,18 @@ code {
   }
   .view-switch button {
     min-height:40px;
+  }
+  .screenshot-controls {
+    width:100%;
+    justify-content:space-between;
+  }
+  .screenshot-controls .view-switch {
+    flex:1;
+    justify-content:center;
+  }
+  .screenshot-controls button {
+    padding-inline:10px;
+    white-space:nowrap;
   }
   .player-figure figcaption {
     text-align:left;

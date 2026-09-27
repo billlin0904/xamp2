@@ -23,23 +23,34 @@
   });
 
   const screenshots = {
-    playlist: { src: 'assets/site/player-playlist.png', alt: 'XAMP 2 播放清單：左側導覽、專輯封面、歌曲列表與底部播放控制，搭配 Windows 透明背景。', caption: '播放清單實機畫面。介面與背景效果會依版本、系統及設定而異。' },
-    library: { src: 'docs/images/player-library.png', alt: 'XAMP 音樂庫：本機資料夾瀏覽與歌曲列表，搭配 Windows 背景材質。', caption: '音樂庫開發版本實機畫面，歌曲列表為統一樣式前的版本；靜態圖片僅展示當時觀感。' }
+    playlist: {
+      solid: { src: 'assets/site/player-playlist.png?v=2', alt: 'XAMP 2 實色背景播放清單：專輯封面、歌曲資訊與底部播放控制。', caption: '播放清單 · 實色背景。專輯封面、曲目資訊與播放控制集中在同一個畫面。' },
+      transparent: { src: 'assets/site/player-playlist-transparent.png', alt: 'XAMP 2 透明背景播放清單，展示 Windows 背景材質與歌曲列表。', caption: '播放清單 · 透明背景。背景材質融入桌面色彩，保留清楚的文字與控制項；實際效果依系統與設定而異。' }
+    },
+    library: {
+      solid: { src: 'docs/images/player-library.png?v=2', alt: 'XAMP 2 實色背景音樂庫：資料夾樹、專輯歌曲列表與頻譜顯示區。', caption: '音樂庫 · 實色背景。以資料夾瀏覽收藏，查看專輯曲目，並保留頻譜顯示區。' },
+      transparent: { src: 'assets/site/player-library-transparent.png', alt: 'XAMP 2 透明背景音樂庫：資料夾瀏覽、專輯曲目與頻譜顯示區。', caption: '音樂庫 · 透明背景。資料夾導覽搭配桌面背景材質，曲目與頻譜區維持清楚的層次。' }
+    }
   };
-  const viewSwitch = document.querySelector('.view-switch');
+  const controls = document.querySelector('.screenshot-controls');
   const screenshot = document.querySelector('#player-screenshot');
   const screenshotLink = document.querySelector('#screenshot-link');
   const caption = document.querySelector('#screenshot-caption');
-  viewSwitch.hidden = false;
-  viewSwitch.addEventListener('click', event => {
-    const button = event.target.closest('button[data-view]');
+  let selectedView = 'playlist';
+  let selectedBackground = 'solid';
+  controls.hidden = false;
+  controls.addEventListener('click', event => {
+    const button = event.target.closest('button');
     if (!button) return;
-    const view = screenshots[button.dataset.view];
+    if (button.dataset.view) selectedView = button.dataset.view;
+    if (button.dataset.background) selectedBackground = button.dataset.background;
+    const view = screenshots[selectedView][selectedBackground];
     screenshot.src = view.src;
     screenshot.alt = view.alt;
     screenshotLink.href = view.src;
     caption.textContent = view.caption;
-    viewSwitch.querySelectorAll('button').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+    controls.querySelectorAll('[data-view]').forEach(item => item.setAttribute('aria-pressed', String(item.dataset.view === selectedView)));
+    controls.querySelectorAll('[data-background]').forEach(item => item.setAttribute('aria-pressed', String(item.dataset.background === selectedBackground)));
   });
 
   // Preserve links to headings that now live inside disclosure panels.

@@ -15,7 +15,7 @@ The first viewport introduces the player and offers the download; the full-width
 ## Design system and assets
 
 - Brand logo: `assets/site/xamp-logo.png`, copied without modification from `src/xamp/xamp2.png`. Preserve its original pink/violet identity; mint is the interaction accent from the player.
-- Main screenshot: `assets/site/player-playlist.png`, supplied by the user on 2026-09-27, copied without modification. Library screenshot: `docs/images/player-library.png`, explicitly captioned as an earlier development view.
+- Screenshots: four user-approved replacement images supplied on 2026-09-27, copied without modification. Solid playlist: `assets/site/player-playlist.png` (also replaces `docs/images/player-playlist.png`); solid library: `docs/images/player-library.png`; transparent variants: `assets/site/player-playlist-transparent.png` and `assets/site/player-library-transparent.png`. Two independent controls select view and background. Previously published paths are overwritten too, so current site and README no longer serve the prior images. This does not rewrite historical Git commits or invalidate third-party caches.
 - Charcoal #111715, surface #19221e, text #eef3ef, muted #a1b0a7, mint #a3e2c3. Light website tokens preserve the same hierarchy. Website theme is independent from desktop player settings.
 - Typography: locally hosted Karla with platform Traditional Chinese body fallback; subset Source Han Sans TC Bold for display, retaining SIL OFL notices under `assets/site/fonts`. Subset named XampDisplay to avoid reserved font names. Regenerate after changing display text with `tools/Subset-WebsiteFont.py`.
 - Spacing: 8px baseline, 40/56/96px responsive outer gutters, 64/80/112px section rhythm.
