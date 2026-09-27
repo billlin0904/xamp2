@@ -55,12 +55,6 @@ std::string getCurrentThreadId() {
     return ostr.str();
 }
 
-void mSleep(std::chrono::milliseconds timeout) {
-    WaitableTimer timer;
-    timer.setTimeout(timeout);
-    timer.wait();
-}
-
 uint64_t getSystemEntropy() {
     const auto r0{ genRandomSeed() };
     const auto r1{ genRandomSeed() };

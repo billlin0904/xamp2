@@ -63,8 +63,8 @@ public:
         return String::formatBytesBy<T>(getByteSize());
     }
 
-    void fill(T value) {		        
-        MemorySet(ptr_.get(), value, sizeof(T) * size_);
+    void fill(T value) {        
+		std::fill(ptr_.get(), ptr_.get() + size_, value);
     }
 
     // 兼容STL容器相關函數.

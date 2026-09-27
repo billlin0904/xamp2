@@ -19,22 +19,6 @@ find_package(Qt6 6.4 REQUIRED COMPONENTS
 
 include("${CMAKE_SOURCE_DIR}/cmake/XampDependencyHelpers.cmake")
 
-find_package(libdeflate CONFIG QUIET)
-find_package(simdjson CONFIG REQUIRED)
-if(TARGET libdeflate::libdeflate)
-    set(XAMP_LIBDEFLATE_TARGET libdeflate::libdeflate)
-elseif(TARGET libdeflate::libdeflate_shared)
-    set(XAMP_LIBDEFLATE_TARGET libdeflate::libdeflate_shared)
-elseif(TARGET unofficial::libdeflate::libdeflate)
-    set(XAMP_LIBDEFLATE_TARGET unofficial::libdeflate::libdeflate)
-else()
-    xamp_find_imported_library(XAMP_LIBDEFLATE_TARGET XampLibdeflate
-        REQUIRED
-        HEADER libdeflate.h
-        LIB_NAMES deflate libdeflate
-        PKG libdeflate)
-endif()
-
 if(NOT TARGET xamp_base)
     add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../xamp_base" "${CMAKE_BINARY_DIR}/xamp_base")
 endif()
@@ -78,9 +62,7 @@ file(GLOB WIDGET_SHARED_FORMS CONFIGURE_DEPENDS
 qt6_wrap_ui(WIDGET_SHARED_UI_HEADERS ${WIDGET_SHARED_FORMS})
 
 list(FILTER WIDGET_SHARED_WIDGET_SOURCES EXCLUDE REGEX "/widget/win32/")
-list(FILTER WIDGET_SHARED_WIDGET_SOURCES EXCLUDE REGEX "/widget/playliststyleditem_delegate\\.cpp$")
 list(FILTER WIDGET_SHARED_HEADERS EXCLUDE REGEX "/widget/win32/")
-list(FILTER WIDGET_SHARED_HEADERS EXCLUDE REGEX "/widget/playliststyleditem_delegate\\.h$")
 
 add_library(widget_shared SHARED
     ${WIDGET_SHARED_ROOT_SOURCES}
@@ -134,8 +116,6 @@ target_link_libraries(widget_shared
         Qt6::Multimedia
         Qt6::Core5Compat
         xamp_base
-        ${XAMP_LIBDEFLATE_TARGET}
-        simdjson::simdjson
         QCoro6::Core
         QCoro6::Network
         QWKWidgets

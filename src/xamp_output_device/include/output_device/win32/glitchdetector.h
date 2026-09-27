@@ -29,11 +29,11 @@ struct Accumulator {
 	Accumulator() = default;
 	~Accumulator() = default;
 
-	void Add(const AudioGlitchInfo& info) {
+	void add(const AudioGlitchInfo& info) {
 		pending_info_ += info;
 	}
 
-	AudioGlitchInfo GetAndReset() {
+	AudioGlitchInfo getAndReset() {
 		AudioGlitchInfo tmp = pending_info_;
 		pending_info_ = {};
 		return tmp;
@@ -139,7 +139,7 @@ inline std::optional<AudioGlitchInfo> GlitchDetector::update(uint64_t position, 
 	if (gap_duration > glitch_threshold) {
 		// 記錄為 glitch，clamp 在 [0, 1s]，count=1
 		auto info = AudioGlitchInfo::singleBoundedSystemGlitch(gap_duration);
-		total_glitch_accumulator_.Add(info);
+		total_glitch_accumulator_.add(info);
 		result = info;
 	}
 
@@ -150,7 +150,7 @@ inline std::optional<AudioGlitchInfo> GlitchDetector::update(uint64_t position, 
 }
 
 inline AudioGlitchInfo GlitchDetector::getTotalGlitchInfoAndReset() {
-	return total_glitch_accumulator_.GetAndReset();
+	return total_glitch_accumulator_.getAndReset();
 }
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_END

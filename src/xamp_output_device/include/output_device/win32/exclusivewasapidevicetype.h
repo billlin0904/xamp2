@@ -17,63 +17,26 @@
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
-/*
-* ExclusiveWasapiDeviceType is the device type for exclusive mode wasapi.
-* 
-*/
 class ExclusiveWasapiDeviceType final : public IDeviceType {
 	XAMP_DECLARE_MAKE_CLASS_UUID(ExclusiveWasapiDeviceType, "089F8446-C980-495B-AC80-5A437A4E73F6")
 
 public:
 	XAMP_DECLARE_UUID_CLASS_DESC(ExclusiveWasapiDeviceType, "Exclusive WASAPI")
 
-	/*
-	* Constructor
-	*/
 	ExclusiveWasapiDeviceType() ;
 
 	XAMP_PIMPL(ExclusiveWasapiDeviceType)
 	
-	/*
-	* Scan new device
-	*/
 	void scanNewDevice() override;
 
-	/*
-	* Get device count
-	* 
-	* @return size_t
-	*/
 	[[nodiscard]] size_t getDeviceCount() const override;
 
-	/*
-	* Get device info
-	* 
-	* @param device: device index
-	* @return DeviceInfo
-	*/
 	[[nodiscard]] DeviceInfo getDeviceInfo(uint32_t device) const override;
 
-	/*
-	* Get default device info
-	* 
-	* @return std::optional<DeviceInfo>	 
-	*/
 	[[nodiscard]] std::optional<DeviceInfo> getDefaultDeviceInfo() const override;
 
-	/*
-	* Get device info
-	* 
-	* @return std::vector<DeviceInfo>
-	*/
 	[[nodiscard]] std::vector<DeviceInfo> getDeviceInfo() const override;
 
-	/*
-	* Make device
-	* 
-	* @param device_id: device id
-	* @return ScopedPtr<IOutputDevice>
-	*/
 	ScopedPtr<IOutputDevice> makeDevice(const std::shared_ptr<IThreadPool>& thread_pool, const std::string & device_id) override;
 
 private:

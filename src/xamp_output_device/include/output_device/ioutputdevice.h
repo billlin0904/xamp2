@@ -6,141 +6,62 @@
 #pragma once
 
 #include <chrono>
+#include <stdexcept>
 
 #include <output_device/output_device.h>
 #include <base/audioformat.h>
+#include <base/pcm.h>
 
 XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN
 
-/*
-* IOutputDevice is the interface for output device.
-* 
-*/
 class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE IOutputDevice {
 public:
 	static constexpr auto kWaitStreamStartTimeout = std::chrono::milliseconds(60 * 1000);
 
 	XAMP_BASE_CLASS(IOutputDevice)
+	
+    virtual void setIntegerPcmFormat(const xamp::pcm::Format&) {
+        throw std::runtime_error("Output does not support integer BitPerfect PCM");
+    }
+    virtual void setBitPerfect(bool enabled) {
+        if (enabled) throw std::runtime_error("BitPerfect requires WASAPI Exclusive or integer ASIO output");
+    }
 
-	/*
-	* open stream.
-	* 
-	* @param output_format: output format
-	* @return void
-	*/	
     virtual void openStream(const AudioFormat & output_format) = 0;
 
-	/*
-	* Set audio callback.
-	* 
-	* @param callback: audio callback
-	* @return void
-	*/
 	virtual void setAudioCallback(IAudioCallback* callback) = 0;
 
-	/*
-	* Is stream open.
-	* 
-	* @return bool
-	*/
 	[[nodiscard]] virtual bool isStreamOpen() const = 0;
 
-	/*
-	* Is stream running.
-	* 
-	* @return bool
-	*/
 	[[nodiscard]] virtual bool isStreamRunning() const = 0;
 
-	/*
-	* stop stream.
-	* 
-	* @param wait_for_stop_stream: wait for stop stream
-	*/
 	virtual void stopStream(bool wait_for_stop_stream = true) = 0;
 
-	/*
-	* close stream.
-	*/
 	virtual void closeStream() = 0;
 
-	/*
-	* start stream.
-	*/
 	virtual void startStream() = 0;
 
-	/*
-	* Set stream time.
-	* 
-	* @param stream_time: stream time
-	*/
 	virtual void setStreamTime(double stream_time) = 0;
 
-	/*
-	* Get stream time.
-	* 
-	* @return double
-	*/
 	[[nodiscard]] virtual double getStreamTime() const = 0;
 
-	/*
-	* Get volume.
-	* 
-	* @return uint32_t
-	*/
     [[nodiscard]] virtual uint32_t getVolume() const = 0;
 
-	/*
-	* Set volume.
-	* 
-	* @param volume: volume (1~100)
-	*/
     virtual void setVolume(uint32_t volume) const = 0;
 
-	/*
-	* Set mute.
-	* 
-	* @param mute: mute (true/false)
-	*/
 	virtual void setMute(bool mute) const = 0;
 
-	/*
-	* Is muted.
-	* 
-	* @return bool
-	*/
 	[[nodiscard]] virtual bool isMuted() const = 0;
 
-	/*
-	* Is hardware control volume.
-	* 
-	* @return bool
-	*/
 	[[nodiscard]] virtual bool isHardwareControlVolume() const = 0;
 
-	/*
-	* Get packed format.
-	* 
-	* @return PackedFormat
-	*/
 	[[nodiscard]] virtual PackedFormat getPackedFormat() const = 0;
 
-	/*
-	* Get device buffer size.
-	* 
-	* @return uint32_t
-	*/
 	[[nodiscard]] virtual uint32_t getBufferSize() const = 0;
-
-	/*
-	* Abort stream.
-	*/	
+	
 	virtual void abortStream() = 0;
 
 protected:
-	/*
-	* Constructor.
-	*/
 	IOutputDevice() = default;
 };
 

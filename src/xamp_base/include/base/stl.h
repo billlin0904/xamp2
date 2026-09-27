@@ -29,11 +29,11 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
-#ifdef XAMP_OS_MAC
-template <typename t, typename ...Args>
-auto tuple_append(t&& t, Args&&...args) {
+#ifndef __cpp_lib_bind_front
+template <typename T, typename ...Args>
+auto tuple_append(T&& t, Args&&...args) {
 	return std::tuple_cat(
-		std::forward<t>(t),
+		std::forward<T>(t),
 		std::forward_as_tuple(args...)
 	);
 }
@@ -50,20 +50,23 @@ decltype(auto) bind_front(F&& f, FrontArgs&&...front_args) {
 				std::forward<decltype(back_args)>(back_args)...));
 	};
 }
-#endif
-
-#if defined(XAMP_OS_WIN) || defined(XAMP_OS_LINUX)
+#else
 using std::bind_front;
 #endif
 
-template <typename t, size_t N>
-constexpr size_t CountOf(t const (&)[N]) {
-	return N;
+template <typename T, typename... Args>
+auto makeOptional(Args&&... args) -> std::optional<T> {
+	return std::optional<T>(std::in_place_t{}, std::forward<Args>(args)...);
 }
 
-template <typename t, typename... Args>
-std::optional<t> makeOptional(Args&&... args) {
-	return std::optional<t>(std::in_place_t{}, std::forward<Args>(args)...);
+template <typename Callback, typename... Args>
+void safeInvoke(Callback&& callback, Args&&... args) {
+	if (callback) {
+		std::invoke(
+			std::forward<Callback>(callback),
+			std::forward<Args>(args)...
+		);
+	}
 }
 
 #ifdef XAMP_USE_STD_MAP

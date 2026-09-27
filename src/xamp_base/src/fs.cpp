@@ -32,7 +32,7 @@ XAMP_BASE_NAMESPACE_BEGIN
 
 namespace {
 
-std::string PathToLogString(const Path& path) {
+std::string pathToLogString(const Path& path) {
 #ifdef XAMP_OS_WIN
 	return String::toUtf8String(path.wstring());
 #else
@@ -61,7 +61,7 @@ std::tuple<std::fstream, Path> getTempFile() {
 		if (file_.is_open()) {
 			return std::make_tuple(std::move(file_), path);
 		}
-		XAMP_LOG_DEBUG("{} {}", PathToLogString(path), GetLastErrorMessage());
+		XAMP_LOG_DEBUG("{} {}", pathToLogString(path), getLastErrorMessage());
 	}
 	throw PlatformException("Can't create temp file.");
 }
@@ -78,9 +78,32 @@ Path getTempFileNamePath() {
 			file_.close();
 			return path;
 		}
-		XAMP_LOG_DEBUG("{} {}", PathToLogString(path), GetLastErrorMessage());
+		XAMP_LOG_DEBUG("{} {}", pathToLogString(path), getLastErrorMessage());
 	}
 	throw PlatformException("Can't create temp file.");
+}
+
+Path makeTempPath(const Path& original_path) {
+	constexpr auto kMaxRetryCreateTempFile = 128;
+	const auto dir = original_path.parent_path();
+	const auto ext = original_path.extension().wstring();
+
+	for (auto i = 0; i < kMaxRetryCreateTempFile; ++i) {
+		// Keep the temp file in the same directory for atomic replacement, but
+		// do not reuse the original stem. Long track names can push Windows
+		// paths past MAX_PATH once the transaction suffix is appended.
+		const auto file_name = L"xamp-"
+			+ String::toStdWString(getSequentialUuid())
+			+ ext;
+		auto temp_path = dir.empty()
+			? Path(file_name)
+			: dir / file_name;
+		std::error_code ec;
+		if (!Fs::exists(temp_path, ec) && !ec) {
+			return temp_path;
+		}
+	}
+	throw PlatformException("create metadata temp file path failure.");
 }
 
 Path getApplicationFilePath() {
@@ -138,8 +161,8 @@ Path getComponentsFilePath() {
 	return getApplicationFilePath() / Path("components");
 }
 
-bool IsCDAFile(Path const& path) {
-	return path.extension() == ".cda";
+bool isCDAFile(Path const& path) {
+	return String::toLower(path.extension().string()) == ".cda";
 }
 
 std::expected<std::string, TextEncodeingError> readFileToUtf8String(const Path& path) {

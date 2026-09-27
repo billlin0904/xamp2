@@ -11,6 +11,7 @@
 #include <QPainterPath>
 #include <QTextLayout>
 #include <QtGlobal>
+#include <QMenu>
 
 #include <base/charset_detector.h>
 
@@ -381,6 +382,62 @@ namespace {
 			word.content = normalizeLyricsText(word.content);
 		}
 	}
+
+	QString formatSrtTimestamp(std::chrono::milliseconds time) {
+		if (time < std::chrono::milliseconds(0)) {
+			time = std::chrono::milliseconds(0);
+		}
+
+		const auto total_ms = time.count();
+		const auto hours = total_ms / 3600000;
+		const auto minutes = (total_ms / 60000) % 60;
+		const auto seconds = (total_ms / 1000) % 60;
+		const auto milliseconds = total_ms % 1000;
+
+		return QStringLiteral("%1:%2:%3,%4")
+			.arg(hours, 2, 10, QChar(u'0'))
+			.arg(minutes, 2, 10, QChar(u'0'))
+			.arg(seconds, 2, 10, QChar(u'0'))
+			.arg(milliseconds, 3, 10, QChar(u'0'));
+	}
+
+	QString normalizeSrtText(QString text) {
+		text.replace("\r\n"_str, "\n"_str);
+		text.replace(QChar(u'\r'), QChar(u'\n'));
+		return text.trimmed();
+	}
+
+	QString lyricEntryTextForSrt(const LyricEntry& entry) {
+		QStringList lines;
+		const auto text = normalizeSrtText(QString::fromStdWString(entry.lrc));
+		if (!text.isEmpty()) {
+			lines.append(text);
+		}
+
+		const auto translated_text = normalizeSrtText(QString::fromStdWString(entry.tlrc));
+		if (!translated_text.isEmpty()) {
+			lines.append(translated_text);
+		}
+		return lines.join(QChar(u'\n'));
+	}
+
+	std::chrono::milliseconds lyricEntryStartTime(const LyricEntry& entry) {
+		return entry.start_time.count() > 0 ? entry.start_time : entry.timestamp;
+	}
+
+	std::chrono::milliseconds lyricEntryEndTime(const LyricEntry& entry) {
+		if (entry.end_time > lyricEntryStartTime(entry)) {
+			return entry.end_time;
+		}
+
+		auto max_word_end = std::chrono::milliseconds(0);
+		for (const auto& word : entry.words) {
+			max_word_end = (std::max)(max_word_end, word.offset + word.length);
+		}
+		return max_word_end.count() > 0
+			? lyricEntryStartTime(entry) + max_word_end
+			: std::chrono::milliseconds(0);
+	}
 }
 
 LyricsShowWidget::LyricsShowWidget(QWidget* parent) 
@@ -407,6 +464,8 @@ void LyricsShowWidget::initial() {
 	lrc_font_.setWeight(QFont::Black);
 	current_mask_font_ = lrc_font_;
 	lrc_font_.setPointSize(qAppSettings.valueAsInt(kLyricsFontSize));
+	const auto saved_alpha = qAppSettings.valueAs("lyricsUnsungAlpha"_str);
+	if (saved_alpha.isValid()) unsung_alpha_ = std::clamp(saved_alpha.toInt(), 0, 255);
 	lyric_.reset(new LrcParser());
 
 	resizeFontSize();
@@ -414,43 +473,49 @@ void LyricsShowWidget::initial() {
 
 	setContextMenuPolicy(Qt::CustomContextMenu);
 	(void)QObject::connect(this, &LyricsShowWidget::customContextMenuRequested, [this](auto pt) {
-        ActionMap<LyricsShowWidget> action_map(this);
-		(void)action_map.addAction(tr("Show original lyrics"), [this]() {
+		XMenu menu(this);
+		(void)QObject::connect(menu.addAction(tr("Show original lyrics")), &QAction::triggered, this, [this]() {
 			lrc_ = orilyrc_;
 			loadLrc(lrc_);
 
 		});
 
-		(void)action_map.addAction(tr("Show translate lyrics"), [this]() {
+		(void)QObject::connect(menu.addAction(tr("Show translate lyrics")), &QAction::triggered, this, [this]() {
 			lrc_ = trlyrc_;
 			loadLrc(lrc_);
 			resizeFontSize();
 		});
 
-		(void)action_map.addAction(tr("Copy lyrics"), [this]() {
+		(void)QObject::connect(menu.addAction(tr("Copy lyrics")), &QAction::triggered, this, [this]() {
 			QApplication::clipboard()->setText(parsedLyrics());
 			});
 
-		auto* font_size_menu = action_map.addSubMenu(tr("Font size"));
-		(void)font_size_menu->addAction(tr("Increase font size"), [this]() {
+		(void)QObject::connect(menu.addAction(tr("Copy lyrics (SRT fomrat)")), &QAction::triggered, this, [this]() {
+			QApplication::clipboard()->setText(parsedSrtLyrics());
+			});
+
+		emit populateContextMenu(&menu);
+
+		auto* font_size_menu = menu.addMenu(tr("Font size"));
+		(void)QObject::connect(font_size_menu->addAction(tr("Increase font size")), &QAction::triggered, this, [this]() {
 			auto size = lrc_font_.pointSizeF();
 			if (size < 60) {
-				lrc_font_.setPointSizeF(size + 5);
-				//resizeFontSize();
+				lrc_font_.setPointSizeF(size + 5);				
 				update();
+				qAppSettings.setValue(kLyricsFontSize, static_cast<int>(lrc_font_.pointSizeF()));
 			}
 			});
 
-		(void)font_size_menu->addAction(tr("Decrease font size"), [this]() {
+		(void)QObject::connect(font_size_menu->addAction(tr("Decrease font size")), &QAction::triggered, this, [this]() {
 			auto size = lrc_font_.pointSizeF();
 			if (size > 12) {
-				lrc_font_.setPointSizeF(size - 5);
-				//resizeFontSize();
+				lrc_font_.setPointSizeF(size - 5);				
 				update();
+				qAppSettings.setValue(kLyricsFontSize, static_cast<int>(lrc_font_.pointSizeF()));
 			}
 			});
 
-		action_map.exec(pt);
+		menu.exec(mapToGlobal(pt));
 		});
 
 	setAcceptDrops(true);
@@ -480,6 +545,48 @@ QString LyricsShowWidget::parsedLyrics() const {
 		}		
 	}
 	return QString::fromStdWString(ostr.str());
+}
+
+QString LyricsShowWidget::parsedSrtLyrics() const {
+	if (!lyric_ || lyric_->size() <= 0) {
+		return {};
+	}
+
+	QString result;
+	auto subtitle_index = 1;
+	for (auto itr = lyric_->cbegin(); itr != lyric_->cend(); ++itr) {
+		const auto text = lyricEntryTextForSrt(*itr);
+		if (text.isEmpty()) {
+			continue;
+		}
+
+		auto start_time = lyricEntryStartTime(*itr);
+		auto end_time = lyricEntryEndTime(*itr);
+		if (end_time <= start_time) {
+			auto next = itr;
+			++next;
+			for (; next != lyric_->cend(); ++next) {
+				const auto next_start_time = lyricEntryStartTime(*next);
+				if (next_start_time > start_time) {
+					end_time = next_start_time;
+					break;
+				}
+			}
+		}
+		if (end_time <= start_time) {
+			end_time = start_time + std::chrono::seconds(3);
+		}
+
+		result += QString::number(subtitle_index++);
+		result += "\r\n"_str;
+		result += formatSrtTimestamp(start_time);
+		result += " --> "_str;
+		result += formatSrtTimestamp(end_time);
+		result += "\r\n"_str;
+		result += text;
+		result += "\r\n\r\n"_str;
+	}
+	return result;
 }
 
 void LyricsShowWidget::setDefaultLrc() {
@@ -512,8 +619,9 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 	painter->setFont(base_font);
 
 	// 2) 決定預設筆色(若為當前行, 可換高亮)
+	const auto is_current_line = index == item_ && item_offset_ == 0;
 	QColor pen_color = lrc_color_;
-	if ((index == item_) && (item_offset_ == 0)) {
+	if (is_current_line) {
 		pen_color = lrc_highlight_color_;
 	}
 	painter->setPen(pen_color);
@@ -531,8 +639,12 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 
 	qint64 global_time = pos_;
 	qint64 line_start = entry.timestamp.count();
+	const auto has_furigana =
+		index >= 0
+		&& index < static_cast<int32_t>(furiganas_.size())
+		&& !furiganas_[index].empty();
 
-	if ((is_fulled_ || is_lrc_valid_) && words.empty()) {
+	if ((is_fulled_ || is_lrc_valid_) && words.empty() && !has_furigana) {
 		const QString text = QString::fromStdWString(entry.lrc);
 		const auto main_lines = wrappedTextLineCount(text, base_font, max_text_width);
 		const auto main_height = main_lines * metrics.lineSpacing();
@@ -572,7 +684,7 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 	// (A) 若沒有逐字資訊 (words.empty())，整行繪製
 	// ------------------------------------------------------------------------
 	if (words.empty()) {
-		if (!furiganas_.empty() && index < static_cast<int32_t>(furiganas_.size())) {
+		if (has_furigana) {
 			// Furigana 字體縮小
 			furigana_font.setPointSizeF(lrc_font_.pointSizeF() * 0.5);
 			furigana_metrics = QFontMetrics(furigana_font);
@@ -580,14 +692,7 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 			const auto ruby_layout = makeRubyLayout(furigana_result, metrics, furigana_metrics);
 			double x = (rect.width() - rubyLayoutWidth(ruby_layout)) / 2.0;
 
-			if (global_time >= line_start) {
-				// 當前行 => 用同一個高亮色
-				painter->setPen(lrc_highlight_color_);
-			}
-			else {
-				// 其他行 => 用正常顏色
-				painter->setPen(lrc_color_);
-			}
+			painter->setPen(is_current_line ? lrc_highlight_color_ : lrc_color_);
 
 			const int content_height = furigana_metrics.height() + kRubySpacing + metrics.height();
 			const int content_top = rect.y() + (rect.height() - content_height) / 2;
@@ -681,8 +786,6 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 				const auto word_text = QString::fromStdWString(w.content);
 				const auto word_width = fm.horizontalAdvance(word_text);
 
-				painter->setPen(pen_color);
-				painter->drawText(x, baseline, word_text);
 
 				const auto w_start = w.offset.count();
 				const auto w_end = w_start + w.length.count();
@@ -697,11 +800,23 @@ void LyricsShowWidget::paintItem(QPainter* painter, int32_t index, QRect& rect) 
 				}
 				fraction = std::clamp(fraction, 0.0, 1.0);
 
+				const auto highlight_width = static_cast<int>(word_width * fraction);
+				const QRect highlight_rect(x, row_top, highlight_width, row_height);
+				// Do not draw the opaque base underneath the translucent sung portion.
+				painter->save();
+				painter->setClipRegion(QRegion(rect).subtracted(QRegion(highlight_rect)), Qt::IntersectClip);
+				auto unsung_color = pen_color;
+				if (is_current_line) {
+					unsung_color.setAlpha(pen_color.alpha() * unsung_alpha_ / 255);
+				}
+				painter->setPen(unsung_color);
+				painter->drawText(x, baseline, word_text);
+				painter->restore();
+
 				if (fraction > 0.0) {
 					painter->save();
 					painter->setPen(karaoke_highlight_color_);
-					const auto highlight_width = static_cast<int>(word_width * fraction);
-					painter->setClipRect(x, row_top, highlight_width, row_height);
+					painter->setClipRect(highlight_rect, Qt::IntersectClip);
 					painter->drawText(x, baseline, word_text);
 					painter->restore();
 				}
@@ -1062,5 +1177,10 @@ void LyricsShowWidget::setNormalColor(const QColor& color) {
 
 void LyricsShowWidget::setKaraokeHighlightColor(const QColor& color) {
 	karaoke_highlight_color_ = color;
+	update();
+}
+
+void LyricsShowWidget::setUnsungAlpha(int alpha) {
+	unsung_alpha_ = std::clamp(alpha, 0, 255);
 	update();
 }

@@ -13,11 +13,9 @@
 #include <atlbase.h>
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
+
 namespace {
-	/*
-	* Set wave format.
-	*/
-	void SetWaveformatEx(WAVEFORMATEX& format, uint32_t sample_rate) {
+	void setWaveformatEx(WAVEFORMATEX& format, uint32_t sample_rate) {
 		// Fixed float format.
 		format.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
 		format.nChannels = 2;
@@ -244,12 +242,16 @@ void XAudio2OutputDevice::openStream(AudioFormat const& output_format) {
 			default_buffer_size);
 	}
 
-	hrIfFailThrow(xaudio2_->CreateMasteringVoice(&mastering_voice_,
+	const auto mastering_result = xaudio2_->CreateMasteringVoice(&mastering_voice_,
 		output_format.getChannels(),
 		output_format.getSampleRate(),
 		0,
 		device_id_.c_str(),
-		nullptr));
+        nullptr);
+    if (mastering_result == XAUDIO2_E_DEVICE_INVALIDATED) {
+        throw LibraryException("The selected audio device is unavailable. Reconnect it or select another output device. (XAUDIO2_E_DEVICE_INVALIDATED)");
+    }
+    hrIfFailThrow(mastering_result);
 
 	// create thread start event handle.
 	if (!thread_start_) {
@@ -275,7 +277,7 @@ void XAudio2OutputDevice::openStream(AudioFormat const& output_format) {
 
 	if (!source_voice_) {
 		WAVEFORMATEX waveformat{};
-		SetWaveformatEx(waveformat, output_format_.getSampleRate());
+		setWaveformatEx(waveformat, output_format_.getSampleRate());
 
 		hrIfFailThrow(xaudio2_->CreateSourceVoice(&source_voice_,
 			&waveformat,
@@ -345,7 +347,7 @@ void XAudio2OutputDevice::startStream() {
 
 	if (!source_voice_) {
 		WAVEFORMATEX waveformat{};
-		SetWaveformatEx(waveformat, output_format_.getSampleRate());
+		setWaveformatEx(waveformat, output_format_.getSampleRate());
 
 		hrIfFailThrow(xaudio2_->CreateSourceVoice(&source_voice_,
 			&waveformat,
@@ -474,7 +476,7 @@ void XAudio2OutputDevice::abortStream() {
 
 void XAudio2OutputDevice::reportError(HRESULT hr) {
 	if (FAILED(hr)) {
-		callback_->onError(com_to_system_error(hr));
+		callback_->onError(Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, translatedHrError(hr)));
 		is_running_.store(false, std::memory_order_release);
 	}
 }

@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 3.24)
 
 project(xamp_stream LANGUAGES CXX)
 
+if(NOT TARGET pcm_dsd_converter)
+    set(PCM_DSD_BUILD_TESTS OFF CACHE BOOL "Build standalone converter tests")
+    add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../thirdparty/pcm_dsd_converter" "${CMAKE_CURRENT_BINARY_DIR}/pcm_dsd_converter")
+endif()
+
 if(NOT TARGET xamp_base)
     add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../xamp_base" "${CMAKE_BINARY_DIR}/xamp_base")
 endif()
@@ -77,10 +82,19 @@ add_library(xamp_stream SHARED
 )
 
 target_compile_features(xamp_stream PUBLIC cxx_std_23)
+add_dependencies(xamp_stream pcm_dsd_converter)
+add_custom_command(TARGET xamp_stream POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:pcm_dsd_converter>" "$<TARGET_FILE_DIR:xamp_stream>"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:xamp_stream>/licenses"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/pcm_dsd_converter/LICENSE"
+        "$<TARGET_FILE_DIR:xamp_stream>/licenses/pcm_dsd_converter.txt"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/pcm_dsd_converter/licenses/onemkl"
+        "$<TARGET_FILE_DIR:xamp_stream>/licenses/onemkl"
+)
 
 target_compile_definitions(xamp_stream
     PRIVATE
-        XAMP_STREAM_API_EXPORTS
+        STREAM_API_EXPORTS
 )
 
 if(UNIX AND NOT APPLE)
@@ -91,6 +105,7 @@ target_include_directories(xamp_stream
     PUBLIC
         "${CMAKE_CURRENT_LIST_DIR}/include"
     PRIVATE
+        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/pcm_dsd_converter/include"
         "${CMAKE_CURRENT_LIST_DIR}/../xamp_base/include"
         "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/bass/include"
         "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/spdlog/include"

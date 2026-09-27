@@ -27,7 +27,6 @@ CONFIG += plugin
 OBJECTIVE_SOURCES +=
 
 SOURCES += \
-./widget/genre_view_page.cpp \
 ./widget/albumartistpage.cpp \
 ./widget/playlisttabbar.cpp \
 ./widget/baseservice.cpp \
@@ -41,7 +40,6 @@ SOURCES += \
 ./widget/lrcparser.cpp \
 ./widget/qetag.cpp \
 ./widget/cdpage.cpp \
-./widget/util/zib_util.cpp \
 ./widget/util/image_util.cpp \
 ./widget/util/read_until.cpp \
 ./widget/util/str_util.cpp \
@@ -50,7 +48,6 @@ SOURCES += \
 ./widget/util/ui_util.cpp \
 ./widget/playlisttabwidget.cpp \
 ./widget/volumecontroldialog.cpp \
-./widget/albumviewstyleddelegate.cpp \
 ./widget/playlisttableproxymodel.cpp \
 ./widget/xmainwindow.cpp \
 ./widget/fonticon.cpp \
@@ -71,15 +68,12 @@ SOURCES += \
 ./widget/appsettingnames.cpp \
 ./widget/playlisttableview.cpp \
 ./widget/database.cpp \
-./widget/artistinfopage.cpp \
 ./widget/createplaylistview.cpp \
-./widget/xtooltip.cpp \
 ./widget/taglistview.cpp \
 ./widget/lyricsshowwidget.cpp \
 ./widget/xmessagebox.cpp \
 ./widget/navbarlistview.cpp \
 ./widget/aboutpage.cpp \
-./widget/genre_view.cpp \
 ./widget/uiplayerstateadapter.cpp \
 ./widget/filesystemwatcher.cpp \
 ./widget/xprogressdialog.cpp \
@@ -89,7 +83,6 @@ SOURCES += \
 ./widget/maskwidget.cpp \
 ./widget/databasefacade.cpp \
 ./widget/jsonsettings.cpp \
-./widget/albumview.cpp \
 ./widget/filesystemviewpage.cpp \
 ./widget/worker/albumcoverservice.cpp \
 ./widget/worker/backgroundservice.cpp \
@@ -120,11 +113,9 @@ xampplayer.cpp
 
 HEADERS += \
 ./version.h \
-./widget/albumviewstyleddelegate.h \
 ./widget/iconsizestyle.h \
 ./widget/xmessagebox.h \
 ./widget/databasecoverid.h \
-./widget/xtooltip.h \
 ./widget/scrolllabel.h \
 ./widget/xprogressdialog.h \
 ./widget/taglistview.h \
@@ -140,14 +131,12 @@ HEADERS += \
 ./widget/util/str_util.h \
 ./widget/util/json_util.h \
 ./widget/util/log_util.h \
-./widget/util/zib_util.h \
 ./widget/util/mbdiscid_util.h \
 ./widget/util/image_util.h \
 ./widget/localelanguage.h \
 ./widget/databasefacade.h \
 ./widget/cdpage.h \
 ./widget/filesystemmodel.h \
-./widget/albumview.h \
 ./widget/createplaylistview.h \
 ./widget/playerorder.h \
 ./widget/ilrrcparser.h \
@@ -174,14 +163,12 @@ HEADERS += \
 ./widget/playlisttabwidget.h \
 ./widget/accountauthorizationpage.h \
 ./widget/albumartistpage.h \
-./widget/genre_view_page.h \
 ./widget/lrcpage.h \
 ./widget/globalshortcut.h \
 ./widget/widget_shared_global.h \
 ./widget/clickablelabel.h \
 ./widget/preferencepage.h \
 ./widget/database.h \
-./widget/artistinfopage.h \
 ./widget/qdebugsink.h \
 ./widget/tagio.h \
 ./widget/baseservice.h \
@@ -206,7 +193,6 @@ HEADERS += \
 ./widget/lrcparser.h \
 ./widget/processindicator.h \
 ./widget/equalizerview.h \
-./widget/genre_view.h \
 ./widget/actionmap.h \
 ./widget/fonticon.h \
 ./widget/appsettingnames.h \

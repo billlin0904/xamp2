@@ -21,18 +21,8 @@
 #include <QSlider>
 #include <QToolButton>
 
-void ThemeManager::setMenuStyle(QWidget* menu) {
-	/*menu->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
-    menu->setAttribute(Qt::WA_TranslucentBackground);
-    menu->setAttribute(Qt::WA_StyledBackground);
-    menu->setStyle(new IconSizeStyle(14));
-    auto f = defaultFont();
-    f.setPointSize(10);
-    menu->setFont(f);*/
-}
-
 void ThemeManager::setBackgroundColor(QWidget* widget) {
-    auto color = palette().color(QPalette::WindowText);
+    auto color = backgroundColor();
     widget->setStyleSheet(backgroundColorToString(color));
 }
 
@@ -87,7 +77,7 @@ void ThemeManager::setTitleBarButtonStyle(QToolButton* close_button, QToolButton
 void ThemeManager::setFrameBackgroundColor(QFrame* frame) {
     switch (themeColor()) {
     case ThemeColor::DARK_THEME:
-        frame->setStyleSheet(qFormat("QFrame#%1 { background-color: #1c1c1e; }").arg(frame->objectName()));
+        frame->setStyleSheet(qFormat("QFrame#%1 { background-color: #141719; }").arg(frame->objectName()));
         break;
     case ThemeColor::LIGHT_THEME:
         frame->setStyleSheet(qFormat("QFrame#%1 { background-color: #CED1D4; }").arg(frame->objectName()));
@@ -104,12 +94,12 @@ void ThemeManager::setComboBoxStyle(QComboBox* combo_box, const QString& object_
     case ThemeColor::LIGHT_THEME:
         border_color = "#C9CDD0"_str;
         selection_background_color = "#FAFAFA"_str;
-        on_selection_background_color = "#1e1d23"_str;
+        on_selection_background_color = "#191D20"_str;
         break;
     case ThemeColor::DARK_THEME:
-        border_color = "#455364"_str;
-        selection_background_color = "#1e1d23"_str;
-        on_selection_background_color = "#9FCBFF"_str;
+        border_color = "#343E40"_str;
+        selection_background_color = "#191D20"_str;
+        on_selection_background_color = "#94D8C3"_str;
         break;
     }
 
@@ -137,11 +127,11 @@ void ThemeManager::setLineEditStyle(QLineEdit* line_edit, const QString& object_
             line_edit->setStyleSheet(qFormat(R"(
                                             QLineEdit#%1 {
                                             background-color: %2;
-                                            border: 1px solid #4d4d4d;
+                                            border: 1px solid #343E40;
                                             color: white;
                                             border-radius: 12px;
                                             }
-                                            )").arg(object_name).arg("#121212"_str));
+                                            )").arg(object_name).arg("#191D20"_str));
 			break;
         case ThemeColor::LIGHT_THEME:
             line_edit->setStyleSheet(qFormat(R"(
@@ -190,9 +180,9 @@ void ThemeManager::setSliderTheme(QSlider* slider, bool enter) {
         slider_border_color = "#C9CDD0"_str;
         break;
     case ThemeColor::DARK_THEME:
-        slider_background_color = "#1A72BB"_str;
+        slider_background_color = "#94D8C3"_str;
         //slider_background_color = "#E8D65A"_str;
-        slider_border_color = "#43474e"_str;
+        slider_border_color = "#343E40"_str;
         break;
     }
 

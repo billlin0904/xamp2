@@ -1,10 +1,15 @@
 #include <base/rng.h>
-#include <base/algorithm.h>
 #include <base/platform.h>
 
 XAMP_BASE_NAMESPACE_BEGIN
 
 namespace {
+    template <typename Resolution = std::chrono::seconds>
+    time_t getTime_t() {
+        return std::chrono::duration_cast<Resolution>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+    }
+
     Sfc64Engine<> makeRandomEngine() {
         using Clock = std::chrono::high_resolution_clock;
         uint32_t random_address = 0;
@@ -35,7 +40,7 @@ PRNG::PRNG() : engine_(makeRandomEngine()) {
 }
 
 void PRNG::setSeed(uint64_t seed) {
-    engine_.seed(GetTime_t<std::chrono::milliseconds>() + seed);
+    engine_.seed(getTime_t<std::chrono::milliseconds>() + seed);
 }
 
 std::string PRNG::getRandomString(size_t size) {
@@ -49,7 +54,7 @@ std::string PRNG::getRandomString(size_t size) {
 
     const auto max_index = static_cast<int32_t>(alphanum.size() - 1);
     for (size_t i = 0; i < size; ++i) {
-        temp += alphanum[NextInt32(0, max_index)];
+        temp += alphanum[nextInt32(0, max_index)];
     }
     return temp;
 }

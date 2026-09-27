@@ -138,7 +138,7 @@ void PlaylistStyledItemDelegate::paintTrackCell(QPainter* painter, const QStyleO
 
             opt.icon = qTheme.fontRawIconOption(is_heart_pressed ? Glyphs::ICON_HEART_PRESS : Glyphs::ICON_HEART, font_options);
             // note: 解決圖示再選擇的時候會蓋掉顏色的問題
-            opt.icon = qImageCache.uniformIcon(opt.icon, opt.decorationSize);
+            opt.icon = uniformIcon(opt.icon, opt.decorationSize);
 
             opt.features = QStyleOptionViewItem::HasDecoration;
             opt.decorationAlignment = Qt::AlignCenter;
@@ -152,7 +152,7 @@ void PlaylistStyledItemDelegate::paintTrackCell(QPainter* painter, const QStyleO
         auto id = value.toString();
         const auto has_cover_id = !isNullOfEmpty(id) && id != qImageCache.unknownCoverId();
         const auto has_cached_cover = has_cover_id
-            && (qImageCache.contains(id) || qImageCache.isFileExists(QString{}, id));
+            && (qImageCache.contains(id) || qImageCache.isFileExists(id));
         if (!has_cached_cover) {
             const auto album_id = indexValue(index, PLAYLIST_ALBUM_ID).toInt();
             XAMP_LOG_DEBUG("Playlist cover missing, request album cover. album:{} row:{}",
@@ -160,7 +160,10 @@ void PlaylistStyledItemDelegate::paintTrackCell(QPainter* painter, const QStyleO
                 index.row());
             emit findAlbumCover(DatabaseCoverId(music_id, album_id));
         }
-        opt.icon = qImageCache.getOrAddIcon(id);
+        opt.icon = qIconCache.getOrAddIcon(id);
+        if (view->property("playlistStyle").toString() == "modern"_str) {
+            opt.decorationSize = QSize(44, 44);
+        }
         opt.features = QStyleOptionViewItem::HasDecoration;
         opt.decorationAlignment = Qt::AlignCenter;
         opt.displayAlignment = Qt::AlignCenter;

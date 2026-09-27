@@ -24,54 +24,20 @@ class XAudio2DeviceType final : public IDeviceType {
 public:
 	XAMP_DECLARE_UUID_CLASS_DESC(XAudio2DeviceType, "XAudio2")
 
-	/*
-	* Constructor
-	*/
 	XAudio2DeviceType();
 
 	XAMP_PIMPL(XAudio2DeviceType)
 
-	/*
-	* Get device count
-	*
-	* @return size_t
-	*/
 	size_t getDeviceCount() const override;
 
-	/*
-	* Get device info
-	*
-	* @param device: device index
-	* @return DeviceInfo
-	*/
 	DeviceInfo getDeviceInfo(uint32_t device) const override;
 
-	/*
-	* Get default device info
-	*
-	* @return std::optional<DeviceInfo>
-	*/
 	std::optional<DeviceInfo> getDefaultDeviceInfo() const override;
 
-	/*
-	* Get device info
-	*
-	* @return std::vector<DeviceInfo>
-	*/
 	std::vector<DeviceInfo> getDeviceInfo() const override;
 
-	/*
-	* Scan new device
-	*
-	*/
 	void scanNewDevice() override;
 
-	/*
-	* Make device
-	*
-	* @param device_id: device id
-	* @return IOutputDevice
-	*/
 	ScopedPtr<IOutputDevice> makeDevice(const std::shared_ptr<IThreadPool>& thread_pool, std::string const& device_id) override;
 private:
 	class XAudio2DeviceTypeImpl;

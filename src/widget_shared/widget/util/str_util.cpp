@@ -117,7 +117,8 @@ QString toNativeSeparators(const QString& path) {
 }
 
 QByteArray generateUuid() {
-    return QUuid::createUuid().toByteArray(QUuid::WithoutBraces);
+    auto uuid = getSequentialUuid();
+	return QByteArray::fromStdString(uuid);
 }
 
 QString formatBytes(quint64 bytes) {
@@ -134,14 +135,6 @@ QString formatVersion(const QVersionNumber& version) {
     return version.toString();
 }
 
-QString formatDb(double value, int prec) {
-    return qFormat("%1 dB").arg(formatDouble(value, prec));
-}
-
-QString formatDouble(double value, int prec) {
-    return QString::number(value, 'f', prec);
-}
-
 int32_t countColon(const std::string& str) {
     int32_t count = 0;
     size_t pos = str.find(':');
@@ -150,28 +143,4 @@ int32_t countColon(const std::string& str) {
         pos = str.find(':', pos + 1);
     }
     return count;
-}
-
-double parseDuration(const std::string & str) {
-    auto hours = 0;
-    auto minutes = 0;
-    auto seconds = 0;
-
-    
-    if (countColon(str) == 1) {
-        port_sscanf(str.c_str(), "%u:%u",
-            &minutes,
-            &seconds);
-    } else {
-        port_sscanf(str.c_str(), "%u:%u:%u",
-            &hours,
-            &minutes,
-            &seconds);
-    }
-
-    const std::chrono::milliseconds duration = std::chrono::hours(hours)
-        + std::chrono::minutes(minutes)
-        + std::chrono::seconds(seconds);
-
-    return duration.count() / 1000.0;
 }

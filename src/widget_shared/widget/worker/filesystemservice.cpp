@@ -5,7 +5,6 @@
 #include <base/scopeguard.h>
 #include <metadata/metadatalibraryscanner.h>
 
-#include <widget/albumview.h>
 #include <widget/database.h>
 #include <widget/util/ui_util.h>
 
@@ -82,7 +81,7 @@ void FileSystemService::onExtractFile(const QString& file_path,
 			completed_work_ = progress.completed_work;
 			updateProgress();
 			};
-		callbacks.on_batch_tracks = [this, playlist_id](auto tracks) {
+		callbacks.on_track_batches = [this, playlist_id](auto tracks) {
 			const auto track_count = CountTrackBatches(tracks);
 			XAMP_LOG_D(logger_,
 				"Metadata scan batch ready playlist:{} batches:{} tracks:{} elapsed:{:.3f}s",
@@ -91,15 +90,6 @@ void FileSystemService::onExtractFile(const QString& file_path,
 				track_count,
 				total_time_elapsed_.elapsedSeconds());
 			emit batchInsertDatabase(tracks, playlist_id);
-			};
-		callbacks.on_tracks = [this, playlist_id](auto tracks) {
-			const auto track_count = CountTracks(tracks);
-			XAMP_LOG_D(logger_,
-				"Metadata scan tracks ready playlist:{} tracks:{} elapsed:{:.3f}s",
-				playlist_id,
-				track_count,
-				total_time_elapsed_.elapsedSeconds());
-			emit insertDatabase(tracks, playlist_id);
 			};
 
 		const Path root_path(toNativeSeparators(file_path).toStdWString());
@@ -141,7 +131,10 @@ void FileSystemService::updateProgress() {
 	size_t diff_work = completed_work - last_completed_work_;
 	if (elapsed_time > 0.0) {
 		double files_per_second = static_cast<double>(diff_work) / elapsed_time;
-		XAMP_LOG_DEBUG("Speed: {:.2f} files/sec", files_per_second);
+		if (files_per_second > 0.0) {
+			files_per_second = std::round(files_per_second * 100.0) / 100.0;
+			XAMP_LOG_DEBUG("Speed: {:.2f} files/sec", files_per_second);
+		}		
 	}
 
 	const double remaining_time = (total_work > completed_work)

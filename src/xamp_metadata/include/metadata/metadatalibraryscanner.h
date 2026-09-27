@@ -32,8 +32,7 @@ struct MetadataScanCallbacks final {
 	std::function<void(size_t)> on_found_file_count;
 	std::function<void(const Path&, size_t)> on_read_path;
 	std::function<void(MetadataScanProgress)> on_progress;
-	std::function<void(std::vector<std::forward_list<TrackInfo>>)> on_batch_tracks;
-	std::function<void(std::forward_list<TrackInfo>)> on_tracks;
+	std::function<void(std::vector<std::forward_list<TrackInfo>>)> on_track_batches;
 };
 
 class XAMP_METADATA_API MetadataLibraryScanner final {
@@ -45,6 +44,7 @@ public:
 		const MetadataScanCallbacks& callbacks,
 		const MetadataScanOptions& options = {});
 
+	XAMP_DISABLE_COPY_AND_MOVE(MetadataLibraryScanner)
 private:
 	std::shared_ptr<IThreadPool> thread_pool_;
 };

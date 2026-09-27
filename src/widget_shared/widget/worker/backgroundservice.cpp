@@ -9,10 +9,6 @@
 #include <widget/appsettings.h>
 #include <widget/widget_shared.h>
 #include <widget/imagecache.h>
-#include <widget/albumview.h>
-#include <widget/krcparser.h>
-#include <widget/lrcparser.h>
-#include <widget/neteaseparser.h>
 #include <widget/util/json_util.h>
 #include <widget/util/tag_util.h>
 
@@ -32,15 +28,23 @@
 
 #include <algorithm>
 #include <cmath>
+#include <numeric>
+#include <tuple>
+#include <utility>
+#include <vector>
 
 namespace {
     XAMP_DECLARE_LOG_NAME(BackgroundService);
 }
+
 BackgroundService::BackgroundService()
     : nam_(this)
 	, http_client_(&nam_, QString(), this) {
     logger_ = XAMP_LOG_CREATE_LOGGER(BackgroundService);
     thread_pool_ = ThreadPoolBuilder::makeBackgroundThreadPool();
+	lyrics_sources_.push_back(makeNeteaseLyricsSource(&nam_, this));
+	lyrics_sources_.push_back(makeQQMusicLyricsSource(&nam_, this));
+	lyrics_sources_.push_back(makeKugouLyricsSource(&nam_, this));
 }
 
 BackgroundService::~BackgroundService() = default;
@@ -180,8 +184,6 @@ void BackgroundService::executeEncodeJob(const QString& dir_name, const EncodeJo
 }
 
 QCoro::Task<std::optional<QByteArray>> BackgroundService::tryFetch(const QString& tag, const QString& release_id, size_t size) {
-    //http::HttpClient http_client(&nam_, QString(), this);
-
     const auto url = (size > 0)
         ? qFormat("https://coverartarchive.org/%1/%2/front-%3").arg(tag).arg(release_id).arg(size)
         : qFormat("https://coverartarchive.org/%1/%2/front").arg(tag).arg(release_id);
@@ -248,215 +250,50 @@ void BackgroundService::cancelRequested() {
     is_stop_ = true;
 }
 
-QCoro::Task<SearchLyricsResult> BackgroundService::downloadSingleNeteaseLrc(NeteaseSong info) {
-    if (info.artists.isEmpty()) {
-        co_return {};
-    }
-
-    http::HttpClient http(&nam_, "http://music.163.com/api/song/lyric"_str, this);    
-    http.param("id"_str, info.id);
-    http.param("lv"_str, -1);
-    http.param("kv"_str, -1);
-    http.param("tv"_str, -1);
-    auto content = co_await http.get();
-    //XAMP_LOG_DEBUG("Response: {}", content.toStdString());
-
-	auto netease_lrc = parseNeteaseLyric(content);
-    SearchLyricsResult result;
-	if (!netease_lrc.has_value()) {
-		co_return result;
-	}    
-    
-    QSharedPointer<LrcParser> parser(new LrcParser());
-	auto utf8_content = std::wstringstream(netease_lrc->lrc.lyric.toStdWString());
-    if (!parser->parse(utf8_content)) {
-        co_return result;
-    }
-
-    InfoItem info_item;
-	info_item.songname = info.name;
-	info_item.singername = info.artists[0].name;
-	info_item.duration = info.duration;
-
-    LyricsParser lrc_parser;
-    
-	lrc_parser.parser = parser;
-	lrc_parser.candidate.albumName = info.album.name;
-	lrc_parser.candidate.song = info.name;
-	lrc_parser.candidate.singer = info.artists[0].name;
-    lrc_parser.content = netease_lrc->lrc.lyric.toUtf8();
-
-	result.info = info_item;
-	result.parsers.append(lrc_parser);
-
-    co_return result;
-}
-
-QCoro::Task<QList<SearchLyricsResult>> BackgroundService::downloadNeteaseLrc(QList<NeteaseSong> infos) {
-    std::vector<QCoro::Task<SearchLyricsResult>> tasks;
-    tasks.reserve(infos.size());
-
-    for (const auto& info : infos) {
-        tasks.push_back(downloadSingleNeteaseLrc(info));
-    }
-
-    QList<SearchLyricsResult> results;
-    results.reserve(infos.size());
-
-    for (auto& task : tasks) {
-        auto single_result = co_await task;
-        if (!single_result.parsers.empty()) {
-            results.push_back(std::move(single_result));
-        }
-    }
-    co_return results;
-}
-
-QCoro::Task<SearchLyricsResult> BackgroundService::downloadSingleKlrc(InfoItem info) {
-    SearchLyricsResult result;
-    result.info = info;
-
-    // 1. 搜尋候選列表
-    http::HttpClient http(&nam_, "http://krcs.kugou.com/search"_str, this);
-    http.param("ver"_str, "1"_str);
-    http.param("man"_str, "yes"_str);
-    http.param("client"_str, "mobi"_str);
-    http.param("hash"_str, info.hash);
-    http.param("album_audio_id"_str, ""_str);
-    //http.param("page"_str, "1"_str);
-    //http.param("pagesize"_str, "1"_str);
-
-    auto content = co_await http.get();
-    auto candidates = parseCandidatesFromJson(content);
-    //XAMP_LOG_DEBUG("Found candidates size: {}", candidates.size());
-
-    // 2. 逐一下載 KRC
-    for (auto& candidate : candidates) {
-        // 建立新的 HttpClient 指向下載 API
-        http::HttpClient http_download(&nam_, 
-            "http://lyrics.kugou.com/download"_str,
-            this);
-        http_download.param("ver"_str, "1"_str);
-        http_download.param("client"_str, "pc"_str);
-        http_download.param("id"_str, candidate.id);
-        http_download.param("accesskey"_str, candidate.accesskey);
-        http_download.param("fmt"_str, "krc"_str);
-        http_download.param("charset"_str, "utf8"_str);
-
-        auto krc_data = co_await http_download.get();
-
-        // 解析
-        LyricsParser lrc_parser;
-        candidate.albumName = info.albumName;
-        lrc_parser.candidate = candidate;
-
-        auto krc_content = parseKrcContent(krc_data);
-        if (!krc_content.has_value()) {
-            continue;
-        }
-
-        QSharedPointer<KrcParser> parser(new KrcParser());
-        try {
-            if (!parser->parse(
-                reinterpret_cast<uint8_t*>(krc_content->decodedContent.data()),
-                krc_content->decodedContent.size())) {
-                continue;
-            }
-            lrc_parser.parser = parser;
-            lrc_parser.content = krc_content->decodedContent;
-            result.parsers.push_back(lrc_parser);
-        }        
-        catch (const Exception& e) {
-            XAMP_LOG_ERROR(e.getErrorMessage());
-        }
-        catch (const std::exception& e) {
-            XAMP_LOG_ERROR(e.what());
-        }
-    }
-
-    co_return result;
-}
-
-QCoro::Task<QList<SearchLyricsResult>> BackgroundService::downloadKLrc(QList<InfoItem> infos) {
-    std::vector<QCoro::Task<SearchLyricsResult>> tasks;
-    tasks.reserve(infos.size());
-
-    for (const auto& info : infos) {
-        tasks.push_back(downloadSingleKlrc(info));
-    }
-
-    QList<SearchLyricsResult> results;
-    results.reserve(infos.size());
-
-    for (auto& task : tasks) {
-		auto single_result = co_await task;
-        if (!single_result.parsers.empty()) {
-            results.push_back(std::move(single_result));
-        }
-    }
-    co_return results;
-}
-
-QCoro::Task<> BackgroundService::searchKugou(const PlayListEntity& keyword) {
-    const auto search_text = (keyword.title + " "_str + keyword.artist).trimmed();
-
-    http::HttpClient http(&nam_, "http://mobilecdn.kugou.com/api/v3/search/song"_str, this);
-    http.param("format"_str, "json"_str);
-    http.param("keyword"_str, search_text.isEmpty() ? keyword.title : search_text);
-    auto title = keyword.title;
-    auto artist = keyword.artist;
-    auto content = co_await http.get();
-    auto infos = parseInfoData(content);
-
-    constexpr auto kMaxKugouDownload = 10;
-    infos.resize(kMaxKugouDownload);
-
-    auto results = co_await downloadKLrc(infos);
-    for (auto& result : results) {
-        result.request_title = title;
-        result.request_artist = artist;
-    }
-    emit fetchLyricsCompleted(results);
-    co_return;
-}
-
-QCoro::Task<> BackgroundService::searchNetease(const PlayListEntity& keyword) {
-    const auto search_text = (keyword.title + " "_str + keyword.artist).trimmed();
-    http::HttpClient http(&nam_, "http://music.163.com/api/search/get"_str, this);
-    http.param("s"_str, search_text.isEmpty() ? keyword.title : search_text);
-    http.param("limit"_str, 20);
-    http.param("offset"_str, 0);
-    http.param("type"_str, 1);
-    auto title = keyword.title;
-    auto artist = keyword.artist;
-    auto content = co_await http.get();
-    std::optional<QList<NeteaseSong>> songs = parseNeteaseSong(content);
-    if (!songs.has_value()) {
-        co_return;
-    }
-	
-    constexpr auto kMaxNeteaseDownload = 10;
-    songs.value().resize(kMaxNeteaseDownload);
-
-    auto results = co_await downloadNeteaseLrc(*songs);
-    for (auto &result : results) {
-        result.request_title = title;
-        result.request_artist = artist;
-    }
-    emit fetchLyricsCompleted(results);
-	co_return;
-}
-
 QCoro::Task<> BackgroundService::searchLyrics(const PlayListEntity& keyword) {
     auto temp = keyword.cleanup();
+	const auto request_title = temp.title;
+	const auto request_artist = temp.artist;
+    QList<SearchLyricsResult> fallback_results;
+	QList<SearchLyricsResult> all_results;
 
-	std::vector<QCoro::Task<>> tasks;
-	tasks.push_back(searchNetease(temp));
-	tasks.push_back(searchKugou(temp));
+	XAMP_LOG_DEBUG("Search lyrics start title:'{}' artist:'{}' album:'{}'.",
+		temp.title.toStdString(),
+		temp.artist.toStdString(),
+		temp.album.toStdString());
 
-	for (auto& task : tasks) {
+	for (auto& source : lyrics_sources_) {
 		try {
-			co_await task;
+			XAMP_LOG_DEBUG("Search lyrics source:{} begin.", source->name().toStdString());
+			auto candidates = co_await source->search(temp);
+			XAMP_LOG_DEBUG("Search lyrics source:{} candidates:{}.",
+				source->name().toStdString(),
+				candidates.size());
+			all_results.reserve(all_results.size() + candidates.size());
+			
+
+			for (const auto& candidate : candidates) {
+				auto result = co_await source->lookup(candidate);
+				if (result.parsers.empty()) {
+					continue;
+				}
+				auto itr = std::find_if(result.parsers.begin(), result.parsers.end(),
+					[](const auto& parser) {
+					return parser.parser->isKaraoke();
+					});
+				if (itr != result.parsers.end()) {
+                    result.request_title = request_title;
+                    result.request_artist = request_artist;
+                    all_results.push_back(std::move(result));
+                    break;
+				}                
+				result.request_title = request_title;
+				result.request_artist = request_artist;
+                fallback_results.push_back(std::move(result));				
+			}
+			XAMP_LOG_DEBUG("Search lyrics source:{} accumulated_results:{}.",
+				source->name().toStdString(),
+				all_results.size());
 		}
 		catch (const Exception& e) {
 			XAMP_LOG_ERROR(e.getErrorMessage());
@@ -465,6 +302,16 @@ QCoro::Task<> BackgroundService::searchLyrics(const PlayListEntity& keyword) {
 			XAMP_LOG_ERROR(e.what());
 		}
 	}
+
+	if (!all_results.empty()) {		
+        emit fetchLyricsCompleted(all_results);
+		XAMP_LOG_DEBUG("Search lyrics completed results:{}.", all_results.size());		
+	}
+	else {
+        emit fetchLyricsCompleted(fallback_results);
+		XAMP_LOG_DEBUG("Search lyrics completed with no results.");
+	}
+
     co_return;
 }
 
@@ -494,7 +341,7 @@ void BackgroundService::onFetchCdInfo(const DriveInfo& drive) {
         auto [image_url, mb_disc_id_info] = parseMbDiscIdXml(content);
 
         std::forward_list<TrackInfo> track_infos;
-        const auto cd = OpenCD(drive.driver_letter);
+        const auto cd = openCD(drive.driver_letter);
         cd->setMaxSpeed();
         const auto tracks = cd->getTotalTracks();
 

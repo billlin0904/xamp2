@@ -258,27 +258,27 @@ private:
     std::shared_ptr<spdlog::logger> logger_;
 };
 
-class XAMP_BASE_API LoggerManager final {
+class XAMP_BASE_API LoggerFactory final {
 public:
     static constexpr int kMaxLogFileSize = 1024 * 1024;
 
     XAMP_DECLARE_SINGLETON_NAME()
 
-    LoggerManager();
+    LoggerFactory();
 
-    ~LoggerManager();
+    ~LoggerFactory();
 
-    XAMP_DISABLE_COPY(LoggerManager)
+    XAMP_DISABLE_COPY(LoggerFactory)
 
-    LoggerManager& startup();
+    LoggerFactory& startup();
 
-    LoggerManager& addDebugOutput();
+    LoggerFactory& addDebugOutput();
 
-    LoggerManager& addLogFile(const std::string& file_name);
+    LoggerFactory& addLogFile(const std::string& file_name);
 
-    LoggerManager& addSink(spdlog::sink_ptr sink);
+    LoggerFactory& addSink(spdlog::sink_ptr sink);
 
-    XAMP_CHECK_LIFETIME [[nodiscard]] Logger* GetDefaultLogger() const {
+    XAMP_CHECK_LIFETIME [[nodiscard]] Logger* getDefaultLogger() const {
         return default_logger_.get();
     }
 
@@ -300,11 +300,11 @@ private:
 
 XAMP_BASE_NAMESPACE_END
 
-#define XampLoggerFactory xamp::base::SharedSingleton<xamp::base::LoggerManager>::getInstance()
+#define XampLoggerFactory xamp::base::SharedSingleton<xamp::base::LoggerFactory>::getInstance()
 
 #define XAMP_LOG(Level, ...) \
     do { \
-        auto* default_logger__ = xamp::base::SharedSingleton<xamp::base::LoggerManager>::getInstance().GetDefaultLogger(); \
+        auto* default_logger__ = xamp::base::SharedSingleton<xamp::base::LoggerFactory>::getInstance().getDefaultLogger(); \
         if (default_logger__ != nullptr && default_logger__->shouldLog(Level)) { \
             default_logger__->log(Level, CurrentLocation, __VA_ARGS__); \
         } \

@@ -84,7 +84,6 @@ public:
 
 	void reload(bool is_scroll_to = false, bool order_by = true);
 
-	void removePlaying();
 
 	void removeAll();
 
@@ -92,7 +91,7 @@ public:
 
 	void removeSelectItems();
 
-	void setNowPlaying(const QModelIndex& index);
+	void selectPlaybackIndex(const QModelIndex& index);
 
 	QModelIndex firstIndex() const;
 
@@ -110,7 +109,6 @@ public:
 
 	QModelIndex playOrderIndex(PlayerOrder order);
 
-	void setNowPlayState(PlayingState playing_state);
 
     void scrollToIndex(const QModelIndex& index);
 
@@ -154,7 +152,7 @@ public:
 
 	PlayListEntity item(const QModelIndex& index) const;
 signals:
-	void updatePlayingState(const PlayListEntity &entity, PlayingState playing_state);
+
 
 	void playMusic(int32_t playlist_id, const PlayListEntity& item, bool is_plays);
 
@@ -198,7 +196,6 @@ private:
 
 	void playItem(const QModelIndex& index);
 
-	void pauseItem(const QModelIndex& index);
 
 	bool eventFilter(QObject* obj, QEvent* ev) override;
 

@@ -25,63 +25,23 @@ XAMP_BASE_NAMESPACE_END
 
 XAMP_OUTPUT_DEVICE_NAMESPACE_BEGIN
 
-/*
-* IDeviceType is the interface for device type.
-* 
-*/
 class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE IDeviceType : public IUUIDClass {
 public:
 	XAMP_BASE_CLASS(IDeviceType)
 
-	/*
-	* Scan new device.
-	* 
-	*/
 	virtual void scanNewDevice() = 0;
 
-	/*
-	* Make device.
-	* 
-	* @param device_id: device id.
-	* 
-	* @return ScopedPtr<IOutputDevice>
-	*/
     virtual ScopedPtr<IOutputDevice> makeDevice(const std::shared_ptr<IThreadPool>& thread_pool, const std::string & device_id) = 0;
 
-	/*
-	* Get device count.
-	* 
-	* @return size_t
-	*/
 	[[nodiscard]] virtual size_t getDeviceCount() const = 0;
 
-	/*
-	* Get device info.
-	*
-	* @param device: device index.
-	* 
-	* @return DeviceInfo
-	*/
 	[[nodiscard]] virtual DeviceInfo getDeviceInfo(uint32_t device) const = 0;
 
-	/*
-	* Get device info.
-	* 
-	* @return std::vector<DeviceInfo>.
-	*/
 	[[nodiscard]] virtual std::vector<DeviceInfo> getDeviceInfo() const = 0;
 
-	/*
-	* Get default device info.
-	* 
-	* @return std::optional<DeviceInfo>
-	*/
 	[[nodiscard]] virtual std::optional<DeviceInfo> getDefaultDeviceInfo() const = 0;	
 
 protected:
-	/*
-	* Constructor.
-	*/
 	IDeviceType() = default;
 };
 

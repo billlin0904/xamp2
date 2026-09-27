@@ -14,6 +14,10 @@
 #include <xampplayer.h>
 #include <ui_xamp.h>
 
+class PlaybackController;
+class PlaybackPresenter;
+class ApplicationUpdater;
+class ApplicationServices;
 class BackgroundService;
 class FileSystemService;
 class FileSystemViewPage;
@@ -22,6 +26,7 @@ class RichPlaylistPage;
 class LrcPage;
 class CdPage;
 class DeviceSelectorMenu;
+class PreferencePage;
 
 class Xamp final : public IXFrame {
 	Q_OBJECT
@@ -60,10 +65,6 @@ signals:
     void searchLyrics(const PlayListEntity& keyword);
 
 public slots:
-    void onPlayerStateChanged(xamp::player::PlayerState play_state);
-
-    void onSampleTimeChanged(double stream_time);
-    
     void onDeviceStateChanged(DeviceState state, const QString& device_id);
 
     void onUpdateCdTrackInfo(const QString& disc_id, const std::forward_list<TrackInfo>& track_infos);
@@ -71,34 +72,19 @@ public slots:
     void OnReadMusicBrainzAlbums(const QList<PlayListEntity>& entities);
 
 private:
-    void pushWidget(QWidget* widget);
 
     void setCurrentTab(int32_t table_id);
 
     void initialDeviceList(const std::string& device_id = "");
 
-    void showNaviBarButton();
+    void initializeModernControls();
+    void refreshPlaylistNavigation(int selected_id);
 
 	void setAlbumCover(const QPixmap& cover);
 
-    void playLocalFile(const QString& file_name,
-        bool queue = true,
-        const PlayListEntity* entity = nullptr,
-        bool update_playlist_now_playing = true);
-
-    void playLocalFile(const PlayListEntity& entity,
-        bool queue = true,
-        bool update_playlist_now_playing = true);
-
-    void setSeekPosValue(double stream_time);
-
-    void playNextItem(int32_t forward);
+    void invalidateAlbumCover(int32_t music_id, int32_t album_id);
 
 	void setVolume(uint32_t volume);
-
-    void configureUpdater(bool notify_on_finish);
-
-    void installDownloadedUpdate(const QString& url, const QString& filepath);
 
     void showPreference();
 
@@ -110,25 +96,20 @@ private:
 
     void showAbout();
 
-    bool is_seeking_{ false };
-    bool spectrogram_tracks_playback_{ false };
+    QScopedPointer<PlaybackController> playback_;
+    QScopedPointer<PlaybackPresenter> presenter_;
+    QScopedPointer<ApplicationUpdater> updater_;
+    std::unique_ptr<ApplicationServices> services_;
     IXMainWindow* main_window_{ nullptr };
     QAction* preference_action_{ nullptr };
+    PreferencePage* preference_page_{ nullptr };
+    QWidget* settings_panel_{ nullptr };
     QScopedPointer<LrcPage> lrc_page_;
     QScopedPointer<RichPlaylistPage> rich_playlist_page_;
     QScopedPointer<FileSystemViewPage> file_explorer_page_;
 	QScopedPointer<CdPage> cd_page_;
     QScopedPointer<DeviceSelectorMenu> device_menu_;
-    QScopedPointer<FileSystemService> file_system_service_;
-    QScopedPointer<AlbumCoverService> album_cover_service_;
-    QScopedPointer<BackgroundService> background_service_;
-    QList<QWidget*> widgets_;
-    std::shared_ptr<IThreadPool> thread_pool_;
-    std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
     std::shared_ptr<IAudioPlayer> player_;
     std::optional<DeviceInfo> device_info_;
-    QThread file_system_service_thread_;
-    QThread album_cover_service_thread_;
-    QThread background_service_thread_;
 	Ui::XampWindow ui_;
 };

@@ -1,3 +1,5 @@
+#include <base/bitperfect.h>
+#include <sstream>
 #include <base/str_utilts.h>
 #include <base/platform.h>
 #include <base/logger.h>
@@ -47,10 +49,16 @@ namespace {
     constexpr uint32_t kMaxWriteRatio = 20;
     constexpr uint32_t kMaxReadRatio = 4;
     constexpr uint32_t kMaxBufferSecs = 3;
+    constexpr uint32_t kBitPerfectBufferSecs = 8;
+    constexpr uint32_t kBitPerfectPrebufferSecs = 1;
+    constexpr uint32_t kPcm2DsdBufferSecs = 16;
+    constexpr uint32_t kPcm2DsdPrebufferSecs = 4;
+    constexpr uint32_t kPcm2DsdMaxBufferBytes = 128 * 1024 * 1024;
     constexpr uint32_t kResamplerOutputPaddingSamples = 4096;
 
     constexpr std::chrono::milliseconds kUpdateSampleIntervalMs(15);
     constexpr std::chrono::milliseconds kReadSampleWaitTimeMs(15);
+    constexpr std::chrono::milliseconds kBitPerfectReadWaitTimeMs(2);
     constexpr std::chrono::milliseconds kPauseWaitTimeout(10);
     constexpr std::chrono::seconds kWaitForStreamStopTime(10);
     constexpr std::chrono::seconds kWaitForSignalWhenReadFinish(3);
@@ -77,12 +85,12 @@ AudioPlayer::AudioPlayer(
     , min_fifo_write_size_(0)
     , sample_end_time_(0)
     , dsp_manager_(StreamFactory::makeDSPManager())
-    , device_manager_(MakeAudioDeviceManager())
+    , device_manager_(makeAudioDeviceManager())
     , logger_(XampLoggerFactory.getLogger(XAMP_LOG_NAME(AudioPlayer)))
 	, fifo_(alignUp(kPreallocateBufferSize, getPageSize()))
 	, playback_thread_pool_(playback_thread_pool)
 	, player_thread_pool_(player_thread_pool) {
-    PreventSleep(true);
+    preventSleep(true);
 }
 
 AudioPlayer::~AudioPlayer() {
@@ -102,10 +110,10 @@ void AudioPlayer::destroy() {
     file_stream_.reset();
     read_buffer_.reset();
 #if defined(XAMP_OS_WIN)
-    ResetAsioDriver();
+    resetAsioDriver();
 #endif
 
-    PreventSleep(false);
+    preventSleep(false);
     freeAvLib();
 
     device_.reset();
@@ -143,7 +151,7 @@ void AudioPlayer::createDevice(const Uuid& device_type_id,
         if (device_type_id_ != device_type_id) {
             // ASIO drivers may be unloaded after the device type changes.
             device_.reset();
-            ResetAsioDriver();
+            resetAsioDriver();
             XAMP_LOG_D(logger_, "ResetASIODriver!");
         }    	
         device_type_ = device_manager_->create(device_type_id);
@@ -266,9 +274,9 @@ void AudioPlayer::stop(bool signal_to_stop,
 
     if (shutdown_device) {
         XAMP_LOG_D(logger_, "shutdown device.");
-        if (IsAsioDevice(device_type_id_)) {
+        if (isAsioDevice(device_type_id_)) {
             device_.reset();
-            ResetAsioDriver();           
+            resetAsioDriver();           
         }
         device_id_.clear();
         device_.reset();
@@ -439,7 +447,8 @@ void AudioPlayer::createBuffer() {
         num_write_buffer_size_ = multiply(device_buffer_samples, kMaxBufferSecs);
         min_fifo_write_size_ = num_read_buffer_size_;
         read_buffer_size = multiply(num_read_buffer_size_, file_sample_size);
-        fifo_size = align_page_size(multiply(output_bytes_per_sec, kMaxBufferSecs));
+        fifo_size = align_page_size((std::min)(multiply(output_bytes_per_sec / 8,
+            dsp_manager_->isBitPerfect() ? kPcm2DsdBufferSecs : kMaxBufferSecs),kPcm2DsdMaxBufferBytes));
     }
     else {
         const uint32_t input_bytes_per_sec = input_format_.getAvgBytesPerSec();
@@ -453,12 +462,17 @@ void AudioPlayer::createBuffer() {
             multiply(multiply(device_buffer_samples, output_to_input_ratio), sizeof(float)));
         min_fifo_write_size_ = align_page_size(estimateDspOutputBytes(num_read_buffer_size_));
 
-        const uint32_t preferred_fifo_size = multiply(output_bytes_per_sec, kMaxBufferSecs);
+        const bool pcm2dsd = dsp_manager_->isBitPerfect()
+            && audio_config_.dsd_mode == DsdModes::DSD_MODE_DOP;
+        const uint32_t preferred_fifo_size = multiply(output_bytes_per_sec,
+            pcm2dsd ? kPcm2DsdBufferSecs :
+            dsp_manager_->isBitPerfect() ? kBitPerfectBufferSecs : kMaxBufferSecs);
         const uint32_t min_fifo_headroom = multiply(
             (std::max)(num_write_buffer_size_, min_fifo_write_size_),
             static_cast<uint32_t>(GetBufferCount(output_format_.getSampleRate())));
-        fifo_size = align_page_size(cap_preallocate_size(
-            (std::max)(preferred_fifo_size, min_fifo_headroom)));
+        fifo_size = align_page_size((std::min)(
+            (std::max)(preferred_fifo_size, min_fifo_headroom),
+            pcm2dsd ? kPcm2DsdMaxBufferBytes : kMaxPreAllocateBufferSize));
 
         const uint32_t min_read_buffer_size = multiply(num_read_buffer_size_, file_sample_size);
         const uint32_t preferred_read_buffer_size = multiply(
@@ -506,6 +520,8 @@ void AudioPlayer::onVolumeChange(int32_t vol) {
     }
 }
 
+void AudioPlayer::onPlaybackEnd() { updatePlayerStreamTime(kStopStreamTime); }
+
 void AudioPlayer::onError(const std::exception& e) {
     playback_state_.is_playing = false;
     if (const auto adapter = state_adapter_.lock()) {
@@ -526,8 +542,8 @@ void AudioPlayer::onDeviceStateChange(DeviceState state, const std::string & dev
             XAMP_LOG_D(logger_, "Device removed device id:{}.", device_id);
             if (device_id == device_id_) {
                 // TODO: In many system has more ASIO device.
-                if (IsAsioDevice(device_type_->getTypeId())) {
-                    ResetAsioDriver();
+                if (isAsioDevice(device_type_->getTypeId())) {
+                    resetAsioDriver();
                 }
                 
                 state_adapter->onDeviceChanged(
@@ -582,6 +598,8 @@ void AudioPlayer::openDevice(double stream_time) {
         }
     }
 #endif
+    device_->setBitPerfect(dsp_manager_->isBitPerfect());
+    if (dsp_manager_->isBitPerfect() && integer_format_) device_->setIntegerPcmFormat(integer_format_.value());
     device_->openStream(output_format_);
     device_->setVolume(audio_config_.volume);
     device_->setMute(is_muted_);
@@ -605,10 +623,21 @@ void AudioPlayer::bufferStream(double stream_time,
         playback_state_.stream_duration = duration.value();
     }
 
+    source_eof_ = false;
     fifo_.clear();
     file_stream_->seek(playback_state_.stream_offset_time + stream_time);
     audio_config_.sample_size = file_stream_->getSampleSize();
-    bufferSamples(file_stream_, GetBufferCount(output_format_.getSampleRate()) * 2);
+    auto prebuffer_blocks = GetBufferCount(output_format_.getSampleRate()) * 2;
+    if (dsp_manager_->isBitPerfect() && num_read_buffer_size_ != 0) {
+        // The read block is measured in interleaved samples, not frames or bytes.
+        const uint64_t samples = uint64_t{output_format_.getSampleRate()}
+            * output_format_.getChannels() / (audio_config_.dsd_mode==DsdModes::DSD_MODE_NATIVE ? 8 : 1)
+            * ((audio_config_.dsd_mode == DsdModes::DSD_MODE_DOP || audio_config_.dsd_mode == DsdModes::DSD_MODE_NATIVE)
+                ? kPcm2DsdPrebufferSecs : kBitPerfectPrebufferSecs);
+        prebuffer_blocks = static_cast<int32_t>((std::max)(uint64_t{1},
+            (samples + num_read_buffer_size_ - 1) / num_read_buffer_size_));
+    }
+    bufferSamples(file_stream_, prebuffer_blocks);
 }
 
 void AudioPlayer::updatePlayerStreamTime(uint32_t stream_time_sec_unit) {
@@ -685,45 +714,19 @@ void AudioPlayer::seek(double stream_time) {
 }
 
 void AudioPlayer::setParametricEq(bool enabled, const EqSettings& settings) {
-    if (enabled) {
-        config_.create(DspConfig::kEQSettings, settings);
-    }
-    else {
-        config_.remove(DspConfig::kEQSettings);
-    }
-
+    if (dsp_manager_->isBitPerfect()) return;
     std::lock_guard<FastMutex> stream_lock{ stream_mutex_ };
+    auto next_config = config_;
+    if (enabled) next_config.create(DspConfig::kEQSettings, settings);
+    else next_config.remove(DspConfig::kEQSettings);
     if (!device_ || !device_->isStreamOpen()) {
-        if (enabled) {
-            dsp_manager_->addParametricEq();
-        }
-        else {
-            dsp_manager_->removeParametricEq();
-        }
-        return;
+        if (enabled) dsp_manager_->addParametricEq();
+        else dsp_manager_->removeParametricEq();
+    } else {
+        // The producer uses stream_mutex_; queued audio can drain normally.
+        dsp_manager_->setParametricEq(enabled, settings, next_config);
     }
-
-    const auto was_running = device_->isStreamRunning();
-    const auto stream_time = device_->getStreamTime();
-    if (was_running) {
-        device_->stopStream(false);
-    }
-
-    try {
-        dsp_manager_->setParametricEq(enabled, settings, config_);
-        bufferStream(stream_time);
-        device_->setStreamTime(stream_time);
-    }
-    catch (...) {
-        if (was_running && device_->isStreamOpen()) {
-            device_->startStream();
-        }
-        throw;
-    }
-
-    if (was_running) {
-        device_->startStream();
-    }
+    config_ = std::move(next_config);
 }
 
 void AudioPlayer::doSeek(double stream_time) {
@@ -760,7 +763,7 @@ void AudioPlayer::bufferSamples(const ScopedPtr<FileStream>& stream,
     int32_t buffer_count) {
     auto* const sample_buffer = read_buffer_.get();
 
-    for (auto i = 0; i < buffer_count && file_stream_->isActive(); ++i) {
+    for (auto i = 0; i < buffer_count && (dsp_manager_->isBitPerfect() || file_stream_->isActive()); ++i) {
         XAMP_LOG_D(logger_, "Buffering {} ...", i);
 
         while (true) {
@@ -768,9 +771,24 @@ void AudioPlayer::bufferSamples(const ScopedPtr<FileStream>& stream,
                 return;
             }
 
-            const auto num_samples = stream->getSamples(sample_buffer, 
+            if (dsp_manager_->isBitPerfect() && audio_config_.dsd_mode==DsdModes::DSD_MODE_NATIVE) {
+                const auto bytes=stream->getSamples(sample_buffer,num_read_buffer_size_);
+                if (!bytes) { source_eof_=true; return; }
+                if (!fifo_.tryWrite(sample_buffer,bytes)) throw std::runtime_error("Native DSD FIFO overflow");
+                if (!stream->isActive()) source_eof_=true;
+                break;
+            }
+            if (dsp_manager_->isBitPerfect()) {
+                const auto block = stream->readPcm({sample_buffer, static_cast<size_t>(num_read_buffer_size_)*4});
+                if (!block.frames) { source_eof_ = true; return; }
+                dsp_manager_->processPcm(block, fifo_);
+                if (!stream->isActive()) source_eof_ = true;
+                break;
+            }
+            const auto num_samples = stream->getSamples(sample_buffer,
                 num_read_buffer_size_);
             if (num_samples == 0) {
+                source_eof_ = true;
                 return;
             }
 
@@ -778,6 +796,7 @@ void AudioPlayer::bufferSamples(const ScopedPtr<FileStream>& stream,
             if (dsp_manager_->processDSP(samples, num_samples, fifo_)) {
                 continue;
             }            
+            if (!stream->isActive()) source_eof_ = true;
             break;
         }
     }
@@ -841,18 +860,15 @@ uint32_t AudioPlayer::estimateDspOutputBytes(uint32_t input_samples) const {
 }
 
 bool AudioPlayer::hasEnoughFifoWriteSpace(uint32_t input_samples) const {
-    const auto estimated_write_size = (std::max)(estimateDspOutputBytes(input_samples),
-        min_fifo_write_size_);
-    const auto max_available_write = fifo_.size() > 0 ? fifo_.size() - 1 : 0;
-    const auto required_write_size = (std::min)(static_cast<size_t>(estimated_write_size),
-        max_available_write);
-    return fifo_.getAvailableWrite() >= required_write_size;
+    return xamp::bitperfect::canRefill(fifo_.getAvailableWrite(),
+        estimateDspOutputBytes(input_samples), min_fifo_write_size_);
 }
 
 void AudioPlayer::readSampleLoop(std::byte* buffer,
     uint32_t buffer_size, 
     std::unique_lock<FastMutex>& stopped_lock) {
     if (!file_stream_->isActive()) {
+        source_eof_ = true;
         if (playback_state_.is_playing) {
             waitForReadFinishAndSeekSignal(stopped_lock);
         }
@@ -861,6 +877,7 @@ void AudioPlayer::readSampleLoop(std::byte* buffer,
 
     std::lock_guard<FastMutex> stream_lock{ stream_mutex_ };
     if (!file_stream_->isActive()) {
+        source_eof_ = true;
         return;
     }
 
@@ -871,6 +888,22 @@ void AudioPlayer::readSampleLoop(std::byte* buffer,
             break;
         }
 
+        if (dsp_manager_->isBitPerfect() && audio_config_.dsd_mode==DsdModes::DSD_MODE_NATIVE) {
+            const auto bytes=file_stream_->getSamples(buffer,buffer_size);
+            if (!bytes) { source_eof_=true; break; }
+            if (!fifo_.tryWrite(buffer,bytes)) throw std::runtime_error("Native DSD FIFO overflow");
+            if (!file_stream_->isActive()) source_eof_=true;
+            if (!isAvailableWrite()) break;
+            continue;
+        }
+        if (dsp_manager_->isBitPerfect()) {
+            const auto block = file_stream_->readPcm({buffer, static_cast<size_t>(buffer_size)*4});
+            if (!block.frames) { source_eof_ = true; break; }
+            dsp_manager_->processPcm(block, fifo_);
+            if (!file_stream_->isActive()) source_eof_ = true;
+            if (!isAvailableWrite()) break;
+            continue;
+        }
         const auto num_samples = file_stream_->getSamples(buffer, buffer_size);
 
         if (num_samples > 0) {
@@ -889,6 +922,8 @@ void AudioPlayer::readSampleLoop(std::byte* buffer,
             }
         }
 
+        if (!file_stream_->isActive()) source_eof_ = true;
+
         if (!isAvailableWrite()) {
             break;
         }        
@@ -896,12 +931,9 @@ void AudioPlayer::readSampleLoop(std::byte* buffer,
 }
 
 bool AudioPlayer::isAvailableWrite() const {
-    const auto write_watermark = num_write_buffer_size_ * kMaxWriteRatio;
-    const auto required_write_size = (std::max)(write_watermark, min_fifo_write_size_);
-    const auto max_available_write = fifo_.size() > 0 ? fifo_.size() - 1 : 0;
-    return fifo_.getAvailableWrite() >= (std::min)(
-        static_cast<size_t>(required_write_size),
-        max_available_write);
+    // Wake as soon as one decoder block fits. Waiting for 20 device buffers
+    // can defer the producer until the FIFO is empty on large-buffer devices.
+    return hasEnoughFifoWriteSpace(num_read_buffer_size_);
 }
 
 void AudioPlayer::play() {
@@ -958,7 +990,8 @@ void AudioPlayer::play() {
         );
 
         WaitableTimer wait_timer;
-        wait_timer.setTimeout(kReadSampleWaitTimeMs);
+        wait_timer.setTimeout(p->dsp_manager_->isBitPerfect()
+            ? kBitPerfectReadWaitTimeMs : kReadSampleWaitTimeMs);
 
         try {
             while (p->playback_state_.is_playing && !stop_token.stop_requested()) {
@@ -1023,7 +1056,18 @@ void AudioPlayer::copySamples(void* samples, size_t num_samples) const {
     Stopwatch watch;    
     watch.reset();    
     
-    adapter->onSamplesChanged(static_cast<const float*>(samples), num_samples);
+    const float* display = static_cast<const float*>(samples);
+    if (dsp_manager_->isBitPerfect()) {
+        // Only the visualizer receives this lossy copy. The device keeps the original bytes.
+        if (!integer_format_ || num_samples > display_samples_.size()) return;
+        for (size_t i=0; i<num_samples; ++i) {
+            const auto word = xamp::pcm::readSignedWord(static_cast<const std::byte*>(samples)+i*4,*integer_format_);
+            display_samples_[i] = static_cast<float>(std::bit_cast<int32_t>(word) /
+                std::ldexp(1.0, integer_format_->valid_bits-1));
+        }
+        display = display_samples_.get();
+    }
+    adapter->onSamplesChanged(display, num_samples);
     auto elapsed = watch.elapsed<std::chrono::milliseconds>();
     if (elapsed >= kMinimalCopySamplesTime) {
         XAMP_LOG_W(logger_, "copySamples too slow ({} ms)!", elapsed.count());
@@ -1039,6 +1083,44 @@ DataCallbackResult AudioPlayer::onGetSamples(void* samples,
     // stream_time is accumulated from rendered sample frames.
     const auto num_samples = num_buffer_frames * output_format_.getChannels();
     const auto sample_size = num_samples * audio_config_.sample_size;
+
+    if (dsp_manager_->isBitPerfect()) {
+        num_filled_frames = 0;
+        memset(samples, audio_config_.dsd_mode==DsdModes::DSD_MODE_NATIVE ? 0x69 : 0, sample_size);
+        // Acquire EOF before reading the FIFO, so a final producer write cannot be missed.
+        bool ended = source_eof_.load();
+        size_t bytes = 0;
+        fifo_.tryRead(static_cast<std::byte*>(samples), sample_size, bytes);
+        if (bytes < sample_size && !ended && source_eof_.load()) {
+            // EOF is published after the final write. Acquire it and read again
+            // to include a final block published between our first two loads.
+            ended = true;
+            size_t tail_bytes = 0;
+            fifo_.tryRead(static_cast<std::byte*>(samples) + bytes, sample_size - bytes, tail_bytes);
+            bytes += tail_bytes;
+        }
+        const auto frame_bytes = audio_config_.sample_size * output_format_.getChannels();
+        const auto read_status = xamp::bitperfect::classifyRead(bytes, sample_size,
+            frame_bytes, ended);
+        if (read_status == xamp::bitperfect::ReadStatus::Samples) {
+            num_filled_frames = bytes / frame_bytes;
+            updatePlayerStreamTime(static_cast<uint32_t>(stream_time * 1000));
+            copySamples(samples, num_filled_frames * output_format_.getChannels());
+            return DataCallbackResult::CONTINUE;
+        }
+        if (read_status == xamp::bitperfect::ReadStatus::End) {
+            return DataCallbackResult::STOP;
+        }
+        std::ostringstream error;
+        error << (audio_config_.dsd_mode == DsdModes::DSD_MODE_NATIVE ? "PCM2DSD/Native: " : audio_config_.dsd_mode == DsdModes::DSD_MODE_DOP ? "PCM2DSD/DoP: " : "BitPerfect: ")
+            << xamp::bitperfect::readStatusName(read_status)
+            << "; read_bytes=" << bytes << "; requested_bytes=" << sample_size
+            << "; frame_bytes=" << frame_bytes << "; eof=" << ended
+            << "; requested_frames=" << num_buffer_frames
+            << "; sample_rate=" << output_format_.getSampleRate()
+            << "; stream_time=" << stream_time;
+        throw std::runtime_error(error.str());
+    }
 
     if (stream_time >= playback_state_.stream_duration) {
         updatePlayerStreamTime(kStopStreamTime);
@@ -1085,6 +1167,16 @@ void AudioPlayer::prepareToPlay(ByteFormat byte_format,
         audio_config_.target_sample_rate = device_sample_rate;
     }
 
+    integer_format_ = file_stream_->integerPcmFormat();
+    if (dsp_manager_->isBitPerfect() && audio_config_.dsd_mode!=DsdModes::DSD_MODE_NATIVE) {
+        if (!integer_format_ || !xamp::bitperfect::supported(integer_format_->valid_bits,
+            integer_format_->channels, integer_format_->sample_rate) ||
+            integer_format_->container_bits != 32 ||
+            integer_format_->layout != xamp::pcm::Layout::Interleaved ||
+            (audio_config_.target_sample_rate && audio_config_.target_sample_rate != integer_format_->sample_rate))
+            throw std::runtime_error("BitPerfect: unsupported source or sample-rate conversion");
+        byte_format = ByteFormat::SINT32;
+    }
     setDeviceFormat();
 
 	if (byte_format != ByteFormat::INVALID_FORMAT) {
@@ -1093,9 +1185,10 @@ void AudioPlayer::prepareToPlay(ByteFormat byte_format,
 
     createDevice(device_info_.value().device_type_id,
         device_info_.value().device_id,
-        false);
+        dsp_manager_->isBitPerfect());
     openDevice(0);
     createBuffer();
+    display_samples_.resize(device_->getBufferSize());
 
     config_.create(DspConfig::kInputFormat,
         std::any(input_format_));

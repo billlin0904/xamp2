@@ -34,7 +34,7 @@ void VmMemLock::lock(void* address, size_t size) {
 	MemorySet(address, 0, size);
 
 	if (!virtualMemoryLock(address, size)) { // try lock memory!
-		XAMP_LOG_E(logger_, "virtualMemoryLock return failure! {}", GetLastErrorMessage());
+		XAMP_LOG_E(logger_, "virtualMemoryLock return failure! {}", getLastErrorMessage());
 		return;
 	}
 
@@ -55,7 +55,7 @@ void VmMemLock::unlock() {
 			if (last_error != ERROR_NOT_LOCKED) {
 				XAMP_LOG_E(logger_,
 					"virtualMemoryUnlock return failure! error:{} {}.",
-					GetPlatformErrorMessage(static_cast<int32_t>(last_error)),
+					getPlatformErrorMessage(static_cast<int32_t>(last_error)),
 					StackTrace{}.captureStack());
 			}
 #endif

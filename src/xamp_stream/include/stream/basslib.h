@@ -131,11 +131,11 @@ public:
 
     ~BassLib();
 
-    void load();
+    void loadAllPlugin();
 
-    void Free();
+    void freeAllPlugin();
 
-    XAMP_ALWAYS_INLINE bool IsLoaded() const {
+    XAMP_ALWAYS_INLINE bool isPluginLoaded() const {
         return !plugins_.empty();
     }
 

@@ -45,8 +45,12 @@ INSERT
 VALUES
 	(
 		( SELECT musicId FROM musics WHERE path = :path AND offset = :offset AND durationStr = :durationStr ), 
-	:title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitRate, :sampleRate, :offset, :dateTime, :albumReplayGain, :trackReplayGain, 
-    :albumPeak, :trackPeak, :genre, :comment, :fileSize, :heart, :isCueFile, :isZipFile, :archiveEntryName 
+	:title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitRate, :sampleRate, :offset, :dateTime, 
+    (SELECT albumReplayGain FROM musics WHERE path = :path AND offset = :offset AND durationStr = :durationStr), 
+    (SELECT trackReplayGain FROM musics WHERE path = :path AND offset = :offset AND durationStr = :durationStr), 
+    (SELECT albumPeak FROM musics WHERE path = :path AND offset = :offset AND durationStr = :durationStr), 
+    (SELECT trackPeak FROM musics WHERE path = :path AND offset = :offset AND durationStr = :durationStr), 
+    :genre, :comment, :fileSize, :heart, :isCueFile, :isZipFile, :archiveEntryName 
 	)
     )"_str
         );
@@ -65,27 +69,8 @@ VALUES
         query.bindValue(":fileSize"_str, static_cast<qulonglong>(track_info.file_size));
         query.bindValue(":heart"_str, track_info.rating ? 1 : 0);
         query.bindValue(":isCueFile"_str, track_info.is_cue_file ? 1 : 0);
-        query.bindValue(":isZipFile"_str, track_info.is_zip_file ? 1 : 0);
-
-        if (track_info.replay_gain) {
-            query.bindValue(":albumReplayGain"_str, track_info.replay_gain.value().album_gain);
-            query.bindValue(":trackReplayGain"_str, track_info.replay_gain.value().track_gain);
-            query.bindValue(":albumPeak"_str, track_info.replay_gain.value().album_peak);
-            query.bindValue(":trackPeak"_str, track_info.replay_gain.value().track_peak);
-        }
-        else {
-            query.bindValue(":albumReplayGain"_str, QVariant());
-            query.bindValue(":trackReplayGain"_str, QVariant());
-            query.bindValue(":albumPeak"_str, QVariant());
-            query.bindValue(":trackPeak"_str, QVariant());
-        }
-
-        if (track_info.archive_entry_name) {
-            query.bindValue(":archiveEntryName"_str, QString::fromStdWString(track_info.archive_entry_name.value()));
-        }
-        else {
-            query.bindValue(":archiveEntryName"_str, QVariant());
-        }
+        query.bindValue(":isZipFile"_str, 0);
+        query.bindValue(":archiveEntryName"_str, QVariant());
 
         query.bindValue(":dateTime"_str, static_cast<qlonglong>(track_info.last_write_time));
         query.bindValue(":genre"_str, toQString(track_info.genre));
@@ -138,10 +123,6 @@ VALUES
 	sampleRate= :sampleRate,
 	offset= :offset,
 	dateTime= :dateTime,
-	albumReplayGain= :albumReplayGain,
-	trackReplayGain= :trackReplayGain, 
-	albumPeak= :albumPeak,
-	trackPeak= :trackPeak,
 	genre= :genre, 
 	comment= :comment,
 	fileSize= :fileSize,
@@ -163,19 +144,6 @@ VALUES
         query.bindValue(":offset"_str, track_info.offset);
         query.bindValue(":fileSize"_str, static_cast<qulonglong>(track_info.file_size));
         query.bindValue(":heart"_str, track_info.rating ? 1 : 0);
-
-        if (track_info.replay_gain) {
-            query.bindValue(":albumReplayGain"_str, track_info.replay_gain.value().album_gain);
-            query.bindValue(":trackReplayGain"_str, track_info.replay_gain.value().track_gain);
-            query.bindValue(":albumPeak"_str, track_info.replay_gain.value().album_peak);
-            query.bindValue(":trackPeak"_str, track_info.replay_gain.value().track_peak);
-        }
-        else {
-            query.bindValue(":albumReplayGain"_str, QVariant());
-            query.bindValue(":trackReplayGain"_str, QVariant());
-            query.bindValue(":albumPeak"_str, QVariant());
-            query.bindValue(":trackPeak"_str, QVariant());
-        }
 
         query.bindValue(":dateTime"_str, static_cast<qlonglong>(track_info.last_write_time));
         query.bindValue(":genre"_str, toQString(track_info.genre));
@@ -236,7 +204,7 @@ VALUES
             auto lyrc = query.value("lyrc"_str).toString();
             auto tr_lyrc = query.value("trLyrc"_str).toString();
             if (!lyrc.isEmpty()) {
-                return MakeOptional<std::tuple<QString, QString>>(
+                return makeOptional<std::tuple<QString, QString>>(
                     std::tuple<QString, QString> { lyrc, tr_lyrc });
             }
         }

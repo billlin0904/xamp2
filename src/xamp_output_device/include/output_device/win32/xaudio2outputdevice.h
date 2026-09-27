@@ -27,144 +27,47 @@ XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
 XAMP_DECLARE_LOG_NAME(XAudio2OutputDevice);
 
-/*
-* XAudio2OutputDevice is the XAudio2 device.
-*
-*/
 class XAudio2OutputDevice final : public IOutputDevice {
 public:
-	/*
-	* Constructor.
-	*
-	* @param device: device
-	*/
 	XAudio2OutputDevice(const std::shared_ptr<IThreadPool>& thread_pool, const std::wstring &device_id);
 
-	/*
-	* Destructor.
-	*/
 	virtual ~XAudio2OutputDevice() override;
 
-	/*
-	* open stream.
-	*
-	* @param output_format: output format
-	* @return void
-	*/
 	void openStream(const AudioFormat& output_format) override;
 
-	/*
-	* Set audio callback.
-	*
-	* @param callback: audio callback
-	*/
 	void setAudioCallback(IAudioCallback* callback) override;
 
-	/*
-	* Is stream open.
-	*
-	* return bool
-	*/
 	bool isStreamOpen() const override;
 
-	/*
-	* Is stream running.
-	*
-	* @return bool
-	*/
 	bool isStreamRunning() const override;
 
-	/*
-	* stop stream.
-	*
-	* @param[in] wait_for_stop_stream: wait for stop stream
-	*/
 	void stopStream(bool wait_for_stop_stream = true) override;
 
-	/*
-	* close stream.
-	*
-	*/
 	void closeStream() override;
 
-	/*
-	* start stream.
-	*
-	*/
 	void startStream() override;
 
-	/*
-	* Set stream time.
-	*
-	* @param stream_time: stream time
-	*/
 	void setStreamTime(double stream_time) override;
 
-	/*
-	* Get stream time.
-	*
-	*/
 	double getStreamTime() const override;
 
-	/*
-	* Get volume.
-	*
-	* @return uint32_t
-	*/
 	uint32_t getVolume() const override;
 
-	/*
-	* Set volume.
-	* @param volume: volume (1~100)
-	*/
 	void setVolume(uint32_t volume) const override;
 
-	/*
-	* Set mute.
-	*
-	* @param mute: mute (true/false)
-	*/
 	void setMute(bool mute) const override;
 
-	/*
-	* Is muted.
-	*
-	* @return bool
-	*/
 	bool isMuted() const override;
 
-	/*
-	* Get packed format.
-	*
-	* @return PackedFormat
-	*/
 	PackedFormat getPackedFormat() const override;
 
-	/*
-	* Get device buffer size.
-	*
-	* @return uint32_t
-	*/
 	uint32_t getBufferSize() const override;
 
-	/*
-	* Is hardware control volume.
-	*
-	* @return bool
-	*/
 	bool isHardwareControlVolume() const override;
 
-	/*
-	* Abort stream.
-	*/
 	void abortStream() override;
 
 private:
-	/*
-	* Report error
-	*
-	* @param hr: HRESULT
-	*/
 	void reportError(HRESULT hr) ;
 
 	HRESULT fillSamples(bool& end_of_stream);

@@ -12,12 +12,8 @@
 #include <widget/database.h>
 #include <widget/dao/dbfacade.h>
 
-using FetchCoverCallback = std::function<void(int32_t, int32_t, const QString&, std::optional<ArchiveEntry>)>;
-
 class XAMP_WIDGET_SHARED_API DatabaseFacade final : public QObject {
 public:    
-    static const FetchCoverCallback kDefaultFetchCover;
-    static const FetchCoverCallback kSkipFetchCover;
     static constexpr size_t kReserveSize = 1024;
 
     static int32_t kUnknownArtistId;
@@ -58,16 +54,12 @@ public:
 	void insertMultipleTrackInfo(
         const std::vector<std::forward_list<TrackInfo>>& results,
 	    int32_t playlist_id,
-        const QString& dick_id = QString(),
-        const FetchCoverCallback& fetch_cover = kDefaultFetchCover);
+        const QString& dick_id = QString());
 
     void insertTrackInfo(const std::forward_list<TrackInfo>& result,
         int32_t playlist_id,
-        const QString &dick_id = QString(),
-        const FetchCoverCallback& fetch_cover = kDefaultFetchCover);
-private:    
-    static const FetchCoverCallback GetDefaultFetchCover();
-
+        const QString &dick_id = QString());
+private:
     void ensureAddUnknownId();    
 
     QString various_artists_;

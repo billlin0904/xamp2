@@ -26,7 +26,7 @@
 
 XAMP_STREAM_NAMESPACE_BEGIN
 namespace {
-    bool IsDsdFileChunk(const std::string_view & file_chunks) {
+    bool isDsdFileChunk(const std::string_view & file_chunks) {
         static constexpr std::array<std::string_view, 2> knows_chunks{
             "DSD ", // .dsd file
             "FRM8"  // .dsdiff file
@@ -40,7 +40,7 @@ namespace {
         return false;
     }
 
-    bool RequiresBassDsdStream(DsdModes dsd_mode) {
+    bool requiresBassDsdStream(DsdModes dsd_mode) {
         switch (dsd_mode) {
         case DsdModes::DSD_MODE_DOP:
         case DsdModes::DSD_MODE_DOP_AA:
@@ -52,7 +52,7 @@ namespace {
         }
     }
 
-    void ConfigureDsdStream(const ScopedPtr<FileStream>& file_stream, DsdModes dsd_mode) {
+    void configureDsdStream(const ScopedPtr<FileStream>& file_stream, DsdModes dsd_mode) {
         if (dsd_mode == DsdModes::DSD_MODE_PCM) {
             return;
         }
@@ -99,7 +99,7 @@ bool isDsdFile(const Path & path) {
         return false;
     }
     const std::string_view file_chunks{ buffer.data(), 4 };
-    return IsDsdFileChunk(file_chunks);
+    return isDsdFileChunk(file_chunks);
 }
 
 ScopedPtr<FileStream> StreamFactory::makeFileStream(const Path& filePath, bool use_mqa_decode) {
@@ -115,7 +115,7 @@ ScopedPtr<FileStream> StreamFactory::makeFileStream(const Path& file_path,
     bool use_mqa_decode) {
     ScopedPtr<FileStream> file_stream;
 
-    if (RequiresBassDsdStream(dsd_mode)) {
+    if (requiresBassDsdStream(dsd_mode)) {
         file_stream = makeAlign<FileStream, BassFileStream>();
     }
     else if (use_mqa_decode) {
@@ -136,27 +136,28 @@ ScopedPtr<FileStream> StreamFactory::makeFileStream(const Path& file_path,
 		file_stream = makeAlign<FileStream, AvLibFileStream>();
     }
 
-    ConfigureDsdStream(file_stream, dsd_mode);
+    configureDsdStream(file_stream, dsd_mode);
 
     const auto allow_bass_fallback =
-        !RequiresBassDsdStream(dsd_mode)
+        !requiresBassDsdStream(dsd_mode)
         && dynamic_cast<AvLibFileStream*>(file_stream.get()) != nullptr;
 
     try {
         file_stream->openFile(file_path);
+        return file_stream;
     }
     catch (...) {
         if (!allow_bass_fallback) {
             throw;
-        }
-
-        XAMP_LOG_DEBUG("AvLibFileStream open failed, fallback to BassFileStream: {}",
-            String::toUtf8String(file_path.wstring()));
-        auto bass_file_stream = makeAlign<FileStream, BassFileStream>();
-        ConfigureDsdStream(bass_file_stream, dsd_mode);
-        bass_file_stream->openFile(file_path);
-        file_stream = std::move(bass_file_stream);
+        }        
     }
+
+    XAMP_LOG_DEBUG("AvLibFileStream open failed, fallback to BassFileStream: {}",
+        String::toUtf8String(file_path.wstring()));
+    auto bass_file_stream = makeAlign<FileStream, BassFileStream>();
+    configureDsdStream(bass_file_stream, dsd_mode);
+    bass_file_stream->openFile(file_path);
+    file_stream = std::move(bass_file_stream);
     return file_stream;
 }
 
@@ -214,14 +215,14 @@ ScopedPtr<FileStream> StreamFactory::makeFileStream(ArchiveEntry archive_entry,
     DsdModes dsd_mode) {
     auto file_stream = makeAlign<FileStream, BassFileStream>();
 
-    ConfigureDsdStream(file_stream, dsd_mode);
+    configureDsdStream(file_stream, dsd_mode);
     file_stream->open(std::move(archive_entry));
     return file_stream;
 }
 
 void loadBassLib() {
-    if (!LIB_BASS.IsLoaded()) {
-        SharedSingleton<BassLib>::getInstance().load();
+    if (!LIB_BASS.isPluginLoaded()) {
+        SharedSingleton<BassLib>::getInstance().loadAllPlugin();
     }
     LIB_BASS.MixLib = makeAlign<BassMixLib>();
     LIB_BASS.DSDLib = makeAlign<BassDSDLib>();
@@ -233,6 +234,10 @@ void loadBassLib() {
     for (const auto& info : LIB_BASS.getVersions()) {
         XAMP_LOG_DEBUG("DLL {} version: {}", info.first, info.second);
     }
+}
+
+void unloadBassLib() {
+	SharedSingleton<BassLib>::getInstance().freeAllPlugin();
 }
 
 OrderedMap<std::string, std::string> getBassDLLVersion() {

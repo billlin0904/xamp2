@@ -70,7 +70,7 @@ namespace {
 	};
 #endif
 
-	bool CreateLogsDir() {
+	bool createLogsDir() {
 		const Path log_path("logs");
 		if (!Fs::exists(log_path)) {
 			return Fs::create_directory(log_path);
@@ -79,25 +79,25 @@ namespace {
 	}
 }
 
-LoggerManager::LoggerManager() = default;
+LoggerFactory::LoggerFactory() = default;
 
-LoggerManager::~LoggerManager() {
+LoggerFactory::~LoggerFactory() {
 #ifdef XAMP_OS_WIN
 	shutdown();
 #endif
 }
 
-void LoggerManager::setLevel(LogLevel level) {
+void LoggerFactory::setLevel(LogLevel level) {
 	default_logger_->setLevel(level);
 }
 
-LoggerManager& LoggerManager::startup() {
+LoggerFactory& LoggerFactory::startup() {
 	getLogger(kXampLoggerName);
-	default_logger_->LogDebug("{}", "<LoggerManager startup success>");
+	default_logger_->LogDebug("{}", "<LoggerFactory startup success>");
 	return *this;
 }
 
-void LoggerManager::shutdown() {
+void LoggerFactory::shutdown() {
     spdlog::shutdown();
 }
 
@@ -137,7 +137,7 @@ bool Logger::shouldLog(LogLevel level) const {
 	return logger_->should_log(static_cast<spdlog::level::level_enum>(level));
 }
 
-std::vector<LoggerPtr> LoggerManager::getAllLogger() {
+std::vector<LoggerPtr> LoggerFactory::getAllLogger() {
 	std::vector<LoggerPtr> loggers;
 	spdlog::details::registry::instance().apply_all([&loggers](auto x) {
 		if (x->name().empty()) {
@@ -148,11 +148,11 @@ std::vector<LoggerPtr> LoggerManager::getAllLogger() {
 	return loggers;
 }
 
-LoggerPtr LoggerManager::getLogger(const std::string_view& name) {
+LoggerPtr LoggerFactory::getLogger(const std::string_view& name) {
 	return getLoggerImpl(std::string(name));
 }
 
-LoggerPtr LoggerManager::getLoggerImpl(const std::string &name) {
+LoggerPtr LoggerFactory::getLoggerImpl(const std::string &name) {
 	std::lock_guard<FastMutex> guard{ lock_ };
 
 	auto logger = spdlog::get(name);
@@ -184,12 +184,12 @@ LoggerPtr LoggerManager::getLoggerImpl(const std::string &name) {
 	return std::make_shared<Logger>(logger);
 }
 
-LoggerManager& LoggerManager::addDebugOutput() {
+LoggerFactory& LoggerFactory::addDebugOutput() {
 #ifdef XAMP_OS_WIN
 	// OutputDebugString 會產生例外導致AddVectoredExceptionHandler註冊的
 	// Handler會遞迴的呼叫下去, 所以只有在除錯模式下才使用.
 	// https://stackoverflow.com/questions/25634376/why-does-addvectoredexceptionhandler-crash-my-dll
-	if (isDebugging()) {
+	if (::IsDebuggerPresent()) {
 		std::lock_guard<FastMutex> guard{ lock_ };
 		sinks_.push_back(std::make_shared<DebugOutputSink>());
 	}
@@ -197,14 +197,14 @@ LoggerManager& LoggerManager::addDebugOutput() {
 	return *this;
 }
 
-LoggerManager& LoggerManager::addSink(spdlog::sink_ptr sink) {
+LoggerFactory& LoggerFactory::addSink(spdlog::sink_ptr sink) {
 	std::lock_guard<FastMutex> guard{ lock_ };
     sinks_.push_back(sink);
     return *this;
 }
 
-LoggerManager& LoggerManager::addLogFile(const std::string &file_name) {
-	CreateLogsDir();
+LoggerFactory& LoggerFactory::addLogFile(const std::string &file_name) {
+	createLogsDir();
 
 	std::ostringstream ostr;
 	ostr << "logs/" << file_name;

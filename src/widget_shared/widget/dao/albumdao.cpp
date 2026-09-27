@@ -72,6 +72,15 @@ namespace dao {
 		DbIfFailedThrow1(query);
 	}
 
+	void AlbumDao::clearAlbumCover(int32_t album_id) {
+		SqlQuery query(db_);
+
+		query.prepare("UPDATE albums SET coverId = NULL WHERE (albumId = :albumId)"_str);
+		query.bindValue(":albumId"_str, album_id);
+
+		DbIfFailedThrow1(query);
+	}
+
 	std::optional<AlbumStats> AlbumDao::getAlbumStats(int32_t album_id) const {
         SqlQuery query(db_);
 
@@ -98,7 +107,7 @@ namespace dao {
             stats.year = query.value("year"_str).toInt();
             stats.durations = query.value("durations"_str).toDouble();
             stats.file_size = query.value("fileSize"_str).toULongLong();
-            return MakeOptional<AlbumStats>(std::move(stats));
+            return makeOptional<AlbumStats>(std::move(stats));
         }
 
         return std::nullopt;
@@ -265,7 +274,7 @@ namespace dao {
             return kInvalidDatabaseId;
         }
 
-        int32_t random_index = rng.NextInt32(0, song_ids.size() - 1);
+        int32_t random_index = rng.nextInt32(0, song_ids.size() - 1);
         return song_ids[random_index];
     }
 
@@ -285,7 +294,7 @@ namespace dao {
             return kInvalidDatabaseId;
         }
 
-        int32_t random_index = rng.NextInt32(0, album_ids.size() - 1);
+        int32_t random_index = rng.nextInt32(0, album_ids.size() - 1);
         return album_ids[random_index];
     }
 
@@ -435,7 +444,7 @@ LIMIT
         query.addBindValue(album_id);
         query.exec();
         while (query.next()) {
-            return MakeOptional<QString>(query.value("path"_str).toString());
+            return makeOptional<QString>(query.value("path"_str).toString());
         }
         return std::nullopt;
     }

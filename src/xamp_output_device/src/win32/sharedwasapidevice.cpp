@@ -17,13 +17,8 @@ XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 using namespace helper;
 
 namespace {
-	/*
-	* SetWaveformatEx is a helper function to set WAVEFORMATEX.
-	*
-	* @param[in] input_format WAVEFORMATEX*
-	* @param[in] sample_rate uint32_t
-	*/
-	void SetWaveformatEx(WAVEFORMATEX* input_format, uint32_t sample_rate) {
+
+	void setWaveformatEx(WAVEFORMATEX* input_format, uint32_t sample_rate) {
 		XAMP_EXPECTS(input_format != nullptr);
 		XAMP_EXPECTS(input_format->nChannels == AudioFormat::kMaxChannel);
 		XAMP_EXPECTS(sample_rate > 0);
@@ -63,32 +58,15 @@ namespace {
 	}
 }
 
-/*
-	* DeviceEventNotification is a IAudioEndpointVolumeCallback implementation.
-	*/
 class SharedWasapiDevice::DeviceEventNotification final
 	: public UnknownImpl<IAudioEndpointVolumeCallback> {
 public:
-	/*
-	* Constructor
-	*/
 	explicit DeviceEventNotification(IAudioCallback* callback) : callback_(callback) {
 		XAMP_EXPECTS(callback_ != nullptr);
 	}
 
-	/*
-	* Destructor
-	*/
 	virtual ~DeviceEventNotification() override = default;
 
-	/*
-	* QueryInterface
-	*
-	* @param[in] iid REFIID
-	* @param[out] ReturnValue void**
-	*
-	* @return HRESULT
-	*/
 	HRESULT QueryInterface(REFIID iid, void** return_value) override {
 		if (return_value == nullptr) {
 			return E_POINTER;
@@ -108,11 +86,6 @@ public:
 		return S_OK;
 	}
 
-	/*
-	* OnNotify
-	*
-	* @param[in] NotificationData PAUDIO_VOLUME_NOTIFICATION_DATA
-	*/
 	STDMETHODIMP OnNotify(PAUDIO_VOLUME_NOTIFICATION_DATA notification_data) override {
 		callback_->onVolumeChange(static_cast<int32_t>(notification_data->fMasterVolume * 100.0f));
 		return S_OK;
@@ -201,7 +174,7 @@ void SharedWasapiDevice::initialDeviceFormat(const AudioFormat& output_format) {
 	hrIfFailThrow(client_->GetCurrentSharedModeEnginePeriod(&mix_format_, &current_period_in_frame));
 
 	// Set the mix format to the device format.
-	SetWaveformatEx(mix_format_, output_format.getSampleRate());
+	setWaveformatEx(mix_format_, output_format.getSampleRate());
 
 	// The pFormat parameter below is optional (Its needed only for MATCH_FORMAT clients).
 	const auto hr = client_->GetSharedModeEnginePeriod(mix_format_,
@@ -326,7 +299,7 @@ void SharedWasapiDevice::openStream(AudioFormat const & output_format) {
 	hrIfFailThrow(client_->SetEventHandle(sample_ready_.get()));
 
 	// create the work queue.
-	rt_work_queue_ = MakeWasapiWorkQueue(mmcss_name_, this, &SharedWasapiDevice::onInvoke);
+	rt_work_queue_ = makeWasapiWorkQueue(mmcss_name_, this, &SharedWasapiDevice::onInvoke);
 
 	// Get the device volume interface.
 	hrIfFailThrow(client_->GetService(kSimpleAudioVolumeID, reinterpret_cast<void**>(&simple_audio_volume_)));
@@ -430,7 +403,7 @@ double SharedWasapiDevice::getStreamTime() const {
 
 void SharedWasapiDevice::reportError(HRESULT hr) {
 	if (FAILED(hr)) {
-		callback_->onError(com_to_system_error(hr));
+		callback_->onError(Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, translatedHrError(hr)));
 		is_running_ = false;
 	}
 }
@@ -455,7 +428,7 @@ HRESULT SharedWasapiDevice::getSample(uint32_t frame_available, bool is_silence)
 	}
 
 	// Calculate sample time.
-	const auto sample_time = GetStreamPosInMilliseconds(clock_) / 1000.0;	
+	const auto sample_time = getStreamPosInMilliseconds(clock_) / 1000.0;	
 
 	size_t num_filled_frames = 0;
 
@@ -482,7 +455,7 @@ HRESULT SharedWasapiDevice::onInvoke(IMFAsyncResult *) {
 
 		try {
 			getSample(false);
-			rt_work_queue_->WaitAsync(sample_ready_.get());
+			rt_work_queue_->waitAsync(sample_ready_.get());
 		} catch (const std::exception &e) {
 			XAMP_LOG_D(logger_, e.what());
 			if (callback_ != nullptr) {
@@ -520,14 +493,14 @@ void SharedWasapiDevice::startStream() {
 	XAMP_LOG_D(logger_, "startStream!");
 
 	if (!client_) {
-		throw_translated_com_error(AUDCLNT_E_NOT_INITIALIZED);
+		hrIfFailThrow(AUDCLNT_E_NOT_INITIALIZED);
 	}
 
 	is_playing_ = false;
 	// Note: 必要! 某些音效卡會爆音!
 	getSample(true);
-	rt_work_queue_->LoadStream();
-	rt_work_queue_->WaitAsync(sample_ready_.get());
+	rt_work_queue_->initial();
+	rt_work_queue_->waitAsync(sample_ready_.get());
 	is_running_ = true;
 	hrIfFailThrow(client_->Start());
 

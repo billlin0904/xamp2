@@ -10,9 +10,13 @@
 #include <QScopeGuard>
 #include <QStringConverter>
 
+#include <expected>
+#include <vector>
+
 #include <widget/networkdiskcache.h>
 #include <widget/util/str_util.h>
-#include <widget/util/zib_util.h>
+
+#include <base/zib_util.h>
 
 #include "version.h"
 
@@ -23,6 +27,35 @@ namespace http {
         bool isCompressEncoding(const QNetworkReply * reply) {
             const auto encoding = reply->rawHeader("Content-Encoding").toLower();
             return encoding.contains("gzip") || encoding.contains("deflate");
+        }
+
+        QByteArray toByteArray(const std::vector<uint8_t>& bytes) {
+            return QByteArray(
+                reinterpret_cast<const char*>(bytes.data()),
+                static_cast<qsizetype>(bytes.size()));
+        }
+
+        std::expected<QByteArray, xamp::base::GzipDecompressError> gzipCompress(
+            const QByteArray& data,
+            xamp::base::CompressType compress_type = xamp::base::CompressType::COMPRESS_DEFLATE) {
+            const auto result = xamp::base::gzipCompress(
+                reinterpret_cast<const uint8_t*>(data.constData()),
+                static_cast<size_t>(data.size()),
+                compress_type);
+            if (!result) {
+                return std::unexpected(result.error());
+            }
+            return toByteArray(result.value());
+        }
+
+        std::expected<QByteArray, xamp::base::GzipDecompressError> gzipDecompress(const QByteArray& data) {
+            const auto result = xamp::base::gzipDecompressBytes(
+                reinterpret_cast<const uint8_t*>(data.constData()),
+                static_cast<size_t>(data.size()));
+            if (!result) {
+                return std::unexpected(result.error());
+            }
+            return toByteArray(result.value());
         }
 
         QByteArray decompressReplyContent(const LoggerPtr& logger,
@@ -201,7 +234,7 @@ namespace http {
         else {
             data = json_.toUtf8();
             if (data.length() > 1024) {
-                auto result = gzipCompress(data, CompressType::COMPRESS_GZIP);
+                auto result = gzipCompress(data, xamp::base::CompressType::COMPRESS_GZIP);
                 if (result) {
                     data = result.value();
                     request.setRawHeader("Content-Encoding", "gzip");

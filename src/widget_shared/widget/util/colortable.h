@@ -23,7 +23,12 @@ public:
 
 	void setSpectrogramColor(SpectrogramColor color);
 
-	QRgb operator[](double dB_val) const ;
+	inline QRgb operator[](double dB_val) const {
+		dB_val = std::clamp(dB_val, kMinDb, kMaxDb);
+		const double ratio = (dB_val - kMinDb) / kDbRange;
+		const size_t idx = static_cast<size_t>(ratio * (kLutSize - 1));
+		return color_lut_ptr_[idx];
+	}
 
 private:
 	SpectrogramColor color_ = SpectrogramColor::SPECTROGRAM_COLOR_SOX;

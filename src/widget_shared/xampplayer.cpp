@@ -105,6 +105,13 @@ void IXMainWindow::installWindowAgent() {
     close_button->setIconSize(QSize(8, 8));
     close_button->setMinimumSize(QSize(32, 32));
     set_button_style(close_button);
+    const auto refresh_caption_icons = [min_button, max_button, close_button] {
+        min_button->setIconNormal(qTheme.fontIcon(Glyphs::ICON_MINIMIZE_WINDOW));
+        max_button->setIconNormal(qTheme.fontIcon(Glyphs::ICON_MAXIMUM_WINDOW));
+        close_button->setIconNormal(qTheme.fontIcon(Glyphs::ICON_CLOSE_WINDOW));
+    };
+    connect(&qTheme, &ThemeManager::themeChangedFinished, this, refresh_caption_icons);
+
 
 #endif
 

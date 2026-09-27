@@ -8,7 +8,6 @@
 #include <widget/playerorder.h>
 #include <ui_xamp.h>
 
-class NavBarListView;
 
 void setShufflePlayOrder(Ui::XampWindow& ui);
 
@@ -20,11 +19,7 @@ void setThemeIcon(Ui::XampWindow& ui);
 
 void setRepeatButtonIcon(Ui::XampWindow& ui, PlayerOrder order);
 
-void setNaviBarTheme(NavBarListView* navi_bar);
 
 void setWidgetStyle(Ui::XampWindow& ui);
 
 void updateButtonState(QToolButton* playButton, PlayerState state);
-
-void setNaviBarMenuButton(Ui::XampWindow& ui);
-

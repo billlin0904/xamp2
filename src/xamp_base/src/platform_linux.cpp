@@ -21,6 +21,38 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
+namespace {
+    void setNativeThreadPriority(std::thread::native_handle_type handle, ThreadPriority priority) {
+        sched_param thread_param{};
+        if (priority != ThreadPriority::PRIORITY_HIGHEST) {
+            const auto error = ::pthread_setschedparam(handle, SCHED_OTHER, &thread_param);
+            if (error != 0 && error != EPERM) {
+                XAMP_LOG_DEBUG("Failed to set SCHED_OTHER thread priority: {}.", std::strerror(error));
+            }
+            return;
+        }
+
+        const auto min_priority = ::sched_get_priority_min(SCHED_RR);
+        const auto max_priority = ::sched_get_priority_max(SCHED_RR);
+        if (min_priority < 0 || max_priority < 0) {
+            XAMP_LOG_DEBUG("Failed to query SCHED_RR priority range: {}.", std::strerror(errno));
+            return;
+        }
+
+        thread_param.sched_priority = (std::min)(min_priority + 4, max_priority);
+        const auto error = ::pthread_setschedparam(handle, SCHED_RR, &thread_param);
+        if (error == EPERM) {
+            XAMP_LOG_DEBUG("SCHED_RR thread priority unavailable. Grant CAP_SYS_NICE or rtprio to enable it.");
+            return;
+        }
+        if (error != 0) {
+            XAMP_LOG_DEBUG("Failed to set SCHED_RR thread priority: {}.", std::strerror(error));
+            return;
+        }
+        XAMP_LOG_TRACE("Current thread SCHED_RR priority is {}.", thread_param.sched_priority);
+    }
+}
+
 bool atomicWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, uint32_t milliseconds) {
     static_assert(sizeof(std::atomic<uint32_t>) == sizeof(uint32_t),
         "std::atomic<uint32_t> must have the same layout size as uint32_t for futex wait.");
@@ -104,52 +136,12 @@ void setThreadName(std::wstring const& name) {
     ::pthread_setname_np(::pthread_self(), shortened_name.c_str());
 }
 
-namespace {
-    void setNativeThreadPriority(std::thread::native_handle_type handle, ThreadPriority priority) {
-        sched_param thread_param{};
-        if (priority != ThreadPriority::PRIORITY_HIGHEST) {
-            const auto error = ::pthread_setschedparam(handle, SCHED_OTHER, &thread_param);
-            if (error != 0 && error != EPERM) {
-                XAMP_LOG_DEBUG("Failed to set SCHED_OTHER thread priority: {}.", std::strerror(error));
-            }
-            return;
-        }
-
-        const auto min_priority = ::sched_get_priority_min(SCHED_RR);
-        const auto max_priority = ::sched_get_priority_max(SCHED_RR);
-        if (min_priority < 0 || max_priority < 0) {
-            XAMP_LOG_DEBUG("Failed to query SCHED_RR priority range: {}.", std::strerror(errno));
-            return;
-        }
-
-        thread_param.sched_priority = (std::min)(min_priority + 4, max_priority);
-        const auto error = ::pthread_setschedparam(handle, SCHED_RR, &thread_param);
-        if (error == EPERM) {
-            XAMP_LOG_DEBUG("SCHED_RR thread priority unavailable. Grant CAP_SYS_NICE or rtprio to enable it.");
-            return;
-        }
-        if (error != 0) {
-            XAMP_LOG_DEBUG("Failed to set SCHED_RR thread priority: {}.", std::strerror(error));
-            return;
-        }
-        XAMP_LOG_TRACE("Current thread SCHED_RR priority is {}.", thread_param.sched_priority);
-    }
-}
-
 void setThreadPriority(std::jthread& thread, ThreadPriority priority) {
     setNativeThreadPriority(thread.native_handle(), priority);
 }
 
 void setCurrentThreadPriority(ThreadPriority priority) {
     setNativeThreadPriority(::pthread_self(), priority);
-}
-
-bool isDebugging() {
-#ifdef _DEBUG
-    return true;
-#else
-    return true;
-#endif
 }
 
 bool virtualMemoryLock(void* address, size_t size) {

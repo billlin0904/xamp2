@@ -81,6 +81,8 @@ XAMP_STREAM_API void loadSrcLib();
 
 XAMP_STREAM_API void loadBassLib();
 
+XAMP_STREAM_API void unloadBassLib();
+
 XAMP_STREAM_API void loadMqaLib();
 
 XAMP_STREAM_NAMESPACE_END

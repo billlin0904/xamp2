@@ -51,15 +51,22 @@ namespace {
 	}
 
 	using ObjectInstancePtr = std::shared_ptr<ObjectInstance>;
-	HashMap<std::string, ObjectInstancePtr, StringHash, StringEqual> object_type_lut;
+
+	struct LifetimeCheck {
+		~LifetimeCheck() {			
+		}
+		HashMap<std::string, ObjectInstancePtr, StringHash, StringEqual> value;
+	};
+
+	LifetimeCheck object_type_lut;
 
 	ObjectInstancePtr getSingletonByType(std::string_view name) {
-		auto itr = object_type_lut.find(name);
-		if (itr != object_type_lut.end()) {
+		auto itr = object_type_lut.value.find(name);
+		if (itr != object_type_lut.value.end()) {
 			return itr->second;
 		}		
 		auto slot = std::make_shared<ObjectInstance>();
-		object_type_lut.emplace(name, slot);
+		object_type_lut.value.emplace(name, slot);
 		return slot;
 	}
 }
@@ -77,7 +84,7 @@ void getSharedInstance(std::string_view type_name,
 		ptr = getSingletonByType(type_name);
 	}
 
-	const bool is_logger = (type_name == LoggerManager::getSingletonName());
+	const bool is_logger = (type_name == LoggerFactory::getSingletonName());
 
 	{
 		std::lock_guard<FastMutex> guard(*ptr->mutex);

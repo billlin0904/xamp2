@@ -89,7 +89,6 @@ public:
 
     QLatin1String themeColorPath(ThemeColor theme_color) const;
 
-    void setMenuStyle(QWidget* menu);
 
     QColor textColor() const;
 
@@ -200,4 +199,3 @@ private:
 };
 
 #define qTheme SharedSingleton<ThemeManager>::getInstance()
-#define qIconCache SharedSingleton<LruCache<QString, QIcon>>::getInstance()

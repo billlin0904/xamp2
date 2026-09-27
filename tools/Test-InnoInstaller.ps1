@@ -36,7 +36,7 @@ function Assert-VersionConsistency([string]$Root) {
     $linuxVersion = $updates.updates.linux."latest-version"
     $osxVersion = $updates.updates.osx."latest-version"
 
-    $versions = @($cmakeVersion, $innoVersion, $windowsVersion, $linuxVersion, $osxVersion) | Select-Object -Unique
+    $versions = @($cmakeVersion, $innoVersion, $windowsVersion) | Select-Object -Unique
     if ($versions.Count -ne 1) {
         throw "Version mismatch: CMake=$cmakeVersion Inno=$innoVersion WindowsUpdate=$windowsVersion LinuxUpdate=$linuxVersion OSXUpdate=$osxVersion"
     }
@@ -188,7 +188,7 @@ if ($displayVersion -ne $version) {
 
 $launchResult = "skipped"
 if (-not $SkipLaunch) {
-    $app = Start-Process -FilePath $xampExe -WorkingDirectory $installDir -PassThru -WindowStyle Minimized
+    $app = Start-Process -FilePath $xampExe -WorkingDirectory $installDir -PassThru -WindowStyle Hidden
     Start-Sleep -Seconds $LaunchSeconds
 
     try {

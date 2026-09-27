@@ -1,8 +1,14 @@
 cmake_minimum_required(VERSION 3.24)
 
 project(xamp
-    VERSION 0.1.0
+    VERSION 1.0.2
     LANGUAGES CXX)
+
+option(XAMP_BUILD_ARCHITECTURE_TESTS "Build playback queue/state regression tests" OFF)
+if(XAMP_BUILD_ARCHITECTURE_TESTS)
+    enable_testing()
+endif()
+
 
 option(XAMP_BUILD_OUTPUT_DEVICE "Build the cross-platform audio output device library." ON)
 option(XAMP_BUILD_STREAM "Build the cross-platform stream library." ON)
@@ -113,4 +119,10 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     endif()
 else()
     message(STATUS "No root-level targets enabled for ${CMAKE_SYSTEM_NAME}.")
+endif()
+
+option(XAMP_BUILD_TESTS "Build Catch2 audio regression tests" OFF)
+if(XAMP_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
 endif()

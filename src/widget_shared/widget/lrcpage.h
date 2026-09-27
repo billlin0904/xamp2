@@ -25,6 +25,7 @@ class VinylWidget;
 class ScrollLabel;
 class LyricsShowWidget;
 class QPaintEvent;
+class QMenu;
 
 enum {
 	LRC_PAGE_TAB_ID = 0,
@@ -106,8 +107,6 @@ public:
 
 	void setPlayListEntity(const PlayListEntity& entity);
 
-	void addCoverShadow(bool is_dark = false);
-
 	QLabel* format();
 
 	ScrollLabel* album();
@@ -149,6 +148,8 @@ private:
 	void updateBackgroundCache();
 
 	void applyLyrics(const LyricsParser& parser);
+
+	void populateLyricsContextMenu(QMenu* menu);
 
 	void paintEvent(QPaintEvent*) override;
 

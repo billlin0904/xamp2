@@ -83,7 +83,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/;../thirdparty/soxr/src/;../thirdparty/r8brain-free-src/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/;../thirdparty/libsamplerate/include/;../thirdparty/LibALAC/;C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\include\;../thirdparty/libflac/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../thirdparty/pcm_dsd_converter/include/;./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/;../thirdparty/soxr/src/;../thirdparty/r8brain-free-src/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/;../thirdparty/libsamplerate/include/;../thirdparty/LibALAC/;C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\include\;../thirdparty/libflac/include/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STREAM_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996;4819;4200;</DisableSpecificWarnings>
       <BrowseInformation>false</BrowseInformation>
@@ -134,7 +134,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/;../thirdparty/soxr/src/;../thirdparty/r8brain-free-src/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/;../thirdparty/libsamplerate/include/;C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../thirdparty/pcm_dsd_converter/include/;./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/unordered_dense/include/;../thirdparty/soxr/src/;../thirdparty/r8brain-free-src/;../thirdparty/ffmpeg/include/;../thirdparty/libdiscid/include/;../thirdparty/libsamplerate/include/;C:\Program Files (x86)\Intel\oneAPI\mkl\2025.0\include\</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STREAM_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4996;4819;4200;</DisableSpecificWarnings>
@@ -185,6 +185,8 @@
     <ClInclude Include="include\stream\idspmanager.h" />
     <ClInclude Include="include\stream\ifileencoder.h" />
     <ClInclude Include="include\stream\filestream.h" />
+    <ClInclude Include="include\stream\pcm2dsdfilestream.h" />
+    <ClInclude Include="include\stream\pcmdsdlib.h" />
     <ClInclude Include="include\stream\isameplewriter.h" />
     <ClInclude Include="include\stream\mbdiscid.h" />
     <ClInclude Include="include\stream\mqaidentifier.h" />
@@ -204,6 +206,8 @@
     <ClCompile Include="src\libavencoder.cpp" />
     <ClCompile Include="src\avlib.cpp" />
     <ClCompile Include="src\avlibfilestream.cpp" />
+    <ClCompile Include="src\pcm2dsdfilestream.cpp" />
+    <ClCompile Include="src\pcmdsdlib.cpp" />
     <ClCompile Include="src\basscddevice.cpp" />
     <ClCompile Include="src\bassexception.cpp" />
     <ClCompile Include="src\bassfilestream.cpp" />
@@ -222,5 +226,23 @@
     <ClCompile Include="src\stft.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ItemGroup>
+    <ProjectReference Include="..\xamp_base\xamp_base.vcxproj">
+      <Project>{787171BF-E651-4B4F-A2D9-0B3D5108DA93}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <ImportGroup Label="ExtensionTargets" />
+  <Target Name="BuildPcmDsdConverter" BeforeTargets="ClCompile" Condition="'$(DesignTimeBuild)' != 'true' and '$(Platform)' == 'x64'">
+    <Exec Command="cmake -S &quot;$(ProjectDir)..\thirdparty\pcm_dsd_converter&quot; -B &quot;$(ProjectDir)..\thirdparty\pcm_dsd_converter\build-msbuild&quot; -G &quot;Visual Studio 18 2026&quot; -A x64 -DPCM_DSD_BUILD_TESTS=OFF" />
+    <Exec Command="cmake --build &quot;$(ProjectDir)..\thirdparty\pcm_dsd_converter\build-msbuild&quot; --config Release" />
+  </Target>
+  <Target Name="DeployPcmDsdConverter" AfterTargets="Build" DependsOnTargets="BuildPcmDsdConverter" Condition="'$(Platform)' == 'x64'">
+    <Copy SourceFiles="$(ProjectDir)..\thirdparty\pcm_dsd_converter\build-msbuild\Release\pcm_dsd_converter.dll" DestinationFolder="$(OutDir)" />
+    <MakeDir Directories="$(OutDir)licenses" />
+    <Copy SourceFiles="$(ProjectDir)..\thirdparty\pcm_dsd_converter\LICENSE" DestinationFiles="$(OutDir)licenses\pcm_dsd_converter.txt" />
+    <ItemGroup>
+      <PcmDsdMklLicense Include="$(ProjectDir)..\thirdparty\pcm_dsd_converter\licenses\onemkl\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PcmDsdMklLicense)" DestinationFolder="$(OutDir)licenses\onemkl" />
+  </Target>
 </Project>

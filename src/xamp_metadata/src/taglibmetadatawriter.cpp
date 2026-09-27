@@ -51,7 +51,7 @@ namespace {
 	public:
 		explicit FileReplaceTransaction(const Path& original_path)
 			: original_path_(original_path)
-			, temp_path_(MakeTempPath(original_path)) {
+			, temp_path_(makeTempPath(original_path)) {
 			std::error_code ec;
 			if (!Fs::copy_file(original_path_, temp_path_, Fs::copy_options::overwrite_existing, ec) || ec) {
 				XAMP_LOG_DEBUG("Copy metadata source file failure.");
@@ -83,11 +83,11 @@ namespace {
 			cleanup();
 		}
 
-		[[nodiscard]] const Path& TempPath() const {
+		[[nodiscard]] const Path& tempPath() const {
 			return temp_path_;
 		}
 
-		void Commit() {
+		void commit() {
 			if (committed_) {
 				return;
 			}
@@ -109,29 +109,6 @@ namespace {
 		}
 
 	private:
-		static Path MakeTempPath(const Path& original_path) {
-			constexpr auto kMaxRetryCreateTempFile = 128;
-			const auto dir = original_path.parent_path();
-			const auto ext = original_path.extension().wstring();
-
-			for (auto i = 0; i < kMaxRetryCreateTempFile; ++i) {
-				// Keep the temp file in the same directory for atomic replacement, but
-				// do not reuse the original stem. Long track names can push Windows
-				// paths past MAX_PATH once the transaction suffix is appended.
-				const auto file_name = L"xamp-"
-					+ String::toStdWString(getSequentialUuid())
-					+ ext;
-				auto temp_path = dir.empty()
-					? Path(file_name)
-					: dir / file_name;
-				std::error_code ec;
-				if (!Fs::exists(temp_path, ec) && !ec) {
-					return temp_path;
-				}
-			}
-			throw PlatformException("create metadata temp file path failure.");
-		}
-
 		void cleanup() noexcept {
 			if (committed_ || temp_path_.empty()) {
 				return;
@@ -146,7 +123,7 @@ namespace {
 		bool committed_{ false };
 	};
 
-	bool ClearTxxTag(ID3v2::Tag* tag,
+	bool clearTxxTag(ID3v2::Tag* tag,
 		TagLib::String const& tag_name,
 		double* old_content = nullptr) {
 		const auto& frame_list = tag->frameList("TXXX");
@@ -163,7 +140,7 @@ namespace {
 		return false;
 	}
 
-	void SetTxxTag(ID3v2::Tag* tag, std::string const& tag_name, std::string const& value) {
+	void setTxxTag(ID3v2::Tag* tag, std::string const& tag_name, std::string const& value) {
 		auto* txxx_frame = TagLib::ID3v2::UserTextIdentificationFrame::find(tag, tag_name);
 		if (!txxx_frame) {
 			txxx_frame = new TagLib::ID3v2::UserTextIdentificationFrame();
@@ -173,23 +150,23 @@ namespace {
 		txxx_frame->setText(value);
 	}
 
-	void WriteID3v2ReplayGain(ID3v2::Tag* tag, const ReplayGain& replay_gain) {
+	void writeID3v2ReplayGain(ID3v2::Tag* tag, const ReplayGain& replay_gain) {
 		if (!tag) {
 			return;
 		}
-		while (ClearTxxTag(tag, kReplaygainAlbumGain)) {}
-		while (ClearTxxTag(tag, kReplaygainTrackGain)) {}
-		while (ClearTxxTag(tag, kReplaygainAlbumPeak)) {}
-		while (ClearTxxTag(tag, kReplaygainTrackPeak)) {}
-		while (ClearTxxTag(tag, kReplaygainReferenceLoudness)) {}
-		SetTxxTag(tag, kReplaygainAlbumGain, std::to_string(replay_gain.album_gain));
-		SetTxxTag(tag, kReplaygainTrackGain, std::to_string(replay_gain.track_gain));
-		SetTxxTag(tag, kReplaygainAlbumPeak, std::to_string(replay_gain.album_peak));
-		SetTxxTag(tag, kReplaygainTrackPeak, std::to_string(replay_gain.track_peak));
-		SetTxxTag(tag, kReplaygainReferenceLoudness, std::to_string(replay_gain.ref_loudness));
+		while (clearTxxTag(tag, kReplaygainAlbumGain)) {}
+		while (clearTxxTag(tag, kReplaygainTrackGain)) {}
+		while (clearTxxTag(tag, kReplaygainAlbumPeak)) {}
+		while (clearTxxTag(tag, kReplaygainTrackPeak)) {}
+		while (clearTxxTag(tag, kReplaygainReferenceLoudness)) {}
+		setTxxTag(tag, kReplaygainAlbumGain, std::to_string(replay_gain.album_gain));
+		setTxxTag(tag, kReplaygainTrackGain, std::to_string(replay_gain.track_gain));
+		setTxxTag(tag, kReplaygainAlbumPeak, std::to_string(replay_gain.album_peak));
+		setTxxTag(tag, kReplaygainTrackPeak, std::to_string(replay_gain.track_peak));
+		setTxxTag(tag, kReplaygainReferenceLoudness, std::to_string(replay_gain.ref_loudness));
 	}
 
-	TagLib::List<TagLib::VariantMap> MakeFrontCoverProperties(const TagLib::ByteVector& image_data) {
+	TagLib::List<TagLib::VariantMap> makeFrontCoverProperties(const TagLib::ByteVector& image_data) {
 		TagLib::VariantMap picture;
 		picture.insert("data", image_data);
 		picture.insert("description", TagLib::String("cover"));
@@ -201,21 +178,21 @@ namespace {
 		return pictures;
 	}
 
-	bool WriteDefaultEmbeddedCover(TagLib::Tag* tag, const TagLib::ByteVector& image_data) {
+	bool writeDefaultEmbeddedCover(TagLib::Tag* tag, const TagLib::ByteVector& image_data) {
 		if (!tag) {
 			return false;
 		}
-		return tag->setComplexProperties("PICTURE", MakeFrontCoverProperties(image_data));
+		return tag->setComplexProperties("PICTURE", makeFrontCoverProperties(image_data));
 	}
 
-	bool WriteDefaultEmbeddedCover(File* file_, const TagLib::ByteVector& image_data) {
+	bool writeDefaultEmbeddedCover(File* file_, const TagLib::ByteVector& image_data) {
 		if (!file_) {
 			return false;
 		}
-		return file_->setComplexProperties("PICTURE", MakeFrontCoverProperties(image_data));
+		return file_->setComplexProperties("PICTURE", makeFrontCoverProperties(image_data));
 	}
 
-	bool RemoveDefaultEmbeddedCover(TagLib::Tag* tag) {
+	bool removeDefaultEmbeddedCover(TagLib::Tag* tag) {
 		if (!tag) {
 			return false;
 		}
@@ -223,7 +200,7 @@ namespace {
 		return tag->setComplexProperties("PICTURE", pictures);
 	}
 
-	bool RemoveDefaultEmbeddedCover(File* file_) {
+	bool removeDefaultEmbeddedCover(File* file_) {
 		if (!file_) {
 			return false;
 		}
@@ -257,30 +234,30 @@ namespace {
 		}
 
 		void writeEmbeddedCover(File* file_, const TagLib::ByteVector& image_data) override {
-			WriteDefaultEmbeddedCover(file_, image_data);
+			writeDefaultEmbeddedCover(file_, image_data);
 		}
 
 		void removeEmbeddedCover(File* file_) override {
-			RemoveDefaultEmbeddedCover(file_);
+			removeDefaultEmbeddedCover(file_);
 		}
 	};
 
 	struct Mp3TagWriter : public IFileTagWriter {
 		void writeReplayGain(const ReplayGain& replay_gain, File* file_) override {
 			if (auto* mp3_file = dynamic_cast<TagLib::MPEG::File*>(file_)) {
-				WriteID3v2ReplayGain(mp3_file->ID3v2Tag(true), replay_gain);
+				writeID3v2ReplayGain(mp3_file->ID3v2Tag(true), replay_gain);
 			}
 		}
 
 		void writeEmbeddedCover(File* file_, const TagLib::ByteVector& image_data) override {
 			if (auto* mp3_file = dynamic_cast<TagLib::MPEG::File*>(file_)) {
-				WriteDefaultEmbeddedCover(mp3_file->ID3v2Tag(true), image_data);
+				writeDefaultEmbeddedCover(mp3_file->ID3v2Tag(true), image_data);
 			}
 		}
 
 		void removeEmbeddedCover(File* file_) override {
 			if (auto* mp3_file = dynamic_cast<TagLib::MPEG::File*>(file_)) {
-				RemoveDefaultEmbeddedCover(mp3_file->ID3v2Tag(true));
+				removeDefaultEmbeddedCover(mp3_file->ID3v2Tag(true));
 			}
 		}
 	};
@@ -288,19 +265,19 @@ namespace {
 	struct WavTagWriter : public IFileTagWriter {
 		void writeReplayGain(const ReplayGain& replay_gain, File* file_) override {
 			if (auto* wav_file = dynamic_cast<TagLib::RIFF::WAV::File*>(file_)) {
-				WriteID3v2ReplayGain(wav_file->ID3v2Tag(), replay_gain);
+				writeID3v2ReplayGain(wav_file->ID3v2Tag(), replay_gain);
 			}
 		}
 
 		void writeEmbeddedCover(File* file_, const TagLib::ByteVector& image_data) override {
 			if (auto* wav_file = dynamic_cast<TagLib::RIFF::WAV::File*>(file_)) {
-				WriteDefaultEmbeddedCover(wav_file->ID3v2Tag(), image_data);
+				writeDefaultEmbeddedCover(wav_file->ID3v2Tag(), image_data);
 			}
 		}
 
 		void removeEmbeddedCover(File* file_) override {
 			if (auto* wav_file = dynamic_cast<TagLib::RIFF::WAV::File*>(file_)) {
-				RemoveDefaultEmbeddedCover(wav_file->ID3v2Tag());
+				removeDefaultEmbeddedCover(wav_file->ID3v2Tag());
 			}
 		}
 	};
@@ -308,19 +285,19 @@ namespace {
 	struct DsfTagWriter : public IFileTagWriter {
 		void writeReplayGain(const ReplayGain& replay_gain, File* file_) override {
 			if (auto* dsf_file = dynamic_cast<TagLib::DSF::File*>(file_)) {
-				WriteID3v2ReplayGain(dsf_file->tag(), replay_gain);
+				writeID3v2ReplayGain(dsf_file->tag(), replay_gain);
 			}
 		}
 
 		void writeEmbeddedCover(File* file_, const TagLib::ByteVector& image_data) override {
 			if (auto* dsf_file = dynamic_cast<TagLib::DSF::File*>(file_)) {
-				WriteDefaultEmbeddedCover(dsf_file->tag(), image_data);
+				writeDefaultEmbeddedCover(dsf_file->tag(), image_data);
 			}
 		}
 
 		void removeEmbeddedCover(File* file_) override {
 			if (auto* dsf_file = dynamic_cast<TagLib::DSF::File*>(file_)) {
-				RemoveDefaultEmbeddedCover(dsf_file->tag());
+				removeDefaultEmbeddedCover(dsf_file->tag());
 			}
 		}
 	};
@@ -328,19 +305,19 @@ namespace {
 	struct DiffTagWriter : public IFileTagWriter {
 		void writeReplayGain(const ReplayGain& replay_gain, File* file_) override {
 			if (auto* diff_file = dynamic_cast<TagLib::DSDIFF::File*>(file_)) {
-				WriteID3v2ReplayGain(diff_file->ID3v2Tag(true), replay_gain);
+				writeID3v2ReplayGain(diff_file->ID3v2Tag(true), replay_gain);
 			}
 		}
 
 		void writeEmbeddedCover(File* file_, const TagLib::ByteVector& image_data) override {
 			if (auto* diff_file = dynamic_cast<TagLib::DSDIFF::File*>(file_)) {
-				WriteDefaultEmbeddedCover(diff_file->ID3v2Tag(true), image_data);
+				writeDefaultEmbeddedCover(diff_file->ID3v2Tag(true), image_data);
 			}
 		}
 
 		void removeEmbeddedCover(File* file_) override {
 			if (auto* diff_file = dynamic_cast<TagLib::DSDIFF::File*>(file_)) {
-				RemoveDefaultEmbeddedCover(diff_file->ID3v2Tag(false));
+				removeDefaultEmbeddedCover(diff_file->ID3v2Tag(false));
 			}
 		}
 	};
@@ -362,7 +339,7 @@ namespace {
 		}
 
 		void writeEmbeddedCover(File* file_, const TagLib::ByteVector& image_data) override {
-			WriteDefaultEmbeddedCover(file_, image_data);
+			writeDefaultEmbeddedCover(file_, image_data);
 		}
 
 		void removeEmbeddedCover(File* file_) override {
@@ -407,13 +384,13 @@ namespace {
 			if (!tag) {				
 				return;
 			}
-			WriteDefaultEmbeddedCover(tag, image_data);
+			writeDefaultEmbeddedCover(tag, image_data);
 		}
 
 		void removeEmbeddedCover(File* file_) override {
 			if (auto* const opus_file = dynamic_cast<TagLib::Ogg::Opus::File*>(file_)) {
 				auto* tag = opus_file->tag();
-				RemoveDefaultEmbeddedCover(tag);
+				removeDefaultEmbeddedCover(tag);
 			}
 		}
 	};
@@ -434,7 +411,7 @@ namespace {
 		void writeEmbeddedCover(File* file_, const TagLib::ByteVector& image_data) override {
 			if (auto* ape_file = dynamic_cast<APE::File*>(file_)) {
 				if (auto* tag = ape_file->APETag(true)) {
-					WriteDefaultEmbeddedCover(tag, image_data);
+					writeDefaultEmbeddedCover(tag, image_data);
 				}
 			}
 		}
@@ -442,7 +419,7 @@ namespace {
 		void removeEmbeddedCover(File* file_) override {
 			if (auto* ape_file = dynamic_cast<APE::File*>(file_)) {
 				if (auto* tag = ape_file->APETag(false)) {
-					RemoveDefaultEmbeddedCover(tag);
+					removeDefaultEmbeddedCover(tag);
 				}
 			}
 		}
@@ -462,7 +439,7 @@ namespace {
 		{ ".dsf",  [] { return makeAlign<IFileTagWriter, DsfTagWriter>(); } }
 	};
 
-	ScopedPtr<IFileTagWriter> MakeFileTagWriter(const std::string &ext) {
+	ScopedPtr<IFileTagWriter> makeFileTagWriter(const std::string &ext) {
 		auto itr = kFileTagWriterLut.find(ext);
 		if (itr != kFileTagWriterLut.end()) {
 			return std::invoke(itr->second);
@@ -496,7 +473,7 @@ public:
 		clear();
 
 		transaction_.emplace(path);
-		io_stream_.open(transaction_->TempPath());
+		io_stream_.open(transaction_->tempPath());
 		FileRef fileref(&io_stream_);
 		if (fileref.isNull()) {
 			XAMP_LOG_DEBUG("file was NULL!");
@@ -511,7 +488,7 @@ public:
 		fileref_opt_ = fileref;
 		path_ = path;
 		const auto ext = String::toLower(path_.extension().string());
-		tag_writer_ = MakeFileTagWriter(ext);
+		tag_writer_ = makeFileTagWriter(ext);
 	}
 
     void write(const TrackInfo &track_info) const {
@@ -635,7 +612,7 @@ private:
 
 		closeWorkingFile();
 		if (transaction_) {
-			transaction_->Commit();
+			transaction_->commit();
 		}
 		clear();
     }

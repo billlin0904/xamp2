@@ -172,7 +172,7 @@ namespace {
         label->setFont(font);
         label->setFixedHeight(kHeaderRowHeight);
         label->setAlignment(alignment);
-        label->setStyleSheet(QStringLiteral("color:#f5f5f5; background-color: transparent;"));
+        label->setStyleSheet(QStringLiteral("background-color: transparent;"));
         return label;
     }
 }
@@ -216,11 +216,11 @@ protected:
         QPainter painter(this);
         painter.setRenderHint(QPainter::Antialiasing);
 
-        const auto background = QColor(48, 48, 50);
-        const auto grid = QColor(255, 255, 255, 48);
-        const auto axis = QColor(255, 255, 255, 145);
-        const auto text = QColor(245, 245, 245);
-        const auto curve = QColor(47, 173, 236);
+        const auto background = (qTheme.isDarkTheme() ? QColor(48, 48, 50) : QColor("#F5F8F6"));
+        const auto grid = (qTheme.isDarkTheme() ? QColor(255, 255, 255, 48) : QColor(40, 65, 53, 40));
+        const auto axis = (qTheme.isDarkTheme() ? QColor(255, 255, 255, 145) : QColor("#70857A"));
+        const auto text = (qTheme.isDarkTheme() ? QColor(245, 245, 245) : QColor("#253B32"));
+        const auto curve = (qTheme.isDarkTheme() ? QColor(47, 173, 236) : QColor("#006B94"));
 
         painter.fillRect(rect(), background);
 
@@ -334,7 +334,7 @@ protected:
             analyzer_smoothed_ready_ = started;
 
             if (started) {
-                painter.setPen(QPen(QColor(235, 235, 235, 82), 1.2));
+                painter.setPen(QPen((qTheme.isDarkTheme() ? QColor(235, 235, 235, 82) : QColor(55, 80, 65, 150)), 1.2));
                 painter.drawPath(analyzer_path);
             }
         }
@@ -509,8 +509,8 @@ protected:
         font.setPointSize(qTheme.fontSize(8));
         painter.setFont(font);
 
-        const auto tick_color = QColor(245, 245, 245, 90);
-        const auto label_color = QColor(245, 245, 245, 180);
+        const auto tick_color = (qTheme.isDarkTheme() ? QColor(245, 245, 245, 90) : QColor("#70857A"));
+        const auto label_color = (qTheme.isDarkTheme() ? QColor(245, 245, 245, 180) : QColor("#3F554B"));
         constexpr auto tick_left = 2;
         constexpr auto label_left = 14;
         constexpr auto label_height = 18;
@@ -623,7 +623,8 @@ EqualizerView::EqualizerView(QWidget* parent)
     test_wave_timer_->setInterval(100);
     test_wave_timer_->setTimerType(Qt::CoarseTimer);
 
-    setStyleSheet(qFormat(R"(
+    const auto refresh_theme = [this] {
+        auto sheet = qFormat(R"(
         QFrame#EqualizerView {
             background-color: %1;
         }
@@ -716,7 +717,31 @@ EqualizerView::EqualizerView(QWidget* parent)
             margin: 0px -6px;
             border-radius: 7px;
         }
-    )").arg(qTheme.backgroundColorString(), kEqGraphPanelColor));
+    )").arg(qTheme.backgroundColorString(), qTheme.isDarkTheme() ? kEqGraphPanelColor : QStringLiteral("#F5F8F6"));
+        if (!qTheme.isDarkTheme()) {
+            sheet.replace("#f5f5f5"_str, "#253B32"_str).replace("#f8f8f8"_str, "#253B32"_str)
+                .replace("#252525"_str, "#FFFFFF"_str).replace("#242424"_str, "#E3ECE6"_str)
+                .replace("#383838"_str, "#ACBDB2"_str).replace("#3b3b3b"_str, "#ACBDB2"_str)
+                .replace("#303030"_str, "#D0E2D7"_str).replace("#2a2a2a"_str, "#E3ECE6"_str)
+                .replace("#555555"_str, "#8BA396"_str).replace("#686868"_str, "#5D7D6C"_str)
+                .replace("#202020"_str, "#CFDCD4"_str).replace("#454545"_str, "#91A699"_str)
+                .replace("#3a3a3a"_str, "#CFDCD4"_str).replace("#6f65d6"_str, "#25745B"_str)
+                .replace("#2f2f2f"_str, "#F5F8F6"_str);
+        }
+        sheet += QStringLiteral("QComboBox QAbstractItemView { color: %1; background: %2; selection-color: %1; selection-background-color: %3; }")
+            .arg(qTheme.isDarkTheme() ? "#EEF1EF"_str : "#253B32"_str,
+                qTheme.isDarkTheme() ? "#252525"_str : "#FFFFFF"_str,
+                qTheme.isDarkTheme() ? "#29463E"_str : "#CAE2D7"_str);
+        setStyleSheet(sheet);
+        ui_->graphFrame->setStyleSheet(QStringLiteral("background-color:%1; border:none;")
+            .arg(qTheme.isDarkTheme() ? kEqGraphPanelColor : "#F5F8F6"_str));
+        ui_->bandsScrollArea->viewport()->setStyleSheet(QStringLiteral("background-color:%1;").arg(qTheme.backgroundColorString()));
+        ui_->bandsScrollAreaWidget->setStyleSheet(QStringLiteral("background-color:%1;").arg(qTheme.backgroundColorString()));
+        update();
+        for (auto* child : findChildren<QWidget*>()) child->update();
+    };
+    refresh_theme();
+    connect(&qTheme, &ThemeManager::themeChangedFinished, this, refresh_theme);
 
     (void)QObject::connect(preamp_slider_, &QSlider::valueChanged, [this](int value) {
         current_settings_.preamp = static_cast<float>(value) / kPreampScale;
@@ -767,7 +792,7 @@ EqualizerView::EqualizerView(QWidget* parent)
         qAppSettings.loadEqPreset();
         auto settings = qAppSettings.eqPreset().value(name);
         if (settings.bands.empty()) {
-            settings.SetDefault();
+            settings.setDefault();
         }
         applySetting(name, settings);
         saveCurrentSetting();
@@ -798,7 +823,7 @@ EqualizerView::EqualizerView(QWidget* parent)
         settings = qAppSettings.eqPreset().value(name);
     }
     if (settings.bands.empty()) {
-        settings.SetDefault();
+        settings.setDefault();
     }
 
     applySetting(name, settings);
@@ -996,7 +1021,7 @@ void EqualizerView::applySetting(const QString& name, const EqSettings& settings
     current_settings_ = settings;
 
     if (current_settings_.bands.empty()) {
-        current_settings_.SetDefault();
+        current_settings_.setDefault();
     }
 
     for (auto& band : current_settings_.bands) {

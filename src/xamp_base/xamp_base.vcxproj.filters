@@ -24,11 +24,11 @@
     <ClCompile Include="src\platform_linux.cpp" />
     <ClCompile Include="src\platform_mac.cpp" />
     <ClCompile Include="src\rng.cpp" />
-      <ClCompile Include="src\stacktrace.cpp" />
-      <ClCompile Include="src\stopwatch.cpp" />
-      <ClCompile Include="src\threadpool.cpp" />
-      <ClCompile Include="src\threadpoolbuilder.cpp" />
-      <ClCompile Include="src\timer.cpp" />
+    <ClCompile Include="src\stacktrace.cpp" />
+    <ClCompile Include="src\stopwatch.cpp" />
+    <ClCompile Include="src\threadpool.cpp" />
+    <ClCompile Include="src\threadpoolbuilder.cpp" />
+    <ClCompile Include="src\timer.cpp" />
     <ClCompile Include="src\str_utilts.cpp" />
     <ClCompile Include="src\vmmemlock.cpp" />
     <ClCompile Include="src\volume.cpp" />
@@ -41,6 +41,8 @@
     <ClCompile Include="src\archivefile.cpp" />
     <ClCompile Include="src\fastiostream.cpp" />
     <ClCompile Include="src\uuid_class.cpp" />
+    <ClCompile Include="src\json.cpp" />
+    <ClCompile Include="src\zib_util.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\base\assert.h" />
@@ -56,11 +58,11 @@
     <ClInclude Include="src\fftlib_private.h" />
     <ClInclude Include="include\base\fs.h" />
     <ClInclude Include="include\base\int24.h" />
-      <ClInclude Include="include\base\object_pool.h" />
-      <ClInclude Include="include\base\platfrom_handle.h" />
-      <ClInclude Include="include\base\threadpool.h" />
-      <ClInclude Include="include\base\threadpoolbuilder.h" />
-      <ClInclude Include="include\base\math.h" />
+    <ClInclude Include="include\base\object_pool.h" />
+    <ClInclude Include="include\base\platfrom_handle.h" />
+    <ClInclude Include="include\base\threadpool.h" />
+    <ClInclude Include="include\base\threadpoolbuilder.h" />
+    <ClInclude Include="include\base\math.h" />
     <ClInclude Include="include\base\executor.h" />
     <ClInclude Include="include\base\sfc64.h" />
     <ClInclude Include="include\base\shared_singleton.h" />
@@ -96,7 +98,6 @@
     <ClInclude Include="include\base\waitabletimer.h" />
     <ClInclude Include="include\base\windows_handle.h" />
     <ClInclude Include="include\base\workstealingtaskqueue.h" />
-    <ClInclude Include="include\base\algorithm.h" />
     <ClInclude Include="include\base\port.h" />
     <ClInclude Include="include\base\com_error_category.h" />
     <ClInclude Include="include\base\charset_detector.h" />
@@ -107,5 +108,7 @@
     <ClInclude Include="include\base\memory.h" />
     <ClInclude Include="include\base\fastiostream.h" />
     <ClInclude Include="include\base\uuid_class.h" />
+    <ClInclude Include="include\base\json.h" />
+    <ClInclude Include="include\base\zib_util.h" />
   </ItemGroup>
 </Project>

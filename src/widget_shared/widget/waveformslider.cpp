@@ -1,3 +1,4 @@
+#include <thememanager.h>
 //=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
@@ -225,6 +226,20 @@ void WaveformSlider::paintEvent(QPaintEvent* event) {
     QPainter painter(this);
     painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 
+    if (property("compactSeek").toBool()) {
+        const QRectF track(6, height() / 2.0 - 1.5, qMax(0, width() - 12), 3);
+        painter.setPen(Qt::NoPen);
+        painter.setBrush(background_color_);
+        painter.drawRoundedRect(track, 1.5, 1.5);
+        const qreal x = track.left() + track.width() * valueRatio();
+        painter.setBrush(played_color_);
+        painter.drawRoundedRect(QRectF(track.left(), track.top(), x - track.left(), 3), 1.5, 1.5);
+        if (seek_enabled_) {
+            painter.setBrush(qTheme.isDarkTheme() ? QColor("#EEF1EF") : QColor("#253B32"));
+            painter.drawEllipse(QPointF(x, track.center().y()), 5, 5);
+        }
+        return;
+    }
     const auto rect = waveformRect();
     if (!rect.isValid()) {
         return;

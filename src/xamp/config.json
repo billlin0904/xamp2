@@ -4,7 +4,6 @@
             "Default": "debug",
             "Override": {
                 "AlbumCoverService": "debug",
-                "AlbumViewStyledDelegate": "info",
                 "AsioDevice": "debug",
                 "AudioPlayer": "info",
                 "BASS": "debug",

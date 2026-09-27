@@ -60,7 +60,7 @@ class XAMP_BASE_API XAMP_NO_VTABLE ITaskScheduler {
 public:
     XAMP_BASE_CLASS(ITaskScheduler)
 
-	virtual void submitJob(Task task, ExecuteFlags flags, SubmitPolicy policty) = 0;
+	virtual void submit(Task task, ExecuteFlags flags, SubmitPolicy policty) = 0;
 
     virtual size_t getThreadSize() const = 0;
 
@@ -92,6 +92,10 @@ public:
         ExecuteFlags flags,
         std::coroutine_handle<> handle);
 
+    void submitCoroutine(SubmitPolicy policy,
+        ExecuteFlags flags,
+        Task task);
+
 protected:
     explicit IThreadPool(ScopedPtr<ITaskScheduler> scheduler)
 	    : scheduler_(std::move(scheduler)) {
@@ -102,7 +106,7 @@ protected:
 
 template <typename F, typename ... Args>
 void IThreadPool::post(ExecuteFlags flags, F&& f, Args&&... args) {
-    scheduler_->submitJob(
+    scheduler_->submit(
         [func = std::forward<F>(f),
         tuple_args = std::make_tuple(std::forward<Args>(args)...)]
         (const std::stop_token& stop_token) mutable {
@@ -167,7 +171,7 @@ decltype(auto) IThreadPool::spawn(SubmitPolicy policy, ExecuteFlags flags, F&& f
 
     auto future = task.get_future();
 
-    scheduler_->submitJob([t = std::move(task)](const auto& stop_token) mutable {
+    scheduler_->submit([t = std::move(task)](const auto& stop_token) mutable {
         t(stop_token);
     }, flags, policy);
 
@@ -187,7 +191,7 @@ public:
 
     size_t getThreadSize() const override;
 
-    void submitJob(Task task, ExecuteFlags flags, SubmitPolicy policy) override;
+    void submit(Task task, ExecuteFlags flags, SubmitPolicy policy) override;
 
     void destroy() override;
 
@@ -238,7 +242,7 @@ private:
     std::string name_;    
     AlignedAtomic<uint32_t> work_epoch_{0};
     AlignedAtomic<size_t> enqueue_hint_{0};
-    SharedTaskQueuePtr task_pool_;
+    SharedTaskQueuePtr shared_queue_;
     std::vector<WorkStealingTaskQueuePtr> task_work_queues_;
     std::vector<std::jthread> threads_;
     std::vector<AlignedAtomic<ExecuteFlags>> task_execute_flags_;

@@ -18,25 +18,7 @@ class XAMP_WIDGET_SHARED_API XMenu : public QMenu {
 public:
 	explicit XMenu(QWidget* object = nullptr)
 		: QMenu(object) {
-		qTheme.setMenuStyle(this);		
 	}
-};
-
-class XAMP_WIDGET_SHARED_API XAction : public QAction {
-	Q_OBJECT
-public:
-	explicit XAction(Glyphs glyphs, const QString& text, QObject* parent = nullptr)
-		: QAction(qTheme.fontIcon(glyphs), text, parent)
-		, glyphs_(glyphs){
-	}
-
-public slots:
-	void onThemeChangedFinished(ThemeColor theme_color) {
-		setIcon(qTheme.fontIcon(glyphs_));
-	}
-
-private:
-	Glyphs glyphs_;
 };
 
 template <typename Type, typename F = std::function<void()>>
@@ -50,7 +32,6 @@ public:
 			: action_group_(new QActionGroup(submenu_.get()))
 			, action_map_(action_map) {
 			submenu_.reset(menu->addMenu(menu_name));
-            qTheme.setMenuStyle(submenu_.get());
 		}
 
 		void addSeparator() {

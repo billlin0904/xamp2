@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files"><UniqueIdentifier>{FE33116D-8132-44A5-A321-1A65D61FFFE8}</UniqueIdentifier><Extensions>cpp;c</Extensions></Filter>
+    <Filter Include="Header Files"><UniqueIdentifier>{DA6C2792-67A5-45BE-9343-1850F9945A70}</UniqueIdentifier><Extensions>h;hpp</Extensions></Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\libavencoder.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\avlib.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\avlibfilestream.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\pcm2dsdfilestream.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\pcmdsdlib.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\basscddevice.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\bassexception.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\bassfilestream.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\bassparametriceq.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\basslib.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\bass_util.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\dspmanager.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\mbdiscid.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\api.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\dsdmodesamplewriter.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\mqaidentifier.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\mqafilestream.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\r8brainresampler.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\soxresampler.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\srcresampler.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="src\stft.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClInclude Include="include\stream\libavencoder.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\anymap.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\avlib.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\avlibfilestream.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\basslib.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\bassparametriceq.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\bass_util.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\discIdlib.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\dsd_times.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\dspmanager.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\eqsettings.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\iaudiostream.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\basscddevice.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\bassfilestream.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\icddevice.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\idsdstream.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\iaudioprocessor.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\idspmanager.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\ifileencoder.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\filestream.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\pcm2dsdfilestream.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\pcmdsdlib.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\isameplewriter.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\mbdiscid.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\mqaidentifier.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\mqafilestream.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\r8brainlib.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\r8brainresampler.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\dsdmodesamplewriter.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\soxresampler.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\soxrlib.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\srclib.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\srcresampler.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\stft.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\stream.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="include\stream\api.h"><Filter>Header Files</Filter></ClInclude>
+  </ItemGroup>
+</Project>

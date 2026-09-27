@@ -70,7 +70,7 @@ namespace {
                         String::formatBytes(active_locked_bytes_),
                         String::formatBytes(target_minimum),
                         String::formatBytes(target_maximum),
-                        GetLastErrorMessage());
+                        getLastErrorMessage());
                     return false;
                 }
                 requested_minimum_ = target_minimum;
@@ -109,7 +109,7 @@ namespace {
 
             const auto current_process = ::GetCurrentProcess();
             if (!::GetProcessWorkingSetSize(current_process, &initial_minimum_, &initial_maximum_)) {
-                XAMP_LOG_DEBUG("GetProcessWorkingSetSize return failure! error:{}.", GetLastErrorMessage());
+                XAMP_LOG_DEBUG("GetProcessWorkingSetSize return failure! error:{}.", getLastErrorMessage());
                 return false;
             }
 
@@ -141,7 +141,7 @@ namespace {
                 priority_class = BELOW_NORMAL_PRIORITY_CLASS;
             }
             if (!::SetPriorityClass(handle.get(), priority_class)) {
-                XAMP_LOG_DEBUG("Failed to set SetPriorityClass! error: {}.", GetLastErrorMessage());
+                XAMP_LOG_DEBUG("Failed to set SetPriorityClass! error: {}.", getLastErrorMessage());
                 return;
             }
         }
@@ -155,7 +155,7 @@ namespace {
             ? PROCESS_POWER_THROTTLING_EXECUTION_SPEED
             : 0;
         if (!::SetProcessInformation(handle.get(), ProcessPowerThrottling, &power_throttling, sizeof(power_throttling))) {
-            XAMP_LOG_DEBUG("Failed to set SetProcessInformation! error: {}.", GetLastErrorMessage());
+            XAMP_LOG_DEBUG("Failed to set SetProcessInformation! error: {}.", getLastErrorMessage());
         }
     }
 
@@ -172,13 +172,13 @@ namespace {
                     XAMP_LOG_DEBUG("Already in background mode");
                     return;
                 }
-                XAMP_LOG_DEBUG("Failed to set begin background mode! error: {}.", GetLastErrorMessage());
+                XAMP_LOG_DEBUG("Failed to set begin background mode! error: {}.", getLastErrorMessage());
                 return;
             }
 
             if (::GetThreadPriority(handle) >= THREAD_PRIORITY_BELOW_NORMAL) {
                 if (!::SetThreadPriority(handle, THREAD_PRIORITY_LOWEST)) {
-                    XAMP_LOG_DEBUG("Failed to set background mode! error: {}.", GetLastErrorMessage());
+                    XAMP_LOG_DEBUG("Failed to set background mode! error: {}.", getLastErrorMessage());
                 }
             }
             break;
@@ -192,7 +192,7 @@ namespace {
 
         if (priority != ThreadPriority::PRIORITY_BACKGROUND) {
             if (!::SetThreadPriority(handle, thread_priority)) {
-                XAMP_LOG_DEBUG("Failed to set thread priority! error:{}.", GetLastErrorMessage());
+                XAMP_LOG_DEBUG("Failed to set thread priority! error:{}.", getLastErrorMessage());
             }
         }
         auto current_priority = ::GetThreadPriority(handle);
@@ -225,14 +225,6 @@ void setThreadPriority(std::jthread& thread, ThreadPriority priority) {
     setNativeThreadPriority(thread.native_handle(), priority);
 }
 
-bool isDebugging() {
-#ifdef _DEBUG
-    return true;
-#else
-    return ::IsDebuggerPresent();
-#endif
-}
-
 void setCurrentProcessPriority(ProcessPriority priority) {
     const WinHandle handle(::GetCurrentProcess());
     setProcessPriority(handle, priority);
@@ -250,7 +242,7 @@ bool extendProcessWorkingSetSize(size_t size) {
     const auto current_process = ::GetCurrentProcess();
 
     if (!::GetProcessWorkingSetSize(current_process, &minimum, &maximum)) {
-        XAMP_LOG_DEBUG("GetProcessWorkingSetSize return failure! error:{}.", GetLastErrorMessage());
+        XAMP_LOG_DEBUG("GetProcessWorkingSetSize return failure! error:{}.", getLastErrorMessage());
         return false;
     }
 
@@ -268,7 +260,7 @@ bool enablePrivilege(std::string_view privilege, bool enable) {
     if (!::OpenProcessToken(current_process.get(),
         TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
         &process_token)) {
-        XAMP_LOG_DEBUG("OpenProcessToken return failure! error:{}.", GetLastErrorMessage());
+        XAMP_LOG_DEBUG("OpenProcessToken return failure! error:{}.", getLastErrorMessage());
         return false;
     }
 
@@ -279,7 +271,7 @@ bool enablePrivilege(std::string_view privilege, bool enable) {
     if (!::LookupPrivilegeValueA(nullptr,
         privilege.data(),
         &tp.Privileges[0].Luid)) {
-        XAMP_LOG_DEBUG("LookupPrivilegeValueA return failure! error:{}.", GetLastErrorMessage());
+        XAMP_LOG_DEBUG("LookupPrivilegeValueA return failure! error:{}.", getLastErrorMessage());
         return false;
     }
 
@@ -290,7 +282,7 @@ bool enablePrivilege(std::string_view privilege, bool enable) {
         sizeof(TOKEN_PRIVILEGES),
         nullptr,
         nullptr)) {
-        XAMP_LOG_DEBUG("AdjustTokenPrivileges return failure! error:{}.", GetLastErrorMessage());
+        XAMP_LOG_DEBUG("AdjustTokenPrivileges return failure! error:{}.", getLastErrorMessage());
         return false;
     }
 
@@ -302,7 +294,7 @@ bool setProcessWorkingSetSize(size_t working_set_size) {
         return false;
     }
     if (!extendProcessWorkingSetSize(working_set_size)) {
-        XAMP_LOG_DEBUG("extendProcessWorkingSetSize return failure! error:{}.", GetLastErrorMessage());
+        XAMP_LOG_DEBUG("extendProcessWorkingSetSize return failure! error:{}.", getLastErrorMessage());
         return false;
     }
     XAMP_LOG_TRACE("InitWorkingSetSize {} success.", String::formatBytes(working_set_size));
@@ -315,13 +307,13 @@ void setCurrentThreadMitigation() {
     dynamic_code_policy.AllowThreadOptOut = true;
     if (!::SetProcessMitigationPolicy(ProcessDynamicCodePolicy, &dynamic_code_policy,
         sizeof(dynamic_code_policy))) {
-        XAMP_LOG_DEBUG("Failed to set ProcessDynamicCodePolicy ({}).", GetLastErrorMessage());
+        XAMP_LOG_DEBUG("Failed to set ProcessDynamicCodePolicy ({}).", getLastErrorMessage());
     }
 
     DWORD thread_policy = THREAD_DYNAMIC_CODE_ALLOW;
     if (!::GetThreadInformation(::GetCurrentThread(), ThreadDynamicCodePolicy,
         &thread_policy, sizeof(thread_policy))) {
-        XAMP_LOG_DEBUG("Failed to set GetThreadInformation ({})", GetLastErrorMessage());
+        XAMP_LOG_DEBUG("Failed to set GetThreadInformation ({})", getLastErrorMessage());
     }
     if (thread_policy == THREAD_DYNAMIC_CODE_ALLOW) {
         return;
@@ -329,7 +321,7 @@ void setCurrentThreadMitigation() {
     thread_policy = THREAD_DYNAMIC_CODE_ALLOW;
     if (!::SetThreadInformation(::GetCurrentThread(), ThreadDynamicCodePolicy,
         &thread_policy, sizeof(thread_policy))) {
-        XAMP_LOG_DEBUG("Failed to set SetThreadInformation ({})", GetLastErrorMessage());
+        XAMP_LOG_DEBUG("Failed to set SetThreadInformation ({})", getLastErrorMessage());
     }
 }
 
@@ -338,7 +330,7 @@ void setProcessMitigation() {
     signature_policy.MicrosoftSignedOnly = true;
     if (!::SetProcessMitigationPolicy(ProcessSignaturePolicy, &signature_policy,
         sizeof(signature_policy))) {
-        XAMP_LOG_DEBUG("Failed to set ProcessSignaturePolicy ({})", GetLastErrorMessage());
+        XAMP_LOG_DEBUG("Failed to set ProcessSignaturePolicy ({})", getLastErrorMessage());
     }
 
     PROCESS_MITIGATION_STRICT_HANDLE_CHECK_POLICY strict_handle_check_policy = {};
@@ -346,7 +338,7 @@ void setProcessMitigation() {
     strict_handle_check_policy.RaiseExceptionOnInvalidHandleReference = true;
     if (!::SetProcessMitigationPolicy(ProcessStrictHandleCheckPolicy, &strict_handle_check_policy,
         sizeof(strict_handle_check_policy))) {
-        XAMP_LOG_DEBUG("Failed to set ProcessStrictHandleCheckPolicy ({}).", GetLastErrorMessage());
+        XAMP_LOG_DEBUG("Failed to set ProcessStrictHandleCheckPolicy ({}).", getLastErrorMessage());
     }
 
     PROCESS_MITIGATION_ASLR_POLICY mitigation_aslr_policy = {};
@@ -356,7 +348,7 @@ void setProcessMitigation() {
     mitigation_aslr_policy.EnableHighEntropy = true;
     if (!::SetProcessMitigationPolicy(ProcessASLRPolicy, &mitigation_aslr_policy,
         sizeof(mitigation_aslr_policy))) {
-        XAMP_LOG_DEBUG("Failed to set ProcessASLRPolicy ({}).", GetLastErrorMessage());
+        XAMP_LOG_DEBUG("Failed to set ProcessASLRPolicy ({}).", getLastErrorMessage());
     }
 
     PROCESS_MITIGATION_IMAGE_LOAD_POLICY mitigation_image_load_policy = {};
@@ -364,14 +356,14 @@ void setProcessMitigation() {
     mitigation_image_load_policy.NoLowMandatoryLabelImages = true;
     if (!::SetProcessMitigationPolicy(ProcessImageLoadPolicy, &mitigation_image_load_policy,
         sizeof(mitigation_image_load_policy))) {
-        XAMP_LOG_DEBUG("Failed to set ProcessImageLoadPolicy ({}).", GetLastErrorMessage());
+        XAMP_LOG_DEBUG("Failed to set ProcessImageLoadPolicy ({}).", getLastErrorMessage());
     }
 
     PROCESS_MITIGATION_FONT_DISABLE_POLICY font_disable_policy = {};
     font_disable_policy.DisableNonSystemFonts = true;
     if (!::SetProcessMitigationPolicy(ProcessFontDisablePolicy, &font_disable_policy,
         sizeof(font_disable_policy))) {
-        XAMP_LOG_DEBUG("Failed to set ProcessFontDisablePolicy ({}).", GetLastErrorMessage());
+        XAMP_LOG_DEBUG("Failed to set ProcessFontDisablePolicy ({}).", getLastErrorMessage());
     }
 }
 

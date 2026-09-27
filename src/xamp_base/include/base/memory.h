@@ -32,9 +32,12 @@ XAMP_BASE_API bool prefetchMemory(void* adddr, size_t length) ;
 
 XAMP_BASE_API XAMP_CHECK_LIFETIME void* alignedMalloc(size_t size, size_t aligned_size) ;
 
-XAMP_BASE_API void alignedFree(void* p) ;
+XAMP_BASE_API void alignedFree(void* p);
 
-XAMP_BASE_API XAMP_CHECK_LIFETIME void* stackAlloc(size_t size);
+// Stack allocation macro for platform-specific stack allocation.
+// Use marco to avoid leave stack memory allocated by alloca or _malloca on the stack,
+// which will be automatically freed when the function returns.
+#define stackAlloc(size)  reinterpret_cast<std::byte*>(alloca(size))
 
 XAMP_BASE_API void stackFree(void* p);
 
@@ -163,12 +166,6 @@ std::shared_ptr<BaseType> makeShared(Args&&... args) {
     }
 }
 
-/*
-* Make aligned array.
-*
-* @param[in] n
-* @return ScopedArray<Type>
-*/
 template <typename Type>
 ScopedArray<Type> makeAlignedArray(size_t n) {
     static_assert(std::is_trivially_copyable_v<Type>, "makeAlignedArray only supports trivially copyable types.");
@@ -179,22 +176,6 @@ ScopedArray<Type> makeAlignedArray(size_t n) {
         throw std::bad_alloc();
     }
     return ScopedArray<Type>(static_cast<Type*>(ptr));
-}
-
-/*
-* Make stack buffer.
-*
-* @param[in] n
-* @return StackBuffer<Type>
-* @note StackAlloc is not thread safe.
-*/
-template <typename Type = std::byte>
-StackBuffer<Type> makeStackBuffer(size_t n) {
-    auto* ptr = stackAlloc(sizeof(Type) * n);
-    if (!ptr) {
-            throw std::bad_alloc();
-    }
-    return StackBuffer<Type>(static_cast<Type*>(ptr));
 }
 
 XAMP_BASE_NAMESPACE_END

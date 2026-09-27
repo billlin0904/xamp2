@@ -19,32 +19,12 @@
 
 XAMP_OUTPUT_DEVICE_WIN32_NAMESPACE_BEGIN
 
-/*
-* AsioException is the asio exception.
-* 
-*/
 class XAMP_OUTPUT_DEVICE_API AsioException final : public Exception {
 public:
-	/*
-	* Constructor
-	* 
-	* @param error: asio error
-	*/
 	explicit AsioException(Errors error);
 
-	/*
-	* Constructor
-	* 
-	* @param error: asio error
-	*/
 	explicit AsioException(ASIOError error);
 
-	/*
-	* Get error message
-	* 
-	* @param error: asio error
-	* @return error message
-	*/
 	static std::string_view errorMessage(ASIOError error) ;
 };
 

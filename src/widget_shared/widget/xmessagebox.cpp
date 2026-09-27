@@ -131,7 +131,7 @@ void XMessageBox::setDefaultButton(QDialogButtonBox::StandardButton button) {
 
 	switch (qTheme.themeColor()) {
 	case ThemeColor::LIGHT_THEME:
-		text_color = Qt::white;
+		text_color = QColor("#183D2D");
 		break;
 	default:
 		text_color = qTheme.textColor();

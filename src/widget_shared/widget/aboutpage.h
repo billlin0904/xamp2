@@ -21,16 +21,16 @@ public:
     virtual ~AboutPage() override;
 
 signals:
-    void CheckForUpdate();
+    void checkForUpdate();
 
-    void RestartApp();
+    void restartApp();
 
 public slots:
-    void OnCreditsOrLicenseChecked(bool checked);
+    void onCreditsOrLicenseChecked(bool checked);
 
     void onThemeChangedFinished(ThemeColor theme_color);
 
-    void OnUpdateNewVersion(const QVersionNumber& version);
+    void onUpdateNewVersion(const QVersionNumber& version);
 private:
     QString license_;
     QString credits_;

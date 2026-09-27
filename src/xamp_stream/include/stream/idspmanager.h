@@ -12,6 +12,7 @@
 #include <stream/eqsettings.h>
 
 #include <base/base.h>
+#include <base/pcm.h>
 #include <base/audiobuffer.h>
 
 XAMP_STREAM_NAMESPACE_BEGIN
@@ -19,6 +20,12 @@ XAMP_STREAM_NAMESPACE_BEGIN
 class XAMP_STREAM_API XAMP_NO_VTABLE IDSPManager {
 public:
     XAMP_BASE_CLASS(IDSPManager)
+
+	// Change only while playback is stopped. The strict path bypasses every DSP and writer.
+    virtual void setBitPerfect(bool enabled) = 0;
+    [[nodiscard]] virtual bool isBitPerfect() const = 0;
+
+    virtual void processPcm(const xamp::pcm::Block& block, AudioBuffer<std::byte>& fifo) = 0;
 
 	virtual void initialize(const Property& config) = 0;
 

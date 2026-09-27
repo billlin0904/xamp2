@@ -180,6 +180,7 @@
     <ClInclude Include="include\output_device\nulloutputdevicetype.h" />
     <ClInclude Include="include\output_device\output_device.h" />
     <ClInclude Include="include\output_device\win32\asiodevice.h" />
+    <ClInclude Include="include\output_device\win32\asiodsdformat.h" />
     <ClInclude Include="include\output_device\win32\asioexception.h" />
     <ClInclude Include="include\output_device\win32\exclusivewasapidevice.h" />
     <ClInclude Include="include\output_device\win32\exclusivewasapidevicetype.h" />

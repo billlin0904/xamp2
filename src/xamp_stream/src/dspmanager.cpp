@@ -43,7 +43,8 @@ IDSPManager& DSPManager::addParametricEq() {
 }
 
 IDSPManager& DSPManager::setParametricEq(bool enabled, const EqSettings& settings, const Property& config) {
-    config_ = config;
+    if (bitperfect_) return *this;
+    auto next_config = config;
     const auto update_dispatch = [this]() {
         if (!canProcess()) {
             dispatch_ = bind_front(&DSPManager::defaultProcess, this);
@@ -55,22 +56,25 @@ IDSPManager& DSPManager::setParametricEq(bool enabled, const EqSettings& setting
 
     if (!enabled) {
         removePostDSP<BassParametricEq>();
+        config_ = std::move(next_config);
         update_dispatch();
         return *this;
     }
 
-    config_.create(DspConfig::kEQSettings, settings);
+    next_config.create(DspConfig::kEQSettings, settings);
     if (const auto parametric_eq = getPostDSP<BassParametricEq>()) {
         if (*parametric_eq != nullptr) {
             (*parametric_eq)->setEq(settings);
+            config_ = std::move(next_config);
             update_dispatch();
             return *this;
         }
     }
 
     auto processor = StreamFactory::makeParametricEq();
-    processor->initialize(config_);
+    processor->initialize(next_config);
     addPostDSP(std::move(processor));
+    config_ = std::move(next_config);
     update_dispatch();
     return *this;
 }
@@ -94,6 +98,7 @@ IDSPManager& DSPManager::removeSampleRateConverter() {
 }
 
 bool DSPManager::canProcess() const {
+    if (bitperfect_) return false;
     if (pre_dsp_.empty() && post_dsp_.empty()) {
         return false;
     }
@@ -127,6 +132,7 @@ void DSPManager::addOrReplace(ScopedPtr<IAudioProcessor> processor, std::vector<
 }
 
 bool DSPManager::isEnableSampleRateConverter() const {
+    if (bitperfect_) return false;
     const auto equal_id = [](const auto& id) {
         return XAMP_UUID_OF(SoxrSampleRateConverter) == id
 #ifdef XAMP_OS_WIN
@@ -138,7 +144,18 @@ bool DSPManager::isEnableSampleRateConverter() const {
 }
 
 bool DSPManager::processDSP(const float* samples, uint32_t num_samples, AudioBuffer<std::byte>& fifo) {
+    if (bitperfect_) throw std::runtime_error("BitPerfect requires typed integer PCM bytes");
     return std::invoke(dispatch_, samples, num_samples, fifo);
+}
+
+void DSPManager::processPcm(const xamp::pcm::Block& block, AudioBuffer<std::byte>& fifo) {
+    if (!bitperfect_ || !xamp::pcm::valid(block.format) ||
+        block.format.layout != xamp::pcm::Layout::Interleaved ||
+        block.frames > SIZE_MAX / block.format.frameBytes() ||
+        block.data.size() != block.frames * block.format.frameBytes())
+        throw std::runtime_error("Invalid strict PCM block");
+    failWith<BufferOverflowException>(fifo.tryWrite(block.data.data(), block.data.size()),
+        "BitPerfect FIFO overflow");
 }
 
 bool DSPManager::defaultProcess(const float* samples, uint32_t num_samples, AudioBuffer<std::byte>& fifo) {
@@ -153,41 +170,28 @@ bool DSPManager::process(const float* samples, uint32_t num_samples, AudioBuffer
     BufferRef<float> pre_dsp_buffer(pre_dsp_buffer_);
     BufferRef<float> post_dsp_buffer(post_dsp_buffer_);
 
-    if (!pre_dsp_.empty()) {
-        for (const auto& pre_dsp : pre_dsp_) {
-            if (!pre_dsp->process(samples, num_samples, pre_dsp_buffer)) {
-                return true;
-            }
+    const float* input = samples;
+    size_t count = num_samples;
+    bool use_pre = true;
+    const auto run = [&](const auto& chain) {
+        for (const auto& processor : chain) {
+            auto& output = use_pre ? pre_dsp_buffer : post_dsp_buffer;
+            if (!processor->process(input, count, output)) return false;
+            input = output.data();
+            count = output.size();
+            use_pre = !use_pre;
         }
-        for (const auto& post_dsp : post_dsp_) {
-            post_dsp->process(pre_dsp_buffer.data(),
-                pre_dsp_buffer.size(),
-                post_dsp_buffer);
-        }
-    }
-    else {
-        for (const auto& post_dsp : post_dsp_) {
-            post_dsp->process(samples, num_samples, post_dsp_buffer);
-        }
-    }
-
-    if (post_dsp_.empty()) {
-        failWith<BufferOverflowException>(sample_writer_->process(pre_dsp_buffer, fifo),
-            "Failed to write pre buffer, read:{} write:{}",
-            fifo.getAvailableRead(),
-            fifo.getAvailableWrite());
-    }
-    else {
-        failWith<BufferOverflowException>(sample_writer_->process(post_dsp_buffer, fifo),
-            "Failed to write post buffer, read:{} write:{}",
-            fifo.getAvailableRead(),
-            fifo.getAvailableWrite());
-    }
+        return true;
+    };
+    if (!run(pre_dsp_) || !run(post_dsp_)) return true;
+    failWith<BufferOverflowException>(sample_writer_->process(input, count, fifo),
+        "Failed to write DSP buffer, read:{} write:{}", fifo.getAvailableRead(), fifo.getAvailableWrite());
     return false;
 }
 
 void DSPManager::initialize(const Property& config) {
     config_ = config;
+    if (bitperfect_) return;
 
     if (!sample_writer_) {
         auto sample_size = config_.get<uint32_t>(DspConfig::kSampleSize);

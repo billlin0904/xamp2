@@ -20,24 +20,38 @@ ExceptionClassName::ExceptionClassName()\
 }
 
 #ifdef XAMP_OS_WIN
-#define GET_ERROR_MESSAGE() GetPlatformErrorMessage(::GetLastError())
+#define GET_ERROR_MESSAGE() getPlatformErrorMessage(::GetLastError())
 #else
-#define GET_ERROR_MESSAGE() GetPlatformErrorMessage(errno)
+#define GET_ERROR_MESSAGE() getPlatformErrorMessage(errno)
 #endif
 
 #ifdef XAMP_OS_WIN
-std::string GetPlatformErrorMessage(int32_t err) {
-    return String::localeStringToUTF8(std::system_category().message(err));
+std::string getPlatformErrorMessage(int32_t err) {
+    wchar_t buffer[2048]{};
+    const auto length = ::FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+        nullptr, static_cast<DWORD>(err), 0, buffer, 2048, nullptr);
+    std::string message;
+    if (length) {
+        const int bytes = ::WideCharToMultiByte(CP_UTF8, 0, buffer, length, nullptr, 0, nullptr, nullptr);
+        message.resize(bytes);
+        ::WideCharToMultiByte(CP_UTF8, 0, buffer, length, message.data(), bytes, nullptr, nullptr);
+        while (!message.empty() && (message.back() == '\r' || message.back() == '\n' || message.back() == ' ')) message.pop_back();
+    }
+    if (message.empty() || message.find("%1") != std::string::npos || message.find("%2") != std::string::npos)
+        message = "Windows could not provide a description for this error";
+    std::ostringstream result;
+    result << message << " (0x" << std::hex << static_cast<uint32_t>(err) << ")";
+    return result.str();
 }
-std::string GetLastErrorMessage() {
-    return GetPlatformErrorMessage(::GetLastError());
+std::string getLastErrorMessage() {
+    return getPlatformErrorMessage(::GetLastError());
 }
 #else
-std::string GetPlatformErrorMessage(int32_t err) {
+std::string getPlatformErrorMessage(int32_t err) {
         return std::system_category().message(err);
 }
-std::string GetLastErrorMessage() {
-    return GetPlatformErrorMessage(errno);
+std::string getLastErrorMessage() {
+    return getPlatformErrorMessage(errno);
 }
 #endif
 
@@ -86,31 +100,8 @@ char const * Exception::getExpression() const {
 	return "";
 }
 
-std::string_view Exception::errorToString(Errors error) {
-    static const HashMap<Errors, const std::string_view> error_msgs {
-        { Errors::XAMP_ERROR_SUCCESS, "Success." },
-        { Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, "Platform spec error." },
-        { Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR, "Library spec error." },
-        { Errors::XAMP_ERROR_DEVICE_CREATE_FAILURE, "Failed to create the audio endpoint." },
-        { Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT, "Device unsupported format." },
-        { Errors::XAMP_ERROR_DEVICE_NEED_SET_MATCH_FORMAT, "Device need set match format." },
-        { Errors::XAMP_ERROR_DEVICE_IN_USE, "Device in use." },
-        { Errors::XAMP_ERROR_DEVICE_NOT_FOUND, "Device not found." },
-        { Errors::XAMP_ERROR_FILE_NOT_FOUND, "File not found." },
-        { Errors::XAMP_ERROR_NOT_SUPPORT_SAMPLE_RATE, "Not support samplerate." },
-        { Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT, "Not support format." },
-        { Errors::XAMP_ERROR_LOAD_DLL_FAILURE, "load dll failure." },
-        { Errors::XAMP_ERROR_STOP_STREAM_TIMEOUT, "stop stream thread timeout." },
-        { Errors::XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLE_RATE, "Resampler not support variable resample." },
-        { Errors::XAMP_ERROR_SAMPLE_RATE_CHANGED, "SampleRate was changed." },
-        { Errors::XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC, "Not found dll export function." },
-        { Errors::XAMP_ERROR_NOT_SUPPORT_EXCLUSIVE_MODE, "Not support exclusive mode." },
-        };
-    auto const itr = error_msgs.find(error);
-    if (itr != error_msgs.end()) {
-        return (*itr).second;
-    }
-    return "";
+std::string_view Exception::errorToString(Errors error) {    
+    return enumToString(error);
 }
 
 DeviceUnSupportedFormatException::DeviceUnSupportedFormatException(const AudioFormat &format)
@@ -125,7 +116,7 @@ LoadDllFailureException::LoadDllFailureException(std::string_view dll_name)
 	: Exception(Errors::XAMP_ERROR_LOAD_DLL_FAILURE)
 	, dll_name_(dll_name) {
 	std::ostringstream ostr;
-	ostr << "load dll " << dll_name << " failure. (" << GetLastErrorMessage() << ")";
+	ostr << "load dll " << dll_name << " failure. (" << getLastErrorMessage() << ")";
 	message_ = ostr.str();
 }
 
@@ -133,7 +124,7 @@ NotFoundDllExportFuncException::NotFoundDllExportFuncException(std::string_view 
     : Exception(Errors::XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC)
     , func_name_(func_name) {
     std::ostringstream ostr;
-    ostr << "load dll function " << func_name << " failure. (" << GetLastErrorMessage() << ")";
+    ostr << "load dll function " << func_name << " failure. (" << getLastErrorMessage() << ")";
     message_ = ostr.str();
 }
 
@@ -158,11 +149,11 @@ PlatformException::PlatformException(std::string_view what)
 }
 
 PlatformException::PlatformException(int32_t err)
-    : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GetPlatformErrorMessage(err)) {
+    : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, getPlatformErrorMessage(err)) {
 }
 
 PlatformException::PlatformException(std::string_view what, int32_t err)
-    : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GetPlatformErrorMessage(err), what) {
+    : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, getPlatformErrorMessage(err), what) {
 }
 
 IMP_EXCEPTION_CLASS(DeviceCreateFailureException, Errors::XAMP_ERROR_DEVICE_CREATE_FAILURE)

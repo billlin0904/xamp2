@@ -1,3 +1,5 @@
+#include <widget/windowbackdrop.h>
+#include <widget/globalshortcut.h>
 #include <widget/xmainwindow.h>
 
 #include <thememanager.h>
@@ -10,7 +12,6 @@
 #include <widget/appsettings.h>
 #include <widget/util/str_util.h>
 #include <widget/actionmap.h>
-#include <widget/globalshortcut.h>
 
 #include <QAction>
 #include <QLabel>
@@ -46,6 +47,7 @@ XMainWindow::XMainWindow()
         1,
         ThreadPriority::PRIORITY_BACKGROUND);
     installWindowAgent();
+    new WindowBackdrop(this, window_agent_);
 }
 
 // QScopedPointer require default destructor.
@@ -92,7 +94,6 @@ void XMainWindow::ensureSystemMenu() {
     }
 
     system_menu_.reset(new QMenu(this));
-    qTheme.setMenuStyle(system_menu_.get());
 
     if (window_agent_ != nullptr && window_agent_->titleBar() != nullptr) {
         auto* title_bar = window_agent_->titleBar();
@@ -393,7 +394,7 @@ void XMainWindow::readDriveInfo() {
         const auto driver_letter = storage.rootPath().left(1).toStdString()[0];
         const auto file_system_type = storage.fileSystemType();
         if (kCDFileSystemType.contains(file_system_type.toUpper())) {
-            const auto device = OpenCD(driver_letter);
+            const auto device = openCD(driver_letter);
             const auto device_info = device->getCDDeviceInfo();
             display_name += QString::fromStdWString(L" " + device_info.product);
             auto itr = exist_drives_.find(display_name);

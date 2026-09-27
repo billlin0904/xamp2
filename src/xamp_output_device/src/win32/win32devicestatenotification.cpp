@@ -3,6 +3,7 @@
 #ifdef XAMP_OS_WIN
 
 #include <base/str_utilts.h>
+#include <output_device/win32/wasapi.h>
 #include <output_device/win32/comexception.h>
 #include <output_device/win32/win32devicestatenotification.h>
 
@@ -21,11 +22,7 @@ Win32DeviceStateNotification::~Win32DeviceStateNotification() {
 }
 
 void Win32DeviceStateNotification::run() {
-	hrIfFailThrow(::CoCreateInstance(__uuidof(MMDeviceEnumerator),
-		nullptr,
-		CLSCTX_ALL,
-		__uuidof(IMMDeviceEnumerator),
-		reinterpret_cast<void**>(&enumerator_)));
+	enumerator_ = helper::createDeviceEnumerator();
 	hrIfFailThrow(enumerator_->RegisterEndpointNotificationCallback(this));	
 }
 

@@ -25,6 +25,8 @@ public:
     void loadSettings();
 
     void saveAll();
+    void addUpdatesPage(QWidget* page);
+    void showUpdatesPage();
 
 signals:
     void retranslateUi();
@@ -52,5 +54,6 @@ private:
 
     void setPhasePercentText(int32_t value);
 
+    int updates_page_index_{-1};
     Ui::PreferenceDialog* ui_;
 };

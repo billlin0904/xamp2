@@ -1,4 +1,6 @@
 #include <QSqlTableModel>
+#include <QSqlError>
+#include <stdexcept>
 #include <base/rng.h>
 #include <widget/widget_shared.h>
 #include <widget/dao/playlistdao.h>
@@ -46,10 +48,22 @@ namespace dao {
     }
 
     void PlaylistDao::removePlaylist(int32_t playlist_id) {
-        SqlQuery query(db_);
-        query.prepare("DELETE FROM playlist WHERE playlistId=:playlistId"_str);
-        query.bindValue(":playlistId"_str, playlist_id);
-        DbIfFailedThrow1(query);
+        if (!db_.transaction()) throw std::runtime_error(db_.lastError().text().toStdString());
+        try {
+            for (const auto& statement : {
+                "DELETE FROM playlistAlbumStates WHERE playlistId=:playlistId"_str,
+                "DELETE FROM playlistMusics WHERE playlistId=:playlistId"_str,
+                "DELETE FROM playlist WHERE playlistId=:playlistId"_str }) {
+                SqlQuery query(db_);
+                query.prepare(statement);
+                query.bindValue(":playlistId"_str, playlist_id);
+                DbIfFailedThrow1(query);
+            }
+            if (!db_.commit()) throw std::runtime_error(db_.lastError().text().toStdString());
+        } catch (...) {
+            db_.rollback();
+            throw;
+        }
     }
 
     void PlaylistDao::removePlaylistAllMusic(int32_t playlist_id) {

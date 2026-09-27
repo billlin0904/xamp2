@@ -1,61 +1,87 @@
 # XAMP 2
 
-XAMP 2 是一款專注本地音樂播放體驗的桌面音樂播放器。
+專注本機音樂的 Windows 桌面播放器：播放清單、專輯封面、歌詞、參數等化器，以及 WASAPI／ASIO 音訊輸出。
 
-它主要為 Windows 設計，支援常見音樂格式、專輯封面、歌詞、播放清單、等化器，以及 WASAPI / ASIO 等音訊輸出方式。目標是提供乾淨、快速、適合日常聽音樂的播放器。
+[下載 Windows 1.0.2 測試版](https://github.com/billlin0904/xamp2/releases/tag/v1.0.2) · [所有版本](https://github.com/billlin0904/xamp2/releases) · [回報問題](https://github.com/billlin0904/xamp2/issues)
+
+![XAMP 播放清單、專輯封面與底部播放控制](docs/images/player-playlist.png)
+
+*使用者提供的開發版本實機截圖。介面、曲目與配色可能與安裝版本略有差異。*
 
 ## 主要功能
 
-- 播放本機音樂檔案
-- 管理音樂庫與播放清單
-- 顯示專輯封面與歌詞
-- 支援等化器與音訊處理
-- 支援 WASAPI、ASIO、XAudio2 等 Windows 音訊輸出
-- 支援 DSD 播放模式，依音訊設備能力而定
+- **本機音樂與播放清單**：瀏覽資料夾、搜尋音樂、建立與重新命名播放清單、拖曳調整順序。
+- **封面與歌詞**：專輯封面、目前播放資訊及同步歌詞顯示。
+- **音訊輸出**：WASAPI 共用／獨佔、ASIO、XAudio2；DSD 模式依檔案、驅動與裝置支援而定。
+- **BitPerfect PCM**：WASAPI 獨佔與 ASIO 支援 16／24／32-bit 立體聲整數 PCM WAV、FLAC，保留原始取樣率與有效位元。
+- **參數等化器**：多頻段濾波器與前級增益；一般播放模式可使用重取樣與 DSP。
+- **外觀與語言**：深色／淺色主題、Windows 11 背景材質，以及繁體中文、英文、日文、韓文介面。
+- **軟體更新**：檢查更新、背景下載，下載後手動重新啟動安裝。
+
+## Windows 11 透明背景
+
+在 **設定 → 播放 → 背景材質** 選擇 `Mica` 或 `Acrylic`。
+
+| 材質 | 外觀 |
+| --- | --- |
+| 關閉 | 一般實色背景 |
+| Mica | 較柔和的系統背景材質 |
+| Acrylic | 毛玻璃般的模糊與透色效果 |
+
+背景材質需要 **Windows 11 22H2 或更新版本**，並在 Windows「設定 → 個人化 → 色彩」開啟透明效果。高對比模式、關閉系統透明效果或不支援的系統會使用實色背景。
+
+透明效果不是把整個視窗連同文字一起變淡；文字、封面與控制項保持可讀性，背景透出系統材質。實際觀感會隨桌布、視窗後方內容與深淺色主題改變；單色背景下通常較不明顯。
+
+![XAMP 音樂庫、資料夾瀏覽與背景材質實機畫面](docs/images/player-library.png)
+
+*背景材質開發畫面，取自使用者提供的截圖；其中歌曲列表是統一樣式前的版本。靜態圖片僅展示當時觀感，不代表所有區塊皆完全透明。*
 
 ## 下載與安裝
 
-Windows 使用者可以到 GitHub Releases 下載預先編譯好的安裝檔。
+1. 至 [GitHub Releases](https://github.com/billlin0904/xamp2/releases/tag/v1.0.2) 下載 `xamp2-setup.exe`。
+2. 執行安裝程式，依指示完成安裝。
+3. 從音樂庫瀏覽本機資料夾，或將音樂加入播放清單。
 
-下載後執行安裝程式，依畫面指示完成安裝即可。
+目前提供 Windows x64 測試版，安裝包尚未簽署。Release 同時提供 `SHA256SUMS.txt` 供核對下載檔案。Windows 是主要支援平台；其他平台的原始碼仍在開發，目前未提供安裝包。
 
-> macOS 版本目前可以自行編譯，但尚未提供正式下載檔。
+## 啟用 BitPerfect
 
-## 支援平台
+在 **設定 → 輸出** 啟用 BitPerfect PCM，並選擇 **WASAPI 獨佔或 ASIO** 裝置；下次播放生效。
 
-| 平台 | 支援狀態 |
-|----------|----------|
-| Windows | 主要支援 |
-| macOS | 可編譯，暫不提供正式安裝檔 |
+此模式略過 EQ、重取樣與軟體音量，請使用 DAC 或外部設備調整音量。裝置必須支援來源取樣率及足夠的有效位元；不支援的格式會明確拒絕，不會自動降低精度。
 
-## 音訊輸出支援
-
-| 平台 | 模式 | 輸出方式 |
-|----------|----------|----------|
-| Windows | Native DSD | ASIO |
-| Windows | DSD to PCM | WASAPI Shared / Exclusive |
-| Windows | DOP | WASAPI Exclusive |
-| Windows | PCM | XAudio2 |
-| macOS | DOP | CoreAudio |
-
-實際可用的模式會依作業系統、音效卡、驅動程式與音訊檔案格式而有所不同。
+自動測試涵蓋整數解碼、位元排列及 FIFO 傳遞，但尚未完成實體裝置的迴路驗證。詳見 [BitPerfect 架構與測試](docs/bitperfect.md)。
 
 ## 從原始碼編譯
 
-本專案主要使用 C++17 / C++20、Qt 6 與 FFmpeg。
+目前 Windows 開發環境使用 Visual Studio 18、MSVC、Qt 6.8.3，以及專案所需的 FFmpeg、BASS／BASS FX、ASIO SDK 等第三方元件。核心使用 C++20／C++23 功能；第三方路徑仍需依本機環境調整。
 
-如果你只是想使用播放器，建議直接下載 Releases 內的安裝檔。  
-如果你想自行編譯，請先準備：
+開啟 `src/xamp/xamp.sln`，選擇 `Release | x64` 並建置 `xamp`。亦可在 Visual Studio Developer PowerShell 中執行：
 
-- Windows 10 / 11
-- Visual Studio 2022
-- Qt 6
-- FFmpeg 4.4.4
-- 專案所需的第三方函式庫
+```powershell
+msbuild src/xamp/xamp.sln /t:xamp /m:1 /nr:false /p:Configuration=Release /p:Platform=x64
+```
 
-目前建置流程仍偏向開發環境使用，之後會再整理更完整的編譯說明。
+建置前先關閉輸出目錄中的播放器，避免 DLL 被占用。執行時需具備 Qt runtime、plugins、`components` 與資源目錄；單獨複製 `xamp.exe` 不足以執行。
 
-## 開發與打包備忘
+### 自動測試
+
+先完成 Release 建置，再依 [測試說明](docs/bitperfect.md) 設定 Catch2 測試：
+
+```powershell
+cmake --build out/bitperfect-tests --config Release --parallel 6
+ctest --test-dir out/bitperfect-tests -C Release --output-on-failure
+```
+
+1.0.2 發布前通過 17 項 Catch2 測試，涵蓋 PCM 轉換、解碼與 DSP 繞過、輸出格式、EQ 增益與失敗還原，以及緩衝補資料。
+
+### Windows 打包
+
+```powershell
+./tools/Package-WindowsRelease.ps1
+```
+
+腳本會部署 Qt runtime、建立 Inno Setup 安裝包、更新 SHA-256，並執行安裝／移除測試。工具路徑可透過腳本參數調整。安裝包位於 `setup/win32/inno/output/xamp2-setup.exe`。
 
 ### Intel oneMKL Runtime
 

@@ -40,11 +40,29 @@ target_include_directories(xamp_base
 find_package(Threads REQUIRED)
 find_package(LibArchive REQUIRED)
 find_package(simdutf CONFIG REQUIRED)
+find_package(simdjson CONFIG REQUIRED)
+find_package(libdeflate CONFIG QUIET)
+
+if(TARGET libdeflate::libdeflate)
+    set(XAMP_LIBDEFLATE_TARGET libdeflate::libdeflate)
+elseif(TARGET libdeflate::libdeflate_shared)
+    set(XAMP_LIBDEFLATE_TARGET libdeflate::libdeflate_shared)
+elseif(TARGET unofficial::libdeflate::libdeflate)
+    set(XAMP_LIBDEFLATE_TARGET unofficial::libdeflate::libdeflate)
+else()
+    xamp_find_imported_library(XAMP_LIBDEFLATE_TARGET XampLibdeflate
+        REQUIRED
+        HEADER libdeflate.h
+        LIB_NAMES deflate libdeflate
+        PKG libdeflate)
+endif()
 
 target_link_libraries(xamp_base
     PRIVATE
         Threads::Threads
         LibArchive::LibArchive
+        ${XAMP_LIBDEFLATE_TARGET}
+        simdjson::simdjson
         simdutf::simdutf)
 
 if(UNIX AND NOT APPLE)

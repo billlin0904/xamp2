@@ -185,7 +185,7 @@ void AppSettings::loadEqPreset() {
 		}
 	}
 	EqSettings default_settings;
-	default_settings.SetDefault();
+	default_settings.setDefault();
 	eq_settings_["Manual"_str] = default_settings;
 }
 

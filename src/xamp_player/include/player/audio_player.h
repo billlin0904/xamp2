@@ -140,6 +140,7 @@ private:
     void onVolumeChange(int32_t vol) override;
 
     void onError(const std::exception& e) override;
+    void onPlaybackEnd() override;
 
     void onDeviceStateChange(DeviceState state, std::string const& device_id) override;
 
@@ -189,6 +190,9 @@ private:
 
     bool isAvailableWrite() const ;
 
+    std::optional<xamp::pcm::Format> integer_format_;
+    mutable Buffer<float> display_samples_;
+    std::atomic<bool> source_eof_{false};
     bool is_muted_;
     bool is_dsd_file_;
     uint32_t num_read_buffer_size_;

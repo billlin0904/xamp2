@@ -40,7 +40,7 @@ public:
 		close();
 	}
 
-	void Init(uint32_t input_sample_rate) {
+	void initial(uint32_t input_sample_rate) {
 		close();
 
 		unsigned long quality_spec = 0;
@@ -163,7 +163,7 @@ public:
 
 	bool process(float const* samples, size_t num_samples, BufferRef<float>& output) {
 		auto required_size = static_cast<size_t>(num_samples * ratio_) + 256;
-		MaybeResizeBuffer(output, required_size);
+		maybeResizeBuffer(output, required_size);
 
 		size_t num_read_samples = 0;
 		LIB_SOXR.soxr_process(handle_.get(),
@@ -184,11 +184,11 @@ public:
 
 		MemoryCopy(output.data(), output.data(), num_read_samples * num_channels_ * sizeof(float));
 		required_size = num_read_samples * num_channels_;
-		MaybeResizeBuffer(output, required_size);
+		maybeResizeBuffer(output, required_size);
 		return true;
 	}
 
-	void MaybeResizeBuffer(BufferRef<float>& output, size_t required_size) const {
+	void maybeResizeBuffer(BufferRef<float>& output, size_t required_size) const {
 		if (required_size > output.size()) {
 			XAMP_LOG_D(logger_, "Resize size: {} => {}", output.size(), required_size);
 		}
@@ -232,7 +232,7 @@ void SoxrSampleRateConverter::initialize(const Property& config) {
 	impl_->start(output_format.getSampleRate());
 
 	const auto input_format = config.get<AudioFormat>(DspConfig::kInputFormat);
-    impl_->Init(input_format.getSampleRate());
+    impl_->initial(input_format.getSampleRate());
 }
 
 void SoxrSampleRateConverter::setQuality(SoxrQuality quality) {

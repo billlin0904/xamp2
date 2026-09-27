@@ -6,15 +6,12 @@
 #pragma once
 
 #include <QToolButton>
-#include <QTimer>
 
 #include <widget/themecolor.h>
 #include <widget/widget_shared_global.h>
 #include <widget/widget_shared.h>
 #include <player/iaudioplayer.h>
 
-class QEnterEvent;
-class VolumeControlDialog;
 
 class XAMP_WIDGET_SHARED_API VolumeButton : public QToolButton {
 	Q_OBJECT
@@ -25,23 +22,17 @@ public:
 
 	void setAudioPlayer(const std::shared_ptr<IAudioPlayer>& player);
 
-	void showDialog();
 
 	void updateState();
+signals:
+    void volumeChanged(int volume);
+
 public slots:
 	void onVolumeChanged(uint32_t volume);
 
 	void onThemeChangedFinished(ThemeColor theme_color);
 
 private:
-	bool eventFilter(QObject* obj, QEvent* e) override;
-
-    void enterEvent(QEnterEvent* event) override;
-	
-	void leaveEvent(QEvent* event) override;
-
-	bool is_show_{ false };
-	QTimer show_timer_;
-	QTimer hide_timer_;
-	QScopedPointer<VolumeControlDialog> dialog_;
+    std::shared_ptr<IAudioPlayer> player_;
+    uint32_t volume_{0};
 };

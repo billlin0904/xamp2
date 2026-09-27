@@ -21,13 +21,16 @@
 
 void ThemeManager::setPalette() {
     palette_ = QPalette();
-    if (theme_color_ == ThemeColor::LIGHT_THEME) {
-        palette_.setColor(QPalette::WindowText, QColor(250, 250, 250));
-        background_color_ = QColor(250, 250, 250);
-    } else {
-        palette_.setColor(QPalette::WindowText, QColor(25, 35, 45));
-        background_color_ = QColor(28, 28, 30);
-    }
+    const bool dark = isDarkTheme();
+    background_color_ = dark ? QColor("#141719"_str) : QColor("#E9EEEB"_str);
+    palette_.setColor(QPalette::Window, background_color_);
+    palette_.setColor(QPalette::WindowText, dark ? QColor("#EEF1EF"_str) : QColor("#202623"_str));
+    palette_.setColor(QPalette::Text, palette_.color(QPalette::WindowText));
+    palette_.setColor(QPalette::ButtonText, palette_.color(QPalette::WindowText));
+    palette_.setColor(QPalette::Base, dark ? QColor("#191D20"_str) : QColor("#FFFFFF"_str));
+    palette_.setColor(QPalette::Button, dark ? QColor("#252D2F"_str) : QColor("#EEF2EF"_str));
+    palette_.setColor(QPalette::Highlight, highlightColor());
+    palette_.setColor(QPalette::HighlightedText, dark ? QColor("#C6F0E1"_str) : QColor("#202623"_str));
 }
 
 void ThemeManager::setThemeColor(ThemeColor theme_color, bool notify) {
@@ -55,6 +58,7 @@ void ThemeManager::setThemeColor(ThemeColor theme_color, bool notify) {
     }
     default_size_unknown_cover_ = image_util::resizeImage(unknown_cover_, album_cover_size_, true);
     if (notify) {
+        setThemeQssFile();
         emit themeChangedFinished(theme_color);
     }
 }
@@ -71,7 +75,7 @@ QLatin1String ThemeManager::themeColorPath(ThemeColor theme_color) const {
 }
 
 QColor ThemeManager::indicatorColor() const {
-    return textColor();
+    return isDarkTheme() ? QColor("#94D8C3"_str) : textColor();
     //return QColor(232, 214, 90);
 }
 
@@ -97,10 +101,10 @@ QString ThemeManager::backgroundColorString() const {
 
     switch (themeColor()) {
     case ThemeColor::DARK_THEME:
-        color = "#19232D"_str;
+        color = "#141719"_str;
         break;
     case ThemeColor::LIGHT_THEME:
-        color = "#FAFAFA"_str;
+        color = "#E9EEEB"_str;
         break;
     }
     return color;
@@ -120,6 +124,7 @@ QSize ThemeManager::albumCoverSize() const {
 
 void ThemeManager::setThemeQssFile() {
     qApp->setFont(defaultFont());
+    qApp->setPalette(palette_);
 
     QString filename;
 
@@ -133,7 +138,15 @@ void ThemeManager::setThemeQssFile() {
     f.open(QFile::ReadOnly | QFile::Text);
     QTextStream ts(&f);
     ts.setEncoding(QStringConverter::Utf8);
-    qApp->setStyleSheet(ts.readAll());
+    QString stylesheet = ts.readAll();
+    {
+        QFile modern(isDarkTheme() ? ":/xamp/Resource/Theme/dark/modern.qss"_str
+            : ":/xamp/Resource/Theme/light/modern.qss"_str);
+        if (modern.open(QFile::ReadOnly | QFile::Text)) {
+            stylesheet += QString::fromUtf8(modern.readAll());
+        }
+    }
+    qApp->setStyleSheet(stylesheet);
 
     f.close();
 }
@@ -177,20 +190,20 @@ QSize ThemeManager::tabIconSize() const {
 QColor ThemeManager::hoverColor() const {
     switch (themeColor()) {
     case ThemeColor::DARK_THEME:
-        return {"#43474e"_str };
+        return {"#252D2F"_str };
     case ThemeColor::LIGHT_THEME:
     default:
-        return {"#C9CDD0"_str };
+        return {"#DCE6DF"_str };
     }
 }
 
 QColor ThemeManager::highlightColor() const {
     switch (themeColor()) {
     case ThemeColor::LIGHT_THEME:
-        return {"#9FCBFF"_str};
+        return {"#C9DDD2"_str};
     case ThemeColor::DARK_THEME:
     default:
-        return {"#1A72BB"_str };
+        return {"#29463E"_str };
     }
 }
 

@@ -1,0 +1,4 @@
+/build/
+/build-msbuild/
+/dist/
+__pycache__/
