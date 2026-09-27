@@ -31,3 +31,5 @@ Check syntax, local asset and anchor references, keyboard-visible focus, desktop
 ## Linux download extension (2026-09-27)
 
 Extension mode: retain the palette, typography, assets, anchors and Windows download behavior. Add a matching Linux download button and platform-specific detail in the existing mint panel, plus terminal instructions in the existing Linux disclosure. No new animation or screenshot is introduced. Dials: visual variance 6, motion 3, density 4, asset dependence 9, brand fidelity 10. Linux links stay pinned to the verified Linux asset independently of future Windows-only release metadata.
+
+Follow-up: give Windows and Linux equal download buttons in the hero, with local platform icons from [Font Awesome Free 6.7.2](https://github.com/FortAwesome/Font-Awesome/tree/6.7.2/svgs/brands) (CC BY 4.0; original SVG attribution and `assets/site/icons/LICENSE.txt` retained). Replace the bright mint CTA fills and download panel with the existing muted surface/soft tokens in both themes. Keep text contrast and focus outlines clear. Stack the hero platform choices below 400px.

@@ -16,7 +16,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="assets/site/xamp-logo.png" type="image/png">
   <link rel="preload" href="assets/site/fonts/XampDisplay-TC.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/site/site.css?v=3">
+  <link rel="stylesheet" href="assets/site/site.css?v=4">
   <script src="assets/site/site.js?v=3" defer></script>
 </head>
 <body>
@@ -41,9 +41,17 @@
       <div class="hero-intro">
         <p>從反覆聽的那張專輯，到捨不得刪的收藏。<br class="desktop-break">用 XAMP 2，留一段只屬於音樂的時間。</p>
         <p class="hero-description">專注本機音樂的桌面播放器。<br>Windows 與 Linux，讓收藏在熟悉的桌面播放。</p>
-        <a class="button button-primary" data-download href="https://github.com/billlin0904/xamp2/releases/download/v1.0.3/xamp2-setup.exe">下載 Windows 版 <span aria-hidden="true">↓</span></a>
-        <p class="download-meta">Windows x64 <span aria-hidden="true">/</span> <span data-version>v1.0.3</span> 測試版 <span aria-hidden="true">/</span> 開放原始碼</p>
-        <a class="text-link" href="#linux-wsl">使用 Linux？下載與啟動說明 <span aria-hidden="true">↗</span></a>
+        <div class="platform-downloads" aria-label="選擇下載平台">
+          <a class="button button-primary platform-download" data-download href="https://github.com/billlin0904/xamp2/releases/download/v1.0.3/xamp2-setup.exe" aria-label="下載 Windows 版">
+            <img class="platform-icon" src="assets/site/icons/windows.svg" width="22" height="22" alt="">
+            <span class="platform-copy"><strong>Windows</strong><small>x64 · <span data-version>v1.0.3</span></small></span><span class="download-arrow" aria-hidden="true">↓</span>
+          </a>
+          <a class="button button-primary platform-download" data-linux-download href="https://github.com/billlin0904/xamp2/releases/download/v1.0.3/xamp2-1.0.3-linux-x86_64.zip" aria-label="下載 Linux 版">
+            <img class="platform-icon" src="assets/site/icons/linux.svg" width="22" height="22" alt="">
+            <span class="platform-copy"><strong>Linux</strong><small>x86_64 · v1.0.3</small></span><span class="download-arrow" aria-hidden="true">↓</span>
+          </a>
+        </div>
+        <p class="download-meta">測試版 <span aria-hidden="true">/</span> 開放原始碼 <span aria-hidden="true">/</span> <a href="#linux-wsl">Linux 啟動說明 ↗</a></p>
       </div>
     </section>
 
@@ -107,9 +115,9 @@
       <div class="download-panel">
         <div><p class="eyebrow">READY WHEN YOU ARE</p><h2 id="download-title">下一首，<br>就從這裡開始。</h2><p>下載 XAMP 2，打開你的音樂收藏。</p></div>
         <div class="download-actions">
-          <a class="button button-dark" data-download href="https://github.com/billlin0904/xamp2/releases/download/v1.0.3/xamp2-setup.exe">下載 Windows 版 <span aria-hidden="true">↓</span></a>
+          <a class="button button-dark" data-download href="https://github.com/billlin0904/xamp2/releases/download/v1.0.3/xamp2-setup.exe"><img class="platform-icon" src="assets/site/icons/windows.svg" width="22" height="22" alt="">下載 Windows 版 <span aria-hidden="true">↓</span></a>
           <span class="download-detail"><span data-version>v1.0.3</span> 測試版 · Windows x64</span>
-          <a class="button button-dark" data-linux-download href="https://github.com/billlin0904/xamp2/releases/download/v1.0.3/xamp2-1.0.3-linux-x86_64.zip">下載 Linux 版 <span aria-hidden="true">↓</span></a>
+          <a class="button button-dark" data-linux-download href="https://github.com/billlin0904/xamp2/releases/download/v1.0.3/xamp2-1.0.3-linux-x86_64.zip"><img class="platform-icon" src="assets/site/icons/linux.svg" width="22" height="22" alt="">下載 Linux 版 <span aria-hidden="true">↓</span></a>
           <span class="download-detail">v1.0.3 測試版 · x86_64 ZIP · Ubuntu 24.04</span>
           <a class="release-link" data-release href="https://github.com/billlin0904/xamp2/releases/tag/v1.0.3">版本更新紀錄 <span aria-hidden="true">↗</span></a>
         </div>
