@@ -82,7 +82,7 @@ function Copy-ReleaseToDeploy([string]$SourceDir, [string]$TargetDir, [switch]$K
         $TargetDir,
         "/MIR",
         "/XD", "Cache", "logs",
-        "/XF", "*.pdb", "*.lib", "*.exp", "bench.exe", "bench.pdb", "*_test.exe", "bench_*.flac", "xamp.ini", "config.json", "xamp.db",
+        "/XF", "*.pdb", "*.lib", "*.exp", "bench.exe", "bench.pdb", "*_test.exe", "*_probe.exe", "bench_*.flac", "xamp.ini", "config.json", "xamp.db",
         "/NFL", "/NDL", "/NJH", "/NJS", "/NP"
     )
 

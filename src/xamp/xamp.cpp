@@ -1015,9 +1015,12 @@ void Xamp::refreshPlaylistNavigation(int selected_id) {
 }
 
 void Xamp::addDropFileItem(const QUrl& url) {
-    PlayListEntity track;
-    track.file_path = url.toLocalFile();
-    playback_->play(track, -1, PlaybackSource::External, {});
+    if (!url.isLocalFile() || url.toLocalFile().isEmpty()) {
+        return;
+    }
+    rich_playlist_page_->loadPath(url.toLocalFile(), true);
+    ui_.naviBar->setCurrentIndex(TAB_RICH_PLAYLIST);
+    setCurrentTab(TAB_RICH_PLAYLIST);
 }
 
 void Xamp::playPrevious() { playback_->next(-1); }

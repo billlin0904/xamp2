@@ -14,7 +14,7 @@ namespace dao {
     int32_t MusicDao::addOrUpdateMusic(const TrackInfo& track_info) {
         SqlQuery query(db_);
 
-        query.prepare(R"(
+        if (!query.prepare(R"(
 INSERT 
 	OR REPLACE INTO musics (
 		musicId,
@@ -53,7 +53,9 @@ VALUES
     :genre, :comment, :fileSize, :heart, :isCueFile, :isZipFile, :archiveEntryName 
 	)
     )"_str
-        );
+        )) {
+            throw SqlException(query);
+        }
 
         query.bindValue(":title"_str, toQString(track_info.title));
         query.bindValue(":track"_str, track_info.track);

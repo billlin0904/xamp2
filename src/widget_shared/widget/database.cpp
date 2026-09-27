@@ -55,6 +55,39 @@ namespace {
         }
     }
 
+    void ensureMusicArchiveColumns(QSqlDatabase& database) {
+        // Older databases may already mark the initial migration as applied,
+        // even though it did not yet contain these columns.
+        const auto columns = database.record("musics"_str);
+        if (columns.isEmpty()) {
+            throw SqlException(QSqlError("Missing musics table"_str, {}, QSqlError::StatementError));
+        }
+        const bool missing_zip = columns.indexOf("isZipFile"_str) < 0;
+        const bool missing_entry = columns.indexOf("archiveEntryName"_str) < 0;
+        if (!missing_zip && !missing_entry) {
+            return;
+        }
+        if (!database.transaction()) {
+            throw SqlException(database.lastError());
+        }
+        try {
+            SqlQuery query(database);
+            if (missing_zip) {
+                DbIfFailedThrow(query, "ALTER TABLE musics ADD COLUMN isZipFile INTEGER DEFAULT 0"_str);
+            }
+            if (missing_entry) {
+                DbIfFailedThrow(query, "ALTER TABLE musics ADD COLUMN archiveEntryName TEXT"_str);
+            }
+            if (!database.commit()) {
+                throw SqlException(database.lastError());
+            }
+        }
+        catch (...) {
+            database.rollback();
+            throw;
+        }
+    }
+
     void runDatabaseMigrations(QSqlDatabase& database, const QString& migration_directory) {
         createInternalTable(database);
 
@@ -265,6 +298,7 @@ QString Database::getVersion() const {
 
 void Database::createTableIfNotExist() {
     runDatabaseMigrations(db_, ":/xamp/migrations/"_str);
+    ensureMusicArchiveColumns(db_);
 }
 
 bool Database::dropAllTable() {

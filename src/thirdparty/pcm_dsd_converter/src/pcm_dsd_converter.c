@@ -6,13 +6,24 @@
 #include <string.h>
 #include <limits.h>
 #include "coefficients.h"
+#include "pcm_dsd_simd.h"
+#ifdef PCM_DSD_USE_SIMD
+#include <emmintrin.h>
+#ifdef _MSC_VER
+#include <intrin.h>
+#endif
+#endif
 #ifdef PCM_DSD_USE_MKL
 #include <mkl_dfti.h>
 #endif
 #define BLOCK 256
 #define TAPS 4095
 #define MAX_STAGES 11
-typedef struct { double re, im; } complex64;
+/* Optional section timers supplied only by the profiling harness. */
+#ifndef PCM_DSD_PROFILE_BEGIN
+#define PCM_DSD_PROFILE_BEGIN() ((void)0)
+#define PCM_DSD_PROFILE_END(section) ((void)0)
+#endif
 typedef struct {
     size_t nfft, count;
     complex64 *filter, *roots;
@@ -36,8 +47,31 @@ struct pcm_dsd_converter {
     uint8_t* pending;
     size_t pending_count, pending_pos;
     mod_state mod[2];
+    void (*multiply)(complex64*, const complex64*, size_t);
+    int stereo_simd;
     int flushing;
 };
+static void multiply_scalar(complex64* values, const complex64* filter, size_t count) {
+    size_t i;
+    for(i=0;i<count;i++) {
+        const complex64 a=values[i],b=filter[i];
+        values[i].re=a.re*b.re-a.im*b.im;
+        values[i].im=a.re*b.im+a.im*b.re;
+    }
+}
+#ifdef PCM_DSD_USE_SIMD
+static int has_avx2(void) {
+#ifdef _MSC_VER
+    int regs[4];
+    __cpuid(regs,0); if(regs[0]<7) return 0;
+    __cpuidex(regs,1,0);
+    if((regs[2]&0x18000000)!=0x18000000 || (_xgetbv(0)&6)!=6) return 0;
+    __cpuidex(regs,7,0); return (regs[1]&(1<<5))!=0;
+#else
+    __builtin_cpu_init(); return __builtin_cpu_supports("avx2")!=0;
+#endif
+}
+#endif
 static size_t power2(size_t n) { size_t p=1; while(p<n) p*=2; return p; }
 static void fft(complex64* a, size_t n, int inverse) {
     size_t i,j,k,len;
@@ -130,6 +164,75 @@ static uint8_t modulate_first(double sample, double gain, double amplitude, mod_
     m->feedback=q-(bit?1.0:-1.0);
     return bit;
 }
+#ifdef PCM_DSD_USE_SIMD
+/* Independent L/R lanes; samples and SOS sections remain sequential.
+   The public legacy modulator keeps its diagnostic state updates unchanged. */
+static void modulate_stereo15(pcm_dsd_converter* c, const double* input, size_t count) {
+    __m128d state[16],coeff[8][4];
+    __m128d feedback=_mm_set_pd(c->mod[1].feedback,c->mod[0].feedback);
+    const __m128d gain=_mm_set1_pd(c->config.input_gain);
+    const __m128d amplitude=_mm_set1_pd(c->config.dither_amplitude);
+    const __m128d one=_mm_set1_pd(1.0),negative=_mm_set1_pd(-1.0);
+    const __m128d sign=_mm_set1_pd(-0.0),zero=_mm_setzero_pd();
+    const int dither=c->config.dither_amplitude!=0.0;
+    uint64_t left_rng=c->mod[0].rng,right_rng=c->mod[1].rng;
+    unsigned left_byte=(unsigned)c->mod[0].byte,right_byte=(unsigned)c->mod[1].byte;
+    int bits=c->mod[0].bits,s;
+    size_t i;
+    for(s=0;s<16;s++) state[s]=_mm_set_pd(c->mod[1].states[s],c->mod[0].states[s]);
+    for(s=0;s<8;s++) {
+        coeff[s][0]=_mm_set1_pd(default_sos[s*6+1]);
+        coeff[s][1]=_mm_set1_pd(default_sos[s*6+4]);
+        coeff[s][2]=_mm_set1_pd(default_sos[s*6+2]);
+        coeff[s][3]=_mm_set1_pd(default_sos[s*6+5]);
+    }
+    for(i=0;i<count;i++) {
+        __m128d d=zero,q,mask,ret,x,sum=zero;
+        int bitmask;
+        if(dither) {
+            left_rng=left_rng*UINT64_C(6364136223846793005)+UINT64_C(1442695040888963407);
+            right_rng=right_rng*UINT64_C(6364136223846793005)+UINT64_C(1442695040888963407);
+            d=_mm_set_pd((double)(right_rng>>11),(double)(left_rng>>11));
+            d=_mm_mul_pd(d,_mm_set1_pd(1.0/9007199254740992.0));
+            d=_mm_mul_pd(_mm_sub_pd(_mm_mul_pd(d,_mm_set1_pd(2.0)),one),amplitude);
+        }
+        q=_mm_add_pd(_mm_add_pd(_mm_mul_pd(_mm_loadu_pd(input+i*2),gain),d),feedback);
+        mask=_mm_cmpge_pd(q,zero);
+        bitmask=_mm_movemask_pd(mask);
+        ret=_mm_or_pd(_mm_and_pd(mask,negative),_mm_andnot_pd(mask,one));
+        ret=_mm_add_pd(q,_mm_mul_pd(_mm_set1_pd(1.02),_mm_sub_pd(ret,d)));
+        mask=_mm_cmpgt_pd(_mm_andnot_pd(sign,ret),_mm_set1_pd(3.0));
+        if(_mm_movemask_pd(mask)) {
+            const __m128d scale=_mm_or_pd(_mm_and_pd(mask,_mm_set1_pd(0.65)),_mm_andnot_pd(mask,one));
+            ret=_mm_mul_pd(ret,_mm_or_pd(_mm_and_pd(mask,_mm_set1_pd(0.75)),_mm_andnot_pd(mask,one)));
+            for(s=0;s<16;s++) state[s]=_mm_mul_pd(state[s],scale);
+        }
+        x=ret;
+        for(s=0;s<8;s++) {
+            const __m128d y=_mm_add_pd(x,state[s*2]);
+            state[s*2]=_mm_add_pd(_mm_sub_pd(_mm_mul_pd(coeff[s][0],x),_mm_mul_pd(coeff[s][1],y)),state[s*2+1]);
+            state[s*2+1]=_mm_sub_pd(_mm_mul_pd(coeff[s][2],x),_mm_mul_pd(coeff[s][3],y));
+            x=y; sum=_mm_add_pd(sum,state[s*2]);
+        }
+        feedback=_mm_xor_pd(sum,sign);
+        left_byte=(left_byte<<1)|(unsigned)(bitmask&1);
+        right_byte=(right_byte<<1)|(unsigned)((bitmask>>1)&1);
+        if(++bits==8) {
+            c->pending[c->pending_count++]=(uint8_t)left_byte;
+            c->pending[c->pending_count++]=(uint8_t)right_byte;
+            left_byte=right_byte=0; bits=0;
+        }
+    }
+    for(s=0;s<16;s++) {
+        _mm_storel_pd(&c->mod[0].states[s],state[s]);
+        _mm_storeh_pd(&c->mod[1].states[s],state[s]);
+    }
+    _mm_storel_pd(&c->mod[0].feedback,feedback); _mm_storeh_pd(&c->mod[1].feedback,feedback);
+    c->mod[0].rng=left_rng; c->mod[1].rng=right_rng;
+    c->mod[0].byte=(int32_t)left_byte; c->mod[1].byte=(int32_t)right_byte;
+    c->mod[0].bits=c->mod[1].bits=bits;
+}
+#endif
 int PCM_DSD_CALL dsd15_modulate_pack(const double* samples, int64_t frames,
     const double* sos, double gain, double dither, uint64_t* rng, double* states,
     double* feedback, uint8_t* previous, int64_t* run, double* last_return,
@@ -204,6 +307,11 @@ int PCM_DSD_CALL pcm_dsd_create_ex(const pcm_dsd_config* config, const pcm_dsd_o
     if(!up || (up&(up-1))) return PCM_DSD_INVALID_ARGUMENT;
     c=(pcm_dsd_converter*)calloc(1,sizeof(*c)); if(!c) return PCM_DSD_OUT_OF_MEMORY;
     c->config=*config; c->options=*options;
+    c->multiply=multiply_scalar;
+#ifdef PCM_DSD_USE_SIMD
+    c->stereo_simd=1;
+    if(has_avx2()) c->multiply=pcm_dsd_multiply_avx2;
+#endif
     c->taps=options->filter==PCM_DSD_FIR_ORIGINAL ? TAPS :
         (options->filter==PCM_DSD_FIR_BLACKMAN_1023 ? 1023 : 511);
     c->input=(double*)calloc(n*2,sizeof(double));
@@ -259,7 +367,9 @@ int PCM_DSD_CALL pcm_dsd_create_ex(const pcm_dsd_config* config, const pcm_dsd_o
 /* Fixed-size overlap-add per 2x stage: deterministic across caller chunk sizes. */
 static int convert_block(pcm_dsd_converter* c, size_t valid) {
     size_t n=c->options.block_frames,i; uint32_t s,ch; double *in=c->a,*out=c->b;
+    PCM_DSD_PROFILE_BEGIN();
     memcpy(in,c->input,valid*2*sizeof(double)); memset(in+valid*2,0,(c->options.block_frames-valid)*2*sizeof(double));
+    PCM_DSD_PROFILE_END(block_copy);
     for(s=0;s<c->stages;s++) {
         fir_stage* st=&c->stage[s];
         /* The FIR is real, so one complex convolution processes L+iR. */
@@ -267,21 +377,30 @@ static int convert_block(pcm_dsd_converter* c, size_t valid) {
             for(i=0;i<n;i++) {
                 c->scratch[i*2].re=in[i*2]; c->scratch[i*2].im=in[i*2+1];
             }
+            PCM_DSD_PROFILE_END(zero_insert);
             if(!planned_fft(c->scratch,st,0)) return 0;
-            for(i=0;i<st->nfft;i++) {
-                complex64 a=c->scratch[i], b=st->filter[i];
-                c->scratch[i].re=a.re*b.re-a.im*b.im;
-                c->scratch[i].im=a.re*b.im+a.im*b.re;
-            }
+            PCM_DSD_PROFILE_END(forward_fft);
+            c->multiply(c->scratch,st->filter,st->nfft);
+            PCM_DSD_PROFILE_END(multiply);
             if(!planned_fft(c->scratch,st,1)) return 0;
+            PCM_DSD_PROFILE_END(inverse_fft);
             for(i=0;i<c->taps-1;i++) {
                 c->scratch[i].re+=st->tail[i*2]; c->scratch[i].im+=st->tail[i*2+1];
             }
+            PCM_DSD_PROFILE_END(overlap);
             for(i=0;i<n*2;i++) { out[i*2]=c->scratch[i].re; out[i*2+1]=c->scratch[i].im; }
+            PCM_DSD_PROFILE_END(output_copy);
             for(i=0;i<c->taps-1;i++) { st->tail[i*2]=c->scratch[n*2+i].re; st->tail[i*2+1]=c->scratch[n*2+i].im; }
+            PCM_DSD_PROFILE_END(tail_copy);
         { double* t=in; in=out; out=t; } n*=2;
     }
     c->pending_pos=c->pending_count=0;
+#ifdef PCM_DSD_USE_SIMD
+    if(c->stereo_simd && c->options.modulator==PCM_DSD_MODULATOR_15) {
+        modulate_stereo15(c,in,valid*c->up);
+    } else
+#endif
+    {
     for(i=0;i<valid*c->up;i++) {
         for(ch=0;ch<2;ch++) {
             mod_state* m=&c->mod[ch];
@@ -296,14 +415,19 @@ static int convert_block(pcm_dsd_converter* c, size_t valid) {
             c->mod[ch].byte=c->mod[ch].bits=0;
         }
     }
+    }
     c->input_count=0;
+    PCM_DSD_PROFILE_END(modulate_pack);
     return 1;
 }
 static size_t drain(pcm_dsd_converter* c, uint8_t* out, size_t capacity) {
     size_t n=c->pending_count-c->pending_pos;
+    PCM_DSD_PROFILE_BEGIN();
     capacity-=capacity%2; if(n>capacity) n=capacity;
     if(n) memcpy(out,c->pending+c->pending_pos,n);
-    c->pending_pos+=n; return n;
+    c->pending_pos+=n;
+    PCM_DSD_PROFILE_END(drain_copy);
+    return n;
 }
 int PCM_DSD_CALL pcm_dsd_process(pcm_dsd_converter* c, const double* pcm, size_t frames,
     uint8_t* output, size_t capacity, size_t* consumed, size_t* written) {
@@ -316,10 +440,14 @@ int PCM_DSD_CALL pcm_dsd_process(pcm_dsd_converter* c, const double* pcm, size_t
         count+=drain(c,output+count,capacity-count);
         if(c->pending_pos<c->pending_count || used==frames || capacity-count<2) break;
         take=c->options.block_frames-c->input_count; if(take>frames-used) take=frames-used;
+        {
+        PCM_DSD_PROFILE_BEGIN();
         for(i=0;i<take;i++) for(ch=0;ch<2;ch++) {
             double v=pcm[(used+i)*c->config.channels+(c->config.channels==1?0:ch)];
             if(!isfinite(v)) v=isnan(v)?0.0:(v>0?1.0:-1.0);
             c->input[(c->input_count+i)*2+ch]=v;
+        }
+        PCM_DSD_PROFILE_END(input_copy);
         }
         used+=take; c->input_count+=take;
         if(c->input_count==c->options.block_frames && !convert_block(c,c->options.block_frames)) {

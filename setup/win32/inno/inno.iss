@@ -5,7 +5,7 @@
 
 #define MyAppName "XAMP2"
 #ifndef MyAppVersion
-#define MyAppVersion "1.0.2"
+#define MyAppVersion "1.0.3"
 #endif
 #define MyAppPublisher "XAMP2 Project"
 #define MyAppURL "https://github.com/billlin0904/xamp2"
@@ -64,7 +64,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "{#DeployDir}\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#DeployDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "Cache\*,logs\*,*.pdb,*.lib,*.exp,bench.exe,bench.pdb,*_test.exe,xamp.db,xamp.ini,config.json"
+Source: "{#DeployDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "Cache\*,logs\*,*.pdb,*.lib,*.exp,bench.exe,bench.pdb,*_test.exe,*_probe.exe,xamp.db,xamp.ini,config.json"
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]

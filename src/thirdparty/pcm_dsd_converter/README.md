@@ -15,6 +15,22 @@ MKL 與 portable 的浮點結果可能略有差異，因此不保證輸出 DSD �
 oneMKL 授權及第三方聲明位於 `licenses/onemkl`，隨產物部署。
 `pcm_dsd_benchmark` 可在 Release 下測量 DSD64/128/256，排除建立計畫時間並先暖機。
 
+Windows 下另有 `pcm_dsd_profile` 與 `pcm_dsd_profile_control`，兩者實際呼叫
+`pcm_dsd_process`，輸出 CSV。前者以 QPC 計時各處理區段，後者不插入區段計時，
+用來檢查量測干擾與輸出 hash。測試執行緒固定於 logical CPU 0，使用預先產生的
+1 秒 44.1 kHz 立體聲訊號，原版 FIR／15 階／預設 dither，每組先暖機再跑 5 次。
+涵蓋 DSD64/128/256、block 256/1024；create、reset、輸出 hash 不計入 process 時間，
+flush 另計。區段計時僅在 profile target 啟用，正式 DLL 沒有計時器或計數器。
+
+x64 預設啟用 `PCM_DSD_USE_SIMD`：15 階調變器以 SSE2 同時計算左右聲道，
+樣本與 SOS 階段仍依原順序計算。每區塊載入／存回各聲道狀態，使用區域變數打包，
+串流路徑省去不參與回授的 run/prev/last 診斷更新；舊 `dsd15_modulate_pack` API 不變。
+頻域乘法使用獨立 AVX2 編譯單元，create 時檢查 CPU AVX2 與 OS YMM 支援才選用，
+否則保留純量乘法。不使用 FMA，維持原運算順序。1 階模式仍使用純量調變器。
+`-DPCM_DSD_USE_SIMD=OFF` 可關閉這兩項最佳化；不影響 MKL 自身的 CPU dispatch。
+`pcm_dsd_simd_test` 比較輸出 bytes、回授狀態、獨立 RNG、過載、carry、reset 與各 DSP 選項。
+`pcm_dsd_profile_control --scalar` 可在同一測量程式中切回純量路徑，與預設 SIMD 路徑比較。
+
 ```powershell
 .\build_release.ps1
 # 等同於明確指定 Release：

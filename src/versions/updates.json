@@ -2,10 +2,10 @@
   "updates": {
     "windows": {
       "open-url": "",
-      "latest-version": "1.0.2",
-      "download-url": "https://github.com/billlin0904/xamp2/releases/download/v1.0.2/xamp2-setup.exe",
-      "sha256": "B762A6C52A38689865F60B982BADBA0E0F93921015F59C634A25AADA91750C27",
-      "changelog": "<h3>XAMP 1.0.2 Windows 測試版</h3><ul><li>新增 WASAPI 獨佔與 ASIO 的 16/24/32-bit 整數 PCM BitPerfect 輸出。</li><li>修正 EQ 參數、DSP 串接及緩衝補資料時機。</li><li>統一音樂庫與播放清單樣式，改善設定及多語系介面。</li><li>通過 17 項自動測試；硬體 BitPerfect 輸出尚未完成迴路驗證。</li></ul>",
+      "latest-version": "1.0.3",
+      "download-url": "https://github.com/billlin0904/xamp2/releases/download/v1.0.3/xamp2-setup.exe",
+      "sha256": "F4B24D6D8C74D383BD8D2653C5DFD4D9CB5D492B79E51B42605B86B5F1737BDF",
+      "changelog": "<h3>XAMP 1.0.3 Windows 測試版</h3><ul><li>恢復拖入檔案與資料夾加入目前播放清單，保留既有歌曲。</li><li>修正舊版音樂資料庫缺少壓縮檔欄位時的匯入錯誤。</li><li>包含 PCM 轉 DSD 的 MKL 與 SIMD 效能改善。</li></ul>",
       "mandatory-update": false
     },
     "linux": {
