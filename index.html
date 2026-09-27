@@ -5,19 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark light">
   <title>XAMP 2 · 讓音樂，回到主角</title>
-  <meta name="description" content="專注本機音樂的桌面播放器，提供 Windows 下載與 Linux／WSL 原始碼建置支援。用播放清單收藏音樂，探索你的聆聽方式。">
+  <meta name="description" content="專注本機音樂的桌面播放器，提供 Windows 與 Linux x86_64 測試版下載。用播放清單收藏音樂，探索你的聆聽方式。">
   <link rel="canonical" href="https://billlin0904.github.io/xamp2/">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="zh_TW">
   <meta property="og:title" content="XAMP 2 · 讓音樂，回到主角">
-  <meta property="og:description" content="你的音樂收藏，值得好好播放。下載 Windows 桌面播放器 XAMP 2。">
+  <meta property="og:description" content="你的音樂收藏，值得好好播放。下載 Windows 與 Linux 桌面播放器 XAMP 2。">
   <meta property="og:url" content="https://billlin0904.github.io/xamp2/">
   <meta property="og:image" content="https://billlin0904.github.io/xamp2/assets/site/player-playlist.png?v=2">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="assets/site/xamp-logo.png" type="image/png">
   <link rel="preload" href="assets/site/fonts/XampDisplay-TC.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/site/site.css?v=2">
-  <script src="assets/site/site.js?v=2" defer></script>
+  <link rel="stylesheet" href="assets/site/site.css?v=3">
+  <script src="assets/site/site.js?v=3" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">跳至主要內容</a>
@@ -40,9 +40,10 @@
       </div>
       <div class="hero-intro">
         <p>從反覆聽的那張專輯，到捨不得刪的收藏。<br class="desktop-break">用 XAMP 2，留一段只屬於音樂的時間。</p>
-        <p class="hero-description">專注本機音樂的桌面播放器。<br>提供 Windows 下載，也支援 Linux／WSL 原始碼建置。</p>
+        <p class="hero-description">專注本機音樂的桌面播放器。<br>Windows 與 Linux，讓收藏在熟悉的桌面播放。</p>
         <a class="button button-primary" data-download href="https://github.com/billlin0904/xamp2/releases/download/v1.0.3/xamp2-setup.exe">下載 Windows 版 <span aria-hidden="true">↓</span></a>
         <p class="download-meta">Windows x64 <span aria-hidden="true">/</span> <span data-version>v1.0.3</span> 測試版 <span aria-hidden="true">/</span> 開放原始碼</p>
+        <a class="text-link" href="#linux-wsl">使用 Linux？下載與啟動說明 <span aria-hidden="true">↗</span></a>
       </div>
     </section>
 
@@ -108,15 +109,18 @@
         <div class="download-actions">
           <a class="button button-dark" data-download href="https://github.com/billlin0904/xamp2/releases/download/v1.0.3/xamp2-setup.exe">下載 Windows 版 <span aria-hidden="true">↓</span></a>
           <span class="download-detail"><span data-version>v1.0.3</span> 測試版 · Windows x64</span>
+          <a class="button button-dark" data-linux-download href="https://github.com/billlin0904/xamp2/releases/download/v1.0.3/xamp2-1.0.3-linux-x86_64.zip">下載 Linux 版 <span aria-hidden="true">↓</span></a>
+          <span class="download-detail">v1.0.3 測試版 · x86_64 ZIP · Ubuntu 24.04</span>
           <a class="release-link" data-release href="https://github.com/billlin0904/xamp2/releases/tag/v1.0.3">版本更新紀錄 <span aria-hidden="true">↗</span></a>
         </div>
       </div>
-      <div class="install-notes"><p>執行 <code>xamp2-setup.exe</code> 完成安裝，再將檔案或資料夾加入 Playlist。</p><p>目前公開下載提供 Windows x64 測試版，安裝包尚未簽署。Linux 已有 WSL 建置與打包支援，尚未提供公開下載。檔案 SHA-256 可在版本頁面核對。</p></div>
+      <div class="install-notes"><p><strong>Windows</strong> · 執行 <code>xamp2-setup.exe</code> 完成安裝。安裝包尚未簽署；SHA-256 可在版本頁面核對。</p><p><strong>Linux</strong> · 解壓縮 ZIP，在終端機執行 <code>./linux-x64/XAMP.AppDir/AppRun</code>。已於 Ubuntu 24.04／WSL2 驗證啟動，<a href="#linux-wsl">查看步驟與支援範圍</a>。</p></div>
     </section>
 
     <section class="guide wrap" aria-labelledby="guide-title">
       <div class="guide-heading"><h2 id="guide-title">開始之前，你可能想知道</h2><a class="text-link" href="https://github.com/billlin0904/xamp2/issues">回報問題 <span aria-hidden="true">↗</span></a></div>
-      <details id="linux-wsl"><summary>有 Linux 版本嗎？<span aria-hidden="true">+</span></summary><div class="detail-content"><p>有。專案已有 Linux 原始碼與 CMake Debug／Release 建置設定，並曾在 WSL2 Ubuntu 24.04 環境成功建置及產生 AppDir／ZIP 套件。打包腳本另提供 AppImage 模式。</p><p>目前 GitHub Release 公開下載提供 Windows 版。1.0.3 的最新變更尚未重新完成 Linux 建置與執行驗證，Linux 功能與音訊輸出支援也可能與 Windows 不同。</p><p><a href="https://github.com/billlin0904/xamp2#linuxwsl-建置與打包">Linux／WSL 建置與打包說明 ↗</a></p></div></details>
+      <details id="linux-wsl"><summary>Linux 版如何下載與啟動？<span aria-hidden="true">+</span></summary><div class="detail-content"><p><a data-linux-download href="https://github.com/billlin0904/xamp2/releases/download/v1.0.3/xamp2-1.0.3-linux-x86_64.zip">下載 Linux x86_64 測試版 ZIP</a>，適用 Ubuntu 24.04（glibc 2.39 或更新版本）；其他發行版尚未驗證。解壓縮到可寫入的資料夾後，在終端機執行：</p><pre class="launch-command"><code>chmod +x linux-x64/XAMP.AppDir/AppRun linux-x64/XAMP.AppDir/usr/bin/xamp linux-x64/XAMP.AppDir/usr/bin/xamp.bin
+./linux-x64/XAMP.AppDir/AppRun</code></pre><p>請保留整個 AppDir，使用 AppRun 啟動。套件不含個人資料庫或設定；首次執行會自動建立。</p><p>已完成 Release 建置、相依套件檢查、主視窗啟動與 4 項 PCM→DSD 測試；實際播放與硬體輸出仍待人工驗證。Linux 提供 PulseAudio、PipeWire 與 ALSA 後端；WASAPI、ASIO 與 Windows 背景材質僅適用 Windows。</p><p>WSL 請先開啟 Ubuntu 終端機。若只有工作列圖示、視窗透明且標題帶有 COPY MODE，請參考 <a href="docs/linux-release.html">Linux 使用說明與 WSL 排錯</a>。</p></div></details>
       <details id="windows-11-透明背景"><summary>如何開啟 Windows 11 透明背景？<span aria-hidden="true">+</span></summary><div class="detail-content"><p>在「設定 → 播放 → 背景材質」選擇 Mica 或 Acrylic。Mica 提供較柔和的系統背景材質；Acrylic 是毛玻璃般的模糊與透色效果；關閉則使用一般實色背景。</p><p>需要 Windows 11 22H2 或更新版本，並在 Windows「設定 → 個人化 → 色彩」開啟透明效果。高對比模式、關閉透明效果或不支援的系統會使用實色背景。文字、封面與控制項保持可讀性，實際效果依桌布與視窗後方內容而異。</p></div></details>
       <details><summary>BitPerfect 與 PCM 轉 DSD 要怎麼設定？<span aria-hidden="true">+</span></summary><div class="detail-content"><p>在「設定 → 輸出」啟用 BitPerfect PCM，選擇 WASAPI 獨佔或 ASIO 裝置，下次播放生效。需要轉換時再啟用 PCM2DSD。BitPerfect 模式略過軟體音量，請使用 DAC 或外部設備調整音量。</p><p>裝置必須支援來源取樣率與有效位元；DSD 另需相容的驅動與 DAC。自動測試涵蓋整數解碼、位元排列及 FIFO 傳遞，尚未完成實體裝置迴路驗證。<a href="docs/bitperfect.html">閱讀技術文件</a>。</p></div></details>
       <details id="從原始碼編譯"><summary>可以從原始碼編譯嗎？<span aria-hidden="true">+</span></summary><div class="detail-content"><p>可以。Windows 開發環境使用 Visual Studio 18、MSVC、Qt 6.8.3，以及 FFmpeg、BASS／BASS FX、ASIO SDK 等第三方元件。核心使用 C++20／C++23，元件路徑需依本機環境調整。</p><p>開啟 <code>src/xamp/xamp.sln</code>，選擇 <code>Release | x64</code> 建置。執行時還需 Qt runtime、plugins、components 與資源，單獨複製執行檔不足以執行。</p><p id="自動測試"><a href="https://github.com/billlin0904/xamp2#從原始碼編譯">完整建置與測試步驟 ↗</a></p><p id="windows-打包"><a href="https://github.com/billlin0904/xamp2#windows-打包">Windows 安裝檔打包說明 ↗</a></p><p id="intel-onemkl-runtime"><a href="https://github.com/billlin0904/xamp2#intel-onemkl-runtime">Intel oneMKL runtime 相依檔案 ↗</a></p></div></details>

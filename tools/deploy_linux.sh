@@ -8,9 +8,9 @@ BUILD_DIR="${XAMP_DEPLOY_BUILD_DIR:-${ROOT_DIR}/out/build/${PRESET}}"
 SKIP_BUILD="${XAMP_DEPLOY_SKIP_BUILD:-0}"
 APP_DIR="${BUILD_DIR}/src/xamp"
 APP_BIN="${APP_DIR}/xamp"
-DEPLOY_ROOT="${ROOT_DIR}/out/deploy/linux-x64"
+DEPLOY_ROOT="${XAMP_DEPLOY_ROOT:-${ROOT_DIR}/out/deploy/linux-x64}"
 APPDIR="${DEPLOY_ROOT}/XAMP.AppDir"
-ZIP_FILE="${ROOT_DIR}/out/deploy/linux-x64.zip"
+ZIP_FILE="${XAMP_DEPLOY_ZIP_FILE:-${ROOT_DIR}/out/deploy/linux-x64.zip}"
 APPDIR_BIN_DIR="${APPDIR}/usr/bin"
 APPDIR_LIB_DIR="${APPDIR}/usr/lib"
 APPDIR_DESKTOP="${APPDIR}/usr/share/applications/xamp.desktop"
@@ -254,12 +254,13 @@ EOF
 }
 
 copy_xamp_runtime_data() {
-    for file in config.json fonticon.json en_US.qm ja_JP.qm zh_TW.qm xamp.db xamp.ini; do
+    # Databases and per-user settings are created on first launch, never shipped.
+    for file in config.json fonticon.json en_US.qm ja_JP.qm zh_TW.qm; do
         copy_if_exists "${APP_DIR}/${file}" "${APPDIR_BIN_DIR}/${file}"
         copy_if_exists "${ROOT_DIR}/src/xamp/${file}" "${APPDIR_BIN_DIR}/${file}"
     done
 
-    for dir in components fonts migrations opencc eqpresets mecab; do
+    for dir in components fonts migrations opencc eqpresets mecab licenses langs; do
         copy_dir_if_exists "${APP_DIR}/${dir}" "${APPDIR_BIN_DIR}/${dir}"
         if [[ ! -d "${APPDIR_BIN_DIR}/${dir}" ]]; then
             copy_dir_if_exists "${ROOT_DIR}/src/xamp/${dir}" "${APPDIR_BIN_DIR}/${dir}"
@@ -297,6 +298,7 @@ copy_xamp_runtime_data() {
 
 copy_project_libraries() {
     copy_glob_to_dir "${APPDIR_LIB_DIR}" \
+        "${APP_DIR}/libpcm_dsd_converter.so*" \
         "${BUILD_DIR}/src/xamp_base/libxamp_base.so*" \
         "${BUILD_DIR}/src/xamp_metadata/libxamp_metadata.so*" \
         "${BUILD_DIR}/src/xamp_output_device/libxamp_output_device.so*" \
@@ -362,6 +364,8 @@ step_start "create AppDir"
 rm -rf "${APPDIR}"
 mkdir -p "${APPDIR_BIN_DIR}" "${APPDIR_LIB_DIR}" "$(dirname "${APPDIR_ICON}")"
 cp -a "${APP_BIN}" "${APPDIR_BIN_DIR}/xamp.bin"
+copy_if_exists "${ROOT_DIR}/LICENSE" "${APPDIR}/LICENSE"
+copy_if_exists "${ROOT_DIR}/docs/linux-release.md" "${APPDIR}/README.md"
 copy_if_exists "${ROOT_DIR}/src/xamp/xamp2.png" "${APPDIR_ICON}"
 copy_if_exists "${APPDIR_ICON}" "${APPDIR_PIXMAP_ICON}"
 write_desktop_file
@@ -413,7 +417,7 @@ if [[ "${MODE}" == "zip" ]]; then
     rm -f "${ZIP_FILE}"
     (
         cd "${DEPLOY_ROOT}/.."
-        zip -qry "$(basename "${ZIP_FILE}")" "$(basename "${DEPLOY_ROOT}")/XAMP.AppDir"
+        zip -qry "${ZIP_FILE}" "$(basename "${DEPLOY_ROOT}")/XAMP.AppDir"
     )
     step_done
 fi

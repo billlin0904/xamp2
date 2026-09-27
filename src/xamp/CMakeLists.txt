@@ -92,6 +92,8 @@ add_custom_command(TARGET xamp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:xamp>/licenses"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/pcm_dsd_converter/LICENSE"
         "$<TARGET_FILE_DIR:xamp>/licenses/pcm_dsd_converter.txt"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/pcm_dsd_converter/licenses/onemkl"
+        "$<TARGET_FILE_DIR:xamp>/licenses/onemkl"
 )
 
 target_compile_definitions(xamp

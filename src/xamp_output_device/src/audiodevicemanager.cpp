@@ -51,7 +51,11 @@ public:
     DeviceStateNotificationImpl() = default;
 
     void setCallback(const std::weak_ptr<IDeviceStateListener> & callback) {
+#ifdef XAMP_OS_WIN
         notification_ = new DeviceStateNotification(callback);
+#else
+        notification_ = makeAlign<DeviceStateNotification>(callback);
+#endif
     }
 
     void run() const {

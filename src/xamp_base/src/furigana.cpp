@@ -36,7 +36,7 @@ namespace {
 #elif defined(XAMP_OS_WIN)
         return "icuin" U_ICU_VERSION_SHORT;
 #elif defined(XAMP_OS_LINUX)
-        return "icuin-" U_ICU_VERSION_SHORT;
+        return "icui18n-" U_ICU_VERSION_SHORT;
 #else
         return "icuin";
 #endif

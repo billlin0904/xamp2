@@ -27,3 +27,7 @@ The first viewport introduces the player and offers the download; the full-width
 ## Verification
 
 Check syntax, local asset and anchor references, keyboard-visible focus, desktop/mobile layout rules, reduced motion, screenshot switching, disclosure links and fallback download URLs before publication. No test installers or local configuration are part of the website changes.
+
+## Linux download extension (2026-09-27)
+
+Extension mode: retain the palette, typography, assets, anchors and Windows download behavior. Add a matching Linux download button and platform-specific detail in the existing mint panel, plus terminal instructions in the existing Linux disclosure. No new animation or screenshot is introduced. Dials: visual variance 6, motion 3, density 4, asset dependence 9, brand fidelity 10. Linux links stay pinned to the verified Linux asset independently of future Windows-only release metadata.

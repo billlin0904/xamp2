@@ -487,6 +487,17 @@ code {
 .install-notes p {
   max-width:520px;
 }
+.install-notes code {
+  overflow-wrap:anywhere;
+}
+.launch-command {
+  overflow-x:auto;
+  padding:16px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  font-size:13px;
+  line-height:1.7;
+}
 .guide {
   padding-bottom:80px;
 }

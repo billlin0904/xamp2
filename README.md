@@ -1,8 +1,8 @@
 # XAMP 2
 
-專注本機音樂的桌面播放器：播放清單、專輯封面、歌詞與參數等化器。提供 Windows 下載與 Linux／WSL 原始碼建置支援；Windows 版支援 WASAPI／ASIO 音訊輸出。
+專注本機音樂的桌面播放器：播放清單、專輯封面、歌詞與參數等化器。提供 Windows 與 Linux x86_64 測試版下載；Windows 版支援 WASAPI／ASIO，Linux 提供 PulseAudio／PipeWire／ALSA 音訊後端。
 
-[下載 Windows 1.0.3 測試版](https://github.com/billlin0904/xamp2/releases/tag/v1.0.3) · [所有版本](https://github.com/billlin0904/xamp2/releases) · [回報問題](https://github.com/billlin0904/xamp2/issues)
+[下載 Windows 1.0.3 測試版](https://github.com/billlin0904/xamp2/releases/download/v1.0.3/xamp2-setup.exe) · [下載 Linux 1.0.3 測試版](https://github.com/billlin0904/xamp2/releases/download/v1.0.3/xamp2-1.0.3-linux-x86_64.zip) · [所有版本](https://github.com/billlin0904/xamp2/releases) · [回報問題](https://github.com/billlin0904/xamp2/issues)
 
 ![XAMP 播放清單、專輯封面與底部播放控制](docs/images/player-playlist.png?v=2)
 
@@ -42,7 +42,7 @@
 2. 執行安裝程式，依指示完成安裝。
 3. 從音樂庫瀏覽本機資料夾，或將音樂加入播放清單。
 
-目前公開下載提供 Windows x64 測試版，安裝包尚未簽署。Release 說明提供 SHA-256 供核對下載檔案。Linux 已有 WSL 建置與打包支援，尚未提供公開下載；詳見下方 Linux／WSL 說明。
+Windows x64 安裝包尚未簽署。Linux x86_64 提供 ZIP 免安裝套件，已於 Ubuntu 24.04／WSL2 驗證啟動；下載後解壓縮並執行 `./linux-x64/XAMP.AppDir/AppRun`。完整步驟、驗證範圍與 WSL 排錯請見 [Linux 使用說明](docs/linux-release.md)。Release 提供 SHA-256 供核對下載檔案。
 
 ## 啟用 BitPerfect
 
@@ -66,13 +66,13 @@ msbuild src/xamp/xamp.sln /t:xamp /m:1 /nr:false /p:Configuration=Release /p:Pla
 
 ### Linux／WSL 建置與打包
 
-專案已有 Linux 原始碼、CMake Debug／Release presets 與打包腳本，並曾在 WSL2 Ubuntu 24.04 環境成功建置及產生 AppDir／ZIP 套件。**1.0.3 的最新變更尚未重新完成 Linux 建置與執行驗證**；Linux 功能與音訊輸出支援可能與 Windows 不同。
+專案已有 Linux 原始碼、CMake Debug／Release presets 與打包腳本。2026-09-27 已在 WSL2 Ubuntu 24.04（Qt 6.4.2、GCC 13）完成目前 1.0.3 原始碼的 Release 建置、AppDir 相依套件檢查及主視窗啟動，PCM→DSD 的 MKL／SIMD 測試 4 項通過。實際播放與硬體輸出仍待人工驗證；Linux 功能與音訊輸出支援可能與 Windows 不同。
 
 在 WSL 終端機進入專案目錄，先備妥 Qt 與第三方相依元件，並依本機環境調整 `CMakePresets.json` 的 vcpkg toolchain 路徑，再執行：
 
 ```bash
 cmake --preset wsl-linux-release
-cmake --build --preset wsl-linux-release
+cmake --build --preset wsl-linux-release --target xamp -j 8
 ```
 
 Debug 可改用 `wsl-linux-debug`。另有 vcpkg 與動態函式庫版本的 presets，可依相依元件配置選用。

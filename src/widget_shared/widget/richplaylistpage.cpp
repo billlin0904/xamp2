@@ -220,7 +220,8 @@ public:
             const auto& track = tracks[i];
             const auto title = button->fontMetrics().elidedText(track.title, Qt::ElideRight, 168);
             const auto artist = button->fontMetrics().elidedText(track.artist, Qt::ElideRight, 168);
-            button->setText((title + QStringLiteral("\n") + artist).replace("&"_str, "&&"_str));
+            auto label = title + QStringLiteral("\n") + artist;
+            button->setText(label.replace("&"_str, "&&"_str));
             button->setToolTip(track.title + QStringLiteral(" — ") + track.artist);
             button->setIcon(QIcon(qImageCache.getOrAddDefault(track.validCoverId())));
         }
