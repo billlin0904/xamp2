@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="zh-Hant" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>XAMP 2 · 讓音樂，回到主角</title>
+  <meta name="description" content="專注本機音樂的 Windows 桌面播放器。用播放清單收藏音樂，以 WASAPI、ASIO、BitPerfect PCM 與 DSD 探索你的聆聽方式。">
+  <link rel="canonical" href="https://billlin0904.github.io/xamp2/">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="zh_TW">
+  <meta property="og:title" content="XAMP 2 · 讓音樂，回到主角">
+  <meta property="og:description" content="你的音樂收藏，值得好好播放。下載 Windows 桌面播放器 XAMP 2。">
+  <meta property="og:url" content="https://billlin0904.github.io/xamp2/">
+  <meta property="og:image" content="https://billlin0904.github.io/xamp2/assets/site/player-playlist.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="assets/site/xamp-logo.png" type="image/png">
+  <link rel="preload" href="assets/site/fonts/XampDisplay-TC.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="assets/site/site.css">
+  <script src="assets/site/site.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳至主要內容</a>
+  <header class="site-header wrap">
+    <a class="brand" href="#xamp-2" aria-label="XAMP 2 首頁"><img src="assets/site/xamp-logo.png" width="36" height="36" alt=""><span>XAMP<span class="brand-number">2</span></span></a>
+    <nav aria-label="主要導覽">
+      <a href="#主要功能">功能</a>
+      <a href="#音訊輸出">音訊輸出</a>
+      <a class="nav-github" href="https://github.com/billlin0904/xamp2">GitHub <span aria-hidden="true">↗</span></a>
+      <a class="nav-download" href="#下載與安裝">下載 <span aria-hidden="true">↓</span></a>
+    </nav>
+    <button class="theme-toggle" type="button" hidden aria-label="切換為淺色網頁" title="切換網頁外觀"><span aria-hidden="true">◐</span></button>
+  </header>
+
+  <main id="main">
+    <section class="hero wrap" id="xamp-2" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow">A PLAYER FOR YOUR MUSIC</p>
+        <h1 id="hero-title">讓音樂，<span>回到主角。</span></h1>
+      </div>
+      <div class="hero-intro">
+        <p>從反覆聽的那張專輯，到捨不得刪的收藏。<br class="desktop-break">用 XAMP 2，留一段只屬於音樂的時間。</p>
+        <p class="hero-description">專注本機音樂的 Windows 桌面播放器。<br>播放清單、同步歌詞，還有你在意的聲音細節。</p>
+        <a class="button button-primary" data-download href="https://github.com/billlin0904/xamp2/releases/download/v1.0.3/xamp2-setup.exe">下載 Windows 版 <span aria-hidden="true">↓</span></a>
+        <p class="download-meta">Windows x64 <span aria-hidden="true">/</span> <span data-version>v1.0.3</span> 測試版 <span aria-hidden="true">/</span> 開放原始碼</p>
+      </div>
+    </section>
+
+    <section class="showcase wrap" aria-label="播放器實際畫面">
+      <div class="showcase-bar">
+        <span class="showcase-label">熟悉的收藏，新的聆聽日常。</span>
+        <div class="view-switch" role="group" aria-label="選擇播放器畫面" hidden>
+          <button type="button" data-view="playlist" aria-pressed="true">播放清單</button>
+          <button type="button" data-view="library" aria-pressed="false">音樂庫</button>
+        </div>
+      </div>
+      <figure class="player-figure">
+        <a id="screenshot-link" href="assets/site/player-playlist.png" target="_blank" rel="noopener" aria-label="在新分頁開啟播放器原始截圖">
+          <img id="player-screenshot" class="player-screenshot" src="assets/site/player-playlist.png" width="1811" height="992" fetchpriority="high" alt="XAMP 2 播放清單：左側導覽、專輯封面、歌曲列表與底部播放控制，搭配 Windows 透明背景。">
+        </a>
+        <figcaption id="screenshot-caption">播放清單實機畫面。介面與背景效果會依版本、系統及設定而異。</figcaption>
+      </figure>
+    </section>
+
+    <section class="features wrap section" id="主要功能" aria-labelledby="features-title">
+      <div class="section-intro">
+        <p class="eyebrow">YOUR COLLECTION, IN PLACE</p>
+        <h2 id="features-title">把喜歡的音樂，<br>好好收藏。</h2>
+        <p>打開資料夾，選一張專輯，按下播放。<br>日常聽音樂需要的事，都在順手的位置。</p>
+        <a class="text-link" href="https://github.com/billlin0904/xamp2#主要功能">查看完整功能 <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="feature-list">
+        <article><span class="feature-number" aria-hidden="true">01</span><div><h3>你的資料夾，你的播放清單</h3><p>瀏覽本機音樂、搜尋曲目，將檔案或資料夾拖進播放清單。從整張專輯到隨手選歌，照自己的習慣整理。</p></div></article>
+        <article><span class="feature-number" aria-hidden="true">02</span><div><h3>讓封面與歌詞陪你聽</h3><p>專輯封面、目前播放資訊與同步歌詞，把熟悉的旋律和每一句歌詞放在一起。</p></div></article>
+        <article><span class="feature-number" aria-hidden="true">03</span><div><h3>聲音，也可以有你的偏好</h3><p>一般播放模式提供參數等化器、前級增益與重取樣，依耳機、喇叭與聆聽習慣調整。</p></div></article>
+        <article><span class="feature-number" aria-hidden="true">04</span><div><h3>融入你的桌面</h3><p>深色介面搭配 Windows 11 Mica／Acrylic 背景材質，支援繁體中文、英文、日文與韓文。</p><a class="text-link small-link" href="#windows-11-透明背景">背景材質設定 <span aria-hidden="true">↘</span></a></div></article>
+      </div>
+    </section>
+
+    <section class="audio-section" id="音訊輸出" aria-labelledby="audio-title">
+      <div class="wrap audio-inner">
+        <div class="audio-heading"><p class="eyebrow">LISTEN YOUR WAY</p><h2 id="audio-title">細節，<br>從輸出開始。</h2><p>從日常播放到外接 DAC，<br>為不同的聆聽方式選擇合適的輸出。</p></div>
+        <div class="audio-modes">
+          <article class="audio-mode" id="啟用-bitperfect">
+            <div class="mode-heading"><h3>BitPerfect PCM</h3><span class="mode-spec">16 / 24 / 32-bit</span></div>
+            <p>以 WASAPI 獨佔或 ASIO 播放支援的立體聲整數 PCM WAV、FLAC，保留原始取樣率與有效位元，略過 EQ、重取樣及軟體音量。</p>
+            <a class="text-link" href="docs/bitperfect.html">閱讀支援範圍與測試說明 <span aria-hidden="true">↗</span></a>
+          </article>
+          <article class="audio-mode">
+            <div class="mode-heading"><h3>PCM → DSD</h3><span class="mode-spec">DoP / Native DSD</span></div>
+            <p>在 BitPerfect PCM 播放路徑啟用轉換，可設定 DSD 倍率、升頻濾波器、調變器、輸入增益與 Dither。依驅動及 DAC 支援選擇 DoP 或 ASIO Native DSD。</p>
+            <p class="mode-note">轉換後輸出為 DSD，並非原始 PCM 位元直通。</p>
+          </article>
+          <div class="output-row"><span>輸出介面</span><span>WASAPI</span><span>ASIO</span><span>XAudio2</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="download-section wrap section" id="下載與安裝" aria-labelledby="download-title">
+      <div class="download-panel">
+        <div><p class="eyebrow">READY WHEN YOU ARE</p><h2 id="download-title">下一首，<br>就從這裡開始。</h2><p>下載 XAMP 2，打開你的音樂收藏。</p></div>
+        <div class="download-actions">
+          <a class="button button-dark" data-download href="https://github.com/billlin0904/xamp2/releases/download/v1.0.3/xamp2-setup.exe">下載 Windows 版 <span aria-hidden="true">↓</span></a>
+          <span class="download-detail"><span data-version>v1.0.3</span> 測試版 · Windows x64</span>
+          <a class="release-link" data-release href="https://github.com/billlin0904/xamp2/releases/tag/v1.0.3">版本更新紀錄 <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+      <div class="install-notes"><p>執行 <code>xamp2-setup.exe</code> 完成安裝，再將檔案或資料夾加入 Playlist。</p><p>目前提供 Windows x64 測試版，安裝包尚未簽署。其他平台仍在開發中，尚未提供安裝包。檔案 SHA-256 可在版本頁面核對。</p></div>
+    </section>
+
+    <section class="guide wrap" aria-labelledby="guide-title">
+      <div class="guide-heading"><h2 id="guide-title">開始之前，你可能想知道</h2><a class="text-link" href="https://github.com/billlin0904/xamp2/issues">回報問題 <span aria-hidden="true">↗</span></a></div>
+      <details id="windows-11-透明背景"><summary>如何開啟 Windows 11 透明背景？<span aria-hidden="true">+</span></summary><div class="detail-content"><p>在「設定 → 播放 → 背景材質」選擇 Mica 或 Acrylic。Mica 提供較柔和的系統背景材質；Acrylic 是毛玻璃般的模糊與透色效果；關閉則使用一般實色背景。</p><p>需要 Windows 11 22H2 或更新版本，並在 Windows「設定 → 個人化 → 色彩」開啟透明效果。高對比模式、關閉透明效果或不支援的系統會使用實色背景。文字、封面與控制項保持可讀性，實際效果依桌布與視窗後方內容而異。</p></div></details>
+      <details><summary>BitPerfect 與 PCM 轉 DSD 要怎麼設定？<span aria-hidden="true">+</span></summary><div class="detail-content"><p>在「設定 → 輸出」啟用 BitPerfect PCM，選擇 WASAPI 獨佔或 ASIO 裝置，下次播放生效。需要轉換時再啟用 PCM2DSD。BitPerfect 模式略過軟體音量，請使用 DAC 或外部設備調整音量。</p><p>裝置必須支援來源取樣率與有效位元；DSD 另需相容的驅動與 DAC。自動測試涵蓋整數解碼、位元排列及 FIFO 傳遞，尚未完成實體裝置迴路驗證。<a href="docs/bitperfect.html">閱讀技術文件</a>。</p></div></details>
+      <details id="從原始碼編譯"><summary>可以從原始碼編譯嗎？<span aria-hidden="true">+</span></summary><div class="detail-content"><p>可以。Windows 開發環境使用 Visual Studio 18、MSVC、Qt 6.8.3，以及 FFmpeg、BASS／BASS FX、ASIO SDK 等第三方元件。核心使用 C++20／C++23，元件路徑需依本機環境調整。</p><p>開啟 <code>src/xamp/xamp.sln</code>，選擇 <code>Release | x64</code> 建置。執行時還需 Qt runtime、plugins、components 與資源，單獨複製執行檔不足以執行。</p><p id="自動測試"><a href="https://github.com/billlin0904/xamp2#從原始碼編譯">完整建置與測試步驟 ↗</a></p><p id="windows-打包"><a href="https://github.com/billlin0904/xamp2#windows-打包">Windows 安裝檔打包說明 ↗</a></p><p id="intel-onemkl-runtime"><a href="https://github.com/billlin0904/xamp2#intel-onemkl-runtime">Intel oneMKL runtime 相依檔案 ↗</a></p></div></details>
+      <details id="授權"><summary>專案授權與第三方元件<span aria-hidden="true">+</span></summary><div class="detail-content"><p>XAMP 2 本身使用 MIT License。</p><p>本專案也使用多個第三方開源或商業元件，例如 Qt、FFmpeg、BASS、TagLib、OpenCC、QWindowKit、spdlog 等。這些元件分別受其原始授權條款約束。</p><p>正式散布 binary 安裝檔時，會盡量保留並整理第三方元件的授權與 notice 資訊。</p><p><a href="https://github.com/billlin0904/xamp2/blob/master/LICENSE">查看 MIT License ↗</a></p></div></details>
+      <p class="development-note" id="免責聲明">本專案仍在持續開發中。若你遇到無法播放、裝置不相容、歌詞或封面抓取失敗等問題，歡迎回報 issue。</p>
+    </section>
+  </main>
+
+  <footer class="site-footer wrap">
+    <a class="brand" href="#xamp-2" aria-label="回到 XAMP 2 首頁"><img src="assets/site/xamp-logo.png" width="28" height="28" alt=""><span>XAMP<span class="brand-number">2</span></span></a>
+    <p>Made for the music you keep.</p>
+    <div><a href="https://github.com/billlin0904/xamp2">GitHub</a><a href="https://github.com/billlin0904/xamp2/releases">所有版本</a><a href="https://github.com/billlin0904">billlin0904</a></div>
+  </footer>
+</body>
+</html>

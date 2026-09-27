@@ -2,7 +2,7 @@
 
 專注本機音樂的 Windows 桌面播放器：播放清單、專輯封面、歌詞、參數等化器，以及 WASAPI／ASIO 音訊輸出。
 
-[下載 Windows 1.0.2 測試版](https://github.com/billlin0904/xamp2/releases/tag/v1.0.2) · [所有版本](https://github.com/billlin0904/xamp2/releases) · [回報問題](https://github.com/billlin0904/xamp2/issues)
+[下載 Windows 1.0.3 測試版](https://github.com/billlin0904/xamp2/releases/tag/v1.0.3) · [所有版本](https://github.com/billlin0904/xamp2/releases) · [回報問題](https://github.com/billlin0904/xamp2/issues)
 
 ![XAMP 播放清單、專輯封面與底部播放控制](docs/images/player-playlist.png)
 
@@ -15,7 +15,7 @@
 - **音訊輸出**：WASAPI 共用／獨佔、ASIO、XAudio2；DSD 模式依檔案、驅動與裝置支援而定。
 - **BitPerfect PCM**：WASAPI 獨佔與 ASIO 支援 16／24／32-bit 立體聲整數 PCM WAV、FLAC，保留原始取樣率與有效位元。
 - **參數等化器**：多頻段濾波器與前級增益；一般播放模式可使用重取樣與 DSP。
-- **外觀與語言**：深色／淺色主題、Windows 11 背景材質，以及繁體中文、英文、日文、韓文介面。
+- **外觀與語言**：深色主題、Windows 11 背景材質，以及繁體中文、英文、日文、韓文介面。
 - **軟體更新**：檢查更新、背景下載，下載後手動重新啟動安裝。
 
 ## Windows 11 透明背景
@@ -38,11 +38,11 @@
 
 ## 下載與安裝
 
-1. 至 [GitHub Releases](https://github.com/billlin0904/xamp2/releases/tag/v1.0.2) 下載 `xamp2-setup.exe`。
+1. 至 [GitHub Releases](https://github.com/billlin0904/xamp2/releases/tag/v1.0.3) 下載 `xamp2-setup.exe`。
 2. 執行安裝程式，依指示完成安裝。
 3. 從音樂庫瀏覽本機資料夾，或將音樂加入播放清單。
 
-目前提供 Windows x64 測試版，安裝包尚未簽署。Release 同時提供 `SHA256SUMS.txt` 供核對下載檔案。Windows 是主要支援平台；其他平台的原始碼仍在開發，目前未提供安裝包。
+目前提供 Windows x64 測試版，安裝包尚未簽署。Release 說明提供 SHA-256 供核對下載檔案。Windows 是主要支援平台；其他平台的原始碼仍在開發，目前未提供安裝包。
 
 ## 啟用 BitPerfect
 
