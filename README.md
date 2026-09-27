@@ -1,6 +1,6 @@
 # XAMP 2
 
-專注本機音樂的 Windows 桌面播放器：播放清單、專輯封面、歌詞、參數等化器，以及 WASAPI／ASIO 音訊輸出。
+專注本機音樂的桌面播放器：播放清單、專輯封面、歌詞與參數等化器。提供 Windows 下載與 Linux／WSL 原始碼建置支援；Windows 版支援 WASAPI／ASIO 音訊輸出。
 
 [下載 Windows 1.0.3 測試版](https://github.com/billlin0904/xamp2/releases/tag/v1.0.3) · [所有版本](https://github.com/billlin0904/xamp2/releases) · [回報問題](https://github.com/billlin0904/xamp2/issues)
 
@@ -42,7 +42,7 @@
 2. 執行安裝程式，依指示完成安裝。
 3. 從音樂庫瀏覽本機資料夾，或將音樂加入播放清單。
 
-目前提供 Windows x64 測試版，安裝包尚未簽署。Release 說明提供 SHA-256 供核對下載檔案。Windows 是主要支援平台；其他平台的原始碼仍在開發，目前未提供安裝包。
+目前公開下載提供 Windows x64 測試版，安裝包尚未簽署。Release 說明提供 SHA-256 供核對下載檔案。Linux 已有 WSL 建置與打包支援，尚未提供公開下載；詳見下方 Linux／WSL 說明。
 
 ## 啟用 BitPerfect
 
@@ -63,6 +63,29 @@ msbuild src/xamp/xamp.sln /t:xamp /m:1 /nr:false /p:Configuration=Release /p:Pla
 ```
 
 建置前先關閉輸出目錄中的播放器，避免 DLL 被占用。執行時需具備 Qt runtime、plugins、`components` 與資源目錄；單獨複製 `xamp.exe` 不足以執行。
+
+### Linux／WSL 建置與打包
+
+專案已有 Linux 原始碼、CMake Debug／Release presets 與打包腳本，並曾在 WSL2 Ubuntu 24.04 環境成功建置及產生 AppDir／ZIP 套件。**1.0.3 的最新變更尚未重新完成 Linux 建置與執行驗證**；Linux 功能與音訊輸出支援可能與 Windows 不同。
+
+在 WSL 終端機進入專案目錄，先備妥 Qt 與第三方相依元件，並依本機環境調整 `CMakePresets.json` 的 vcpkg toolchain 路徑，再執行：
+
+```bash
+cmake --preset wsl-linux-release
+cmake --build --preset wsl-linux-release
+```
+
+Debug 可改用 `wsl-linux-debug`。另有 vcpkg 與動態函式庫版本的 presets，可依相依元件配置選用。
+
+```bash
+bash tools/deploy_linux.sh wsl-linux-release zip
+```
+
+打包腳本預設會建置後部署相依檔案；模式可選 `appdir`、`zip` 或 `appimage`。既有 ZIP／AppDir 流程曾成功執行，AppImage 模式尚未在這次版本重新驗證。
+
+- AppDir：`out/deploy/linux-x64/XAMP.AppDir`，以其中的 `AppRun` 啟動。
+- ZIP：`out/deploy/linux-x64.zip`。
+- 打包紀錄：`out/deploy/deploy_linux.log`。
 
 ### 自動測試
 
