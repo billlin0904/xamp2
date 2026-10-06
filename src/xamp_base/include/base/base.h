@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <base/move_only_function.h>
 #include <cassert>
 #include <cstdint>
 #include <cstddef>

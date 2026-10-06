@@ -1,4 +1,4 @@
-﻿//=====================================================================================================================
+//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -134,7 +134,7 @@ private:
     std::shared_ptr<Logger> logger_;
     bool bitperfect_{false};
     Property config_;
-    std::move_only_function<bool(float const*, uint32_t, AudioBuffer<std::byte>&)> dispatch_;
+    xamp::base::MoveOnlyFunction<bool(float const*, uint32_t, AudioBuffer<std::byte>&)> dispatch_;
 };
 
 XAMP_STREAM_NAMESPACE_END

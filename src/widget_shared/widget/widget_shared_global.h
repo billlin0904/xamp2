@@ -8,6 +8,7 @@
 #include <QtCore/qglobal.h>
 #include <base/port.h>
 #include <stdexcept>
+#include <exception>
 
 #ifndef BUILD_STATIC
 # if defined(WIDGET_SHARED_LIB)

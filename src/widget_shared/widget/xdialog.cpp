@@ -47,6 +47,10 @@ void XDialog::setContent(QWidget* content) {
 }
 
 void XDialog::installWindowAgent() {
+#ifdef Q_OS_MAC
+    // Keep Cocoa's native frame; custom full-size content offsets clip layouts.
+    return;
+#endif
     setAttribute(Qt::WA_DontCreateNativeAncestors);
 
     window_agent_ = new QWK::WidgetWindowAgent(this);

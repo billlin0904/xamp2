@@ -1,4 +1,4 @@
-﻿//=====================================================================================================================
+//=====================================================================================================================
 // Copyright (c) 2018-2026 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
@@ -30,7 +30,7 @@ public:
 	
 	void convert(void* data, const void* buffer, const AudioConvertContext& context);
 private:
-	std::move_only_function<void(void*, const void*, const AudioConvertContext&)> impl_;
+	xamp::base::MoveOnlyFunction<void(void*, const void*, const AudioConvertContext&)> impl_;
 };
 
 XAMP_BASE_API AudioConvertContext makeConvert(size_t convert_size);

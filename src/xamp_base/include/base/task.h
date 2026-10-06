@@ -19,6 +19,6 @@ using Future = std::future<t>;
 template <typename t = void>
 using SharedFuture = std::shared_future<t>;
 
-using Task = std::move_only_function<void(const std::stop_token&)>;
+using Task = xamp::base::MoveOnlyFunction<void(const std::stop_token&)>;
 
 XAMP_BASE_NAMESPACE_END

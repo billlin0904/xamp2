@@ -42,8 +42,8 @@ void LocaleLanguage::setLanguage(QLocale::Language lang, QLocale::Country countr
 }
 
 void LocaleLanguage::setLanguageByLocale(const QLocale& locale) {
-	lang_ = locale.language();
-	country_ = locale.country();
+	lang_ = QLocale::languageToString(locale.language());
+	country_ = QLocale::territoryToString(locale.territory());
 	native_name_lang_ = locale.nativeLanguageName();
 	eng_name_ = QLocale::languageToString(locale.language());
 	lang_iso_code_ = locale.name().left(2);

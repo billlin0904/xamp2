@@ -57,12 +57,14 @@ target_link_libraries(xamp_output_device
 
 if(APPLE)
     find_library(LIB_COREAUDIO CoreAudio REQUIRED)
+    find_library(LIB_AUDIOTOOLBOX AudioToolbox REQUIRED)
     find_library(LIB_COREFOUNDATION CoreFoundation REQUIRED)
     find_library(IOKIT_LIB IOKit REQUIRED)
     find_library(SECURITY_LIB Security REQUIRED)
     target_link_libraries(xamp_output_device
         PRIVATE
             ${LIB_COREAUDIO}
+            ${LIB_AUDIOTOOLBOX}
             ${LIB_COREFOUNDATION}
             ${IOKIT_LIB}
             ${SECURITY_LIB})

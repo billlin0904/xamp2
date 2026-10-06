@@ -19,7 +19,7 @@ public:
 
 	XAMP_PIMPL(Timer)
 
-	void start(std::chrono::milliseconds interval, std::move_only_function<void()> callback);
+	void start(std::chrono::milliseconds interval, xamp::base::MoveOnlyFunction<void()> callback);
 
 	void stop();
 

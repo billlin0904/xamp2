@@ -57,7 +57,7 @@ public:
 		stop();
 	}
 
-	void start(std::chrono::milliseconds interval, std::move_only_function<void()> callback) {
+	void start(std::chrono::milliseconds interval, xamp::base::MoveOnlyFunction<void()> callback) {
 		if (!is_stop_) {
 			return;
 		}
@@ -111,7 +111,7 @@ private:
 	std::atomic<bool> is_stop_{true};
 	TimerQueueHandle timer_queue_;
 	TimerQueueTimer timer_;
-	std::move_only_function<void()> callback_;
+	xamp::base::MoveOnlyFunction<void()> callback_;
 };
 #elif defined(XAMP_OS_MAC)
 class Timer::TimerImpl {
@@ -122,7 +122,7 @@ public:
 		stop();
 	}
 
-	void start(std::chrono::milliseconds interval, std::move_only_function<void()> callback) {
+	void start(std::chrono::milliseconds interval, xamp::base::MoveOnlyFunction<void()> callback) {
         if (!is_stop_) {
             return;
         }
@@ -158,7 +158,7 @@ public:
 	}
 private:
     static void TimerCallback(void *arg) {
-        const auto* timer = static_cast<TimerImpl*>(arg);
+        auto* timer = static_cast<TimerImpl*>(arg);
         try {
             timer->callback_();
         } catch (...) {
@@ -168,7 +168,7 @@ private:
     std::atomic<bool> is_stop_{true};
     dispatch_queue_t timer_queue_{nullptr};
     dispatch_source_t timer_{nullptr};
-    std::move_only_function<void()> callback_;
+    xamp::base::MoveOnlyFunction<void()> callback_;
 };
 #else
 class Timer::TimerImpl {
@@ -179,7 +179,7 @@ public:
 		stop();
 	}
 
-	void start(std::chrono::milliseconds interval, std::move_only_function<void()> callback) {
+	void start(std::chrono::milliseconds interval, xamp::base::MoveOnlyFunction<void()> callback) {
 		if (!is_stop_) {
 			return;
 		}
@@ -215,7 +215,7 @@ public:
 private:
 	std::atomic<bool> is_stop_{ true };
 	std::jthread thread_;
-	std::move_only_function<void()> callback_;
+	xamp::base::MoveOnlyFunction<void()> callback_;
 };
 #endif
 
@@ -225,7 +225,7 @@ Timer::Timer()
 	: impl_(makeAlign<TimerImpl>()) {
 }
 
-void Timer::start(std::chrono::milliseconds interval, std::move_only_function<void()> callback) {
+void Timer::start(std::chrono::milliseconds interval, xamp::base::MoveOnlyFunction<void()> callback) {
 	impl_->start(interval, std::move(callback));
 }
 

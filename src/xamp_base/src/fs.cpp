@@ -139,7 +139,14 @@ std::string getSharedLibraryName(const std::string_view& name) {
 	return library_name + ".dll";
 #elif defined(XAMP_OS_MAC)
 	const std::string prefix = library_name.starts_with("lib") ? "" : "lib";
-	return prefix + library_name + ".dylib";
+    const auto dash_pos = library_name.find_last_of('-');
+    if (dash_pos != std::string::npos && dash_pos + 1 < library_name.size()) {
+        const auto version = library_name.substr(dash_pos + 1);
+        if (std::all_of(version.begin(), version.end(), [](unsigned char c) { return std::isdigit(c); })) {
+            library_name.replace(dash_pos, 1, ".");
+        }
+    }
+    return prefix + library_name + ".dylib";
 #else
 	const std::string prefix = library_name.starts_with("lib") ? "" : "lib";
 	const auto dash_pos = library_name.find_last_of('-');

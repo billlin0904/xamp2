@@ -132,7 +132,7 @@ private:
 	AudioFormat format_;
 	std::vector<ASIOClockSource> clock_source_;	
 	IAudioCallback* callback_;
-	std::move_only_function<bool(long, double, size_t&)> get_samples_;
+	xamp::base::MoveOnlyFunction<bool(long, double, size_t&)> get_samples_;
 	LoggerPtr logger_;
 	std::string device_id_;
 	Buffer<std::byte> buffer_;

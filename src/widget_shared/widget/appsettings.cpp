@@ -253,7 +253,12 @@ QString AppSettings::getOrCreateCachePath() {
 		cache_path = qAppSettings.valueAsString(kAppSettingCachePath);
 	}
 #else
+#ifdef Q_OS_MAC
+    cache_path = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+    QDir().mkpath(cache_path);
+#else
     cache_path = applicationPath() + QString("/Cache/"_str);
+#endif
     const QDir dir(cache_path);
     if (!dir.exists()) {
         if (!dir.mkdir(cache_path)) {

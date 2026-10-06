@@ -8,15 +8,17 @@
 #include <thememanager.h>
 #include <xampplayer.h>
 
-namespace {
-}
-
 IXMainWindow::IXMainWindow()
 	: QMainWindow() {
     setAttribute(Qt::WA_DontCreateNativeAncestors);
 }
 
 void IXMainWindow::installWindowAgent() {
+#ifdef Q_OS_MAC
+    // Cocoa owns the standard title bar and its move/resize/fullscreen behavior.
+    setWindowTitle("XAMP"_str);
+    return;
+#endif
     if (window_agent_ != nullptr) {
         return;
     }
@@ -122,6 +124,7 @@ void IXMainWindow::installWindowAgent() {
     window_bar->setMaxButton(max_button);
     window_bar->setCloseButton(close_button);
 #endif
+    window_bar->setObjectName("xamp-title-bar"_str);
     window_bar->setTitleLabel(title_label);
     window_bar->setHostWidget(this);
 
@@ -141,6 +144,7 @@ void IXMainWindow::installWindowAgent() {
 #endif
 
     setMenuWidget(window_bar);
+
 
 #ifndef Q_OS_MAC
     (void)QObject::connect(window_bar, &QWK::WindowBar::minimizeRequested, this, &QWidget::showMinimized);

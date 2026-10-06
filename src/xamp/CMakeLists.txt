@@ -87,13 +87,18 @@ add_executable(xamp
 
 target_compile_features(xamp PRIVATE cxx_std_23)
 add_dependencies(xamp pcm_dsd_converter)
+if(APPLE)
+    set(XAMP_RUNTIME_DATA_ROOT "$<TARGET_FILE_DIR:xamp>/../Resources")
+else()
+    set(XAMP_RUNTIME_DATA_ROOT "$<TARGET_FILE_DIR:xamp>")
+endif()
 add_custom_command(TARGET xamp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:pcm_dsd_converter>" "$<TARGET_FILE_DIR:xamp>"
-    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:xamp>/licenses"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${XAMP_RUNTIME_DATA_ROOT}/licenses"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/pcm_dsd_converter/LICENSE"
-        "$<TARGET_FILE_DIR:xamp>/licenses/pcm_dsd_converter.txt"
+        "${XAMP_RUNTIME_DATA_ROOT}/licenses/pcm_dsd_converter.txt"
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/pcm_dsd_converter/licenses/onemkl"
-        "$<TARGET_FILE_DIR:xamp>/licenses/onemkl"
+        "${XAMP_RUNTIME_DATA_ROOT}/licenses/onemkl"
 )
 
 target_compile_definitions(xamp
@@ -128,19 +133,29 @@ set_target_properties(xamp PROPERTIES
 add_custom_command(TARGET xamp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${CMAKE_CURRENT_LIST_DIR}/config.json"
-        "$<TARGET_FILE_DIR:xamp>/config.json"
+        "${XAMP_RUNTIME_DATA_ROOT}/config.json"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${CMAKE_CURRENT_LIST_DIR}/fonticon.json"
-        "$<TARGET_FILE_DIR:xamp>/fonticon.json"
+        "${XAMP_RUNTIME_DATA_ROOT}/fonticon.json"
 )
 
 foreach(XAMP_RUNTIME_DATA_DIR fonts migrations opencc eqpresets)
     if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/${XAMP_RUNTIME_DATA_DIR}")
+        if(APPLE)
+            add_custom_command(TARGET xamp POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_directory
+                    "${CMAKE_CURRENT_LIST_DIR}/${XAMP_RUNTIME_DATA_DIR}"
+                    "$<TARGET_FILE_DIR:xamp>/../Resources/${XAMP_RUNTIME_DATA_DIR}"
+                COMMAND ${CMAKE_COMMAND} -E create_symlink
+                    "../Resources/${XAMP_RUNTIME_DATA_DIR}"
+                    "$<TARGET_FILE_DIR:xamp>/${XAMP_RUNTIME_DATA_DIR}")
+        else()
         add_custom_command(TARGET xamp POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_directory
                 "${CMAKE_CURRENT_LIST_DIR}/${XAMP_RUNTIME_DATA_DIR}"
                 "$<TARGET_FILE_DIR:xamp>/${XAMP_RUNTIME_DATA_DIR}"
         )
+        endif()
     endif()
 endforeach()
 
@@ -317,10 +332,10 @@ endif()
 
 find_package(Qt6 REQUIRED COMPONENTS LinguistTools)
 add_custom_command(TARGET xamp POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:xamp>/langs"
-    COMMAND Qt6::lrelease "${CMAKE_CURRENT_SOURCE_DIR}/zh_TW.ts" -qm "$<TARGET_FILE_DIR:xamp>/langs/zh_TW.qm"
-    COMMAND Qt6::lrelease "${CMAKE_CURRENT_SOURCE_DIR}/../widget_shared/widget_shared_zh_TW.ts" -qm "$<TARGET_FILE_DIR:xamp>/langs/widget_shared_zh_TW.qm"
-    COMMAND Qt6::lrelease "${CMAKE_CURRENT_SOURCE_DIR}/qt_zh_TW.ts" -qm "$<TARGET_FILE_DIR:xamp>/langs/qt_zh_TW.qm"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${XAMP_RUNTIME_DATA_ROOT}/langs"
+    COMMAND Qt6::lrelease "${CMAKE_CURRENT_SOURCE_DIR}/zh_TW.ts" -qm "${XAMP_RUNTIME_DATA_ROOT}/langs/zh_TW.qm"
+    COMMAND Qt6::lrelease "${CMAKE_CURRENT_SOURCE_DIR}/../widget_shared/widget_shared_zh_TW.ts" -qm "${XAMP_RUNTIME_DATA_ROOT}/langs/widget_shared_zh_TW.qm"
+    COMMAND Qt6::lrelease "${CMAKE_CURRENT_SOURCE_DIR}/qt_zh_TW.ts" -qm "${XAMP_RUNTIME_DATA_ROOT}/langs/qt_zh_TW.qm"
     VERBATIM)
 
 # Qt's standard widget/dialog translations accompany the application catalogs.
@@ -331,9 +346,9 @@ execute_process(COMMAND "${XAMP_QMAKE_EXECUTABLE}" -query QT_INSTALL_TRANSLATION
 foreach(locale IN ITEMS ja_JP ko_KR)
     string(SUBSTRING "${locale}" 0 2 qt_language)
     add_custom_command(TARGET xamp POST_BUILD
-        COMMAND Qt6::lrelease "${CMAKE_CURRENT_SOURCE_DIR}/${locale}.ts" -qm "$<TARGET_FILE_DIR:xamp>/langs/${locale}.qm"
-        COMMAND Qt6::lrelease "${CMAKE_CURRENT_SOURCE_DIR}/../widget_shared/widget_shared_${locale}.ts" -qm "$<TARGET_FILE_DIR:xamp>/langs/widget_shared_${locale}.qm"
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${XAMP_QT_TRANSLATIONS_DIR}/qtbase_${qt_language}.qm" "$<TARGET_FILE_DIR:xamp>/langs/qt_${locale}.qm"
+        COMMAND Qt6::lrelease "${CMAKE_CURRENT_SOURCE_DIR}/${locale}.ts" -qm "${XAMP_RUNTIME_DATA_ROOT}/langs/${locale}.qm"
+        COMMAND Qt6::lrelease "${CMAKE_CURRENT_SOURCE_DIR}/../widget_shared/widget_shared_${locale}.ts" -qm "${XAMP_RUNTIME_DATA_ROOT}/langs/widget_shared_${locale}.qm"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${XAMP_QT_TRANSLATIONS_DIR}/qtbase_${qt_language}.qm" "${XAMP_RUNTIME_DATA_ROOT}/langs/qt_${locale}.qm"
         VERBATIM)
 endforeach()
 
@@ -362,4 +377,48 @@ if(XAMP_BUILD_ARCHITECTURE_TESTS)
     target_include_directories(playlistdeletion_test PRIVATE $<TARGET_PROPERTY:xamp,INCLUDE_DIRECTORIES>)
     target_link_libraries(playlistdeletion_test PRIVATE widget_shared Qt6::Sql)
     add_test(NAME playlistdeletion COMMAND playlistdeletion_test)
+endif()
+
+if(APPLE)
+    target_compile_definitions(xamp PRIVATE $<$<CONFIG:Debug>:_DEBUG>)
+    set_target_properties(xamp PROPERTIES MACOSX_BUNDLE TRUE
+        XCODE_GENERATE_SCHEME TRUE
+        XCODE_SCHEME_WORKING_DIRECTORY "$<TARGET_FILE_DIR:xamp>")
+endif()
+
+if(APPLE)
+    set(XAMP_BASS_MACOS_LIBS
+        "${CMAKE_SOURCE_DIR}/out/deps/bass-macos/bass24-osx/libbass.dylib"
+        "${CMAKE_SOURCE_DIR}/out/deps/bass-macos/bassflac24-osx/libbassflac.dylib"
+        "${CMAKE_SOURCE_DIR}/out/deps/bass-macos/bassmix24-osx/libbassmix.dylib"
+        "${CMAKE_SOURCE_DIR}/out/deps/bass-macos/bassdsd24-osx/libbassdsd.dylib"
+        "${CMAKE_SOURCE_DIR}/out/deps/bass-macos/bass_fx-arm64/libbass_fx.dylib")
+    if(XAMP_BASS_MACOS_LIBS)
+        add_custom_command(TARGET xamp POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:xamp>/components"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${XAMP_BASS_MACOS_LIBS} "$<TARGET_FILE_DIR:xamp>/components")
+    endif()
+endif()
+
+if(APPLE)
+    foreach(bass_library IN LISTS XAMP_BASS_MACOS_LIBS)
+        get_filename_component(bass_name "${bass_library}" NAME)
+        add_custom_command(TARGET xamp POST_BUILD
+            COMMAND /usr/bin/codesign --force --sign - "$<TARGET_FILE_DIR:xamp>/components/${bass_name}"
+            VERBATIM)
+    endforeach()
+endif()
+
+if(APPLE)
+    add_custom_command(TARGET xamp POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E create_symlink "../Resources/langs" "$<TARGET_FILE_DIR:xamp>/langs"
+        VERBATIM)
+endif()
+
+if(APPLE)
+    foreach(data_file IN ITEMS config.json fonticon.json)
+        add_custom_command(TARGET xamp POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E create_symlink "../Resources/${data_file}" "$<TARGET_FILE_DIR:xamp>/${data_file}"
+            VERBATIM)
+    endforeach()
 endif()

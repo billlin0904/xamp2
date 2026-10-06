@@ -14,12 +14,18 @@ if(NOT TARGET xamp_base)
     add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../xamp_base" "${CMAKE_BINARY_DIR}/xamp_base")
 endif()
 
+if(APPLE)
+    set(XAMP_TAGLIB_DIR "${CMAKE_SOURCE_DIR}/out/deps/taglib")
+else()
+    set(XAMP_TAGLIB_DIR "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2")
+endif()
+
 if(NOT TARGET tag)
     set(BUILD_BINDINGS OFF CACHE BOOL "" FORCE)
     set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
     set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-    add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2" "${CMAKE_BINARY_DIR}/taglib2")
+    add_subdirectory("${XAMP_TAGLIB_DIR}" "${CMAKE_BINARY_DIR}/taglib2")
 endif()
 
 file(GLOB_RECURSE XAMP_METADATA_SOURCES CONFIGURE_DEPENDS
@@ -53,20 +59,20 @@ target_include_directories(xamp_metadata
         "${CMAKE_CURRENT_LIST_DIR}/../xamp_base/include"
         "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/spdlog/include"
         "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/unordered_dense/include"
-        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib"
-        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib/ape"
-        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib/dsdiff"
-        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib/dsf"
-        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib/flac"
-        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib/mp4"
-        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib/mpeg"
-        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib/mpeg/id3v2"
-        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib/mpeg/id3v2/frames"
-        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib/ogg"
-        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib/ogg/opus"
-        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib/riff"
-        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib/riff/wav"
-        "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/taglib/toolkit"
+        "${XAMP_TAGLIB_DIR}/taglib"
+        "${XAMP_TAGLIB_DIR}/taglib/ape"
+        "${XAMP_TAGLIB_DIR}/taglib/dsdiff"
+        "${XAMP_TAGLIB_DIR}/taglib/dsf"
+        "${XAMP_TAGLIB_DIR}/taglib/flac"
+        "${XAMP_TAGLIB_DIR}/taglib/mp4"
+        "${XAMP_TAGLIB_DIR}/taglib/mpeg"
+        "${XAMP_TAGLIB_DIR}/taglib/mpeg/id3v2"
+        "${XAMP_TAGLIB_DIR}/taglib/mpeg/id3v2/frames"
+        "${XAMP_TAGLIB_DIR}/taglib/ogg"
+        "${XAMP_TAGLIB_DIR}/taglib/ogg/opus"
+        "${XAMP_TAGLIB_DIR}/taglib/riff"
+        "${XAMP_TAGLIB_DIR}/taglib/riff/wav"
+        "${XAMP_TAGLIB_DIR}/taglib/toolkit"
         "${CMAKE_BINARY_DIR}/taglib2"
 )
 

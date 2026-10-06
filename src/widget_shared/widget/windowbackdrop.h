@@ -86,7 +86,7 @@ public:
                 : QStringLiteral("rgba(225,235,228,20)")) : QStringLiteral("transparent"))
             .arg(qTheme.isDarkTheme() ? QStringLiteral("rgba(41,70,62,230)")
                 : QStringLiteral("rgba(180,210,190,210)")) : QString());
-        if (agent_->titleBar()) agent_->titleBar()->setStyleSheet(enabled
+        if (agent_ && agent_->titleBar()) agent_->titleBar()->setStyleSheet(enabled
             ? QStringLiteral("background: transparent;") : QString());
         if (auto* content = window_->findChild<QWidget*>(QStringLiteral("currentView"))) {
             content->setProperty("topLeftCornerOutsideColor", enabled

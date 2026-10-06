@@ -63,7 +63,7 @@ public:
 
     void abortStream() override;
 
-    void setVolumeLevelScalar(float level) override;
+    void setVolumeLevelScalar(float level);
 
     void setBlance();
     

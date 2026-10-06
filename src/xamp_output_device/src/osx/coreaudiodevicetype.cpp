@@ -21,18 +21,18 @@ public:
 
     void scanNewDevice();
 
-    AlignPtr<IOutputDevice> makeDevice(const std::string &device_id);
+    ScopedPtr<IOutputDevice> makeDevice(const std::string &device_id);
 
     size_t getDeviceCount() const;
 
     DeviceInfo getDeviceInfo(uint32_t device) const;
 
-    Vector<DeviceInfo> getDeviceInfo() const;
+    std::vector<DeviceInfo> getDeviceInfo() const;
 
     std::optional<DeviceInfo> getDefaultDeviceInfo() const;
 
 private:
-    Vector<DeviceInfo> device_list_;
+    std::vector<DeviceInfo> device_list_;
 };
 
 CoreAudioDeviceType::CoreAudioDeviceTypeImpl::CoreAudioDeviceTypeImpl() {
@@ -42,9 +42,9 @@ void CoreAudioDeviceType::CoreAudioDeviceTypeImpl::scanNewDevice() {
     device_list_ = getDeviceInfo();
 }
 
-AlignPtr<IOutputDevice> CoreAudioDeviceType::CoreAudioDeviceTypeImpl::makeDevice(const std::string &device_id) {
+ScopedPtr<IOutputDevice> CoreAudioDeviceType::CoreAudioDeviceTypeImpl::makeDevice(const std::string &device_id) {
     auto id = GetAudioDeviceIdByUid(false, device_id);
-    return MakeAlign<IOutputDevice, CoreAudioDevice>(id, false);
+    return makeAlign<IOutputDevice, CoreAudioDevice>(id, false);
 }
 
 size_t CoreAudioDeviceType::CoreAudioDeviceTypeImpl::getDeviceCount() const {
@@ -78,8 +78,8 @@ DeviceInfo CoreAudioDeviceType::CoreAudioDeviceTypeImpl::getDeviceInfo(uint32_t 
     return (*itr);
 }
 
-Vector<DeviceInfo> CoreAudioDeviceType::CoreAudioDeviceTypeImpl::getDeviceInfo() const {
-    Vector<DeviceInfo> device_infos;
+std::vector<DeviceInfo> CoreAudioDeviceType::CoreAudioDeviceTypeImpl::getDeviceInfo() const {
+    std::vector<DeviceInfo> device_infos;
 
     AudioObjectPropertyAddress constexpr property = {
         kAudioHardwarePropertyDevices,
@@ -113,7 +113,7 @@ Vector<DeviceInfo> CoreAudioDeviceType::CoreAudioDeviceTypeImpl::getDeviceInfo()
 
         DeviceInfo info;
         info.name = GetPropertyName(device_id);
-        String::RTrim(info.name);
+        String::rtrim(info.name);
         info.device_id = GetDeviceUid(device_id);
         info.device_type_id = XAMP_UUID_OF(CoreAudioDeviceType);
         info.connect_type = GetDeviceConnectType(device_id);
@@ -165,7 +165,7 @@ std::optional<DeviceInfo> CoreAudioDeviceType::CoreAudioDeviceTypeImpl::getDefau
 }
 
 CoreAudioDeviceType::CoreAudioDeviceType()
-    : impl_(MakeAlign<CoreAudioDeviceTypeImpl>()) {
+    : impl_(makeAlign<CoreAudioDeviceTypeImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(CoreAudioDeviceType)
@@ -182,7 +182,7 @@ void CoreAudioDeviceType::scanNewDevice() {
     impl_->scanNewDevice();
 }
 
-AlignPtr<IOutputDevice> CoreAudioDeviceType::makeDevice(const std::string &device_id) {
+ScopedPtr<IOutputDevice> CoreAudioDeviceType::makeDevice(const std::shared_ptr<IThreadPool>& thread_pool, const std::string &device_id) {
     return impl_->makeDevice(device_id);
 }
 
@@ -194,7 +194,7 @@ DeviceInfo CoreAudioDeviceType::getDeviceInfo(uint32_t device) const {
     return impl_->getDeviceInfo(device);
 }
 
-Vector<DeviceInfo> CoreAudioDeviceType::getDeviceInfo() const {
+std::vector<DeviceInfo> CoreAudioDeviceType::getDeviceInfo() const {
     return impl_->getDeviceInfo();
 }
 

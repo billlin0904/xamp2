@@ -450,7 +450,10 @@ void XMainWindow::showWindow() {
 }
 
 void XMainWindow::setTitle(const QString& title) {
-	dynamic_cast<QLabel*>(window_agent_->titleBar())->setText(title);
+    setWindowTitle(title);
+    if (auto* label = findChild<QLabel*>("win-title-label"_str)) {
+        label->setText(title);
+    }
 }
 
 IXFrame* XMainWindow::contentWidget() const {

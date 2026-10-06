@@ -196,11 +196,11 @@ public:
         } else {
 #ifdef XAMP_OS_MAC
             auto utf8 = String::toString(file_path);
-            stream_.reset(BASS_LIB.BASS_StreamCreateURL(
+            impl_.reset(LIB_BASS.BASS_StreamCreateURL(
                 utf8.c_str(),
                 0,
                 flags | BASS_STREAM_DECODE | BASS_STREAM_STATUS,
-                &BassFileStreamImpl::DownloadProc,
+                &BassFileStreamImpl::downloadProc,
                 this));
 #else
             auto url = const_cast<wchar_t*>(file_path.c_str());

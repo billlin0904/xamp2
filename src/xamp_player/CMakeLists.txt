@@ -14,6 +14,10 @@ if(NOT TARGET xamp_stream)
     add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../xamp_stream" "${CMAKE_BINARY_DIR}/xamp_stream")
 endif()
 
+if(NOT TARGET xamp_metadata)
+    add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../xamp_metadata" "${CMAKE_BINARY_DIR}/xamp_metadata")
+endif()
+
 file(GLOB_RECURSE XAMP_PLAYER_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp"
 )
@@ -55,6 +59,7 @@ target_link_libraries(xamp_player
         xamp_base
         xamp_output_device
         xamp_stream
+        xamp_metadata
 )
 
 if(UNIX AND NOT APPLE)

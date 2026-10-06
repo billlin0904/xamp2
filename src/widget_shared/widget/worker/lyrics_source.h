@@ -7,7 +7,7 @@
 
 #include <memory>
 
-#include <QCoroTask>
+#include <qcorotask.h>
 #include <QByteArray>
 #include <QList>
 #include <QSharedPointer>

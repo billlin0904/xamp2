@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.24)
 project(xamp_base
     LANGUAGES CXX)
 
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "" FORCE)
+
 
 include("${CMAKE_SOURCE_DIR}/cmake/XampDependencyHelpers.cmake")
 
@@ -110,11 +110,24 @@ if(MSVC)
     target_compile_options(xamp_base
         PRIVATE
             /utf-8)
-else()
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(xamp_base
         PRIVATE
             -Wall
             -Wextra
             -Wpedantic
             -fpermissive)
+endif()
+
+if(APPLE)
+    find_package(ICU REQUIRED COMPONENTS uc i18n)
+    target_link_libraries(xamp_base PRIVATE ICU::uc ICU::i18n)
+    find_library(XAMP_ACCELERATE_FRAMEWORK Accelerate REQUIRED)
+    target_link_libraries(xamp_base PRIVATE ${XAMP_ACCELERATE_FRAMEWORK})
+    foreach(dep uchardet opencc mecab)
+        xamp_find_imported_library(XAMP_${dep}_TARGET XampMac_${dep}
+            REQUIRED HEADER ${dep}.h LIB_NAMES ${dep}
+            INCLUDE_SUFFIXES ${dep} PKG ${dep})
+        target_link_libraries(xamp_base PRIVATE ${XAMP_${dep}_TARGET})
+    endforeach()
 endif()

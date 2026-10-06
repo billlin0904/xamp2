@@ -4,6 +4,13 @@ project(xamp
     VERSION 1.0.4
     LANGUAGES CXX)
 
+if(APPLE)
+    include_directories(BEFORE "${CMAKE_SOURCE_DIR}/out/deps/spdlog/include")
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "14.0" CACHE STRING "Minimum macOS version")
+    set(PCM_DSD_USE_MKL OFF CACHE BOOL "Use portable FFT on Apple Silicon")
+    set(PCM_DSD_USE_SIMD OFF CACHE BOOL "Use portable DSD implementation")
+endif()
+
 option(XAMP_BUILD_ARCHITECTURE_TESTS "Build playback queue/state regression tests" OFF)
 if(XAMP_BUILD_ARCHITECTURE_TESTS)
     enable_testing()
@@ -18,7 +25,7 @@ option(XAMP_BUILD_WIDGET_SHARED "Build the Qt widget_shared library on Linux." O
 option(XAMP_BUILD_APP "Build the Qt xamp executable on Linux." ON)
 option(XAMP_BUILD_BENCH "Build the xamp benchmark executable." ON)
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR APPLE)
     if(XAMP_BUILD_OUTPUT_DEVICE)
         add_subdirectory(src/xamp_base)
         add_subdirectory(src/xamp_output_device)
@@ -44,7 +51,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         add_subdirectory(src/xamp_player)
     endif()
 
-    if(XAMP_BUILD_METADATA)
+    if(XAMP_BUILD_METADATA AND NOT TARGET xamp_metadata)
         if(NOT TARGET xamp_base)
             add_subdirectory(src/xamp_base)
         endif()

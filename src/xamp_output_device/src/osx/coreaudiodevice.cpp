@@ -8,7 +8,7 @@
 
 #include <base/stl.h>
 #include <base/logger.h>
-#include <base/singleton.h>
+#include <base/shared_singleton.h>
 #include <base/memory.h>
 #include <base/platform.h>
 
@@ -183,7 +183,7 @@ void CoreAudioDevice::stopStream(bool /*wait_for_stop_stream*/) {
         std::unique_lock<FastMutex> lock{mutex_};
         stop_event_.wait(lock);
     }
-    mSleep(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     CoreAudioThrowIfError(::AudioDeviceStop(device_id_, ioproc_id_));
     is_running_ = false;
 }

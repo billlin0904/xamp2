@@ -1,6 +1,6 @@
-﻿#include <widget/httpx.h>
+#include <widget/httpx.h>
 
-#include <QCoroNetworkReply>
+#include <qcoronetworkreply.h>
 #include <QFileInfo>
 #include <QNetworkRequest>
 #include <QNetworkReply>

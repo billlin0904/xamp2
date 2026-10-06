@@ -10,7 +10,7 @@
 #include <unicode/utrans.h>
 #include <unicode/ustring.h>
 #include <unicode/uvernum.h>
-#ifdef XAMP_OS_LINUX
+#ifndef XAMP_OS_WIN
 #include <mecab.h>
 #else
 #include <mecab/mecab.h>
@@ -38,7 +38,7 @@ namespace {
 #elif defined(XAMP_OS_LINUX)
         return "icui18n-" U_ICU_VERSION_SHORT;
 #else
-        return "icuin";
+        return "icui18n";
 #endif
     }
 

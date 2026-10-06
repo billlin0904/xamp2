@@ -1,10 +1,13 @@
+#ifdef __APPLE__
+#include <Carbon/Carbon.h>
+#endif
+
 #include <widget/globalshortcut.h>
 
 #if defined(Q_OS_WIN)
 #include <base/platfrom_handle.h>
 #include <Dbt.h>
 #elif defined(Q_OS_MAC)
-#include <Carbon/Carbon.h>
 #include <QMap>
 #include <QHash>
 #endif

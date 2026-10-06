@@ -105,7 +105,7 @@ private:
 	size_t frame_size_{0};
 	Buffer<float> data_;
 	Buffer<float> cos_lut_;
-	std::move_only_function<float(size_t, size_t)> dispatch_;
+	xamp::base::MoveOnlyFunction<float(size_t, size_t)> dispatch_;
 };
 
 #if defined(XAMP_OS_WIN) || defined(XAMP_OS_LINUX)
@@ -197,34 +197,34 @@ public:
 	FFTImpl() = default;
 
 	void initialize(size_t frame_size) {
-		XAMP_ASSERT(IsPowerOfTwo(frame_size));
+		XAMP_ASSERT(isPowerOfTwo(frame_size));
 		frame_size_ = frame_size;
         size_over2_ = frame_size_ / 2;
         log2n_size_ = std::log2(frame_size);
         complex_size_ = ComplexSize(frame_size);
-		output_ = ComplexValarray(Complex(), complex_size_);
-		input_ = MakeAlignedArray<float>(frame_size);
+		output_ = ComplexValarray(complex_size_, Complex());
+		input_ = makeAlignedArray<float>(frame_size);
 		fft_setup_.reset(::vDSP_create_fftsetup(log2n_size_, FFT_RADIX2));
-		re_ = MakeAlignedArray<float>(size_over2_);
-		im_ = MakeAlignedArray<float>(size_over2_);
+		re_ = makeAlignedArray<float>(size_over2_);
+		im_ = makeAlignedArray<float>(size_over2_);
 		split_complex_.realp = re_.get();
 		split_complex_.imagp = im_.get();
 	}
 
 	const ComplexValarray& forward(float const* signals, size_t frame_size) {
-		MemoryCopy(input_.get(), signals, sizeof(float) * frame_size);
+        XAMP_ASSERT(frame_size_ == frame_size);
+        MemoryCopy(input_.get(), signals, sizeof(float) * frame_size);
 
 		::vDSP_ctoz(reinterpret_cast<const COMPLEX*>(input_.get()), 2, &split_complex_, 1, size_over2_);
 		::vDSP_fft_zrip(fft_setup_.get(), &split_complex_, 1, log2n_size_, FFT_FORWARD);
 
-		split_complex_.imagp[0] = 0.0;
-
-		auto re = re_.get();
-		auto im = im_.get();
-
-		for (size_t i = 0; i < complex_size_; ++i) {
-			output_[i] = Complex(re[i], im[i]);
-		}
+        // vDSP packs Nyquist into imagp[0] and scales real FFT output by two.
+        output_[0] = Complex(split_complex_.realp[0] * 0.5f, 0.0f);
+        for (size_t i = 1; i < size_over2_; ++i) {
+            output_[i] = Complex(split_complex_.realp[i] * 0.5f,
+                                 split_complex_.imagp[i] * 0.5f);
+        }
+        output_[size_over2_] = Complex(split_complex_.imagp[0] * 0.5f, 0.0f);
 
 		return output_;
 	}
@@ -261,7 +261,7 @@ public:
 	FFTImpl() = default;
 
 	void initialize(size_t frame_size) {
-		XAMP_ASSERT(IsPowerOfTwo(frame_size));
+		XAMP_ASSERT(isPowerOfTwo(frame_size));
 		frame_size_ = frame_size;
 		complex_size_ = ComplexSize(frame_size);
 		work_.assign(frame_size_, Complex{});

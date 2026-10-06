@@ -39,6 +39,9 @@
 
 #include <QSslSocket>
 #include <QProcess>
+#include <QStandardPaths>
+#include <QDir>
+#include <QTimer>
 #include <fcntl.h>
 
 namespace {
@@ -210,6 +213,36 @@ namespace {
 #ifdef Q_OS_WIN 
         //setProcessMitigation();
 #endif
+        if (qEnvironmentVariableIsSet("XAMP_SMOKE_TEST")) {
+#ifdef Q_OS_MAC
+            if (main_window.windowFlags().testFlag(Qt::FramelessWindowHint)) {
+                throw std::runtime_error("macOS native title bar missing");
+            }
+            XAMP_LOG_DEBUG("macOS native window frame enabled.");
+            {
+                XMessageBox box("XAMP2"_str,
+                    "Device unsupported file format. (FLOAT32-INTERLEAVED-2Ch/32bit/96 Khz)"_str,
+                    &main_window);
+                box.show();
+                QApplication::processEvents();
+                const auto* button = box.defaultButton();
+                if (button->text().isEmpty() || button->height() < button->fontMetrics().height() + 12
+                    || !box.rect().contains(QRect(button->mapTo(&box, QPoint()), button->size()))) {
+                    throw std::runtime_error("Message box button text is clipped");
+                }
+                const auto snapshot = qEnvironmentVariable("XAMP_MESSAGEBOX_SNAPSHOT");
+                if (!snapshot.isEmpty() && !box.grab().save(snapshot)) {
+                    throw std::runtime_error("Message box snapshot failed");
+                }
+                box.close();
+                XAMP_LOG_DEBUG("Message box button sizing test passed.");
+            }
+#endif
+            QTimer::singleShot(1500, &main_window, [&]() {
+                main_window.close();
+                app.quit();
+            });
+        }
         return app.exec();
     }
 }
@@ -219,6 +252,10 @@ int main() {
         return 0;
     }
 
+#ifdef Q_OS_MAC
+    const auto data_path = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + "/xamp"_str;
+    if (!QDir().mkpath(data_path) || !QDir::setCurrent(data_path)) return -1;
+#endif
     try {
         XampLoggerFactory
             .addDebugOutput()
@@ -235,11 +272,11 @@ int main() {
     XampCrashHandler.setProcessExceptionHandlers();
     XampCrashHandler.setThreadExceptionHandlers();	
 
-    std::atexit([]() {
+    XAMP_ON_SCOPE_EXIT(
         loader.unload();
         XAMP_LOG_DEBUG("<<<shutdown XAMP logger>>>");
         XampLoggerFactory.shutdown();
-        });
+        );
 
     static char app_name[] = "xamp";
     static constexpr int argc = 1;

@@ -33,7 +33,7 @@ private:
 
 	DsdModes dsd_mode_;
     uint8_t sample_size_;
-    std::move_only_function<bool(const std::byte*, size_t, AudioBuffer<std::byte>&)> dispatch_;
+    xamp::base::MoveOnlyFunction<bool(const std::byte*, size_t, AudioBuffer<std::byte>&)> dispatch_;
 };
 
 XAMP_STREAM_NAMESPACE_END

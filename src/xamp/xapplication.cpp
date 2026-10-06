@@ -1,4 +1,6 @@
 #include <QFileInfo>
+#include <QDir>
+#include <QFile>
 #include <QLocalServer>
 #include <QLocalSocket>
 #include <QSysInfo>
@@ -167,8 +169,16 @@ bool XApplication::isAttach() const {
 
 void XApplication::initial() {
 	const auto app_path = applicationPath();
+#ifdef Q_OS_MAC
+    const auto data_path = QDir::currentPath();
+    const auto config_path = data_path + "/config.json"_str;
+    if (!QFile::exists(config_path)) QFile::copy(app_path + "/config.json"_str, config_path);
+    qAppSettings.loadIniFile(data_path + "/xamp.ini"_str);
+    qJsonSettings.loadJsonFile(config_path);
+#else
 	qAppSettings.loadIniFile(app_path + "/xamp.ini"_str);
 	qJsonSettings.loadJsonFile(app_path + "/config.json"_str);
+#endif
 
 	qAppSettings.loadOrSaveLogConfig();
 	qAppSettings.loadAppSettings();

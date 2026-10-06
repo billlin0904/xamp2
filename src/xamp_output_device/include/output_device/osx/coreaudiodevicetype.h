@@ -32,19 +32,19 @@ public:
 
     Uuid getTypeId() const override;
 
-    AlignPtr<IOutputDevice> makeDevice(const std::string &device_id) override;
+    ScopedPtr<IOutputDevice> makeDevice(const std::shared_ptr<IThreadPool>& thread_pool, const std::string &device_id) override;
 
     size_t getDeviceCount() const override;
 
     DeviceInfo getDeviceInfo(uint32_t device) const override;
 
-    Vector<DeviceInfo> getDeviceInfo() const override;
+    std::vector<DeviceInfo> getDeviceInfo() const override;
 
     std::optional<DeviceInfo> getDefaultDeviceInfo() const override;
 
 protected:
     class CoreAudioDeviceTypeImpl;
-    AlignPtr<CoreAudioDeviceTypeImpl> impl_;
+    ScopedPtr<CoreAudioDeviceTypeImpl> impl_;
 };
 
 }

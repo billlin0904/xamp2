@@ -65,6 +65,8 @@ std::optional<DeviceInfo> NullOutputDeviceType::NullOutputDeviceTypeImpl::getDef
 	return makeOptional<DeviceInfo>(std::move(info));
 }
 
+NullOutputDeviceType::~NullOutputDeviceType() = default;
+
 NullOutputDeviceType::NullOutputDeviceType()
 	: impl_(makeAlign<NullOutputDeviceTypeImpl>()) {
 }

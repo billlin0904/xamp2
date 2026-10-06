@@ -7,7 +7,7 @@
 #include <base/unique_handle.h>
 
 #include <opencc.h>
-#ifndef XAMP_OS_LINUX
+#ifdef XAMP_OS_WIN
 #include <cld3/nnet_language_identifier.h>
 #endif
 
@@ -161,7 +161,7 @@ public:
 
 class LanguageDetector::LanguageDetectorImpl {
 public:
-#ifdef XAMP_OS_LINUX
+#if defined(XAMP_OS_LINUX) || defined(XAMP_OS_MAC)
 	LanguageDetectorImpl() = default;
 
 	bool isJapanese(const std::wstring& text) {

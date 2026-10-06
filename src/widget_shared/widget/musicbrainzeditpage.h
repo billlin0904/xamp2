@@ -6,7 +6,7 @@
 #pragma once
 
 #include <thememanager.h>
-#include <QCoroTask>
+#include <qcorotask.h>
 #include <QHash>
 #include <QNetworkAccessManager>
 #include <QSet>

@@ -148,6 +148,24 @@
         "CMAKE_TOOLCHAIN_FILE": "F:/VCPKG/VCPKG/scripts/buildsystems/vcpkg.cmake",
         "VCPKG_TARGET_TRIPLET": "x64-windows"
       }
+    },
+    {
+      "name": "macos-xcode",
+      "displayName": "macOS Apple Silicon (Xcode)",
+      "generator": "Xcode",
+      "binaryDir": "${sourceDir}/out/build/macos-xcode",
+      "cacheVariables": {
+        "CMAKE_OSX_ARCHITECTURES": "arm64",
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "14.0",
+        "CMAKE_PREFIX_PATH": "/opt/homebrew/opt/ffmpeg@6;/opt/homebrew;/opt/homebrew/opt/qtbase;/opt/homebrew/opt/qtmultimedia;/opt/homebrew/opt/qt5compat;/opt/homebrew/opt/qttools;/opt/homebrew/opt/icu4c@78;/opt/homebrew/opt/libarchive",
+        "PCM_DSD_USE_MKL": "OFF",
+        "PCM_DSD_USE_SIMD": "OFF",
+        "XAMP_BUILD_BENCH": "OFF"
+      },
+      "environment": {
+        "PKG_CONFIG_PATH": "/opt/homebrew/opt/ffmpeg@6/lib/pkgconfig",
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"
+      }
     }
   ],
   "buildPresets": [
@@ -182,6 +200,14 @@
     {
       "name": "windows-vcpkg-placeholder-debug",
       "configurePreset": "windows-vcpkg-placeholder-debug"
+    },
+    {
+      "name": "macos-xcode",
+      "configurePreset": "macos-xcode",
+      "configuration": "Debug",
+      "targets": [
+        "xamp"
+      ]
     }
   ]
 }

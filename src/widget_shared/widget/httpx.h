@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <QCoroTask>
+#include <qcorotask.h>
 #include <QNetworkReply>
 #include <QNetworkAccessManager>
 #include <QUrlQuery>

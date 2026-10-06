@@ -49,7 +49,7 @@ public:
 
     void addOrUpdate(Key const& key, Value value);
 
-    Value getOrAdd(Key const& key, std::move_only_function<Value()> &&value_factory);
+    Value getOrAdd(Key const& key, xamp::base::MoveOnlyFunction<Value()> &&value_factory);
 
     bool add(Key const& key, Value value);
 
@@ -172,7 +172,7 @@ template
     typename KeyList,
     typename SharedMutex
 >
-Value LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::getOrAdd(Key const& key, std::move_only_function<Value()>&& value_factory) {
+Value LruCache<Key, Value, SizeOfPolicy, KeyList, SharedMutex>::getOrAdd(Key const& key, xamp::base::MoveOnlyFunction<Value()>&& value_factory) {
     {
         std::unique_lock<SharedMutex> write_lock(mutex_);
         const auto check = cache_.find(key);

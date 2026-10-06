@@ -112,6 +112,16 @@ SharedLibraryHandle loadSharedLibrary(const std::string_view& name) {
     if (!module) {
         module = ::dlopen(name.data(), RTLD_NOW);
     }
+#ifdef XAMP_OS_MAC
+    if (!module) {
+        // Homebrew's keg-only FFmpeg and ICU are not in dyld's default search path.
+        for (const auto& directory : {"/opt/homebrew/lib/", "/opt/homebrew/opt/ffmpeg@6/lib/", "/opt/homebrew/opt/icu4c@78/lib/"}) {
+            const auto candidate = std::string(directory) + std::string(name);
+            module = ::dlopen(candidate.c_str(), RTLD_NOW);
+            if (module) break;
+        }
+    }
+#endif
     if (!module) {
         throw LoadDllFailureException(name);
     }

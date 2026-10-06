@@ -121,6 +121,10 @@ target_link_libraries(widget_shared
         Qt6::Multimedia
         Qt6::Core5Compat
         xamp_base
+        xamp_metadata
+        xamp_stream
+        xamp_output_device
+        xamp_player
         QCoro6::Core
         QCoro6::Network
         QWKWidgets
@@ -128,4 +132,8 @@ target_link_libraries(widget_shared
 
 if(UNIX AND NOT APPLE)
     target_link_libraries(widget_shared PRIVATE dl pthread)
+endif()
+
+if(APPLE)
+    target_link_libraries(widget_shared PRIVATE "-framework Carbon")
 endif()

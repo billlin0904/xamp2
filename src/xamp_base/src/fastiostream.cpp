@@ -34,7 +34,7 @@ bool CTemporaryFile::seek(uint64_t off, int32_t origin) {
 #ifdef XAMP_OS_WIN
 	return _fseeki64(file(), static_cast<uint64_t>(off), origin) == 0;
 #else
-	return fseeko64(file(), static_cast<off64_t>(off), origin) == 0;
+	return fseeko(file(), static_cast<off_t>(off), origin) == 0;
 #endif
 }
 
@@ -42,7 +42,7 @@ uint64_t CTemporaryFile::tell() {
 #ifdef XAMP_OS_WIN
 	return static_cast<uint64_t>(_ftelli64(file()));
 #else
-	return static_cast<uint64_t>(ftello64(file()));
+	return static_cast<uint64_t>(ftello(file()));
 #endif
 }
 

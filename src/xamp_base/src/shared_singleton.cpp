@@ -84,7 +84,7 @@ void getSharedInstance(std::string_view type_name,
 		ptr = getSingletonByType(type_name);
 	}
 
-	const bool is_logger = (type_name == LoggerFactory::getSingletonName());
+	const bool is_logger = (type_name == detail::singletonTypeName<LoggerFactory>());
 
 	{
 		std::lock_guard<FastMutex> guard(*ptr->mutex);

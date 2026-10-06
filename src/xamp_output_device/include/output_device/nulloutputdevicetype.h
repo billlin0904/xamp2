@@ -24,7 +24,7 @@ public:
 
 	NullOutputDeviceType();
 
-	virtual ~NullOutputDeviceType() override = default;
+	~NullOutputDeviceType() override;
 
 	void scanNewDevice() override;
 

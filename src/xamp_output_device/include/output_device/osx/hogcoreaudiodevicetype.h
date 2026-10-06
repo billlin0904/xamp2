@@ -26,7 +26,7 @@ public:
 
     Uuid getTypeId() const override;
 
-    AlignPtr<IOutputDevice> makeDevice(const std::string &device_id) override;
+    ScopedPtr<IOutputDevice> makeDevice(const std::shared_ptr<IThreadPool>& thread_pool, const std::string &device_id) override;
 };
 
 }

@@ -29,6 +29,13 @@ XMessageBox::XMessageBox(const QString& title,
 	button_box_ = new QDialogButtonBox(this);
 	button_box_->setStandardButtons(QDialogButtonBox::StandardButtons(buttons));
 	setDefaultButton(default_button);
+    // Styled Cocoa buttons can report a height smaller than their text.
+    for (auto* button : button_box_->buttons()) {
+        const auto metrics = button->fontMetrics();
+        button->setMinimumSize(qMax(90, metrics.horizontalAdvance(button->text()) + 32),
+            qMax(32, metrics.height() + 16));
+        button->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+    }
 
 	icon_label_ = new QLabel(this);
 	message_text_label_ = new QLabel(this);
@@ -66,7 +73,7 @@ XMessageBox::XMessageBox(const QString& title,
 	grid_layout_->addWidget(message_text_label_, 0, 1, 3, 1);
 	grid_layout_->addWidget(line, grid_layout_->rowCount(), 0, 1, grid_layout_->columnCount());
 	grid_layout_->addWidget(button_box_, grid_layout_->rowCount(), 0, 1, grid_layout_->columnCount());
-	grid_layout_->setSizeConstraint(QLayout::SetNoConstraint);
+	grid_layout_->setSizeConstraint(QLayout::SetMinimumSize);
 	grid_layout_->setHorizontalSpacing(0);
 	grid_layout_->setVerticalSpacing(10);
 	grid_layout_->setContentsMargins(10, 15, 10, 10);	

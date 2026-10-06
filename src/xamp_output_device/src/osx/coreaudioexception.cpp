@@ -1,4 +1,4 @@
-﻿#include <Security/Security.h>
+#include <Security/Security.h>
 
 #include <output_device/osx/osx_str_utitl.h>
 #include <output_device/osx/coreaudioexception.h>
