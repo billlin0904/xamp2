@@ -25,7 +25,7 @@
 
 #include <simdjson.h>
 
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
@@ -242,7 +242,7 @@ namespace {
         return targets;
     }
 
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
     std::string wideCharToUtf8String(const std::wstring& input) {
         if (input.empty()) {
             return {};
@@ -955,7 +955,7 @@ namespace {
     }
 
     static void BM_Win32_WideCharToMultiByte(benchmark::State& state) {
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
         const auto input = makeWideUtf8BenchInput(static_cast<size_t>(state.range(0)));
 
         for ([[maybe_unused]] auto _ : state) {
@@ -1411,7 +1411,7 @@ namespace {
 int main(int argc, char** argv) {
     std::ios::sync_with_stdio(false);
 
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
     const auto component_dir = Fs::current_path() / L"components";
     if (Fs::exists(component_dir)) {
         ::SetDllDirectoryW(component_dir.wstring().c_str());

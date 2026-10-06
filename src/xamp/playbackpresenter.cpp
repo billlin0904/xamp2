@@ -8,6 +8,7 @@
 #include <widget/filesystemviewpage.h>
 #include <widget/cdpage.h>
 #include <widget/playlistpage.h>
+#include <widget/scrolllabel.h>
 #include <widget/playlisttableview.h>
 #include <widget/chatgpt/spectrogramwidget.h>
 #include <widget/util/image_util.h>
@@ -41,6 +42,11 @@ void PlaybackPresenter::render(const PlaybackSnapshot& state) {
     ui_.coverLabel->setPixmap(image_util::roundCoverImage(cover, ui_.coverLabel->size(), image_util::kPlaylistImageRadius));
     window_.setIconicThumbnail(cover);
     lyrics_.setCover(cover);
+    if (state.hasTrack() && state.source == PlaybackSource::Cd) {
+        cd_.playlistPage()->setCover(&cover);
+        cd_.playlistPage()->title()->setText(state.track.album);
+        cd_.playlistPage()->format()->setText(state.format);
+    }
     ui_.titleLabel->setText(state.hasTrack() ? state.track.title : QString());
     ui_.artistLabel->setText(state.hasTrack() ? state.track.artist : QString());
     lyrics_.format()->setText(state.format +

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -148,14 +148,7 @@
     </Link>
     <PostBuildEvent>
       <Command>if exist "$(ProjectDir)..\..\vcpkg_installed\x64-windows\debug\bin\simdjson.dll" copy /Y "$(ProjectDir)..\..\vcpkg_installed\x64-windows\debug\bin\simdjson.dll" "$(OutDir)"
-if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Cored.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Cored.dll" "$(OutDir)"
-if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Guid.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Guid.dll" "$(OutDir)"
-if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Widgetsd.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Widgetsd.dll" "$(OutDir)"
-if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Networkd.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Networkd.dll" "$(OutDir)"
-if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Sqld.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Sqld.dll" "$(OutDir)"
-if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Concurrentd.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Concurrentd.dll" "$(OutDir)"
-if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Core5Compatd.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Core5Compatd.dll" "$(OutDir)"
-if exist "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Multimediad.dll" copy /Y "C:\Qt\6.8.3\msvc2022_64\bin\Qt6Multimediad.dll" "$(OutDir)"</Command>
+</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

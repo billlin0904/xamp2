@@ -1127,14 +1127,12 @@ DataCallbackResult AudioPlayer::onGetSamples(void* samples,
         return DataCallbackResult::STOP;
     }
 
+    // A slow decoder (for example a CD drive) can temporarily underfill the
+    // FIFO. Keep the device running and silence only the missing samples.
+    memset(samples, 0, sample_size);
+    num_filled_frames = num_buffer_frames;
     size_t num_filled_bytes = 0;
     if (fifo_.tryRead(static_cast<std::byte*>(samples), sample_size, num_filled_bytes)) {
-        num_filled_frames = num_filled_bytes
-    	    / audio_config_.sample_size
-    	    / output_format_.getChannels();
-        if (num_filled_frames != num_buffer_frames) {            
-            return DataCallbackResult::STOP;
-        }
         updatePlayerStreamTime(static_cast<int32_t>(stream_time * 1000));
         copySamples(samples, num_samples);
         return DataCallbackResult::CONTINUE;

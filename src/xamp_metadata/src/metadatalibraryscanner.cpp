@@ -11,15 +11,13 @@
 #include <functional>
 #include <iterator>
 #include <mutex>
-#include <optional>
+#include <stdexcept>
 #include <utility>
 
 #include <base/executor.h>
 #include <base/logger.h>
 #include <base/str_utilts.h>
 #include <base/stopwatch.h>
-#include <base/threadpoolbuilder.h>
-#include <base/scopeguard.h>
 #include <base/stl.h>
 
 #include <metadata/api.h>
@@ -33,7 +31,7 @@ namespace {
 	constexpr auto kCueFileExtension = ".cue";
 
 	struct ScanFiles final {
-		HashMap<Path, std::vector<Path>> directory_files;
+		MetadataDirectoryFiles directory_files;
 		std::vector<Path> cue_files;
 	};
 
@@ -145,8 +143,16 @@ namespace {
 }
 
 MetadataLibraryScanner::MetadataLibraryScanner(std::shared_ptr<IThreadPool> thread_pool)
-	: thread_pool_(std::move(thread_pool)) {
-	XAMP_ENSURES(thread_pool_ != nullptr);
+	: MetadataLibraryScanner(thread_pool, makeMetadataScanReader(thread_pool)) {
+}
+
+MetadataLibraryScanner::MetadataLibraryScanner(std::shared_ptr<IThreadPool> thread_pool,
+	std::shared_ptr<IMetadataScanReader> scan_reader)
+	: thread_pool_(std::move(thread_pool))
+	, scan_reader_(std::move(scan_reader)) {
+	if (!thread_pool_ || !scan_reader_) {
+		throw std::invalid_argument("Metadata scanner requires a thread pool and scan reader");
+	}
 }
 
 MetadataScanProgress MetadataLibraryScanner::scan(const Path& root_path,
@@ -226,68 +232,23 @@ MetadataScanProgress MetadataLibraryScanner::scan(const Path& root_path,
 		safeInvoke(callbacks.on_track_batches, std::move(batch));
 		};
 
-	constexpr auto kIOThreadCount = 8;
-	constexpr auto kIOBulkSize = 2;
-	auto io_thread_pool = ThreadPoolBuilder::makeThreadPool("IO ThreadPool",
-		kIOThreadCount,
-		kIOBulkSize,
-		ThreadPriority::PRIORITY_BACKGROUND);
-
 	stage_elapsed.reset();
-	Executor::parallelFor(thread_pool_,
-		files.directory_files,
-		[&](auto& path_info, const auto& token) {
-			if (stop_token.stop_requested() || token.stop_requested()) {
-				return;
+	MetadataReadCallbacks read_callbacks;
+	read_callbacks.on_file_completed = notify_progress;
+	read_callbacks.on_directory_read = [&](const Path& directory, size_t file_count,
+		std::forward_list<TrackInfo> tracks) {
+		sortTracks(tracks);
+		const auto track_count = countTracks(tracks);
+		{
+			std::scoped_lock lock(batch_mutex);
+			if (!tracks.empty()) {
+				batch_track_infos.emplace_back(std::move(tracks));
+				batch_track_count += track_count;
 			}
-
-			std::forward_list<TrackInfo> tracks;
-			auto track_results = Executor::parallelFor(io_thread_pool,
-				path_info.second,
-				[&](const auto& path, const auto& io_stop_token) -> std::optional<TrackInfo> {
-					if (stop_token.stop_requested() || token.stop_requested() || io_stop_token.stop_requested()) {
-						return std::nullopt;
-					}
-
-					XAMP_ON_SCOPE_EXIT(
-						notify_progress()
-					);
-
-					try {
-						auto reader = makeMetadataReader();
-						reader->open(path);
-						auto track_info = reader->extract();
-						if (track_info) {
-							return std::move(track_info.value());
-						}
-					}
-					catch (const std::exception& e) {
-						XAMP_LOG_DEBUG("Failed to read metadata: {} ({})",
-							pathToUtf8(path),
-							e.what());
-					}
-					return std::nullopt;
-				}, stop_token);
-
-			size_t local_track_count = 0;
-			for (auto& result : track_results) {
-				if (result.has_value() && result->has_value()) {
-					tracks.push_front(std::move(result->value()));
-					++local_track_count;
-				}
-			}
-
-			sortTracks(tracks);
-			{
-				std::scoped_lock lock(batch_mutex);
-				if (!tracks.empty()) {
-					batch_track_infos.emplace_back(std::move(tracks));
-					batch_track_count += local_track_count;
-				}
-			}
-			flush_batch(path_info.first, path_info.second.size(), false);
-		},
-		stop_token);
+		}
+		flush_batch(directory, file_count, false);
+	};
+	scan_reader_->read(files.directory_files, stop_token, read_callbacks);
 	XAMP_LOG_DEBUG("Metadata scan read directories count:{} elapsed:{:.3f}s total_elapsed:{:.3f}s",
 		files.directory_files.size(),
 		stage_elapsed.elapsedSeconds(),

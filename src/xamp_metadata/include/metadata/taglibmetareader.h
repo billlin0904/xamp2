@@ -23,6 +23,9 @@ public:
 
     void open(const Path& path) override;
 
+    // Strict raw NTFS path: MFT/$DATA runs -> volume bytes; no fallback.
+    void openNtfs(const Path& path);
+
     std::expected<ReplayGain, ParseMetadataError> readReplayGain() override;
     
     std::expected<TrackInfo, ParseMetadataError> extract() override;

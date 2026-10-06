@@ -41,7 +41,7 @@ public:
 	}
 
 	TagLib::FileName name() const override {
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 		return io_stream_.path().wstring().c_str();
 #else
 		name_ = String::toUtf8String(io_stream_.path().wstring());

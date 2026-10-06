@@ -13,6 +13,8 @@
     <ClCompile Include="src\fftlib.cpp" />
     <ClCompile Include="src\fs.cpp" />
     <ClCompile Include="src\memory_mapped_file.cpp" />
+    <ClCompile Include="src\ntfs.cpp" />
+    <ClCompile Include="src\ntfsfilestream.cpp" />
     <ClCompile Include="src\shared_singleton.cpp" />
     <ClCompile Include="src\stl.cpp" />
     <ClCompile Include="src\uuid.cpp" />
@@ -104,6 +106,8 @@
     <ClInclude Include="include\base\text_encoding.h" />
     <ClInclude Include="include\base\furigana.h" />
     <ClInclude Include="include\base\archivefile.h" />
+    <ClInclude Include="include\base\ntfs.h" />
+    <ClInclude Include="include\base\ntfsfilestream.h" />
     <ClInclude Include="include\base\archivelib.h" />
     <ClInclude Include="include\base\memory.h" />
     <ClInclude Include="include\base\fastiostream.h" />

@@ -15,6 +15,7 @@
 #include <base/threadpool.h>
 #include <base/trackinfo.h>
 #include <metadata/metadata.h>
+#include <metadata/imetadatascanreader.h>
 
 XAMP_METADATA_NAMESPACE_BEGIN
 
@@ -39,6 +40,9 @@ class XAMP_METADATA_API MetadataLibraryScanner final {
 public:
 	explicit MetadataLibraryScanner(std::shared_ptr<IThreadPool> thread_pool);
 
+	MetadataLibraryScanner(std::shared_ptr<IThreadPool> thread_pool,
+		std::shared_ptr<IMetadataScanReader> scan_reader);
+
 	MetadataScanProgress scan(const Path& root_path,
 		const std::stop_token& stop_token,
 		const MetadataScanCallbacks& callbacks,
@@ -47,6 +51,7 @@ public:
 	XAMP_DISABLE_COPY_AND_MOVE(MetadataLibraryScanner)
 private:
 	std::shared_ptr<IThreadPool> thread_pool_;
+	std::shared_ptr<IMetadataScanReader> scan_reader_;
 };
 
 XAMP_METADATA_NAMESPACE_END

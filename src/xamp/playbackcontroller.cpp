@@ -20,6 +20,7 @@
 #include <widget/util/ui_util.h>
 #include <stream/api.h>
 #include <stream/avlibfilestream.h>
+#include <stream/bassfilestream.h>
 #include <base/bitperfect.h>
 #include <stream/idspmanager.h>
 #include <stream/mqafilestream.h>
@@ -96,6 +97,7 @@ bool PlaybackController::open(const PlayListEntity& requested, double position) 
         return false;
     }
     const auto& file_name = requested.file_path;
+    const auto is_cd_track = isCDAFile(file_name.toStdWString());
     const auto* entity = &requested;
     auto file_sample_rate = 44100;
     auto file_duration = 0.0;
@@ -114,36 +116,52 @@ bool PlaybackController::open(const PlayListEntity& requested, double position) 
         }
     }
 
-    try {
-        auto metadata_reader = makeMetadataReader();
-        metadata_reader->open(file_name.toStdWString());
+    if (is_cd_track) {
+        // Audio CD tracks have TOC/CD-Text data, not file tags for TagLib.
+        track_info.file_path = file_name.toStdWString();
+        track_info.title = requested.title.toStdWString();
+        track_info.artist = requested.artist.toStdWString();
+        track_info.album = requested.album.toStdWString();
+        track_info.track = requested.track;
+        track_info.disc_id = requested.disc_id.toStdString();
+        track_info.sample_rate = AudioFormat::k16BitPCM441Khz.getSampleRate();
+        track_info.bit_rate = 1411;
+        track_info.duration = requested.duration;
+        file_sample_rate = track_info.sample_rate;
+        file_duration = track_info.duration;
+    }
+    else {
+        try {
+            auto metadata_reader = makeMetadataReader();
+            metadata_reader->open(file_name.toStdWString());
 
-        auto metadata_opt = metadata_reader->extract();
-        if (metadata_opt.has_value()) {
-            track_info = metadata_opt.value();
-            file_sample_rate = track_info.sample_rate;
-            file_duration = track_info.duration;
-            if (!has_display_cover) {
-                auto buffer = metadata_reader->readEmbeddedCover();
-                if (buffer.has_value() && buffer.value().size() > 0) {
-                    const auto& cover_buffer = buffer.value();
-                    QPixmap embedded_cover;
-                    if (embedded_cover.loadFromData(
-                        reinterpret_cast<const uchar*>(cover_buffer.data()),
-                        static_cast<uint>(cover_buffer.size()))) {
-                        display_cover = embedded_cover;
-                        has_display_cover = true;
+            auto metadata_opt = metadata_reader->extract();
+            if (metadata_opt.has_value()) {
+                track_info = metadata_opt.value();
+                file_sample_rate = track_info.sample_rate;
+                file_duration = track_info.duration;
+                if (!has_display_cover) {
+                    auto buffer = metadata_reader->readEmbeddedCover();
+                    if (buffer.has_value() && buffer.value().size() > 0) {
+                        const auto& cover_buffer = buffer.value();
+                        QPixmap embedded_cover;
+                        if (embedded_cover.loadFromData(
+                            reinterpret_cast<const uchar*>(cover_buffer.data()),
+                            static_cast<uint>(cover_buffer.size()))) {
+                            display_cover = embedded_cover;
+                            has_display_cover = true;
+                        }
                     }
                 }
             }
+            else {
+                throw std::runtime_error("Unable to read track metadata");
+            }
         }
-        else {
-            throw std::runtime_error("Unable to read track metadata");
+        catch (...) {
+            emit failed(std::current_exception());
+            return false;
         }
-    }
-    catch (...) {
-        emit failed(std::current_exception());
-        return false;
     }
 
 
@@ -228,16 +246,21 @@ bool PlaybackController::open(const PlayListEntity& requested, double position) 
 
         ScopedPtr<FileStream> file_stream;
         if (bitperfect) {
-            auto source_owner = makeAlign<FileStream, AvLibFileStream>();
-            auto* source = static_cast<AvLibFileStream*>(source_owner.get());
-            source->setIntegerPcm(true);
-            source->openFile(file_name.toStdWString());
-            const auto format = source->integerPcmFormat();
+            if (is_cd_track) {
+                auto source = makeAlign<FileStream, BassFileStream>();
+                static_cast<BassFileStream*>(source.get())->setIntegerPcm(true);
+                file_stream = std::move(source);
+            } else {
+                auto source = makeAlign<FileStream, AvLibFileStream>();
+                static_cast<AvLibFileStream*>(source.get())->setIntegerPcm(true);
+                file_stream = std::move(source);
+            }
+            file_stream->openFile(file_name.toStdWString());
+            const auto format = file_stream->integerPcmFormat();
             if (!format || !xamp::bitperfect::supported(format->valid_bits, format->channels, format->sample_rate))
-                throw std::runtime_error("BitPerfect requires stereo 16/24/32-bit integer PCM WAV or FLAC");
+                throw std::runtime_error("BitPerfect requires an audio CD or stereo 16/24/32-bit integer PCM WAV or FLAC");
             playback_plan.byte_format = ByteFormat::SINT32;
             playback_plan.target_sample_rate = format->sample_rate;
-            file_stream = std::move(source_owner);
             if (convert_pcm_dsd) {
                 file_stream = makeAlign<FileStream,Pcm2DsdFileStream>(std::move(file_stream),
                     pcm_dsd.multiplier,
@@ -254,6 +277,10 @@ bool PlaybackController::open(const PlayListEntity& requested, double position) 
         } else {
             file_stream = StreamFactory::makeFileStream(file_name.toStdWString(),
                 playback_plan.output_mode, playback_plan.use_mqa_decode);
+        }
+
+        if (is_cd_track && file_duration <= 0) {
+            file_duration = file_stream->getDuration();
         }
 
         auto use_mqa_decode = dynamic_cast<MqaFileStream*>(file_stream.get()) != nullptr;

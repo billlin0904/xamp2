@@ -29,6 +29,8 @@ public:
     void setTheme();
 
     void loadSampleRateConverterConfig();
+
+    static bool selectStartupScanMode();
 private:
     bool is_running_{ false };
     XMainWindow* window_{ nullptr };

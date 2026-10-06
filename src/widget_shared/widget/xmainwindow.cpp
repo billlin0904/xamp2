@@ -1,4 +1,4 @@
-#include <widget/windowbackdrop.h>
+﻿#include <widget/windowbackdrop.h>
 #include <widget/globalshortcut.h>
 #include <widget/xmainwindow.h>
 
@@ -301,7 +301,9 @@ void XMainWindow::drivesRemoved(char driver_letter) {
 	                                    return drive.driver_letter == driver_letter;
                                     });
     if (itr != exist_drives_.end()) {
-        content_widget_->drivesRemoved(*itr);
+        if (content_widget_) {
+            content_widget_->drivesRemoved(*itr);
+        }
         exist_drives_.erase(itr);
     }
 #endif
@@ -331,37 +333,34 @@ bool XMainWindow::nativeEvent(const QByteArray& event_type, void* message, qintp
         }
         }
         break;
-    case DBT_DEVICEARRIVAL: {
-	    auto* lpdb = reinterpret_cast<PDEV_BROADCAST_HDR>(msg->lParam);
-        if (lpdb->dbch_devicetype == DBT_DEVTYP_VOLUME) {
-	        auto lpdbv = reinterpret_cast<PDEV_BROADCAST_VOLUME>(lpdb);
-            if (lpdbv->dbcv_flags & DBTF_MEDIA) {
-                readDriveInfo();
-            }
+    case WM_DEVICECHANGE: {
+        if (msg->wParam != DBT_DEVICEARRIVAL &&
+            msg->wParam != DBT_DEVICEREMOVECOMPLETE) {
+            break;
         }
+        const auto* header = reinterpret_cast<const DEV_BROADCAST_HDR*>(msg->lParam);
+        if (!header || header->dbch_devicetype != DBT_DEVTYP_VOLUME ||
+            header->dbch_size < sizeof(DEV_BROADCAST_VOLUME)) {
+            break;
+        }
+        const auto* volume = reinterpret_cast<const DEV_BROADCAST_VOLUME*>(header);
+        if (!(volume->dbcv_flags & DBTF_MEDIA)) {
+            break;
+        }
+        if (msg->wParam == DBT_DEVICEARRIVAL) {
+            XAMP_LOG_DEBUG("CD media arrival: drive mask={}", volume->dbcv_unitmask);
+            readDriveInfo();
+        }
+        else {
+            XAMP_LOG_DEBUG("CD media removal: drive mask={}", volume->dbcv_unitmask);
+            for (unsigned int index = 0; index < 26; ++index) {
+                if (volume->dbcv_unitmask & (1UL << index)) {
+                    drivesRemoved(static_cast<char>('A' + index));
+                }
+            }
         }
         break;
-    case DBT_DEVICEREMOVECOMPLETE: {
-        constexpr auto first_drive_from_mask = [](ULONG unitmask) -> char {
-            char i = 0;
-            for (i = 0; i < 26; ++i) {
-                if (unitmask & 0x1)
-                    break;
-                unitmask = unitmask >> 1;
-            }
-            return i + 'A';
-        };
-
-        auto lpdb = reinterpret_cast<PDEV_BROADCAST_HDR>(msg->lParam);
-        if (lpdb->dbch_devicetype == DBT_DEVTYP_VOLUME) {
-            auto lpdbv = reinterpret_cast<PDEV_BROADCAST_VOLUME>(lpdb);
-            if (lpdbv->dbcv_flags & DBTF_MEDIA) {
-                const auto driver_letter = first_drive_from_mask(lpdbv->dbcv_unitmask);
-                drivesRemoved(driver_letter);
-            }
-        }
-        }
-        break;
+    }
     case WM_HOTKEY: {
         const auto native_key = HIWORD(msg->lParam);
         const auto native_mods = LOWORD(msg->lParam);

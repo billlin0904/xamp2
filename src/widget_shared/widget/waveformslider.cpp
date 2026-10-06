@@ -165,6 +165,12 @@ void WaveformSlider::loadFile(const QString& file_path, int peak_count) {
     }
     seek_enabled_ = true;
 
+    // BASS CD permits only one stream per drive. Opening another stream for
+    // waveform analysis can free the decoder currently used for playback.
+    if (isCDAFile(file_path.toStdWString())) {
+        return;
+    }
+
     const auto load_id = waveform_load_id_;
     const auto target_peak_count = peak_count > 0 ? peak_count : (std::max)(kMinimumWidth, width());
     auto* watcher = new QFutureWatcher<WaveformReadResult>(this);

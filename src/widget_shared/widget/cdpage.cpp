@@ -3,6 +3,7 @@
 #include <widget/playlisttableview.h>
 #include <widget/fonticon.h>
 #include <widget/playlistpage.h>
+#include <widget/scrolllabel.h>
 #include <widget/util/str_util.h>
 #include <ui_cdpage.h>
 
@@ -64,10 +65,22 @@ void CdPage::onRetranslateUi() {
 
 void CdPage::showPlaylistPage(bool show) {
     if (show) {
+        ui_->playlistPage->format()->clear();
+        refreshAlbumInformation();
         ui_->tipFrame->hide();
         ui_->playlistPage->show();
     } else {
         ui_->tipFrame->show();
         ui_->playlistPage->hide();
     }
+}
+
+void CdPage::refreshAlbumInformation() {
+    const auto tracks = ui_->playlistPage->playlist()->items();
+    if (tracks.isEmpty()) {
+        return;
+    }
+    const auto& track = tracks.first();
+    ui_->playlistPage->title()->setText(track.album);
+    ui_->playlistPage->onSetCoverById(track.validCoverId());
 }

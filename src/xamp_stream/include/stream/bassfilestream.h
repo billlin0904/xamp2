@@ -28,6 +28,11 @@ public:
 
     void openFile(const Path& file_path) override;
 
+    // Enable before opening a CD: expose its original 16-bit PCM in 32-bit containers.
+    void setIntegerPcm(bool enabled);
+
+    [[nodiscard]] std::optional<pcm::Format> integerPcmFormat() const override;
+
 	void open(ArchiveEntry archive_entry) override;
 
 	void close() override;

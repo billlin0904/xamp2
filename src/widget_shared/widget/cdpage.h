@@ -23,6 +23,8 @@ public:
 
     void showPlaylistPage(bool show);
 
+    void refreshAlbumInformation();
+
     PlaylistPage* playlistPage() const;
 
 public slots:

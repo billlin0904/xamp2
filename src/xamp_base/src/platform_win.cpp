@@ -20,11 +20,32 @@
 #include <mutex>
 #include <random>
 
+#pragma comment(lib, "Advapi32.lib")
+
 XAMP_BASE_NAMESPACE_BEGIN
+
+bool isRunAsAdmin(uint32_t* error_code) noexcept {
+    if (error_code) {
+        *error_code = ERROR_SUCCESS;
+    }
+    alignas(SID) BYTE administrators_sid[SECURITY_MAX_SID_SIZE]{};
+    DWORD sid_size = sizeof(administrators_sid);
+    BOOL is_admin = FALSE;
+    if (!::CreateWellKnownSid(WinBuiltinAdministratorsSid, nullptr,
+            administrators_sid, &sid_size) ||
+        !::CheckTokenMembership(nullptr, administrators_sid, &is_admin)) {
+        const auto error = ::GetLastError();
+        if (error_code) {
+            *error_code = error;
+        }
+        return false;
+    }
+    return is_admin != FALSE;
+}
 
 namespace {
     SIZE_T saturatingAdd(SIZE_T lhs, size_t rhs) {
-        const auto max_value = std::numeric_limits<SIZE_T>::max();
+        const auto max_value = (std::numeric_limits<SIZE_T>::max)();
         if (rhs > max_value - lhs) {
             return max_value;
         }

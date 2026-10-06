@@ -1,4 +1,4 @@
-﻿#include <thememanager.h>
+#include <thememanager.h>
 #include <xapplication.h>
 #include <version.h>
 #include <xamp.h>
@@ -9,12 +9,20 @@
 
 #ifdef Q_OS_WIN
 #include <mimalloc.h>
+#include <Windows.h>
+#include <shellapi.h>
+#pragma comment(lib, "Shell32.lib")
 #endif
+
+#include <string>
+#include <string_view>
+#include <metadata/imetadatascanreader.h>
 
 #include <base/scopeguard.h>
 #include <base/dll.h>
 #include <base/crashhandler.h>
 #include <base/platfrom_handle.h>
+#include <base/platform.h>
 #include <base/zib_util.h>
 
 #include <spdlog/spdlog.h>
@@ -122,7 +130,6 @@ namespace {
 
         QLoggingCategory::setFilterRules("qt.gui.imageio.warning=false"_str);
         qputenv("QT_ICC_PROFILE", QByteArray());
-    	qputenv("QT_WIN_DEBUG_CONSOLE", "attach");
         qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
         qputenv("QT_ENABLE_HIGHDPI_SCALING", "1");
 
@@ -208,6 +215,10 @@ namespace {
 }
 
 int main() {
+    if (!XApplication::selectStartupScanMode()) {
+        return 0;
+    }
+
     try {
         XampLoggerFactory
             .addDebugOutput()

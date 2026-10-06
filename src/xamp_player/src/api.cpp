@@ -38,13 +38,6 @@ void loadRequiredComponent(const char* name, void (*loader)()) {
     }
 }
 
-template <size_t Size>
-void loadRequiredComponents(const RequiredComponentLoader (&loaders)[Size]) {
-    for (const auto& loader : loaders) {
-        loadRequiredComponent(loader.name, loader.load);
-    }
-}
-
 constexpr RequiredComponentLoader kComponentLoaders[] {
     { "Bass", loadBassLib },
     { "Mqa", loadMqaLib },
@@ -74,11 +67,20 @@ ComponentSharedLibraryLoader::~ComponentSharedLibraryLoader() {
 }
 
 void ComponentSharedLibraryLoader::load() {
-    loadRequiredComponents(kComponentLoaders);
+    for (const auto& loader : kComponentLoaders) {
+        loadRequiredComponent(loader.name, loader.load);
+        if (loader.load == loadBassLib) {
+            // Keep cleanup valid even if a later component fails to load.
+            bass_loaded_ = true;
+        }
+    }
 }
 
 void ComponentSharedLibraryLoader::unload() {
-    unloadBassLib();
+    if (bass_loaded_) {
+        bass_loaded_ = false;
+        unloadBassLib();
+    }
 }
 
 #ifdef XAMP_OS_WIN

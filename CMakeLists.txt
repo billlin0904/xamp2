@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
 project(xamp
-    VERSION 1.0.3
+    VERSION 1.0.4
     LANGUAGES CXX)
 
 option(XAMP_BUILD_ARCHITECTURE_TESTS "Build playback queue/state regression tests" OFF)

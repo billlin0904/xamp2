@@ -116,7 +116,9 @@ LoadDllFailureException::LoadDllFailureException(std::string_view dll_name)
 	: Exception(Errors::XAMP_ERROR_LOAD_DLL_FAILURE)
 	, dll_name_(dll_name) {
 	std::ostringstream ostr;
-	ostr << "load dll " << dll_name << " failure. (" << getLastErrorMessage() << ")";
+	auto error_message = getLastErrorMessage();
+    auto wstr = String::toStdWString(error_message);
+	ostr << "load dll " << dll_name << " failure. (" << error_message << ")";
 	message_ = ostr.str();
 }
 

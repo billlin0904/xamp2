@@ -17,9 +17,15 @@ struct XAMP_PLAYER_API ComponentSharedLibraryLoader {
 
 	~ComponentSharedLibraryLoader();
 
+	ComponentSharedLibraryLoader(const ComponentSharedLibraryLoader&) = delete;
+	ComponentSharedLibraryLoader& operator=(const ComponentSharedLibraryLoader&) = delete;
+
 	void load();
 
-	void unload();	
+	void unload();
+
+private:
+	bool bass_loaded_{false};
 };
 
 XAMP_PLAYER_API std::shared_ptr<IAudioPlayer> makeAudioPlayer();

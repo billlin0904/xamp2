@@ -6,12 +6,14 @@
     <ClCompile Include="src\taglibmetareader.cpp" />
     <ClCompile Include="src\cuefilereader.cpp" />
     <ClCompile Include="src\metadatalibraryscanner.cpp" />
+    <ClCompile Include="src\metadatascanreader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\metadata\metadata.h" />
     <ClInclude Include="include\metadata\api.h" />
     <ClInclude Include="include\metadata\taglib.h" />
     <ClInclude Include="include\metadata\taglibmetareader.h" />
+    <ClInclude Include="include\metadata\taglibntfsiostream.h" />
     <ClInclude Include="include\metadata\taglibmetawriter.h" />
     <ClInclude Include="include\metadata\imetadatareader.h" />
     <ClInclude Include="include\metadata\imetadatawriter.h" />
@@ -19,6 +21,7 @@
     <ClInclude Include="include\metadata\libcuelib.h" />
     <ClInclude Include="include\metadata\taglibiostream.h" />
     <ClInclude Include="include\metadata\metadatalibraryscanner.h" />
+    <ClInclude Include="include\metadata\imetadatascanreader.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="win32">

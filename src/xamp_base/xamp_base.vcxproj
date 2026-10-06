@@ -230,6 +230,8 @@ if exist "$(ProjectDir)..\..\vcpkg_installed\x64-windows\bin\simdutf.dll" copy /
     <ClInclude Include="include\base\zib_util.h" />
     <ClInclude Include="include\base\vmmemlock.h" />
     <ClInclude Include="include\base\memory_mapped_file.h" />
+    <ClInclude Include="include\base\ntfs.h" />
+    <ClInclude Include="include\base\ntfsfilestream.h" />
     <ClInclude Include="include\base\uuid.h" />
     <ClInclude Include="include\base\logger.h" />
     <ClInclude Include="include\base\trackinfo.h" />
@@ -261,6 +263,8 @@ if exist "$(ProjectDir)..\..\vcpkg_installed\x64-windows\bin\simdutf.dll" copy /
     <ClCompile Include="src\fs.cpp" />
     <ClCompile Include="src\furigana.cpp" />
     <ClCompile Include="src\memory_mapped_file.cpp" />
+    <ClCompile Include="src\ntfs.cpp" />
+    <ClCompile Include="src\ntfsfilestream.cpp" />
     <ClCompile Include="src\shared_singleton.cpp" />
     <ClCompile Include="src\stl.cpp" />
     <ClCompile Include="src\text_encoding.cpp" />

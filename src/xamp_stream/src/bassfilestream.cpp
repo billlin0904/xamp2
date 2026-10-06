@@ -4,6 +4,8 @@
 #include <stream/basslib.h>
 
 #include <fstream>
+#include <chrono>
+#include <thread>
 #include <base/dsd_utils.h>
 #include <base/str_utilts.h>
 #include <base/stopwatch.h>
@@ -180,7 +182,7 @@ public:
 	        const auto is_cda_file = isCDAFile(file_path);
 
             if (is_cda_file) {
-                flags |= BASS_ASYNCFILE;
+                if (!integer_pcm_) flags |= BASS_ASYNCFILE;
                 // Only for windows.
                 impl_.reset(LIB_BASS.BASS_StreamCreateFile(FALSE,
                     file_path.c_str(),
@@ -217,6 +219,9 @@ public:
     }
 
     void open(ArchiveEntry archive_entry) {
+        if (integer_pcm_) {
+            throw std::invalid_argument("BASS integer PCM mode requires an audio CD");
+        }
         static constexpr BASS_FILEPROCS file_process = {
             &ArchiveContext::archiveCloseCallback,
             & ArchiveContext::archiveLengthCallback,
@@ -269,6 +274,9 @@ public:
     }
 
     void open(Path const& file_path) {
+        if (integer_pcm_ && (!isCDAFile(file_path.wstring()) || mode_ != DsdModes::DSD_MODE_PCM || rate_ != 0.0f)) {
+            throw std::invalid_argument("BASS integer PCM mode requires an unmodified audio CD");
+        }
         DWORD flags = 0;
 
         switch (mode_) {
@@ -293,6 +301,8 @@ public:
     		|| file_path.wstring().find(L"https") != std::string::npos;
         XAMP_LOG_D(logger_, "start open file");
 
+        if (integer_pcm_) flags = 0;
+        last_read_error_ = BASS_OK;
         createFileOrURL(file_path.wstring(), !is_http, mode_, flags);        
         loadStream(rate_);
     }
@@ -313,6 +323,14 @@ public:
     void loadStream(float rate) {
         info_ = BASS_CHANNELINFO{};        
         BassIfFailedThrow(LIB_BASS.BASS_ChannelGetInfo(impl_.get(), &info_)); 
+
+        if (integer_pcm_) {
+            if (info_.chans != 2 || info_.freq != 44100 || (info_.flags & BASS_SAMPLE_FLOAT)) {
+                throw std::runtime_error("Unexpected CD PCM format");
+            }
+            checkZeroDuration();
+            return; // No tempo or mixer processing on the integer source.
+        }
 
         if (mode_ == DsdModes::DSD_MODE_DOP || mode_ == DsdModes::DSD_MODE_NATIVE) {
             checkZeroDuration();
@@ -418,6 +436,33 @@ public:
     }
 
     uint32_t getSamples(void *buffer, uint32_t length) const {
+        if (integer_pcm_) {
+            if (length == 0) return 0;
+            if (!buffer || length % 2 || length > UINT32_MAX / sizeof(int16_t)) {
+                throw std::invalid_argument("CD PCM reads require whole stereo frames");
+            }
+            // BASS returns signed 16-bit CD samples. Expand backwards in-place
+            // into canonical left-aligned 32-bit words without floating point.
+            const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(10);
+            auto bytes = internalGetSamples(buffer, length * sizeof(int16_t));
+            while (bytes == 0 && !endOfStream()) {
+                if (std::chrono::steady_clock::now() >= deadline) {
+                    throw std::runtime_error("Timed out waiting for CD PCM data");
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                bytes = internalGetSamples(buffer, length * sizeof(int16_t));
+            }
+            if (bytes % 4 != 0) throw std::runtime_error("Incomplete CD PCM frame");
+            const auto samples = bytes / sizeof(int16_t);
+            auto* data = static_cast<std::byte*>(buffer);
+            for (size_t i = samples; i-- > 0;) {
+                uint16_t value;
+                memcpy(&value, data + i * sizeof(value), sizeof(value));
+                const uint32_t word = static_cast<uint32_t>(value) << 16;
+                memcpy(data + i * sizeof(word), &word, sizeof(word));
+            }
+            return static_cast<uint32_t>(samples);
+        }
         return internalGetSamples(buffer,
             length * getSampleSize()) / getSampleSize();
     }
@@ -439,6 +484,9 @@ public:
     }
 
     [[nodiscard]] AudioFormat getFormat() const {
+        if (integer_pcm_) {
+            return AudioFormat(DataFormat::FORMAT_PCM, 2, ByteFormat::SINT32, info_.freq);
+        }
         if (mode_ == DsdModes::DSD_MODE_NATIVE) {
             return AudioFormat(DataFormat::FORMAT_DSD,
                 static_cast<uint16_t>(info_.chans),
@@ -464,6 +512,7 @@ public:
 	}
 
     void seek(double stream_time) const {
+        last_read_error_ = BASS_OK;
         /*double playback_seconds = stream_time / playback_rate_;
 
         const auto pos_bytes =
@@ -532,6 +581,16 @@ public:
         mode_ = mode;
     }
 
+    void setIntegerPcm(bool enabled) {
+        if (impl_.is_valid()) throw std::logic_error("Set PCM mode before opening the stream");
+        integer_pcm_ = enabled;
+    }
+
+    std::optional<pcm::Format> integerPcmFormat() const {
+        if (!integer_pcm_ || !impl_.is_valid()) return std::nullopt;
+        return pcm::canonical(16, 2, info_.freq);
+    }
+
     [[nodiscard]] DsdModes getDSDMode() const {
         return mode_;       
     }
@@ -564,15 +623,20 @@ public:
     }
 
     [[nodiscard]] bool isActive() const {
-        return LIB_BASS.BASS_ChannelIsActive(getSourceStream()) == BASS_ACTIVE_PLAYING;
+        // Tempo/mixer output can still contain samples after its source ends.
+        // Check the same decoding channel that internalGetSamples reads.
+        const auto stream = getHStream();
+        const auto state = LIB_BASS.BASS_ChannelIsActive(stream);
+        const auto error = LIB_BASS.BASS_ErrorGetCode();
+        if (state != BASS_ACTIVE_PLAYING) {
+            XAMP_LOG_DEBUG("BASS decoder inactive: stream={} source={} state={} error={}",
+                stream, getSourceStream(), state, error);
+        }
+        return state == BASS_ACTIVE_PLAYING;
     }
 	
     bool endOfStream() const {
-        auto last_error = LIB_BASS.BASS_ErrorGetCode();
-        if (last_error == BASS_ERROR_ENDED) {
-            return true;
-        }
-        return false;
+        return last_read_error_ == BASS_ERROR_ENDED;
     }    
 
     void setRate(float percent) {
@@ -598,7 +662,12 @@ private:
     uint32_t internalGetSamples(void* buffer, uint32_t length) const {
         const auto bytes_read =
             LIB_BASS.BASS_ChannelGetData(getHStream(), buffer, length);
-        if (bytes_read == kBassError) {            			
+        // Later BASS calls (including isActive) overwrite the thread's error.
+        last_read_error_ = bytes_read == kBassError ? LIB_BASS.BASS_ErrorGetCode() : BASS_OK;
+        if (bytes_read == kBassError) {
+            if (last_read_error_ != BASS_ERROR_ENDED) {
+                throw BassException();
+            }
             return 0;
         }
         return static_cast<uint32_t>(bytes_read);
@@ -633,6 +702,8 @@ private:
     }
 
     DsdModes mode_;
+    bool integer_pcm_ = false;
+    mutable int last_read_error_ = BASS_OK;
     bool tempo_enabled_ = true;
     float playback_rate_ = 1.0f;    
     float rate_ = 0.0f;
@@ -654,6 +725,14 @@ XAMP_PIMPL_IMPL(BassFileStream)
 
 void BassFileStream::openFile(Path const& file_path)  {
     impl_->open(file_path);
+}
+
+void BassFileStream::setIntegerPcm(bool enabled) {
+    impl_->setIntegerPcm(enabled);
+}
+
+std::optional<pcm::Format> BassFileStream::integerPcmFormat() const {
+    return impl_->integerPcmFormat();
 }
 
 void BassFileStream::open(ArchiveEntry archive_entry) {

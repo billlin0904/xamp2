@@ -7,12 +7,14 @@
 #include <base/str_utilts.h>
 #include <base/text_encoding.h>
 #include <base/zib_util.h>
+#include <base/fs.h>
 
+#include <widget/widget_shared.h>
 #include <widget/util/json_util.h>
 #include <widget/krcparser.h>
 
 namespace {
-    const std::array<uint8_t, 16> kKrcFileXorKey = {
+    constexpr std::array<uint8_t, 16> kKrcFileXorKey = {
 		0x40, 0x47, 0x61, 0x77, 0x5E, 0x32, 0x74, 0x47,
 		0x51, 0x36, 0x31, 0x2D, 0xCE, 0xD2, 0x6E, 0x69
     };
@@ -355,7 +357,7 @@ bool KrcParser::parse(const uint8_t* buffer, size_t size) {
 }
 
 bool KrcParser::parseFile(const std::wstring& file_path) {
-    std::ifstream ifs(std::filesystem::path(file_path), std::ios::binary);
+    std::ifstream ifs(Path(file_path), std::ios::binary);
     if (!ifs.is_open()) {
 		return false;
     }

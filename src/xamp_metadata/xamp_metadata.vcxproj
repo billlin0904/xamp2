@@ -168,18 +168,21 @@
     <ClInclude Include="include\metadata\libcuelib.h" />
     <ClInclude Include="include\metadata\metadata.h" />
     <ClInclude Include="include\metadata\metadatalibraryscanner.h" />
+    <ClInclude Include="include\metadata\imetadatascanreader.h" />
     <ClInclude Include="include\metadata\imetadatareader.h" />
     <ClInclude Include="include\metadata\imetadatawriter.h" />
     <ClInclude Include="include\metadata\api.h" />
     <ClInclude Include="include\metadata\taglib.h" />
     <ClInclude Include="include\metadata\taglibiostream.h" />
     <ClInclude Include="include\metadata\taglibmetareader.h" />
+    <ClInclude Include="include\metadata\taglibntfsiostream.h" />
     <ClInclude Include="include\metadata\taglibmetawriter.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\api.cpp" />
     <ClCompile Include="src\cuefilereader.cpp" />
     <ClCompile Include="src\metadatalibraryscanner.cpp" />
+    <ClCompile Include="src\metadatascanreader.cpp" />
     <ClCompile Include="src\taglibmetadatawriter.cpp" />
     <ClCompile Include="src\taglibmetareader.cpp" />
   </ItemGroup>

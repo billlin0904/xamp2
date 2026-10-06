@@ -26,7 +26,7 @@ XAMP_BASE_NAMESPACE_BEGIN
 #ifdef XAMP_OS_WIN
 
 namespace {
-    std::string GetFileName(std::filesystem::path const& path) {
+    std::string GetFileName(Path const& path) {
         return String::toUtf8String(path.filename());
     }
 

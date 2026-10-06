@@ -1,5 +1,6 @@
 #include <metadata/taglibmetareader.h>
 #include <metadata/taglibiostream.h>
+#include <metadata/taglibntfsiostream.h>
 #include <metadata/taglib.h>
 
 #include <base/stl.h>
@@ -552,7 +553,7 @@ namespace {
         }
 
         FileName name() const override {
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
             return entry.Name().c_str();
 #else
             name_ = String::toUtf8String(entry.Name());
@@ -677,9 +678,15 @@ public:
         }
     }
 
-    void open(const Path& path) {
+    void open(const Path& path, bool use_ntfs = false) {
         fileref_opt_ = std::nullopt;
-        io_stream_ = makeIOStream(path, FastIOStream::Mode::read);
+        is_archive_file_ = false;
+        if (use_ntfs) {
+            io_stream_ = makeAlign<TagLib::IOStream, TaglibNtfsIOStream>(path);
+        }
+        else {
+            io_stream_ = makeIOStream(path, FastIOStream::Mode::read);
+        }
         FileRef fileref(io_stream_.get(), true, TagLib::AudioProperties::Fast);
         if (!fileref.isNull()) {
             fileref_opt_ = fileref;
@@ -768,9 +775,10 @@ private:
     std::string file_ext_;
 	std::wstring entry_name_;
     Path path_;
+    // FileRef borrows the stream, so it must be destroyed before the stream.
+    ScopedPtr<TagLib::IOStream> io_stream_;
     std::optional<FileRef> fileref_opt_;
     ScopedPtr<IFileTagReader> tag_reader_;
-    ScopedPtr<TagLib::IOStream> io_stream_;
 };
 
 XAMP_PIMPL_IMPL(TaglibMetadataReader)
@@ -785,6 +793,10 @@ void TaglibMetadataReader::open(ArchiveEntry archive_entry) {
 
 void TaglibMetadataReader::open(const Path& path) {
     return reader_->open(path);
+}
+
+void TaglibMetadataReader::openNtfs(const Path& path) {
+    reader_->open(path, true);
 }
 
 std::expected<TrackInfo, ParseMetadataError> TaglibMetadataReader::extract() {

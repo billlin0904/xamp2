@@ -579,6 +579,7 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
 
             stage_elapsed.reset();
             cd_page_->playlistPage()->playlist()->setAlbumCoverId(album_id, cover_id);
+            cd_page_->refreshAlbumInformation();
             const auto cd_playlist_elapsed = stage_elapsed.elapsedSeconds();
 
             stage_elapsed.reset();

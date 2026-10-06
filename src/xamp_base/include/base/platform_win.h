@@ -21,6 +21,13 @@
 
 XAMP_BASE_NAMESPACE_BEGIN
 
+#ifdef XAMP_OS_WIN
+// Checks enabled Administrators membership in the calling thread's effective
+// token (the process token when not impersonating), not account membership.
+// On API failure returns false and reports the Win32 error when requested.
+XAMP_BASE_API bool isRunAsAdmin(uint32_t* error_code = nullptr) noexcept;
+#endif
+
 XAMP_MAKE_ENUM(
     ThreadPriority,
     PRIORITY_UNKNOWN,
