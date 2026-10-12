@@ -19,7 +19,7 @@ cmake --preset macos-xcode
 cmake --build --preset macos-xcode --parallel 4
 ```
 
-Debug 程式位於 `out/build/macos-xcode/src/xamp/Debug/xamp.app`。目前為本機開發建置，依賴 Homebrew 及建置目錄內的動態函式庫；尚未封裝成可在其他電腦直接使用的發行版本。
+Debug 程式位於 `out/build/macos-xcode/src/xamp/Debug/xamp.app`。此為本機開發建置，依賴 Homebrew 及建置目錄內的動態函式庫。對外發行請使用下方 DMG 封裝腳本。
 
 macOS 使用 CoreAudio 輸出與 Accelerate FFT；PCM2DSD 也使用 Accelerate 的雙精度複數 FFT，沒有使用 Intel MKL。
 
@@ -82,3 +82,39 @@ ctest --test-dir out/build/coreaudio-integer-tests --output-on-failure
 ```
 
 測試涵蓋整數格式、DoP payload／marker、靜音與 EOF，以及使用模擬 HAL 執行正式後端的協商、失敗還原、獨佔衝突和格式變更。測試不會開啟實體音訊裝置，不能取代 DAC 實測。
+
+
+## macOS 安裝包、簽署與公證
+
+```sh
+python3 tools/package_macos.py \
+  --identity 'Developer ID Application: YOUR NAME (TEAMID)' \
+  --notary-profile xamp-notary
+```
+
+腳本建置 Release，封裝 Qt、Homebrew 相依函式庫、BASS、PCM2DSD、MeCab 字典及資源，驗證動態連結不依賴開發機的路徑，再使用 Developer ID、Hardened Runtime 與時間戳記簽署。Apple 公證通過後將票證附加至 DMG 並驗證。產物與 SHA-256 位於 `out/package/macos/`；打開 DMG 後將 XAMP2.app 拖曳到 Applications 安裝。
+
+僅支援 Apple Silicon；封裝工具會依所有函式庫實際的最低系統版本設定 LSMinimumSystemVersion，不能單靠主程式的 14.0 建置設定宣稱整包相容 macOS 14。實際最低版本會印在輸出摘要及 DMG 的安裝說明中。
+
+第一次需在本機鑰匙圈安裝含私鑰的 Developer ID Application 憑證，再於終端機儲存公證認證（密碼在互動提示輸入，不寫入指令或儲存庫）：
+
+```sh
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
+xcrun notarytool store-credentials xamp-notary \
+  --apple-id YOUR_APPLE_ID --team-id YOUR_TEAM_ID
+```
+
+`--skip-build` 可封裝現有 Release；`--smoke-test` 會在簽署後短暫啟動套件、驗證視窗初始化並自動退出（需要圖形介面）。省略 `--notary-profile` 只簽署，不公證；兩者都省略只建立標示為 `local-test` 的 ad-hoc 測試包，不能當作已通過 Gatekeeper 的正式版本散布。Bundle ID 預設 `com.billlin0904.xamp2`，可用 `--bundle-id` 覆寫。私鑰與公證認證不得加入 Git。
+
+
+### 原生安裝導覽（PKG）
+
+需要逐步安裝介面時，使用 `tools/build_macos_installer.py` 將已封裝的 `.app` 製作成 `.pkg`。包含繁體中文歡迎頁、安裝前須知、目標選擇、安裝類型、安裝與完成摘要；固定安裝至 `/Applications/XAMP2.app`，不搜尋其他位置的副本，也不執行自訂安裝腳本。
+
+```sh
+python3 tools/build_macos_installer.py /Volumes/"XAMP2 1.0.5"/XAMP2.app \
+  --identity 'Developer ID Installer: YOUR NAME (TEAMID)' \
+  --notary-profile xamp-notary
+```
+
+輸入應為已封裝、驗證過簽章的 `.app`（例如掛載上一步的 DMG 後取得）。Application 憑證簽署 `.app`；Installer 憑證簽署 `.pkg`，兩者用途不同。省略 `--identity` 會產生明確標示 `installer-unsigned.pkg` 的本機預覽版，內含的 `.app` 保持原有簽章。正式發行需提供 Installer 憑證並完成公證；產物與 SHA-256 同樣位於 `out/package/macos/`。
