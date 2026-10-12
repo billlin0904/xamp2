@@ -246,13 +246,16 @@ code {
 }
 .platform-downloads {
   display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(155px,1fr));
   gap:12px;
 }
 .platform-download {
   gap:12px;
   padding:14px;
   min-width:0;
+}
+.platform-download[data-macos-download] {
+  grid-column:1 / -1;
 }
 .platform-icon {
   flex:0 0 22px;
@@ -528,7 +531,7 @@ code {
 }
 .install-notes {
   display:grid;
-  grid-template-columns:1fr 1fr;
+  grid-template-columns:repeat(3,minmax(0,1fr));
   gap:48px;
   margin-top:23px;
   color:var(--muted);
