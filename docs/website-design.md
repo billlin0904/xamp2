@@ -36,6 +36,6 @@ Follow-up: give Windows and Linux equal download buttons in the hero, with local
 
 ## macOS download (2026-10-12)
 
-- Added v1.0.5 Apple Silicon PKG and SHA-256 links, native installer guidance, macOS 26 minimum and explicit pending notarization status.
+- Added v1.0.5 Apple Silicon PKG link and GitHub Assets SHA-256 verification guidance, native installer guidance, macOS 26 minimum and explicit pending notarization status.
 - Windows/Linux retain their independently verified v1.0.3 assets. General release history links to all releases.
 - Added an original monitor SVG for macOS; existing third-party icons are unchanged. macOS hero button spans the available row; installation notes use three columns on desktop and one on mobile.
