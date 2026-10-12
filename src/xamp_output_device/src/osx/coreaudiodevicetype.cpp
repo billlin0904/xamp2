@@ -71,7 +71,7 @@ size_t CoreAudioDeviceType::CoreAudioDeviceTypeImpl::getDeviceCount() const {
 
 DeviceInfo CoreAudioDeviceType::CoreAudioDeviceTypeImpl::getDeviceInfo(uint32_t device) const {
     auto itr = device_list_.begin();
-    if (device >= getDeviceCount()) {
+    if (device >= device_list_.size()) {
         throw DeviceNotFoundException();
     }
     std::advance(itr, device);
@@ -191,15 +191,22 @@ size_t CoreAudioDeviceType::getDeviceCount() const {
 }
 
 DeviceInfo CoreAudioDeviceType::getDeviceInfo(uint32_t device) const {
-    return impl_->getDeviceInfo(device);
+    auto info = impl_->getDeviceInfo(device);
+    info.device_type_id = getTypeId();
+    return info;
 }
 
 std::vector<DeviceInfo> CoreAudioDeviceType::getDeviceInfo() const {
-    return impl_->getDeviceInfo();
+    auto devices = impl_->getDeviceInfo();
+    // HogCoreAudioDeviceType inherits enumeration, but has a different backend ID.
+    for (auto& info : devices) info.device_type_id = getTypeId();
+    return devices;
 }
 
 std::optional<DeviceInfo> CoreAudioDeviceType::getDefaultDeviceInfo() const {
-    return impl_->getDefaultDeviceInfo();
+    auto info = impl_->getDefaultDeviceInfo();
+    if (info) info->device_type_id = getTypeId();
+    return info;
 }
 
 }

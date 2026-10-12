@@ -87,7 +87,7 @@ std::optional<DeviceInfo> DeviceSelectorMenu::rebuild(
     action_group_.reset(new QActionGroup(action_parent_));
     action_group_->setExclusive(true);
 
-    OrderedMap<std::string, QAction*> device_id_action;
+    QAction* default_device_action = nullptr;
     std::optional<DeviceInfo> selected_device_info;
     std::optional<DeviceInfo> default_device_info;
 
@@ -142,7 +142,6 @@ std::optional<DeviceInfo> DeviceSelectorMenu::rebuild(
             };
             (void)QObject::connect(device_action, &QAction::triggered, action_parent_, select_device);
 
-            device_id_action[device_info.device_id] = device_action;
             menu->addAction(device_action);
 
             if (preferred_device_type_id == device_info.device_type_id
@@ -155,18 +154,14 @@ std::optional<DeviceInfo> DeviceSelectorMenu::rebuild(
                 && device_info.is_default_device
                 && !isExclusiveDevice(device_info)) {
                 default_device_info = device_info;
+                default_device_action = device_action;
             }
         }
     }
 
     if (!selected_device_info.has_value()) {
         selected_device_info = default_device_info;
-        if (selected_device_info.has_value()) {
-            if (const auto itr = device_id_action.find(selected_device_info->device_id);
-                itr != device_id_action.end()) {
-                itr->second->setChecked(true);
-            }
-        }
+        if (default_device_action) default_device_action->setChecked(true);
     }
 
     device_label_width_ = max_width;

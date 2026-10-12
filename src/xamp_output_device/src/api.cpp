@@ -70,6 +70,8 @@ bool isExclusiveDevice(const DeviceInfo& info) {
     return device_type_id == XAMP_UUID_OF(win32::ExclusiveWasapiDeviceType)
         || device_type_id == XAMP_UUID_OF(win32::AsioDeviceType)
         ;
+#elif defined(XAMP_OS_MAC)
+    return info.device_type_id == XAMP_UUID_OF(osx::HogCoreAudioDeviceType);
 #else
     (void)info;
     return false;

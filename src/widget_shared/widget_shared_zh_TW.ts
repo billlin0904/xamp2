@@ -1494,6 +1494,11 @@ This will update metadata files on disk.</source>
     <message><source>Native DSD requires an ASIO driver supporting the selected DSD rate. Unsupported formats report an error; choose DoP if needed.</source><translation>Native DSD 需要支援所選 DSD 取樣率的 ASIO 驅動。不支援時會回報錯誤，可改選 DoP。</translation></message>
     <message><source>Applies on next playback, only with BitPerfect PCM enabled. DoP requires WASAPI Exclusive or ASIO; Native DSD requires a compatible ASIO driver. DSP and software volume stay bypassed. The output is converted DSD, not bit-perfect source PCM. 0 dB retains the converter's default headroom.</source><translation>下次播放生效，僅在啟用 BitPerfect PCM 時使用。DoP 需要 WASAPI 獨佔或 ASIO；Native DSD 需要相容的 ASIO 驅動。略過 DSP 與軟體音量。輸出為轉換後的 DSD。0 dB 保留轉換器預設的訊號餘裕。</translation></message>
     <message><source>Higher DSD rates require more CPU and a compatible DAC.</source><translation>較高的 DSD 倍率需要更多 CPU 運算能力，以及相容的 DAC。</translation></message>
+    <message><source>BitPerfect PCM (CoreAudio Hog Mode)</source><translation>BitPerfect PCM（CoreAudio 獨佔模式）</translation></message>
+    <message><source>Requires CoreAudio (Hog Mode) with a stereo integer output at the original sample rate. DSP and software volume are bypassed; use your DAC volume control.</source><translation>需要 CoreAudio（Hog Mode）以原始取樣率輸出雙聲道整數音訊。略過 DSP 與軟體音量；請使用 DAC 調整音量。</translation></message>
+    <message><source>Native DSD (not supported on macOS)</source><translation>Native DSD（macOS 尚未支援）</translation></message>
+    <message><source>On macOS, select DoP and CoreAudio (Hog Mode). Native DSD is not supported.</source><translation>macOS 請選擇 DoP 與 CoreAudio（Hog Mode）。尚未支援 Native DSD。</translation></message>
+    <message><source>Requires a DAC that supports DoP at the selected rate and a matching stereo integer CoreAudio format. Select CoreAudio (Hog Mode). DSP and software volume are bypassed. Output is converted DSD. A supported PCM rate does not prove DAC DoP support.</source><translation>需要支援所選倍率 DoP 的 DAC，以及相符的 CoreAudio 雙聲道整數格式。請選擇 CoreAudio（Hog Mode）。略過 DSP 與軟體音量，輸出為轉換後的 DSD。支援 PCM 取樣率不代表 DAC 支援 DoP。</translation></message>
 </context>
     <context>
         <name>QObject</name>

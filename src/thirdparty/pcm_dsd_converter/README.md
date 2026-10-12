@@ -10,8 +10,9 @@
 FFT 預設使用 Intel oneMKL（靜態連結、sequential、LP64）；建置需要 oneMKL SDK。
 可透過 `MKL_DIR` 或 `MKLROOT` 指定安裝位置，Windows 也會搜尋標準 oneAPI 安裝目錄。
 每個升頻 stage 建立並重用 DFTI descriptor，inverse scale 為 1/N；不在播放迴圈建立計畫。
-設定 `-DPCM_DSD_USE_MKL=OFF` 可建置原本 portable FFT 備援版本。
-MKL 與 portable 的浮點結果可能略有差異，因此不保證輸出 DSD 逐 bit 相同。
+設定 `-DPCM_DSD_USE_MKL=OFF -DPCM_DSD_USE_ACCELERATE=OFF` 可建置 portable FFT 備援版本。
+macOS 可使用 `-DPCM_DSD_USE_MKL=OFF -DPCM_DSD_USE_ACCELERATE=ON`，XAMP 的 macos-xcode preset 已啟用。Apple 後端使用雙精度 `vDSP_fft_zipD`，每級預先建立 FFTSetupD 與 split-complex 緩衝區，反向轉換套用 1/N；process/flush 不建立計畫或分配工作空間。
+Accelerate、MKL 與 portable 的浮點結果可能略有差異，因此不保證輸出 DSD 逐 bit 相同。
 oneMKL 授權及第三方聲明位於 `licenses/onemkl`，隨產物部署。
 `pcm_dsd_benchmark` 可在 Release 下測量 DSD64/128/256，排除建立計畫時間並先暖機。
 
@@ -30,6 +31,19 @@ x64 預設啟用 `PCM_DSD_USE_SIMD`：15 階調變器以 SSE2 同時計算左右
 `-DPCM_DSD_USE_SIMD=OFF` 可關閉這兩項最佳化；不影響 MKL 自身的 CPU dispatch。
 `pcm_dsd_simd_test` 比較輸出 bytes、回授狀態、獨立 RNG、過載、carry、reset 與各 DSP 選項。
 `pcm_dsd_profile_control --scalar` 可在同一測量程式中切回純量路徑，與預設 SIMD 路徑比較。
+
+Apple Silicon 預設啟用 `PCM_DSD_USE_NEON`：使用 AArch64 的雙精度 NEON 同時計算左右聲道的 15 階回授調變器，以及每次兩個複數的頻域乘法。維持純量版本的運算順序、各聲道 RNG 與跨區塊的位元打包狀態，不使用融合乘加；1 階調變器與 legacy API 維持原路徑。`PCM_DSD_USE_NEON=OFF` 可停用，與 x86 的 `PCM_DSD_USE_SIMD` 獨立。macOS 的係數生成停用 sin/cos 內建函數合併，使最佳化前後維持相同的舍入結果。
+
+macOS 獨立建置與驗證：
+
+```sh
+cmake -S src/thirdparty/pcm_dsd_converter -B out/build/pcm-dsd-neon -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release -DPCM_DSD_USE_MKL=OFF -DPCM_DSD_USE_SIMD=OFF -DPCM_DSD_USE_NEON=ON -DPCM_DSD_USE_ACCELERATE=ON
+cmake --build out/build/pcm-dsd-neon --parallel 4
+ctest --test-dir out/build/pcm-dsd-neon --output-on-failure
+```
+
+上述命令從 XAMP 儲存庫根目錄執行。`pcm_dsd_simd_test` 在 ARM64 上會執行 NEON 與純量的逐位元／狀態比對，涵蓋不對齊位置、奇數長度、獨立 RNG、單聲道／雙聲道、過載、reset、FIR 與 modulator 選項。
 
 ```powershell
 .\build_release.ps1
@@ -106,7 +120,7 @@ int status = pcm_dsd_create(&config, &converter);
 使用每級 2 倍的 FFT overlap-add FIR；portable 後端無外部 FFT 相依。這與原版 polyphase/FFT
 在數學上的濾波響應一致，但浮點加總順序不同。
 portable FFT 在 create 時預先建立 twiddle 與 bit-reversal 表；MKL 使用 DFTI 計畫。
-兩種後端都將左右聲道以單次複數卷積一起計算。
+所有後端都將左右聲道以單次複數卷積一起計算。
 process/flush 不分配記憶體，且不執行檔案 I/O。單個 handle 非 thread-safe；不同 handle
 可在不同執行緒使用。高倍率需要更多工作記憶體與 CPU，尚未驗證即時播放期限。
 

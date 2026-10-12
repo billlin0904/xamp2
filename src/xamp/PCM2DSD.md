@@ -6,7 +6,7 @@ Dither（預設開啟）。設定儲存在 xamp.ini，下次開啟音軌生效�
 
 僅對既有 BitPerfect 所支援的立體聲 16/24/32-bit integer WAV／FLAC 啟用。
 BitPerfect 關閉時不建立轉換器；原生 DSD 檔不經此轉換器。
-DoP 需要相容 DAC 的 WASAPI 獨佔或 ASIO 整數輸出；Native DSD 僅限相容 ASIO 驅動。拒絕共享模式與其他裝置類型。
+DoP 需要相容 DAC 的 WASAPI 獨佔、ASIO 或 macOS CoreAudio（Hog Mode）整數輸出；Native DSD 僅限相容 ASIO 驅動。拒絕共享模式與其他裝置類型。macOS 目前支援單一交錯雙聲道整數串流，詳見根目錄 README_macos.md。
 
 資料路徑：
 
@@ -14,7 +14,7 @@ DoP 需要相容 DAC 的 WASAPI 獨佔或 ASIO 整數輸出；Native DSD 僅限�
 AvLibFileStream (integer PCM)
   → Pcm2DsdFileStream (double PCM → C DLL → packed DSD → integer DoP)
   → strict integer FIFO (no EQ/resampler/software volume)
-  → WASAPI Exclusive / ASIO integer container conversion
+  → WASAPI Exclusive / ASIO / CoreAudio Hog integer container conversion
   → DoP-capable DAC
 ```
 

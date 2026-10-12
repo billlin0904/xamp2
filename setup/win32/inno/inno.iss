@@ -5,7 +5,7 @@
 
 #define MyAppName "XAMP2"
 #ifndef MyAppVersion
-#define MyAppVersion "1.0.4"
+#define MyAppVersion "1.0.5"
 #endif
 #define MyAppPublisher "XAMP2 Project"
 #define MyAppURL "https://github.com/billlin0904/xamp2"

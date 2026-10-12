@@ -21,12 +21,16 @@ static int collect(pcm_dsd_converter* c,const double* input,size_t frames,uint8_
 }
 
 int main(void) {
-#ifdef PCM_DSD_USE_SIMD
+#if defined(PCM_DSD_USE_SIMD) || defined(PCM_DSD_USE_NEON)
     pcm_dsd_config cfg; pcm_dsd_options opts;
     double input[2006]; uint8_t a[65536],b[65536];
     unsigned dither,mode,filter,block,channels,rate; size_t i,n,m;
     /* Exercise odd counts, unaligned SIMD addresses, and scalar tail. */
+#ifdef PCM_DSD_USE_NEON
+    {
+#else
     if(has_avx2()) {
+#endif
         complex64 v[67],ref[67],h[67];
         for(i=0;i<67;i++) {
             v[i].re=sin(i*0.03); v[i].im=cos(i*0.07);
@@ -35,7 +39,12 @@ int main(void) {
         for(n=0;n<=65;n++) {
             memcpy(ref,v,sizeof(v));
             complex64 actual[67]; memcpy(actual,v,sizeof(v));
-            multiply_scalar(ref+1,h+1,n); pcm_dsd_multiply_avx2(actual+1,h+1,n);
+            multiply_scalar(ref+1,h+1,n);
+#ifdef PCM_DSD_USE_NEON
+            multiply_neon(actual+1,h+1,n);
+#else
+            pcm_dsd_multiply_avx2(actual+1,h+1,n);
+#endif
             CHECK(!memcmp(ref,actual,sizeof(ref)));
         }
     }

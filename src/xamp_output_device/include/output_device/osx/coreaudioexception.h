@@ -24,8 +24,9 @@ public:
 
 #define CoreAudioThrowIfError(err) \
 do { \
-     if ((err) != noErr) { \
-        throw CoreAudioException(err); \
+     const auto core_audio_status = (err); \
+     if (core_audio_status != noErr) { \
+        throw CoreAudioException(core_audio_status); \
     } \
 } while (false)
 

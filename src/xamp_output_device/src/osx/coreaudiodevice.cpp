@@ -34,15 +34,8 @@ CoreAudioDevice::CoreAudioDevice(AudioDeviceID device_id, bool is_hog_mode)
 }
 
 CoreAudioDevice::~CoreAudioDevice() {
-    if (is_hog_mode_) {
-        ReleaseHogMode(device_id_);
-    }
-
-    try {
-        stopStream();
-        closeStream();
-    } catch (...) {
-    }
+    try { closeStream(); } catch (...) {}
+    restoreIntegerStream();
 }
 
 void CoreAudioDevice::setBlance() {
@@ -60,6 +53,13 @@ void CoreAudioDevice::setBlance() {
 }
 
 void CoreAudioDevice::openStream(AudioFormat const &output_format) {
+    if (isStreamOpen()) closeStream();
+    if (bitperfect_) {
+        openIntegerStream(output_format);
+        return;
+    }
+    if (io_format_ != DsdIoFormat::IO_FORMAT_PCM)
+        throw std::runtime_error("CoreAudio DoP requires the BitPerfect integer playback path");
     AudioStreamBasicDescription fmt;
     uint32 dataSize = sizeof(fmt);
     audio_property_.mSelector = kAudioStreamPropertyVirtualFormat;
@@ -177,29 +177,31 @@ bool CoreAudioDevice::isStreamRunning() const {
 }
 
 void CoreAudioDevice::stopStream(bool /*wait_for_stop_stream*/) {
-    XAMP_LOG_D(logger_, "stopStream");
-    if (is_running_) {
-        is_running_ = false;
-        std::unique_lock<FastMutex> lock{mutex_};
-        stop_event_.wait(lock);
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    CoreAudioThrowIfError(::AudioDeviceStop(device_id_, ioproc_id_));
     is_running_ = false;
+    if (ioproc_id_) CoreAudioThrowIfError(::AudioDeviceStop(device_id_, ioproc_id_));
 }
 
 void CoreAudioDevice::closeStream() {
-    XAMP_LOG_D(logger_, "closeStream");
-    CoreAudioThrowIfError(::AudioDeviceStop(device_id_, ioproc_id_));
-    CoreAudioThrowIfError(::AudioDeviceDestroyIOProcID(device_id_, ioproc_id_));
-    ioproc_id_ = nullptr;
-    ReleaseHogMode(device_id_);
+    is_running_ = false;
+    OSStatus stop_status = noErr;
+    OSStatus destroy_status = noErr;
+    if (ioproc_id_) {
+        stop_status = ::AudioDeviceStop(device_id_, ioproc_id_);
+        destroy_status = ::AudioDeviceDestroyIOProcID(device_id_, ioproc_id_);
+        ioproc_id_ = nullptr;
+    }
+    restoreIntegerStream();
+    if (is_hog_mode_ && !bitperfect_) ReleaseHogMode(device_id_);
+    CoreAudioThrowIfError(stop_status);
+    CoreAudioThrowIfError(destroy_status);
 }
 
 void CoreAudioDevice::startStream() {
     XAMP_LOG_D(logger_, "startStream!");
-    CoreAudioThrowIfError(::AudioDeviceStart(device_id_, ioproc_id_));
     is_running_ = true;
+    const auto status = ::AudioDeviceStart(device_id_, ioproc_id_);
+    if (status != noErr) is_running_ = false;
+    CoreAudioThrowIfError(status);
 }
 
 void CoreAudioDevice::setStreamTime(double stream_time) {
@@ -212,12 +214,14 @@ double CoreAudioDevice::getStreamTime() const {
 }
 
 uint32_t CoreAudioDevice::getVolume() const {
+    if (bitperfect_) return 100;
     auto volume = SystemVolume(kAudioHardwareServiceDeviceProperty_VirtualMainVolume, device_id_)
                       .getGain() * 100;
     return static_cast<uint32_t>(volume);
 }
 
 void CoreAudioDevice::setVolume(uint32_t volume) const {
+    if (bitperfect_) return;
     SystemVolume(kAudioHardwareServiceDeviceProperty_VirtualMainVolume, device_id_)
         .setGain(float(volume) / float(100.0));
 
@@ -225,10 +229,12 @@ void CoreAudioDevice::setVolume(uint32_t volume) const {
 }
 
 void CoreAudioDevice::setMute(bool mute) const {
+    if (bitperfect_) return;
     SystemVolume(kAudioDevicePropertyMute, device_id_).setMuted(mute);
 }
 
 bool CoreAudioDevice::isMuted() const {
+    if (bitperfect_) return false;
     return SystemVolume(kAudioDevicePropertyMute, device_id_).isMuted();
 }
 
@@ -290,6 +296,32 @@ OSStatus CoreAudioDevice::OnAudioDeviceIOProc(AudioDeviceID,
             + device->latency_;
     }
 
+    if (device->bitperfect_) {
+        try {
+            device->fillIntegerSamples(output_data, sample_time);
+        } catch (const std::exception& error) {
+            device->is_running_ = false;
+            // No exception may escape the HAL callback. Supply valid DoP idle
+            // on failure, then let the player dispatch its normal error event.
+            try { device->fillIntegerSamples(output_data, sample_time); } catch (...) {}
+            if (!device->integer_error_reported_) {
+                device->integer_error_reported_ = true;
+                try { if (device->callback_) device->callback_->onError(error); } catch (...) {}
+            }
+        } catch (...) {
+            device->is_running_ = false;
+            try { device->fillIntegerSamples(output_data, sample_time); } catch (...) {}
+            if (!device->integer_error_reported_) {
+                device->integer_error_reported_ = true;
+                try {
+                    if (device->callback_) device->callback_->onError(
+                        std::runtime_error("CoreAudio integer output failed with an unknown error"));
+                } catch (...) {}
+            }
+        }
+        return noErr;
+    }
+
     if (!device->is_running_) {
         std::unique_lock<FastMutex> lock{device->mutex_};
         device->stop_event_.notify_one();
@@ -336,34 +368,20 @@ uint32_t CoreAudioDevice::getHardwareLantency(AudioDeviceID device_id, AudioObje
     CoreAudioThrowIfError(result);
 
     uint32_t stream_latency = 0;
-    uint32_t numStreams;
+    UInt32 stream_bytes = 0;
     property_address.mSelector = kAudioDevicePropertyStreams;
-    result = ::AudioObjectGetPropertyDataSize(device_id,
-                                              &property_address,
-                                              0,
-                                              nullptr,
-                                              &numStreams);
-
-    std::vector<AudioStreamID> streams (numStreams);
-    size = sizeof (AudioStreamID*);
-    result = ::AudioObjectGetPropertyData(device_id,
-                                          &property_address,
-                                          0,
-                                          nullptr,
-                                          &size,
-                                          streams.data());
-
-    property_address.mSelector = kAudioStreamPropertyLatency;
-    size = sizeof (stream_latency);
-    // We could check all streams for the device,
-    // but it only ever seems to return the stream latency on the first stream.
-    result = ::AudioObjectGetPropertyData(streams[0],
-                                          &property_address,
-                                          0,
-                                          nullptr,
-                                          &size,
-                                          &stream_latency);
-    CoreAudioThrowIfError(result);
+    CoreAudioThrowIfError(::AudioObjectGetPropertyDataSize(device_id, &property_address,
+        0, nullptr, &stream_bytes));
+    if (!stream_bytes || stream_bytes % sizeof(AudioStreamID))
+        throw std::runtime_error("CoreAudio device has no valid output streams");
+    std::vector<AudioStreamID> streams(stream_bytes / sizeof(AudioStreamID));
+    CoreAudioThrowIfError(::AudioObjectGetPropertyData(device_id, &property_address,
+        0, nullptr, &stream_bytes, streams.data()));
+    property_address = {kAudioStreamPropertyLatency, kAudioObjectPropertyScopeGlobal,
+        kAudioObjectPropertyElementMain};
+    size = sizeof(stream_latency);
+    CoreAudioThrowIfError(::AudioObjectGetPropertyData(streams.front(), &property_address,
+        0, nullptr, &size, &stream_latency));
 
     XAMP_LOG_D(logger_, "Device latency: {} us", latency);
     XAMP_LOG_D(logger_, "Device offset: {} us", safe_offet);

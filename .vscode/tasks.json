@@ -1,0 +1,87 @@
+{
+  "version": "2.0.0",
+  "options": {
+    "cwd": "${workspaceFolder}",
+    "env": {
+      "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer",
+      "PATH": "/opt/homebrew/bin:/opt/homebrew/sbin:${env:PATH}"
+    }
+  },
+  "tasks": [
+    {
+      "label": "xamp: configure (macOS)",
+      "type": "process",
+      "command": "/opt/homebrew/bin/cmake",
+      "args": [
+        "--preset",
+        "macos-xcode"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "xamp: build Debug (macOS)",
+      "type": "process",
+      "command": "/opt/homebrew/bin/cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "macos-xcode",
+        "--parallel",
+        "4"
+      ],
+      "dependsOn": [
+        "xamp: configure (macOS)"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [
+        "$gcc"
+      ]
+    },
+    {
+      "label": "xamp: run (macOS)",
+      "type": "process",
+      "command": "/usr/bin/open",
+      "args": [
+        "${workspaceFolder}/out/build/macos-xcode/src/xamp/Debug/xamp.app"
+      ],
+      "dependsOn": [
+        "xamp: build Debug (macOS)"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "xamp: build Release (macOS)",
+      "type": "process",
+      "command": "/opt/homebrew/bin/cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "macos-xcode-release",
+        "--parallel",
+        "4"
+      ],
+      "dependsOn": [
+        "xamp: configure (macOS)"
+      ],
+      "group": "build",
+      "problemMatcher": [
+        "$gcc"
+      ]
+    },
+    {
+      "label": "xamp: run Release (macOS)",
+      "type": "process",
+      "command": "/usr/bin/open",
+      "args": [
+        "${workspaceFolder}/out/build/macos-xcode/src/xamp/Release/xamp.app"
+      ],
+      "dependsOn": [
+        "xamp: build Release (macOS)"
+      ],
+      "problemMatcher": []
+    }
+  ]
+}

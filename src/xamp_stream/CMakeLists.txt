@@ -7,6 +7,20 @@ if(NOT TARGET pcm_dsd_converter)
     add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../thirdparty/pcm_dsd_converter" "${CMAKE_CURRENT_BINARY_DIR}/pcm_dsd_converter")
 endif()
 
+if(APPLE)
+    option(XAMP_OPTIMIZE_PCM_DSD_DEBUG "Optimize the real-time DSD converter in Debug builds" ON)
+    if(XAMP_OPTIMIZE_PCM_DSD_DEBUG)
+        # The default 15th-order modulator cannot keep up with playback at -O0.
+        # Keep debug symbols and the converter's strict floating-point options;
+        # only the DSP library is optimized, not the application/player code.
+        target_compile_options(pcm_dsd_converter PRIVATE "$<$<CONFIG:Debug>:-O3>")
+    endif()
+    # Keep FIR/FFT coefficient generation identical to the unoptimized build.
+    # Apple Clang otherwise combines sin/cos calls into __sincos_stret, whose
+    # rounding differences propagate through the feedback DSD modulator.
+    target_compile_options(pcm_dsd_converter PRIVATE -fno-builtin-sin -fno-builtin-cos)
+endif()
+
 if(NOT TARGET xamp_base)
     add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../xamp_base" "${CMAKE_BINARY_DIR}/xamp_base")
 endif()

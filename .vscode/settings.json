@@ -1,0 +1,18 @@
+{
+  "cmake.cmakePath": "/opt/homebrew/bin/cmake",
+  "cmake.useCMakePresets": "always",
+  "cmake.configureOnOpen": true,
+  "cmake.buildDirectory": "${workspaceFolder}/out/build/macos-xcode",
+  "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+  "C_Cpp.default.compilerPath": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++",
+  "C_Cpp.default.intelliSenseMode": "macos-clang-arm64",
+  "C_Cpp.default.cppStandard": "c++23",
+  "files.exclude": {
+    "out": true,
+    "**/.DS_Store": true
+  },
+  "search.exclude": {
+    "out": true,
+    "src/thirdparty": true
+  }
+}

@@ -1,3 +1,4 @@
+.DS_Store
 *.o
 moc_*.cpp
 moc_*.h
@@ -7,6 +8,7 @@ ui_*.h
 
 /Cache/
 /out/
+/xamp.xcworkspace/xcuserdata/
 /logs/
 /.vs/
 /config.json
@@ -22,7 +24,8 @@ ui_*.h
 
 /src/widget_shared/build/
 
-/src/thirdparty/
+/src/thirdparty/*
+!/src/thirdparty/pcm_dsd_converter/
 
 /src/xamp/xamp2.pro.user
 

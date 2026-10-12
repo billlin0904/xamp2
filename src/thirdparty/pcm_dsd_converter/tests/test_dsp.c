@@ -26,25 +26,28 @@ int main(int argc, char** argv) {
         size_t n; double error=0.0;
         pcm_dsd_default_config(&config);
         if(pcm_dsd_create(&config,&c)!=PCM_DSD_OK) return 1;
-        n=c->stage[0].nfft;
-        a=(complex64*)calloc(n,sizeof(complex64));
-        h=(complex64*)calloc(n,sizeof(complex64));
-        if(!a || !h) return 1;
-        for(i=0;i<512;i++) { a[i].re=sin(i*0.037); a[i].im=cos(i*0.091); }
-        memcpy(h,a,n*sizeof(complex64));
-        fft(h,n,0);
-        if(!planned_fft(a,&c->stage[0],0)) return 1;
-        for(i=0;i<n;i++) {
-            const double e=fmax(fabs(a[i].re-h[i].re),fabs(a[i].im-h[i].im));
-            if(e>error) error=e;
+        for(uint32_t stage=0;stage<c->stages;stage++) {
+            n=c->stage[stage].nfft;
+            a=(complex64*)calloc(n,sizeof(complex64));
+            h=(complex64*)calloc(n,sizeof(complex64));
+            if(!a || !h) return 1;
+            for(i=0;i<512;i++) { a[i].re=sin(i*0.037); a[i].im=cos(i*0.091); }
+            memcpy(h,a,n*sizeof(complex64));
+            fft(h,n,0);
+            if(!planned_fft(a,&c->stage[stage],0)) return 1;
+            for(i=0;i<n;i++) {
+                const double e=fmax(fabs(a[i].re-h[i].re),fabs(a[i].im-h[i].im));
+                if(e>error) error=e;
+            }
+            if(error>1e-8 || !planned_fft(a,&c->stage[stage],1)) return 1;
+            for(i=0;i<n;i++) {
+                const double re=i<512?sin(i*0.037):0.0, im=i<512?cos(i*0.091):0.0;
+                if(fabs(a[i].re-re)>1e-10 || fabs(a[i].im-im)>1e-10) return 1;
+            }
+            printf("Backend FFT reference error: %.17g; complex round-trip passed\n",error);
+            free(a); free(h);
         }
-        if(error>1e-8 || !planned_fft(a,&c->stage[0],1)) return 1;
-        for(i=0;i<n;i++) {
-            const double re=i<512?sin(i*0.037):0.0, im=i<512?cos(i*0.091):0.0;
-            if(fabs(a[i].re-re)>1e-10 || fabs(a[i].im-im)>1e-10) return 1;
-        }
-        printf("Backend FFT reference error: %.17g; complex round-trip passed\n",error);
-        free(a); free(h); pcm_dsd_destroy(c);
+        pcm_dsd_destroy(c);
     }
     if(argc==2) {
         pcm_dsd_config config; pcm_dsd_converter* c=NULL;

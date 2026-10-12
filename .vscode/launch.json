@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "xamp Debug (macOS)",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/out/build/macos-xcode/src/xamp/Debug/xamp.app/Contents/MacOS/xamp",
+      "cwd": "${workspaceFolder}/out/build/macos-xcode/src/xamp/Debug/xamp.app/Contents/MacOS",
+      "args": [],
+      "terminal": "integrated",
+      "preLaunchTask": "xamp: build Debug (macOS)"
+    },
+    {
+      "name": "xamp Release (macOS)",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/out/build/macos-xcode/src/xamp/Release/xamp.app/Contents/MacOS/xamp",
+      "cwd": "${workspaceFolder}/out/build/macos-xcode/src/xamp/Release/xamp.app/Contents/MacOS",
+      "args": [],
+      "terminal": "integrated",
+      "preLaunchTask": "xamp: build Release (macOS)"
+    }
+  ]
+}

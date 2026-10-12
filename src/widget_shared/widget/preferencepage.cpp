@@ -1,3 +1,4 @@
+#include <QStandardItemModel>
 #include <widget/windowbackdrop.h>
 #include <QCheckBox>
 #include <QDoubleSpinBox>
@@ -193,6 +194,10 @@ PreferencePage::PreferencePage(QWidget *parent)
     bitperfect->setObjectName(QStringLiteral("bitPerfectCheckBox"));
     bitperfect->setChecked(qAppSettings.valueAsBool(QStringLiteral("bitPerfectEnabled")));
     auto* bitperfect_hint = new QLabel(tr("Next playback: stereo 16/24/32-bit integer WAV or FLAC at the original sample rate. Requires an integer WASAPI Exclusive or ASIO output with enough valid bits. Bypasses DSP and software volume; use your DAC volume control."), this);
+#ifdef XAMP_OS_MAC
+    bitperfect->setText(tr("BitPerfect PCM (CoreAudio Hog Mode)"));
+    bitperfect_hint->setText(tr("Requires CoreAudio (Hog Mode) with a stereo integer output at the original sample rate. DSP and software volume are bypassed; use your DAC volume control."));
+#endif
     bitperfect_hint->setWordWrap(true);
     auto* bitperfect_row = new QFrame(this);
     bitperfect_row->setProperty("settingRow", true);
@@ -220,6 +225,12 @@ PreferencePage::PreferencePage(QWidget *parent)
     pcm_dsd_transport->setObjectName(QStringLiteral("pcm2DsdTransportComboBox"));
     pcm_dsd_transport->addItem(QStringLiteral("DoP (WASAPI / ASIO)"),0);
     pcm_dsd_transport->addItem(QStringLiteral("Native DSD (ASIO)"),1);
+#ifdef XAMP_OS_MAC
+    pcm_dsd_transport->setItemText(0, QStringLiteral("DoP (CoreAudio Hog Mode)"));
+    pcm_dsd_transport->setItemText(1, tr("Native DSD (not supported on macOS)"));
+    if (auto* model = qobject_cast<QStandardItemModel*>(pcm_dsd_transport->model()))
+        model->item(1)->setEnabled(false);
+#endif
     pcm_dsd_transport->setCurrentIndex((std::max)(0,pcm_dsd_transport->findData(pcm_dsd_settings.transport)));
     auto* pcm_dsd_transport_label = new QLabel(pcm_dsd_options);
     pcm_dsd_form->addRow(pcm_dsd_transport_label,pcm_dsd_transport);
@@ -311,6 +322,11 @@ PreferencePage::PreferencePage(QWidget *parent)
         pcm_dsd_block->setToolTip(tr("PCM frames per conversion block. Larger blocks may improve throughput but increase memory use and processing latency. Default: 256."));
         pcm_dsd_hint->setText(tr("Applies on next playback, only with BitPerfect PCM enabled. DoP requires WASAPI Exclusive or ASIO; Native DSD requires a compatible ASIO driver. DSP and software volume stay bypassed. The output is converted DSD, not bit-perfect source PCM. 0 dB retains the converter's default headroom.")
             + QStringLiteral("\n") + tr("Higher DSD rates require more CPU and a compatible DAC."));
+#ifdef XAMP_OS_MAC
+        pcm_dsd_transport->setItemText(1, tr("Native DSD (not supported on macOS)"));
+        pcm_dsd_transport->setToolTip(tr("On macOS, select DoP and CoreAudio (Hog Mode). Native DSD is not supported."));
+        pcm_dsd_hint->setText(tr("Requires a DAC that supports DoP at the selected rate and a matching stereo integer CoreAudio format. Select CoreAudio (Hog Mode). DSP and software volume are bypassed. Output is converted DSD. A supported PCM rate does not prove DAC DoP support."));
+#endif
     };
     refresh_pcm_dsd();
     translate_pcm_dsd();
@@ -335,6 +351,10 @@ PreferencePage::PreferencePage(QWidget *parent)
     connect(this, &PreferencePage::retranslateUi, this, [bitperfect, bitperfect_hint] {
         bitperfect->setText(tr("BitPerfect PCM (WASAPI Exclusive / ASIO)"));
         bitperfect_hint->setText(tr("Next playback: stereo 16/24/32-bit integer WAV or FLAC at the original sample rate. Requires an integer WASAPI Exclusive or ASIO output with enough valid bits. Bypasses DSP and software volume; use your DAC volume control."));
+#ifdef XAMP_OS_MAC
+        bitperfect->setText(tr("BitPerfect PCM (CoreAudio Hog Mode)"));
+        bitperfect_hint->setText(tr("Requires CoreAudio (Hog Mode) with a stereo integer output at the original sample rate. DSP and software volume are bypassed; use your DAC volume control."));
+#endif
     });
     connect(bitperfect, &QCheckBox::toggled, this, [](bool enabled) {
         qAppSettings.setValue(QStringLiteral("bitPerfectEnabled"), enabled);

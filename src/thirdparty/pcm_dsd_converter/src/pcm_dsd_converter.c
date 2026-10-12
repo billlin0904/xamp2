@@ -15,6 +15,8 @@
 #endif
 #ifdef PCM_DSD_USE_MKL
 #include <mkl_dfti.h>
+#elif defined(PCM_DSD_USE_ACCELERATE)
+#include <Accelerate/Accelerate.h>
 #endif
 #define BLOCK 256
 #define TAPS 4095
@@ -31,6 +33,10 @@ typedef struct {
     double* tail;
 #ifdef PCM_DSD_USE_MKL
     DFTI_DESCRIPTOR_HANDLE descriptor;
+#elif defined(PCM_DSD_USE_ACCELERATE)
+    FFTSetupD setup;
+    vDSP_Length log2n;
+    DSPDoubleSplitComplex split;
 #endif
 } fir_stage;
 typedef struct { uint64_t rng; double states[16], feedback, last; uint8_t prev; int64_t run; int32_t byte, bits; } mod_state;
@@ -104,6 +110,17 @@ static int planned_fft(complex64* a, const fir_stage* plan, int inverse) {
 #ifdef PCM_DSD_USE_MKL
     return (inverse ? DftiComputeBackward(plan->descriptor,a) :
         DftiComputeForward(plan->descriptor,a)) == DFTI_NO_ERROR;
+#elif defined(PCM_DSD_USE_ACCELERATE)
+    size_t i;
+    /* Reuse stride-one split buffers; no allocations in the audio path. */
+    DSPDoubleSplitComplex split=plan->split;
+    for(i=0;i<plan->nfft;i++) { split.realp[i]=a[i].re; split.imagp[i]=a[i].im; }
+    vDSP_fft_zipD(plan->setup,&split,1,plan->log2n,
+        inverse ? kFFTDirection_Inverse : kFFTDirection_Forward);
+    /* Complex vDSP FFT is unnormalized in both directions. */
+    const double scale=inverse ? 1.0/(double)plan->nfft : 1.0;
+    for(i=0;i<plan->nfft;i++) { a[i].re=split.realp[i]*scale; a[i].im=split.imagp[i]*scale; }
+    return 1;
 #else
     const size_t n=plan->nfft;
     size_t i,k,len;
@@ -164,7 +181,9 @@ static uint8_t modulate_first(double sample, double gain, double amplitude, mod_
     m->feedback=q-(bit?1.0:-1.0);
     return bit;
 }
-#ifdef PCM_DSD_USE_SIMD
+#ifdef PCM_DSD_USE_NEON
+#include "pcm_dsd_neon.h"
+#elif defined(PCM_DSD_USE_SIMD)
 /* Independent L/R lanes; samples and SOS sections remain sequential.
    The public legacy modulator keeps its diagnostic state updates unchanged. */
 static void modulate_stereo15(pcm_dsd_converter* c, const double* input, size_t count) {
@@ -267,6 +286,9 @@ void PCM_DSD_CALL pcm_dsd_destroy(pcm_dsd_converter* c) {
     for(s=0;s<MAX_STAGES;s++) {
 #ifdef PCM_DSD_USE_MKL
         if(c->stage[s].descriptor) DftiFreeDescriptor(&c->stage[s].descriptor);
+#elif defined(PCM_DSD_USE_ACCELERATE)
+        if(c->stage[s].setup) vDSP_destroy_fftsetupD(c->stage[s].setup);
+        free(c->stage[s].split.realp); free(c->stage[s].split.imagp);
 #endif
         free(c->stage[s].filter); free(c->stage[s].tail);
         free(c->stage[s].roots); free(c->stage[s].reversed);
@@ -311,6 +333,9 @@ int PCM_DSD_CALL pcm_dsd_create_ex(const pcm_dsd_config* config, const pcm_dsd_o
 #ifdef PCM_DSD_USE_SIMD
     c->stereo_simd=1;
     if(has_avx2()) c->multiply=pcm_dsd_multiply_avx2;
+#elif defined(PCM_DSD_USE_NEON)
+    c->stereo_simd=1;
+    c->multiply=multiply_neon;
 #endif
     c->taps=options->filter==PCM_DSD_FIR_ORIGINAL ? TAPS :
         (options->filter==PCM_DSD_FIR_BLACKMAN_1023 ? 1023 : 511);
@@ -321,7 +346,7 @@ int PCM_DSD_CALL pcm_dsd_create_ex(const pcm_dsd_config* config, const pcm_dsd_o
     for(s=0;s<c->stages;s++) {
         fir_stage* st=&c->stage[s]; n*=2; st->count=n; st->nfft=power2(n+c->taps-1); maxfft=st->nfft;
         st->filter=(complex64*)calloc(st->nfft,sizeof(complex64));
-#ifndef PCM_DSD_USE_MKL
+#if !defined(PCM_DSD_USE_MKL) && !defined(PCM_DSD_USE_ACCELERATE)
         st->roots=(complex64*)calloc(st->nfft/2,sizeof(complex64));
         st->reversed=(uint32_t*)calloc(st->nfft,sizeof(uint32_t));
         st->tail=(double*)calloc((c->taps-1)*2,sizeof(double));
@@ -334,11 +359,21 @@ int PCM_DSD_CALL pcm_dsd_create_ex(const pcm_dsd_config* config, const pcm_dsd_o
 #else
         st->tail=(double*)calloc((c->taps-1)*2,sizeof(double));
         if(!st->filter || !st->tail) { pcm_dsd_destroy(c); return PCM_DSD_OUT_OF_MEMORY; }
+#ifdef PCM_DSD_USE_ACCELERATE
+        for(i=st->nfft;i>1;i>>=1) st->log2n++;
+        st->setup=vDSP_create_fftsetupD(st->log2n,kFFTRadix2);
+        st->split.realp=(double*)calloc(st->nfft,sizeof(double));
+        st->split.imagp=(double*)calloc(st->nfft,sizeof(double));
+        if(!st->setup || !st->split.realp || !st->split.imagp) {
+            pcm_dsd_destroy(c); return PCM_DSD_OUT_OF_MEMORY;
+        }
+#else
         if(DftiCreateDescriptor(&st->descriptor,DFTI_DOUBLE,DFTI_COMPLEX,1,(MKL_LONG)st->nfft) != DFTI_NO_ERROR ||
            DftiSetValue(st->descriptor,DFTI_BACKWARD_SCALE,1.0/(double)st->nfft) != DFTI_NO_ERROR ||
            DftiCommitDescriptor(st->descriptor) != DFTI_NO_ERROR) {
             pcm_dsd_destroy(c); return PCM_DSD_INVALID_STATE;
         }
+#endif
 #endif
         if(options->filter==PCM_DSD_FIR_ORIGINAL) {
             for(i=0;i<c->taps;i++) st->filter[i].re=2.0*fir[i];
@@ -395,7 +430,7 @@ static int convert_block(pcm_dsd_converter* c, size_t valid) {
         { double* t=in; in=out; out=t; } n*=2;
     }
     c->pending_pos=c->pending_count=0;
-#ifdef PCM_DSD_USE_SIMD
+#if defined(PCM_DSD_USE_SIMD) || defined(PCM_DSD_USE_NEON)
     if(c->stereo_simd && c->options.modulator==PCM_DSD_MODULATOR_15) {
         modulate_stereo15(c,in,valid*c->up);
     } else

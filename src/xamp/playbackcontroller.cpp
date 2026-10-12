@@ -4,6 +4,8 @@
 #include <widget/pcmdsdsettings.h>
 #ifdef XAMP_OS_WIN
 #include <output_device/win32/exclusivewasapidevicetype.h>
+#elif defined(XAMP_OS_MAC)
+#include <output_device/osx/hogcoreaudiodevicetype.h>
 #endif
 #include <QFileInfo>
 #include <QSqlQuery>
@@ -194,11 +196,16 @@ bool PlaybackController::open(const PlayListEntity& requested, double position) 
     if (convert_pcm_dsd) {
         pcm_dsd_settings::validate(pcm_dsd);
         if (pcm_dsd.transport==1 && !is_asio_device)
-            throw std::runtime_error("PCM2DSD Native DSD requires an ASIO device; choose DoP for WASAPI");
+            throw std::runtime_error("PCM2DSD Native DSD requires an ASIO device; choose DoP instead");
 #ifdef XAMP_OS_WIN
         if (!is_asio_device && device_->device_type_id != XAMP_UUID_OF(xamp::output_device::win32::ExclusiveWasapiDeviceType))
-#endif
             throw std::runtime_error("PCM2DSD requires a DoP-capable DAC on WASAPI Exclusive or ASIO");
+#elif defined(XAMP_OS_MAC)
+        if (device_->device_type_id != XAMP_UUID_OF(xamp::output_device::osx::HogCoreAudioDeviceType))
+            throw std::runtime_error("PCM2DSD requires CoreAudio (Hog Mode) and a DoP-capable DAC; select that output device");
+#else
+        throw std::runtime_error("PCM2DSD output is not supported on this platform");
+#endif
     }
     if (bitperfect) {
         playback_plan.use_mqa_decode = false;

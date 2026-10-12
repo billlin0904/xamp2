@@ -597,6 +597,12 @@ void AudioPlayer::openDevice(double stream_time) {
             dsd_output->setIoFormat(DsdIoFormat::IO_FORMAT_DSD);
         }
     }
+#elif defined(XAMP_OS_MAC)
+    if (auto* dsd_output = dynamic_cast<IDsdDevice*>(device_.get())) {
+        dsd_output->setIoFormat(audio_config_.dsd_mode == DsdModes::DSD_MODE_DOP
+            ? DsdIoFormat::IO_FORMAT_DOP : audio_config_.dsd_mode == DsdModes::DSD_MODE_NATIVE
+            ? DsdIoFormat::IO_FORMAT_DSD : DsdIoFormat::IO_FORMAT_PCM);
+    }
 #endif
     device_->setBitPerfect(dsp_manager_->isBitPerfect());
     if (dsp_manager_->isBitPerfect() && integer_format_) device_->setIntegerPcmFormat(integer_format_.value());
