@@ -64,7 +64,7 @@
   revealAnchor();
   addEventListener('hashchange', revealAnchor);
 
-  // The shipped Windows 1.0.5 links remain usable offline or when GitHub rate-limits requests.
+  // Verified platform downloads remain usable when GitHub is unavailable.
   fetch('https://api.github.com/repos/billlin0904/xamp2/releases/latest', { signal: AbortSignal.timeout(5000) })
     .then(response => {
       if (!response.ok) throw new Error('Release metadata unavailable');
@@ -72,11 +72,17 @@
     })
     .then(release => {
       if (release.draft || release.prerelease || !/^v\d+\.\d+\.\d+$/.test(release.tag_name)) return;
-      const asset = release.assets?.find(item => item.name === 'xamp2-setup.exe' && item.state === 'uploaded');
-      const expected = `https://github.com/billlin0904/xamp2/releases/download/${release.tag_name}/xamp2-setup.exe`;
-      if (asset?.browser_download_url !== expected) return;
-      document.querySelectorAll('[data-download]').forEach(link => { link.href = expected; });
-      document.querySelectorAll('[data-version]').forEach(label => { label.textContent = release.tag_name; });
+      const platforms = [
+        { name: 'xamp2-setup.exe', links: '[data-download]', versions: '[data-version]' },
+        { name: `xamp2-${release.tag_name.slice(1)}-linux-x86_64.zip`, links: '[data-linux-download]', versions: '[data-linux-version]' }
+      ];
+      platforms.forEach(platform => {
+        const asset = release.assets?.find(item => item.name === platform.name && item.state === 'uploaded');
+        const expected = `https://github.com/billlin0904/xamp2/releases/download/${release.tag_name}/${platform.name}`;
+        if (asset?.browser_download_url !== expected) return;
+        document.querySelectorAll(platform.links).forEach(link => { link.href = expected; });
+        document.querySelectorAll(platform.versions).forEach(label => { label.textContent = release.tag_name; });
+      });
       document.querySelectorAll('[data-release]').forEach(link => { link.href = `https://github.com/billlin0904/xamp2/releases/tag/${release.tag_name}`; });
     })
     .catch(() => { /* Keep the verified release fallback; downloads do not depend on JavaScript. */ });
