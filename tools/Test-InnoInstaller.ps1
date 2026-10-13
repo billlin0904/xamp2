@@ -204,6 +204,15 @@ if (-not $SkipLaunch) {
         }
         $launchResult = "exited-0"
     }
+
+    $appLog = Join-Path $installDir "logs\xamp.log"
+    if (-not (Test-Path -LiteralPath $appLog)) {
+        throw "Installed app did not write its startup log. Check for a pending startup dialog."
+    }
+    Copy-Item -LiteralPath $appLog -Destination (Join-Path $testRootPath "app-startup.log") -Force
+    if (-not (Select-String -LiteralPath $appLog -SimpleMatch "<<<initial XAMP window done!>>>" -Quiet)) {
+        throw "Installed app did not finish initializing its main window. See $appLog"
+    }
 }
 
 $uninstallArgs = @(

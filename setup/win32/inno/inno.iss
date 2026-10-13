@@ -53,8 +53,10 @@ WizardImageFile=WizardImage.bmp
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}\logs"
+Type: filesandordirs; Name: "{app}\Cache"
 Type: files; Name: "{app}\xamp.db"
 Type: files; Name: "{app}\xamp.ini"
+Type: files; Name: "{app}\config.json"
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

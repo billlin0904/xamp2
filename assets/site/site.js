@@ -64,7 +64,7 @@
   revealAnchor();
   addEventListener('hashchange', revealAnchor);
 
-  // The shipped 1.0.3 links remain usable offline or when GitHub rate-limits requests.
+  // The shipped Windows 1.0.5 links remain usable offline or when GitHub rate-limits requests.
   fetch('https://api.github.com/repos/billlin0904/xamp2/releases/latest', { signal: AbortSignal.timeout(5000) })
     .then(response => {
       if (!response.ok) throw new Error('Release metadata unavailable');

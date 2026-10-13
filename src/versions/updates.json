@@ -2,10 +2,10 @@
   "updates": {
     "windows": {
       "open-url": "",
-      "latest-version": "1.0.3",
-      "download-url": "https://github.com/billlin0904/xamp2/releases/download/v1.0.3/xamp2-setup.exe",
-      "sha256": "F4B24D6D8C74D383BD8D2653C5DFD4D9CB5D492B79E51B42605B86B5F1737BDF",
-      "changelog": "<h3>XAMP 1.0.3 Windows 測試版</h3><ul><li>恢復拖入檔案與資料夾加入目前播放清單，保留既有歌曲。</li><li>修正舊版音樂資料庫缺少壓縮檔欄位時的匯入錯誤。</li><li>包含 PCM 轉 DSD 的 MKL 與 SIMD 效能改善。</li></ul>",
+      "latest-version": "1.0.5",
+      "download-url": "https://github.com/billlin0904/xamp2/releases/download/v1.0.5/xamp2-setup.exe",
+      "sha256": "6486FC22338CB446E900A4836F8DF82B8DBDFBDFF5EE189C40E184C815D546CA",
+      "changelog": "<h3>XAMP 1.0.5 Windows 測試版</h3><ul><li>加入 NTFS 音樂資料掃描與一般讀取回退。</li><li>修正 CD 播放、波形讀取干擾及專輯封面更新。</li><li>支援 CD 整數 PCM 與 PCM→DSD，包含 DoP／Native DSD 輸出路徑。</li><li>改善播放緩衝不足時的處理。</li></ul>",
       "mandatory-update": false
     },
     "linux": {
