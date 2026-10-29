@@ -196,6 +196,7 @@
     <ClInclude Include="widget\imagecache.h" />
     <ClInclude Include="widget\jsonsettings.h" />
     <ClInclude Include="widget\localelanguage.h" />
+    <ClInclude Include="widget\vinylwidget.h" />
     <QtMoc Include="widget\lrcpage.h" />
     <ClInclude Include="widget\lrcparser.h" />
     <QtMoc Include="widget\lyricsshowwidget.h" />
@@ -259,6 +260,7 @@
     <ClCompile Include="widget\krcparser.cpp" />
     <ClCompile Include="widget\localelanguage.cpp" />
     <ClCompile Include="widget\logview.cpp" />
+    <ClCompile Include="widget\vinylwidget.cpp" />
     <ClCompile Include="widget\lrcpage.cpp" />
     <ClCompile Include="widget\lrcparser.cpp" />
     <ClCompile Include="widget\lyricsshowwidget.cpp" />

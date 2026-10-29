@@ -354,6 +354,14 @@
     <context>
         <name>LrcPage</name>
         <message>
+            <source>Vinyl mode</source>
+            <translation>レコードモード</translation>
+        </message>
+        <message>
+            <source>Show only the spinning record and tonearm</source>
+            <translation>回転するレコードとトーンアームのみ表示します</translation>
+        </message>
+        <message>
             <location filename="widget/lrcpage.cpp" line="310" />
             <source>Select lyrics</source>
             <translation>歌詞を選択</translation>

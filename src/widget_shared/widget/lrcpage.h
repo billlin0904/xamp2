@@ -26,6 +26,8 @@ class ScrollLabel;
 class LyricsShowWidget;
 class QPaintEvent;
 class QMenu;
+class QStackedWidget;
+class QHBoxLayout;
 
 enum {
 	LRC_PAGE_TAB_ID = 0,
@@ -123,6 +125,14 @@ public:
 
 	void disableLoadLrcButton();
 
+    void setPlaying(bool playing);
+
+    void setPlaybackProgress(double position, double duration);
+
+    void setVinylMode(bool enabled);
+
+    bool vinylMode() const;
+
 public slots:
 	void onThemeChangedFinished(ThemeColor theme_color);
 
@@ -157,10 +167,19 @@ private:
 
 	void initial();
 
+    void updateCoverLayout();
+
 	int current_bg_alpha_ = 255;
 	int prev_bg_alpha_ = 0;
 	LyricsShowWidget* lyrics_widget_;
 	QLabel* cover_label_;
+    QHBoxLayout* content_layout_;
+    QVBoxLayout* cover_layout_;
+    QWidget* cover_panel_;
+    QWidget* lyrics_panel_;
+    QStackedWidget* cover_stack_;
+    VinylWidget* vinyl_widget_;
+    QToolButton* vinyl_mode_button_;
 	QLabel* format_label_;
 	ScrollLabel* album_;
 	ScrollLabel* artist_;

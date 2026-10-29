@@ -42,6 +42,8 @@ void PlaybackPresenter::render(const PlaybackSnapshot& state) {
     ui_.coverLabel->setPixmap(image_util::roundCoverImage(cover, ui_.coverLabel->size(), image_util::kPlaylistImageRadius));
     window_.setIconicThumbnail(cover);
     lyrics_.setCover(cover);
+    lyrics_.setPlaying(state.hasTrack() && state.status == PlaybackStatus::Playing);
+    lyrics_.setPlaybackProgress(state.position, state.hasTrack() ? state.track.duration : 0.0);
     if (state.hasTrack() && state.source == PlaybackSource::Cd) {
         cd_.playlistPage()->setCover(&cover);
         cd_.playlistPage()->title()->setText(state.track.album);
@@ -88,6 +90,7 @@ void PlaybackPresenter::renderPosition(double position) {
     ui_.endPosLabel->setText(formatDuration(qMax(0.0, duration - position), full_text));
     ui_.seekSlider->setValue(qRound64(position * 1000.0));
     if (duration > 0) window_.setTaskbarProgress(static_cast<int>(100.0 * position / duration));
+    lyrics_.setPlaybackProgress(position, duration);
     lyrics_.lyrics()->setLrcTime(qRound64(position * 1000.0));
     if (state.source == PlaybackSource::Library)
         library_.spectrogramWidget()->setCurrentPosition(static_cast<float>(position));

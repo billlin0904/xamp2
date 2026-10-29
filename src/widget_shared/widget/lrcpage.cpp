@@ -12,6 +12,9 @@
 #include <QSortFilterProxyModel>
 #include <QLineEdit>
 #include <QMenu>
+#include <QStackedWidget>
+#include <QSignalBlocker>
+#include <widget/vinylwidget.h>
 
 #include <thememanager.h>
 
@@ -25,6 +28,7 @@
 #include <xampplayer.h>
 
 #include <utility>
+#include <algorithm>
 
 namespace {
 	QString normalizedLyricsKey(QString text) {
@@ -242,6 +246,7 @@ LrcPage::LrcPage(QWidget* parent)
 	setObjectName("lrcPage"_str);
 	setFrameShape(QFrame::StyledPanel);
 	initial();
+    connect(&qTheme, &ThemeManager::themeChangedFinished, this, &LrcPage::onThemeChangedFinished);
 	onThemeChangedFinished(qTheme.themeColor());
 }
 
@@ -254,8 +259,29 @@ QLabel* LrcPage::cover() {
 }
 
 void LrcPage::setCover(const QPixmap& src) {
-    cover_ = src.copy();
+    cover_ = src;
+    vinyl_widget_->setCover(src);
 	setFullScreen();
+}
+
+void LrcPage::setPlaying(bool playing) {
+    vinyl_widget_->setPlaying(playing);
+}
+
+void LrcPage::setPlaybackProgress(double position, double duration) {
+    vinyl_widget_->setProgress(duration > 0.0 ? position / duration : 0.0);
+}
+
+bool LrcPage::vinylMode() const {
+    return vinyl_mode_button_->isChecked();
+}
+
+void LrcPage::setVinylMode(bool enabled) {
+    const QSignalBlocker blocker(vinyl_mode_button_);
+    vinyl_mode_button_->setChecked(enabled);
+    cover_stack_->setCurrentWidget(enabled ? static_cast<QWidget*>(vinyl_widget_) : cover_label_);
+    updateCoverLayout();
+    qAppSettings.setValue(QStringLiteral("lyricsVinylMode"), enabled);
 }
 
 void LrcPage::setPlayListEntity(const PlayListEntity& entity) {
@@ -485,7 +511,33 @@ QSize LrcPage::coverSizeHint() const {
 	return cover_label_->size();
 }
 
+void LrcPage::updateCoverLayout() {
+    const bool vinyl = vinylMode();
+    lyrics_panel_->setVisible(!vinyl);
+    format_label_->setVisible(!vinyl);
+    content_layout_->setContentsMargins(vinyl ? 32 : 80, vinyl ? 8 : 80,
+                                       vinyl ? 32 : 80, vinyl ? 12 : 80);
+    content_layout_->setSpacing(vinyl ? 0 : 10);
+    cover_layout_->setContentsMargins(0, vinyl ? 0 : 20, 0, 0);
+    const auto margins = content_layout_->contentsMargins();
+    const auto reserved_height = layout()->itemAt(0)->sizeHint().height()
+        + margins.top() + margins.bottom() + 12;
+    const auto vinyl_side = std::clamp(std::min(width() - margins.left() - margins.right(),
+                                              height() - reserved_height), 260, 800);
+    const auto side = vinyl ? vinyl_side : 411;
+    if (cover_stack_->size() != QSize(side, side)) cover_stack_->setFixedSize(side, side);
+    if (vinyl) {
+        cover_panel_->setFixedSize(side, side);
+        content_layout_->setAlignment(cover_panel_, Qt::AlignCenter);
+    } else {
+        cover_panel_->setMinimumSize(0, 0);
+        cover_panel_->setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
+        content_layout_->setAlignment(cover_panel_, Qt::Alignment());
+    }
+}
+
 void LrcPage::resizeEvent(QResizeEvent* event) {
+    updateCoverLayout();
 	setFullScreen();
 	invalidateBackgroundCache();
 	QFrame::resizeEvent(event);
@@ -615,6 +667,8 @@ int LrcPage::getDisappearBgProgress() const {
 
 void LrcPage::onThemeChangedFinished(ThemeColor theme_color) {
     const bool dark = theme_color == ThemeColor::DARK_THEME;
+    vinyl_widget_->setDarkTheme(dark);
+    vinyl_mode_button_->setIcon(qTheme.fontIcon(Glyphs::ICON_CD));
     lyrics_widget_->setNormalColor(dark ? LyricsShowWidget::kNormalColor : QColor("#46554E"));
     lyrics_widget_->setHighLightColor(dark ? LyricsShowWidget::kHighLightColor : QColor("#246452"));
     lyrics_widget_->setKaraokeHighlightColor(qAppSettings.valueAsColor(
@@ -635,7 +689,24 @@ void LrcPage::initial() {
 	main_layout->setObjectName(QString::fromUtf8("default_layout"));
 	main_layout->setContentsMargins(0, 0, 0, 0);
 
+    auto* mode_layout = new QHBoxLayout();
+    mode_layout->setContentsMargins(80, 20, 80, 0);
+    mode_layout->addStretch();
+    vinyl_mode_button_ = new QToolButton(this);
+    vinyl_mode_button_->setObjectName(QStringLiteral("vinylModeButton"));
+    vinyl_mode_button_->setText(tr("Vinyl mode"));
+    vinyl_mode_button_->setToolTip(tr("Vinyl mode") + QStringLiteral("\n")
+        + tr("Show only the spinning record and tonearm"));
+    vinyl_mode_button_->setAccessibleName(tr("Vinyl mode"));
+    vinyl_mode_button_->setCheckable(true);
+    vinyl_mode_button_->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    vinyl_mode_button_->setIconSize(QSize(22, 22));
+    vinyl_mode_button_->setFixedSize(36, 36);
+    mode_layout->addWidget(vinyl_mode_button_);
+    main_layout->addLayout(mode_layout);
+
 	auto horizontal_layout_10 = new QHBoxLayout();
+    content_layout_ = horizontal_layout_10;
 	
 	horizontal_layout_10->setSpacing(0);
 	horizontal_layout_10->setObjectName(QString::fromUtf8("horizontalLayout_10"));
@@ -643,7 +714,10 @@ void LrcPage::initial() {
 	horizontal_layout_10->setStretch(0, 0);
 	horizontal_layout_10->setStretch(0, 1);
 
-	auto vertical_layout_3 = new QVBoxLayout();
+    cover_panel_ = new QWidget(this);
+    cover_panel_->setObjectName(QStringLiteral("lrcCoverPanel"));
+    auto vertical_layout_3 = new QVBoxLayout(cover_panel_);
+    cover_layout_ = vertical_layout_3;
 	vertical_layout_3->setSpacing(0);
 	vertical_layout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));
 
@@ -665,37 +739,16 @@ void LrcPage::initial() {
 	// Paint the cover directly; offscreen graphics effects can disappear on the translucent shell.
 	cover_label_->setAlignment(Qt::AlignCenter);
 
-    vertical_layout_3->addWidget(cover_label_);
+    cover_stack_ = new QStackedWidget(this);
+    cover_stack_->setObjectName(QStringLiteral("lrcCoverStack"));
+    cover_stack_->setFixedSize(411, 411);
+    cover_stack_->addWidget(cover_label_);
+    vinyl_widget_ = new VinylWidget(cover_stack_);
+    cover_stack_->addWidget(vinyl_widget_);
+    vertical_layout_3->addWidget(cover_stack_);
+    connect(vinyl_mode_button_, &QToolButton::toggled, this, &LrcPage::setVinylMode);
 
-	auto* horizontalLayout_4 = new QHBoxLayout();
-	horizontalLayout_4->setSpacing(0);
-	horizontalLayout_4->setObjectName(QString::fromUtf8("horizontalLayout_4"));
-	horizontalLayout_4->setContentsMargins(-1, 3, -1, 3);
-	/*auto* endPosLabel = new QLabel();
-	endPosLabel->setObjectName(QString::fromUtf8("endPosLabel"));
-	endPosLabel->setMinimumSize(QSize(50, 20));
-	endPosLabel->setMaximumSize(QSize(50, 20));
-	endPosLabel->setAlignment(Qt::AlignRight | Qt::AlignTrailing | Qt::AlignVCenter);
-	endPosLabel->setMargin(1);
 
-	horizontalLayout_4->addWidget(endPosLabel);
-
-	auto* seekSlider = new SeekSlider();
-	seekSlider->setObjectName(QString::fromUtf8("seekSlider"));
-	seekSlider->setMinimumSize(QSize(250, 0));
-	seekSlider->setMaximumSize(QSize(250, 16));
-	seekSlider->setOrientation(Qt::Horizontal);
-
-	horizontalLayout_4->addWidget(seekSlider);
-
-	auto* startPosLabel = new QLabel();
-	startPosLabel->setObjectName(QString::fromUtf8("startPosLabel"));
-	startPosLabel->setMinimumSize(QSize(50, 20));
-	startPosLabel->setMaximumSize(QSize(50, 20));
-
-	horizontalLayout_4->addWidget(startPosLabel);*/
-
-	vertical_layout_3->addLayout(horizontalLayout_4);
 	vertical_layout_3->addWidget(format_label_);
 	vertical_layout_3->setContentsMargins(0, 20, 0, 0);
 
@@ -703,13 +756,12 @@ void LrcPage::initial() {
 
 	vertical_layout_3->addItem(vertical_spacer);
 
-	horizontal_layout_10->addLayout(vertical_layout_3);
+	horizontal_layout_10->addWidget(cover_panel_);
 
-	auto horizontal_spacer_4 = new QSpacerItem(10, 20, QSizePolicy::Fixed, QSizePolicy::Minimum);
-
-	horizontal_layout_10->addItem(horizontal_spacer_4);
-
-	auto vertical_layout_2 = new QVBoxLayout();
+    lyrics_panel_ = new QWidget(this);
+    lyrics_panel_->setObjectName(QStringLiteral("lrcLyricsPanel"));
+    auto vertical_layout_2 = new QVBoxLayout(lyrics_panel_);
+    vertical_layout_2->setContentsMargins(0, 0, 0, 0);
 
 	vertical_layout_2->setSpacing(0);
 	vertical_layout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
@@ -877,8 +929,7 @@ void LrcPage::initial() {
 
 	vertical_layout_2->setStretch(2, 1);
 
-	horizontal_layout_10->addLayout(vertical_layout_2);
-	horizontal_layout_10->setStretch(2, 1);
+	horizontal_layout_10->addWidget(lyrics_panel_, 1);
 
 	//startPosLabel->hide();
 	//endPosLabel->hide();
@@ -893,6 +944,7 @@ void LrcPage::initial() {
 	//lyrics_widget_->hide();
 	//cover_label_->hide();
 	main_layout->addLayout(horizontal_layout_10);
+    setVinylMode(qAppSettings.valueAsBool(QStringLiteral("lyricsVinylMode")));
 	setStyleSheet("QFrame#lrcPage{ background-color: transparent; border: none; }"_str);
 	//setStyleSheet(qFormat("background-color: %1; border: none;").arg(
 	//	colorToString(qTheme.backgroundColor())));

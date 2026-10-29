@@ -79,7 +79,7 @@ QListWidget#sidebarPlaylists::item:selected { background: #D0E1D6; color: #244D3
 QPushButton#settingsButton { text-align: left; background: transparent; border: none; padding: 8px; }
 QPushButton#settingsButton:hover { background: #DEE7E0; }
 QPushButton#settingsButton:checked { background: #C9DDD2; color: #244D3C; }
-QToolButton#shuffleButton:checked { background: #C9DDD2; border: 1px solid #41876B; }
+QToolButton#shuffleButton:checked, QToolButton#vinylModeButton:checked { background: #C9DDD2; border: 1px solid #41876B; }
 QSlider#volumeSlider::groove:horizontal { height: 3px; background: #C5D2C9; border: none; border-radius: 1px; }
 QSlider#volumeSlider::sub-page:horizontal { background: #41876B; border: none; }
 QSlider#volumeSlider::add-page:horizontal { background: #C5D2C9; border: none; }
