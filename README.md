@@ -2,7 +2,7 @@
 
 專注本機音樂的桌面播放器：播放清單、專輯封面、歌詞與參數等化器。提供 Windows 與 Linux x86_64 測試版下載；Windows 版支援 WASAPI／ASIO，Linux 提供 PulseAudio／PipeWire／ALSA 音訊後端。
 
-[下載 Windows 1.0.5 測試版](https://github.com/billlin0904/xamp2/releases/download/v1.0.5/xamp2-setup.exe) · [下載 Linux 1.0.5 測試版](https://github.com/billlin0904/xamp2/releases/download/v1.0.5/xamp2-1.0.5-linux-x86_64.zip) · [所有版本](https://github.com/billlin0904/xamp2/releases) · [回報問題](https://github.com/billlin0904/xamp2/issues)
+[下載 Windows 1.0.5 測試版](https://github.com/billlin0904/xamp2/releases/download/v1.0.5/xamp2-setup.exe) · [下載 Linux 1.0.5 測試版](https://github.com/billlin0904/xamp2/releases/download/v1.0.5/xamp2-1.0.5-linux-x86_64.zip) · [下載 macOS 1.0.5（10/30 更新）](https://github.com/billlin0904/xamp2/releases/download/v1.0.5/XAMP2-1.0.5-macOS-arm64-20261030-installer-signed.pkg) · [所有版本](https://github.com/billlin0904/xamp2/releases) · [回報問題](https://github.com/billlin0904/xamp2/issues)
 
 ![XAMP 播放清單、專輯封面與底部播放控制](docs/images/player-playlist.png?v=2)
 

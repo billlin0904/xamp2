@@ -39,3 +39,9 @@ Follow-up: give Windows and Linux equal download buttons in the hero, with local
 - Added v1.0.5 Apple Silicon PKG link and GitHub Assets SHA-256 verification guidance, native installer guidance, macOS 26 minimum and explicit pending notarization status.
 - Windows/Linux retain their independently verified v1.0.3 assets. General release history links to all releases.
 - Added an original monitor SVG for macOS; existing third-party icons are unchanged. macOS hero button spans the available row; installation notes use three columns on desktop and one on mobile.
+
+## macOS refresh (2026-10-30)
+
+- Pin macOS downloads to the dated `XAMP2-1.0.5-macOS-arm64-20261030-installer-signed.pkg` asset so existing downloads remain reproducible.
+- Show the update date and describe native AppKit materials, larger secondary text, vinyl playback, and the global A-key shortcut fix in the macOS installation guide.
+- Link the matching SHA-256 file. The PKG remains Developer ID signed and pending Apple notarization; Apple Silicon and macOS 26 minimum remain unchanged.
