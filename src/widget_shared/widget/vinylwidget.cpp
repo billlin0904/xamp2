@@ -24,6 +24,7 @@ constexpr qreal kArmTravelSeconds = 0.9;
 VinylWidget::VinylWidget(QWidget* parent)
     : QWidget(parent), timer_(this) {
     setObjectName(QStringLiteral("vinylWidget"));
+    setStyleSheet(QStringLiteral("QWidget#vinylWidget { background: transparent; }"));
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     setAttribute(Qt::WA_TransparentForMouseEvents);
     timer_.setObjectName(QStringLiteral("vinylAnimationTimer"));

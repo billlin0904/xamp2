@@ -716,6 +716,8 @@ void LrcPage::initial() {
 
     cover_panel_ = new QWidget(this);
     cover_panel_->setObjectName(QStringLiteral("lrcCoverPanel"));
+    // Keep the page backdrop visible through layout containers despite the theme's QWidget fill.
+    cover_panel_->setStyleSheet(QStringLiteral("QWidget#lrcCoverPanel { background: transparent; }"));
     auto vertical_layout_3 = new QVBoxLayout(cover_panel_);
     cover_layout_ = vertical_layout_3;
 	vertical_layout_3->setSpacing(0);
@@ -741,6 +743,7 @@ void LrcPage::initial() {
 
     cover_stack_ = new QStackedWidget(this);
     cover_stack_->setObjectName(QStringLiteral("lrcCoverStack"));
+    cover_stack_->setStyleSheet(QStringLiteral("QStackedWidget#lrcCoverStack { background: transparent; }"));
     cover_stack_->setFixedSize(411, 411);
     cover_stack_->addWidget(cover_label_);
     vinyl_widget_ = new VinylWidget(cover_stack_);
@@ -760,6 +763,7 @@ void LrcPage::initial() {
 
     lyrics_panel_ = new QWidget(this);
     lyrics_panel_->setObjectName(QStringLiteral("lrcLyricsPanel"));
+    lyrics_panel_->setStyleSheet(QStringLiteral("QWidget#lrcLyricsPanel { background: transparent; }"));
     auto vertical_layout_2 = new QVBoxLayout(lyrics_panel_);
     vertical_layout_2->setContentsMargins(0, 0, 0, 0);
 
