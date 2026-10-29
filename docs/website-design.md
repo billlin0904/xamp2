@@ -20,7 +20,7 @@ The first viewport introduces the player and offers the download; the full-width
 - Typography: locally hosted Karla with platform Traditional Chinese body fallback; subset Source Han Sans TC Bold for display, retaining SIL OFL notices under `assets/site/fonts`. Subset named XampDisplay to avoid reserved font names. Regenerate after changing display text with `tools/Subset-WebsiteFont.py`.
 - Spacing: 8px baseline, 40/56/96px responsive outer gutters, 64/80/112px section rhythm.
 - Radii: 6px controls, 10px product/download surfaces. Shadow only on the product image. Header stays in normal document flow; only skip link uses an elevated layer.
-- Motion: brief opacity/transform entry and 180ms button feedback, disabled for reduced motion. No scroll hijacking or autoplay.
+- Motion: brief opacity/transform entry and 180ms button feedback, disabled for reduced motion. No scroll hijacking. Decorative hero playback follows the policy below.
 - Static HTML/CSS with progressively enhanced JavaScript; existing GitHub Pages master/root deployment and Jekyll documentation remain intact. No new framework/build dependency.
 - Download links have a verified v1.0.3 fallback; optional GitHub release metadata updates version and installer links together only when an uploaded installer exists.
 
@@ -48,7 +48,18 @@ Follow-up: give Windows and Linux equal download buttons in the hero, with local
 
 ## Product film (2026-10-30)
 
-- Add the user-selected 15-second “一首歌的旅程” film between the introduction/downloads and the screenshot showcase. The published MP4 is the complete approved film, without the later outer wave-background composite.
+- Publish the user-selected 15-second “一首歌的旅程” film using the complete approved MP4. The current homepage uses it as a decorative hero background and in an on-demand full player, as described below.
 - Use native playback controls, inline playback, a local WebP poster, and `preload="none"`; playback starts only after visitor input. Preserve the existing palette, download links and screenshots.
 - Reserve the 16:9 player area to prevent layout shifts. Stack the heading and descriptive copy on phones, retain keyboard focus styling, and provide a direct MP4 link.
 - The film includes music and visible feature text; adjacent HTML identifies the content and its duration. Do not add narration or autoplay.
+
+
+## Cinematic homepage (2026-10-30)
+
+- Reuse the approved “一首歌的旅程” film as the hero background. Keep the real product visuals to the right, with a dark gradient behind the left-hand title and platform downloads. The hero stays charcoal in both website themes.
+- Move the standalone film player into a native dialog reached by “觀看影片・含配樂”. The background is always muted; the full player retains the supplied soundtrack and native controls. Keep the direct MP4 fallback and all download/documentation anchors.
+- Provide an explicit background play/pause control. Pause off-screen, in hidden tabs, and while the full film is open. Do not automatically start for reduced motion, data saving or phone viewports; explicit visitor playback remains available.
+- On phones, show the heading, uncropped 16:9 product film, playback controls, then platform downloads. On desktop, lead with downloads on the left and the product film on the right. The real screenshot browser, feature rows, output details and installation guide follow.
+- Retain static HTML/CSS and progressive JavaScript, the existing master/root GitHub Pages deployment and local video assets. Lazy-load the screenshot below the hero.
+
+Validation: checked 1280px desktop and 390px/320px phone layouts, both themes, background mute/pause, off-screen pause, full-film audio state, Escape/close and focus restoration. JavaScript syntax, local asset references, Jekyll document routes and heading anchors pass.

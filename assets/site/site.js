@@ -53,6 +53,86 @@
     controls.querySelectorAll('[data-background]').forEach(item => item.setAttribute('aria-pressed', String(item.dataset.background === selectedBackground)));
   });
 
+  // Decorative playback is silent and pauses outside the viewport or behind the full film.
+  const backgroundFilm = document.querySelector('.hero-film');
+  const motionButton = document.querySelector('.motion-toggle');
+  const fullFilm = document.querySelector('.product-film');
+  const filmDialog = document.querySelector('.film-dialog');
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const phoneViewport = matchMedia('(max-width: 767px)');
+  let manualMotion = null;
+  let filmVisible = true;
+  let playbackBlocked = false;
+  const updateMotionButton = () => {
+    const playing = !backgroundFilm.paused;
+    motionButton.classList.toggle('is-playing', playing);
+    motionButton.querySelector('span').textContent = playing ? '暫停背景' : '播放背景';
+  };
+  const syncBackgroundFilm = () => {
+    const automaticMotion = !reducedMotion.matches && !phoneViewport.matches && !navigator.connection?.saveData && !playbackBlocked;
+    const shouldPlay = (manualMotion ?? automaticMotion) && filmVisible && !document.hidden && !filmDialog.open;
+    if (!shouldPlay) {
+      backgroundFilm.pause();
+      return;
+    }
+    const source = backgroundFilm.querySelector('source');
+    if (!source.hasAttribute('src')) {
+      source.src = source.dataset.src;
+      backgroundFilm.muted = true;
+      backgroundFilm.load();
+    }
+    backgroundFilm.play().catch(error => {
+      // Intentional pauses may interrupt a pending play without blocking later playback.
+      if (error.name !== 'AbortError') playbackBlocked = true;
+      updateMotionButton();
+    });
+  };
+  motionButton.hidden = false;
+  motionButton.addEventListener('click', () => {
+    manualMotion = backgroundFilm.paused;
+    playbackBlocked = false;
+    syncBackgroundFilm();
+  });
+  backgroundFilm.addEventListener('play', updateMotionButton);
+  backgroundFilm.addEventListener('pause', updateMotionButton);
+  backgroundFilm.addEventListener('error', updateMotionButton);
+  document.addEventListener('visibilitychange', syncBackgroundFilm);
+  reducedMotion.addEventListener('change', () => {
+    manualMotion = null;
+    syncBackgroundFilm();
+  });
+  phoneViewport.addEventListener('change', syncBackgroundFilm);
+  if ('IntersectionObserver' in window) {
+    const filmObserver = new IntersectionObserver(entries => {
+      filmVisible = entries[0].isIntersecting;
+      syncBackgroundFilm();
+    }, { threshold: 0 });
+    filmObserver.observe(document.querySelector('.cinema'));
+  }
+  syncBackgroundFilm();
+
+  // Native dialog provides Escape-to-close, focus containment and focus restoration.
+  document.querySelector('[data-watch-film]').addEventListener('click', event => {
+    if (typeof filmDialog.showModal !== 'function') return;
+    event.preventDefault();
+    filmDialog.showModal();
+    root.classList.add('film-open');
+    syncBackgroundFilm();
+    fullFilm.play().catch(() => { /* Native controls let the visitor retry. */ });
+  });
+  document.querySelector('.close-film').addEventListener('click', () => filmDialog.close());
+  filmDialog.addEventListener('click', event => {
+    if (event.target !== filmDialog) return;
+    const bounds = filmDialog.getBoundingClientRect();
+    if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) filmDialog.close();
+  });
+  filmDialog.addEventListener('close', () => {
+    fullFilm.pause();
+    if (fullFilm.readyState > 0) fullFilm.currentTime = 0;
+    root.classList.remove('film-open');
+    syncBackgroundFilm();
+  });
+
   // Preserve links to headings that now live inside disclosure panels.
   const revealAnchor = () => {
     let id;
