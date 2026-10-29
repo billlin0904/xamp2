@@ -63,3 +63,13 @@ Follow-up: give Windows and Linux equal download buttons in the hero, with local
 - Retain static HTML/CSS and progressive JavaScript, the existing master/root GitHub Pages deployment and local video assets. Lazy-load the screenshot below the hero.
 
 Validation: checked 1280px desktop and 390px/320px phone layouts, both themes, background mute/pause, off-screen pause, full-film audio state, Escape/close and focus restoration. JavaScript syntax, local asset references, Jekyll document routes and heading anchors pass.
+
+
+## Separate website pages (2026-10-30)
+
+- Replace the long single-page navigation with four static documents: `index.html` (film-led introduction and page links), `features.html` (real screenshot browser and daily features), `audio.html` (output support and setup), and `downloads.html` (platform downloads, installation, FAQ and licenses).
+- Render the same four navigation links on every page. Use `aria-current="page"` plus a mint underline to identify the current page. Keep all four links visible in a second header row on phones, including 320px screens.
+- Preserve the homepage film/background controls. Initialize screenshot and film behavior only when the corresponding component is present; other pages do not load the product film. Retain the independent page titles, descriptions and canonical URLs, shared theme preference, platform assets and documentation routes.
+- Rewrite cross-page section links to their destination documents. Redirect old homepage fragments to the corresponding new page and expand the destination disclosure. Native page links remain usable without JavaScript.
+- Subset the display font from all four HTML files through `tools/Subset-WebsiteFont.py`.
+- Verified local assets, cross-page fragments, Jekyll routes, a single H1 and active navigation item per document, desktop/320px/390px layouts, browser back, theme persistence, screenshot switching, legacy installation links and homepage film playback.

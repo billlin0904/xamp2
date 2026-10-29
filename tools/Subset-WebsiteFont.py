@@ -1,4 +1,4 @@
-"""Regenerate the homepage's small, self-hosted Traditional Chinese display font.
+"""Regenerate the website's small, self-hosted Traditional Chinese display font.
 
 Requires fonttools[woff]. The source font stays in the application's font directory.
 """
@@ -12,7 +12,8 @@ options = subset.Options()
 options.flavor = "woff2"
 options.name_IDs = [0, 1, 2, 3, 4, 5, 6, 13, 14]
 subsetter = subset.Subsetter(options=options)
-subsetter.populate(text=(root / "index.html").read_text(encoding="utf-8"))
+pages = ("index.html", "features.html", "audio.html", "downloads.html")
+subsetter.populate(text="\n".join((root / page).read_text(encoding="utf-8") for page in pages))
 subsetter.subset(font)
 for record in font["name"].names:
     if record.nameID in (1, 3, 4, 6):
