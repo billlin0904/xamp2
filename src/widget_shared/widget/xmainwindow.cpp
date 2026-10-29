@@ -39,6 +39,10 @@ XMainWindow::XMainWindow()
     : IXMainWindow()
 	, content_widget_(nullptr) {
     setAttribute(Qt::WA_DontCreateNativeAncestors);
+#ifdef Q_OS_MAC
+    // Allocate an alpha-capable backing store before Cocoa creates the window.
+    setAttribute(Qt::WA_TranslucentBackground);
+#endif
     setObjectName("XMainWindow"_str);
     setAcceptDrops(true);
     scanner_thread_pool_ = ThreadPoolBuilder::makeThreadPool(
@@ -54,6 +58,7 @@ XMainWindow::XMainWindow()
 XMainWindow::~XMainWindow() = default;
 
 void XMainWindow::setShortcut(const QKeySequence& shortcut) {
+    if (shortcut.isEmpty()) return;
     constexpr auto all_mods =
         Qt::ShiftModifier | Qt::ControlModifier | Qt::AltModifier | Qt::MetaModifier;
     const auto xkey_code = static_cast<uint>(shortcut.isEmpty() ? 0 : shortcut[0]);
@@ -64,6 +69,7 @@ void XMainWindow::setShortcut(const QKeySequence& shortcut) {
     const auto mods = Qt::KeyboardModifiers(xkey_code & all_mods);
 
     const auto native_key = qGlobalShortcut.nativeKeycode(key);
+    if (native_key == GlobalShortcut::kInvalidNativeKey) return;
     const auto native_mods = qGlobalShortcut.nativeModifiers(mods);
 
     if (qGlobalShortcut.registerShortcut(winId(), native_key, native_mods)) {

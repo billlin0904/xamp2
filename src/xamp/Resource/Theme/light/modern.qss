@@ -54,12 +54,12 @@ QToolTip { background: #DEE7E0; color: #253B32; border: 1px solid #C5D2C9; paddi
 /* Playlist workspace: an editorial header, quiet rows, and a compact queue. */
 QFrame#richPlaylistPage, QFrame#richPlaylistContentPanel, QFrame#richPlaylistListPanel { background: #E9EEEB; border: none; }
 QFrame#richPlaylistCoverPanel { background: #E1E8E3; border-left: 1px solid #C5D2C9; }
-QLabel#playlistBreadcrumb { color: #61756A; padding: 0px; font-size: 12px; }
+QLabel#playlistBreadcrumb { color: #61756A; padding: 0px; font-size: 14px; }
 QLabel#playlistTitle { color: #253B32; font-size: 34px; font-weight: 600; }
-QLabel#secondaryText { color: #61756A; font-size: 13px; }
+QLabel#secondaryText { color: #61756A; font-size: 15px; }
 QLabel#panelHeading { color: #253B32; font-size: 15px; font-weight: 600; }
 QLabel#nowPlayingTitle { color: #253B32; font-size: 21px; font-weight: 600; }
-QLabel#audioFormat { color: #41876B; font-size: 12px; }
+QLabel#audioFormat { color: #41876B; font-size: 14px; }
 QFrame#panelDivider { background: #CBD8CF; border: none; }
 QPushButton#primaryPlay { background: #41876B; color: #FFFFFF; border: none; padding: 0px 18px; font-weight: 600; }
 QPushButton#primaryPlay:hover { background: #327457; }
@@ -68,12 +68,12 @@ QToolButton#queueTrack { text-align: left; padding: 4px; border: none; backgroun
 QToolButton#queueTrack:hover { background: #D8E5DD; }
 QTableView[playlistStyle="modern"] { border: none; background: #E9EEEB; }
 QTableView[playlistStyle="modern"] QHeaderView { background: #E9EEEB; border: none; padding: 0px; }
-QTableView[playlistStyle="modern"] QHeaderView::section:horizontal { background: #E9EEEB; color: #61756A; border: none; border-bottom: 1px solid #C5D2C9; font-size: 12px; padding: 0px 12px; margin: 0px; }
+QTableView[playlistStyle="modern"] QHeaderView::section:horizontal { background: #E9EEEB; color: #61756A; border: none; border-bottom: 1px solid #C5D2C9; font-size: 14px; padding: 0px 12px; margin: 0px; }
 QTableView[playlistStyle="modern"] QHeaderView::section:horizontal:first { border-left: none; }
-QFrame#sliderFrame2 QLineEdit#sidebarSearch { background: #EDF2ED; border: 1px solid #C5D2C9; border-radius: 7px; padding: 0px 8px; font-size: 12px; }
+QFrame#sliderFrame2 QLineEdit#sidebarSearch { background: #EDF2ED; border: 1px solid #C5D2C9; border-radius: 7px; padding: 0px 8px; font-size: 14px; }
 QFrame#sliderFrame2 QLineEdit#sidebarSearch:focus { border-color: #41876B; }
-QLabel#playlistSectionLabel { color: #637D6E; font-size: 12px; }
-QListWidget#sidebarPlaylists { background: transparent; border: none; outline: none; font-size: 12px; }
+QLabel#playlistSectionLabel { color: #637D6E; font-size: 14px; }
+QListWidget#sidebarPlaylists { background: transparent; border: none; outline: none; font-size: 14px; }
 QListWidget#sidebarPlaylists::item { padding: 6px; border-radius: 6px; }
 QListWidget#sidebarPlaylists::item:selected { background: #D0E1D6; color: #244D3C; }
 QPushButton#settingsButton { text-align: left; background: transparent; border: none; padding: 8px; }
@@ -86,7 +86,7 @@ QSlider#volumeSlider::add-page:horizontal { background: #C5D2C9; border: none; }
 QSlider#volumeSlider::handle:horizontal { width: 10px; margin: -4px 0; background: #253B32; border: none; border-radius: 5px; }
 QFrame#modernSettings QFrame[settingRow="true"] { background-color: #F2F5F1; border: 1px solid #C5D2C9; border-radius: 9px; }
 QFrame#modernSettings QLabel[settingTitle="true"] { color: #263E31; font-size: 15px; font-weight: 600; background: transparent; }
-QFrame#modernSettings QLabel[settingHint="true"] { color: #637D6E; font-size: 12px; background: transparent; }
+QFrame#modernSettings QLabel[settingHint="true"] { color: #637D6E; font-size: 14px; background: transparent; }
 QFrame#modernSettings QComboBox { background-color: #E5EDE7; border: 1px solid #C5D2C9; border-radius: 6px; padding: 0px 12px; min-height: 34px; }
 QFrame#modernSettings QComboBox:hover { border-color: #637D6E; }
 QFrame#modernSettings QComboBox::drop-down { border: none; background: transparent; width: 24px; }

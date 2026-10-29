@@ -3,6 +3,7 @@
 #endif
 
 #include <widget/globalshortcut.h>
+#include <QScopeGuard>
 
 #if defined(Q_OS_WIN)
 #include <base/platfrom_handle.h>
@@ -144,7 +145,7 @@ public:
                 const HKL layoutUs = GetKeyboardLayout(0x409);
                 vk = VkKeyScanEx(key, layoutUs);
             }
-            return vk == -1 ? 0 : vk;
+            return vk == -1 ? kInvalidNativeKey : static_cast<quint32>(vk);
         }
     }
 
@@ -229,14 +230,18 @@ public:
     }
 
     quint32 nativeKeycode(Qt::Key key) {
-        UTF16Char ch;
-        // Constants found in NSEvent.h from AppKit.framework
+        // Carbon accepts physical keyboard keycodes, not NSEvent media-key identifiers.
         switch (key) {
+        case Qt::Key_Escape:
+            return kVK_Escape;
+        case Qt::Key_Dead_Grave:
+            return kVK_ANSI_Grave;
         case Qt::Key_Return:
             return kVK_Return;
         case Qt::Key_Enter:
             return kVK_ANSI_KeypadEnter;
         case Qt::Key_Tab:
+        case Qt::Key_Backtab:
             return kVK_Tab;
         case Qt::Key_Space:
             return kVK_Space;
@@ -254,6 +259,8 @@ public:
             return kVK_Control;
         case Qt::Key_F17:
             return kVK_F17;
+        case Qt::Key_VolumeMute:
+            return kVK_Mute;
         case Qt::Key_VolumeUp:
             return kVK_VolumeUp;
         case Qt::Key_VolumeDown:
@@ -320,26 +327,27 @@ public:
             ;
         }
 
-        if (key == Qt::Key_Escape)	ch = 27;
-        else if (key == Qt::Key_Return) ch = 13;
-        else if (key == Qt::Key_Enter) ch = 3;
-        else if (key == Qt::Key_Tab) ch = 9;
-        else ch = key;
+        // Only BMP character keys can be looked up in this UTF-16 layout table.
+        // Truncating an unsupported Qt special key can turn it into a real letter.
+        const auto unicode = static_cast<quint32>(key);
+        if (unicode == 0 || unicode > 0xFFFF) return kInvalidNativeKey;
+        const auto ch = static_cast<UTF16Char>(unicode);
 
-        CFDataRef currentLayoutData;
-        TISInputSourceRef currentKeyboard = TISCopyCurrentKeyboardInputSource();
-
-        if (currentKeyboard == nullptr)
-            return 0;
-
-        currentLayoutData = (CFDataRef)TISGetInputSourceProperty(currentKeyboard, kTISPropertyUnicodeKeyLayoutData);
-        CFRelease(currentKeyboard);
-        if (currentLayoutData == nullptr) {//Japanese or Chinese always return null
+        auto currentKeyboard = TISCopyCurrentKeyboardInputSource();
+        if (currentKeyboard == nullptr) return kInvalidNativeKey;
+        auto currentLayoutData = static_cast<CFDataRef>(
+            TISGetInputSourceProperty(currentKeyboard, kTISPropertyUnicodeKeyLayoutData));
+        if (currentLayoutData == nullptr) {
+            // IMEs such as Zhuyin expose no Unicode layout; use the underlying keyboard layout.
+            CFRelease(currentKeyboard);
             currentKeyboard = TISCopyCurrentKeyboardLayoutInputSource();
-            currentLayoutData = (CFDataRef)TISGetInputSourceProperty(currentKeyboard, kTISPropertyUnicodeKeyLayoutData);
-            if (!currentLayoutData)
-                return 0;
+            if (currentKeyboard == nullptr) return kInvalidNativeKey;
+            currentLayoutData = static_cast<CFDataRef>(
+                TISGetInputSourceProperty(currentKeyboard, kTISPropertyUnicodeKeyLayoutData));
         }
+        // The layout data is borrowed from the input source and must stay alive during lookup.
+        const auto releaseKeyboard = qScopeGuard([currentKeyboard] { CFRelease(currentKeyboard); });
+        if (currentLayoutData == nullptr) return kInvalidNativeKey;
 
         UCKeyboardLayout* header = (UCKeyboardLayout*)CFDataGetBytePtr(currentLayoutData);
         UCKeyboardTypeHeader* table = header->keyboardTypeList;
@@ -490,7 +498,7 @@ public:
             ;
         }
 
-        return 0;
+        return kInvalidNativeKey;
     }
 private:
     static OSStatus HandleHotKey(EventHandlerCallRef nextHandler, EventRef event, void* data) {
@@ -539,10 +547,12 @@ GlobalShortcut::GlobalShortcut()
 }
 
 bool GlobalShortcut::registerShortcut(const WId wid, quint32 native_key, quint32 native_mods) {
+    if (native_key == kInvalidNativeKey) return false;
     return impl_->registerShortcut(wid, native_key, native_mods);
 }
 
 bool GlobalShortcut::unregisterShortcut(const WId wid, quint32 native_key, quint32 native_mods) {
+    if (native_key == kInvalidNativeKey) return false;
     return impl_->unregisterShortcut(wid, native_key, native_mods);
 }
 

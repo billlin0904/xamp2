@@ -13,7 +13,7 @@ QFrame#bottomFrame { background-color: #101315; border-top: 1px solid #2B3335; }
 QFrame#controlFrame, QWidget#nowPlayingSummary, QWidget#trackSummary,
 QWidget#transportPanel, QWidget#transportButtons, QWidget#seekPanel,
 QWidget#outputPanel, QWidget#outputButtons { background: transparent; }
-QLabel#artistLabel, QLabel#deviceDescLabel, QLabel#startPosLabel, QLabel#endPosLabel { color: #A2AEAA; }
+QLabel#artistLabel, QLabel#deviceDescLabel, QLabel#startPosLabel, QLabel#endPosLabel { color: #C0CAC6; }
 QToolButton { border: 1px solid transparent; border-radius: 6px; padding: 2px; }
 QToolButton:hover { background-color: #293330; }
 QToolButton:pressed { background-color: #354A42; }
@@ -54,12 +54,12 @@ QToolTip { background: #252D2F; color: #EEF1EF; border: 1px solid #465650; paddi
 /* Playlist workspace: an editorial header, quiet rows, and a compact queue. */
 QFrame#richPlaylistPage, QFrame#richPlaylistContentPanel, QFrame#richPlaylistListPanel { background: #141719; border: none; }
 QFrame#richPlaylistCoverPanel { background: #151A1C; border-left: 1px solid #293133; }
-QLabel#playlistBreadcrumb { color: #A2AEAA; padding: 0px; font-size: 12px; }
+QLabel#playlistBreadcrumb { color: #C0CAC6; padding: 0px; font-size: 14px; }
 QLabel#playlistTitle { color: #EEF1EF; font-size: 34px; font-weight: 600; }
-QLabel#secondaryText { color: #A2AEAA; font-size: 13px; }
+QLabel#secondaryText { color: #C0CAC6; font-size: 15px; }
 QLabel#panelHeading { color: #EEF1EF; font-size: 15px; font-weight: 600; }
 QLabel#nowPlayingTitle { color: #EEF1EF; font-size: 21px; font-weight: 600; }
-QLabel#audioFormat { color: #94D8C3; font-size: 12px; }
+QLabel#audioFormat { color: #94D8C3; font-size: 14px; }
 QFrame#panelDivider { background: #303839; border: none; }
 QPushButton#primaryPlay { background: #94D8C3; color: #10231C; border: none; padding: 0px 18px; font-weight: 600; }
 QPushButton#primaryPlay:hover { background: #B6EBD9; }
@@ -68,12 +68,12 @@ QToolButton#queueTrack { text-align: left; padding: 4px; border: none; backgroun
 QToolButton#queueTrack:hover { background: #252F2B; }
 QTableView[playlistStyle="modern"] { border: none; background: #141719; }
 QTableView[playlistStyle="modern"] QHeaderView { background: #141719; border: none; padding: 0px; }
-QTableView[playlistStyle="modern"] QHeaderView::section:horizontal { background: #141719; color: #A2AEAA; border: none; border-bottom: 1px solid #2B3335; font-size: 12px; padding: 0px 12px; margin: 0px; }
+QTableView[playlistStyle="modern"] QHeaderView::section:horizontal { background: #141719; color: #C0CAC6; border: none; border-bottom: 1px solid #2B3335; font-size: 14px; padding: 0px 12px; margin: 0px; }
 QTableView[playlistStyle="modern"] QHeaderView::section:horizontal:first { border-left: none; }
-QFrame#sliderFrame2 QLineEdit#sidebarSearch { background: #191F20; border: 1px solid #343E40; border-radius: 7px; padding: 0px 8px; font-size: 12px; }
+QFrame#sliderFrame2 QLineEdit#sidebarSearch { background: #191F20; border: 1px solid #343E40; border-radius: 7px; padding: 0px 8px; font-size: 14px; }
 QFrame#sliderFrame2 QLineEdit#sidebarSearch:focus { border-color: #94D8C3; }
-QLabel#playlistSectionLabel { color: #899792; font-size: 12px; }
-QListWidget#sidebarPlaylists { background: transparent; border: none; outline: none; font-size: 12px; }
+QLabel#playlistSectionLabel { color: #BAC6C0; font-size: 14px; }
+QListWidget#sidebarPlaylists { background: transparent; border: none; outline: none; font-size: 14px; }
 QListWidget#sidebarPlaylists::item { padding: 6px; border-radius: 6px; }
 QListWidget#sidebarPlaylists::item:selected { background: #202D28; color: #C6F0E1; }
 QPushButton#settingsButton { text-align: left; background: transparent; border: none; padding: 8px; }
@@ -86,7 +86,7 @@ QSlider#volumeSlider::add-page:horizontal { background: #3B4943; border: none; }
 QSlider#volumeSlider::handle:horizontal { width: 10px; margin: -4px 0; background: #EEF1EF; border: none; border-radius: 5px; }
 QFrame#modernSettings QFrame[settingRow="true"] { background-color: #1B2123; border: 1px solid #2D3838; border-radius: 9px; }
 QFrame#modernSettings QLabel[settingTitle="true"] { color: #E5EDE9; font-size: 15px; font-weight: 600; background: transparent; }
-QFrame#modernSettings QLabel[settingHint="true"] { color: #92A19B; font-size: 12px; background: transparent; }
+QFrame#modernSettings QLabel[settingHint="true"] { color: #B4C2BB; font-size: 14px; background: transparent; }
 QFrame#modernSettings QComboBox { background-color: #242D2E; border: 1px solid #3B4946; border-radius: 6px; padding: 0px 12px; min-height: 34px; }
 QFrame#modernSettings QComboBox:hover { border-color: #6C9D8D; }
 QFrame#modernSettings QComboBox::drop-down { border: none; background: transparent; width: 24px; }

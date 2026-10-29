@@ -420,11 +420,11 @@ void Xamp::setMainWindow(IXMainWindow* main_window) {
     ui_.mutedButton->updateState();
 
     auto f = font();
-    f.setPointSize(qTheme.fontSize(11));
+    f.setPointSize(qTheme.fontSize(12));
     f.setWeight(QFont::DemiBold);
     ui_.titleLabel->setFont(f);
     ui_.titleLabel->setElideMode(Qt::ElideRight);
-    f.setPointSize(qTheme.fontSize(9));
+    f.setPointSize(qTheme.fontSize(10));
     f.setWeight(QFont::Normal);
     ui_.artistLabel->setFont(f);
     ui_.artistLabel->setWordWrap(false);

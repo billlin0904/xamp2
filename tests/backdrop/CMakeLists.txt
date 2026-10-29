@@ -1,0 +1,6 @@
+find_package(Qt6 REQUIRED COMPONENTS Widgets Test)
+enable_language(OBJCXX)
+add_executable(mac_backdrop_test mac_backdrop_test.mm)
+set_target_properties(mac_backdrop_test PROPERTIES AUTOMOC ON OBJCXX_STANDARD 23)
+target_link_libraries(mac_backdrop_test PRIVATE widget_shared Qt6::Test "-framework AppKit")
+add_test(NAME mac_backdrop_test COMMAND mac_backdrop_test)

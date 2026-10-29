@@ -9,12 +9,16 @@
 #include <widget/widget_shared_global.h>
 
 #include <qwindowdefs.h>
+#include <limits>
 
 #include <base/memory.h>
 #include <base/base.h>
 
 class XAMP_WIDGET_SHARED_API GlobalShortcut final {
 public:
+    // 0 is the valid Carbon keycode for A, so it cannot mean conversion failure.
+    static constexpr quint32 kInvalidNativeKey = (std::numeric_limits<quint32>::max)();
+
     XAMP_DECLARE_SINGLETON_NAME()
 
     GlobalShortcut();

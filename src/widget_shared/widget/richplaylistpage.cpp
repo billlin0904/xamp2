@@ -341,9 +341,9 @@ public:
             painter->fillRect(rect, background);
         }
         auto font = qTheme.defaultFont();
-        font.setPointSize(qTheme.fontSize(10));
+        font.setPointSize(qTheme.fontSize(11));
         painter->setFont(font);
-        const auto secondary = qTheme.isDarkTheme() ? QColor("#A2AEAA"_str) : QColor("#596661"_str);
+        const auto secondary = qTheme.isDarkTheme() ? QColor("#C0CAC6"_str) : QColor("#596661"_str);
         painter->setPen(playing ? qTheme.indicatorColor()
             : index.column() == PLAYLIST_TITLE ? qTheme.textColor() : secondary);
         auto text_rect = rect.adjusted(12, 0, -12, 0);

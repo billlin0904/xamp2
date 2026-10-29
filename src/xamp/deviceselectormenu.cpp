@@ -77,7 +77,7 @@ std::optional<DeviceInfo> DeviceSelectorMenu::rebuild(
     const std::optional<DeviceInfo>& current_device_info,
     DeviceSelectedCallback on_selected) {
     auto f = qTheme.defaultFont();
-    f.setPointSize(10);
+    f.setPointSize(qTheme.fontSize(10));
     device_desc_label_->setFont(f);
 
     auto* menu = ensureMenu();

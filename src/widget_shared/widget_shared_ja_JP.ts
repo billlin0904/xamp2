@@ -1435,6 +1435,22 @@ This will update metadata files on disk.</source>
     <context>
         <name>PreferencePage</name>
         <message>
+            <source>Off</source>
+            <translation>オフ</translation>
+        </message>
+        <message>
+            <source>Native frosted glass</source>
+            <translation>ネイティブすりガラス</translation>
+        </message>
+        <message>
+            <source>Native window material</source>
+            <translation>ネイティブウインドウ素材</translation>
+        </message>
+        <message>
+            <source>Apple native glass. Follows the app theme and macOS accessibility settings.</source>
+            <translation>Apple 標準のすりガラス。アプリのテーマと macOS のアクセシビリティ設定に従います。</translation>
+        </message>
+        <message>
             <location filename="widget/preferencepage.cpp" line="173" />
             <source> (minimum)</source>
             <translation>（最小位相）</translation>

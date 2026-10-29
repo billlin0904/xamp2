@@ -14,8 +14,11 @@
 #include <QWKWidgets/widgetwindowagent.h>
 #include <widget/appsettings.h>
 #include <thememanager.h>
+#ifdef Q_OS_MAC
+#include <widget/macwindowbackdrop.h>
+#endif
 
-// Uses the existing window agent so native frame handling stays in one place.
+// Native background materials without replacing the platform's window frame.
 class WindowBackdrop final : public QObject {
 public:
     static QString settingKey() { return QStringLiteral("windowBackdrop"); }
@@ -27,6 +30,8 @@ public:
 #ifdef Q_OS_WIN
         const auto version = QOperatingSystemVersion::current();
         return version.majorVersion() >= 10 && version.microVersion() >= 22621;
+#elif defined(Q_OS_MAC)
+        return true;
 #else
         return false;
 #endif
@@ -38,6 +43,8 @@ public:
         QSettings personalization(QStringLiteral("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize"), QSettings::NativeFormat);
         return supported() && !(contrast.dwFlags & HCF_HIGHCONTRASTON)
             && personalization.value(QStringLiteral("EnableTransparency"), 1).toBool();
+#elif defined(Q_OS_MAC)
+        return MacWindowBackdrop::effectsEnabled();
 #else
         return false;
 #endif
@@ -49,6 +56,10 @@ public:
     }
     WindowBackdrop(QWidget* window, QWK::WidgetWindowAgent* agent)
         : QObject(window), window_(window), agent_(agent) {
+#ifdef Q_OS_MAC
+        mac_backdrop_ = new MacWindowBackdrop(window, [this] { apply(); });
+        mac_backdrop_->setParent(this);
+#endif
         qApp->installEventFilter(this);
         connect(&qTheme, &ThemeManager::themeChangedFinished, this,
             [this](ThemeColor) { QTimer::singleShot(0, this, [this] { apply(); }); });
@@ -65,6 +76,8 @@ public:
                     ? QStringLiteral("mica") : QStringLiteral("acrylic-material"), true);
             }
         }
+#elif defined(Q_OS_MAC)
+        enabled = mac_backdrop_->apply(mode() != 0 && effectsEnabled(), mode(), qTheme.isDarkTheme());
 #endif
         // Expose the native material through the shell and playlist surfaces.
         window_->setProperty("backdropActive", enabled);
@@ -101,7 +114,9 @@ protected:
         }
         if ((object == qApp && event->type() == QEvent::DynamicPropertyChange
             && static_cast<QDynamicPropertyChangeEvent*>(event)->propertyName() == "windowBackdrop")
-            || (object == window_ && event->type() == QEvent::Show)) {
+            || (object == window_ && (event->type() == QEvent::Show
+                || event->type() == QEvent::WindowStateChange
+                || event->type() == QEvent::WinIdChange))) {
             QTimer::singleShot(0, this, [this] { apply(); });
         }
         return QObject::eventFilter(object, event);
@@ -135,4 +150,7 @@ private:
     }
     QWidget* window_;
     QWK::WidgetWindowAgent* agent_;
+#ifdef Q_OS_MAC
+    MacWindowBackdrop* mac_backdrop_;
+#endif
 };

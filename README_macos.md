@@ -65,6 +65,20 @@ python3 tools/benchmark_pcm_dsd.py out/build/macos-xcode/src/xamp/Debug/xamp.app
 
 macOS 的設定、資料庫與日誌位於 `~/Library/Application Support/xamp`，快取位於系統使用者快取目錄。
 
+## 原生毛玻璃背景
+
+「設定 → Playback → 背景材質」可選擇「關閉」、「原生毛玻璃」（預設）或「原生視窗材質」。使用 AppKit `NSVisualEffectView` 即時模糊視窗後方內容，保留原生標題列、交通燈按鈕及全螢幕操作；材質隨應用程式主題和視窗啟用狀態調整。
+
+macOS「減少透明度」或「增加對比」啟用時，自動使用實色背景；系統設定改變會即時更新。
+
+原生材質整合測試需在 macOS 圖形桌面執行：
+
+```sh
+cmake --preset macos-xcode -DXAMP_BUILD_BACKDROP_TESTS=ON
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer cmake --build out/build/macos-xcode --config Debug --target mac_backdrop_test --parallel 4
+ctest --test-dir out/build/macos-xcode -C Debug -R '^mac_backdrop_test$' --output-on-failure
+```
+
 ## macOS PCM2DSD / DoP
 
 輸出裝置選擇 `CoreAudio (Hog Mode)`，在「設定 → 輸出」啟用 BitPerfect PCM 與 PCM2DSD，傳輸選 DoP。請先使用 DAC 明確支援的倍率，例如 DSD64 對應 176.4／192 kHz carrier（依來源取樣率系列）。不支援 Native DSD。

@@ -361,6 +361,17 @@ PreferencePage::PreferencePage(QWidget *parent)
     });
     ui_->backdropCombo->setCurrentIndex(WindowBackdrop::mode());
     ui_->backdropCombo->setEnabled(WindowBackdrop::supported());
+#ifdef Q_OS_MAC
+    const auto translate_backdrop = [this] {
+        ui_->backdropCombo->setItemText(0, tr("Off"));
+        ui_->backdropCombo->setItemText(1, tr("Native frosted glass"));
+        ui_->backdropCombo->setItemText(2, tr("Native window material"));
+        ui_->backdropHint->setText(tr("Apple native glass. Follows the app theme and macOS accessibility settings."));
+        ui_->backdropHint->setWordWrap(true);
+    };
+    translate_backdrop();
+    connect(this, &PreferencePage::retranslateUi, this, translate_backdrop);
+#endif
     if (!WindowBackdrop::supported()) {
         ui_->backdropHint->setText(tr("Requires Windows 11 22H2 or later. Uses a solid background here."));
     }
