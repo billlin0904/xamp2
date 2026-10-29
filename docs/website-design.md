@@ -45,3 +45,10 @@ Follow-up: give Windows and Linux equal download buttons in the hero, with local
 - Pin macOS downloads to the dated `XAMP2-1.0.5-macOS-arm64-20261030-installer-signed.pkg` asset so existing downloads remain reproducible.
 - Show the update date and describe native AppKit materials, larger secondary text, vinyl playback, and the global A-key shortcut fix in the macOS installation guide.
 - Link the matching SHA-256 file. The PKG remains Developer ID signed and pending Apple notarization; Apple Silicon and macOS 26 minimum remain unchanged.
+
+## Product film (2026-10-30)
+
+- Add the user-selected 15-second “一首歌的旅程” film between the introduction/downloads and the screenshot showcase. The published MP4 is the complete approved film, without the later outer wave-background composite.
+- Use native playback controls, inline playback, a local WebP poster, and `preload="none"`; playback starts only after visitor input. Preserve the existing palette, download links and screenshots.
+- Reserve the 16:9 player area to prevent layout shifts. Stack the heading and descriptive copy on phones, retain keyboard focus styling, and provide a direct MP4 link.
+- The film includes music and visible feature text; adjacent HTML identifies the content and its duration. Do not add narration or autoplay.
