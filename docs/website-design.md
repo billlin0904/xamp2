@@ -73,3 +73,9 @@ Validation: checked 1280px desktop and 390px/320px phone layouts, both themes, b
 - Rewrite cross-page section links to their destination documents. Redirect old homepage fragments to the corresponding new page and expand the destination disclosure. Native page links remain usable without JavaScript.
 - Subset the display font from all four HTML files through `tools/Subset-WebsiteFont.py`.
 - Verified local assets, cross-page fragments, Jekyll routes, a single H1 and active navigation item per document, desktop/320px/390px layouts, browser back, theme persistence, screenshot switching, legacy installation links and homepage film playback.
+
+## NTFS film update (2026-10-30)
+
+- Add “NTFS 高速讀取” to the approved film's opening collection scene, with “Windows 專屬 · 音樂庫掃描”. Retain the original library/playlist/search copy, all other scenes, the 15-second duration and supplied soundtrack.
+- Replace the local MP4 and derive the poster from the verified opening export frame. Version both media URLs with `v=ntfs-20261030` to refresh previously cached video and poster assets.
+- NTFS copy describes the opt-in Windows metadata-reading backend; the film retains its original macOS UI capture and identifies that material separately. No measured speedup is claimed.
