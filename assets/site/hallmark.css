@@ -759,7 +759,7 @@ code {
   .hero h1 {
     font-size:clamp(43px,9vw,66px);
   }
-  
+
   .hero-intro {
     max-width:none;
   }
