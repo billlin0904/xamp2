@@ -132,3 +132,11 @@ Other pages and their screenshot browser remain unchanged.
 Move the existing three platform downloads and installation links to the right column.
 Keep headline, introduction and on-demand video link on the left. Mobile stacks the
 introduction, video action and download choices in reading order. No background image.
+
+## iPhone / iPad distribution (2026-11-16)
+
+Verified the public Taiwan App Store listing, app ID 6829106965, developer ZHENG-FENG
+LIN, requiring iOS/iPadOS 26. Added its exact store link to home and downloads, plus
+iOS setup/privacy, mobile features and experimental DSD DoP caveats. Public listing
+takes precedence over stale local README review status. No unpublished development
+features/version numbers are advertised. Desktop binaries and right-side downloads stay.

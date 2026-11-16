@@ -1134,3 +1134,8 @@ code { font-size:.95rem; }
  .cinema .hero-tools { order:3;padding-top:0;border-bottom:0; }
  .cinema .hero-download { order:4;width:calc(100% - 40px);margin-inline:auto;max-width:none;padding-bottom:var(--space-xl); }
 }
+
+/* iOS is distributed through its published App Store listing. */
+.cinema .platform-download[data-ios-download] { grid-column:1 / -1;grid-row:2; }
+.install-notes { grid-template-columns:repeat(2,minmax(0,1fr)); }
+@media(max-width:767px) { .install-notes { grid-template-columns:minmax(0,1fr); } }
