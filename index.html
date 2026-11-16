@@ -4,20 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark light">
-  <title>XAMP 2 · 讓音樂，回到主角</title>
+  <title>XAMP 2 / 讓音樂，回到主角</title>
   <meta name="description" content="專注本機音樂的桌面播放器。探索 XAMP 2 的實際畫面、功能、音訊輸出與 Windows、macOS、Linux 下載。">
   <link rel="canonical" href="https://billlin0904.github.io/xamp2/">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="zh_TW">
-  <meta property="og:title" content="XAMP 2 · 讓音樂，回到主角">
+  <meta property="og:title" content="XAMP 2 / 讓音樂，回到主角">
   <meta property="og:description" content="專注本機音樂的桌面播放器。探索 XAMP 2 的實際畫面、功能、音訊輸出與 Windows、macOS、Linux 下載。">
   <meta property="og:url" content="https://billlin0904.github.io/xamp2/">
   <meta property="og:image" content="https://billlin0904.github.io/xamp2/assets/site/player-playlist.png?v=2">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="assets/site/xamp-logo.png" type="image/png">
   <link rel="preload" href="assets/site/fonts/XampDisplay-TC.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/site/site.css?v=8">
-  <script src="assets/site/site.js?v=6" defer></script>
+  <link rel="stylesheet" href="assets/site/hallmark.css?v=3">
+  <script src="assets/site/site.js?v=9" defer></script>
 </head>
 <body data-page="home">
   <a class="skip-link" href="#main">跳至主要內容</a>
@@ -29,65 +29,60 @@
       <a class="nav-page" href="audio.html" data-page="audio">音訊輸出</a>
       <a class="nav-page" href="downloads.html" data-page="downloads">下載安裝</a>
     </nav>
-    <button class="theme-toggle" type="button" hidden aria-label="切換為淺色網頁" title="切換網頁外觀"><span aria-hidden="true">◐</span></button>
+    <button class="theme-toggle" type="button" hidden aria-label="切換為淺色網頁" title="切換網頁外觀"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 4a8 8 0 0 1 0 16Z" fill="currentColor"/></svg></button>
   </header>
 
   <main id="main">
     <section class="cinema" id="影片介紹" aria-labelledby="hero-title">
-      <div class="hero-backdrop" aria-hidden="true">
-        <video class="hero-film" muted loop playsinline preload="none" poster="assets/site/videos/xamp-intro-poster.webp?v=ntfs-20261030" width="1920" height="1080" tabindex="-1">
-          <source data-src="assets/site/videos/xamp-intro-15s.mp4?v=ntfs-20261030" type="video/mp4">
-        </video>
-      </div>
       <div class="hero wrap" id="xamp-2">
         <div class="hero-copy">
-          <p class="eyebrow">YOUR MUSIC. IN MOTION.</p>
           <h1 id="hero-title">讓音樂，<span>回到主角。</span></h1>
-        </div>
-        <div class="hero-tools">
-          <div class="hero-film-caption"><span class="film-marker" aria-hidden="true"></span><span>一首歌的旅程 <small>15 秒 · macOS 實機畫面</small></span></div>
-          <div class="hero-film-actions">
-            <a class="watch-film" href="assets/site/videos/xamp-intro-15s.mp4?v=ntfs-20261030" data-watch-film aria-haspopup="dialog"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="m5 3 8 5-8 5Z" fill="currentColor"/></svg>觀看影片・含配樂</a>
-            <button class="motion-toggle" type="button" hidden><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path class="motion-pause" d="M5 3v10M11 3v10" fill="none" stroke="currentColor" stroke-width="2"/><path class="motion-play" d="m5 3 8 5-8 5Z" fill="currentColor"/></svg><span>播放背景</span></button>
-          </div>
         </div>
         <div class="hero-intro">
           <p>收藏、黑膠、調音，還有 PCM → DSD。<br>讓熟悉的音樂，陪你走得更遠。</p>
-          <p class="hero-description">專注本機音樂的桌面播放器。<br>Windows · macOS · Linux</p>
+          <p class="hero-description">專注本機音樂的桌面播放器。<br>Windows / macOS / Linux</p>
+        </div>
+        <div class="hero-tools">
+          <div class="hero-film-caption"><span>一首歌的旅程 <small>15 秒 / macOS 實機畫面</small></span></div>
+          <div class="hero-film-actions">
+            <a class="watch-film" href="assets/site/videos/xamp-intro-15s.mp4?v=ntfs-20261030" data-watch-film aria-haspopup="dialog"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="m5 3 8 5-8 5Z" fill="currentColor"/></svg>觀看影片，含配樂</a>
+          </div>
+        </div>
+        <div class="hero-download">
           <div class="platform-downloads" aria-label="選擇下載平台">
             <a class="button button-primary platform-download" data-download href="https://github.com/billlin0904/xamp2/releases/download/v1.0.5/xamp2-setup.exe" aria-label="下載 Windows 版">
               <img class="platform-icon" src="assets/site/icons/windows.svg" width="22" height="22" alt="">
-              <span class="platform-copy"><strong>Windows</strong><small>x64 · <span data-version>v1.0.5</span></small></span><span class="download-arrow" aria-hidden="true">↓</span>
+              <span class="platform-copy"><strong>Windows</strong><small>x64 / <span data-version>v1.0.5</span></small></span>
             </a>
             <a class="button button-primary platform-download" data-linux-download href="https://github.com/billlin0904/xamp2/releases/download/v1.0.5/xamp2-1.0.5-linux-x86_64.zip" aria-label="下載 Linux 版">
               <img class="platform-icon" src="assets/site/icons/linux.svg" width="22" height="22" alt="">
-              <span class="platform-copy"><strong>Linux</strong><small>x86_64 · <span data-linux-version>v1.0.5</span></small></span><span class="download-arrow" aria-hidden="true">↓</span>
+              <span class="platform-copy"><strong>Linux</strong><small>x86_64 / <span data-linux-version>v1.0.5</span></small></span>
             </a>
             <a class="button button-primary platform-download" data-macos-download href="https://github.com/billlin0904/xamp2/releases/download/v1.0.5/XAMP2-1.0.5-macOS-arm64-20261030-installer-signed.pkg" aria-label="下載 macOS 版">
               <img class="platform-icon" src="assets/site/icons/macos.svg" width="22" height="22" alt="">
-              <span class="platform-copy"><strong>macOS</strong><small>Apple Silicon · macOS 26+ · v1.0.5 · 10/30 更新</small></span><span class="download-arrow" aria-hidden="true">↓</span>
+              <span class="platform-copy"><strong>macOS</strong><small>Apple Silicon / macOS 26+ / v1.0.5 / 10/30 更新</small></span>
             </a>
           </div>
-          <p class="download-meta">測試版 <span aria-hidden="true">/</span> 開放原始碼 <span aria-hidden="true">/</span> <a href="downloads.html#linux-wsl">Linux 啟動說明 ↗</a> <span aria-hidden="true">/</span> <a href="downloads.html#macos-install">macOS 安裝說明 ↗</a></p>
+          <p class="download-meta">測試版 <span aria-hidden="true">/</span> 開放原始碼 <span aria-hidden="true">/</span> <a href="downloads.html#linux-wsl">Linux 啟動說明</a> <span aria-hidden="true">/</span> <a href="downloads.html#macos-install">macOS 安裝說明</a></p>
         </div>
       </div>
     </section>
 
     <dialog class="film-dialog" aria-labelledby="film-title">
-      <div class="film-dialog-heading"><div><p class="eyebrow">XAMP IN 15 SECONDS</p><h2 id="film-title">一首歌的旅程。</h2></div><button class="close-film" type="button" aria-label="關閉影片">關閉 <span aria-hidden="true">×</span></button></div>
+      <div class="film-dialog-heading"><div><h2 id="film-title">一首歌的旅程。</h2></div><button class="close-film" type="button" aria-label="關閉影片">關閉 <span aria-hidden="true">×</span></button></div>
       <video class="product-film" controls playsinline preload="none" poster="assets/site/videos/xamp-intro-poster.webp?v=ntfs-20261030" width="1920" height="1080" aria-label="XAMP 2：一首歌的旅程，15 秒功能介紹">
         <source src="assets/site/videos/xamp-intro-15s.mp4?v=ntfs-20261030" type="video/mp4">
         <p>你的瀏覽器無法直接播放這段影片，請<a href="assets/site/videos/xamp-intro-15s.mp4?v=ntfs-20261030">開啟 MP4 影片</a>。</p>
       </video>
-      <p class="film-dialog-note">收藏 / NTFS（Windows） / 黑膠 / 調音 / PCM → DSD <a href="assets/site/videos/xamp-intro-15s.mp4?v=ntfs-20261030" target="_blank" rel="noopener">開啟 MP4 ↗</a></p>
+      <p class="film-dialog-note">收藏 / NTFS（Windows） / 黑膠 / 調音 / PCM → DSD <a href="assets/site/videos/xamp-intro-15s.mp4?v=ntfs-20261030" target="_blank" rel="noopener">開啟 MP4</a></p>
     </dialog>
 
     <section class="site-map wrap" aria-labelledby="explore-title">
-      <div class="site-map-heading"><p class="eyebrow">FIND YOUR WAY</p><h2 id="explore-title">你的下一步。</h2><p>從日常播放到音訊輸出，找到你想了解的 XAMP。</p></div>
+      <div class="site-map-heading"><h2 id="explore-title">你的下一步。</h2><p>從日常播放到音訊輸出，找到你想了解的 XAMP。</p></div>
       <div class="page-cards">
-        <a href="features.html" id="主要功能"><span class="page-card-number">01 / FEATURES</span><h3>功能介紹</h3><p>音樂庫、播放清單、歌詞、黑膠與調音。</p><span class="page-card-link">看看實際畫面 <span aria-hidden="true">↗</span></span></a>
-        <a href="audio.html" id="音訊輸出"><span class="page-card-number">02 / AUDIO</span><h3>音訊輸出</h3><p>了解 BitPerfect PCM、PCM → DSD 與輸出支援。</p><span class="page-card-link">探索聲音路徑 <span aria-hidden="true">↗</span></span></a>
-        <a href="downloads.html" id="下載與安裝"><span class="page-card-number">03 / DOWNLOAD</span><h3>下載與安裝</h3><p>Windows、macOS、Linux 安裝包與使用說明。</p><span class="page-card-link">選擇你的平台 <span aria-hidden="true">↗</span></span></a>
+        <a href="features.html" id="主要功能"><h3>功能介紹</h3><p>音樂庫、播放清單、歌詞、黑膠與調音。</p><span class="page-card-link">看看實際畫面</span></a>
+        <a href="audio.html" id="音訊輸出"><h3>音訊輸出</h3><p>了解 BitPerfect PCM、PCM → DSD 與輸出支援。</p><span class="page-card-link">探索聲音路徑</span></a>
+        <a href="downloads.html" id="下載與安裝"><h3>下載與安裝</h3><p>Windows、macOS、Linux 安裝包與使用說明。</p><span class="page-card-link">選擇你的平台</span></a>
       </div>
     </section>
   </main>

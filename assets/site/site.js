@@ -49,12 +49,12 @@
 
   const screenshots = {
     playlist: {
-      solid: { src: 'assets/site/player-playlist.png?v=2', alt: 'XAMP 2 實色背景播放清單：專輯封面、歌曲資訊與底部播放控制。', caption: '播放清單 · 實色背景。專輯封面、曲目資訊與播放控制集中在同一個畫面。' },
-      transparent: { src: 'assets/site/player-playlist-transparent.png', alt: 'XAMP 2 透明背景播放清單，展示 Windows 背景材質與歌曲列表。', caption: '播放清單 · 透明背景。背景材質融入桌面色彩，保留清楚的文字與控制項；實際效果依系統與設定而異。' }
+      solid: { src: 'assets/site/player-playlist.png?v=2', alt: 'XAMP 2 實色背景播放清單：專輯封面、歌曲資訊與底部播放控制。', caption: '播放清單 / 實色背景。專輯封面、曲目資訊與播放控制集中在同一個畫面。' },
+      transparent: { src: 'assets/site/player-playlist-transparent.png', alt: 'XAMP 2 透明背景播放清單，展示 Windows 背景材質與歌曲列表。', caption: '播放清單 / 透明背景。背景材質融入桌面色彩，保留清楚的文字與控制項；實際效果依系統與設定而異。' }
     },
     library: {
-      solid: { src: 'docs/images/player-library.png?v=2', alt: 'XAMP 2 實色背景音樂庫：資料夾樹、專輯歌曲列表與頻譜顯示區。', caption: '音樂庫 · 實色背景。以資料夾瀏覽收藏，查看專輯曲目，並保留頻譜顯示區。' },
-      transparent: { src: 'assets/site/player-library-transparent.png', alt: 'XAMP 2 透明背景音樂庫：資料夾瀏覽、專輯曲目與頻譜顯示區。', caption: '音樂庫 · 透明背景。資料夾導覽搭配桌面背景材質，曲目與頻譜區維持清楚的層次。' }
+      solid: { src: 'docs/images/player-library.png?v=2', alt: 'XAMP 2 實色背景音樂庫：資料夾樹、專輯歌曲列表與頻譜顯示區。', caption: '音樂庫 / 實色背景。以資料夾瀏覽收藏，查看專輯曲目，並保留頻譜顯示區。' },
+      transparent: { src: 'assets/site/player-library-transparent.png', alt: 'XAMP 2 透明背景音樂庫：資料夾瀏覽、專輯曲目與頻譜顯示區。', caption: '音樂庫 / 透明背景。資料夾導覽搭配桌面背景材質，曲目與頻譜區維持清楚的層次。' }
     }
   };
   const controls = document.querySelector('.screenshot-controls');
@@ -80,72 +80,15 @@
     });
   }
 
-  if (document.querySelector('.hero-film')) {
-    // Decorative playback is silent and pauses outside the viewport or behind the full film.
-    const backgroundFilm = document.querySelector('.hero-film');
-    const motionButton = document.querySelector('.motion-toggle');
-    const fullFilm = document.querySelector('.product-film');
-    const filmDialog = document.querySelector('.film-dialog');
-    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-    const phoneViewport = matchMedia('(max-width: 767px)');
-    let manualMotion = null;
-    let filmVisible = true;
-    let playbackBlocked = false;
-    const updateMotionButton = () => {
-      const playing = !backgroundFilm.paused;
-      motionButton.classList.toggle('is-playing', playing);
-      motionButton.querySelector('span').textContent = playing ? '暫停背景' : '播放背景';
-    };
-    const syncBackgroundFilm = () => {
-      const automaticMotion = !reducedMotion.matches && !phoneViewport.matches && !navigator.connection?.saveData && !playbackBlocked;
-      const shouldPlay = (manualMotion ?? automaticMotion) && filmVisible && !document.hidden && !filmDialog.open;
-      if (!shouldPlay) {
-        backgroundFilm.pause();
-        return;
-      }
-      const source = backgroundFilm.querySelector('source');
-      if (!source.hasAttribute('src')) {
-        source.src = source.dataset.src;
-        backgroundFilm.muted = true;
-        backgroundFilm.load();
-      }
-      backgroundFilm.play().catch(error => {
-        // Intentional pauses may interrupt a pending play without blocking later playback.
-        if (error.name !== 'AbortError') playbackBlocked = true;
-        updateMotionButton();
-      });
-    };
-    motionButton.hidden = false;
-    motionButton.addEventListener('click', () => {
-      manualMotion = backgroundFilm.paused;
-      playbackBlocked = false;
-      syncBackgroundFilm();
-    });
-    backgroundFilm.addEventListener('play', updateMotionButton);
-    backgroundFilm.addEventListener('pause', updateMotionButton);
-    backgroundFilm.addEventListener('error', updateMotionButton);
-    document.addEventListener('visibilitychange', syncBackgroundFilm);
-    reducedMotion.addEventListener('change', () => {
-      manualMotion = null;
-      syncBackgroundFilm();
-    });
-    phoneViewport.addEventListener('change', syncBackgroundFilm);
-    if ('IntersectionObserver' in window) {
-      const filmObserver = new IntersectionObserver(entries => {
-        filmVisible = entries[0].isIntersecting;
-        syncBackgroundFilm();
-      }, { threshold: 0 });
-      filmObserver.observe(document.querySelector('.cinema'));
-    }
-    syncBackgroundFilm();
-
+  const filmDialog = document.querySelector('.film-dialog');
+  const fullFilm = document.querySelector('.product-film');
+  if (filmDialog && fullFilm) {
     // Native dialog provides Escape-to-close, focus containment and focus restoration.
     document.querySelector('[data-watch-film]').addEventListener('click', event => {
       if (typeof filmDialog.showModal !== 'function') return;
       event.preventDefault();
       filmDialog.showModal();
       root.classList.add('film-open');
-      syncBackgroundFilm();
       fullFilm.play().catch(() => { /* Native controls let the visitor retry. */ });
     });
     document.querySelector('.close-film').addEventListener('click', () => filmDialog.close());
@@ -158,7 +101,6 @@
       fullFilm.pause();
       if (fullFilm.readyState > 0) fullFilm.currentTime = 0;
       root.classList.remove('film-open');
-      syncBackgroundFilm();
     });
 
   }

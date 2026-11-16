@@ -1,0 +1,28 @@
+{
+  "scanned": "2026-11-16",
+  "findings": {
+    "fonts": "Karla, local XampDisplay TC (assets/site/site.css:1-15)",
+    "palette": "charcoal and mint; original pink/violet logo (assets/site/site.css:16-47)",
+    "motion": "native JS video/dialog, CSS transitions (assets/site/site.js)",
+    "spacing": "1240px cap and responsive gutters",
+    "framework": "buildless HTML, GitHub Pages Jekyll (_config.yml)"
+  },
+  "preserve": [
+    "four routes",
+    "real screenshots and approved film",
+    "download URLs",
+    "legacy anchors",
+    "dialog and view controls",
+    "local font licenses",
+    "original page composition",
+    "original section sequence and grids",
+    "cinematic hero placement",
+    "original download panel"
+  ],
+  "introduce": [
+    "Ultraviolet visual tokens",
+    "control radii and states",
+    "accessibility fixes"
+  ],
+  "mode": "restyle"
+}

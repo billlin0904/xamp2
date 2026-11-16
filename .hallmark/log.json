@@ -1,0 +1,76 @@
+[
+ {
+  "mode": "redesign",
+  "depth": "restyle",
+  "scope": "site",
+  "shape": "kept",
+  "theme": "ultraviolet",
+  "axes": "dark/geometric-sans/cool",
+  "hero": "kept cinematic",
+  "nav": "kept four-page bar",
+  "footer": "kept",
+  "imagery": "original real screenshots and approved film with original colours",
+  "photos": [],
+  "entry": "index.html",
+  "fingerprint": {
+   "shape": "original four-page structure",
+   "hero": "cinematic with left platform downloads",
+   "nav": "original",
+   "footer": "original"
+  },
+  "sections": [
+   "original cinematic hero",
+   "original page links",
+   "original feature browser",
+   "original audio split",
+   "original download panel and FAQ"
+  ],
+  "signature": "original cinematic XAMP introduction",
+  "waived": [
+   "24b",
+   "39b",
+   "59"
+  ],
+  "prompt": "User correction: preserve existing layout; change visual styling only using Hallmark v2.0.0",
+  "validation": "original structural sequence and hrefs match HEAD on four routes; 20 responsive route checks and all interaction QA pass; HTTP render 0 FAIL and 0 open REFLEX",
+  "date": "2026-11-16"
+ },
+ {
+  "mode": "redesign",
+  "depth": "full",
+  "scope": "site",
+  "shape": "Product showcase",
+  "theme": "ultraviolet",
+  "axes": "dark/geometric-sans/cool",
+  "hero": "Banner",
+  "nav": "four-page bar",
+  "footer": "statement",
+  "imagery": "real XAMP screenshots and approved film, unmodified colours",
+  "photos": [],
+  "entry": "index.html",
+  "fingerprint": {
+   "shape": "Product showcase",
+   "hero": "Banner",
+   "nav": "four-page bar",
+   "footer": "statement",
+   "first": "uncropped player screenshot",
+   "action": "download in hero and platform links at close"
+  },
+  "sections": [
+   "Banner",
+   "Showcase",
+   "Destination rows",
+   "Film split",
+   "Platform downloads",
+   "Statement footer"
+  ],
+  "signature": "uncropped XAMP collection at full page width",
+  "waived": [
+   "59",
+   "77"
+  ],
+  "prompt": "Remake XAMP GitHub Pages with Hallmark v2.0.0",
+  "validation": "0 Floor failures, 0 open Reflex, independent hero and finish reviews ship, responsive and interaction QA passed",
+  "date": "2026-11-16"
+ }
+]

@@ -79,3 +79,56 @@ Validation: checked 1280px desktop and 390px/320px phone layouts, both themes, b
 - Add “NTFS 高速讀取” to the approved film's opening collection scene, with “Windows 專屬 · 音樂庫掃描”. Retain the original library/playlist/search copy, all other scenes, the 15-second duration and supplied soundtrack.
 - Replace the local MP4 and derive the poster from the verified opening export frame. Version both media URLs with `v=ntfs-20261030` to refresh previously cached video and poster assets.
 - NTFS copy describes the opt-in Windows metadata-reading backend; the film retains its original macOS UI capture and identifies that material separately. No measured speedup is claimed.
+
+## Hallmark v2.0.0 visual restyle (2026-11-16)
+
+The user's clarified scope is to retain the existing layout and change only its visual
+system. The earlier full recomposition has been withdrawn. All four documents retain
+their original section sequence, grids, media positions, navigation, download placements,
+installation disclosures and footer. Home keeps the approved cinematic hero background
+with left-hand platform buttons; downloads keeps its original two-column download panel.
+The original JavaScript behaviour is restored, including eligible desktop background
+playback and reduced-motion/mobile safeguards. Screenshot switching, legacy fragment
+redirects and the native full-film dialog retain their existing logic.
+
+Active CSS is `assets/site/hallmark.css`, derived from the original `site.css` geometry.
+Shared `assets/site/hallmark/tokens.css` supplies the Ultraviolet night/lavender palette,
+original local Karla and XampDisplay fonts, neutral cinematic scrim and paired inks.
+The original CSS file is unchanged. Existing images/video keep their original colours.
+Radii, control states, border treatment and shadows are restyled. Hallmark-required
+changes remove decorative eyebrows, status markers, tracked labels and arrow suffixes;
+headings use one ink colour; focus is instant; image tracks are shrink-safe; html/body
+use overflow-x:clip. Font subsets are regenerated from the restored original copy.
+
+Original optical spacing, multi-line platform-button heights and compact section rhythm
+are documented exceptions (24b, 39b, 59). Structural findings are notes in restyle mode,
+because changing them would contradict the user's instruction. No compatibility,
+release, signing or notarization claim was added. All original URLs and documents remain.
+
+Designeer inspiration/resources and its Utopia/Minimal Gallery entries were consulted.
+No new framework, remote font, imagery, analytics or runtime dependency is introduced.
+QA dependencies are isolated under /tmp. Before/after images: `.hallmark/compare.html`.
+
+Validation: all four documents' original section/header/footer/main/nav/details/dialog
+sequence and every href compare exactly with Git HEAD. Twenty route/viewport checks
+from 320 to 1920px, image loading, active navigation, theme persistence, all four
+screenshot combinations, legacy-hash disclosure, reduced-motion idle state, film
+play/pause/mute, dialog close/Escape/focus restoration and no-script visibility pass.
+JavaScript syntax and whitespace checks pass. Static 0 FAIL / 0 open REFLEX;
+HTTP render 0 FAIL / 0 open REFLEX / 0 WARN. Structural notes are retained by design.
+
+Independent restyle finish review returned ship with no required fixes. No imagery slots or stand-ins need replacement.
+
+## Remove hero background image (2026-11-16)
+
+At the user's request, remove the homepage's right-side film/poster background and its
+background play/pause control. The hero now uses a solid ground. Keep the existing
+left-hand copy/downloads and on-demand full-film dialog. Dialog initialization is
+independent of the removed background video; no background video is loaded or played.
+Other pages and their screenshot browser remain unchanged.
+
+## Right-side homepage downloads (2026-11-16)
+
+Move the existing three platform downloads and installation links to the right column.
+Keep headline, introduction and on-demand video link on the left. Mobile stacks the
+introduction, video action and download choices in reading order. No background image.
