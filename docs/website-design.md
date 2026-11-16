@@ -140,3 +140,13 @@ LIN, requiring iOS/iPadOS 26. Added its exact store link to home and downloads, 
 iOS setup/privacy, mobile features and experimental DSD DoP caveats. Public listing
 takes precedence over stale local README review status. No unpublished development
 features/version numbers are advertised. Desktop binaries and right-side downloads stay.
+
+## iOS screenshot gallery (2026-11-16)
+
+Add three authentic, unmodified Simulator captures to features.html after the existing
+desktop screenshot browser: iPhone player, iPhone singing/furigana, iPad landscape player.
+Source: xamp-ios/AppStore/screenshots/1.7.0 (submitted product screenshots). Copied as
+JPEG to assets/site/ios, labelled as iOS 1.7.0 submission Simulator captures, never as
+physical-device photos. Original aspect ratios and full frames are retained. Images
+load lazily, reserve their original dimensions, carry descriptive alt text and link
+to full-size files. Mobile stacks them. No desktop screenshot controls are changed.

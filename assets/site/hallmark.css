@@ -5,6 +5,7 @@
 /* Hallmark · waive 24b · original XAMP stylesheet geometry is preserved · inherited optical pixel spacing stays to honour the requested layout-only preservation */
 /* Hallmark · waive 39b · original platform buttons hold two lines of download metadata · preserve their height and layout while keeping a minimum 44px touch target */
 /* Hallmark · waive 59 · original XAMP section spacing and page-next placement are retained · the user explicitly requested preserving the existing layout, including compact document transitions */
+/* Hallmark · answered F15 · keep the original desktop feature-column gap; the new iOS screenshot gallery uses a smaller gap so full phone screens remain readable */
 @import url("./hallmark/tokens.css");
 @import url("./hallmark/base.css");
 
@@ -1139,3 +1140,22 @@ code { font-size:.95rem; }
 .cinema .platform-download[data-ios-download] { grid-column:1 / -1;grid-row:2; }
 .install-notes { grid-template-columns:repeat(2,minmax(0,1fr)); }
 @media(max-width:767px) { .install-notes { grid-template-columns:minmax(0,1fr); } }
+
+/* Authentic iOS submission captures, uncropped and without simulated device frames. */
+.ios-showcase-heading { display:flex;align-items:end;justify-content:space-between;gap:var(--space-lg);margin-bottom:var(--space-xl); }
+.ios-showcase-heading h2 { font-size:var(--text-section); }
+.ios-showcase-heading p { max-width:45ch;color:var(--muted); }
+.ios-gallery { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--space-lg);align-items:center; }
+.ios-gallery figure { min-width:0; }
+.ios-gallery a { display:block;border-radius:var(--radius);overflow:clip; }
+.ios-gallery img { width:100%;height:auto; }
+.ios-gallery figcaption { font-size:14px;color:var(--muted);margin-top:var(--space-sm); }
+.ios-tablet { grid-column:span 2; }
+.ios-showcase > .text-link { margin-top:var(--space-xl); }
+@media(max-width:767px) {
+ .ios-showcase-heading { display:block; }
+ .ios-showcase-heading p { margin-top:var(--space-lg); }
+ .ios-gallery { grid-template-columns:minmax(0,1fr);gap:var(--space-xl); }
+ .ios-gallery figure { width:100%;max-width:360px;margin-inline:auto; }
+ .ios-gallery .ios-tablet { grid-column:auto;max-width:none; }
+}
